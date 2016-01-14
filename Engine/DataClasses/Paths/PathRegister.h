@@ -1,0 +1,41 @@
+/*
+ * cPathsManager.h
+ *
+ *  Created on: 18-10-2013
+ *      Author: Paweu
+ */
+
+#ifndef PATHREGISTER_H_
+#define PATHREGISTER_H_
+
+namespace DataClasses {
+namespace Paths {
+
+class PathRegister : public cRootClass {
+	GABI_DECLARE_STATIC_CLASS(PathRegister, cRootClass);
+public:
+	PathRegister(iMap *Owner);
+	virtual ~PathRegister();
+
+	DefineREADAccesPTR(Owner, iMap);
+
+	bool Initialize();
+	bool Finalize();
+
+	iPathSharedPtr GetPath(const string& Name) const;
+private: 
+	struct PathEntry {
+		NameClassPair Info;
+		mutable iPathWeakPtr Ptr;
+		xml_node MetaNode;
+	};
+	using PathMap = std::unordered_map<string, PathEntry>;
+	iMap *m_Owner;
+	PathMap m_PathMap;
+	FileSystem::XML m_PathMetaDocument;
+};
+
+} // namespace Paths 
+} // namespace DataClasses 
+
+#endif  PATHREGISTER_H_ 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AudioListWidget</class>
+ <widget class="QWidget" name="AudioListWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>598</width>
+    <height>492</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>AudioListWidget</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <item>
+    <widget class="QTreeView" name="treeView">
+     <property name="rootIsDecorated">
+      <bool>true</bool>
+     </property>
+     <property name="itemsExpandable">
+      <bool>true</bool>
+     </property>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionPlay">
+   <property name="icon">
+    <iconset resource="../mgdt.qrc">
+     <normaloff>:/mgdt/icons/blue_play.png</normaloff>:/mgdt/icons/blue_play.png</iconset>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionCopy_path">
+   <property name="icon">
+    <iconset resource="../mgdt.qrc">
+     <normaloff>:/mgdt/icons/blue_Copy.png</normaloff>:/mgdt/icons/blue_Copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy path</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="icon">
+    <iconset resource="../mgdt.qrc">
+     <normaloff>:/mgdt/icons/stop_sign.png</normaloff>:/mgdt/icons/stop_sign.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="../mgdt.qrc"/>
+ </resources>
+ <connections/>
+</ui>

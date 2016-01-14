@@ -1,0 +1,290 @@
+<?xml version="1.0"?>
+<Validate>
+	<Pattern Name="Module">
+		<Node Name="DataModule">
+			<Node Name="Options">
+				<Node Name="FirstScene">
+					<Text Type="String" />
+				</Node>
+				<Node Name="ModuleName">
+					<Text Type="String">
+						<Grab Where="InputModuleName" />
+					</Text>
+				</Node>
+			</Node>
+			
+			<List Optional="yes" Name="Scenes" Child="Item" >
+				<Attribute Name="Name" Type="String">
+					<SubFile NameSubPath="no" Where="Scenes" Pattern="Scene" PatternKind="Class" />
+					<Register Type="File" NameSubPath="no" FileType=".xml" Where="Scenes"/>
+					<Register Type="Resource" Where="Scenes" />					
+				</Attribute>
+				<Attribute Name="Class" Type="String" >
+					<Check Where="Class" List="Scene" />
+				</Attribute>
+			</List>
+			
+			<List Optional="yes" Name="Maps" Child="Item">
+				<Attribute Name="Name" Type="String">
+					<SubFile NameSubPath="yes" Pattern="Map" PatternKind="Class" Where="Maps" />
+					<Register Type="File" NameSubPath="yes" FileType=".xml" Where="Maps"/>
+					<Register Type="Resource" Where="Maps" />
+				</Attribute>						<Attribute Name="Class" Type="String" >
+					<Check Where="Class" List="Resource" />
+				</Attribute>	
+			</List>
+		
+
+			<List Optional="yes" Name="Models" Child="Item" >
+				<Attribute Name="Name" Type="String">
+					<SubFile NameSubPath="yes" Pattern="Model" PatternKind="Class" Where="Models" />
+					<Register Type="File" NameSubPath="yes" FileType=".xml" Where="Models"/>
+					<Register Type="Resource" Where="Models" />
+				</Attribute>
+				<Attribute Name="Class" Type="String" >
+					<Check Where="Class" List="Resource" />
+				</Attribute>
+			</List>	
+			
+			<Node Optional="yes" Name="Player">
+				<Attribute Name="File" Type="String">
+					<SubFile NameSubPath="no" Pattern="Player" PatternKind="Class" Where="XML" />
+					<Register Type="File" NameSubPath="no" Where="XML"/>
+				</Attribute>
+				<Attribute Name="Class" Type="String">
+					<Check Where="Class" List="Core" />
+				</Attribute>
+			</Node>
+			
+			<Node Optional="yes" Name="PredefObjects">
+				<Attribute Name="File" Type="String">
+					<SubFile NameSubPath="no" Pattern="PredefObjects" Where="XML" />
+					<Register Type="File" NameSubPath="no" Where="XML"/>
+				</Attribute>
+			</Node>			
+		</Node>
+	</Pattern>
+
+	
+	<Pattern Name="PredefObjects">
+		<List Name="PredefObjects" Child="Item">
+			<SubPattern Which="Object_Name_Class" />
+			
+			<Node Name="Model">
+				<Attribute Name="Name" Type="String">
+					<Check Where="Resource" List="Models" />
+				</Attribute>
+			</Node>
+			<Node Name="Scale">
+				<Attribute Name="Value" Type="float" />
+			</Node>			
+			<Node Name="Mass">
+				<Attribute Name="Value" Type="float" />
+			</Node>	
+		</List>
+	</Pattern>
+	
+<!-- MODELS --->		
+	<Pattern Name="Model_SimpleModel">
+		<Node Name="Model">
+			<SubPattern Which="Resource_Name_Class" />
+			<SubPattern Which="Common_Physics_Body" />
+			<SubPattern Which="Common_Physics_Properties" />
+			
+			<Node Name="File">
+				<Text Type="String">
+					<Register Type="File" Where="" />
+				</Text>
+			</Node>				
+		</Node>	
+	</Pattern>
+	<Pattern Name="Model_PlaneModel">
+		<Node Name="Model">
+			<SubPattern Which="Resource_Name_Class" />
+			<SubPattern Which="Common_Material_list" />
+			<SubPattern Which="Common_Physics_Body" />
+			<SubPattern Which="Common_Physics_Properties" />
+			<Node Name="Size">
+				<SubPattern Which="XYZ_Vector" />
+			</Node>
+		</Node>	
+	</Pattern>
+	
+<!-- OBJECTS --->		
+	<Pattern Name="ObjectList">
+		<List Optional="yes" Name="Objects" Child="Item">
+			<Attribute Name="Name" Type="String">
+				<Check Where="Resource" List="Objects" />
+			</Attribute>			
+			<Node Name="Position">
+				<SubPattern Which="XYZ_Full_Vector" />
+			</Node>
+			<Node Optional="yes" Name="Rotation">
+				<SubPattern Which="XYZ_Full_Vector" />
+			</Node>			
+		</List>
+	</Pattern>
+	
+<!-- MAPS --->	
+	<Pattern Name="Map_DungeonMap">
+		<Node Name="DungeonMap">
+			<SubPattern Which="Resource_Name_Class" />
+			<SubPattern Which="ObjectList" />
+			<SubPattern Which="Graphic_Environment" />
+		</Node>
+	</Pattern>
+	<Pattern Name="Map_SimpleMap">
+		<Node Name="SimpleMap">
+			<SubPattern Which="Resource_Name_Class" />
+			<SubPattern Which="ObjectList" />
+			<SubPattern Which="Graphic_Environment" />
+		</Node>
+	</Pattern>
+	
+<!-- COLLISION CLASSES --->
+	<Pattern Name="BodyShape_BoxShape">
+		<Node Name="Edge">
+			<SubPattern Which="XYZ_Vector" />
+		</Node>	
+	</Pattern>	
+	<Pattern Name="BodyShape_SphereShape">
+		<Node Optional="yes" Name="Radius">
+			<Attribute Name="Value" Type="Float" />
+		</Node>
+		<Node Optional="yes" Name="Diameter">
+			<Attribute Name="Value" Type="Float" />
+		</Node>		
+	</Pattern>	
+	
+<!-- LIGHT SOURCE CLASSES --->
+	<Pattern Name="LightSource_Base">
+		<Node Name="Color">
+			<SubPattern Which="RGB_Full_Vector" />
+		</Node>	
+		<Node Name="Intensity" >
+			<Attribute Name="Ambient" Type="Float" />
+			<Attribute Name="Diffuse" Type="Float" />
+		</Node>
+	</Pattern>	
+	<Pattern Name="LightSource_PointLight">
+		<SubPattern Which="LightSource_Base" />
+		<Node Name="Position">
+			<SubPattern Which="XYZ_Full_Vector" />
+		</Node>	
+		<Node Name="Attenuation">
+			<Attribute Name="Constant" Type="Float" />
+			<Attribute Name="Linear" Type="Float" />
+			<Attribute Name="Exp" Type="Float" />
+			<Attribute Name="Threshold" Type="Float" />
+		</Node>			
+	</Pattern>	
+	<Pattern Name="LightSource_DirectionalLight">
+		<SubPattern Which="LightSource_Base" />
+		<Node Name="Direction">
+			<SubPattern Which="XYZ_Full_Vector" />
+		</Node>	
+	</Pattern>		
+	
+<!-- COMMON PARTS --->
+
+	<!-- vectors --->
+	<Pattern Name="RGB_Vector">
+		<Attribute Optional="yes" Name="R" Type="NormalizedFloat" />
+		<Attribute Optional="yes" Name="G" Type="NormalizedFloat" />
+		<Attribute Optional="yes" Name="B" Type="NormalizedFloat" />
+		<Attribute Optional="yes" Name="Value" Type="NormalizedFloat" />
+	</Pattern>	
+	<Pattern Name="RGB_Full_Vector">
+		<Attribute Name="R" Type="NormalizedFloat" />
+		<Attribute Name="G" Type="NormalizedFloat" />
+		<Attribute Name="B" Type="NormalizedFloat" />
+	</Pattern>	
+	<Pattern Name="XYZ_Vector">
+		<Attribute Optional="yes" Name="X" Type="Float" />
+		<Attribute Optional="yes" Name="Y" Type="Float" />
+		<Attribute Optional="yes" Name="Z" Type="Float" />
+		<Attribute Optional="yes" Name="Value" Type="Float" />
+	</Pattern>
+	<Pattern Name="XYZ_Full_Vector">
+		<Attribute Name="X" Type="Float" />
+		<Attribute Name="Y" Type="Float" />
+		<Attribute Name="Z" Type="Float" />
+	</Pattern>
+	
+<!-- name and class check --->
+	<Pattern Name="Object_Name_Class">
+		<Attribute Name="Name" Type="String">
+			<Register Type="Resource" Where="Objects" />
+		</Attribute>
+		<Attribute Name="Class" Type="String" >
+			<Check Where="Class" List="Object" />
+		</Attribute>
+	</Pattern>	
+	<Pattern Name="Resource_Name_Class">
+		<Attribute Name="Name" Type="String">
+			<Register Type="Resource" Where="Resources" />
+		</Attribute>
+		<Attribute Name="Class" Type="String" >
+			<Check Where="Class" List="Resource" />
+		</Attribute>
+	</Pattern>		
+
+<!-- physics --->
+	<Pattern Name="Common_Physics_Properties">
+		<Node Name="Physics">
+			<Node Name="Friction">
+				<Attribute Name="Value" Type="float" />
+			</Node>		
+			<Node Name="Restitution">
+				<Attribute Name="Value" Type="float" />
+			</Node>		
+			<Node Name="Damping">
+				<Attribute Name="Linear" Type="float" />
+				<Attribute Name="Angular" Type="float" />
+			</Node>		
+		</Node>	
+	</Pattern>
+	<Pattern Name="Common_Physics_Body">
+		<Node Optional="yes" Name="Body">
+			<Attribute Name="Class" Type="String" >
+				<Check Where="Class" List="BodyShape" />
+				<SubPattern Which="BodyShape" UseKind="yes" />
+			</Attribute>			
+		</Node>	
+	</Pattern>
+	
+<!-- graphic --->
+	<Pattern Name="Common_Material_list">
+		<List Optional="yes" Name="Materials" Child="Material">
+			<Node Optional="yes" Name="Texture">
+				<Attribute Optional="yes" Name="Edges" Type="String" />
+				<Attribute Optional="yes" Name="AlphaThreshold" Type="NormalizedFloat" />
+				<Node Name="File">
+					<Text Type="String">
+						<Register Type="File" Where="" />
+					</Text>
+				</Node>
+				<Node Optional="yes" Name="BackColor">
+					<Attribute Name="R" Type="NormalizedFloat" />
+					<Attribute Name="G" Type="NormalizedFloat" />
+					<Attribute Name="B" Type="NormalizedFloat" />
+				</Node>
+			</Node>
+		</List>
+	</Pattern>
+	<Pattern Name="Graphic_Environment">
+		<Node Name="Environment">
+			<Node Name="StaticFog">
+				<Attribute Name="Enabled" Type="Bool" />
+				<Attribute Optional="yes" Name="Start" Type="Float" />
+				<Attribute Optional="yes" Name="End" Type="Float" />
+				<Node Name="Color" >
+					<SubPattern Which="RGB_Full_Vector" />
+				</Node>
+			</Node>		
+			<Node Name="AmbientLight">
+				<SubPattern Which="LightSource_DirectionalLight" />
+			</Node>		
+		</Node>
+	</Pattern>	
+</Validate>

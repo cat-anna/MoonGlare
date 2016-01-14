@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<Font Class="BitmapFont" Name="Arial">
+	<BFD>Arial.bfd</BFD>
+	<Bitmap>Arial.png</Bitmap>
+</Font>

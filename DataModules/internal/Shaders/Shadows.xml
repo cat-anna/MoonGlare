@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<Shader Type="glfx" Name="Shadows">
+	<glfx>Shadows.glfx</glfx>
+</Shader>

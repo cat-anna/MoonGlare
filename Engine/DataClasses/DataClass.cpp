@@ -1,0 +1,141 @@
+#include <pch.h>
+#include <MoonGlare.h>
+
+namespace DataClasses {
+
+GABI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
+RegisterApiDerivedClass(BasicResource, &BasicResource::RegisterScriptApi);
+
+BasicResource::BasicResource(DataModule *Owner): 
+		m_Owner(Owner) {
+}
+
+BasicResource::BasicResource(const string& Name): 
+		BaseClass(Name),
+		m_Owner(nullptr) { 
+}
+
+void BasicResource::SetDataModule(DataModule *DataModule){
+	if (m_Owner){
+		AddLogf(Debug, "Doing reset %s owner!", GetName().c_str());
+	}
+	if (!DataModule){
+		AddLogf(Debug, "Setting %s owner to null!", GetName().c_str());
+	}
+	m_Owner = DataModule;
+}
+
+void BasicResource::RegisterScriptApi(ApiInitializer &api) {
+	api
+	.deriveClass<ThisClass, BaseClass>("cBasicResource")
+		//.addFunction("GetDataReader", &ThisClass::GetDataReader)
+	.endClass()
+	;
+}
+
+DataPath BasicResource::GetResourceType() const {
+	LOG_ABSTRACT_FUNCTION();
+	CriticalError("Abstract function called!");
+}
+
+FileSystem::XML BasicResource::OpenMetaData() const {
+	FileSystem::XML xml;
+	if (!GetFileSystem()->OpenResourceXML(xml, GetName(), GetResourceType())) {
+		AddLogf(Error, "Unable to open master resource xml for resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		return nullptr;
+	}
+	return xml;
+}
+
+//---------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------
+
+GABI_IMPLEMENT_ABSTRACT_CLASS(DataClass)
+RegisterApiDerivedClass(DataClass, &DataClass::RegisterScriptApi);
+
+DataClass::DataClass(DataModule *DataModule): 
+		BaseClass(DataModule),
+		m_Flags(0) {
+}
+
+DataClass::DataClass(const string& Name): 
+		BaseClass(Name), 
+		m_Flags(0) { 
+}
+
+DataClass::~DataClass() {
+	AddLogf(Debug, "Destroying resource '%s'", GetName().c_str());
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void DataClass::RegisterScriptApi(ApiInitializer &api) {
+	api
+	.deriveClass<ThisClass, BaseClass>("cDataClass")
+	.endClass()
+	;
+}
+
+bool DataClass::Initialize() {
+	if (IsReady())
+		return true;
+
+	if (!DoInitialize()) {
+		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		return false;
+	}
+
+	SetReady(true);
+	AddLogf(Debug, "Initialized resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+	return true;
+}
+
+bool DataClass::Finalize() {
+	if (!IsReady())
+		return true;
+
+	SetReady(false);
+
+	if (!DoFinalize()) {
+		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		return false;
+	}
+	AddLogf(Debug, "Finalized resource resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+	return true;
+}
+
+//---------------------------------------------------------------------------------------------------
+
+bool DataClass::DoInitialize() {
+	return true;
+}
+
+bool DataClass::DoFinalize() {
+	return true;
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void DataClass::InternalInfo(std::ostringstream& buff) const {
+	BaseClass::InternalInfo(buff);
+	if (buff.tellp() > 0)
+		buff << " ";
+	static const char TruthTable[] = { 'F', 'T' };
+	buff << "Name:'" << GetName() << "' Init:" << TruthTable[IsReady()];
+}
+
+void DataClass::WriteNameToXML(xml_node Node) const {
+	Node.append_attribute("Class") = GetDynamicTypeInfo()->Name;
+	Node.append_attribute("Name") = GetName().c_str();
+}
+
+bool DataClass::ReadNameFromXML(const xml_node Node) {
+	SetName(Node.attribute("Name").as_string(""));
+	if (GetName().empty()) {
+		AddLog(Debug, "Resource definition without name!");
+		return false;
+	}
+	return true;
+}
+
+} // namespace DataClasses

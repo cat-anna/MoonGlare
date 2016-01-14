@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<DataModule>
+	<Options>
+		<ModuleName>Internal</ModuleName>
+		<ConsoleFont>Arial</ConsoleFont>
+		<dEvents>
+			<dOnLoadFinished Invoke="" />
+			<dOnInitializeGame Invoke="" />
+		</dEvents>
+	</Options>
+	<Models>
+		<Item Name="Sphere" Class="SimpleModel" />
+		<Item Name="Cone" Class="SimpleModel" />
+	</Models>
+</DataModule>

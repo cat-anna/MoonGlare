@@ -1,0 +1,46 @@
+#include "Common.glsl"
+
+ uniform sampler2D Texture0;
+//uniform sampler2DShadow Texture0;
+
+//---------------
+
+interface VSOutput {
+    vec2 VertexUV0; 
+    vec3 VertexNormal; 
+	vec4 VertexWorldPos;
+	vec4 VertexPosition;
+};
+
+//---------------
+
+shader VSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) { 
+	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
+	
+	gl_Position = vpos;
+	VSout.VertexPosition = vpos;
+    VSout.VertexUV0 = TexCoord;
+	VSout.VertexNormal = (ModelMatrix * vec4(Normal, 0.0)).xyz;
+	VSout.VertexWorldPos = (ModelMatrix * vec4(Pos, 1.0));
+};
+
+shader fsmain_texture(in VSOutput FSin, out vec4 FragColor) {
+	 FragColor = vec4(texture2D(Texture0, FSin.VertexUV0));
+	// FragColor = vec4(1);
+	// vec3 pos = vec3(5, 0.5, -0.5);
+	// vec3 v = vec3();
+	// FragColor.x = texture( Texture0, v );
+// FragColor=vec4(0, v, 0,  1);
+	// if(FragColor.a < Material.AlphaThreshold) 
+	//	 discard;
+	FragColor.xyz *= Material.BackColor;
+	
+	//FragColor = ApplyStaticFog(FragColor, FSin.VertexPosition);
+};
+
+//--------------- 
+
+program default {
+	vs(330) = VSmain();
+	fs(330) = fsmain_texture();
+};
