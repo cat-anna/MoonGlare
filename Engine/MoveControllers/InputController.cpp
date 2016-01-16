@@ -205,7 +205,7 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 	if (MoveAllowed && MoveNeeded) {
 		btQuaternion q(Physics::vec3(0, 1, 0), m_Rotation[1]);
 
-		//m_Owner->SetLookDirection(LookDirection); 
+		m_Owner->SetLookDirection(LookDirection); 
 		//auto body = m_Owner->GetBody();
 		//LinearSpeed[1] = body->GetLinearVelocity()[1];
 		//body->SetLinearVelocity(LinearSpeed);

@@ -10,7 +10,7 @@ wstring towstring(const string &in) {
 	return std::move(r);
 }
 
-string tostring(const string &in) {
+string tostring(const wstring &in) {
 	string r;
 	utf8::utf32to8(in.begin(), in.end(), std::back_inserter(r));
 	return std::move(r);

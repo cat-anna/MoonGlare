@@ -13,6 +13,9 @@ end
 function TogglePhysicEnabled()
 	if Physics.Enable(false) == false then
 		Physics.Enable(true);
+		Log.Console("Physics enabled")
+	else
+		Log.Console("Physics disabled")
 	end
 	
 	return 0;

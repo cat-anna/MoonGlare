@@ -53,7 +53,9 @@ void iCamera::DoMove(const MoveConfig& conf) {
 void iCamera::PreRender(const PreRenderConfig& conf) {
 	if (m_TrackedObject) {
 		m_Camera->SetPosition(m_TrackedObject->GetPosition() + m_CameraDelta);
-		m_Camera->SetDirection(m_TrackedObject->GetLookDirection());
+		auto dir = m_TrackedObject->GetLookDirection();
+	//5	AddLog(Hint, "Direction" << convert(dir));
+		m_Camera->SetDirection(dir);
 #pragma message ("CAMERA LOOK DIRECTION IS NOT SET")
 		m_Camera->UpdateMatrix();
 	}

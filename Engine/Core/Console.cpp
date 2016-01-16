@@ -204,12 +204,12 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 
 void Console::Print(const char* Text, unsigned lineType) {
 	if (!IsCanRender()) return;
-//	return AddLine(Utils::Strings::towstring(Text), lineType);
+	return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const string &Text, unsigned lineType) {
 	if (!IsCanRender()) return;
-//	return AddLine(Utils::Strings::towstring(Text), lineType);
+	return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const wstring &Text, unsigned lineType) {
@@ -238,7 +238,7 @@ void Console::ProcessInput(unsigned key) {
 		if (text.empty())
 			return;
 		AddLine(text);
-		//::Core::Scripts::ScriptProxy::ExecuteCode(Utils::Strings::tostring(text.c_str()));
+		::Core::Scripts::ScriptProxy::ExecuteCode(Utils::Strings::tostring(text));
 		return;
 	}
 	default:

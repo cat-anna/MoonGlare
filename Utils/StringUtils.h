@@ -4,7 +4,7 @@ namespace Utils {
 namespace Strings {
 
 wstring towstring(const string &in);
-string tostring(const string &in);
+string tostring(const wstring &in);
 
 #if 0
 
