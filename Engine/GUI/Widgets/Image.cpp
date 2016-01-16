@@ -128,7 +128,12 @@ void Image::SetImageAlignMode(InnerAlignMode value) {
 }
 
 void Image::ResetImage() {
-	auto anim = GetCurrentStyle()->GetAnimation(m_ImageName);
+	auto style = GetCurrentStyle();
+	if (!style) {
+		AddLog(Error, "Got nullptr style!");
+		return;
+	}
+	auto anim = style->GetAnimation(m_ImageName);
 	if (!anim || anim == m_Animation.Data)
 		return;
 	m_Animation = anim->CreateInstance();

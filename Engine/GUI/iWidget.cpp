@@ -242,6 +242,8 @@ iWidget* iWidget::GetWidgetAt(const Point &p) const {
 }
 
 const Style* iWidget::GetCurrentStyle() const {
+	if (!m_Style)
+		return nullptr;
 	if (IsFocused())
 		return &m_Style->Focused;
 	if (IsHovered())

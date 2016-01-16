@@ -51,7 +51,7 @@
 using std::istream;
 using std::ostream;
 using std::string;
-using wstring = std::u16string;
+using wstring = std::wstring;//u16string
 using LockGuard = std::lock_guard < std::mutex > ;
 
 #define MERGE_(a,b)  a##b
@@ -75,6 +75,7 @@ using LockGuard = std::lock_guard < std::mutex > ;
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/ptr_container/ptr_list.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/locale.hpp>
 
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure

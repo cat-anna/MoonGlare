@@ -86,7 +86,7 @@ struct LogEngine::LogEngineImpl {
 	void EngineMain() {
 		m_ThreadRunning = true;
 		//give some time to settle things
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 		SetThisThreadName("LOGE");
 		AddLog(Thread, "Log thread executed");
@@ -169,6 +169,7 @@ LogEngine::LogEngine() {
 	_Instance = this;
 
 	m_Impl = std::make_unique<LogEngineImpl>();
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 LogEngine::~LogEngine() {

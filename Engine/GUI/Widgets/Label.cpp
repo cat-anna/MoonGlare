@@ -119,7 +119,7 @@ void Label::SetText(const wstring& text) {
 
 void Label::RefreshTextWrapper() {
 	auto *style = GetCurrentStyle();
-	if (!style->Font) {
+	if (!style || !style->Font) {
 		m_Wrapper.reset();
 		return;
 	}

@@ -27,8 +27,11 @@ shader Geometry_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, ou
 
 shader Geometry_fs(in VSOutput FSin, out vec3 WorldPosOut : 1, out vec3 DiffuseOut : 2, out vec3 NormalOut : 3) {
 	vec4 color = texture2D(Texture0, FSin.VertexUV0);
-	 if(color.a < Material.AlphaThreshold) 
-		 discard;
+	if(color.a < Material.AlphaThreshold) {
+		color.a = 0.0;
+		return;
+	//	discard;
+	}
 	DiffuseOut	= color.xyz * Material.BackColor;
 	WorldPosOut	= FSin.VertexWorldPos;					
 	NormalOut	= FSin.VertexNormal;			

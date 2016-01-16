@@ -103,6 +103,7 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 		Color.a = 1.0f;
 		return Color;
 	}
-	else 
-		discard;
+	//else 
+	//	discard;
+	return vec4(0.0);
 }

@@ -491,7 +491,7 @@ Container InternalFileSystem::OpenContainer(const string& FileName, unsigned Loa
 	try {
 		if (boost::filesystem::is_directory(FileName)) {
 #ifndef _FEATURE_FOLDER_CONTAINER_SUPPORT_
-			AddLogf(Error, "File '%s' is an directory!", File.c_str());
+			AddLogf(Error, "File '%s' is an directory!", FileName.c_str());
 			throw false;
 #else 
 			auto *mgc = new FolderContainer(FileName);

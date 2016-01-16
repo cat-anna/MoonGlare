@@ -4,6 +4,8 @@
 
 #include <string.h>
 #include <iostream>
+#include <memory>
+#include <mutex>
 
 #pragma warning ( disable: 4966 )
 
@@ -15,9 +17,10 @@
 #include <boost/asio.hpp>
 
 #include <Version.h>
-#include <reconVersion.inc>
+//#include <reconVersion.inc>
 #include <source/Utils/SetGet.h>
-#include <source/modules/MoonGlareInsider/MoonGlareInisderApi.h>
+#include <source/Utils/Memory.h>
+#include <source/EngineModules/MoonGlareInsider/MoonGlareInisderApi.h>
 
 using namespace std;
 using namespace MoonGlare::Debug::InsiderApi;
@@ -51,7 +54,7 @@ GabiLib::ProgramParameters Params = {
 using boost::asio::ip::udp;
 
 int main(int argc, char** argv) {
-	cout << "Moonglare engine remote console " << reconToolVersion.VersionStringFull() << "\n\n";
+	cout << "Moonglare engine remote console "/* << reconToolVersion.VersionStringFull() <<*/ "\n\n";
 	{
 		char buf[32];
 		sprintf(buf, "%d", Configuration::recon_Port);

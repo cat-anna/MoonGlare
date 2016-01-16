@@ -7,18 +7,28 @@ ModuleManager_t.__index = ModuleManager_t
 local CreateModuleManager = function ()
     local t = { }
     setmetatable(t, ModuleManager_t)
-    t.Modules = { }
-    t.Libs =  { }
+    t.Groups = { }
     t.ConfigFile = "MoonGlareConfiguration.lua"
-    t.RootDir = nil
-    t.Settings = nil
+    t.Settings = { }
     return t;
 end
 
 ModuleManager = CreateModuleManager()
 
+local DoAddModule = false
+
 function define_module(data) 
-	return ModuleManager:addModule(data)
+	if DoAddModule then
+		filter { }
+		if not data.Add then
+			ModuleManager:fail(string.format("Module %s:%s does not have valid add function", data.group, data.name))
+		end	
+		data.Add()
+		DoAddModule = false
+		return
+	end
+
+	return ModuleManager:RegisterModule(data)
 end
 
 -------------------
@@ -27,115 +37,85 @@ function ModuleManager_t:init(filen)
     if self.root_dir then
         self:fail("ModuleManager is allready initialized!")
     end
-	
-	self.RootDir = os.realpath(os.getcwd() .. "/../")
-	
-	print("MoonGlare build root: " .. self.RootDir)
 
     if filen then
         self.ConfigFile = filen
+	else
+		self.ConfigFile = dir.base .. "ModuleConfiguration.lua"
     end
+	
+	print ("Module configuration file: " .. self.ConfigFile)
 
-    local f = io.open(self.RootDir .. self.ConfigFile, "rb")
-    local settings_ok = false
+    local f = io.open(self.ConfigFile, "rb")
     if f then
         f:close()
-        self.OverwriteConfig = false;
-        self.Settings = dofile(self.RootDir .. self.ConfigFile)
-        settings_ok = true
-        if      not self.Settings or 
-                not self.Settings.Libs or
-                not self.Settings.Modules then
-            settings_ok = false
-        end
-    end
-
-    if not settings_ok then
-        print("Config file does not exists or file is invalid!")
-        self.OverwriteConfig = true;
-        
-        self.Settings = {
-            Modules = {
-            },
-            Libs = {
-            }
-        }
+        self.Settings = dofile(self.ConfigFile)
+		if not self.Settings then
+			print "Failed to read module configuration file"
+			self.Settings = { }
+		end
     end
 
     self:search()
-
-    if self.OverwriteConfig then
-        self:saveConfig()
-    end
+    self:saveConfig()
 end
 
 function ModuleManager_t:fail(message)
 	print(message)
 	error(message)
+	os.exit(1)
 end;
 
 function ModuleManager_t:search()
-	local modlist = os.matchfiles(self.RootDir .. "source/**/moduleinfo.lua")
+	local modlist = os.matchfiles(dir.src .. "**/module.lua")
 	table.foreach(modlist, function(k,v) include(v); end)
 end
 
-function ModuleManager_t:addModule(data)
+function ModuleManager_t:RegisterModule(data)
 	data.script = _SCRIPT
-    local out_table = nil
-    local test_table = nil
-	local typetable = {
-		module = function(data) 
-			data.addsources = true
-            out_table = self.Modules
-            test_table = self.Settings.Modules
-		end,
-		lib = function(data)
-			data.addsources = true
-            out_table = self.Libs
-            test_table = self.Settings.Libs
-		end,
-	}
-    local fun = typetable[data.type]	
-	if not fun then
-    	self:fail("Unknown module type: " .. data.name)
-	else 
-		fun(data)
-    end
 
-	if out_table[data.name] then
-		self:fail("Error: module " .. data.name .. " allredy exists")
+	local modgroup = self.Groups[data.group]
+	if not modgroup then
+		modgroup = { }
+		self.Groups[data.group] = modgroup
+	end
+	
+	if modgroup[data.name] then
+		self:fail("Error: module " .. data.name .. " allredy exists in group " .. data.group)
 		return
 	end
 
-    out_table[data.name] = data
+    modgroup[data.name] = data
 
-    local test = test_table[data.name]
+    local settingsgroup = self.Settings[data.group]
 
-    if test == nil then
-        print("Found new " .. data.type .. ": " .. data.name .. " - adding to included " .. data.type .. "s");
-        data.excluded = false
-        test_table[data.name] = true;
-        self.OverwriteConfig = true;
+    if not settingsgroup or settingsgroup[data.name] == nil then
+        print(string.format("Found new module %s in group %s - Excluding from build", data.name, data.group))
+        data.excluded = true
+		if not settingsgroup then
+			settingsgroup = { }
+			self.Settings[data.group] = settingsgroup
+		end
+        settingsgroup[data.name] = false;
         return
     end
 
-    if not test then
+    if not settingsgroup[data.name] then
         data.excluded = true
-        print("Found excluded " .. data.type .. ": " .. data.name);
+		print(string.format("Found excluded module %s:%s", data.group, data.name))
     else
         data.excluded = false
-        print("Found " .. data.type .. ": " .. data.name);
+		print(string.format("Found module %s:%s", data.group, data.name))
     end
-
 end
 
 function ModuleManager_t:saveConfig()
-    local f = io.open(self.RootDir .. self.ConfigFile, "w")
+    local f = io.open(self.ConfigFile, "w")
     if not f then
         self:fail("Uable to open config file for writting")
         return
     end
-    print("Writting changed configuration")
+    print("Writting configuration")
     local dump
     
     dump = function (value, loc)
@@ -189,61 +169,24 @@ return Settings
     f:close()
 end
 
-function ModuleManager_t:addSources()
-	table.foreach(self.Modules, 
-		function(k,data)			
-			self:addCommon(data)
-		end
-	)
+function ModuleManager_t:AddModules(GroupName)
+	local k,v
+	local Group = self.Groups[GroupName]
+	if not Group then
+		print(string.format("Module group %s is empty!", GroupName))
+		return 
+	end
+	for k,v in pairs(Group) do
+		self:AddModule(v)
+	end
 end
 
-function ModuleManager_t:addLibs()
-	table.foreach(self.Libs, 
-		function(k,data)			
-			self:addCommon(data)
-		end
-	)
-end
-
-function ModuleManager_t:addCommon(data)
-    if not data or data.excluded or not data.addsources then
+function ModuleManager_t:AddModule(data)
+    if not data or data.excluded then
         return
     end
 
-	local subpath = path.getrelative(os.getcwd(), data.script);
-	subpath = path.getdirectory(subpath) .. "/"	
-	
-	filter { }
-	table.foreach(data.files, 
-		function(k,v) 
-			files(subpath .. v)
-		end
-	)	
-	files(subpath .. "moduleinfo.lua")
-			
-	if data.libs then links(data.libs.common); end
-	if data.defines then links(data.defines.common); end		
-		
-	if data.premakecommand then
-		data.premakecommand()
-	end		
-	
-	local ConfigSettings = {
-		Release = function()
-			if data.libs then links(data.libs.release); end
-			if data.defines then defines(data.defines.release); end		
-		end,
-		Debug = function()
-			if data.libs then links(data.libs.debug); end
-			if data.Defines then defines(data.defines.debug); end	
-		end,
-	}
-	
-	local k
-	local v
-	for k,v in pairs(MoonGlare.Configurations) do
-		filter("configurations:" .. v.Name)
-		ConfigSettings[v.Type]()
-	end
-		
+	DoAddModule = true
+	dofile(data.script)
 end
+

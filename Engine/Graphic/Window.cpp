@@ -158,10 +158,10 @@ GLFWvidmode Window::GetMode(int index) const {
 
 GLFWvidmode Window::GetCurrentMode() const {
 	return GLFWvidmode{
-		m_Size[0],
-		m_Size[1],
+		(int)m_Size[0],
+		(int)m_Size[1],
 		8, 8, 8,
-		GetRefreshRate()
+		(int)GetRefreshRate()
 	};
 }
 
@@ -351,7 +351,7 @@ void Window::glfwMouseButtonCallback(GLFWwindow *window, int button, int action,
 	}
 
 	auto MouseBtn = static_cast<WindowInput::MouseButton>(button);
-	WindowInput::ModsStatus mods{ rawmods };
+	WindowInput::ModsStatus mods{ (unsigned)rawmods };
 
 	if (action == GLFW_PRESS)
 		::Core::Input::MouseDownEvent(MouseBtn, mods);

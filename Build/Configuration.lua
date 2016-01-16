@@ -1,98 +1,9 @@
 --Moonglare build subscript
 --Engine configuration
 
-MoonGlare.Configurations = {
-	{
-		Type = "Debug",
-		Name = "Debug",
-		Config = function()
-			flags { "Symbols", }
-			optimize "Debug"
-			warnings "Extra"
-			runtime "Debug"
-		end,
-	},
-	{
-		Type = "Debug",
-		Name = "Test",
-		Config = function()
-			flags { "Symbols", }
-			optimize "On"
-			warnings "Extra"
-			runtime "Debug"	
-		end,
-	},
-	{
-		Type = "Release",
-		Name = "Release",
-		Config = function()
-			flags { }		
-			vectorextensions "SSE2"
-			optimize "Speed"
-			warnings "Default"	
-			runtime "Release"
-		end,
-	},	
-	{
-		Type = "Release",
-		Name = "Performance",
-		Config = function()
-			flags { }		
-			vectorextensions "SSE2"
-			optimize "Speed"
-			warnings "Default"	
-			runtime "Release"
-		end,
-	},		
-}
-
-MoonGlare.GetConfigurationList = function ()
-	local r = {}
-	local k
-	local v
-	for k,v in pairs(MoonGlare.Configurations) do
-		r[#r+1] = v.Name
-	end
-	return r;
-end
-
-Common = {
-	LibDir = {
-		"../../libs",
-		"../../../LibsC",
-		"assimp/lib", 
-		"bullet3-master/lib/",
-	},
-	IncludeDir = {
-		"../../libs",
-		"../../../LibsC",	
-		"source", 
-		"source/Engine/", 
-		"$(OBJDIR)",
-		"bullet3-master/src",
-		"libs",
-	},
-}
-
-Libs = {
-	Common = {
-		"lua51jit",
-		"freeimage", 
-		"glfw3dll", 
-		"glew32",
-		"glfx", 						
-		"assimp",
-	},
-	msvc = { },
-	gcc = { },
-	
-	Linux = { "GL", "GLU", "GLEW", "X11", "Xxf86vm", "Xrandr", "Xi", "rt", },
-	Windows = { "opengl32", "glu32", "gdi32", },
-}
-
 Features = {
 	PerfCounters = {
-		Define = "_FEATURE_EXTENDED_PERF_COUNTERS_",
+		Define = "",
 	},
 	FolderContainer = {
 		Define = "_IFS_FOLDER_CONTAINER_SUPPORT_",
@@ -116,17 +27,7 @@ Engine = {
 		"FolderContainer",
 		"PerfCounters",
 	},
-	Source = {
-		"source/*",
-		"source/Engine/**", 
-		"source/Config/**",
-		"source/Utils/**",
-		"libs/**",
-	},
-	Defines = {
-		"BT_EULER_DEFAULT_ZYX",
-	},
-	
+
 	Debug = {
 		Defines = {
 		},
@@ -147,104 +48,108 @@ function SetPCH(pch)
 	
 	pchheader(pch.hdr)		
 	pchsource(pch.src)
-	defines { "PCH_HEADER=\"" .. pch.hdr .. "\"", }
-end
+	
+	filter "action:gmake"
+		defines { "PCH_HEADER='\"" .. pch.hdr .. "\"'", }
+	filter "action:vs*"
+		defines { "PCH_HEADER=\"" .. pch.hdr .. "\"", }
 
-function SetCommonConfig() 
-	configurations(MoonGlare.GetConfigurationList())
-	platforms { "x32", "x64" }
+	filter { }
+end 
+
+local function SetCommonConfig() 
+	configurations { "Debug", "Release", }
+	platforms { "x32", "x64", }
 	language "C++"
 	
-	links(Libs.Common)
-	libdirs(Common.LibDir)
-	includedirs(Common.IncludeDir)
+	links { }
+	defines { }
+	libdirs {
+		"../../../libs",
+		"../../../../LibsC",
+		"assimp/lib", 
+		"bullet3-master/lib/",
+	}
+	includedirs {
+		"../../../libs",
+		"../../../../LibsC",
+		"source", 
+		"source/Libs", 
+		dir.bin,
+		"bullet3-master/src",
+		"libs",
+	}
 	
 	basedir "."
 	debugdir "."
-	targetdir "bin"
+	targetdir(dir.bin)
 	
 	floatingpoint "Fast"
-	
-	flags { "NoMinimalRebuild", "MultiProcessorCompile" }
+	flags { "NoMinimalRebuild", "MultiProcessorCompile", }
 	
 	-- rules { "VersionCompiler" }
 	
 	filter "system:windows"
-		links(Libs.Windows)
+		links { "opengl32", "glu32", "gdi32", }
 		defines{ "WINDOWS", "OS_NAME=\"Windows\"" }
 	filter "system:linux"
-		links(Libs.Linux)	
+		links { "GL", "GLU", "X11", "Xxf86vm", "Xrandr", "Xi", "rt", }
 		defines{ "LINUX", "OS_NAME=\"Linux\"" }
 		
 	filter "action:gmake"
-		links(Libs.gcc)
-		buildoptions "-std=c++0x"
+		links { } 
+		buildoptions "-std=c++0y"
+		defines{ "GCC", }
 	filter "action:vs*"
-		links(Libs.msvc)
+		links { } 
+		defines{ "MSVC", }
 		disablewarnings { 
 			"4100", -- unreferenced formal parameter
 			"4201", -- nameless struct/union
+			"4003", -- not enough actual parameters for macro TODO:REMOVE THIS
 			}
 		
 	filter "platforms:x32" 
 		architecture "x32"
-		defines { "X32", "PLATFORM_NAME=X32" }
+		defines { 
+			"X32", 
+			"PLATFORM_NAME=\"x32\"", 
+		}
 	filter "platforms:x64" 
 		architecture "x64"		
-		defines { "X64", "PLATFORM_NAME=X64" }		
+		defines { 
+			"X64", 
+			"PLATFORM_NAME=\"x64\"", 
+		}		
 	
-	
-	local CommonSettings = {
-		Release = function()
-			defines { "RELEASE", }
-		end,
-		Debug = function()
-			defines { "DEBUG", "GABI_TRACK_INSTANCES", }
-		end,
-	}	
-	
-	local k
-	local v
-	for k,v in pairs(MoonGlare.Configurations) do
-		filter("configurations:" .. v.Name)
-		defines("CONFIGURATION_NAME=\"" .. v.Name .. "\"")
-		CommonSettings[v.Type]()
-		v.Config()
-	end
---[[	
 	filter "configurations:Debug"
-		defines { "DEBUG", "GABI_TRACK_INSTANCES", "CONFIGURATION_NAME=\"Debug\"" }
+		defines { 
+			"DEBUG", 
+			"GABI_TRACK_INSTANCES", 
+			"CONFIGURATION_NAME=\"Debug\"",
+		}
 		flags { "Symbols", }
 		optimize "Debug"
 		warnings "Extra"
 		runtime "Debug"
-	filter "configurations:DebugTest"
-		defines { "DEBUG", "GABI_TRACK_INSTANCES", "CONFIGURATION_NAME=\"DebugTest\"" }
-		flags { "Symbols", }
-		optimize "On"
-		warnings "Extra"
-		runtime "Release"		
+		targetsuffix "d"
+	
 	filter "configurations:Release"
-		defines { "RELEASE", "CONFIGURATION_NAME=\"Release\""}
+		defines { 
+			"RELEASE", 
+			"CONFIGURATION_NAME=\"Release\"",
+		}
 		flags { }		
 		vectorextensions "SSE2"
 		optimize "Speed"
 		warnings "Default"	
 		runtime "Release"
-	filter "configurations:ReleasePerformance"
-		defines { "RELEASE", "CONFIGURATION_NAME=\"ReleasePerformance\""}
-		flags { }		
-		vectorextensions "SSE2"
-		optimize "Speed"
-		warnings "Default"	
-		runtime "Release"
-		
-		]]
+
 	filter { }
 end
 
-function MoonGlareSolution(Name)
-	local sol = solution(Name)
+function MoonGlare.GenerateSolution(Name)
+	local sol = workspace(Name)
 	SetCommonConfig()
 	return sol
 end
