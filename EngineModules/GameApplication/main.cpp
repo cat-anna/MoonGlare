@@ -85,7 +85,8 @@ int main(int argc, char** argv) {
 			if (Settings->Modules.empty()) {
 				Settings->Modules.push_back("./source/DataModules/internal");
 				Settings->Modules.push_back("./source/DataModules/debug");
-				Settings->Modules.push_back("./modules/MazeGame");
+		//		Settings->Modules.push_back("./modules/MazeGame");
+				Settings->Modules.push_back("./modules/ShadowDemo");
 			}
 #endif
 			EnableScriptsInThisThread();

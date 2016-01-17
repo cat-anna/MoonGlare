@@ -140,8 +140,7 @@ struct LogEngine::LogEngineImpl {
 		const char *mesg;
 		LogLine *logline;
 		{
-			auto *buf = _Instance->m_Impl->m_Primary;
-			LOCK_MUTEX(buf->m_Mutex);
+			LOCK_MUTEX(ptr->m_Mutex);
 			mesg = ptr->m_Strings.Allocate(message);
 			logline = ptr->m_Lines.Allocate();
 		}

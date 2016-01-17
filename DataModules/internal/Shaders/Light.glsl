@@ -42,7 +42,8 @@ struct Attenuation_t {
 };
 
 float CalcAttenuation(Attenuation_t att, float Distance) {
-    float Attv = att.Constant + att.Linear * Distance +
+    float Attv = att.Constant + 
+				 att.Linear * Distance +
 				 att.Exp * (Distance * Distance);
 	return min(1.0 / Attv, att.MinThreshold);
 }

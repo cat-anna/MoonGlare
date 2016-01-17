@@ -28,8 +28,7 @@ shader Geometry_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, ou
 shader Geometry_fs(in VSOutput FSin, out vec3 WorldPosOut : 1, out vec3 DiffuseOut : 2, out vec3 NormalOut : 3) {
 	vec4 color = texture2D(Texture0, FSin.VertexUV0);
 	if(color.a < Material.AlphaThreshold) {
-		color.a = 0.0;
-		return;
+		color = vec4(0.0);
 	//	discard;
 	}
 	DiffuseOut	= color.xyz * Material.BackColor;
@@ -70,7 +69,7 @@ shader Light_directional_fs(in VSOutput FSin, out vec4 FragColor) {
 	vec3 Color = texture(ColorMap, TexCoord).xyz;//ColorMap
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
-	FragColor = vec4(Color, 1.0);// * CalcDirectionalLight(WorldPos, Normal);	
+	FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);	
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
 };
 
