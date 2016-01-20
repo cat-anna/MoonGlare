@@ -76,6 +76,9 @@ public:
 	int GetModeCount() const;
 	GLFWvidmode GetMode(int index) const;
 	GLFWvidmode GetCurrentMode() const;
+	int GetMonitorCount() const;
+	string GetMonitorName(int index) const;
+	int GetMonitorModes(lua_State *lua);
 
 	void SetPosition(const math::uvec2 &pos);
 

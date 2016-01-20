@@ -51,6 +51,8 @@ using MenuItemTypeEnum = GabiLib::EnumConverterHolder < MenuItemTypeEnumConverte
 
 struct MenuItemInfo : public cRootClass, public std::enable_shared_from_this<MenuItemInfo> {
 	GABI_DECLARE_STATIC_CLASS(MenuItemInfo, cRootClass);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
+	DECLARE_SCRIPT_HANDLERS_ROOT(MenuItemScriptEvents);
 public:
 	MenuItemInfo(MenuScene *Owner, SharedMenuItemInfo Parent);
 	
@@ -71,6 +73,7 @@ public:
 
 	SharedMenuItemInfo GetParent() const { return m_Parent.lock(); }
 	string GetCaption();
+	const string& GetCaptionID() const { return m_CaptionId; }
 
 	virtual bool BuildItemGUI(GUI::Widgets::Panel *parent) = 0;
 	static void RegisterScriptApi(ApiInitializer &api);
@@ -78,6 +81,8 @@ public:
 	virtual void HandleMouseUp(const GUI::Events::MouseUpEvent& ev, int WidgetID) { };
 	virtual void HandleMouseEnter(const GUI::Events::MouseEnterEvent& ev, int WidgetID) { };
 	virtual void HandleMouseLeave(const GUI::Events::MouseLeaveEvent& ev, int WidgetID) { };
+
+	virtual MenuItemInfo* FindItem(const char *CaptionID) { return nullptr; }
 protected:
 	MenuItemType m_Type = MenuItemType::Unknown;
 	MenuScene *m_OwnerScene;
@@ -85,17 +90,20 @@ protected:
 	GUI::iWidget *m_Widget = nullptr;
 	int m_ItemId = 0;
 
-	MenuItemScriptEvents* GetScriptEvents() { return &m_Events; }
+	//MenuItemScriptEvents* GetScriptEvents() { return &m_Events; }
 private:
 	WeakMenuItemInfo m_Parent;
 	string m_CaptionId, m_BaseWidgetName;
-	MenuItemScriptEvents m_Events;
+//	MenuItemScriptEvents m_Events;
+
+	MenuItemInfo* RawGetParent() { return m_Parent.lock().get(); } //scripts use only
 };
 
 //----------------------------------------------------------------
 
 class SubMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(SubMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SubMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent);
 
@@ -106,6 +114,8 @@ public:
 
 	MenuItemList* GetChildItems() { return m_ChildItems.get(); }
 	static void RegisterScriptApi(ApiInitializer &api);
+
+	virtual MenuItemInfo* FindItem(const char *CaptionID);
 private:
 	std::unique_ptr<MenuItemList> m_ChildItems = std::make_unique<MenuItemList>();
 };

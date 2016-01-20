@@ -41,18 +41,18 @@ public:
 
 	string FullName() const {
 		std::stack <const ContextBaseElement*> s;
-		auto *p = this;
-		while (p) {
-			s.push(p);
-			p = p->GetParent();
+		auto *pu = this;
+		while (pu) {
+			s.push(pu);
+			pu = pu->GetParent();
 		}
 		string st;
 		st.reserve(256);
 		while (!s.empty()) {
-			auto p = s.top();
+			auto px = s.top();
 			s.pop();
-			st += p->GetName();
-			if (p != this)
+			st += px->GetName();
+			if (px != this)
 				st += '.';
 		}
 		return std::move(st);

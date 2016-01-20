@@ -80,7 +80,7 @@ shader Light_spot_fs(in VSOutput FSin, out vec4 FragColor) {
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
 
-	FragColor = vec4(Color, 1) * CalcSpotLight(WorldPos, Normal);
+	FragColor = vec4(Color, 1) * CalcSpotLight(WorldPos, Normal); 
 
 	if(EnableShadowTest) {
 		FragColor.xyz *= PlanarShadowTest(WorldPos, Normal);

@@ -137,6 +137,8 @@ struct LogEngine::LogEngineImpl {
 		std::chrono::duration<double> sec = t - _Instance->m_Impl->m_ExecutionTime;
 
 		auto ptr = _Instance->m_Impl->m_Primary;
+		if (!ptr)
+			return;
 		const char *mesg;
 		LogLine *logline;
 		{

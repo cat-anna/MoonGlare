@@ -19,8 +19,8 @@ Body::Body(Object* Owner, SharedShape ss):
 		m_World(0) {  
 	m_ptr.reset(new btRigidBody(1.0f, &Owner->GetMotionState(), nullptr));
 
-	if (m_Mass > 0.0f)
-		m_ptr->forceActivationState(DISABLE_DEACTIVATION);
+	//if (m_Mass > 0.0f)
+	//	m_ptr->forceActivationState(DISABLE_DEACTIVATION);
 
 	m_ptr->setUserPointer(m_Owner);
 	SetShape(ss);

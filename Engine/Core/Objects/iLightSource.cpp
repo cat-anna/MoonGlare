@@ -102,12 +102,18 @@ public:
 
 	void Update() override {
 		m_light.Position = convert(GetOwner()->GetPosition()) + m_PositionDelta;
+		
+		math::mat4 matrix;
+		GetOwner()->GetMotionState().GetGLMatrix(matrix);
+
+		m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * matrix) * -1.0f;
 		//m_light.Position[1] += 0.5f;
 		m_light.RecalculateMatrices();
 	}
 
 	bool LoadMeta(const xml_node node) override { 
 		XML::Vector::Read(node, "PositionDelta", m_PositionDelta);
+		XML::Vector::Read(node, "DirectionDelta", m_DirectionDelta);
 		return m_light.LoadMeta(node); 
 	}
 	bool Initialize() override { 
@@ -118,8 +124,8 @@ public:
 
 	void SetPosition(const math::vec3 &d) { m_PositionDelta = d; }
 	const math::vec3& GetPosition() const { return m_PositionDelta; }
-	void SetDirection(const math::vec3 &d) { m_light.Direction = d; }
-	const math::vec3& GetDirection() const { return m_light.Direction; }
+	void SetDirection(const math::vec3 &d) { m_DirectionDelta = d; }
+	const math::vec3& GetDirection() const { return m_DirectionDelta; }
 	void SetDirection3f(float r, float g, float b) { m_light.Direction = math::vec3(r, g, b); }
 	void SetPosition3f(float r, float g, float b) { m_light.Position = math::vec3(r, g, b); }
 
@@ -140,7 +146,8 @@ public:
 		.endClass();
 	}
 protected:
-	math::vec3 m_PositionDelta{0, 0, 0};
+	math::vec3 m_PositionDelta{ 0, 0, 0 };
+	math::vec3 m_DirectionDelta{ 0, 0, 0 };
 	Graphic::Light::SpotLight m_light;
 };
 

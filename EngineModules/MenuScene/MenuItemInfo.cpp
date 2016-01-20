@@ -32,13 +32,16 @@ MenuItemInfo::MenuItemInfo(MenuScene *Owner, SharedMenuItemInfo Parent) :
 void MenuItemInfo::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("cMenuSceneItem")
+		.addFunction("FindItem", &ThisClass::FindItem)
+		.addFunction("GetParent", &ThisClass::RawGetParent)
+		.addFunction("SetEventFunction", &ThisClass::SetEventFunction)
 	.endClass();
 }
 
 bool MenuItemInfo::Load(xml_node root) {
 	m_ItemNode = root;
 		
-	m_Events.LoadFromXML(root);
+	GetScriptEvents()->LoadFromXML(root);
 	m_ItemId = root.attribute(xmlAttr_Id).as_int(0);
 	m_CaptionId = root.attribute("CaptionId").as_string(ERROR_STR);
 	m_BaseWidgetName = root.attribute("BaseName").as_string(ERROR_STR);
@@ -58,11 +61,14 @@ int MenuItemInfo::InvokeOnSubExit() { SCRIPT_INVOKE(OnSubExit, m_OwnerScene, m_I
 
 class ListMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(ListMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ListMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 			BaseClass(Owner, Parent),
+			m_SplitPanel(nullptr),
 			m_ItemsGenerated(false) {
 		m_Type = MenuItemType::List;
+		m_ValueIndex = 0;
 	}
 
 	using ListMenuItems = std::vector < std::pair<int, string> >;
@@ -92,7 +98,6 @@ public:
 		m_LeftImg = config.child("LeftArrow").text().as_string(ERROR_STR);
 		m_RightImg = config.child("RightArrow").text().as_string(ERROR_STR);
 		m_ImageScale = config.child("ImageScale").text().as_float(1.0f);
-		m_CurrentValue = config.child("Value").text().as_uint(0);
 		
 		XML::ForEachChild(root.child("Values"), "Item", [this](xml_node node)->int {
 			int value = node.attribute("Value").as_int(0);
@@ -100,6 +105,10 @@ public:
 			m_ListItems.push_back(std::make_pair(value, captid));
 			return 0;
 		});
+
+		auto valnode = config.child("Value");
+		if (valnode)
+			SetValue(valnode.text().as_uint(0));
 
 		m_ListItems.shrink_to_fit();
 
@@ -139,35 +148,15 @@ public:
 		imgright->SetImage(m_RightImg);
 		right->AddWidget(imgright);
 
-		if (m_ItemsGenerated || m_ListItems.empty()) {
-			m_ItemsGenerated = true;
-			m_ListItems.clear();
-			ListItemsGenerator generator(m_ListItems);
-			SCRIPT_INVOKE_NORETURN(GenerateList, m_OwnerScene, m_ItemId, &generator);
-			if (m_ListItems.empty())
-				return false;
-			m_ListItems.shrink_to_fit();
-		}
-
-		SCRIPT_INVOKE_RESULT(m_CurrentValue, GetValue, m_OwnerScene, m_ItemId, m_CurrentValue);
-		m_CurrentValue = math::clamp(m_CurrentValue, 0, (int)m_ListItems.size() - 1);
-
 		auto valcaption = new MenuLabel(m_OwnerScene, sharedthis, right);
 		right->AddWidget(valcaption);
 		//valcaption->SetEnabled(false);
-		valcaption->SetUtf8Text("ValueLabel");
+		valcaption->SetUtf8Text("");
 		valcaption->SetName("ValueLabel");
 		valcaption->SetTextAlignMode(GUI::TextAlignMode::Middle);
 		valcaption->SetAlignMode(GUI::AlignMode::Parent);
 
-		auto &value = m_ListItems[m_CurrentValue];
-
-		if (m_UseStringTables)
-			valcaption->SetUtf8Text(GetDataMgr()->GetString(value.second, m_OwnerScene->GetConfiguration().StringTable));
-		else
-			valcaption->SetUtf8Text(value.second);
-
-		return true;
+		return ResetList();
 	}
 
 	void HandleMouseUp(const GUI::Events::MouseUpEvent& ev, int WidgetID) {
@@ -183,9 +172,48 @@ public:
 		}
 	}
 
+	bool ResetList() {
+		if (m_ItemsGenerated || m_ListItems.empty()) {
+			m_ItemsGenerated = true;
+			m_ListItems.clear();
+			ListItemsGenerator generator(m_ListItems);
+			SCRIPT_INVOKE_NORETURN(GenerateList, m_OwnerScene, m_ItemId, &generator);
+			if (m_ListItems.empty())
+				return false;
+			m_ListItems.shrink_to_fit();
+		}
+
+		if (!GetScriptEvents()->GetValue.empty()) {
+			int value = 0;
+			SCRIPT_INVOKE_RESULT(value, GetValue, m_OwnerScene, m_ItemId, GetValue());
+			SetValue(value);
+
+			ValueChanged();
+		}
+
+		return true;
+	}
+	
+	int GetValue() const { 
+		if (m_ValueIndex < 0 || m_ValueIndex >= m_ListItems.size())
+			return 0;
+		return m_ListItems[m_ValueIndex].first; 
+	}
+	void SetValue(int v) {
+		for(auto &it: m_ListItems)
+			if (it.first == v) {
+				m_ValueIndex = &it - &m_ListItems[0];
+				ValueChanged();
+				return;
+			}
+		AddLogf(Warning, "No such value: %d", v);
+	}
+
 	static void RegisterScriptApi(ApiInitializer &api) {
 		api
 		.deriveClass<ThisClass, BaseClass>("cMenuSceneListItem")
+			.addFunction("ResetList", &ThisClass::ResetList)
+			.addProperty("Value", &ThisClass::GetValue, &ThisClass::SetValue)
 		.endClass()
 		.deriveClass<ListItemsGenerator, cRootClass>("cMenuSceneListItemGenerator")
 			.addFunction("AddItem", &ListItemsGenerator::AddItem)
@@ -198,21 +226,20 @@ private:
 	float m_ImageScale;
 	bool m_ItemsGenerated;
 	bool m_UseStringTables;
-
-	int m_CurrentValue;
+	unsigned m_ValueIndex;
 
 	void HandleLeftButton() {
-		if (m_CurrentValue <= 0)
-			m_CurrentValue = m_ListItems.size() - 1;
+		if (m_ValueIndex <= 0)
+			m_ValueIndex = m_ListItems.size() - 1;
 		else
-			--m_CurrentValue;
+			--m_ValueIndex;
 		ValueChanged();
 	}
 	void HandleRightButton() {
-		if (m_CurrentValue >= (int)m_ListItems.size() - 1)
-			m_CurrentValue = 0;
+		if (m_ValueIndex >= m_ListItems.size() - 1)
+			m_ValueIndex = 0;
 		else
-			++m_CurrentValue;
+			++m_ValueIndex;
 		ValueChanged();
 	}
 	void ValueChanged() {
@@ -225,8 +252,15 @@ private:
 		if (!label)
 			return;
 
-		SCRIPT_INVOKE_NORETURN(SetValue, m_OwnerScene, m_ItemId, m_CurrentValue);
-		auto &value = m_ListItems[m_CurrentValue];
+
+		if (m_ValueIndex >= m_ListItems.size()) {
+			label->SetUtf8Text("");
+			return;
+		}
+
+		SCRIPT_INVOKE_NORETURN(SetValue, m_OwnerScene, m_ItemId, m_ListItems[m_ValueIndex].first);
+
+		auto &value = m_ListItems[m_ValueIndex];
 		if (m_UseStringTables)
 			label->SetUtf8Text(GetDataMgr()->GetString(value.second, m_OwnerScene->GetConfiguration().StringTable));
 		else
@@ -241,6 +275,7 @@ RegisterApiDerivedClass(ListMenuItem, &ListMenuItem::RegisterScriptApi);
 
 class ButtonMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(ButtonMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ButtonMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 			BaseClass(Owner, Parent) {
@@ -286,6 +321,7 @@ RegisterApiDerivedClass(ButtonMenuItem, &ButtonMenuItem::RegisterScriptApi);
 
 class GoBackMenuItem : public SubMenuItem {
 	GABI_DECLARE_STATIC_CLASS(GoBackMenuItem, SubMenuItem);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	GoBackMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 			BaseClass(Owner, Parent) {
@@ -309,6 +345,7 @@ RegisterApiDerivedClass(GoBackMenuItem, &GoBackMenuItem::RegisterScriptApi);
 
 class CheckBoxMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(CheckBoxMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	CheckBoxMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 			BaseClass(Owner, Parent) {
@@ -399,6 +436,7 @@ RegisterApiDerivedClass(CheckBoxMenuItem, &CheckBoxMenuItem::RegisterScriptApi);
 
 class SteppedBarMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(SteppedBarMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SteppedBarMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 			BaseClass(Owner, Parent) {
@@ -497,6 +535,7 @@ RegisterApiDerivedClass(SteppedBarMenuItem, &SteppedBarMenuItem::RegisterScriptA
 
 class LabelMenuItem : public MenuItemInfo {
 	GABI_DECLARE_STATIC_CLASS(LabelMenuItem, MenuItemInfo);
+	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	LabelMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
 		BaseClass(Owner, Parent) {
@@ -604,6 +643,14 @@ bool SubMenuItem::Load(xml_node root) {
 
 void SubMenuItem::HandleMouseUp(const GUI::Events::MouseUpEvent& ev, int WidgetID) {
 	m_OwnerScene->EnterMenu(shared_from_this());
+}
+
+MenuItemInfo* SubMenuItem::FindItem(const char *CaptionID) {
+	for (auto &it : *m_ChildItems) {
+		if (!stricmp(CaptionID, it->GetCaptionID().c_str()))
+			return it.get();
+	}
+	return nullptr;
 }
 
 //----------------------------------------------------------------
