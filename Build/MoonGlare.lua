@@ -2,8 +2,9 @@
 
 --package.path = package.path .. ";./build/?.lua"
 
-dir.bin = dir.base .. "bin_" .. (_ACTION or "none") .. "/"
-dir.src = dir.base .. "source/"
+dir.bin = dir.root .. "bin_" .. (_ACTION or "none") .. "/"
+dir.base = dir.root .. "MoonGlare/"
+dir.src = dir.base .. "Source/"
 
 MoonGlare = {
 }

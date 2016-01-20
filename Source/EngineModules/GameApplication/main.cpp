@@ -83,8 +83,8 @@ int main(int argc, char** argv) {
 			new GameApplication(argc, argv);
 #ifdef DEBUG
 			if (Settings->Modules.empty()) {
-				Settings->Modules.push_back("./source/DataModules/internal");
-				Settings->Modules.push_back("./source/DataModules/debug");
+				Settings->Modules.push_back("./MoonGlare/Source/DataModules/internal");
+				Settings->Modules.push_back("./MoonGlare/Source/DataModules/debug");
 				Settings->Modules.push_back("./modules/MazeGame");
 			}
 #endif

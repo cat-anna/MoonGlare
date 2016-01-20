@@ -65,15 +65,16 @@ local function SetCommonConfig()
 	links { }
 	defines { }
 	libdirs {
-		"../../../libs",
-		"../../../../LibsC",
+		"../../../../libs",
+		"../../../../../LibsC",
 		"assimp/lib", 
 		"bullet3-master/lib/",
 	}
 	includedirs {
 		"../../../libs",
 		"../../../../LibsC",
-		"source", 
+		dir.base,
+		dir.src,
 		"source/Libs", 
 		dir.bin,
 		"bullet3-master/src",

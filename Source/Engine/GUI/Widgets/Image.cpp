@@ -86,6 +86,8 @@ void Image::RecalculateMetrics() {
 }
 
 void Image::Draw(Graphic::MatrixStack &dev) {
+	if (!m_Animation.Data)
+		return;
 	dev.Push(); 
 	dev.Translate(m_ImagePosition);
 	if (m_ScaleMode != ScaleMode::None) {

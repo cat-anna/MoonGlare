@@ -20,7 +20,7 @@ group ""
 			"../*", 
 			"../Config/**",
 			"../Utils/**",
-			"../Libs/**",
+			"../../Libs/**",
 		}
 		includedirs {
 			"."
