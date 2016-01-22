@@ -49,9 +49,9 @@ public:
 		string st;
 		st.reserve(256);
 		while (!s.empty()) {
-			auto p = s.top();
+			auto px = s.top();
 			s.pop();
-			st += p->GetName();
+			st += px->GetName();
 			if (p != this)
 				st += '.';
 		}

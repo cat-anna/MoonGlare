@@ -33,7 +33,7 @@ EngineLoadScene::~EngineLoadScene() {
 //----------------------------------------------------------------
 
 void EngineLoadScene::LoadMain() {
-	SetThisThreadName("ELS");
+	::OrbitLogger::ThreadInfo::SetName("ELS");
 	AddLog(Thread, "EngineLoadScene");
 	EnableScriptsInThisThread();
 

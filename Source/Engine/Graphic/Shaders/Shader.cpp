@@ -38,14 +38,14 @@ GLint Shader::Location(const char* Name) const {
 #ifdef DEBUG
 	static std::unordered_map<string, int> _ReportedErrorLocations;
 	if (loc == -1) {
-		string loc;
-		loc.reserve(128);
-		loc += GetName();
-		loc += "_";
-		loc += Name;
-		if (_ReportedErrorLocations.find(loc) != _ReportedErrorLocations.end())
+		string sloc;
+		sloc.reserve(128);
+		sloc += GetName();
+		sloc += "_";
+		sloc += Name;
+		if (_ReportedErrorLocations.find(sloc) != _ReportedErrorLocations.end())
 			return -1;
-		_ReportedErrorLocations[loc] = 1;
+		_ReportedErrorLocations[sloc] = 1;
 		AddLogf(DebugWarn, "Unable to get location of parameter '%s' in shader '%s'", Name, GetName().c_str());
 		return -1;
 	}

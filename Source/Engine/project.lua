@@ -1,6 +1,8 @@
 
 group ""
-	startproject "Engine"
+
+	project "*"
+		startproject "Engine"
 		
 	project "Engine"
 		kind "ConsoleApp"
@@ -20,12 +22,14 @@ group ""
 			"../*", 
 			"../Config/**",
 			"../Utils/**",
-			"../../Libs/**",
+			"../../Libs/InternalFileSystem/**",
 		}
 		includedirs {
-			"."
+			".",
 		}
 		links {
+			"OrbitLogger",
+		
 			"lua51jit",
 			"freeimage", 
 			"glfw3dll", 

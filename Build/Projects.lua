@@ -12,9 +12,10 @@ local CurrentGroup = ""
 
 function group(Name)
 	if not Name then
-		return CurrentGroup
+		CurrentGroup = ""
+		return PremakeGroup()
 	end
-	CurrentGroup = Name;
+	CurrentGroup = Name .. "/";
 	PremakeGroup(Name)
 	return Name
 end
@@ -25,10 +26,14 @@ function project(Name)
 	if not Name then
 		return PremakeProject()
 	end
+	
+	if Name == "*" then
+		return PremakeProject("*")
+	end
 
 	local proj = PremakeProject(Name)
 	
-	local projbin = dir.bin .. CurrentGroup .. "/" .. Name
+	local projbin = dir.bin .. CurrentGroup .. Name
 	location (projbin)
 	includedirs(projbin)
 	

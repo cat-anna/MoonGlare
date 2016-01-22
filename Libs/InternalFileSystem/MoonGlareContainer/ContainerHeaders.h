@@ -29,10 +29,10 @@ struct FileNode : public RawFilePointer {
 		}
 		std::ostringstream ss;
 		while (!s.empty()) {
-			auto p = s.top();
+			auto px = s.top();
 			s.pop();
-			ss << p->Name;
-			if (p->Flags.Directory)
+			ss << px->Name;
+			if (px->Flags.Directory)
 				ss << "/";
 		}
 		return ss.str();

@@ -9,7 +9,7 @@ namespace Core {
 
 class Console::ConsoleLine {
 public:
-	ConsoleLine(float Time, unsigned Type = (unsigned)Log::LogLineType::None): type(Type), ShowTime(Time), Line() { };
+	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LineType::Normal): type(Type), ShowTime(Time), Line() { };
 	ConsoleLine(const ConsoleLine&) = delete;
 	~ConsoleLine() { }
 	unsigned type;
@@ -88,13 +88,13 @@ GABI_IMPLEMENT_CLASS_SINGLETON(Console);
 RegisterApiDerivedClass(Console, &Console::RegisterScriptApi);
 RegisterApiInstance(Console, &Console::Instance, "Console");
 
-const math::fvec3 LineTypesColor[(unsigned)Log::LogLineType::MaxScreenConsole]= {
-		{ 1.0f, 1.0f, 1.0f }, //CC_Line_None
-		{ 1.0f, 0.5f, 0.5f }, //CC_Line_Error
-		{ 0.8f, 0.8f, 0.0f }, //CC_Line_Warning
-		{ 0.8f, 0.8f, 0.8f }, //Console
-		//{ 0.6f, 1.0f, 0.6f }, //CC_Line_Hint
-};
+//const math::fvec3 LineTypesColor[(unsigned)OrbitLogger::LineType::MaxScreenConsole]= {
+//		{ 1.0f, 1.0f, 1.0f }, //CC_Line_None
+//		{ 1.0f, 0.5f, 0.5f }, //CC_Line_Error
+//		{ 0.8f, 0.8f, 0.0f }, //CC_Line_Warning
+//		{ 0.8f, 0.8f, 0.8f }, //Console
+//		//{ 0.6f, 1.0f, 0.6f }, //CC_Line_Hint
+//};
 
 Console::Console() :
 		m_Font(0), 
@@ -178,14 +178,14 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 		matrix = glm::translate(matrix, math::fvec3(5, -10, 0));
 		//m_Font->GetTexture().Bind();
 		for (auto it = m_Lines.begin(), jt = m_Lines.end(); it != jt; ++it) {
-			unsigned type = it->type;
-			if (type >= (unsigned)Log::LogLineType::MaxScreenConsole)
-				type = 0;
+			//unsigned type = it->type;
+			//if (type >= (unsigned)OrbitLogger::LineType::MaxScreenConsole)
+			//	type = 0;
 			matrix = glm::translate(matrix, math::fvec3(0, 15, 0));
 			dev.SetModelMatrix(matrix);
 			if (!it->Line) {
 				DataClasses::Fonts::Descriptor dummy;
-				dummy.Color = LineTypesColor[type];
+				dummy.Color = math::vec3(1, 1, 1);// LineTypesColor[type];
 				it->Line = m_Font->GenerateInstance(it->Text.c_str(), &dummy);
 			}
 			it->Line->Render(dev);
@@ -196,7 +196,7 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 		math::mat4 matrix;
 		matrix = glm::translate(matrix, math::fvec3(5, m_MaxLines * 15 + 15 + 5, 0));
 		dev.SetModelMatrix(matrix);
-		dev.CurrentShader()->SetBackColor(LineTypesColor[(unsigned)Log::LogLineType::None]);
+		dev.CurrentShader()->SetBackColor(math::vec3(1, 1, 1));// LineTypesColor[(unsigned)OrbitLogger::LogLineType::Normal]);
 		input->Render(dev);
 	}
 	return true;

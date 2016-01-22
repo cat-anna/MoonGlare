@@ -169,7 +169,7 @@ void cScriptEngine::RegisterScript(string Name) {
 			AddLog(Warning, "Unable to open script file " << sc.Name);
 			return;
 		}
-		sc.Data.swap(string(file->GetFileData(), file->Size()));
+		sc.Data = string(file->GetFileData(), file->Size());
 		AddLogf(Debug, "Loaded script code: %s", sc.Name.c_str());
 	}
 
@@ -263,8 +263,8 @@ bool cScriptEngine::ConstructScript(UniqueScript &ptr) {
 	ptr.swap(s);
 	{
 		LOCK_MUTEX(m_Mutex);
-		auto s = ptr.get();
-		m_ScriptList.push_back(std::make_pair(s, (ScriptProxy*)nullptr));
+		auto sx = ptr.get();
+		m_ScriptList.push_back(std::make_pair(sx, (ScriptProxy*)nullptr));
 		for (auto &it : m_ScriptCodeList) {
 			ptr->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
 		}

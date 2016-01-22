@@ -11,6 +11,8 @@
 namespace Core {
 namespace Scripts {
 
+using ::OrbitLogger::ThreadInfo;
+
 __declspec(thread) ScriptProxy *ScriptProxy::_Instance = nullptr;
 GABI_IMPLEMENT_STATIC_CLASS(ScriptProxy);
 
@@ -18,12 +20,12 @@ ScriptProxy::ScriptProxy():
 		BaseClass(),
 		m_Script() {
 	if (_Instance) {
-		AddLog(Error, "Thread allready has script proxy set!");
+		AddLog(Error, "Thread already has script proxy set!");
 		return;
 	}
 	memset(m_ThreadSignature, 0, sizeof(m_ThreadSignature));
-	*((Thread::Signature*)m_ThreadSignature) = Thread::GetSignature();
-	m_IsMainContext = Thread::IsMain();
+	*((ThreadInfo::Signature*)m_ThreadSignature) = ThreadInfo::GetSignature();
+	m_IsMainContext = ThreadInfo::IsMain();
 	_Instance = this;
 	AddLog(Debug, "Thread initialized script proxy instance!");
 }

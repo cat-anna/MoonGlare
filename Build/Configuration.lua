@@ -55,7 +55,7 @@ function SetPCH(pch)
 		defines { "PCH_HEADER=\"" .. pch.hdr .. "\"", }
 
 	filter { }
-end 
+end
 
 local function SetCommonConfig() 
 	configurations { "Debug", "Release", }
@@ -75,6 +75,7 @@ local function SetCommonConfig()
 		"../../../../LibsC",
 		dir.base,
 		dir.src,
+		dir.libsrc,
 		"source/Libs", 
 		dir.bin,
 		"bullet3-master/src",

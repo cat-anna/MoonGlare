@@ -20,8 +20,6 @@ namespace Insider {
 
 using namespace InsiderApi;
 
-//using InsiderLogSink = ::Log::LogSink < > ;
-
 class Insider : public cRootClass {
 	GABI_DECLARE_STATIC_CLASS(Insider, cRootClass);
 public:
@@ -45,7 +43,6 @@ private:
 
 	udp::endpoint m_ConnectedAddress;
 	bool m_Connected;
-	std::unique_ptr<::Log::LogSinkBase> m_InsiderLogSink;
 
 	/** Return fals to skip sending response */
 	bool Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender);

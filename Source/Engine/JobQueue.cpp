@@ -41,7 +41,7 @@ void JobQueue::ThreadMain(unsigned ThreadIndex) {
 	{
 		char buffer[16];
 		sprintf(buffer, "THQ%X", ThreadIndex);
-		::Thread::SetInfo(buffer);
+		::OrbitLogger::ThreadInfo::SetName(buffer);
 	}
 	EnableScriptsInThisThread();
 

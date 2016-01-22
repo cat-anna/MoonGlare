@@ -37,7 +37,6 @@ public:
 	virtual void Draw(Graphic::MatrixStack &dev) override; 
 	virtual void Process(const Core::MoveConfig &conf) override;
 
-
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	void RefreshTextWrapper();

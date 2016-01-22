@@ -84,7 +84,6 @@ Insider::Insider(): BaseClass() {
 }
 
 Insider::~Insider() {
-	m_InsiderLogSink.reset();
 	m_Running = false;
 	m_ioservice.stop();
 	if(m_Thread.joinable())
@@ -110,12 +109,11 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 		//m_InsiderLogSink = std::make_unique<InsiderLogSink>(this);
 		return false;
 	case MessageTypes::Release:
-		m_InsiderLogSink.reset();
 		m_Connected = false;
 		return false;
 
 	default:
-		AddLogf(Tool, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+		AddLogf(Normal, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
 		return false;
 	}
 }
@@ -133,7 +131,7 @@ void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 }
 
 void Insider::ThreadEntry() {
-	SetThisThreadName("INSI");
+	::OrbitLogger::ThreadInfo::SetName("INSI");
 	AddLog(Thread, "Insider");
 	EnableScriptsInThisThread();
 
@@ -253,7 +251,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
-	AddLogf(Tool, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+	AddLogf(Normal, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
 	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 	buffer.Clear();
 	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();

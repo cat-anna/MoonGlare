@@ -135,7 +135,7 @@ void SoundEngine::ThreadEntry() {
 #pragma warning ( suppress: 4244 )
 	srand(time(NULL));
 	try {
-		SetThisThreadName("SNDE");
+		OrbitLogger::ThreadInfo::SetName("SNDE");
 		AddLog(Thread, "SoundEngine");
 		EnableScriptsInThisThread();
 

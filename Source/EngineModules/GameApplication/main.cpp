@@ -59,18 +59,16 @@ int main(int argc, char** argv) {
 	int Result = 0;
 #pragma warning ( suppress: 4244 )
 	srand(time(NULL));
-	::Thread::SetInfo("MAIN", true);
 
-	auto sink = std::make_unique<Log::StdFileLoggerSink>();
-	sink->open("logs/Engine.log");
-	sink->Enable();
-	auto sink3 = std::make_unique<Log::StdFileLoggerSink>();
-	sink3->open("logs/Engine.last.log", false);
-	sink3->Enable();
-	auto sink2 = std::make_unique<Log::StdNoDebugFileLoggerSink>();
-	sink2->open("logs/Engine.filtered.log");
-	sink2->Enable();
-	new ::Log::LogEngine();
+	using OrbitLogger::LogCollector;
+	using OrbitLogger::StdFileLoggerSink;
+	using OrbitLogger::StdNoDebugFileLoggerSink;
+
+	OrbitLogger::ThreadInfo::SetName("MAIN", true);
+	LogCollector::Start();
+	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.log"); });
+	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.last.log", false); });
+	LogCollector::OpenLogSink<StdNoDebugFileLoggerSink>([](StdNoDebugFileLoggerSink* sink) { sink->Open("logs/Engine.filtered.log"); });
 
 	Config::Current::Initialize();
 	AddLog(Thread, "MainThread");
@@ -128,9 +126,7 @@ int main(int argc, char** argv) {
 
 	Settings->Save();
 	Config::Current::Finalize();
-	sink.reset();
-	sink2.reset();
-	Log::LogEngine::DeleteInstance();
+	OrbitLogger::LogCollector::Stop();
 	return Result;
 }
 #endif // _BUILDING_TOOLS_

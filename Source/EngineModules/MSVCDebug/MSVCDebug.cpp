@@ -14,25 +14,31 @@ namespace MoonGlare {
 namespace Debug {
 
 struct MSVCDebuggerOutputPolicy {
-	void write(const ::Log::LogLine *line, const char *c) {
+	void Write(const OrbitLogger::LogLine *line, const char *c) {
 		OutputDebugStringA(c);
 	}
 };
 
 struct MSVCDebuggerFormatPolicy {
-	void format(const ::Log::LogLine *line, char* buffer, size_t buffer_size) {
-		const char* file = line->m_File;
+	void Format(const OrbitLogger::LogLine *line, char* buffer, size_t buffer_size) {
+		auto src = line->m_SourceInfo;
+
+		const char* file = src->m_File;
 		
 		static const char *skipstr = "d:\\programowanie\\projekty\\!gry\\moonglare\\";
 		static const int skip = strlen(skipstr);
-		if (!memcmp(skipstr, line->m_File, skip))
+		if (!memcmp(skipstr, src->m_File, skip))
 			file += skip;
 
-		sprintf_s(buffer, buffer_size, "%s(%d) : %s : %s\n", file, line->m_Line, line->m_ModeStr, line->m_Message);
+		sprintf_s(buffer, buffer_size, "%s(%d) : %s : %s\n", file, src->m_Line, line->m_ModeStr, line->m_Message);
 	}
 };
 
-using MSVCDebuggerLogSink = ::Log::LogSink < MSVCDebuggerOutputPolicy, MSVCDebuggerFormatPolicy, ::Log::LogNoFilteringPolicy > ;
+struct MSVCDebuggerFilteringPolicy {
+	bool Filter(const OrbitLogger::LogLine *line) const { return line->m_SourceInfo != 0; }
+};
+
+using MSVCDebuggerLogSink = OrbitLogger::LogSink < MSVCDebuggerOutputPolicy, MSVCDebuggerFormatPolicy, MSVCDebuggerFilteringPolicy > ;
 
 //----------------------------------------------------------------
  
@@ -43,19 +49,16 @@ struct MSVCDebugModule : public MoonGlare::Modules::ModuleInfo {
 		if (!IsDebuggerPresent())
 			return false;
 		new MSVCDebug();
-		m_LoggerSink = std::make_unique<MSVCDebuggerLogSink>();
-		m_LoggerSink->Enable();
+		OrbitLogger::LogCollector::AddLogSink<MSVCDebuggerLogSink>();
 		return true;
 	}
 	virtual bool Finalize() override {
-		m_LoggerSink.reset();
 		if (!MSVCDebug::InstanceExists())
 			return true;
 		MSVCDebug::DeleteInstance();
 		return true;
 	}
 private:
-	std::unique_ptr<MSVCDebuggerLogSink> m_LoggerSink;
 };
 DEFINE_MODULE(MSVCDebugModule);
 
