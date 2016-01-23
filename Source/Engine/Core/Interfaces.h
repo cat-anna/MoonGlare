@@ -12,19 +12,12 @@ class Interfaces {
 public:
 	enum class ClassLists {
 		Core, 
-		Resource,
-		
 		MaxValue,
 	};
 
 	template<class BASE>
 	static BASE* CreateCoreClass(const string& ClassName) {
 		return CreateClassRaw<BASE, ClassLists::Core>(ClassName);
-	}
-
-	template<class BASE>
-	static BASE* CreateResourceClass(const string& ClassName) {
-		return CreateClassRaw<BASE, ClassLists::Resource>(ClassName);
 	}
 
 	static void DumpLists(ostream &out);
@@ -49,7 +42,6 @@ public:
 		Auto##NAME() : AutoClassRegRoot<REQ, ClassLists::LIST>(0, T::GetStaticTypeInfo()) { }\
 	};
 	INTERFACE_GEN_CLASS_REG(CoreClassReg, cRootClass, Core)
-	INTERFACE_GEN_CLASS_REG(ResourceClassReg, DataClasses::DataClass, Resource)
 #undef INTERFACE_GEN_CLASS_REG
 
 	static void Initialize();

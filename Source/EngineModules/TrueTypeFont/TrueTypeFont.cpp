@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
+#include <Engine/Renderer/nRenderer.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
@@ -114,6 +115,18 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 	Graphic::vec2 pos(0);
 	float hmax = 0;
 
+	//m_VAO.Bind();
+	//uint32_t id = 0;
+	//dev.CurrentShader()->SetBackColor(m_Color);
+	//for (auto it : m_Chars) {
+	//	if (!it->m_Ready)
+	//		break;
+	//	it->m_Texture.Bind();
+	//	m_VAO.DrawElements(4, id * 4, 0, Graphic::Flags::fQuads);
+	//	++id;
+	//}
+	//m_VAO.UnBind();
+
 	while (*cstr) {
 		wchar_t c = *cstr;
 		++cstr;
@@ -152,6 +165,8 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 	pos.y = hmax;
 	wrapper->m_size = pos;
 	wrapper->m_VAO.DelayInit(Verticles, TexCoords, Normals, Index);
+
+
 	
 	return FontInstance(wrapper);
 }

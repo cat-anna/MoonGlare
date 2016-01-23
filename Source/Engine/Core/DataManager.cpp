@@ -308,14 +308,13 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 
 	FileSystem::XML doc;
 	if (!GetFileSystem()->OpenResourceXML(doc, Name, DataPath::Scenes)) {
-		AddLog(Error, "Unable to load xml for scene: " << Name);
-		return nullptr;
-	}
-
-	if (!ptr->SetMetaData(doc)) {
-		AddLogf(Error, "Unable to scene map '%s' of class '%s'", Name.c_str(), Class.c_str());
-		delete ptr;
-		return nullptr;
+		AddLog(Warning, "Unable to load xml for scene: " << Name);
+	} else {
+		if (!ptr->SetMetaData(doc)) {
+			AddLogf(Error, "Unable to scene map '%s' of class '%s'", Name.c_str(), Class.c_str());
+			delete ptr;
+			return nullptr;
+		}
 	}
 	return ptr;
 }

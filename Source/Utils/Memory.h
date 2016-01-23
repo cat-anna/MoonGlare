@@ -4,28 +4,6 @@ namespace Utils {
 namespace Memory {
 
 //----------------------------------------------------------------
-
-struct MemoryNoLockPolicy {
-	struct Guard_t { Guard_t(MemoryNoLockPolicy&) {} };
-	void lock() { }
-	void unlock() { }
-};
-
-template<class MUTEX>
-struct MemoryUniqueScopedLockPolicy : public MUTEX {
-	using Mutex_t = MUTEX;
-	using Guard_t = std::lock_guard < MUTEX > ;
-private:
-};
-
-using MutexLockPolicy = MemoryUniqueScopedLockPolicy<std::mutex>;
-using NoLockPolicy = MemoryNoLockPolicy;
-
-using DefaultMultiThreadedLockPolicy = MutexLockPolicy;
-using DefaultSingleThreadedLockPolicy = MemoryNoLockPolicy;
-using DefaultLockPolicy = DefaultSingleThreadedLockPolicy;
-
-//----------------------------------------------------------------
 //marking
 //----------------------------------------------------------------
 //tracking
@@ -152,8 +130,8 @@ protected:
 	}
 private:
 	size_t m_Put, m_Get;
-	char m_Memory[Size];
 	LockPolicy m_Lock;
+	char m_Memory[Size];
 
 	template<class T>
 	void Check() { 

@@ -1,6 +1,7 @@
 ﻿#include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/GUI/GUI.h>
+#include <GUI/GUI.h>
+#include <Renderer/nRenderer.h>
 #include "Console.h"
 
 namespace Core {
@@ -193,7 +194,7 @@ void Engine::EngineMain() {
 						(RenderTime - MoveTime) * 1000.0f,
 						(EndTime - RenderTime) * 1000.0f
 						);
-				AddLog(Performance, Buffer);
+				//AddLog(Performance, Buffer);
 				dev.GetContext()->SetTitle(Buffer);
 			//}
 		}
@@ -261,8 +262,10 @@ void Engine::HandleSceneStateChangeImpl() {
 void Engine::DoRender() {
 	auto &dev = *Graphic::GetRenderDevice();
 	auto devsize = dev.GetContext()->Size();
-	
+
 	dev.DispatchContextManipRequests();
+	
+	MoonGlare::Renderer::GetRenderer()->SubmitFrame();
 
 	dev.BeginFrame();
 	dev.ClearBuffer();
@@ -298,6 +301,9 @@ void Engine::DoRender() {
 void Engine::DoMove(float TimeDelta) { 
 	MoveConfig conf;
 	conf.TimeDelta = TimeDelta;
+
+	MoonGlare::Core::Component::ComponentManager::Process(conf);
+
 	m_TimeEvents.CheckEvents(conf);
 	if (m_CurrentScene)
 		m_CurrentScene->DoMove(conf);

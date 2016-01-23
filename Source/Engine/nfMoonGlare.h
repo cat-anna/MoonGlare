@@ -10,9 +10,11 @@ using namespace MoonGlare;
 #include "Graphic/nfGraphic.h"
 #include "EngineSettings.h"
 #include "Renderer/nfRenderer.h"
+#include "Renderer/GraphicSettings.h"
 
 #include "Physics/nfPhysics.h"
 #include "Core/nfCore.h"
+
 #include "MoveControllers/nfMoveControllers.h"
 #include "DataClasses/nfDataClasses.h"
 #include "GUI/nfGUI.h"

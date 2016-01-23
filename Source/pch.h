@@ -48,6 +48,7 @@
 #include <codecvt>
 #include <atomic>
 #include <random>
+#include <type_traits>
 using std::istream;
 using std::ostream;
 using std::string;
@@ -128,8 +129,10 @@ class cRootClass;
 
 #include "Utils/SetGet.h"
 #include "Utils/Memory.h"
+#include "Utils/Memory/nMemory.h"
 #include "Utils/ActionQueue.h"
 #include "Utils/StringUtils.h"
+#include "Utils/Handle.h"
 #include "Version.h"
 #include "TemplateUtils.h"
 #include "MathConstants.h"

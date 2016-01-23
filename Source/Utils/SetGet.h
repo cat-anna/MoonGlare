@@ -2,15 +2,79 @@
 
 namespace Utils {
 
-using FlagSet = unsigned __int32;
+struct VirtualDestructor {
+	virtual ~VirtualDestructor() {}
+};
+
+//using FlagSet = uint32_t;
+
+template<class BASE, class FLAGS>
+bool inline TestFlags(BASE src, FLAGS flags) {
+	return (src & flags) == flags;
+}
+
+template<class BASE, class FLAGS>
+void inline SetFlags(BASE &src, FLAGS flags, bool set) {
+	if (set) src |= flags;
+	else src &= ~flags;
+}
+
+template<class T>
+struct BasicFlagSet {
+	using ValueType = T;
+	using ThisClass = BasicFlagSet<T>;
+
+	BasicFlagSet(): m_Value(0) {}
+	BasicFlagSet(ValueType v): m_Value(v) {}
+
+	ValueType operator &(ValueType flags) { return m_Value & flags; }
+	ThisClass& operator |=(ValueType flags) { m_Value |= flags; return *this; }
+	ThisClass& operator &=(ValueType flags) { m_Value &= flags; return *this; }
+
+	operator ValueType () const { return m_Value; }
+	ValueType Raw() const { return m_Value; }
+private:
+	T m_Value;
+};
+
+using FlagSet = BasicFlagSet<uint32_t>;
+
+template<class T>
+struct FlagsValueType {
+	using ValueType = T;
+};
+
+template<>
+struct FlagsValueType<FlagSet> {
+	using ValueType = FlagSet::ValueType;
+};
 
 } //namespace Utils
 
-#define DefineFlagInternals(FLAGS, FLAG, NAME) using Flag_t = std::remove_cv<decltype(FLAGS)>::type; const Flag_t NAME = static_cast<Flag_t>(FLAG);
-#define DefineFlagGetter(FLAGS, FLAG, NAME) bool Is##NAME() const { DefineFlagInternals(FLAGS, FLAG, F); return TestFlags(FLAGS, F); }
-#define DefineFlagSetter(FLAGS, FLAG, NAME) void Set##NAME(bool Value) { DefineFlagInternals(FLAGS, FLAG, F); SetFlags(FLAGS, F, Value); }
-#define DefineFlag(FLAGS, FLAG, NAME) DefineFlagGetter(FLAGS, FLAG, NAME) DefineFlagSetter(FLAGS, FLAG, NAME)
-#define FlagBit(FLAG) (1 << static_cast<Flag_t>(FLAG))
+#define FlagBit(FLAG) \
+	(1 << static_cast<Flag_t>(FLAG))
+
+#define DefineFlagInternals(FLAGS, FLAG, NAME) \
+	using BaseFlag_t = std::remove_cv<decltype(FLAGS)>::type; \
+	using Flag_t = ::Utils::FlagsValueType<BaseFlag_t>::ValueType; \
+	const Flag_t NAME = static_cast<Flag_t>(FLAG);
+
+#define DefineFlagGetter(FLAGS, FLAG, NAME) \
+	bool Is##NAME() const { \
+		DefineFlagInternals(FLAGS, FLAG, FLAGVALUE); \
+		return ((FLAGS) & (FLAGVALUE)) == (FLAGVALUE); \
+	}
+	
+#define DefineFlagSetter(FLAGS, FLAG, NAME) \
+	void Set##NAME(bool Value) { \
+		DefineFlagInternals(FLAGS, FLAG, FLAGVALUE); \
+		if (Value) FLAGS |= (FLAGVALUE); \
+		else FLAGS &= ~(FLAGVALUE); \
+	}
+
+#define DefineFlag(FLAGS, FLAG, NAME) \
+	DefineFlagGetter(FLAGS, FLAG, NAME) \
+	DefineFlagSetter(FLAGS, FLAG, NAME)
 
 #define DefineRefGetterConst(NAME, TYPE) const TYPE& Get##NAME() const { return m_##NAME; }
 #define DefineRefGetter(NAME, TYPE) TYPE& Get##NAME() { return m_##NAME; }

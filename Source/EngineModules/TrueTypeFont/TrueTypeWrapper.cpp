@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
+#include <Engine/Renderer/nRenderer.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeWrapper.h"
@@ -17,10 +18,13 @@ namespace TrueTypeFont {
 GABI_IMPLEMENT_STATIC_CLASS(TrueTypeWrapper);
 
 TrueTypeWrapper::TrueTypeWrapper():
-		BaseClass() {
+		BaseClass(),
+		m_VAO() {
+	m_Texture = Renderer::GetRenderer()->Resources().GetTextures().Allocate();
 }
 
 TrueTypeWrapper::~TrueTypeWrapper() {
+	Renderer::GetRenderer()->Resources().GetTextures().Release(m_Texture);
 }
 
 //----------------------------------------------------------------

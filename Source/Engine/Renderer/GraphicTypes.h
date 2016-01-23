@@ -12,7 +12,48 @@
 namespace MoonGlare {
 namespace Renderer {
 
-//TBD
+struct RendererStaticSettings {
+	struct Limits {
+		struct Bits {
+			enum {
+				Generations			= 16,
+				LittleGenerations	= 8,
+
+				Texture				= 12,
+
+				TextureTargetTasks	= 8,
+			};
+		};
+
+		enum {
+			Texture					= 1 << Bits::Texture,
+
+			TextureTargetTasks		= 1 << Bits::TextureTargetTasks,
+
+			FramePreCommands		= 4096,
+		};
+
+	};
+
+	using GenerationType = uint16_t;
+
+	struct ResourceType {
+		enum Enum {
+			Unknown,
+			Texture,
+		};
+	};
+	struct ResourceTypeEnumConverter : GabiLib::EnumConverter < ResourceType::Enum, ResourceType::Enum::Unknown > {
+		ResourceTypeEnumConverter() {
+			Add("Unknown", Enum::Unknown);
+			Add("Texture", Enum::Texture);
+		}
+	};
+	using ResourceTypeEnum = GabiLib::EnumConverterHolder < ResourceTypeEnumConverter >;
+};
+
+template<uint32_t VALUEBITS>
+using BaseRendererResourceHandle = Utils::Handle::BaseTripleHandle32<uint32_t, RendererStaticSettings::Limits::Bits::Generations, VALUEBITS, 16 - VALUEBITS>;
 
 } //namespace Renderer 
 } //namespace MoonGlare 

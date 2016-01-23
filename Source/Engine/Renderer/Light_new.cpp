@@ -12,12 +12,6 @@ namespace MoonGlare {
 namespace Renderer {
 namespace Light {
 
-Light::Light() {
-}
-
-Light::~Light() {
-}
-
 } //namespace Light 
 } //namespace Renderer 
 } //namespace MoonGlare 
