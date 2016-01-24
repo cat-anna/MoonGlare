@@ -37,6 +37,10 @@ enum class MessageTypes : u32 {
 	NOP					= 0,
 	Ok,
 
+//Errors
+	UnknownError							= BidirectionalBase + GroupDelta,
+	NotSupported,							//message is not supported
+
 //to engine
 	EngineReciver							= BidirectionalBase + DirectionDelta,	
 	Bind,									// hello message, tells recon where to send additional debug suff
@@ -52,6 +56,7 @@ enum class MessageTypes : u32 {
 	EnumerateFolder,						//payload is PayLoad_EnumerateRequest
 	EnumerateLua,							//payload is PayLoad_EnumerateRequest
 	EnumerateAudio,							//no payload
+	EnumerateMemory,						//no payload
 
 //from engine
 	EngineSender							= EngineReciver + DirectionDelta,
@@ -67,6 +72,7 @@ enum class MessageTypes : u32 {
 	FolderContentList,						// Folder content
 	LuaElementList,
 	AudioList,								//payload is PayLoad_AudioListItem
+	MemoryStatus,							//PayLoad_MemoryStatus
 	
 
 	//Notification about something
@@ -210,6 +216,18 @@ struct PayLoad_AudioListItem {
 	u16 NameLen;
 	u16 ClassNameLen;
 	char Name_Class[0];
+};
+
+struct PayLoad_MemoryStatus {
+	u16 Index;
+	u16 unused;
+	u32 Capacity;
+	u32 Allocated;
+	u32 MaxAllocated;
+	u32 unused_32_0, unused_32_1;
+	u16 ElementSize;
+	u16 NameLen;
+	u8 Name[0];
 };
 
 #pragma warning ( pop )

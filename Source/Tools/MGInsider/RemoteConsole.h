@@ -9,7 +9,7 @@
 #ifndef RemoteConsole_H
 #define RemoteConsole_H
 
-#include <source/modules/MoonGlareInsider/MoonGlareInisderApi.h>
+#include <EngineModules/MoonGlareInsider/MoonGlareInisderApi.h>
 namespace InsiderApi = MoonGlare::Debug::InsiderApi;
 #include "RemoteConsoleObserver.h"
 

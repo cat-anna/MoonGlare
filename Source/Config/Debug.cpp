@@ -107,6 +107,7 @@ void Debug::CheckInstances() {
 	}
 }
 #endif 
+
 //---------------------------------------------------------------------------------------
 		
 void eAsserationError::DescribeSender(std::stringstream &ss, const cRootClass *sender) {
@@ -183,5 +184,18 @@ void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 #endif
 } //namespace Debug
 } //namespace Config
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
+#ifdef DEBUG_MEMORY
+#include "DebugInterface.h"
+namespace Config {
+namespace Debug {
+std::list<MemoryInterface*> MemoryInterface::s_Interfaces;
+}
+}
+#endif
 
 #endif

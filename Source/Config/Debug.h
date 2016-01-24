@@ -24,6 +24,8 @@
 #define LOG_ABSTRACT_FUNCTION()		do { AddLogf(Error, "Function is abstract. Check overriding function for class '%s'.", GetDynamicTypeInfo()->GetFullName()); } while (false)
 #define LOG_DEPRECATED				do { AddLog(TODO, "Function is deprecated"); AddLogOnce(Warning, __FUNCTION__ << " is deprecated!"); } while (false)
 
+#define DEBUG_INTERFACE 1
+
 #define DEBUG_LOG 1
 #define DEBUG_DUMP 1
 #define DEBUG_SCRIPTAPI 1

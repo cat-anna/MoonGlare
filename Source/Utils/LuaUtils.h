@@ -19,7 +19,7 @@ inline void stackDump(lua_State *L) {
 //----------------------------------------------------
 
 template<class T> inline T Lua_to(lua_State *lua, int idx);
-template<> inline bool Lua_to<bool>(lua_State *lua, int idx) { return lua_toboolean(lua, idx) > 0; }
+template<> inline bool Lua_to<bool>(lua_State *lua, int idx) { return lua_toboolean(lua, idx) != 0; }
 template<> inline float Lua_to<float>(lua_State *lua, int idx) { return static_cast<float>(lua_tonumber(lua, idx)); }
 template<> inline double Lua_to<double>(lua_State *lua, int idx) { return static_cast<double>(lua_tonumber(lua, idx)); }
 template<> inline const char* Lua_to<const char*>(lua_State *lua, int idx) { return lua_tostring(lua, idx); }
@@ -34,14 +34,14 @@ template<> inline void Lua_push<int>(lua_State *lua, int t) { lua_pushinteger(lu
 
 template<class T> bool inline Lua_is(lua_State *lua, int idx);
 template<> inline bool Lua_is<bool>(lua_State *lua, int idx) { return lua_isboolean(lua, idx); }
-template<> inline bool Lua_is<float>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) > 0; }
-template<> inline bool Lua_is<double>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) > 0; }
-template<> inline bool Lua_is<const char*>(lua_State *lua, int idx) { return lua_isstring(lua, idx) > 0; }
-template<> inline bool Lua_is<int>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) > 0; }
+template<> inline bool Lua_is<float>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
+template<> inline bool Lua_is<double>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
+template<> inline bool Lua_is<const char*>(lua_State *lua, int idx) { return lua_isstring(lua, idx) != 0; }
+template<> inline bool Lua_is<int>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
 template<> inline unsigned Lua_to<unsigned>(lua_State *lua, int idx) { return static_cast<int>(Lua_to<int>(lua, idx)); }
 template<> inline void Lua_push<unsigned>(lua_State *lua, unsigned t) { Lua_push<int>(lua, static_cast<int>(t)); }
-template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) > 0; }
+template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
 //----------------------------------------------------
 
