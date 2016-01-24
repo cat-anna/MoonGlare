@@ -191,7 +191,7 @@ void LuaWindow::CloseAllScriptsAction() {
 	std::vector<EditorTab*> tabs;
 
 	tabs.reserve(ui.tabWidget->count());
-	auto root = m_OpenedFilesViewModel.get();
+//	auto root = m_OpenedFilesViewModel.get();
 	for (int i = 0, j = ui.tabWidget->count(); i < j; ++i) {
 		auto *tab = dynamic_cast<EditorTab*>(ui.tabWidget->widget(i));
 		if (!tab)

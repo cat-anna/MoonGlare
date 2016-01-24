@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Config/pch_common.h>
+
 #pragma warning (disable: 4251)
 
 #pragma warning (push, 0)
@@ -32,6 +34,8 @@
 #include <qclipboard.h>
 #include <QThread>
 #pragma warning ( pop )
+
+#include <OrbitLogger/OrbitLogger.h>
 
 #include <unordered_map>
 #include <memory>

@@ -19,7 +19,7 @@ inline void stackDump(lua_State *L) {
 //----------------------------------------------------
 
 template<class T> inline T Lua_to(lua_State *lua, int idx);
-template<> inline bool Lua_to<bool>(lua_State *lua, int idx) { return lua_toboolean(lua, idx); }
+template<> inline bool Lua_to<bool>(lua_State *lua, int idx) { return lua_toboolean(lua, idx) != 0; }
 template<> inline float Lua_to<float>(lua_State *lua, int idx) { return static_cast<float>(lua_tonumber(lua, idx)); }
 template<> inline double Lua_to<double>(lua_State *lua, int idx) { return static_cast<double>(lua_tonumber(lua, idx)); }
 template<> inline const char* Lua_to<const char*>(lua_State *lua, int idx) { return lua_tostring(lua, idx); }
@@ -34,14 +34,14 @@ template<> inline void Lua_push<int>(lua_State *lua, int t) { lua_pushinteger(lu
 
 template<class T> bool inline Lua_is(lua_State *lua, int idx);
 template<> inline bool Lua_is<bool>(lua_State *lua, int idx) { return lua_isboolean(lua, idx); }
-template<> inline bool Lua_is<float>(lua_State *lua, int idx) { return lua_isnumber(lua, idx); }
-template<> inline bool Lua_is<double>(lua_State *lua, int idx) { return lua_isnumber(lua, idx); }
-template<> inline bool Lua_is<const char*>(lua_State *lua, int idx) { return lua_isstring(lua, idx); }
-template<> inline bool Lua_is<int>(lua_State *lua, int idx) { return lua_isnumber(lua, idx); }
+template<> inline bool Lua_is<float>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
+template<> inline bool Lua_is<double>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
+template<> inline bool Lua_is<const char*>(lua_State *lua, int idx) { return lua_isstring(lua, idx) != 0; }
+template<> inline bool Lua_is<int>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
 template<> inline unsigned Lua_to<unsigned>(lua_State *lua, int idx) { return static_cast<int>(Lua_to<int>(lua, idx)); }
 template<> inline void Lua_push<unsigned>(lua_State *lua, unsigned t) { Lua_push<int>(lua, static_cast<int>(t)); }
-template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_isnumber(lua, idx); }
+template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
 //----------------------------------------------------
 
@@ -70,6 +70,7 @@ struct TableDispatcher {
 	bool getBoolean(const char* name, bool Default) { lua_pushstring(m_lua, name); return get(Default); }
 	bool getBoolean(int index, bool Default) { lua_pushinteger(m_lua, index+1); return get(Default); }
 
+#ifdef XMATH_H
 	math::vec2 GetVector(const char *name, const math::vec2& Default) {
 		if (IsTable(name))
 			try {
@@ -105,6 +106,7 @@ struct TableDispatcher {
 			catch (...) { }
 		return Default; 
 	}
+#endif XMATH_H
 
 	bool ElementExists(const char *name) const {
 		lua_pushstring(m_lua, name);
@@ -272,7 +274,7 @@ private:
 //----------------------------------------------------
 
 struct LuaStringReader {
-	LuaStringReader(const string *string): m_String(string), m_Finished(false) {}
+	LuaStringReader(const std::string *string): m_String(string), m_Finished(false) {}
 	static const char * Reader(lua_State *L, void *data, size_t *size) {
 		return ((LuaStringReader*)data)->ReaderImpl(L, size);
 	}
@@ -287,7 +289,7 @@ private:
 		return m_String->c_str();
 	}
 	bool m_Finished;
-	const string *m_String;
+	const std::string *m_String;
 };
 
 struct LuaCStringReader {

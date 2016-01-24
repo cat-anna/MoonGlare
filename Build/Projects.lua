@@ -2,7 +2,7 @@
 function MoonGlare.LookForProjects()
 	local i,v
 	for i,v in ipairs(os.matchfiles(dir.root .. "/**/project.lua")) do
-		print("Found project: " .. v)
+		print("Found project: " .. path.getrelative(dir.root, v))
 		dofile(v)
 	end
 end

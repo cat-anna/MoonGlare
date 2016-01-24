@@ -8,16 +8,21 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
-#define __LOG_ACTION_Recon(T, A)					__BeginLog(T, A)
-#define __LOG_ACTION_F_Recon(T, ...)				__BeginLogf(T, __VA_ARGS__)
+#define __LOG_ACTION_Tool(T, A)						ORBITLOGGER_BeginLog(None, A)
+#define __LOG_ACTION_F_Tool(T, ...)					ORBITLOGGER_BeginLogf(None, __VA_ARGS__)
+#define __LOG_ACTION_Recon(T, A)					ORBITLOGGER_BeginLog(T, A)
+#define __LOG_ACTION_F_Recon(T, ...)				ORBITLOGGER_BeginLogf(T, __VA_ARGS__)
 
 #include "MoonGlareInisder.h"
 #include "ResourceEnumerator.h"
 #include <Engine/iSoundEngine.h>
+#include <Config/DebugInterface.h>
 
 namespace MoonGlare {
 namespace Debug {
 namespace Insider {
+
+using namespace InsiderApi;
 
 struct InsiderSettings {
 	struct Port : public Settings_t::BaseSettingInfo<int, Port> {
@@ -98,7 +103,10 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 	case MessageTypes::EnumerateLua: return EnumerateLua(buffer);
 	case MessageTypes::EnumerateScripts: return EnumerateScripts(buffer);
 	case MessageTypes::EnumerateAudio: return EnumerateAudio(buffer);
-	case MessageTypes::SetScriptCode: return SetScriptCode(buffer);
+#ifdef DEBUG_INTERFACE
+	case MessageTypes::EnumerateMemory: return EnumerateMemory(buffer);
+#endif
+	case MessageTypes::SetScriptCode: return SetScriptCode(buffer); 
 	case MessageTypes::GetScriptCode: return GetScriptCode(buffer);
 	case MessageTypes::InfoRequest: return InfoRequest(buffer);
 	case MessageTypes::Ping: return Ping(buffer);
@@ -114,7 +122,9 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 
 	default:
 		AddLogf(Normal, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
-		return false;
+		buffer.Clear();
+		buffer.GetHeader()->MessageType = MessageTypes::NotSupported;
+		return true;
 	}
 }
 
@@ -131,7 +141,7 @@ void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 }
 
 void Insider::ThreadEntry() {
-	::OrbitLogger::ThreadInfo::SetName("INSI");
+	OrbitLogger::ThreadInfo::SetName("INSI", true);
 	AddLog(Thread, "Insider");
 	EnableScriptsInThisThread();
 
@@ -227,12 +237,6 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 	using SoundType = MoonGlare::Sound::SoundType;
 	GetSoundEngine()->EnumerateAudio([&count, &buffer](const string& Name, const string& Class, SoundType Type) {
 		auto *item = buffer.Alloc<PayLoad_AudioListItem>();
-
-		//u8 unused;
-		//u16 NameLen;
-		//u16 ClassNameLen;
-		//char Name_Class[0];
-
 		item->Index = count;
 		++count;
 		item->Type = Type == SoundType::Sound ? PayLoad_AudioListItem::AudioType::Sound : PayLoad_AudioListItem::AudioType::Music;
@@ -347,6 +351,29 @@ bool Insider::Ping(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 	hdr->MessageType = MessageTypes::Pong;
+	return true;
+}
+
+bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
+	AddLogf(Debug, "Enumerating memory pools");
+	buffer.Clear();
+	auto *hdr = buffer.GetHeader();
+
+	auto *list = buffer.Alloc<PayLoad_ListBase>();
+	u16 count = 0;
+	for (auto it: Config::Debug::MemoryInterface::GetInterfaces()) {
+		auto *item = buffer.Alloc<PayLoad_MemoryStatus>();
+		auto info = it->GetInfo();
+		item->Index = ++count;
+		item->Allocated = info->Allocated;
+		item->Capacity = info->Capacity;
+		item->MaxAllocated = info->MaxAllocated;
+		item->ElementSize = (u16)info->ElementSize;
+		item->NameLen = (u16)strlen(info->Name);
+		buffer.PushString(info->Name);
+	}
+	list->Count = count;
+	hdr->MessageType = MessageTypes::MemoryStatus;
 	return true;
 }
 

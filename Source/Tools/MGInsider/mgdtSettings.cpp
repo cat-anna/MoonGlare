@@ -163,7 +163,7 @@ mgdtSettings& mgdtSettings::get() {
 
 void mgdtSettings::Load() {
 	pugi::xml_document xml;
-	xml.load_file("Settings.xml");
+	xml.load_file("Settings.MGInsider.xml");
 	auto node = xml.document_element();
 	PugiReaderSerializer reader(node.child("Settings"));
 	Serialize(reader);
@@ -174,7 +174,7 @@ void mgdtSettings::Save() {
 	auto root = xml.append_child("Settings");
 	PugiWritterSerializer writter(root.append_child("Settings"));
 	Serialize(writter);
-	xml.save_file("Settings.xml");
+	xml.save_file("Settings.MGInsider.xml");
 }
 
 //-----------------------------------------
