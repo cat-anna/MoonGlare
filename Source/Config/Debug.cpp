@@ -185,17 +185,4 @@ void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 } //namespace Debug
 } //namespace Config
 
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
-
-#ifdef DEBUG_MEMORY
-#include "DebugInterface.h"
-namespace Config {
-namespace Debug {
-std::list<MemoryInterface*> MemoryInterface::s_Interfaces;
-}
-}
-#endif
-
 #endif

@@ -128,8 +128,8 @@ using StringStringMap = std::unordered_map < string, string > ;
 class cRootClass;
 
 #include "Utils/SetGet.h"
-#include "Utils/Memory.h"
 #include "Utils/Memory/nMemory.h"
+#include "Utils/Memory.h"
 #include "Utils/ActionQueue.h"
 #include "Utils/StringUtils.h"
 #include "Utils/Handle.h"

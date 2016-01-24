@@ -12,7 +12,6 @@ namespace Memory {
 //----------------------------------------------------------------
 
 struct MemoryManagerBase {
-
 #ifdef DEBUG_MEMORY
 	struct MMinfo {
 		size_t UsedSize, Size;

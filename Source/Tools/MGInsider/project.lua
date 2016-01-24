@@ -16,7 +16,7 @@ group "Tools"
 		
 		SetPCH { hdr = "pch.h", src = "pch.cpp", }	
 	
-		kind "ConsoleApp"
+		kind "WindowedApp" --"ConsoleApp"
 		defines { 
 			"_BUILDING_TOOL_", 
 			"_BUILDING_MGINSIDER_", 
