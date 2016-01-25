@@ -173,7 +173,7 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 
 		if (keys & (KeyFlags::Move_Left | KeyFlags::Move_Right)) {
 			MoveNeeded = true;
-			float roty_90 = m_Rotation[1] + math::Constants::pi::half;
+			float roty_90 = m_Rotation[0] + math::Constants::pi::half;
 			Physics::vec3 direction(sin(roty_90), 0.0f, cos(roty_90));
 			//direction *= 0.8f;
 			if (keys & KeyFlags::Move_Left) {  

@@ -15,12 +15,13 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 
 	float bias = 1e-5;
 	float s;
-	float m = 0.5;
+	float m = 0;//5;
 
 	vec2 ShadowPixelSize = vec2(1.0 / ShadowMapSize[0], 1.0 / ShadowMapSize[1]);
 	
-	for(int i = -2; i <= 2; ++i) {
-		for(int j = -2; j <= 2; ++j) {
+	const int delta = 2;
+	for(int i = -delta; i <= delta; ++i) {
+		for(int j = -delta; j <= delta; ++j) {
 				vec2 sampledelta = vec2(ShadowPixelSize[0] * i, ShadowPixelSize[1] * j);
 				vec2 samplepos = ShadowCoord.xy + sampledelta;
 	
@@ -32,7 +33,7 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 		}
 	}
 
-	m = 1.0 - m / 25.0;
+	m = 1.0 - m / pow(delta*2+1, 2);
 
 	//if (m <= 0)
 		//discard;

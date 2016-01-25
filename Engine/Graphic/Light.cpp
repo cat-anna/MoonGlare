@@ -26,7 +26,15 @@ bool LightBase::Initialize() {
 //----------------------------------------------------------------
 
 float LightAttenuation::Threshold(float ColorFactor) const {
-	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256 * ColorFactor)));
+	//float delta = Linear * Linear + 4 * Exp * Constant;
+	//float sqrtdelta = sqrtf(delta);
+	//
+	//float ret = (Linear + sqrtdelta);
+	////if(Exp != 0)
+	//	//ret /= 2 * Exp;
+	//return ret;
+
+	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256)));// - 256 * ColorFactor
 	//if (Exp != 0)
 	//		ret /= 2 * Exp;
 	return ret;

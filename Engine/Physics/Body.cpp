@@ -19,8 +19,8 @@ Body::Body(Object* Owner, SharedShape ss):
 		m_World(0) {  
 	m_ptr.reset(new btRigidBody(1.0f, &Owner->GetMotionState(), nullptr));
 
-	//if (m_Mass > 0.0f)
-	//	m_ptr->forceActivationState(DISABLE_DEACTIVATION);
+	if (m_Mass > 0.0f)
+		m_ptr->forceActivationState(DISABLE_DEACTIVATION);
 
 	m_ptr->setUserPointer(m_Owner);
 	SetShape(ss);
@@ -39,10 +39,10 @@ void Body::SetMass(float value) {
 	vec3 localInertia;
 	m_Shape->CalculateLocalInertia(value, localInertia);
 	m_ptr->setMassProps(value, localInertia);
-	//if (m_Mass > 0.0f)
-		//m_ptr->forceActivationState(DISABLE_DEACTIVATION);
-	//else
-		//m_ptr->forceActivationState(WANTS_DEACTIVATION);
+	if (m_Mass > 0.0f)
+		m_ptr->forceActivationState(DISABLE_DEACTIVATION);
+	else
+		m_ptr->forceActivationState(WANTS_DEACTIVATION);
 }
 
 void Body::SetShape(SharedShape Shape) {
