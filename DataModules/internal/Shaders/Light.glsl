@@ -66,6 +66,7 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 
     vec4 Color = CalcLightInternal(PointLight.Base, LightDirection, WorldPos, Normal);
     Color.xyz *= CalcAttenuation(PointLight.Atten, Distance);
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
 
