@@ -167,6 +167,17 @@ using Core::ApiInitializer;
 
 #include "Config/Config.h"
 #include <OrbitLogger/OrbitLogger.h>
+
+namespace OrbitLogger {
+namespace LogChannels {
+	enum MGChannels : LogChannel {
+		Script = FirstUserChannel,
+		Insider,
+		Performance,
+	};
+}
+}
+
 #include "Error.h"
 
 #define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)

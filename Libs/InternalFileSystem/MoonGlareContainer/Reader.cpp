@@ -97,7 +97,7 @@ FileReader Reader::GetFileReader(const string& FileName) const {
 }
 
 bool Reader::EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const {
-	REQUIRE_REIMPLEMENT;
+	REQUIRE_REIMPLEMENT();
 #if 0
 	auto file = FindFile(Path);
 	if (!file || !file->Flags.Directory)

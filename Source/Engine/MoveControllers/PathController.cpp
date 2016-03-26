@@ -36,7 +36,7 @@ PathController::PathController(const PathController& source, ::Core::Objects::Ob
 		m_LookAtPath(source.m_LookAtPath), 
 		m_PositionTimer(source.m_PositionTimer) {
 	SetScriptHandlers(new PathControllerScriptEvents());
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 }
 
 iMoveController* PathController::Duplicate(::Core::Objects::Object* NewOwner) const {
@@ -146,7 +146,7 @@ void PathController::DoMove(const ::Core::MoveConfig& conf){
 		q = btQuaternion(Pnormal, Angle);
 		//AddLog(Debug, "n:" << Pnormal << "   a:" << Angle);
 	} else {
-		LOG_NOT_IMPLEMENTED;
+		LOG_NOT_IMPLEMENTED();
 	}
 
 	//AddLog(Hint, convert(delta) << "    " << convert(rot.getAxis()) << "    " << rot.getAngle());

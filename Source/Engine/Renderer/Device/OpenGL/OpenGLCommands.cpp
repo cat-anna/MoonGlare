@@ -26,6 +26,10 @@ void DeleteTextureCommand::Call(DeleteTextureCommand* data) {
 	glDeleteTextures(data->m_Count, data->m_Memory);
 }
 
+void DeleteSingleTextureCommand::Call(DeleteSingleTextureCommand* data) {
+	glDeleteTextures(1, &data->m_Texture);
+}
+
 } //namespace Commands
 } //namespace OpenGL
 } //namespace Devices 

@@ -72,7 +72,7 @@ void Image::RecalculateMetrics() {
 	case ScaleMode::None:
 		break;
 	default:
-		AddLog(InvalidEnum, m_ScaleMode);
+		LogInvalidEnum(m_ScaleMode);
 		m_EffectiveScale = Point(m_Scale);
 		break;
 	}

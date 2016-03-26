@@ -20,7 +20,7 @@ Texture::Texture() : BaseClass() {
 	FreeImage_SetOutputMessage(FreeImageErrorHandler);
 #endif 
 #ifdef DEBUG
-	AddLog(SysInfo, "FreeImage version: " << FreeImage_GetVersion());
+	AddLog(System, "FreeImage version: " << FreeImage_GetVersion());
 #endif
 }
 

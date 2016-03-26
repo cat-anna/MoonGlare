@@ -32,7 +32,7 @@ cGameCoords::cGameCoords(const char* MapName, float pX, float pZ, float Angle):
 const char *c3DPoint_cGameCoords_Captions[] = {"aX", "aY", "aZ", };
 
 bool cGameCoords::SaveToXML(xml_node Node) const{
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 /*	if(!Node)return false;
 	Node.append_attribute("MapName") = m_MapName.c_str();
 	m_Position.SaveToXML(Node);
@@ -41,7 +41,7 @@ bool cGameCoords::SaveToXML(xml_node Node) const{
 }
 
 bool cGameCoords::LoadFromXML(const xml_node Node){
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 /*	m_MapName = Node.attribute("MapName").as_string();
 	m_Position.LoadFromXML(Node);
 	m_CameraRotation.LoadFromXML(Node, c3DPoint_cGameCoords_Captions);*/
@@ -50,7 +50,7 @@ bool cGameCoords::LoadFromXML(const xml_node Node){
 
 string cGameCoords::AsString(bool Extended) const {
 	std::ostringstream ss;
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 /*	if(Extended){
 		char buf[2048] = {};
 		sprintf(buf, "\"%s\",%.3f,%f,%f,%f,%f,%f", GetMapName().c_str(), GetPosition().x, GetPosition().y, GetPosition().z, 

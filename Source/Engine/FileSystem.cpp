@@ -183,7 +183,7 @@ bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, const string& subpath
 void MoonGlareFileSystem::OnModuleLoad(iContainer *container, unsigned LoadFlags) {
 	BaseClass::OnModuleLoad(container, LoadFlags);
 
-	AddLog(TODO, "Check if container contain module metadata");
+//	AddLog(TODO, "Check if container contain module metadata");
 
 	auto module = std::make_unique<DataClasses::DataModule>(container);
 

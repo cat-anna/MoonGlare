@@ -47,6 +47,12 @@ struct DeleteTextureCommand {
 	static void Call(DeleteTextureCommand* data);
 };
 
+struct DeleteSingleTextureCommand {
+	GLuint m_Texture;
+
+	static void Call(DeleteSingleTextureCommand* data);
+};
+
 } //namespace Commandss
 } //namespace OpenGL
 } //namespace Devices 

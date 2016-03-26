@@ -46,7 +46,7 @@ bool ModelInstance::Initialize(Object* object) {
 }
 
 bool ModelInstance::Finalize() {
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	return true;
 }
 

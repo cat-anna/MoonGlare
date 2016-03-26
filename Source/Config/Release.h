@@ -23,10 +23,6 @@
 #define GABI_SINGLETON_CHECK		VoidAction
 #define GABI_SINGLETON_SET_CHECK	VoidAction
 
-#define LOG_NOT_IMPLEMENTED			VoidAction
-#define LOG_ABSTRACT_FUNCTION()		VoidAction
-#define LOG_DEPRECATED				VoidAction
-
 #define REQUIRE_REIMPLEMENT			VoidAction
 //#define REQUIRE_REIMPLEMENT		//should not be defined. Forbidden in release code.
 

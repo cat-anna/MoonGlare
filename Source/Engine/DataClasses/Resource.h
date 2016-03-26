@@ -24,7 +24,7 @@ struct NameClassPair {
 	}
 
 	bool SaveMeta(xml_node node) const {
-		LOG_NOT_IMPLEMENTED;
+		LOG_NOT_IMPLEMENTED();
 		return false;
 	}
 };
@@ -46,7 +46,7 @@ struct NameClassSourceTriplet {
 	}
 
 	bool SaveMeta(xml_node node) const {
-		LOG_NOT_IMPLEMENTED;
+		LOG_NOT_IMPLEMENTED();
 		return false;
 	}
 };
@@ -113,7 +113,7 @@ public:
 		return m_Ptr;
 	}
 
-	void ReleaseResource() { LOG_NOT_IMPLEMENTED; }
+	void ReleaseResource() { LOG_NOT_IMPLEMENTED(); }
 	unsigned UseCount() const { return 0; }
 
 	ResourcePointer(DataModule *Owner) : ResourcePointerBase(Owner), m_Ptr(0){}

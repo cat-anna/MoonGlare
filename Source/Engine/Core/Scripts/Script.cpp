@@ -130,7 +130,7 @@ static int Lua_print(lua_State *L) {
 	string str = out.str();
 	if (ConsoleExists())
 		GetConsole()->AsyncLine(str);
-	AddLog(Normal, str);
+	AddLog(Info, str);
 	return 0;
 }
 

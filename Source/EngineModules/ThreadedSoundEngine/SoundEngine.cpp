@@ -87,8 +87,6 @@ SoundEngine::SoundEngine():
 		m_CurrentMusics(),
 		m_CurrentPlayListItem(0),
 		m_PlayList() {
-
-	AddLog(TODO, "Add support for music volume sliding and use it when changing playlist");
 }
 
 SoundEngine::~SoundEngine() {
@@ -136,7 +134,7 @@ void SoundEngine::ThreadEntry() {
 	srand(time(NULL));
 	try {
 		OrbitLogger::ThreadInfo::SetName("SNDE");
-		AddLog(Thread, "SoundEngine");
+		AddLog(Info, "SoundEngine thread started");
 		EnableScriptsInThisThread();
 
 		AddLog(Debug, "Initializing SoundEngine");
@@ -232,7 +230,7 @@ void SoundEngine::ScanForSoundsScanPath(DataPath mode, const string& basepath, c
 				RegisterMusic(fname, path);
 				break;
 			default:
-				AddLog(InvalidEnum, mode);
+				LogInvalidEnum(mode);
 				break;
 			}
 			break;
@@ -246,7 +244,7 @@ void SoundEngine::ScanForSoundsScanPath(DataPath mode, const string& basepath, c
 			break;
 		}
 		default:
-			AddLog(InvalidEnum, it.Type);
+			LogInvalidEnum(it.Type);
 			break;
 		}
 	}

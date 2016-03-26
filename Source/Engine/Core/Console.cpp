@@ -9,7 +9,7 @@ namespace Core {
 
 class Console::ConsoleLine {
 public:
-	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LineType::Normal): type(Type), ShowTime(Time), Line() { };
+	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), ShowTime(Time), Line() { };
 	ConsoleLine(const ConsoleLine&) = delete;
 	~ConsoleLine() { }
 	unsigned type;

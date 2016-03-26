@@ -53,4 +53,3 @@ void TrueTypeWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
 } //namespace TrueTypeFont 
 } //namespace Modules 
 } //namespace MoonGlare 
-

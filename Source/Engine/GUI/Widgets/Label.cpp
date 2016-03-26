@@ -24,7 +24,7 @@ Label::Label(iWidget *Parent):
 		m_TextAlignMode(TextAlignMode::LeftTop),
 		m_TextPosition(0) {
 	SetAutoSize(true);
-	AddLog(FixMe, "Implement autosize logic in label widget");
+//	AddLog(FixMe, "Implement autosize logic in label widget");
 }
 
 Label::~Label() {
@@ -97,7 +97,7 @@ void Label::SetTextAlignMode(TextAlignMode mode) {
 
 	//case MoonGlare::GUI::TextAlignMode::Justified: break;
 	default:
-		AddLog(InvalidEnum, m_TextAlignMode);
+		LogInvalidEnum(m_TextAlignMode);
 		break;
 	}
 

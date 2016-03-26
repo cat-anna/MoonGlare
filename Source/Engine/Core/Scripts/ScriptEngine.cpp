@@ -15,6 +15,8 @@ cScriptEngine::cScriptEngine() :
 		m_Flags(0) {
 	SetThisAsInstance();
 
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
+
 	SetPerformanceCounterOwner(ScriptInstancesConstructed);
 	SetPerformanceCounterOwner(ScriptInstancesDestroyed);
 }
@@ -135,10 +137,10 @@ void cScriptEngine::LoadAllScriptsImpl() {
 			break;
 		}
 		case FileSystem::FileType::Directory:
-			AddLog(TODO, "Recursive search for scripts");
+//			AddLog(TODO, "Recursive search for scripts");
 			break;
 		default:
-			AddLog(InvalidEnum, it.Type);
+			LogInvalidEnum(it.Type);
 			break;
 		}
 

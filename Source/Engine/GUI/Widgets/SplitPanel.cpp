@@ -22,7 +22,7 @@ public:
 	virtual ~SplittingPanel() { }
 
 	virtual void RecalculateMetrics() override {
-		AddLog(TODO, "Support for outer margin");
+//		AddLog(TODO, "Support for outer margin");
 		m_BoundingRect.SliceFromParent(GetParent()->GetBoundingRect(), m_Position, m_Size);
 		m_ScreenPosition = GetParent()->GetScreenPosition() + m_Position;
 		for (auto &it : m_Children)

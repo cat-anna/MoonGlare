@@ -25,6 +25,8 @@ Engine::Engine() :
 		m_Dereferred(),
 		m_Forward()
 {
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
+
 	SetThisAsInstance();
 	new JobQueue();
 	new Input();
@@ -280,7 +282,7 @@ void Engine::DoRender() {
 	  
 	m_Forward->BeginD2Render(dev);
 
-	AddLog(FixMe, "GL functions are forbidden here!");
+//	AddLog(FixMe, "GL functions are forbidden here!");
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

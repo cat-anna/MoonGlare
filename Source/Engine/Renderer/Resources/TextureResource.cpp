@@ -98,9 +98,11 @@ void TextureResource::Release(TextureHandle Texture) {
 
 	m_Allocator.push(Texture.m_Value);
 
-	auto cmd = GetRenderer()->NextFrame().GetPreCommands().PushCommand<Device::Commands::DeleteTextureCommand>();
-	cmd->m_Count = 1;
-	cmd->m_Memory = &GetRawTexture(Texture.m_Value);
+	auto &raw = GetRawTexture(Texture.m_Value);
+	auto cmd = GetRenderer()->NextFrame().GetPreCommands().PushCommand<Device::Commands::DeleteSingleTextureCommand>();
+	cmd->m_Texture = raw;
+	raw = 0;
+
 }
 
 //---------------------------------------------------------------------------------------

@@ -82,6 +82,7 @@ GABI_IMPLEMENT_STATIC_CLASS(Insider);
 Insider::Insider(): BaseClass() {
 	m_Running = true;
 	m_Thread = std::thread(&Insider::ThreadEntry, this);
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Insider, "INSI");
 	SetPerformanceCounterOwner(CodeExecutionCount);
 	SetPerformanceCounterOwner(CommandExecutionCount);
 	SetPerformanceCounterOwner(BytesSend);
@@ -121,7 +122,7 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 		return false;
 
 	default:
-		AddLogf(Normal, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+		AddLogf(Insider, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
 		buffer.Clear();
 		buffer.GetHeader()->MessageType = MessageTypes::NotSupported;
 		return true;
@@ -130,7 +131,7 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 
 void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 	if (!m_Connected) {
-		AddLogf(DebugWarn, "Unable to send message to Insider, reason: not connected. (type: %d, length:%d)", buffer.GetHeader()->MessageType, buffer.UsedSize());
+		AddLogf(Insider, "Unable to send message to Insider, reason: not connected. (type: %d, length:%d)", buffer.GetHeader()->MessageType, buffer.UsedSize());
 		return;
 	}
 	boost::system::error_code ignored_error;
@@ -142,7 +143,7 @@ void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 
 void Insider::ThreadEntry() {
 	OrbitLogger::ThreadInfo::SetName("INSI", true);
-	AddLog(Thread, "Insider");
+	AddLog(Info, "Insider thread started");
 	EnableScriptsInThisThread();
 
 	InsiderMessageBuffer buffer;
@@ -151,7 +152,7 @@ void Insider::ThreadEntry() {
 	try {
 		m_socket.reset(new udp::socket(m_ioservice, udp::endpoint(udp::v4(), (unsigned short)InsiderSettings::Port::get())));
 		
-		AddLog(Hint, "Insider initialized");
+		AddLog(Insider, "Insider initialized");
 		while (m_Running) {
 			if (m_socket->available() <= 0) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -202,7 +203,7 @@ bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	//auto *request = buffer.GetAndPull<??>();
 	//No payload
 
-	AddLogf(Debug, "Enumerating scripts");
+	AddLogf(Insider, "Enumerating scripts");
 
 	buffer.Clear();
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
@@ -228,7 +229,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 	//auto *request = buffer.GetAndPull<??>();
 	//No payload
 
-	AddLogf(Debug, "Enumerating scripts");
+	AddLogf(Insider, "Enumerating scripts");
 
 	buffer.Clear();
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
@@ -255,7 +256,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
-	AddLogf(Normal, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+	AddLogf(Insider, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
 	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 	buffer.Clear();
 	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
@@ -276,7 +277,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
 
-	AddLogf(Debug, "Set script '%s' succeded", name.c_str());
+	AddLogf(Insider, "Set script '%s' succeded", name.c_str());
 
 	if (saveFile) {
 		auto f = GetFileSystem()->OpenFileForWrite(name);
@@ -316,7 +317,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.GetHeader()->MessageType = MessageTypes::ScriptCode;
 
 	if (found)
-		AddLogf(Debug, "Get script '%s' succeded", name.c_str());
+		AddLogf(Insider, "Get script '%s' succeded", name.c_str());
 	else
 		AddLogf(Error, "Get script '%s' failed: no such script", name.c_str());
 
@@ -347,7 +348,7 @@ bool Insider::InfoRequest(InsiderMessageBuffer& buffer) {
 }
 
 bool Insider::Ping(InsiderMessageBuffer& buffer) {
-	AddLogf(Debug, "Insider Ping");
+	AddLogf(Insider, "Insider Ping");
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 	hdr->MessageType = MessageTypes::Pong;
@@ -355,7 +356,7 @@ bool Insider::Ping(InsiderMessageBuffer& buffer) {
 }
 
 bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
-	AddLogf(Debug, "Enumerating memory pools");
+	AddLogf(Insider, "Enumerating memory pools");
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 

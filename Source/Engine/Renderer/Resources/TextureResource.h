@@ -45,10 +45,10 @@ public:
 protected:
 	union Flags {
 		struct {
-			char Used : 1;		///used by renderer
-			char Allocated : 1; ///allocated in device
+			uint8_t Used : 1;		///used by renderer
+			uint8_t Allocated : 1; ///allocated in device
 		};
-		char m_IntValue;
+		uint8_t m_IntValue;
 	};
 
 	RendererStaticSettings::GenerationType &GetGeneration(size_t index) { return m_Arrays.Get<0>(index); }

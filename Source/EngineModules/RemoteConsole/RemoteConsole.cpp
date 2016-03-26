@@ -67,7 +67,7 @@ RemoteConsole::~RemoteConsole() {
 
 void RemoteConsole::ThreadEntry() {
 	::OrbitLogger::ThreadInfo::SetName("RECO");
-	AddLog(Thread, "RemoteConsole");
+	AddLog(Info, "RemoteConsole Thread started");
 	EnableScriptsInThisThread();
 
 	char buffer[Configuration::MaxMessageSize];
@@ -95,7 +95,7 @@ void RemoteConsole::ThreadEntry() {
 
 			switch (header->MessageType) {
 			case MessageTypes::ExecuteCode: {
-				AddLogf(Normal, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+				AddLogf(Info, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
 				int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 				auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
 				payload->ReturnCode = ret;
@@ -104,7 +104,7 @@ void RemoteConsole::ThreadEntry() {
 				break;
 			}
 			default:
-				AddLogf(Normal, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+				AddLogf(Info, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
 			}
 
 			IncrementPerformanceCounter(CodeExecutionCount);

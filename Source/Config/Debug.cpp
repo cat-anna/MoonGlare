@@ -72,7 +72,7 @@ void Finalize() {
 
 //---------------------------------------------------------------------------------------
 void Debug::DumpRuntime() {
-	REQUIRE_REIMPLEMENT;
+	REQUIRE_REIMPLEMENT();
 //#ifndef _DISABLE_LOG_SYSTEM_
 	//GabiLib::GabiTracker::DumpInstances(__CreateLog(Debug));
 //#endif

@@ -20,7 +20,7 @@ ScriptMoveController::ScriptMoveController(const ScriptMoveController& source, :
 		m_StaticSpeed(source.m_StaticSpeed),
 		m_ProgressGoal(source.m_ProgressGoal),
 		m_Progress(source.m_Progress){
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	//SetScriptHandlers(source.m_ScriptHandlers->Duplicate());
 }
 
@@ -51,7 +51,7 @@ void ScriptMoveController::RegisterScriptApi(ApiInitializer &api) {
 
 void ScriptMoveController::DoMove(const ::Core::MoveConfig& conf) {
 	if (!IsRunning()) return;
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 #if 0
 
 	auto Position = convert(m_Owner->GetMotionState().GetPosition());

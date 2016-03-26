@@ -153,7 +153,7 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 		}
 
 		if (!parentsd) {
-			AddLog(Error, "An erro has occur during loading shader definition");
+			AddLog(Error, "An error has occur during loading shader definition");
 			sd.Type = ShaderType::Invalid;
 			return nullptr;
 		}
@@ -174,7 +174,7 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 		ShaderProg = ConstructShaderGlsl(*parentsd, sd, ProgramName);
 		break;
 	default:
-		AddLog(InvalidEnum, sd.Type);
+		LogInvalidEnum(sd.Type);
 		break;
 	}
 
@@ -228,7 +228,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 			CodeVec.push_copy(fr->GetFileData(), fr->Size());
 			PreproccesShaderCode(sd, CodeVec);
 			GLuint shader = glCreateShader(type->value);
-			glShaderSource(shader, CodeVec.len(), CodeVec.get(), NULL);
+			glShaderSource(shader, CodeVec.len(), (const GLchar**)CodeVec.get(), NULL);
 			glCompileShader(shader);
 			// Check Shader
 			GLint Result = GL_FALSE;

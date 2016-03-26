@@ -80,7 +80,7 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 void Object::Describe() const {
 	char buff[1024] = {};
 	auto &pos = GetPosition();
-	sprintf(buff, "%s@0x%08x [x:%f;y:%f;z:%f]", GetDynamicTypeInfo()->Name, this, 
+	sprintf(buff, "%s@0x%p [x:%f;y:%f;z:%f]", GetDynamicTypeInfo()->Name, this, 
 			pos.x(), pos.y(), pos.z());
 	AddLog(Hint, buff << " [" << Info() << "]");
 }

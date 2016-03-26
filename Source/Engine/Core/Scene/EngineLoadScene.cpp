@@ -34,7 +34,7 @@ EngineLoadScene::~EngineLoadScene() {
 
 void EngineLoadScene::LoadMain() {
 	::OrbitLogger::ThreadInfo::SetName("ELS");
-	AddLog(Thread, "EngineLoadScene");
+	AddLog(Info, "EngineLoadScene thread started");
 	EnableScriptsInThisThread();
 
 	GetDataMgr()->LoadGlobalData();

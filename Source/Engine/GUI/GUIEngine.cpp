@@ -228,7 +228,7 @@ void GUIEngine::DispatchPendingEvents() {
 }
 
 void GUIEngine::EventUnknownAction(Events::Event &e) {
-	AddLog(DebugWarn, "Catched unknown event of id: " << (unsigned)e.Type << " and type name: '" << typeid(e).name() << "'");
+	AddLog(Warning, "Catched unknown event of id: " << (unsigned)e.Type << " and type name: '" << typeid(e).name() << "'");
 }
 
 void GUIEngine::EventMouseUpAction(Events::MouseUpEvent &e) {

@@ -47,7 +47,7 @@ bool cGameEngine::PerformHit(Objects::Object *Attacker, Objects::Object *Defende
 	switch(InvokeHitTest(Attacker, Defender, Damage)){
 	case 0: //miss
 		AddLog(Hint, "miss");
-		LOG_NOT_IMPLEMENTED; 
+		LOG_NOT_IMPLEMENTED(); 
 		return false;
 	case 1://hit
 		return InvokeAcquireDamage(Defender, Damage) > 0;
@@ -140,7 +140,7 @@ bool cGameEngine::Initialize(){
 //	if(IsReady()) return true;
 //	SetInitialised(InvokeInitialize() == 0);
 //	return IsReady();
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	return true;
 }
 

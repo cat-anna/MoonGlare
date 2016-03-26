@@ -49,7 +49,7 @@ bool StaticFog::SaveMeta(xml_node node) const {
 
 	//auto density = node.append_child("Density");
 	//XML::Value::Write(density.append_attribute("Value"), m_Density);
-	REQUIRE_REIMPLEMENT;
+	REQUIRE_REIMPLEMENT();
 	return false;
 }
 

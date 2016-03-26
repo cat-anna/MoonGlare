@@ -155,7 +155,7 @@ public:
 		LOCK_MUTEX(m_mutex);
 		const char *c = lua_tostring(lua, index);
 		if (!c) {
-			AddLog(DebugWarn, "Lua was unable to convert type " << lua_type(lua, index) << " to string!");
+			AddLog(Warning, "Lua was unable to convert type " << lua_type(lua, index) << " to string!");
 			m_Value = "";
 		} else
 			m_Value = c;
@@ -817,7 +817,7 @@ bool GlobalContext::Install(lua_State *lua) {
 //---------------------------------------------------------------------------------------
 
 void GlobalContext::CleanContext() {
-	REQUIRE_REIMPLEMENT;
+	REQUIRE_REIMPLEMENT();
 }
 
 bool GlobalContext::Initialize() {
