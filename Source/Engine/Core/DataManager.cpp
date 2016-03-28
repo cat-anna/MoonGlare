@@ -40,7 +40,7 @@ Manager::Manager() : cRootClass(), m_Flags(0) {
 	new DataClasses::Texture();
 	m_StringTables = std::make_unique<DataClasses::StringTable>();
 
-	AddLog(FixMe, "DataManager is not threadsafe");
+//	AddLog(FixMe, "DataManager is not threadsafe");
 }
 
 Manager::~Manager() {
@@ -155,7 +155,7 @@ MapPtr Manager::GetMap(const string& Name) {
 	}
 	AddLogf(Debug, "Map '%s' not found or not loaded. Trying to load.", Name.c_str());
 	
-	AddLog(TODO, "Move ownership of loaded map xml to map instance");
+//	AddLog(TODO, "Move ownership of loaded map xml to map instance");
 	FileSystem::XML xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Maps)) {
 		AddLogf(Error, "Unable to open master resource xml for map '%s'", Name.c_str());
@@ -195,7 +195,7 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
 	}
 	AddLogf(Debug, "Font '%s' not found. Trying to load.", Name.c_str());
 
-	AddLog(TODO, "Move ownership of loaded font xml to map instance");
+//	AddLog(TODO, "Move ownership of loaded font xml to map instance");
 	FileSystem::XML xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Fonts)) {
 		AddLogf(Error, "Unable to open master resource xml for font '%s'", Name.c_str());
@@ -241,7 +241,7 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	}
 	AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
 
-	AddLog(TODO, "Move ownership of loaded model xml to map instance");
+//	AddLog(TODO, "Move ownership of loaded model xml to map instance");
 	FileSystem::XML xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
 		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());
@@ -308,14 +308,13 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 
 	FileSystem::XML doc;
 	if (!GetFileSystem()->OpenResourceXML(doc, Name, DataPath::Scenes)) {
-		AddLog(Error, "Unable to load xml for scene: " << Name);
-		return nullptr;
-	}
-
-	if (!ptr->SetMetaData(doc)) {
-		AddLogf(Error, "Unable to scene map '%s' of class '%s'", Name.c_str(), Class.c_str());
-		delete ptr;
-		return nullptr;
+		AddLog(Warning, "Unable to load xml for scene: " << Name);
+	} else {
+		if (!ptr->SetMetaData(doc)) {
+			AddLogf(Error, "Unable to scene map '%s' of class '%s'", Name.c_str(), Class.c_str());
+			delete ptr;
+			return nullptr;
+		}
 	}
 	return ptr;
 }

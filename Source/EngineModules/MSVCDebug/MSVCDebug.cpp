@@ -25,10 +25,10 @@ struct MSVCDebuggerFormatPolicy {
 
 		const char* file = src->m_File;
 		
-		static const char *skipstr = "d:\\programowanie\\projekty\\!gry\\moonglare\\";
-		static const int skip = strlen(skipstr);
-		if (!memcmp(skipstr, src->m_File, skip))
-			file += skip;
+		//static const char *skipstr = "d:\\programowanie\\projekty\\!gry\\moonglare\\";
+		//static const int skip = strlen(skipstr);
+		//if (!memcmp(skipstr, src->m_File, skip))
+		//	file += skip;
 
 		sprintf_s(buffer, buffer_size, "%s(%d) : %s : %s\n", file, src->m_Line, line->m_ModeStr, line->m_Message);
 	}

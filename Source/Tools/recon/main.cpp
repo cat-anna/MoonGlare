@@ -19,23 +19,27 @@
 #include <Version.h>
 //#include <reconVersion.inc>
 #include <source/Utils/SetGet.h>
+#include <source/Utils/Memory/nMemory.h>
 #include <source/Utils/Memory.h>
 #include <source/EngineModules/MoonGlareInsider/MoonGlareInisderApi.h>
 
 using namespace std;
 using namespace MoonGlare::Debug::InsiderApi;
 
-string _Port = "";
+string _infile = "";
+string _Port = std::to_string(Configuration::recon_Port);
 string _Host = "localhost";
 
 struct Flags {
 	enum {
 		Buffer		= 1,
+		SendFile	= 2,
 	};
 };
 
 const GabiLib::ProgramParameters::Parameter Parameters[] = {
  	{'b', 0, Flags::Buffer, 0, "Buffer whole stdin before send", 0},
+	{'f', 0, Flags::SendFile, _infile, "Send content of file and exit", 0 },
  	{'p', 1, 0, _Port, "Set port", 0},
  	{'h', 1, 0, _Host, "Set host", 0},
 	{'\0', 0, 0, 0, 0, 0},
@@ -53,27 +57,40 @@ GabiLib::ProgramParameters Params = {
 
 using boost::asio::ip::udp;
 
-int main(int argc, char** argv) {
-	cout << "Moonglare engine remote console "/* << reconToolVersion.VersionStringFull() <<*/ "\n\n";
-	{
-		char buf[32];
-		sprintf(buf, "%d", Configuration::recon_Port);
-		_Port = buf;
+struct ReconData {
+	ReconData(const std::string &Host, const std::string &Port) : io_service(), s(io_service) {
+		udp::resolver resolver(io_service);
+		endpoint = *resolver.resolve({ udp::v4(), Host, Port });
 	}
+
+	bool Send(MessageHeader *header) {
+		s.send_to(boost::asio::buffer(header, sizeof(MessageHeader) + header->PayloadSize), endpoint);
+		return true;
+	}
+
+	boost::asio::io_service io_service;
+	udp::endpoint endpoint;
+	udp::socket s;
+
+};
+
+int main(int argc, char** argv) {
+	cout << "MoonGlare engine remote console "/* << reconToolVersion.VersionStringFull() <<*/ "\n\n";
 	try {
 		Params.Parse(argc, argv);
-
-		boost::asio::io_service io_service;
-		udp::socket s(io_service, udp::endpoint(udp::v4(), 0));
-
-		udp::resolver resolver(io_service);
-		udp::endpoint endpoint = *resolver.resolve({udp::v4(), _Host, _Port});
+		ReconData recon(_Host, _Port);
 
 		char buffer[Configuration::MaxMessageSize];
 		auto *header = reinterpret_cast<MessageHeader*>(buffer);
 		header->MessageType = MessageTypes::ExecuteCode;
 
 		char *strbase = (char*)header->PayLoad;
+
+		if (Params.Flags & Flags::SendFile) {
+			printf("not implemented!\n");
+			return 0;
+		}
+
 		bool repetitive = (Params.Flags & Flags::Buffer) == 0;
 
 		do {
@@ -88,8 +105,7 @@ int main(int argc, char** argv) {
 					break;
 			}
 			header->PayloadSize = strlen(strbase) + 1;
-
-			s.send_to(boost::asio::buffer(buffer, sizeof(MessageHeader) + header->PayloadSize), endpoint);
+			recon.Send(header);
 		} while (repetitive);
 	}
 	catch (std::exception& e)

@@ -15,7 +15,7 @@ struct Rect {
 	Rect(): LeftTop(0), RightBottom(0) { }
 
 	void SliceFromParent(const Rect& parent, const Point& pos, const Point &size) {
-		AddLog(FixMe, "Function implementation does not cover all cases");
+//		AddLog(FixMe, "Function implementation does not cover all cases");
 		LeftTop = pos + parent.LeftTop;
 		RightBottom = LeftTop + size;
 	}

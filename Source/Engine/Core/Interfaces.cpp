@@ -34,7 +34,6 @@ void Interfaces::DumpList(ClassList &list, ostream &out){
 
 Interfaces::Interfaces() : m_ClassLists((unsigned)ClassLists::MaxValue){
 	m_ClassLists.Name((unsigned)ClassLists::Core) = "Core";
-	m_ClassLists.Name((unsigned)ClassLists::Resource) = "Resource";
 }
 
 void Interfaces::RegisterScriptApi(ApiInitializer &api) {
@@ -94,6 +93,16 @@ void Interfaces::DumpLists(ostream &out) {
 	out << "\nSound types list\n";
 	Sound::SoundClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\n"; 
+	out << "\n";
+	out << "\n";
+	auto func = [&out](const GabiLib::ClassListRegisterBase<> *r) {
+		out << r->GetCompilerName() << "\n";
+	};
+	GabiLib::ClassListRegisterBase<>::EnumerateRegisters(func);
+
+	out << "\n";
+	out << "\n";
+	out << "\n";
 }
 
 void Interfaces::AutoRegisterClass(const char *Name, const GabiLib::GabiTypeInfo *ClassInfo, 

@@ -12,15 +12,43 @@
 namespace MoonGlare {
 namespace Renderer {
 
-class Renderer {
+/**
+	Renderer class.
+	Singleton sic!
+	Virtuality is forbidden in this class
+*/
+class Renderer final : public GabiLib::GabiObject {
+	GABI_DECLARE_CLASS_SINGLETON(Renderer, GabiLib::GabiObject)
 public:
- 	Renderer();
- 	virtual ~Renderer();
-protected:
-	//TODO: add stuff there
-private: 
-	//TODO: add stuff there
+	Renderer();
+	~Renderer();
+
+	bool Initialize();
+	bool Finalize();
+
+	/** Swap buffers and begin frame rendering */
+	void SubmitFrame();
+
+	Frame& NextFrame() { return *m_Frame; }
+
+	//void* NewTextureTargetJob();
+	//static void* CreateTextureTargetJob(void* texture, void *size, void* camera);
+
+	Resources::ResourceHolder& Resources() { return m_Resources; }
+	Tasks::TaskManager& Tasks() { return m_Tasks; }
+private:
+	Resources::ResourceHolder m_Resources;
+	Tasks::TaskManager m_Tasks;
+
+	struct FramesTable {
+		Frame m_First;
+		Frame m_Second;
+	};
+	Frame *m_Frame, *m_SubmittedFrame;
+	FramesTable m_FrameBuffers;
 };
+
+inline Renderer* GetRenderer() { return Renderer::Instance(); }
 
 } //namespace Renderer 
 } //namespace MoonGlare 

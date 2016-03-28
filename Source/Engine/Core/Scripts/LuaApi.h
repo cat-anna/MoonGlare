@@ -105,7 +105,7 @@ private:
 #define SCRIPT_CLASS_INSTANCE_VALIDATION() \
 	do { \
 		if(this->GetDynamicTypeInfo() != ThisClass::GetStaticTypeInfo()) \
-			AddLogOncef(DebugWarn, "Script instance valiation failed!!  caller:%s  handled in class: %s", \
+			AddLogOncef(Script, "Script instance valiation failed!!  caller:%s  handled in class: %s", \
 				 GetDynamicTypeInfo()->GetName(), ThisClass::GetStaticTypeInfo()->GetName());\
 	 } while(false)
 #else

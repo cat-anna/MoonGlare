@@ -41,7 +41,7 @@ bool BackstageScene::DoFinalize() {
 }
 
 void BackstageScene::DoMove(const MoveConfig &conf) {
-	AddLog(DebugWarn, "Exiting by entering backstage scene!");
+	AddLog(Warning, "Exiting by entering backstage scene!");
 	GetEngine()->Exit();
 }
 

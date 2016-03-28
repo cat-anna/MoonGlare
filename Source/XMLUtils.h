@@ -14,7 +14,7 @@ inline pugi::xml_node CheckXML(pugi::xml_node Parent, const char *Name, pugi::xm
 		dst = Parent.append_child(Name);
 	return dst;
 }
-#ifdef D3MATH_H_
+#ifdef XMATH_H
 inline bool operator <<(pugi::xml_node Node, math::vec3 &out) {
 	if (!Node) return false;
 	for (unsigned i = 0; i < 3; ++i)
@@ -129,7 +129,7 @@ struct Node : public XML_Common {
 		return Read_template<btScalar, btVector3, 3>(m_handle, Name, out, default, captions);
 	}
 #endif
-#ifdef D3MATH_H_
+#ifdef XMATH_H
 	bool ReadVector(xml_string Name, uvec3 &out, const uvec3 &default = uvec3(), const xml_string captions[] = Captions::XYZ) {
 		return Read_template<unsigned, uvec3, 3>(m_handle, Name, out, default, captions);
 	}
@@ -150,7 +150,7 @@ struct Vector : public XML_Common {
 		return Read_template<btScalar, btVector3, 3>(parent, Name, out, default, captions);
 	}
 #endif
-#ifdef D3MATH_H_
+#ifdef XMATH_H
 	static bool Read(pugi::xml_node parent, xml_string Name, uvec3 &out, const uvec3 &default = uvec3(), const xml_string captions[] = Captions::XYZ) {
 		return Read_template<unsigned, uvec3, 3>(parent, Name, out, default, captions);
 	}
@@ -238,7 +238,7 @@ inline bool ReadVector(pugi::xml_node parent, xml_string Name, VEC &vec, const V
 
 
 #define GEN_VEC_XML_FUN(VEC, LEN, READ, DEF) impl_WriteVector(VEC, LEN, DEF) impl_ReadVector(VEC, LEN, READ, DEF) 
-#ifdef D3MATH_H_
+#ifdef XMATH_H
 GEN_VEC_XML_FUN(math::fvec2, 2, as_float, Captions::XYZ)
 GEN_VEC_XML_FUN(math::fvec3, 3, as_float, Captions::XYZ)
 GEN_VEC_XML_FUN(math::uvec2, 2, as_uint, Captions::XYZ)

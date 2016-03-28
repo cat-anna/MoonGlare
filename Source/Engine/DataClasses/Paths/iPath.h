@@ -63,6 +63,8 @@ protected:
 	DefineFlagSetter(m_Flags, Flags::Repetitive, Repetitive)
 };
 
+using PathClassRegister = GabiLib::DynamicClassRegister < iPath >;
+
 } // namespace Paths 
 } // namespace DataClasses 
 

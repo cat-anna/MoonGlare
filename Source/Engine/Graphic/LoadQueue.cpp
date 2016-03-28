@@ -35,7 +35,7 @@ void LoadQueue::DispatchInTime(float miliseconds) {
 	if (Count() <= 2)
 		return DispatchAllRequests();
 
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	//float currentms = 0.0f;
 }
 	

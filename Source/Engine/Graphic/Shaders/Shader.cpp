@@ -46,7 +46,7 @@ GLint Shader::Location(const char* Name) const {
 		if (_ReportedErrorLocations.find(sloc) != _ReportedErrorLocations.end())
 			return -1;
 		_ReportedErrorLocations[sloc] = 1;
-		AddLogf(DebugWarn, "Unable to get location of parameter '%s' in shader '%s'", Name, GetName().c_str());
+		AddLogf(Warning, "Unable to get location of parameter '%s' in shader '%s'", Name, GetName().c_str());
 		return -1;
 	}
 #endif

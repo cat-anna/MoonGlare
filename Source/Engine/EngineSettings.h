@@ -117,6 +117,19 @@ public:
 		};
 	};
 
+	struct StaticStorage {
+		enum {
+
+			TinyBuffer			= 64,
+			SmallBuffer			= 256,
+			MediumBuffer		= 1024,
+			HugeBuffer			= 4096,
+
+			EntityBuffer		= HugeBuffer,
+			ComponentBuffer		= SmallBuffer,//there is no need for more now
+		};
+	};
+
 	void Load();
 	void Save();
 

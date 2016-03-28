@@ -118,7 +118,7 @@ bool InternalFileSystem::AppendModule(Container &module, unsigned AppendFlags) {
 		module.reset();
 		return true;
 	default:
-		AddLog(InvalidEnum, status);
+		LogInvalidEnum( status);
 		break;
 	}
 
@@ -368,7 +368,7 @@ static void ShadowDirectory(InternalFilePointer *root, const RawFilePointer *dir
 			ShadowDirectory(item.get(), ptr, source);
 			break;
 		default:
-			AddLog(InvalidEnum, type);
+			LogInvalidEnum(type);
 			return;
 		}
 	};
@@ -503,7 +503,6 @@ Container InternalFileSystem::OpenContainer(const string& FileName, unsigned Loa
 		}
 		
 		if (1) {
-			AddLog(TODO, "Consider: test RDC container extension");
 			auto mgc = new MoonGlareContainer::Reader(FileName);
 			c.reset(mgc);
 			if (c->IsReady() && c->IsReadable()) {//try open container

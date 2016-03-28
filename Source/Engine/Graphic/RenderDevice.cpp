@@ -29,7 +29,7 @@ cRenderDevice::cRenderDevice(WindowPtr Context, unsigned Flags) :
 
 	CriticalCheck(glewInit() == GLEW_OK, "Unable to initialize GLEW!");
 	AddLog(Debug, "GLEW initialized");
-	AddLog(SysInfo, "GLEW version: " << (char*)glewGetString(GLEW_VERSION));
+	AddLog(System, "GLEW version: " << (char*)glewGetString(GLEW_VERSION));
 
 	m_InitThreadId = std::this_thread::get_id();
 	ReadOpenGLInfo();
@@ -108,7 +108,7 @@ void cRenderDevice::CheckError() const {
 	AddLog(Error, "OpenGL error: " << ptr);
 }
 
-void GLAPIENTRY cRenderDevice::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam){
+void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam) {
 	const char * source_str = "?";
 	const char * type_str = "?";
 	const char * severity_str = "?";
@@ -190,7 +190,7 @@ void GLAPIENTRY cRenderDevice::DebugCallback(GLenum source, GLenum type, GLuint 
  
 void cRenderDevice::RegisterDebugCallback() {
 	if (GLEW_ARB_debug_output) {
-		glDebugMessageCallbackARB(&cRenderDevice::DebugCallback, nullptr);
+		glDebugMessageCallbackARB(&DebugCallback, nullptr);
 
 //disable:
 //OpenGL Warning: Source:OpenGL Type:Other ID:131185 Severity:Unknown Message:Buffer detailed info: Buffer object 34 (bound to GL_ARRAY_BUFFER_ARB, usage hint is GL_STATIC_DRAW) will use VIDEO memory as the source for buffer object operations.
@@ -247,19 +247,19 @@ void cRenderDevice::ReadOpenGLInfo() {
 			if (!text)
 				AddLog(Warning, "Unable to get OpenGL string " << it->Name);
 			else 
-				AddLogf(SysInfo, "%s = %s", it->Name, text);
+				AddLogf(System, "%s = %s", it->Name, text);
 			break;
 		}
 		case 'f':{
 			float f;
 			glGetFloatv(it->value, &f);
-			AddLogf(SysInfo, "%s = %f", it->Name, f);
+			AddLogf(System, "%s = %f", it->Name, f);
 			break;
 		}
 		case 'i':{
 			int i;
 			glGetIntegerv(it->value, &i);
-			AddLogf(SysInfo, "%s = %d", it->Name, i);
+			AddLogf(System, "%s = %d", it->Name, i);
 			break;
 		}
 		}

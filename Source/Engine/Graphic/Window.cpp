@@ -397,13 +397,13 @@ void Window::InitializeWindowSystem() {
 
 	CriticalCheck(glfwInit(), "Unable to initialize GLFW!");
 	AddLog(Debug, "GLFW initialized");
-	AddLog(SysInfo, "GLFW version: " << glfwGetVersionString());
+	AddLog(System, "GLFW version: " << glfwGetVersionString());
 
 	_GLFWInitialized = true;
 
 	auto monitor = glfwGetPrimaryMonitor();
-	AddLogf(SysInfo, "Primary monitor: %s", glfwGetMonitorName(monitor));
-	AddLog(SysInfo, "Current mode: " << DumpGLFWMode(glfwGetVideoMode(monitor)));
+	AddLogf(System, "Primary monitor: %s", glfwGetMonitorName(monitor));
+	AddLog(System, "Current mode: " << DumpGLFWMode(glfwGetVideoMode(monitor)));
 }
 
 void Window::FinalzeWindowSystem() {

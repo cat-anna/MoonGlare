@@ -30,6 +30,9 @@ namespace Core {
 	using ::MoonGlare::Core::PreRenderConfig;
 }
 
+#include "EntityManager.h"
+#include "ComponentManager.h"
+
 #include "Scripts/nfScripts.h"
 #include "Scene/nfScene.h"
 #include "Objects/nfObjects.h"

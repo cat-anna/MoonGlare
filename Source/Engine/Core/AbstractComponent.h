@@ -12,18 +12,18 @@
 namespace MoonGlare {
 namespace Core {
 namespace Component {
-
+#if 0
 enum class ComponentRank : unsigned __int32 {
 	Unknown,		//forbidden to use
 };
 
 struct ComponentFlags {
 	enum {
-		DynamicProcessing		= 0x0001,
+		ProcessingEnabled,
+
+		MaxValue,
 	};
 };
-
-using ProcessConfig = int;
 
 class ComponentOwner;
 
@@ -33,19 +33,23 @@ public:
  	AbstractComponent(ComponentOwner *Owner, ComponentRank Rank);
  	virtual ~AbstractComponent();
 
-	virtual void Process(const ProcessConfig &conf) = 0;
+	virtual void Process(const ProcessConfig &config) = 0;
+	virtual void CollectGarbage(const CollectConfig &config) = 0;
 
 	DefineDirectGetter(Rank, ComponentRank);
 	DefineDirectGetter(Owner, ComponentOwner*);
-	DefineFlagGetter(m_Flags, ComponentFlags::DynamicProcessing, DynamicProcessing);
+	DefineFlagGetter(m_Flags, FlagBit(ComponentFlags::ProcessingEnabled), ProcessingEnabled);
 protected:
 	Utils::FlagSet m_Flags;
-	DefineFlagSetter(m_Flags, ComponentFlags::DynamicProcessing, DynamicProcessing);
+	void EnableProcessing();
+	void DisableProcessing();
 private:
 	ComponentOwner *m_Owner;
 	ComponentRank m_Rank;
-};
 
+	DefineFlagSetter(m_Flags, FlagBit(ComponentFlags::ProcessingEnabled), ProcessingEnabled);
+};
+#endif
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

@@ -29,7 +29,7 @@ iMoveController::iMoveController(const iMoveController& other, ::Core::Objects::
 		m_Flags(other.m_Flags),
 		m_ScriptHandlers()
 {
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 }
 
 iMoveController::~iMoveController() {

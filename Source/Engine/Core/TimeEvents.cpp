@@ -69,7 +69,7 @@ int TimeEvents::KillTimer(int Event, ::Core::EventProxyPtr Owner){
 		m_Queue.erase(it);
 		return 0;
 	}
-	AddLogf(DebugWarn, "Timer with id %d does not exists!", Event);
+	AddLogf(Warning, "Timer with id %d does not exists!", Event);
 	return 0;
 }
 

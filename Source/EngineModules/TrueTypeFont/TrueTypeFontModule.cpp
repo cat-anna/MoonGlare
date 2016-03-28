@@ -32,7 +32,7 @@ struct TrueTypeFontModule : public MoonGlare::Modules::ModuleInfo {
 		FT_Int major, minor, patch;
 		FT_Library_Version(ftlib, &major, &minor, &patch);
 
-		AddLogf(SysInfo, "FreeType version: %d.%d.%d", major, minor, patch);
+		AddLogf(System, "FreeType version: %d.%d.%d", major, minor, patch);
 		FontClassRegister::Register<TrueTypeFont> ClassReg;
 
 		return true;

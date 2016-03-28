@@ -8,16 +8,21 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
-#define __LOG_ACTION_Recon(T, A)					__BeginLog(T, A)
-#define __LOG_ACTION_F_Recon(T, ...)				__BeginLogf(T, __VA_ARGS__)
+#define __LOG_ACTION_Tool(T, A)						ORBITLOGGER_BeginLog(None, A)
+#define __LOG_ACTION_F_Tool(T, ...)					ORBITLOGGER_BeginLogf(None, __VA_ARGS__)
+#define __LOG_ACTION_Recon(T, A)					ORBITLOGGER_BeginLog(T, A)
+#define __LOG_ACTION_F_Recon(T, ...)				ORBITLOGGER_BeginLogf(T, __VA_ARGS__)
 
 #include "MoonGlareInisder.h"
 #include "ResourceEnumerator.h"
 #include <Engine/iSoundEngine.h>
+#include <Config/DebugInterface.h>
 
 namespace MoonGlare {
 namespace Debug {
 namespace Insider {
+
+using namespace InsiderApi;
 
 struct InsiderSettings {
 	struct Port : public Settings_t::BaseSettingInfo<int, Port> {
@@ -77,6 +82,7 @@ GABI_IMPLEMENT_STATIC_CLASS(Insider);
 Insider::Insider(): BaseClass() {
 	m_Running = true;
 	m_Thread = std::thread(&Insider::ThreadEntry, this);
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Insider, "INSI");
 	SetPerformanceCounterOwner(CodeExecutionCount);
 	SetPerformanceCounterOwner(CommandExecutionCount);
 	SetPerformanceCounterOwner(BytesSend);
@@ -98,7 +104,10 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 	case MessageTypes::EnumerateLua: return EnumerateLua(buffer);
 	case MessageTypes::EnumerateScripts: return EnumerateScripts(buffer);
 	case MessageTypes::EnumerateAudio: return EnumerateAudio(buffer);
-	case MessageTypes::SetScriptCode: return SetScriptCode(buffer);
+#ifdef DEBUG_INTERFACE
+	case MessageTypes::EnumerateMemory: return EnumerateMemory(buffer);
+#endif
+	case MessageTypes::SetScriptCode: return SetScriptCode(buffer); 
 	case MessageTypes::GetScriptCode: return GetScriptCode(buffer);
 	case MessageTypes::InfoRequest: return InfoRequest(buffer);
 	case MessageTypes::Ping: return Ping(buffer);
@@ -113,14 +122,16 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 		return false;
 
 	default:
-		AddLogf(Normal, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
-		return false;
+		AddLogf(Insider, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+		buffer.Clear();
+		buffer.GetHeader()->MessageType = MessageTypes::NotSupported;
+		return true;
 	}
 }
 
 void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 	if (!m_Connected) {
-		AddLogf(DebugWarn, "Unable to send message to Insider, reason: not connected. (type: %d, length:%d)", buffer.GetHeader()->MessageType, buffer.UsedSize());
+		AddLogf(Insider, "Unable to send message to Insider, reason: not connected. (type: %d, length:%d)", buffer.GetHeader()->MessageType, buffer.UsedSize());
 		return;
 	}
 	boost::system::error_code ignored_error;
@@ -131,8 +142,8 @@ void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 }
 
 void Insider::ThreadEntry() {
-	::OrbitLogger::ThreadInfo::SetName("INSI");
-	AddLog(Thread, "Insider");
+	OrbitLogger::ThreadInfo::SetName("INSI", true);
+	AddLog(Info, "Insider thread started");
 	EnableScriptsInThisThread();
 
 	InsiderMessageBuffer buffer;
@@ -141,7 +152,7 @@ void Insider::ThreadEntry() {
 	try {
 		m_socket.reset(new udp::socket(m_ioservice, udp::endpoint(udp::v4(), (unsigned short)InsiderSettings::Port::get())));
 		
-		AddLog(Hint, "Insider initialized");
+		AddLog(Insider, "Insider initialized");
 		while (m_Running) {
 			if (m_socket->available() <= 0) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -192,7 +203,7 @@ bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	//auto *request = buffer.GetAndPull<??>();
 	//No payload
 
-	AddLogf(Debug, "Enumerating scripts");
+	AddLogf(Insider, "Enumerating scripts");
 
 	buffer.Clear();
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
@@ -218,7 +229,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 	//auto *request = buffer.GetAndPull<??>();
 	//No payload
 
-	AddLogf(Debug, "Enumerating scripts");
+	AddLogf(Insider, "Enumerating scripts");
 
 	buffer.Clear();
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
@@ -227,12 +238,6 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 	using SoundType = MoonGlare::Sound::SoundType;
 	GetSoundEngine()->EnumerateAudio([&count, &buffer](const string& Name, const string& Class, SoundType Type) {
 		auto *item = buffer.Alloc<PayLoad_AudioListItem>();
-
-		//u8 unused;
-		//u16 NameLen;
-		//u16 ClassNameLen;
-		//char Name_Class[0];
-
 		item->Index = count;
 		++count;
 		item->Type = Type == SoundType::Sound ? PayLoad_AudioListItem::AudioType::Sound : PayLoad_AudioListItem::AudioType::Music;
@@ -251,7 +256,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
-	AddLogf(Normal, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+	AddLogf(Insider, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
 	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 	buffer.Clear();
 	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
@@ -272,7 +277,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
 
-	AddLogf(Debug, "Set script '%s' succeded", name.c_str());
+	AddLogf(Insider, "Set script '%s' succeded", name.c_str());
 
 	if (saveFile) {
 		auto f = GetFileSystem()->OpenFileForWrite(name);
@@ -312,7 +317,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.GetHeader()->MessageType = MessageTypes::ScriptCode;
 
 	if (found)
-		AddLogf(Debug, "Get script '%s' succeded", name.c_str());
+		AddLogf(Insider, "Get script '%s' succeded", name.c_str());
 	else
 		AddLogf(Error, "Get script '%s' failed: no such script", name.c_str());
 
@@ -343,10 +348,33 @@ bool Insider::InfoRequest(InsiderMessageBuffer& buffer) {
 }
 
 bool Insider::Ping(InsiderMessageBuffer& buffer) {
-	AddLogf(Debug, "Insider Ping");
+	AddLogf(Insider, "Insider Ping");
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 	hdr->MessageType = MessageTypes::Pong;
+	return true;
+}
+
+bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
+	AddLogf(Insider, "Enumerating memory pools");
+	buffer.Clear();
+	auto *hdr = buffer.GetHeader();
+
+	auto *list = buffer.Alloc<PayLoad_ListBase>();
+	u16 count = 0;
+	for (auto it: Config::Debug::MemoryInterface::GetInterfaces()) {
+		auto *item = buffer.Alloc<PayLoad_MemoryStatus>();
+		auto info = it->GetInfo();
+		item->Index = ++count;
+		item->Allocated = info->Allocated;
+		item->Capacity = info->Capacity;
+		item->MaxAllocated = info->MaxAllocated;
+		item->ElementSize = (u16)info->ElementSize;
+		item->NameLen = (u16)strlen(info->Name);
+		buffer.PushString(info->Name);
+	}
+	list->Count = count;
+	hdr->MessageType = MessageTypes::MemoryStatus;
 	return true;
 }
 

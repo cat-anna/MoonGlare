@@ -48,6 +48,7 @@
 #include <codecvt>
 #include <atomic>
 #include <random>
+#include <type_traits>
 using std::istream;
 using std::ostream;
 using std::string;
@@ -127,9 +128,11 @@ using StringStringMap = std::unordered_map < string, string > ;
 class cRootClass;
 
 #include "Utils/SetGet.h"
+#include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
 #include "Utils/ActionQueue.h"
 #include "Utils/StringUtils.h"
+#include "Utils/Handle.h"
 #include "Version.h"
 #include "TemplateUtils.h"
 #include "MathConstants.h"
@@ -164,6 +167,17 @@ using Core::ApiInitializer;
 
 #include "Config/Config.h"
 #include <OrbitLogger/OrbitLogger.h>
+
+namespace OrbitLogger {
+namespace LogChannels {
+	enum MGChannels : LogChannel {
+		Script = FirstUserChannel,
+		Insider,
+		Performance,
+	};
+}
+}
+
 #include "Error.h"
 
 #define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)

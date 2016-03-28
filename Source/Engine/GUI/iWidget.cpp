@@ -285,7 +285,7 @@ void iWidget::ProcessInnerAlign(InnerAlignMode mode, Point &position, const Poin
 		break;
 	//case MoonGlare::GUI::TextAlignMode::Justified: break;
 	default:
-		AddLog(InvalidEnum, mode);
+		LogInvalidEnum(mode);
 		break;
 	}
 }
@@ -315,7 +315,7 @@ void iWidget::OnMouseDown(const Events::MouseDownEvent &event) {
 }
 
 void iWidget::OnMouseUp(const Events::MouseUpEvent &event) {
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	SCRIPT_INVOKE_NORETURN(OnMouseUp);
 }
 

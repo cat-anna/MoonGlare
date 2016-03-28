@@ -15,12 +15,8 @@ namespace Light {
 
 class Light {
 public:
- 	Light();
- 	virtual ~Light();
 protected:
-	//TODO: add stuff there
 private: 
-	//TODO: add stuff there
 };
 
 } //namespace Light 

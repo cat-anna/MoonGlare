@@ -5,10 +5,11 @@
 namespace MoonGlare {
 namespace Renderer {
 
+class Renderer;
+
 } //namespace Renderer 
 } //namespace MoonGlare 
 
 #include "GraphicTypes.h"
-#include "GraphicSettings.h"
 
 #endif

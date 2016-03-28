@@ -62,7 +62,7 @@ bool iBassChannel::InitializeBass() {
 		return false;
 	}
 
-	AddLogf(SysInfo, "Bass version: %d.%d.%d.%d", (ver >> 24) & 0xFF, (ver >> 16) & 0xFF, (ver >> 8) & 0xFF, ver & 0xFF);
+	AddLogf(System, "Bass version: %d.%d.%d.%d", (ver >> 24) & 0xFF, (ver >> 16) & 0xFF, (ver >> 8) & 0xFF, ver & 0xFF);
 	ApplyGlobalConfig();
 	return true;
 }

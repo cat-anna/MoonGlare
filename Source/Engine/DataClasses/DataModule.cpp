@@ -122,7 +122,7 @@ bool DataModule::LoadGameEgnine() {
 		ErrorLog("Unable to GameEngine!");
 	return ge->Initialize();
 #endif // 0
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 	return false;
 }
 

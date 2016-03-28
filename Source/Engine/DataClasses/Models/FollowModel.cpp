@@ -106,7 +106,7 @@ bool FollowModel::LoadFromXML(const xml_node Node) {
 
 	unsigned Index[] = { 0, 1, 2, 3 };
 #endif
-	REQUIRE_REIMPLEMENT;
+	REQUIRE_REIMPLEMENT();
 	//m_VAO.New();
 	//m_VAO.AddDataChannel<3, float>(&Vertexes[0][0], 4);
 	//m_VAO.AddDataChannel<2, float>(&Texture[0][0], 4);

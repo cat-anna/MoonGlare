@@ -11,7 +11,6 @@
 namespace MoonGlare {
 namespace Renderer {
 
-
 RenderContext::RenderContext() {
 
 }
@@ -22,4 +21,3 @@ RenderContext::~RenderContext() {
 
 } //namespace Renderer 
 } //namespace MoonGlare 
-

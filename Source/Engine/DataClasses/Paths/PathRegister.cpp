@@ -72,6 +72,7 @@ iPathSharedPtr PathRegister::GetPath(const string& Name) const {
 	auto &entry = it->second;
 	auto shptr = entry.Ptr.lock();
 	if (!shptr) {
+#if 0
 		auto ptr = ::Core::Interfaces::CreateResourceClass<iPath>(entry.Info.Class);
 		if (!ptr) {
 			AddLogf(Error, "Unable to create path object! [Map:%s  Path:%s  Class:%s]", GetOwner()->GetName().c_str(), Name.c_str(), entry.Info.Class.c_str());
@@ -79,13 +80,15 @@ iPathSharedPtr PathRegister::GetPath(const string& Name) const {
 		}
 		ptr->SetOwner(const_cast<PathRegister*>(this));
 		ptr->LoadMeta(entry.MetaNode);
-		if(!ptr->Initialize()) {
+		if (!ptr->Initialize()) {
 			delete ptr;
 			AddLogf(Error, "Unable to initialzie path object! [Map:%s  Path:%s  Class:%s]", GetOwner()->GetName().c_str(), Name.c_str(), entry.Info.Class.c_str());
 			return nullptr;
 		}
 		shptr = iPathSharedPtr(ptr);
 		entry.Ptr = iPathWeakPtr(shptr);
+#endif // 0
+
 	}
 	return shptr;
 }

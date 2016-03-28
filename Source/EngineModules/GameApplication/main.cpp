@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 	LogCollector::OpenLogSink<StdNoDebugFileLoggerSink>([](StdNoDebugFileLoggerSink* sink) { sink->Open("logs/Engine.filtered.log"); });
 
 	Config::Current::Initialize();
-	AddLog(Thread, "MainThread");
+	AddLog(Info, "MainThread");
 	Settings->Load();
 	//Core::Settings->DisableSave();
 	do {

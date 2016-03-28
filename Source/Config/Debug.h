@@ -18,17 +18,17 @@
 #define GABI_SINGLETON_CHECK		ASSERT(_Instance, "Singleton check failed!")
 #define GABI_SINGLETON_SET_CHECK	THROW_ASSERT(!_Instance, "Cannot change existing singleton instance!")
 
-#define REQUIRE_REIMPLEMENT			do { AddLog(TODO, "Function requrie reimplementation"); AddLog(Error, "Reached code has to be reimplemented! Quitting."); throw "Code need to be reimplemented"; } while (false)
+#define REQUIRE_REIMPLEMENT()		do { AddLog(Error, "Reached code has to be reimplemented! Quitting."); throw "Code need to be reimplemented"; } while (false)
 
-#define LOG_NOT_IMPLEMENTED			do { AddLog(TODO, "Function needs implementation"); AddLogOnce(Warning, __FUNCTION__ << " is not implemented!"); } while (false)
-#define LOG_ABSTRACT_FUNCTION()		do { AddLogf(Error, "Function is abstract. Check overriding function for class '%s'.", GetDynamicTypeInfo()->GetFullName()); } while (false)
-#define LOG_DEPRECATED				do { AddLog(TODO, "Function is deprecated"); AddLogOnce(Warning, __FUNCTION__ << " is deprecated!"); } while (false)
+#define DEBUG_INTERFACE 1
 
 #define DEBUG_LOG 1
 #define DEBUG_DUMP 1
 #define DEBUG_SCRIPTAPI 1
 #define DEBUG_RESOURCEDUMP 1
 #define DEBUG_CHECKS 1
+
+#define DEBUG_INTERFACE 1
 #define DEBUG_MEMORY 1
 
 #define _FEATURE_LOG_COUNTERS_ 1

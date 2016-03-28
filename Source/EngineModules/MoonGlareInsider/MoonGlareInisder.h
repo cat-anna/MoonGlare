@@ -19,13 +19,16 @@ namespace Debug {
 namespace Insider {
 
 using namespace InsiderApi;
+using InsiderMessageBuffer = InsiderApi::InsiderMessageBuffer;
+
+//using InsiderLogSink = ::Log::LogSink < > ;
 
 class Insider : public cRootClass {
 	GABI_DECLARE_STATIC_CLASS(Insider, cRootClass);
 public:
  	Insider();
  	virtual ~Insider();
-
+	
 	void SendInsiderMessage(InsiderMessageBuffer& buffer);
 private: 
 	using udp = boost::asio::ip::udp;
@@ -56,6 +59,7 @@ private:
 	bool InfoRequest(InsiderMessageBuffer& buffer);
 	bool Ping(InsiderMessageBuffer& buffer);
 	bool EnumerateAudio(InsiderMessageBuffer& buffer);
+	bool EnumerateMemory(InsiderMessageBuffer& buffer);
 }; 
 
 } //namespace Insider

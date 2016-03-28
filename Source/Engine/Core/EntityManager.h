@@ -12,15 +12,26 @@
 namespace MoonGlare {
 namespace Core {
 
-//class EntityManager {
-//public:
-// 	EntityManager();
-// 	virtual ~EntityManager();
-//protected:
-//	//TODO: add stuff there
-//private: 
-//	//TODO: add stuff there
-//};
+struct Entity final : public Utils::Handle::BaseDoubleHandle32<unsigned, 16, 16> {
+	bool IsValid() const;
+	operator bool() const { return IsValid(); }
+	bool operator!() const { return !IsValid(); }
+	bool operator ==(const Entity &other) const { return m_IntegerValue == other.m_IntegerValue; }
+};
+
+class EntityManager final {
+public:
+	static bool Initialize();
+	static bool Finalize();
+
+	static Entity Allocate();
+	static void Release(Entity e);
+protected:
+private: 
+	//std::mutex m_Lock;
+	EntityManager();
+	~EntityManager();
+};
 
 } //namespace Core 
 } //namespace MoonGlare 

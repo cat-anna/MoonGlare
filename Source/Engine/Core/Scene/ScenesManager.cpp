@@ -107,7 +107,7 @@ int ScenesManager::HandleTimer(int TimerID) {
 		break;
 	}
 	default:
-		AddLogf(DebugWarn, "SceneManager received undefined TimerID: %d", TimerID);
+		AddLogf(Warning, "SceneManager recived undefined TimerID: %d", TimerID);
 	}
 	return 0;
 }
@@ -218,7 +218,7 @@ ciScene* ScenesManager::GetNextScene() {
 void ScenesManager::ScenePrepeareImpl(const string& Name, int Param, ::Core::EventProxyPtr proxy) {
 	LOCK_MUTEX(m_Lock);
 	if (IsNextScenePending()) {
-		AddLog(FixMe, "Setting next scene while next scene is pending is not implemented");
+//		AddLog(FixMe, "Setting next scene while next scene is pending is not implemented");
 		AddLog(Error, "Cannot set next scene while next scene is pending!");
 		GetEngine()->Abort();
 	}

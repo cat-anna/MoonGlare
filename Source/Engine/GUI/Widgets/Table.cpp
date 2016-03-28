@@ -74,7 +74,7 @@ void Table::ScriptSet(Utils::Scripts::TableDispatcher &table) {
 	//catch (...) { /* ignore */ }
 	//Unlock();
 	//RecalculateMetrics();
-	LOG_NOT_IMPLEMENTED;
+	LOG_NOT_IMPLEMENTED();
 }
 
 //----------------------------------------------------------------------------------

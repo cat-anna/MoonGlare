@@ -36,6 +36,9 @@ namespace Config {
 }
 #endif
 
+//This header takes care by itself
+#include "DebugInterface.h"
+
 namespace Config {
 }
 

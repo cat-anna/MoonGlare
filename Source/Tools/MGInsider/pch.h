@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Config/pch_common.h>
+
 #pragma warning (disable: 4251)
 
 #pragma warning (push, 0)
@@ -33,11 +35,8 @@
 #include <QThread>
 #pragma warning ( pop )
 
-#include <unordered_map>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <cstring>
+#include <OrbitLogger/OrbitLogger.h>
+
 #include <cassert>
 
 #include <pugixml-1.6/src/pugixml.hpp>
@@ -45,7 +44,8 @@
 
 #include <source/XMLUtils.h>
 #include <source/Utils/SetGet.h>
-#include <source/Utils/Memory.h>
+#include "Utils/Memory/nMemory.h"
+#include "Utils/Memory.h"
 #include <source/Utils/LuaUtils.h>
 
 #include <GabiLib/src/utils/EnumConverter.h>

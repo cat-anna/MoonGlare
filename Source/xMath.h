@@ -5,8 +5,8 @@
  *      Author: Paweu
  */
 
-#ifndef D3MATH_H_
-#define D3MATH_H_
+#ifndef XMATH_H
+#define XMATH_H
  
 namespace Physics {
 	using vec3 = btVector3;
@@ -84,4 +84,4 @@ using math::uvec2;
 using math::max;
 using math::min;
 
-#endif // D3MATH_H_ 
+#endif // XMATH_H 

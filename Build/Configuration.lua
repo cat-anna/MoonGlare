@@ -76,15 +76,15 @@ local function SetCommonConfig()
 		dir.base,
 		dir.src,
 		dir.libsrc,
-		"source/Libs", 
-		dir.bin,
+		dir.root .. "Libs",
 		"bullet3-master/src",
-		"libs",
+		"Libs",
 	}
 	
 	basedir "."
 	debugdir "."
 	targetdir(dir.bin)
+	location(dir.bin)
 	
 	floatingpoint "Fast"
 	flags { "NoMinimalRebuild", "MultiProcessorCompile", }
