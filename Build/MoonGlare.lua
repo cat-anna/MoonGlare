@@ -2,8 +2,10 @@
 
 --package.path = package.path .. ";./build/?.lua"
 
-dir.bin = dir.base .. "bin_" .. (_ACTION or "none") .. "/"
-dir.src = dir.base .. "source/"
+dir.bin = dir.root .. "bin_" .. (_ACTION or "none") .. "/"
+dir.base = dir.root .. "MoonGlare/"
+dir.src = dir.base .. "Source/"
+dir.libsrc = dir.base .. "Libs/"
 
 MoonGlare = {
 }
@@ -12,12 +14,14 @@ MoonGlare = {
 --require "Repositories"
 include "Configuration.lua"
 include "Projects.lua"
+include "Libraries.lua"
 include "Modules.lua"
 
 function MoonGlareSolution(Name)
 	if _PREMAKE_VERSION then
 		MoonGlare.GenerateSolution(Name or "MoonGlareEngine")
-		ModuleManager:init();
+		MoonGlare.CheckLibraries()
+		ModuleManager:init()
 		MoonGlare.LookForProjects()
 	else
 		print "Premake5 not detected!"

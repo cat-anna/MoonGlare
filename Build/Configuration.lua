@@ -55,7 +55,7 @@ function SetPCH(pch)
 		defines { "PCH_HEADER=\"" .. pch.hdr .. "\"", }
 
 	filter { }
-end 
+end
 
 local function SetCommonConfig() 
 	configurations { "Debug", "Release", }
@@ -65,15 +65,17 @@ local function SetCommonConfig()
 	links { }
 	defines { }
 	libdirs {
-		"../../../libs",
-		"../../../../LibsC",
+		"../../../../libs",
+		"../../../../../LibsC",
 		"assimp/lib", 
 		"bullet3-master/lib/",
 	}
 	includedirs {
 		"../../../libs",
 		"../../../../LibsC",
-		"source", 
+		dir.base,
+		dir.src,
+		dir.libsrc,
 		"source/Libs", 
 		dir.bin,
 		"bullet3-master/src",

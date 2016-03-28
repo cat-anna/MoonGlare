@@ -34,14 +34,11 @@ end
 -------------------
 
 function ModuleManager_t:init(filen)
-    if self.root_dir then
-        self:fail("ModuleManager is allready initialized!")
-    end
 
     if filen then
         self.ConfigFile = filen
 	else
-		self.ConfigFile = dir.base .. "ModuleConfiguration.lua"
+		self.ConfigFile = dir.root .. "ModuleConfiguration.lua"
     end
 	
 	print ("Module configuration file: " .. self.ConfigFile)
@@ -67,7 +64,7 @@ function ModuleManager_t:fail(message)
 end;
 
 function ModuleManager_t:search()
-	local modlist = os.matchfiles(dir.src .. "**/module.lua")
+	local modlist = os.matchfiles(dir.base .. "**/module.lua")
 	table.foreach(modlist, function(k,v) include(v); end)
 end
 
