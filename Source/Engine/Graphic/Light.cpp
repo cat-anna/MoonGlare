@@ -27,8 +27,8 @@ bool LightBase::Initialize() {
 
 float LightAttenuation::Threshold(float ColorFactor) const {
 	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256 * ColorFactor)));
-	if (Exp != 0)
-			ret /= 2 * Exp;
+	//if (Exp != 0)
+	//		ret /= 2 * Exp;
 	return ret;
 }
 
@@ -41,6 +41,19 @@ bool LightAttenuation::LoadMeta(const xml_node node) {
 }
 
 //----------------------------------------------------------------
+
+PointLight::PointLight() :
+	LightBase(),
+	Attenuation() {
+
+	Attenuation.Exp = 0.01f;
+	Attenuation.Linear = 0.02f;
+	Attenuation.MinThreshold = 10.0f;
+	AmbientIntensity = 0.5f;
+	DiffuseIntensity = 0.1f;
+}
+
+PointLight::~PointLight() {}
 
 void PointLight::Precalculate() { 
 	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);
@@ -65,20 +78,6 @@ bool DirectionalLight::LoadMeta(const xml_node node) {
 	return true;
 }
 //----------------------------------------------------------------
-
-PointLight::PointLight():
-		LightBase(),
-		Attenuation(){
-
-	Attenuation.Exp = 0.01f;
-	Attenuation.Linear = 0.02f;
-	Attenuation.MinThreshold = 10.0f;
-	AmbientIntensity = 0.5f;
-	DiffuseIntensity = 0.1f;
-}
-
-PointLight::~PointLight() {
-}
 
 void SpotLight::Precalculate() {
 	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);

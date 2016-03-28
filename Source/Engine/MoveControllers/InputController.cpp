@@ -141,21 +141,23 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 	bool MoveNeeded = false;
 
 	if (MouseDelta[0] != 0) {
-		m_Rotation[1] -= MouseDelta[0] * MouseSensitivity;
+		m_Rotation[0] -= MouseDelta[0] * MouseSensitivity;
 		MoveNeeded = true;
 	}
 	if (MouseDelta[1] != 0) {
-		m_Rotation[0] = math::clamp(m_Rotation[0] - MouseDelta[1] * MouseSensitivity / 2.0f, 
+		m_Rotation[1] = math::clamp(m_Rotation[1] - MouseDelta[1] * MouseSensitivity / 2.0f, 
 									-math::Constants::pi::deg_60, math::Constants::pi::deg_60);
 		MoveNeeded = true;
 	}
 
 	Physics::vec3 LookDirection(
-				cos(m_Rotation[0]) * sin(m_Rotation[1]),
-				sin(m_Rotation[0]),
-				cos(m_Rotation[0]) * cos(m_Rotation[1]));
+			cos(m_Rotation[1]) * sin(m_Rotation[0]),
+			sin(m_Rotation[1]),
+			cos(m_Rotation[1]) * cos(m_Rotation[0]));
+   
+	LookDirection.normalize();
 
-	Physics::vec3 AngleDirection(sin(m_Rotation[1]), 0.0f, cos(m_Rotation[1]));
+	Physics::vec3 AngleDirection(sin(m_Rotation[0]), 0.0f, cos(m_Rotation[0]));
 
 	auto keys = ::Core::GetInput()->GetKeyStatus();
 	if (keys & KeyFlags::Move_Mask) {
@@ -203,14 +205,14 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 	}
 
 	if (MoveAllowed && MoveNeeded) {
-		btQuaternion q(Physics::vec3(0, 1, 0), m_Rotation[1]);
+	//	btQuaternion q(Physics::vec3(0, 1, 0), m_Rotation[1]);
 
 		m_Owner->SetLookDirection(LookDirection); 
 		//auto body = m_Owner->GetBody();
 		//LinearSpeed[1] = body->GetLinearVelocity()[1];
 		//body->SetLinearVelocity(LinearSpeed);
 		//m_Owner->GetBody()->ApplyCentralForce(LinearSpeed * 700.0f);
-		//motion.SetQuaterion(q);5
+		//motion.SetQuaterion(q);
 		//motion.Update();
 
 		m_Owner->SetPosition(m_Owner->GetPosition() + LinearSpeed * conf.TimeDelta);

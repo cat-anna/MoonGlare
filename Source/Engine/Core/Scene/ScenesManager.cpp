@@ -107,7 +107,7 @@ int ScenesManager::HandleTimer(int TimerID) {
 		break;
 	}
 	default:
-		AddLogf(DebugWarn, "SceneManager recived undefined TimerID: %d", TimerID);
+		AddLogf(DebugWarn, "SceneManager received undefined TimerID: %d", TimerID);
 	}
 	return 0;
 }
@@ -158,7 +158,7 @@ void ScenesManager::LoadSceneJob(const string& Name, int Param, ::Core::EventPro
 		s = desc->ptr.get();
 	} else {
 		if (proxy.expired()) {
-			GetEngine()->SetProxyTimer(GetEventProxy(), StaticSettings::Scenes::GetSceneLoadTimeOut(), ScenesManagerTimers::SceneTimeout, false);
+			GetEngine()->SetProxyTimer(GetEventProxy(), 1.0f/*StaticSettings::Scenes::GetSceneLoadTimeOut()*/, ScenesManagerTimers::SceneTimeout, false);
 		}
 		s = GetSceneInstance(desc);
 	}
@@ -272,7 +272,7 @@ ciScene* ScenesManager::PopScene() {
 }
 
 void ScenesManager::ClearSceneStack() {
-	AddLogf(Debug, "Recived request to clear scene stack!");
+	AddLogf(Debug, "Received request to clear scene stack!");
 	LOCK_MUTEX(m_Lock);
 
 	do {
@@ -287,7 +287,7 @@ void ScenesManager::ClearSceneStack() {
 }
 
 void ScenesManager::PopScenes(int count) {
-	AddLogf(Debug, "Recived request to pop %d scenes", count);
+	AddLogf(Debug, "Received request to pop %d scenes", count);
 	LOCK_MUTEX(m_Lock);
 
 	for (int i = 0; i < count; ++i) {
@@ -304,7 +304,7 @@ void ScenesManager::PopScenes(int count) {
 }
 
 void ScenesManager::ClearScenesUntil(const string& Name) {
-	AddLogf(Debug, "Recived request to remove all scenes until '%s'", Name.c_str());
+	AddLogf(Debug, "Received request to remove all scenes until '%s'", Name.c_str());
 	LOCK_MUTEX(m_Lock);
 
 	do {

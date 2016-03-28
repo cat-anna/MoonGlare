@@ -45,6 +45,7 @@ public:
 
 	const Physics::vec3& GetPosition() const { return GetMotionState().m_graphicsWorldTrans.getOrigin(); }
 	Physics::Quaternion GetQuaternion() const { return GetMotionState().m_graphicsWorldTrans.getRotation(); }
+	const btTransform& GetTransform() const { return GetMotionState().m_graphicsWorldTrans; }
 	const Physics::vec3& GetLinearVelocity(const Physics::vec3 &sp) { return GetBody()->GetLinearVelocity(); }
 	
 	void SetPosition(const Physics::vec3 &pos, const Physics::Quaternion &q) { GetMotionState().m_graphicsWorldTrans = Physics::Transform(q, pos); }
@@ -52,7 +53,7 @@ public:
 	void SetQuaterion(const Physics::Quaternion &q) { GetMotionState().m_graphicsWorldTrans.setRotation(q); }
 	void SetLinearVelocity(const Physics::vec3 &sp) { GetBody()->SetLinearVelocity(sp); }
 	
-	void UpdateMotionState() { GetBody()->UpdateMotionState(); }
+	void UpdateMotionState() { if(HaveBody()) GetBody()->UpdateMotionState(); }
 	DefineSetGetByRef(LookDirection, Physics::vec3);
 	DefineSetGetByRef(MotionState, Physics::DefaultMotionState);
 	DefineRefGetterAll(CollisionMask, Physics::CollisionMask)

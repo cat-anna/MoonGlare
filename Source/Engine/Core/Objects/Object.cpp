@@ -45,6 +45,16 @@ bool Object::Finalize() {
 }
 
 void Object::RegisterScriptApi(ApiInitializer &api) {
+
+	struct Helper {
+		math::vec3 getpos() {
+			return convert(((Object*)this)->GetPosition());
+		}
+		math::vec3 getlookdir() {
+			return convert(((Object*)this)->GetLookDirection());
+		}
+	};
+
 	api
 	.deriveClass<ThisClass, BaseClass>("cObjectBase")
 		.addFunction("DropDead", &ThisClass::DropDead)
@@ -72,7 +82,9 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("SetRotationQuaternion", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::Quaternion, &ThisClass::SetQuaterion, float, float, float, float>::get())
 		//.addProperty("Position", &ThisClass::GetPosition, &ThisClass::SetPosition)
 		.addFunction("UpdateMotionState", &ThisClass::UpdateMotionState)
-	.endClass();
+		.addFunction("GetPosition", (math::vec3(ThisClass::*)())&Helper::getpos)
+		.addFunction("GetLookDirection", (math::vec3(ThisClass::*)())&Helper::getlookdir)
+		.endClass();
 }
 
 //---------------------------------------------------------------------------------------

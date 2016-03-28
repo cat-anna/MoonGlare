@@ -24,9 +24,9 @@ static bool IsModeSuggested(const GLFWvidmode* mode) {
 		return false;
 	if (mode->width < 1024)
 		return false;
-	float ratio = (float)mode->width / (float)mode->height;
-	if (!((ratio >= 1.3f && ratio <= 1.4f) || (ratio >= 1.7f && ratio <= 1.8f)))
-		return false;
+//	float ratio = (float)mode->width / (float)mode->height;
+//	if (!((ratio >= 1.3f && ratio <= 1.4f) || (ratio >= 1.7f && ratio <= 1.8f)))
+//		return false;
 	return true;
 }
 
@@ -104,6 +104,10 @@ void Window::RegisterScriptApi(::ApiInitializer &api) {
 	.deriveClass<ThisClass, BaseClass>("cWindow")
 		.addFunction("SetTitle", &ThisClass::SetTitle)
 
+		.addFunction("GetMonitorCount", &ThisClass::GetMonitorCount)
+		.addFunction("GetMonitorName", &ThisClass::GetMonitorName)
+		.addCFunction("GetMonitorModes", &ThisClass::GetMonitorModes)
+
 		.addFunction("GetMode", &ThisClass::GetMode)
 		.addFunction("GetModeCount", &ThisClass::GetModeCount)
 		.addFunction("GetCurrentMode", &ThisClass::GetCurrentMode)
@@ -122,6 +126,95 @@ void Window::RegisterScriptApi(::ApiInitializer &api) {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+int Window::GetMonitorCount() const {
+	int c;
+	glfwGetMonitors(&c);
+	return c;
+}
+
+string Window::GetMonitorName(int index) const {
+	int c;
+	/*auto mon =*/ glfwGetMonitors(&c);
+	if (c <= index)
+		return "No such monitor";
+//	auto n = glfwGetMonitorName(mon[index]);
+//	if (!n)
+//		return "?";
+
+	string ret;
+	ret.reserve(256);
+	ret += "Monitor ";
+	ret += std::to_string(index);
+//	ret += " - ";
+//	ret += n;
+
+	return std::move(ret);
+}
+
+int Window::GetMonitorModes(lua_State *lua) {
+	int monitorid = lua_tointeger(lua, -1);
+	GLFWmonitor *mon;
+	if (monitorid < -1)
+		return 0;
+
+	if (monitorid == -1) {
+		mon = glfwGetPrimaryMonitor();
+	} else {
+		int c;
+		auto mont = glfwGetMonitors(&c);
+		if (c <= monitorid)
+			return 0;
+		mon = mont[monitorid];
+	}
+
+	int modecount;
+	const GLFWvidmode* modes = glfwGetVideoModes(mon, &modecount);
+	const GLFWvidmode* currmode = glfwGetVideoMode(mon);
+
+	lua_createtable(lua, 0, 0);
+
+	for (int i = 0, index = 0; i < modecount; ++i) {
+		auto *mode = modes + i;
+		if (!IsModeSuggested(mode))
+			continue;
+
+		++index;
+		lua_pushinteger(lua, index);
+		lua_createtable(lua, 0, 0);
+
+		lua_pushstring(lua, "Height");
+		lua_pushinteger(lua, mode->height);
+		lua_settable(lua, -3);
+
+		lua_pushstring(lua, "Width");
+		lua_pushinteger(lua, mode->width);
+		lua_settable(lua, -3);
+
+		lua_pushstring(lua, "ColorDepth");
+		lua_pushinteger(lua, mode->blueBits + mode->greenBits + mode->redBits);
+		lua_settable(lua, -3);
+
+		lua_pushstring(lua, "RefreshRate");
+		lua_pushinteger(lua, mode->refreshRate);
+		lua_settable(lua, -3);
+
+		if (currmode->blueBits == mode->blueBits &&
+			currmode->greenBits == mode->greenBits &&
+			currmode->redBits == mode->redBits &&
+			currmode->width == mode->width &&
+			currmode->height == mode->height &&
+			currmode->refreshRate == mode->refreshRate) {
+
+			lua_pushstring(lua, "Current");
+			lua_pushboolean(lua, true);
+			lua_settable(lua, -3);
+		}
+		lua_settable(lua, -3);
+	}
+
+	return 1;
+}
 
 int Window::GetModeCount() const {
 	auto monitor = glfwGetWindowMonitor(m_Window);
@@ -184,11 +277,19 @@ void Window::CreateWindow() {
 	
 	unsigned w = Renderer::GraphicSettings::Width::get();
 	unsigned h = Renderer::GraphicSettings::Height::get();
+	int m = Renderer::GraphicSettings::Monitor::get();
+	bool fullscreen = Renderer::GraphicSettings::FullScreen::get();
 	GLFWmonitor *monitor = nullptr;
 
-	if (Renderer::GraphicSettings::FullScreen::get()) {
+	if (m < 0) {
 		monitor = glfwGetPrimaryMonitor();
+	} else {
+		int c;
+		auto mont = glfwGetMonitors(&c);
+		if (c > m)
+			monitor = mont[m];
 	}
+
 
 	if (!w || !h) {
 		auto mon = glfwGetPrimaryMonitor();
@@ -199,8 +300,16 @@ void Window::CreateWindow() {
 	}
 
 	m_Size = uvec2(w, h);
-	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", monitor, 0);
+	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", fullscreen ? monitor : nullptr, 0);
 	CriticalCheck(m_Window, "Unable to create new window!");
+
+#if 0
+	if (!fullscreen) {
+		int mx, my;
+		glfwGetMonitorPos(monitor, &mx, &my);
+		glfwSetWindowPos(m_Window, mx, my);
+	}
+#endif // 0
 
 	MakeCurrent();
 	glfwSwapInterval(0);

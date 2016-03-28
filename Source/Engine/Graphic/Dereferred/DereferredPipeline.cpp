@@ -235,7 +235,7 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		glEnable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE); 
 		glClear(GL_STENCIL_BUFFER_BIT);
-		   
+		 
 		glStencilFunc(GL_ALWAYS, 0, 0);
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
@@ -244,7 +244,7 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		m_Cone->DoRender(dev); 
 	
 //light pass
-		dev.Bind(m_SpotLightShader);  
+		dev.Bind(m_SpotLightShader);
 		m_Buffer.BeginLightingPass();   
 		m_SpotLightShader->Bind(*light); 
 

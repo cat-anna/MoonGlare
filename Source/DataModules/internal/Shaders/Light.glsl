@@ -42,8 +42,11 @@ struct Attenuation_t {
 };
 
 float CalcAttenuation(Attenuation_t att, float Distance) {
-    float Attv = att.Constant + att.Linear * Distance +
+    float Attv = att.Constant + 
+				 att.Linear * Distance +
 				 att.Exp * (Distance * Distance);
+	if(Attv < 0)
+		Attv = -Attv;
 	return min(1.0 / Attv, att.MinThreshold);
 }
 
@@ -91,19 +94,23 @@ uniform SpotLight_t SpotLight;
 
 vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 	vec3 LightToWord = WorldPos - SpotLight.Position;
-	float Distance = length(LightToWord);
 
 	vec3 LightToPixel = normalize(LightToWord);
 	float SpotFactor = dot(normalize(-SpotLight.Direction), LightToPixel);
 
 	if (SpotFactor > SpotLight.CutOff) {
+		float Distance = length(LightToWord);
 		vec4 Color = CalcLightInternal(SpotLight.Base, -SpotLight.Direction, WorldPos, Normal);
 		Color.xyz *= CalcAttenuation(SpotLight.Atten, Distance);	
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
+		//Color.xyz = LightToPixel;
+		
 		Color.a = 1.0f;
+		//	Color.b = SpotFactor;
 		return Color;
 	}
 	//else 
 	//	discard;
+
 	return vec4(0.0);
 }
