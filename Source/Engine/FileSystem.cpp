@@ -8,9 +8,10 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <StarVFS/core/nStarVFS.h>
+
 namespace MoonGlare {
 namespace FileSystem {
-
 	
 const DataPathsTable DataSubPaths;
 
@@ -84,25 +85,94 @@ void MoonGlareFileSystem::RegisterDebugScriptApi(ApiInitializer &api) {
 //-------------------------------------------------------------------------------------------------
 
 bool MoonGlareFileSystem::Initialize() {
+	ASSERT(!m_StarVFS);
+	m_StarVFS = std::make_unique<StarVFS::StarVFS>();
 	return true;
 }
 
 bool MoonGlareFileSystem::Finalize() {
+	m_StarVFS.reset();
 	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-FileReader MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin) {
+bool MoonGlareFileSystem::EnumerateFolder(const string& Path, FileInfoTable &FileTable, bool Recursive) {
+	ASSERT(m_StarVFS);
+
+	auto ParentFID = m_StarVFS->FindFile(Path);
+
+	if (!m_StarVFS->IsFileValid(ParentFID)) {
+		AddLogf(Error, "Failed to open '%s' for enumeration", Path.c_str());
+		return false;
+	}
+
+	FileTable.reserve(1024);//because thats why
+	StarVFS::HandleEnumerateFunc svfsfunc;
+
+	svfsfunc = [this, &svfsfunc, &FileTable, Recursive, ParentFID](StarVFS::FileID fid) ->bool {
+		if (ParentFID != fid) {
+			auto path = m_StarVFS->GetFilePath(fid, ParentFID);
+
+			FileInfo fi;
+			fi.m_IsFolder = m_StarVFS->IsFileDirectory(fid);
+			fi.m_RelativeFileName = m_StarVFS->GetFilePath(fid, ParentFID);
+			fi.m_FileName = m_StarVFS->GetFileName(fid);
+			fi.m_FID = fid;
+			FileTable.push_back(fi);
+		}
+
+		if (Recursive || ParentFID == fid) {
+			auto handle = m_StarVFS->OpenFile(fid);
+			if (!handle.EnumerateChildren(svfsfunc)) {
+				handle.Close();
+				return false;
+			}
+			handle.Close();
+		}
+
+		return true;
+	};
+
+	return svfsfunc(ParentFID);
+}
+
+bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive) {
+	std::string path;
+	DataSubPaths.Translate(path, origin);
+	return EnumerateFolder(path, FileTable, Recursive);
+}
+
+bool MoonGlareFileSystem::EnumerateFolder(const string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive) {
+	std::string path;
+	DataSubPaths.Translate(path, SubPath, origin);
+	return EnumerateFolder(path, FileTable, Recursive);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
+	ASSERT(m_StarVFS);
+
 	std::string path;
 	DataSubPaths.Translate(path, FileName, origin);
-
-	auto reader = BaseClass::OpenFile(path);
-	if (!reader) {
-		AddLogf(Warning, "Unable to load file '%s'", path.c_str());
-		return nullptr;
+	
+	FileData.reset();
+	auto fid = m_StarVFS->FindFile(path.c_str());
+	if (!m_StarVFS->IsFileValid(fid)) {
+		AddLogf(Warning, "Failed to find file: %s", path.c_str());
+		return false;
 	}
-	return reader;
+	if (m_StarVFS->IsFileDirectory(fid)) {
+		AddLogf(Error, "Attempt to read directory: %s", path.c_str());
+		return false;
+	}
+	if (!m_StarVFS->GetFileData(fid, FileData)) {
+		AddLogf(Warning, "Failed to read file: (fid:%d) %s", fid, path.c_str());
+		return false;
+	}
+
+	return true;
 }
 
 bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin) {
@@ -130,34 +200,44 @@ bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, Data
 }
 
 bool MoonGlareFileSystem::OpenXML(XMLFile &doc, const string& FileName, DataPath origin) {
-	std::string path;
-	DataSubPaths.Translate(path, FileName, origin);
-	return BaseClass::OpenXML(doc, path);
+	ASSERT(m_StarVFS);
+	
+	doc.reset();
+	StarVFS::ByteTable data;
+	if (!OpenFile(FileName, origin, data)) {
+		//already logged, no need for more
+		return false;
+	}
+
+	doc = std::make_unique<pugi::xml_document>();
+	auto result = doc->load_string(data.get());
+
+	return static_cast<bool>(result);
 }
 
 //-------------------------------------------------------------------------------------------------
 
 bool MoonGlareFileSystem::OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings) {
-	auto file = OpenFile(FileName, origin);
-	if (!file) {
-		AddLogf(Error, "Unable to open texture '%s'", FileName.c_str());
+	StarVFS::ByteTable data;
+	if (!OpenFile(FileName, origin, data)) {
+		//already logged, no need for more
 		return false;
 	}
-	if (DataClasses::Texture::LoadTexture(tex, file, ApplyDefaultSettings)) {
+	if (DataClasses::Texture::LoadTexture(tex, data.get(), data.size(), ApplyDefaultSettings)) {
 		return true;
 	}
 	return false;
 }
 
 bool MoonGlareFileSystem::OpenTexture(TextureFile &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings) {
-	auto file = OpenFile(FileName, origin);
-	if (!file) {
+	StarVFS::ByteTable data;
+	if (!OpenFile(FileName, origin, data)) {
 		tex.reset();
-		AddLogf(Error, "Unable to open texture '%s'", FileName.c_str());
+		//already logged, no need for more
 		return false;
 	}
 	tex = std::make_unique<Graphic::Texture>();
-	if (DataClasses::Texture::LoadTexture(*tex.get(), file, ApplyDefaultSettings)) {
+	if (DataClasses::Texture::LoadTexture(*tex.get(), data.get(), data.size(), ApplyDefaultSettings)) {
 		return true;
 	}
 	tex.reset();
@@ -165,7 +245,7 @@ bool MoonGlareFileSystem::OpenTexture(TextureFile &tex, const string& FileName, 
 }
 
 //----------------------------------------------------------------------------------
-
+/*/
 bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, FileTable &files) {
 	string path;
 	DataSubPaths.Translate(path, origin);
@@ -177,9 +257,9 @@ bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, const string& subpath
 	DataSubPaths.Translate(path, subpath, origin);
 	return BaseClass::EnumerateFolder(path, files);
 }
-
+*/
 //----------------------------------------------------------------------------------
-
+/*
 void MoonGlareFileSystem::OnModuleLoad(iContainer *container, unsigned LoadFlags) {
 	BaseClass::OnModuleLoad(container, LoadFlags);
 
@@ -199,7 +279,7 @@ InternalFileSystem::ContainerPrecheckStatus MoonGlareFileSystem::OnBeforeContain
 	//TODO: ?	
 	return ContainerPrecheckStatus::Append;
 }
-
+*/
 //----------------------------------------------------------------------------------
 
 GABI_IMPLEMENT_STATIC_CLASS(DirectoryReader);

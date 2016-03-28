@@ -29,6 +29,7 @@ group ""
 		}
 		links {
 			"OrbitLogger",
+			"StarVFS",
 		
 			"lua51jit",
 			"freeimage", 

@@ -6,8 +6,6 @@
 #include <Engine/DataClasses/iFont.h>
 #include <Engine/Core/Scripts/GlobalContext.h>
 
-#include <libs/InternalFileSystem/InternalContainer.h>
-
 namespace MoonGlare {
 namespace Core {
 namespace Data {
@@ -156,7 +154,7 @@ MapPtr Manager::GetMap(const string& Name) {
 	AddLogf(Debug, "Map '%s' not found or not loaded. Trying to load.", Name.c_str());
 	
 //	AddLog(TODO, "Move ownership of loaded map xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Maps)) {
 		AddLogf(Error, "Unable to open master resource xml for map '%s'", Name.c_str());
 		return nullptr;
@@ -196,7 +194,7 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
 	AddLogf(Debug, "Font '%s' not found. Trying to load.", Name.c_str());
 
 //	AddLog(TODO, "Move ownership of loaded font xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Fonts)) {
 		AddLogf(Error, "Unable to open master resource xml for font '%s'", Name.c_str());
 		fonts.unlock();
@@ -242,7 +240,7 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
 
 //	AddLog(TODO, "Move ownership of loaded model xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
 		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());
 		return nullptr;
@@ -306,7 +304,7 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 	}
 	AddLogf(Debug, "Loading scene '%s' of class '%s'", Name.c_str(), Class.c_str());
 
-	FileSystem::XML doc;
+	FileSystem::XMLFile doc;
 	if (!GetFileSystem()->OpenResourceXML(doc, Name, DataPath::Scenes)) {
 		AddLog(Warning, "Unable to load xml for scene: " << Name);
 	} else {
@@ -320,7 +318,7 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 }
 
 bool Manager::LoadPlayer() {
-	FileSystem::XML doc;
+	FileSystem::XMLFile doc;
 	if (!GetFileSystem()->OpenXML(doc, PLAYER_XML_FILE, DataPath::Objects)) {
 		AddLog(Warning, "Unable to load player xml file");
 		return false;

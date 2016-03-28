@@ -24,12 +24,13 @@ BassMusic::~BassMusic() {
 }
 
 bool BassMusic::Initialize() {
-	auto fr = GetFileSystem()->OpenFile(GetFileName(), DataPath::Root);
-	if (!fr) {
+	StarVFS::ByteTable data;
+
+	if (!GetFileSystem()->OpenFile(GetFileName(), DataPath::Root, data)) {
 		AddLogf(Error, "Unable to load music '%s'", GetName().c_str());
 		return false;
 	}
-	m_Handle = BASS_MusicLoad(true, fr->GetFileData(), 0, fr->Size(), BASS_MUSIC_PRESCAN, 0);
+	m_Handle = BASS_MusicLoad(true, data.get(), 0, data.size(), BASS_MUSIC_PRESCAN, 0);
 	if (!m_Handle) {
 		DecodeErrorCode(__FUNCTION__);
 		return false;

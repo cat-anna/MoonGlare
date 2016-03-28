@@ -125,7 +125,7 @@ bool SimpleMap::LoadStaticModel() {
 	StaticModelLoader loader(convert(m_UnitSize));
 
 	auto reader = GetDataReader();
-	FileSystem::XML doc;
+	FileSystem::XMLFile doc;
 	if (!reader.OpenXML(doc, "StaticModel.xml")) {
 		AddLog(Error, "Unable to open static model xml file! [Map: " << GetName() << "]");
 		return false;

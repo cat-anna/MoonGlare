@@ -38,14 +38,14 @@ bool SimpleModelImpl::LoadFromXML(const xml_node Node) {
 	}
 
 	file = (GetName() + "/") += file;
-	auto fr = GetFileSystem()->OpenFile(file, DataPath::Models);
-	if (!fr) {
+	StarVFS::ByteTable data;
+	if (!GetFileSystem()->OpenFile(file, DataPath::Models, data)) {
 		AddLogf(Error, "Unable to load model: %s", GetName().c_str());
 		return false;
 	}
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFileFromMemory(
-						fr->GetFileData(), fr->Size(),
+						data.get(), data.size(),
 						aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_SortByPType,
 						strrchr(file.c_str(), '.'));
 

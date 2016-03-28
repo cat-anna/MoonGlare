@@ -38,8 +38,8 @@ DataPath BasicResource::GetResourceType() const {
 	CriticalError("Abstract function called!");
 }
 
-FileSystem::XML BasicResource::OpenMetaData() const {
-	FileSystem::XML xml;
+FileSystem::XMLFile BasicResource::OpenMetaData() const {
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, GetName(), GetResourceType())) {
 		AddLogf(Error, "Unable to open master resource xml for resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
 		return nullptr;

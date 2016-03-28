@@ -16,7 +16,7 @@ public:
 	virtual DataPath GetResourceType() const;
 protected:
 	void SetDataModule(DataModule *Owner);
-	FileSystem::XML OpenMetaData() const;
+	FileSystem::XMLFile OpenMetaData() const;
 private:
 	DataModule *m_Owner;
 };

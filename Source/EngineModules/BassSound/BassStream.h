@@ -20,7 +20,7 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 private: 
-	FileSystem::FileReader m_file;
+	StarVFS::ByteTable m_file;
 };
 
 } //namespace BassSound 

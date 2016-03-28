@@ -128,7 +128,7 @@ bool DataModule::LoadGameEgnine() {
 
 //-------------------------------------------------------------------------------------------------
 
-bool DataModule::LoadPrivateXML(FileSystem::XML &doc, const string& file, DataPath origin) const {
+bool DataModule::LoadPrivateXML(FileSystem::XMLFile &doc, const string& file, DataPath origin) const {
 	auto fr = m_Container->GetFileReader(xmlstr_Module_xml);
 	if (!fr) {
 		//log

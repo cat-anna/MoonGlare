@@ -200,51 +200,32 @@ void SoundEngine::RegisterScriptApi(ApiInitializer &api) {
 //----------------------------------------------------------------------------------
 
 void SoundEngine::ScanForSoundsScanPath(DataPath mode, const string& basepath, const string& namepath) {
-	FileSystem::FileTable files;
-	if (!GetFileSystem()->EnumerateFolder(basepath, files)) {
-		//just ignore
-		return;
-	}
-	string path;
-	string fname;
-	path.reserve(StaticSettings::FileSystem::PathReserve);
+	FileSystem::FileInfoTable files;
+
+	GetFileSystem()->EnumerateFolder(basepath, files, true);
+
 	for (auto &it : files) {
-		path = basepath + it.Name;
+		if (it.m_IsFolder)
+			return;
 
-		if (!namepath.empty())
-			fname = namepath + '/';
-		else
-			fname.clear();
-		fname += it.Name;
-		auto lastdot = fname.rfind('.');
-		if (lastdot != string::npos)
-			fname.resize(lastdot);
-
-		switch (it.Type){
-		case FileSystem::FileType::File:
-			switch (mode) {
-			case DataPath::Sounds:
-				RegisterSound(fname, path);
-				break;
-			case DataPath::Music:
-				RegisterMusic(fname, path);
-				break;
-			default:
-				LogInvalidEnum(mode);
-				break;
-			}
-			break;
-		case FileSystem::FileType::Directory: {
-			string npath;
-			if (!namepath.empty())
-				npath = namepath + '/';
-			npath += it.Name;
-			path += '/';
-			ScanForSoundsScanPath(mode, path, npath);
-			break;
+		auto path = basepath + it.m_RelativeFileName;
+		std::string fname;
+		auto pos = it.m_RelativeFileName.rfind('.');
+		if (pos == std::string::npos) {
+			fname = it.m_RelativeFileName;
+		} else {
+			fname = it.m_RelativeFileName.substr(0, pos - 1);
 		}
+
+		switch (mode) {
+		case DataPath::Sounds:
+			RegisterSound(fname, path);
+			break;
+		case DataPath::Music:
+			RegisterMusic(fname, path);
+			break;
 		default:
-			LogInvalidEnum(it.Type);
+			LogInvalidEnum(mode);
 			break;
 		}
 	}

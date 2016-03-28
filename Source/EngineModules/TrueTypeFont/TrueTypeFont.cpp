@@ -38,15 +38,14 @@ bool TrueTypeFont::DoInitialize() {
 	}
 	auto root = meta->document_element();
 
-	m_FontFile = GetFileSystem()->OpenFile(root.child("File").text().as_string(ERROR_STR), DataPath::Fonts);
-	if (!m_FontFile) {
+	if (!GetFileSystem()->OpenFile(root.child("File").text().as_string(ERROR_STR), DataPath::Fonts, m_FontFile)) {
 		AddLog(Error, "Unable to open font file!");
 		return false;
 	}
 
 	auto error = FT_New_Memory_Face(ftlib,
-                            (const FT_Byte*)m_FontFile->GetFileData(),	/* first byte in memory */
-                            m_FontFile->Size(),							/* size in bytes        */
+                            (const FT_Byte*)m_FontFile.get(),	/* first byte in memory */
+                            m_FontFile.size(),							/* size in bytes        */
                             0,											/* face_index           */
                             &m_FontFace );
 

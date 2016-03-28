@@ -166,6 +166,7 @@ namespace Core {
 using Core::ApiInitializer;
 
 #include "Config/Config.h"
+#include <StarVFS/core/nfStarVFS.h>
 #include <OrbitLogger/OrbitLogger.h>
 
 namespace OrbitLogger {

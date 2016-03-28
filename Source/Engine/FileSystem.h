@@ -9,39 +9,45 @@
 #ifndef FileSystem_H
 #define FileSystem_H
 
-#include "libs/InternalFileSystem/InternalFileSystem.h"
-
 namespace MoonGlare {
 namespace FileSystem {
 
-using XMLFile = XML;
+using XMLFile = std::unique_ptr<pugi::xml_document>;
 using TextureFile = std::unique_ptr < Graphic::Texture > ;
+
+struct FileInfo {
+	std::string m_FileName;
+	std::string m_RelativeFileName;
+	StarVFS::FileID m_FID;
+	bool m_IsFolder;
+};
+using FileInfoTable = std::vector<FileInfo>;
 
 //-------------------------------------------------------------------------------------------------
 
-/** Filesystem is not yes fully threadsafe! */
-class MoonGlareFileSystem : public InternalFileSystem {
-	GABI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, InternalFileSystem)
+/** File system is not yes fully thread-safe! */
+class MoonGlareFileSystem : public GabiLib::GabiObject {
+	GABI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, GabiLib::GabiObject)
 public:
  	MoonGlareFileSystem();
  	virtual ~MoonGlareFileSystem();
 
-	/** Open raw file reader */
-	FileReader OpenFile(const string& FileName, DataPath origin);
+	/** Read raw file data */
+	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 	/** Open an xml document */
-	bool OpenXML(XML &doc, const string& FileName, DataPath origin);
+	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin);
 	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
-	bool OpenResourceXML(XML &doc, const string& Name, DataPath origin);
+	bool OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin);
 	/** Open texture */
 	bool OpenTexture(TextureFile &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true);
 	/** Open texture */
 	bool OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true);
 	
-	bool OpenXML(XML &doc, string ResName, const string& FileName, DataPath origin) {
+	bool OpenXML(XMLFile &doc, string ResName, const string& FileName, DataPath origin) {
 		return OpenXML(doc, (ResName += '/') += FileName, origin);
 	}
-	FileReader OpenFile(string ResName, const string& FileName, DataPath origin) {
-		return OpenFile((ResName += '/') += FileName, origin);
+	bool OpenFile(string ResName, const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
+		return OpenFile((ResName += '/') += FileName, origin, FileData);
 	}
 	bool OpenTexture(TextureFile &tex, string ResName, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true) {
 		return OpenTexture(tex, (ResName += '/') += FileName, origin, ApplyDefaultSettings);
@@ -52,14 +58,18 @@ public:
 	bool Initialize();
 	bool Finalize();
 
-	bool EnumerateFolder(DataPath origin, FileTable &files);
-	bool EnumerateFolder(DataPath origin, const string& subpath, FileTable &files);
-	using BaseClass::EnumerateFolder;
+	bool EnumerateFolder(const string& Path, FileInfoTable &FileTable, bool Recursive);
+	bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
+	bool EnumerateFolder(const string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
+
+	//using BaseClass::EnumerateFolder;
 
 	static void RegisterDebugScriptApi(ApiInitializer &api);
 protected:
-	virtual void OnModuleLoad(iContainer *container, unsigned LoadFlags) override;
-	ContainerPrecheckStatus OnBeforeContainerAppend(iContainer *container, unsigned LoadFlags) override;
+	//virtual void OnModuleLoad(iContainer *container, unsigned LoadFlags) override;
+	//ContainerPrecheckStatus OnBeforeContainerAppend(iContainer *container, unsigned LoadFlags) override;
+private:
+	std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };
 
 class DirectoryReader : public cRootClass {
@@ -68,17 +78,17 @@ public:
 	DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
 	DirectoryReader(DataPath origin, const string& OwnerName) : m_origin(origin), m_OwnerName(OwnerName) { }
 
-	bool OpenXML(XML &xml, const string& FileName) {
+	bool OpenXML(XMLFile &xml, const string& FileName) {
 		if (m_OwnerName.empty())
 			return MoonGlareFileSystem::Instance()->OpenXML(xml, FileName, m_origin);
 		else
 			return MoonGlareFileSystem::Instance()->OpenXML(xml, (m_OwnerName + '/') += FileName, m_origin);
 	}
-	FileReader OpenFile(const string& FileName) {
+	bool OpenFile(const string& FileName, StarVFS::ByteTable &FileData) {
 		if (m_OwnerName.empty())
-			return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin);
+			return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin, FileData);
 		else
-			return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin);
+			return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
 	}
 	bool OpenTexture(TextureFile &tex, const string& FileName, bool ApplyDefaultSettings = true) {
 		if (m_OwnerName.empty())

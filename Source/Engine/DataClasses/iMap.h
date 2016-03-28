@@ -57,7 +57,7 @@ private:
 	Graphic::Environment m_Environment;
 	::Core::Scene::GameScene* m_OwnerScene;
 	std::unique_ptr<Paths::PathRegister> m_PathRegister;
-	FileSystem::XML m_MapMeta;
+	FileSystem::XMLFile m_MapMeta;
 };
 
 inline void iMapDeleter::operator()(iMap* m) {

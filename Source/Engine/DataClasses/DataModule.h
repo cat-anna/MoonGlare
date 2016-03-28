@@ -46,7 +46,7 @@ class DataModule : public cRootClass {
 	GABI_DECLARE_CLASS_NOCREATOR(DataModule, cRootClass);
 	DECLARE_SCRIPT_HANDLERS_ROOT(ModuleScriptEvents);
 public:
-	DataModule(FileSystem::iContainer *container);
+	DataModule(int/*FileSystem::iContainer *container*/);
 	~DataModule();
 
 	bool IsValid() const;
@@ -55,7 +55,7 @@ public:
 	const xml_node GetConfig() const { return GetModuleDocNode().child(xmlModuleNode_Options); }
 
 	DefineREADAcces(ModuleName, string);
-	DefineDirectGetterConst(Container, FileSystem::iContainer*);
+	//DefineDirectGetterConst(Container, FileSystem::iContainer*);
 
 	MapPtr LoadResource(const MapResPtr *res, ::Core::GameScene *Owner);
 
@@ -72,18 +72,18 @@ public:
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 protected:
-	FileSystem::iContainer *m_Container;
+	//FileSystem::iContainer *m_Container;
 
 	unsigned m_Flags, m_OwnedResources;
 	string m_ModuleName;
-	FileSystem::XML m_ModuleDoc, m_PredefObjectsDoc;
+	FileSystem::XMLFile m_ModuleDoc, m_PredefObjectsDoc;
 
 	DataModule();
 
 	const xml_node GetModuleDocNode();
 	const xml_node GetModuleDocNode(const char* Name = 0) const;
 
-	bool LoadPrivateXML(FileSystem::XML &doc, const string& file, DataPath origin) const;
+	bool LoadPrivateXML(FileSystem::XMLFile &doc, const string& file, DataPath origin) const;
 
 //old
 	DefineFlagSetter(m_Flags, MF_Opened, Opened)

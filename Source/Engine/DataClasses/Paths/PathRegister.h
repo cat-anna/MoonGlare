@@ -32,7 +32,7 @@ private:
 	using PathMap = std::unordered_map<string, PathEntry>;
 	iMap *m_Owner;
 	PathMap m_PathMap;
-	FileSystem::XML m_PathMetaDocument;
+	FileSystem::XMLFile m_PathMetaDocument;
 };
 
 } // namespace Paths 

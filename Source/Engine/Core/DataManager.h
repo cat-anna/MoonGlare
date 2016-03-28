@@ -17,7 +17,7 @@ namespace Data {
 
 struct PredefObjectMeta {
 	string Class;
-	FileSystem::XML Meta;
+	FileSystem::XMLFile Meta;
 };
 
 template<class T>

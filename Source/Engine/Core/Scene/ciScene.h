@@ -74,7 +74,7 @@ public:
 	/** @brief Finalize scene */
 	bool Finalize();
 
-	bool SetMetaData(FileSystem::XML &file);
+	bool SetMetaData(FileSystem::XMLFile &file);
 	using BaseClass::SetDataModule;
 
 	virtual void DoMove(const MoveConfig &conf);
