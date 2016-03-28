@@ -39,9 +39,9 @@ public:
 			ss << it.get() << "\n\n//--=next-file=--\n\n";
 		return ss.str();
 	}
-	const char * const *get() const {
+	const char **get() const {
 		if (size() == 0) return nullptr;
-		return (char**)&((*this)[0]);
+		return (const char**)&((*this)[0]);
 	}
 	size_t len() const { return size(); }
 

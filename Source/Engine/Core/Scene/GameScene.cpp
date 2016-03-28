@@ -279,7 +279,7 @@ void GameScene::DoMove(const MoveConfig &conf) {
 	static unsigned counter = 0;
 	++counter;
 	if ((counter & 0xF) == 0) {
-		AddLogf(Performance, "pht: %f ms", (float)(sec.count() * 1000));
+//		AddLogf(Performance, "pht: %f ms", (float)(sec.count() * 1000));
 	}
 
 	//AddLog(Hint, "Step end");

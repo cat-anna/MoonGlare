@@ -47,7 +47,7 @@ float CalcAttenuation(Attenuation_t att, float Distance) {
 				 att.Exp * (Distance * Distance);
 	if(Attv < 0)
 		Attv = -Attv;
-	return min(1.0 / Attv, att.MinThreshold);
+	return 1.0 / Attv;//min(1.0 / Attv, att.MinThreshold);
 }
 
 //-----------LIGHT-POINT-----------
@@ -66,6 +66,7 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 
     vec4 Color = CalcLightInternal(PointLight.Base, LightDirection, WorldPos, Normal);
     Color.xyz *= CalcAttenuation(PointLight.Atten, Distance);
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
 
@@ -104,6 +105,8 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 		Color.xyz *= CalcAttenuation(SpotLight.Atten, Distance);	
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
+		
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 		
 		Color.a = 1.0f;
 		//	Color.b = SpotFactor;

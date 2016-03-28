@@ -44,7 +44,7 @@ bool PlaneShadowMap::New() {
 	  
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowTexture, 0);
 	  
-		AddLogf(Error, "shmapid: %d", m_ShadowTexture);
+//		AddLogf(Error, "shmapid: %d", m_ShadowTexture);
 
 		//bool res =
 		FrameBuffer::FinishFrameBuffer();
