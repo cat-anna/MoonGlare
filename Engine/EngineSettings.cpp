@@ -372,6 +372,17 @@ Settings_t::~Settings_t() {
 
 //-------------------------------------------------------------------------------------------------
 
+void Settings_t::GetStdModuleList(std::vector<string> &table) {
+	std::vector < string > {
+		"./source/DataModules/internal",
+#ifdef DEBUG
+		"./source/DataModules/debug",
+#endif
+	}.swap(table);
+}
+
+//-------------------------------------------------------------------------------------------------
+
 void Settings_t::GetStdKeyMap(std::vector<KeyMapItem> &table) {
 	using keys = ::Graphic::WindowInput::Key;
 	std::vector < KeyMapItem > {

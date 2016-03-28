@@ -106,7 +106,7 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
 		
-		Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 		
 		Color.a = 1.0f;
 		//	Color.b = SpotFactor;

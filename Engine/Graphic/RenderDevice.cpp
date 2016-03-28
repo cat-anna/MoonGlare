@@ -108,7 +108,7 @@ void cRenderDevice::CheckError() const {
 	AddLog(Error, "OpenGL error: " << ptr);
 }
 
-void GLAPIENTRY cRenderDevice::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam){
+void APIENTRY cRenderDevice::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam){
 	const char * source_str = "?";
 	const char * type_str = "?";
 	const char * severity_str = "?";

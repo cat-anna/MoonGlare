@@ -47,7 +47,7 @@ const GabiLib::ProgramParameters::Parameter Parameters[] = {
 GabiLib::ProgramParameters Params = {
 	GabiLib::ProgramParameters::disable_helpmsg_on_noparams,
 	"FPS Engine",
-	Settings->Modules,
+	0,//	Settings->Modules.List,
 	"MainModule OtherModules",
 	Parameters,
 	0,
@@ -81,14 +81,6 @@ int main(int argc, char** argv) {
 		try {
 			Params.Parse(argc, argv);
 			new GameApplication(argc, argv);
-//#ifdef DEBUG || 1
-			if (Settings->Modules.empty()) {
-				Settings->Modules.push_back("./source/DataModules/internal");
-				Settings->Modules.push_back("./source/DataModules/debug");
-		//		Settings->Modules.push_back("./modules/MazeGame");
-				Settings->Modules.push_back("./modules/ShadowDemo");
-			}
-//#endif
 			EnableScriptsInThisThread();
 			if (!GetApplication()->Initialize()) {
 				AddLog(Error, "Unable to initialize application!");

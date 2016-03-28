@@ -35,10 +35,15 @@ public:
 		bool Load(const xml_node node);
 	};
 	static void GetStdKeyMap(std::vector<KeyMapItem> &table);
+	static void GetStdModuleList(std::vector<string> &table);
 
-	//temporary configuration
+	struct Modules_t {
+		std::vector<string> List;
 
-	std::vector<string> Modules;
+		template <class T> void Serialize(T & s) {
+			s.ValueContainer(List, "List", ::Settings_t::GetStdModuleList);
+		}
+	} Modules;
 
 	//dynamic configuration
 
@@ -79,6 +84,7 @@ public:
 	} Engine;
 
 	template <class T> void Serialize(T & s) {
+		s.Group(Modules, "Modules");
 		s.Group(Graphic , "Graphic");
 		s.Group(Input , "Input");
 		s.Group(Localization , "Localization");

@@ -121,6 +121,7 @@ public:
 		parent->AddWidget(m_SplitPanel);
 		m_Widget = m_SplitPanel;
 		m_SplitPanel->SetSplitPosition(0.5f);
+		m_SplitPanel->RecalculateMetrics();
 		auto *left = m_SplitPanel->GetLeftPanel();
 		auto *right = m_SplitPanel->GetRightPanel();
 		auto sharedthis = shared_from_this();
@@ -155,6 +156,9 @@ public:
 		valcaption->SetName("ValueLabel");
 		valcaption->SetTextAlignMode(GUI::TextAlignMode::Middle);
 		valcaption->SetAlignMode(GUI::AlignMode::Parent);
+
+
+	//	m_SplitPanel->RecalculateMetrics();
 
 		return ResetList();
 	}

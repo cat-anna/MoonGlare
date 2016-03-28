@@ -89,7 +89,7 @@ bool Manager::Initialize() {
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
 	GetFileSystem()->LoadRegisteredContainers();
 
-	for (auto &it : Settings->Modules) 
+	for (auto &it : Settings->Modules.List) 
 		if (!GetFileSystem()->LoadModule(it, StaticSettings::FileSystem::DefaultLoadFlags)) {
 			AddLogf(Error, "Unable to open module: '%s'", it.c_str());
 		}
