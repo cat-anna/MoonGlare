@@ -63,7 +63,9 @@ local function SetCommonConfig()
 	language "C++"
 	
 	links { }
-	defines { }
+	defines { 
+		"STARVFS_USE_ORBITLOGGER",
+	}
 	libdirs {
 		"../../../../libs",
 		"../../../../../LibsC",
@@ -102,14 +104,16 @@ local function SetCommonConfig()
 		links { } 
 		buildoptions "-std=c++0y"
 		defines{ "GCC", }
-	filter "action:vs*"
+	filter "action:vs*" 
 		links { } 
 		defines{ "MSVC", }
 		disablewarnings { 
 			"4100", -- unreferenced formal parameter
 			"4201", -- nameless struct/union
-			"4003", -- not enough actual parameters for macro TODO:REMOVE THIS
-			}
+		--	"4003", -- not enough actual parameters for macro TODO:REMOVE THIS
+			"4127", -- conditional expression is constant
+			"4200", -- nonstandard extension used: zero-sized array in struct/union
+		}
 		
 	filter "platforms:x32" 
 		architecture "x32"

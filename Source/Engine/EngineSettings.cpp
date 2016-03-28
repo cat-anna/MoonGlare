@@ -52,7 +52,7 @@ struct SettingsImpl {
 	}
 	void RegisterDynamicSetting(const SettingsHandlerInfo& handler, unsigned Flags) {
 		if (m_DynamicSettings.find(handler.Name) != m_DynamicSettings.end()) {
-			AddLog(Error, "Attemnt to override setting '" << handler.Name << "'");
+			AddLog(Error, "Attempt to override setting '" << handler.Name << "'");
 			return;
 		}
 		auto & val = m_DynamicSettings[handler.Name];
