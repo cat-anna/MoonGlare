@@ -169,16 +169,9 @@ using Core::ApiInitializer;
 #include <StarVFS/core/nfStarVFS.h>
 #include <OrbitLogger/OrbitLogger.h>
 
-namespace OrbitLogger {
-namespace LogChannels {
-	enum MGChannels : LogChannel {
-		Script = FirstUserChannel,
-		Insider,
-		Performance,
-		Resources,
-	};
-}
-}
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif
 
 #include "Error.h"
 

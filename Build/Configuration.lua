@@ -63,7 +63,7 @@ local function SetCommonConfig()
 	language "C++"
 	
 	links { }
-	defines { 
+	defines { 		
 		"STARVFS_USE_ORBITLOGGER",
 	}
 	libdirs {
@@ -93,6 +93,8 @@ local function SetCommonConfig()
 	
 	-- rules { "VersionCompiler" }
 	
+	local GLOBAL_CONFIGURATION_FILE = dir.base .. "GlobalConfiguration.h"
+	
 	filter "system:windows"
 		links { "opengl32", "glu32", "gdi32", }
 		defines{ "WINDOWS", "OS_NAME=\"Windows\"" }
@@ -103,10 +105,16 @@ local function SetCommonConfig()
 	filter "action:gmake"
 		links { } 
 		buildoptions "-std=c++0y"
-		defines{ "GCC", }
+		defines{ 
+			"GCC", 
+			"GLOBAL_CONFIGURATION_FILE='\"" .. GLOBAL_CONFIGURATION_FILE .. "\"'",
+		}
 	filter "action:vs*" 
 		links { } 
-		defines{ "MSVC", }
+		defines{ 
+			"MSVC", 
+			"GLOBAL_CONFIGURATION_FILE=\"" .. GLOBAL_CONFIGURATION_FILE .. "\"",
+		}
 		disablewarnings { 
 			"4100", -- unreferenced formal parameter
 			"4201", -- nameless struct/union

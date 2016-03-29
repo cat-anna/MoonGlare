@@ -288,7 +288,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 //			AddLogf(Warning, "Failed to save script file '%s'", name.c_str());
 //	}
 
-	AddLog(Critical, "NOT IMPLEMENTED");
+	AddLog(Error, "NOT IMPLEMENTED");
 
 	return true;
 }
