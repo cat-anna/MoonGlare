@@ -139,7 +139,7 @@ bool SimpleMap::LoadStaticModel() {
 	if (exec(&loader) != 0) return false;
 	if(!loader.Validate() || !loader.Generate()) return false;
 
-	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), GetDataModule(), DataPath::Maps));
+	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), DataPath::Maps));
 
 	m_MapObject = std::make_unique<::Core::Objects::StaticObject>(GetOwnerScene());
 	m_MapObject->SetModelInstance(GetOwnerScene()->GetInstanceManager().CreateInstance(m_MapModel.get()));

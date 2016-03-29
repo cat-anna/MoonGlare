@@ -82,20 +82,22 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 //------------------------------------------------------------------------------------------
 
 bool Manager::Initialize() {
-	if (IsInitialized()) return true;
+	if (IsInitialized()) 
+		return true;
+	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 	
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
-	GetFileSystem()->LoadRegisteredContainers();
+	//GetFileSystem()->LoadRegisteredContainers();
 
-	for (auto &it : Settings->Modules.List) 
-		if (!GetFileSystem()->LoadModule(it, StaticSettings::FileSystem::DefaultLoadFlags)) {
-			AddLogf(Error, "Unable to open module: '%s'", it.c_str());
-		}
+//	for (auto &it : Settings->Modules.List) 
+//		if (!GetFileSystem()->LoadModule(it, StaticSettings::FileSystem::DefaultLoadFlags)) {
+//			AddLogf(Error, "Unable to open module: '%s'", it.c_str());
+//		}
 
 #ifdef DEBUG_RESOURCEDUMP
 	{
-		std::ofstream file("logs/ifs.txt");
-		GetFileSystem()->DumpStructure(file);
+		//std::ofstream file("logs/ifs.txt");
+		//GetFileSystem()->DumpStructure(file);
 	}
 #endif
 
@@ -369,8 +371,10 @@ void Manager::ImportResources(DataModule *module, bool(DataModule::*srcfun)(Data
 	}
 }
 
-bool Manager::ImportModule(UniqueModule &module) {
-	if (!module) return false;//just in case
+bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
+#if 0
+	if (!module) 
+		return false;//just in case
 
 	UniqueModule modptr;
 	module.swap(modptr);
@@ -394,6 +398,8 @@ bool Manager::ImportModule(UniqueModule &module) {
 //append resources definitions
 //append resources definitions to external managers
 
+	return true;
+#endif
 	return true;
 }
 

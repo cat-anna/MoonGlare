@@ -75,7 +75,6 @@ public:
 	bool Finalize();
 
 	bool SetMetaData(FileSystem::XMLFile &file);
-	using BaseClass::SetDataModule;
 
 	virtual void DoMove(const MoveConfig &conf);
 	virtual void PreRender(const PreRenderConfig& conf);

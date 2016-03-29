@@ -68,6 +68,11 @@ private:
 	std::mutex m_Mutex;
 };
 
+struct DataModule {
+	StarVFS::Containers::iContainer *m_Container;
+	std::string m_ModuleName;
+};
+
 using UniqueModule = std::unique_ptr < DataModule > ;
 
 class Manager : public cRootClass {
@@ -79,8 +84,7 @@ public:
 	Manager();
 	virtual ~Manager();
 
-	/** Takes ownership of the module */
-	bool ImportModule(UniqueModule &module);
+	bool LoadModule(StarVFS::Containers::iContainer *Container);
 
 	bool LoadPlayer();
 	void LoadGlobalData();

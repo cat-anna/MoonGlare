@@ -81,7 +81,7 @@ class iSound : public DataClasses::DataClass {
 	GABI_DECLARE_ABSTRACT_CLASS(iSound, DataClasses::DataClass);
 	DISABLE_COPY();
 public:
- 	iSound(DataModule *Owner = 0);
+ 	iSound();
  	virtual ~iSound();
 
 	virtual float Length() const = 0;

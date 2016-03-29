@@ -67,7 +67,8 @@ GABI_IMPLEMENT_CLASS_SINGLETON(MoonGlareFileSystem)
 RegisterDebugApi(MoonGlareFileSystem, &MoonGlareFileSystem::RegisterDebugScriptApi, "FileSystem");
 
 MoonGlareFileSystem::MoonGlareFileSystem():
-		BaseClass() {
+		BaseClass(),
+		m_StarVFSCallback(this) {
 	SetThisAsInstance();
 }
 
@@ -87,12 +88,35 @@ void MoonGlareFileSystem::RegisterDebugScriptApi(ApiInitializer &api) {
 bool MoonGlareFileSystem::Initialize() {
 	ASSERT(!m_StarVFS);
 	m_StarVFS = std::make_unique<StarVFS::StarVFS>();
+	m_StarVFS->SetCallback(&m_StarVFSCallback);
 	return true;
 }
 
 bool MoonGlareFileSystem::Finalize() {
+	m_StarVFS->SetCallback(nullptr);
 	m_StarVFS.reset();
 	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+MoonGlareFileSystem::StarVFSCallback::BeforeContainerMountResult MoonGlareFileSystem::BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) {
+	ASSERT(ptr);
+	//querry module
+	//TODO: ?	
+	AddLogf(Info, "Testimg whether container can be mounted:  cid:%d uri:%s", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
+
+}
+
+void MoonGlareFileSystem::AfterContainerMounted(StarVFS::Containers::iContainer *ptr) {
+	ASSERT(ptr);
+	AddLogf(Info, "Container has been mounted:  cid:%d uri:%s", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
+	
+	if (!GetDataMgr()->LoadModule(ptr)) {
+		AddLogf(Error, "Unable to import data  module");
+	} else {
+		AddLogf(Hint, "Container '%s' has been imported", ptr->GetContainerURI().c_str());
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -256,28 +280,6 @@ bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, const string& subpath
 	string path;
 	DataSubPaths.Translate(path, subpath, origin);
 	return BaseClass::EnumerateFolder(path, files);
-}
-*/
-//----------------------------------------------------------------------------------
-/*
-void MoonGlareFileSystem::OnModuleLoad(iContainer *container, unsigned LoadFlags) {
-	BaseClass::OnModuleLoad(container, LoadFlags);
-
-//	AddLog(TODO, "Check if container contain module metadata");
-
-	auto module = std::make_unique<DataClasses::DataModule>(container);
-
-	if (!GetDataMgr()->ImportModule(module)) {
-		AddLog(Error, "Unable to import data  module");
-	} else {
-		AddLogf(Hint, "Container '%s' has been imported", container->GetFileName().c_str());
-	}
-}
-
-InternalFileSystem::ContainerPrecheckStatus MoonGlareFileSystem::OnBeforeContainerAppend(iContainer *container, unsigned LoadFlags) {
-	//querry module
-	//TODO: ?	
-	return ContainerPrecheckStatus::Append;
 }
 */
 //----------------------------------------------------------------------------------

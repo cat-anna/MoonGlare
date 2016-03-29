@@ -65,10 +65,18 @@ public:
 	//using BaseClass::EnumerateFolder;
 
 	static void RegisterDebugScriptApi(ApiInitializer &api);
-protected:
-	//virtual void OnModuleLoad(iContainer *container, unsigned LoadFlags) override;
-	//ContainerPrecheckStatus OnBeforeContainerAppend(iContainer *container, unsigned LoadFlags) override;
 private:
+	struct StarVFSCallback : public StarVFS::StarVFSCallback {
+		virtual BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) override { return m_Owner->BeforeContainerMount(ptr, MountPoint); }
+		virtual void AfterContainerMounted(StarVFS::Containers::iContainer *ptr) override { return m_Owner->AfterContainerMounted(ptr); }
+		StarVFSCallback(MoonGlareFileSystem *Owner) : m_Owner(Owner) {}
+		MoonGlareFileSystem *m_Owner;
+	};
+
+	StarVFSCallback::BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint);
+	void AfterContainerMounted(StarVFS::Containers::iContainer *ptr);
+
+	StarVFSCallback m_StarVFSCallback;
 	std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };
 

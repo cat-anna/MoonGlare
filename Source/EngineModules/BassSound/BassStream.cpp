@@ -16,7 +16,7 @@ namespace BassSound {
 
 GABI_IMPLEMENT_CLASS(BassStream);
 
-BassStream::BassStream(DataModule *Owner):
+BassStream::BassStream():
 		BaseClass(),
 		m_file() {
 }

@@ -13,8 +13,8 @@ namespace Paths {
 GABI_IMPLEMENT_ABSTRACT_CLASS(iPath);
 RegisterApiDerivedClass(iPath, &iPath::RegisterScriptApi);
 
-iPath::iPath(DataModule *DataModule):
-		BaseClass(DataModule),
+iPath::iPath():
+		BaseClass(),
 		m_Flags(0),
 		m_Owner(0) {
 }

@@ -88,7 +88,7 @@ bool iBassChannel::ApplyGlobalConfig() {
 
 //----------------------------------------------------------------------------------
 
-iBassChannel::iBassChannel(DataModule *Owner):
+iBassChannel::iBassChannel():
 		BaseClass(),
 		m_Handle(0),
 		m_EndSyncHandle(0) {

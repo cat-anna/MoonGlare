@@ -22,7 +22,7 @@ public:
 
 	void GenerateShape(bool Status) { m_GenerateShape = Status; }
 
-	iSimpleModel* GenerateModel(const string& Name, DataModule *OwnerModule, DataPath ModelOrigin) const;
+	iSimpleModel* GenerateModel(const string& Name, DataPath ModelOrigin) const;
 
 	struct EditableModelFields {
 		Graphic::VAO *VAO;

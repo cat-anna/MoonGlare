@@ -17,7 +17,7 @@ using namespace ::MoonGlare::Sound;
 class iBassChannel : public iSound {
 	GABI_DECLARE_ABSTRACT_CLASS(iBassChannel, iSound);
 public:
- 	iBassChannel(DataModule *Owner = 0);
+ 	iBassChannel();
  	virtual ~iBassChannel();
 
 	static bool InitializeBass();

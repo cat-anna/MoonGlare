@@ -15,8 +15,8 @@ GABI_IMPLEMENT_CLASS(StaticPath);
 RegisterApiDerivedClass(StaticPath, &StaticPath::RegisterScriptApi);
 //::Core::Interfaces::AutoResourceClassReg<StaticPath> StaticPathReg;
 
-StaticPath::StaticPath(DataModule *DataModule):
-		BaseClass(DataModule) {
+StaticPath::StaticPath():
+		BaseClass() {
 }
 
 StaticPath::~StaticPath() {

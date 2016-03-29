@@ -31,7 +31,7 @@ struct PathCalcState {
 class iPath : public DataClass, public std::enable_shared_from_this<iPath> {
 	GABI_DECLARE_ABSTRACT_CLASS(iPath, DataClass);
 public:
-	iPath(DataModule *DataModule = 0);
+	iPath();
 	virtual ~iPath();
 
 	/** Get path length */

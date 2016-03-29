@@ -16,7 +16,7 @@ namespace BassSound {
 
 GABI_IMPLEMENT_CLASS(BassMusic);
 
-BassMusic::BassMusic(DataModule *Owner):
+BassMusic::BassMusic():
 		BaseClass() {
 }
 

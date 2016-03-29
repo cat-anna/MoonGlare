@@ -6,23 +6,11 @@ namespace DataClasses {
 GABI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
 RegisterApiDerivedClass(BasicResource, &BasicResource::RegisterScriptApi);
 
-BasicResource::BasicResource(DataModule *Owner): 
-		m_Owner(Owner) {
+BasicResource::BasicResource() {
 }
 
 BasicResource::BasicResource(const string& Name): 
-		BaseClass(Name),
-		m_Owner(nullptr) { 
-}
-
-void BasicResource::SetDataModule(DataModule *DataModule){
-	if (m_Owner){
-		AddLogf(Debug, "Doing reset %s owner!", GetName().c_str());
-	}
-	if (!DataModule){
-		AddLogf(Debug, "Setting %s owner to null!", GetName().c_str());
-	}
-	m_Owner = DataModule;
+		BaseClass(Name) { 
 }
 
 void BasicResource::RegisterScriptApi(ApiInitializer &api) {
@@ -53,8 +41,7 @@ FileSystem::XMLFile BasicResource::OpenMetaData() const {
 GABI_IMPLEMENT_ABSTRACT_CLASS(DataClass)
 RegisterApiDerivedClass(DataClass, &DataClass::RegisterScriptApi);
 
-DataClass::DataClass(DataModule *DataModule): 
-		BaseClass(DataModule),
+DataClass::DataClass(): 
 		m_Flags(0) {
 }
 

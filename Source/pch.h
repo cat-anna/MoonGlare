@@ -175,6 +175,7 @@ namespace LogChannels {
 		Script = FirstUserChannel,
 		Insider,
 		Performance,
+		Resources,
 	};
 }
 }

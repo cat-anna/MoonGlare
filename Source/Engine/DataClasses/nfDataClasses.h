@@ -104,10 +104,9 @@ namespace DataClasses {
 	}
 
 	class DataClass;
-	class DataModule;
 	class StringTable;
 
-	using FileList = std::list < std::pair<string, DataModule*> > ;
+//	using FileList = std::list < std::pair<string, DataModule*> > ;
 
 	struct ModuleSettings {
 		string ConsoleFont;
@@ -130,7 +129,6 @@ namespace DataClasses {
 
 using DataClasses::Maps::MapPtr;
 using DataClasses::Paths::iPathSharedPtr;
-using DataClasses::DataModule;
 
 #include "Models\nfModels.h"
 
