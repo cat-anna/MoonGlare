@@ -343,7 +343,7 @@ Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner) {
 		NotifyResourcesChanged();
 	}
 
-	Object *obj = ::Core::Objects::ObjectClassRegister::CreateClass(meta.Class, Owner);
+	Object *obj = new ::Core::Objects::Object(Owner);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object class '%s'", meta.Class.c_str());
 		return nullptr;
@@ -390,7 +390,8 @@ bool Manager::LoadPlayer() {
 	}
 
 	xml_node node = doc->document_element();
-	if (!node) return false;
+	if (!node) 
+		return false;
 	const char *Class = node.attribute(xmlAttr_Class).as_string();
 
 	if (!Class) {
@@ -398,15 +399,15 @@ bool Manager::LoadPlayer() {
 		return false;
 	}
 
-	auto *pl = ::Core::Interfaces::CreateCoreClass<::Core::Objects::Player>(Class);
-	if (!pl) {
-		AddLog(Error, "Unable to create player instance! class " << Class);
-		return false;
-	}
+	auto *pl = new ::Core::Objects::Object(nullptr);
 
 	if(!pl->LoadPattern(doc->document_element())) {
 		AddLog(Error, "An error has occur during loading player XML! Ignored!");
+		delete pl;
+		return false;
 	}
+
+	::Core::GetEngine()->GetPlayer().reset(pl);
 
 	return true;
 }

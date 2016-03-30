@@ -27,7 +27,7 @@ public:
 
 	virtual bool LoadMeta() = 0;
 	virtual bool LoadMapObjects(::Core::Objects::ObjectRegister& where); 
-	virtual ::Core::Objects::StaticObject* LoadMapObject() = 0;
+	virtual ::Core::Objects::Object* LoadMapObject() = 0;
 
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

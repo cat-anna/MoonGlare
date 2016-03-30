@@ -12,7 +12,9 @@ namespace MoonGlare {
 
 GABI_IMPLEMENT_CLASS_SINGLETON(JobQueue);
 
-JobQueue::JobQueue() {
+JobQueue::JobQueue():
+		m_PendingJobs(0), 
+		m_RunningThreads(0) {
 	SetThisAsInstance();
 
 	AddLogf(Debug, "Executing job queue with %d thread", ::StaticSettings::JobQueueThreads);

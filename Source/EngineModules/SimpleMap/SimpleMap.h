@@ -23,12 +23,12 @@ public:
 
 	virtual bool LoadMeta();
 	virtual bool LoadMapObjects(::Core::Objects::ObjectRegister& where); 
-	virtual ::Core::Objects::StaticObject* LoadMapObject();
+	virtual ::Core::Objects::Object* LoadMapObject();
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	std::unique_ptr<iModel> m_MapModel;
-	std::unique_ptr<::Core::Objects::StaticObject> m_MapObject;
+	std::unique_ptr<::Core::Objects::Object> m_MapObject;
 
 	bool DoInitialize() override;
 	bool DoFinalize() override;

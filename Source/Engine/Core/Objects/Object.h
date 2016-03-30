@@ -12,12 +12,14 @@ DECLARE_SCRIPT_EVENT_VECTOR(ObjectScriptEvents, iScriptEvents,
 		),
 		SCRIPT_EVENT_REMOVE());
 
-class Object : public NamedObject {
-	GABI_DECLARE_ABSTRACT_CLASS(Object, NamedObject);
+class Object /*final*/ : public NamedObject {
+	GABI_DECLARE_STATIC_CLASS(Object, NamedObject);
 	DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 	DECLARE_EVENT_HOLDER();
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
+	DISABLE_COPY();
 public:
+	Object(::Core::GameScene *Scene);
 	virtual ~Object();
 	virtual bool Initialize();
 	virtual bool Finalize();
@@ -63,24 +65,30 @@ public:
 	float GetMass() const { return m_Mass; }
 	void SetPhysicalProperties(const Physics::PhysicalProperties *prop);
 
-	virtual int InvokeOnDropDead();
-	virtual int InvokeOnInitialize();
-	virtual int InvokeOnFinalize();
-	virtual int InvokeOnTimer(int TimerID);
-	virtual int InvokeOnUserEventA(int param);
-	virtual int InvokeOnUserEventB(int param);
-	virtual int InvokeOnUserEventC(int param);
-	virtual int InvokeOnUserEventD(int param);
+	int InvokeOnDropDead();
+	int InvokeOnInitialize();
+	int InvokeOnFinalize();
+	int InvokeOnTimer(int TimerID);
+	int InvokeOnUserEventA(int param);
+	int InvokeOnUserEventB(int param);
+	int InvokeOnUserEventC(int param);
+	int InvokeOnUserEventD(int param);
 
 	int SetTimer(float secs, int tid, bool cyclic) { return GetScene()->SetProxyTimer(GetEventProxy(), secs, tid, cyclic); }
 	void KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProxy(), tid); }
 
+	DefineRefGetterAll(MoveController, iMoveControllerPtr);
 	DefineREADAccesPTR(Scene, ::Core::GameScene);
 	virtual void SetOwnerScene(GameScene *Scene);
 	DefineREADAcces(PatternName, string);
 	iLightSource* GetLightSource() { return m_LightSource.get(); }
 	float GetScale() const { return m_Scale; }
 	using BaseClass::SetName;
+
+	void SetModelInstance(Scene::ModelInstancePtr &&inst) {
+		m_ModelInstance.release();
+		m_ModelInstance.swap(inst);
+	}
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
@@ -94,14 +102,16 @@ protected:
 	Physics::vec3 m_LookDirection; /** Look direction of object */
 	Physics::DefaultMotionState m_MotionState;
 	float m_Mass, m_Scale;
+	::DataClasses::ModelPtr m_Model;
+	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
-	Object(::Core::GameScene *Scene);
-	virtual void OnBodyConstruction();
 	virtual void InternalInfo(std::ostringstream &buff) const;
+	void SetMoveController(MoveControllers::iMoveController *ptr);
 private:
 	DefineWRITEAcces(PatternName, string);
-	string m_PatternName;
+	iMoveControllerPtr m_MoveController;
 	::Core::GameScene *m_Scene;
+	string m_PatternName;
 
 	void ReleaseBody();
 };

@@ -1,7 +1,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
-#include <Engine/Core/Objects/StaticObject.h>
 #include <Engine/DataClasses/Models/SimpleModelConstructor.h>
 
 #include "SimpleMap.h"
@@ -114,7 +113,7 @@ bool SimpleMap::LoadMapObjects(::Core::Objects::ObjectRegister& where) {
 	return where.LoadObjects(node.child("Objects"), GetOwnerScene());
 }
 
-::Core::Objects::StaticObject* SimpleMap::LoadMapObject() {
+::Core::Objects::Object* SimpleMap::LoadMapObject() {
 	if (!IsLoaded() && !LoadMeta()) return 0;		
 	return m_MapObject.get();
 }
@@ -141,11 +140,12 @@ bool SimpleMap::LoadStaticModel() {
 
 	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), DataPath::Maps));
 
-	m_MapObject = std::make_unique<::Core::Objects::StaticObject>(GetOwnerScene());
+	m_MapObject = std::make_unique<::Core::Objects::Object>(GetOwnerScene());
 	m_MapObject->SetModelInstance(GetOwnerScene()->GetInstanceManager().CreateInstance(m_MapModel.get()));
 	m_MapObject->SetName(GetName());
 	m_MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
 	m_MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
+	m_MapObject->SetMass(0);
 	AddLog(Debug, "Finished generating simple map model of name " << GetName());
 	return true;
 }

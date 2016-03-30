@@ -58,10 +58,14 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 void GameScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
 
-	auto player = ::Core::GetPlayer();
-	player->SetOwnerScene(this);
-	m_Objects->Add(player);
-	//player->SetPosition(Physics::vec3(0, 0.6, 0));
+	auto player = GetEngine()->GetPlayer().get();
+	if (player) {
+		player->SetOwnerScene(this);
+		m_Objects->Add(player);
+		//player->SetPosition(Physics::vec3(0, 0.6, 0));
+	} else {
+		AddLog(Error, "There is no player instance!");
+	}
 
 	m_ModelIntances->InitalizeInstances();
 
@@ -81,9 +85,13 @@ void GameScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
 
 	//do finalize objects in scene?
-	auto player = ::Core::GetPlayer();
-	m_Objects->Remove(player);
-	player->SetOwnerScene(nullptr);
+	auto player = GetEngine()->GetPlayer().get();
+	if (player) {
+		m_Objects->Remove(player);
+		player->SetOwnerScene(nullptr);
+	} else {
+		AddLog(Error, "There is no player instance!");
+	}
 
 	if (m_Environment) {
 		m_Environment->Finalize();

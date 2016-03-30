@@ -104,12 +104,10 @@ bool ciScene::Finalize() {
 }
 
 bool ciScene::DoInitialize() {
-	if (m_Camera) m_Camera->Initialize();
 	return true;
 }
 
 bool ciScene::DoFinalize() {
-	if (m_Camera) m_Camera->Finalize();
 	if (m_GUI) m_GUI->Finalize();
 	m_GUI.reset();
 	return true;
@@ -119,15 +117,13 @@ bool ciScene::DoFinalize() {
 
 void ciScene::DoMove(const MoveConfig &conf) {
 	m_TimeEvents.CheckEvents(conf);
-	if (m_Camera)
-		m_Camera->DoMove(conf);
 	if (m_GUI)
 		m_GUI->Process(conf);
 }
 
 void ciScene::PreRender(const PreRenderConfig& conf) {
 	if (m_Camera)
-		m_Camera->PreRender(conf);
+		m_Camera->Update(conf);
 }
 
 void ciScene::DoRender(cRenderDevice& Dev) const {

@@ -4,7 +4,7 @@
 namespace Core {
 namespace Objects {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(Object);
+GABI_IMPLEMENT_STATIC_CLASS(Object);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(ObjectScriptEvents);
 RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 
@@ -18,11 +18,14 @@ Object::Object(::Core::GameScene *Scene):
 		m_ScriptHandlers(),
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
-		m_Scale(1.0f) {
+		m_Scale(1.0f),
+		m_BodyAngularFactor(1, 1, 1) {
 	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::InvokeOnTimer>(this));
 }
 
 Object::~Object() {
+	SetScriptHandlers(new ScriptEventClass());
+	m_CollisionMask.Set(Physics::BodyClass::Object);
 	m_ModelInstance.reset();
 	m_LightSource.reset();
 	m_Body.reset();
@@ -33,18 +36,21 @@ Object::~Object() {
 bool Object::Initialize(){
 	if (m_LightSource) m_LightSource->Initialize();
 	if (m_ModelInstance) m_ModelInstance->Initialize(this);
+	if (m_MoveController) m_MoveController->Initialize();
 	InvokeOnInitialize();
 	return true;
 }
 
 bool Object::Finalize() {
 	InvokeOnFinalize();
+	if (m_MoveController) m_MoveController->Finalize();
 	if (m_LightSource) m_LightSource->Finalize();
 	if (m_ModelInstance) m_ModelInstance->Finalize();
 	return true;
 }
 
 void Object::RegisterScriptApi(ApiInitializer &api) {
+	using MoveControllerTweek = Utils::Template::SmartPointerTweeks<ThisClass, iMoveControllerPtr>;
 
 	struct Helper {
 		math::vec3 getpos() {
@@ -59,6 +65,9 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 	.deriveClass<ThisClass, BaseClass>("cObjectBase")
 		.addFunction("DropDead", &ThisClass::DropDead)
 		.addFunction("IsDead", &ThisClass::IsDead)
+
+		.addFunction("GetMoveController", MoveControllerTweek::Get<&ThisClass::m_MoveController>())
+		.addFunction("SetMoveController", MoveControllerTweek::Set<&ThisClass::SetMoveController>())
 
 		.addFunction("InvokeOnDropDead", &ThisClass::InvokeOnDropDead)
 		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
@@ -106,6 +115,7 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 //---------------------------------------------------------------------------------------
 
 void Object::DoMove(const MoveConfig &conf) {
+	if (m_MoveController) m_MoveController->DoMove(conf);
 	if (m_LightSource) m_LightSource->DoMove(conf);
 }
 
@@ -135,6 +145,40 @@ bool Object::LoadPattern(const xml_node node) {
 		m_LightSource = iLightSource::LoadLightSource(this, light);
 	}
 	m_ScriptHandlers->LoadFromXML(node);
+
+	m_Scale = node.child("Scale").attribute("Value").as_float(1);
+	m_Mass = node.child("Mass").attribute("Value").as_float(0);
+
+	if (m_Mass == 0.0f) {
+		GetCollisionMask().Set(Physics::BodyClass::StaticObject);
+		GetCollisionMask().Set(Physics::GroupMask::StaticObject);
+	}
+
+	xml_node Model = node.child("Model");
+	if (Model) {
+		const char *name = Model.attribute(xmlAttr_Name).as_string(0);
+		if (!name)
+			AddLogf(Error, "Predef object '%s' has defined model without name!", GetName().c_str());
+		else {
+			m_Model = GetDataMgr()->GetModel(name);
+			if(GetScene())
+				m_ModelInstance = GetScene()->GetInstanceManager().CreateInstance(m_Model);
+		}
+	}
+
+	xml_node mc = node.child("MoveController");
+	if (mc) {
+		m_MoveController.reset(MoveControllers::iMoveController::CreateFromXML(mc, this));
+	}
+
+	xml_node Collision = node.child("Collision");
+	if (Collision) {
+		Physics::GroupMaskEnum::LoadFromXML(Collision, m_CollisionMask);
+		Physics::BodyClassEnum::LoadFromXML(Collision, m_CollisionMask);
+	}
+
+	XML::Vector::Read(node, "BodyAngularFactor", m_BodyAngularFactor, Physics::vec3(1, 1, 1));
+
 	return true;
 }
 
@@ -143,6 +187,10 @@ bool Object::LoadDynamicState(const xml_node node) {
 	if (n) {
 		SetName(n);
 	}
+	math::vec3 pos, rot;
+	XML::ReadVector(node, "Position", pos, math::vec3(0));
+	XML::ReadVector(node, "Rotation", rot, math::vec3(0));
+	SetPosition(convert(pos), Physics::Quaternion(rot[0], rot[1], rot[2]));
 	return true;
 }
 
@@ -166,14 +214,19 @@ int Object::InvokeOnUserEventD(int param) { SCRIPT_INVOKE(OnUserEventD, param); 
 
 void Object::SetOwnerScene(GameScene *NewOwner) {
 	m_Scene = NewOwner;
+	if (NewOwner) {
+		if (m_Model) {
+			m_ModelInstance = NewOwner->GetInstanceManager().CreateInstance(m_Model);
+			m_ModelInstance->Initialize(this);
+		}
+	} else {
+		if (HaveBody())
+			GetBody()->SetWorldOwner(nullptr);
+		m_ModelInstance.reset();
+	}
 }
 
 //---------------------------------------------------------------------------------------
-
-void Object::OnBodyConstruction() {
-	m_Body->SetCollisionMask(m_CollisionMask);
-
-}
 
 void Object::ReleaseBody() {
 	m_Body->SetWorldOwner(nullptr);
@@ -184,7 +237,8 @@ void Object::SetShape(Physics::SharedShape ss) {
 	if (m_Body) m_Body.reset();
 	if (!ss) return;
 	m_Body = Physics::Body::Create(this, ss);
-	OnBodyConstruction();
+	m_Body->SetCollisionMask(m_CollisionMask);
+	m_Body->SetAngularFactor(m_BodyAngularFactor);
 	if (GetScene())
 		m_Body->SetWorldOwner(&GetScene()->GetPhysicsEngine());
 }
@@ -198,6 +252,11 @@ void Object::SetMass(float Mass) {
 void Object::SetPhysicalProperties(const Physics::PhysicalProperties *props) {
 	if (props && m_Body)
 		GetBody()->SetPhysicalProperties(*props);
+}
+
+void Object::SetMoveController(MoveControllers::iMoveController *ptr) {
+	m_MoveController.reset(ptr);
+	m_MoveController->SetOwner(this);
 }
 
 } //namespace Objects

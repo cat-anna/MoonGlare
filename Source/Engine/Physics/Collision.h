@@ -113,6 +113,7 @@ struct CollisionMask {
 struct BodyClassEnumCoverter : GabiLib::EnumConverter < BodyClass, BodyClass::Default > {
 	BodyClassEnumCoverter() {
 		Add("Default", Enum::Default);
+		Add("Player", Enum::Player);
 	}
 };
 
@@ -120,6 +121,7 @@ struct GroupMaskEnumCoverter : GabiLib::EnumConverter < GroupMask, GroupMask::De
 	GroupMaskEnumCoverter() {
 		Add("Default", Enum::Default);
 		Add("None", Enum::None);
+		Add("Player", Enum::Player);
 
 		//Add("StaticObject", Enum::StaticObject);
 	}

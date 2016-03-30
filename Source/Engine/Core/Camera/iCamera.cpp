@@ -15,11 +15,12 @@ RegisterApiInstance(iCamera, &CurrentInstance, "Camera");
 RegisterApiDerivedClass(iCamera, &iCamera::RegisterScriptApi);
 
 iCamera::iCamera(GameScene *Scene) :
-		BaseClass(Scene),
+		BaseClass(),
 		m_PointAt(),
 		m_TrackedObject(),
 		m_Camera(),
-		m_CameraDelta(0, 0, 0) {
+		m_CameraDelta(0, 0, 0),
+		m_GameScene(Scene) {
 	m_Camera = std::make_unique<Graphic::VirtualCamera>();
 	m_Camera->SetDefaultPerspective();
 }
@@ -42,15 +43,7 @@ void iCamera::RegisterScriptApi(ApiInitializer &api) {
 
 //---------------------------------------------------------------------------------------
 
-void iCamera::DropDead() {
-	AddLog(Warning, "Attempt to drop dead camera!");
-}
-
-void iCamera::DoMove(const MoveConfig& conf) {
-	//this fun does nothing
-}
-
-void iCamera::PreRender(const PreRenderConfig& conf) {
+void iCamera::Update(const PreRenderConfig& conf) {
 	if (m_TrackedObject) {
 		m_Camera->SetPosition(m_TrackedObject->GetPosition() + m_CameraDelta);
 		auto dir = m_TrackedObject->GetLookDirection();
@@ -62,14 +55,6 @@ void iCamera::PreRender(const PreRenderConfig& conf) {
 	conf.device.Bind(m_Camera.get());
 }
 
-bool iCamera::Initialize() {
-	return BaseClass::Initialize();
-}
-
-bool iCamera::Finalize() {
-	return BaseClass::Finalize();
-}
-
 void iCamera::PointAt(Objects::Object* PointAt) {
 	m_PointAt = PointAt;
 }
@@ -79,7 +64,7 @@ void iCamera::TrackedObject(Objects::Object* TrackedObject) {
 }
 
 void iCamera::SetTrackedObjectByName(const string& Name) {
-	TrackedObject(GetScene()->GetObjectByName(Name));
+	TrackedObject(m_GameScene->GetObjectByName(Name));
 }
 
 } // namespace Camera

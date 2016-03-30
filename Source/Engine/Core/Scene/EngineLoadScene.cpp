@@ -39,7 +39,8 @@ void EngineLoadScene::LoadMain() {
 
 	GetDataMgr()->LoadGlobalData();
 	GetDataMgr()->LoadPlayer();
-	Objects::Player::Instance()->Initialize();
+	ASSERT(GetEngine()->GetPlayer());
+	GetEngine()->GetPlayer()->Initialize();
 
 	SetInfoText(ELSLoadingFirstSceneTitle);
 
