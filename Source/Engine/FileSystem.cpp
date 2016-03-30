@@ -56,11 +56,12 @@ void DataPathsTable::Translate(string& out, DataPath origin) const {
 	if (origin != DataPath::Root) {
 		out += '/';
 		out += m_table[(unsigned)origin];
-		out += '/';
+	//	out += '/';
 	} else {
 		out += '/';
 	}
 }
+
 //-------------------------------------------------------------------------------------------------
 
 GABI_IMPLEMENT_CLASS_SINGLETON(MoonGlareFileSystem)
@@ -102,20 +103,21 @@ bool MoonGlareFileSystem::Finalize() {
 
 MoonGlareFileSystem::StarVFSCallback::BeforeContainerMountResult MoonGlareFileSystem::BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) {
 	ASSERT(ptr);
-	//querry module
+	AddLogf(Debug, "Testing whether container can be mounted:  cid:%d uri:'%s'", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
+	//query module
 	//TODO: ?	
-	AddLogf(Info, "Testimg whether container can be mounted:  cid:%d uri:%s", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
 
+	return StarVFSCallback::BeforeContainerMountResult::Mount;
 }
 
 void MoonGlareFileSystem::AfterContainerMounted(StarVFS::Containers::iContainer *ptr) {
 	ASSERT(ptr);
-	AddLogf(Info, "Container has been mounted:  cid:%d uri:%s", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
+	AddLogf(Info, "Container has been mounted:  cid:%d uri:'%s'", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
 	
 	if (!GetDataMgr()->LoadModule(ptr)) {
 		AddLogf(Error, "Unable to import data  module");
 	} else {
-		AddLogf(Hint, "Container '%s' has been imported", ptr->GetContainerURI().c_str());
+		AddLogf(Hint, "Container '%s' has been mounted", ptr->GetContainerURI().c_str());
 	}
 }
 
@@ -146,11 +148,11 @@ bool MoonGlareFileSystem::EnumerateFolder(const string& Path, FileInfoTable &Fil
 			FileTable.push_back(fi);
 		}
 
-		if (Recursive || ParentFID == fid) {
+		if ((Recursive || ParentFID == fid) && m_StarVFS->IsFileDirectory(fid)) {
 			auto handle = m_StarVFS->OpenFile(fid);
 			if (!handle.EnumerateChildren(svfsfunc)) {
 				handle.Close();
-				return false;
+				return true;
 			}
 			handle.Close();
 		}
@@ -269,19 +271,31 @@ bool MoonGlareFileSystem::OpenTexture(TextureFile &tex, const string& FileName, 
 }
 
 //----------------------------------------------------------------------------------
-/*/
-bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, FileTable &files) {
-	string path;
-	DataSubPaths.Translate(path, origin);
-	return BaseClass::EnumerateFolder(path, files);
+
+void MoonGlareFileSystem::DumpStructure(std::ostream &out) const {
+	ASSERT(m_StarVFS);
+	out << "STRUCTURE:\n";
+	m_StarVFS->DumpStructure(out);
+	out << "\n\n";
+	out << "FILE TABLE:\n";
+	m_StarVFS->DumpFileTable(out);
+	out << "\n\n";
+	out << "HASH TABLE:\n";
+	m_StarVFS->DumpHashTable(out);
 }
 
-bool MoonGlareFileSystem::EnumerateFolder(DataPath origin, const string& subpath, FileTable &files) {
-	string path;
-	DataSubPaths.Translate(path, subpath, origin);
-	return BaseClass::EnumerateFolder(path, files);
+bool MoonGlareFileSystem::LoadContainer(const std::string &URI) {
+	ASSERT(m_StarVFS);
+
+	auto ret = m_StarVFS->OpenContainer(URI);
+	if (ret != StarVFS::VFSErrorCode::Success) {
+		AddLogf(Error, "Failed to open container '%s' code:%d", URI.c_str(), (int)ret);
+		return false;
+	}
+
+	return true;
 }
-*/
+
 //----------------------------------------------------------------------------------
 
 GABI_IMPLEMENT_STATIC_CLASS(DirectoryReader);

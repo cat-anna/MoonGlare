@@ -130,7 +130,7 @@ void cScriptEngine::LoadAllScriptsImpl() {
 
 	for (auto &it : files){
 		if (it.m_IsFolder)
-			return;
+			continue;
 
 		string path;
 		FileSystem::DataSubPaths.Translate(path, it.m_RelativeFileName, DataPath::Scripts);

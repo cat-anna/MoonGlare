@@ -32,6 +32,8 @@ public:
  	MoonGlareFileSystem();
  	virtual ~MoonGlareFileSystem();
 
+	bool LoadContainer(const std::string &URI);
+
 	/** Read raw file data */
 	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 	/** Open an xml document */
@@ -62,9 +64,8 @@ public:
 	bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
 	bool EnumerateFolder(const string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
 
-	//using BaseClass::EnumerateFolder;
-
 	static void RegisterDebugScriptApi(ApiInitializer &api);
+	void DumpStructure(std::ostream &out) const;
 private:
 	struct StarVFSCallback : public StarVFS::StarVFSCallback {
 		virtual BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) override { return m_Owner->BeforeContainerMount(ptr, MountPoint); }

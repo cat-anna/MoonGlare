@@ -47,7 +47,7 @@ void EngineLoadScene::LoadMain() {
 		//std::this_thread::sleep_for(std::chrono::seconds(5));
 
 	if (!m_Aborted)
-		GetScenesManager()->AsyncSetNextScene(GetDataMgr()->GetConfig().FirstScene, GetEventProxy());
+		GetScenesManager()->AsyncSetNextScene(GetDataMgr()->GetConfiguration().m_FirstScene, GetEventProxy());
 	else
 		AddLog(Debug, "Engine load scene has been aborted");
 	AddLog(Hint, "Loading thread finished!");

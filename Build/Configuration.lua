@@ -62,7 +62,8 @@ local function SetCommonConfig()
 	platforms { "x32", "x64", }
 	language "C++"
 	
-	links { }
+	links { 
+	}
 	defines { 		
 		"STARVFS_USE_ORBITLOGGER",
 	}

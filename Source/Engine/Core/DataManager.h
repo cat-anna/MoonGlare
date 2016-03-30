@@ -68,30 +68,53 @@ private:
 	std::mutex m_Mutex;
 };
 
-struct DataModule {
+struct DataModuleInfo {
 	StarVFS::Containers::iContainer *m_Container;
 	std::string m_ModuleName;
 };
 
-using UniqueModule = std::unique_ptr < DataModule > ;
+struct RuntimeConfiguration {
+	std::string m_ConsoleFont = "Arial";
+	std::string m_FirstScene;
+
+	void LoadUpdate(const xml_node node) {
+		if (!node)
+			return;
+		XML::ReadTextIfPresent(node, "ConsoleFont", m_ConsoleFont);
+		XML::ReadTextIfPresent(node, "FirstScene", m_FirstScene);
+		return;
+	}
+
+	//		void Append(const ModuleSettings &cfg) {
+	//			if (!cfg.ConsoleFont.empty()) ConsoleFont = cfg.ConsoleFont;
+	//			if (!cfg.FirstScene.empty()) FirstScene = cfg.FirstScene;
+	//		}
+	//
+	//		//LoadMeta | SaveMeta
+	//		bool LoadMeta(const xml_node node) {
+	//			if (!node) return true;
+	//			XML::ReadTextIfPresent(node, "ConsoleFont", ConsoleFont);
+	//			XML::ReadTextIfPresent(node, "FirstScene", FirstScene);
+	//			return true;
+	//		}
+};
 
 class Manager : public cRootClass {
 	friend class DataManagerDebugScritpApi;
 	GABI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
 public:
-	typedef std::vector<UniqueModule> ModuleVector;
-
 	Manager();
 	virtual ~Manager();
 
 	bool LoadModule(StarVFS::Containers::iContainer *Container);
+
+	const RuntimeConfiguration& GetConfiguration() const { return m_Configuration; }
 
 	bool LoadPlayer();
 	void LoadGlobalData();
 
 	DataClasses::FontPtr GetConsoleFont();
 	DataClasses::FontPtr GetDefaultFont();
-	const DataClasses::ModuleSettings& GetConfig() const { return m_Config; }
 
 	DataClasses::MapPtr GetMap(const string& Name);
 	DataClasses::FontPtr GetFont(const string &Name);
@@ -123,9 +146,8 @@ public:
 	static void RegisterScriptApi(::ApiInitializer &api);
 private:
 	unsigned m_Flags;
-	ModuleVector m_Modules;
-
-	DataClasses::ModuleSettings m_Config;
+	std::vector<DataModuleInfo> m_Modules;
+	RuntimeConfiguration m_Configuration;
 
 	SynchronizedResourceMap<FontResPtr> m_Fonts;
 	SynchronizedResourceMap<PredefObjectMeta> m_PredefObjects;
@@ -135,8 +157,8 @@ private:
 
 	std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
-	template <class C> 
-	void ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container);
+//	template <class C> 
+//	void ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container);
 
 	DefineFlagSetter(m_Flags, Flags::Initialized, Initialized);
 

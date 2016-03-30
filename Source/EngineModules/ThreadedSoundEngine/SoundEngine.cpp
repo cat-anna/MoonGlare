@@ -206,15 +206,15 @@ void SoundEngine::ScanForSoundsScanPath(DataPath mode, const string& basepath, c
 
 	for (auto &it : files) {
 		if (it.m_IsFolder)
-			return;
+			continue;
 
-		auto path = basepath + it.m_RelativeFileName;
+		auto path = basepath + "/" + it.m_RelativeFileName;
 		std::string fname;
 		auto pos = it.m_RelativeFileName.rfind('.');
 		if (pos == std::string::npos) {
 			fname = it.m_RelativeFileName;
 		} else {
-			fname = it.m_RelativeFileName.substr(0, pos - 1);
+			fname = it.m_RelativeFileName.substr(0, pos);
 		}
 
 		switch (mode) {
@@ -466,6 +466,7 @@ void SoundEngine::ProcessPlayList() {
 
 	auto s = GetMusic(next);
 	if (!s) {
+		AddLogf(Warning, "Music '%s' not found!", next.c_str());
 		return;
 	}
 	s->Play();
