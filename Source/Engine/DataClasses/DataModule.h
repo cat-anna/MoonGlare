@@ -38,60 +38,6 @@ namespace DataClasses {
 #define xmlModuleNode_PredefObjects	"PredefObjects"
 #define xmlModuleNode_GameEngine	"GameEngine"
 
-DECLARE_SCRIPT_EVENT_VECTOR(ModuleScriptEvents, ::Core::Scripts::iScriptEvents,
-		SCRIPT_EVENT_ADD(),
-		SCRIPT_EVENT_REMOVE());
-
-class DataModule : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(DataModule, cRootClass);
-	DECLARE_SCRIPT_HANDLERS_ROOT(ModuleScriptEvents);
-public:
-	DataModule(FileSystem::iContainer *container);
-	~DataModule();
-
-	bool IsValid() const;
-	virtual bool Open();
-
-	const xml_node GetConfig() const { return GetModuleDocNode().child(xmlModuleNode_Options); }
-
-	DefineREADAcces(ModuleName, string);
-	DefineDirectGetterConst(Container, FileSystem::iContainer*);
-
-	MapPtr LoadResource(const MapResPtr *res, ::Core::GameScene *Owner);
-
-	::Core::Scene::ciScene* LoadScene(const string& Name, const string& Class);
-//old
-	bool LoadGameEgnine();
-
-	//accessors
-	DefineFlagGetter(m_Flags, MF_Opened, Opened)
-
-	enum {
-		MF_Opened = 0x00001000,
-	};
-
-	static void RegisterScriptApi(::ApiInitializer &api);
-protected:
-	FileSystem::iContainer *m_Container;
-
-	unsigned m_Flags, m_OwnedResources;
-	string m_ModuleName;
-	FileSystem::XML m_ModuleDoc, m_PredefObjectsDoc;
-
-	DataModule();
-
-	const xml_node GetModuleDocNode();
-	const xml_node GetModuleDocNode(const char* Name = 0) const;
-
-	bool LoadPrivateXML(FileSystem::XML &doc, const string& file, DataPath origin) const;
-
-//old
-	DefineFlagSetter(m_Flags, MF_Opened, Opened)
-};
-
-GenExceptionMsg(eContainerError, "Data container fatal error!");
-GenExceptionMsg(eLoadError, "Loading data module failed");
-
 } //namespace DataClasses
 
 #endif // DataModule_H

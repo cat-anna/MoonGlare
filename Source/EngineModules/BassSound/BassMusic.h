@@ -15,7 +15,7 @@ namespace BassSound {
 class BassMusic : public iBassChannel {
 	GABI_DECLARE_CLASS(BassMusic, iBassChannel);
 public:
- 	BassMusic(DataModule *Owner = 0);
+ 	BassMusic();
  	virtual ~BassMusic();
 
 	virtual bool Initialize();

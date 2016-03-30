@@ -24,8 +24,6 @@ public:
 	virtual const Physics::PhysicalProperties* GetPhysicalProperties() const;
 	
 	virtual bool LoadFromXML(const xml_node Node) = 0;
-
-	using BaseClass::SetDataModule;
 protected:
 	Physics::PhysicalProperties m_PhysicalProperties;
 

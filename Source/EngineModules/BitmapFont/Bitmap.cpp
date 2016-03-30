@@ -58,12 +58,12 @@ bool BitmapFont::DoInitialize(){
 		texref->SetNearestFiltering();
 	});
 
-	auto inbfd = GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts);
-	if (!inbfd) {
+	StarVFS::ByteTable data;
+	if (!GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts, data)) {
 		AddLog(Error, "Unable to open the bfd file for font '" << GetName() << "'");
 		return false;
 	}
-	memcpy(reinterpret_cast<char*>(&m_BFD), inbfd->GetFileData(), sizeof(cBFDHeader));
+	memcpy(reinterpret_cast<char*>(&m_BFD), data.get(), sizeof(cBFDHeader));
 
 	return true;
 }

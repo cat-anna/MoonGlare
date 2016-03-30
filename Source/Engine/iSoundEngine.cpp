@@ -65,7 +65,7 @@ void iSoundEngine::RegisterScriptApi(ApiInitializer &api) {
 GABI_IMPLEMENT_ABSTRACT_CLASS(iSound);
 RegisterApiDerivedClass(iSound, &iSound::RegisterScriptApi);
 
-iSound::iSound(DataModule *Owner):
+iSound::iSound():
 		BaseClass(), 
 		m_FileName() {
 }

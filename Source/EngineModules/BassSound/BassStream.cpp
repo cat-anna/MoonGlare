@@ -16,21 +16,20 @@ namespace BassSound {
 
 GABI_IMPLEMENT_CLASS(BassStream);
 
-BassStream::BassStream(DataModule *Owner):
+BassStream::BassStream():
 		BaseClass(),
-		m_file(0) {
+		m_file() {
 }
 
 BassStream::~BassStream() {
 }
 
 bool BassStream::Initialize() {
-	m_file = GetFileSystem()->OpenFile(GetFileName(), DataPath::Root);
-	if (!m_file) {
+	if (!GetFileSystem()->OpenFile(GetFileName(), DataPath::Root, m_file)) {
 		AddLogf(Error, "Unable to load stream '%s'", GetName().c_str());
 		return false;
 	}
-	m_Handle = BASS_StreamCreateFile(true, m_file->GetFileData(), 0, m_file->Size(), BASS_STREAM_PRESCAN);
+	m_Handle = BASS_StreamCreateFile(true, m_file.get(), 0, m_file.size(), BASS_STREAM_PRESCAN);
 	if (!m_Handle) {
 		DecodeErrorCode(__FUNCTION__);
 		return false;
@@ -46,7 +45,7 @@ bool BassStream::Finalize() {
 			DecodeErrorCode(__FUNCTION__);
 		m_Handle = 0;
 	}
-	m_file = nullptr;
+	m_file.reset();
 	return true;
 }
 

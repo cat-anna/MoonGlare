@@ -335,7 +335,7 @@ SceneDescriptor* ScenesManager::GetSceneDescriptor(const string &Name) {
 			return &it->second;
 		}
 	}		
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	auto &sd = AllocDescriptor(Name, SceneType::Invalid);
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Scenes)) {
 		AddLogf(Error, "Unable to open xml file for scene '%s'", Name.c_str());

@@ -104,33 +104,12 @@ namespace DataClasses {
 	}
 
 	class DataClass;
-	class DataModule;
 	class StringTable;
 
-	using FileList = std::list < std::pair<string, DataModule*> > ;
-
-	struct ModuleSettings {
-		string ConsoleFont;
-		string FirstScene;
-
-		void Append(const ModuleSettings &cfg) {
-			if (!cfg.ConsoleFont.empty()) ConsoleFont = cfg.ConsoleFont;
-			if (!cfg.FirstScene.empty()) FirstScene = cfg.FirstScene;
-		}
-
-		//LoadMeta | SaveMeta
-		bool LoadMeta(const xml_node node) {
-			if (!node) return true;
-			XML::ReadTextIfPresent(node, "ConsoleFont", ConsoleFont);
-			XML::ReadTextIfPresent(node, "FirstScene", FirstScene);
-			return true;
-		}
-	};
 }
 
 using DataClasses::Maps::MapPtr;
 using DataClasses::Paths::iPathSharedPtr;
-using DataClasses::DataModule;
 
 #include "Models\nfModels.h"
 

@@ -154,7 +154,7 @@ int ciScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 
 //----------------------------------------------------------------
 
-bool ciScene::SetMetaData(FileSystem::XML &file) {
+bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
 	m_MetaData.swap(file);
 	if (!m_MetaData) return false;
 	return LoadMeta(GetRootNode());

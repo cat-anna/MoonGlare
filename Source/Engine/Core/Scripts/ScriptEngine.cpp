@@ -123,26 +123,19 @@ void cScriptEngine::KillAllScripts() {
 }
 
 void cScriptEngine::LoadAllScriptsImpl() {
-	FileSystem::FileTable files;
-	if (!GetFileSystem()->EnumerateFolder(DataPath::Scripts, files)) {
+	FileSystem::FileInfoTable files;
+	if (!GetFileSystem()->EnumerateFolder(DataPath::Scripts, files, true)) {
 		AddLog(Error, "Unable to look for scripts!");
 	}
 
-	for (auto &it: files)
-		switch (it.Type) {
-		case FileSystem::FileType::File:{
-			string path;
-			FileSystem::DataSubPaths.Translate(path, it.Name, DataPath::Scripts);
-			RegisterScript(path);
-			break;
-		}
-		case FileSystem::FileType::Directory:
-//			AddLog(TODO, "Recursive search for scripts");
-			break;
-		default:
-			LogInvalidEnum(it.Type);
-			break;
-		}
+	for (auto &it : files){
+		if (it.m_IsFolder)
+			continue;
+
+		string path;
+		FileSystem::DataSubPaths.Translate(path, it.m_RelativeFileName, DataPath::Scripts);
+		RegisterScript(path);
+	}
 
 	GetDataMgr()->NotifyResourcesChanged();
 	AddLog(Debug, "Finished looking for sounds");
@@ -166,12 +159,12 @@ void cScriptEngine::RegisterScript(string Name) {
 	ScriptCode &sc = *last;
 	
 	if (sc.Data.empty()) {
-		auto file = GetFileSystem()->OpenFile(sc.Name, DataPath::Root);
-		if (!file) {
+		StarVFS::ByteTable data;
+		if (!GetFileSystem()->OpenFile(sc.Name, DataPath::Root, data)) {
 			AddLog(Warning, "Unable to open script file " << sc.Name);
 			return;
 		}
-		sc.Data = string(file->GetFileData(), file->Size());
+		sc.Data = string(data.get(), data.size());
 		AddLogf(Debug, "Loaded script code: %s", sc.Name.c_str());
 	}
 

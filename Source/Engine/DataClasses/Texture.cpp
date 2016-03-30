@@ -101,14 +101,7 @@ bool Texture::LoadTexture(Graphic::Texture &tex, const char* data, unsigned data
 	return true;
 }
 
-bool Texture::LoadTexture(Graphic::Texture &tex, FileSystem::FileReader file, bool ApplyDefaultSettings) {
-	if (!file)//silently ignore
-		return false;
-	return LoadTexture(tex, file->GetFileData(), file->Size(), ApplyDefaultSettings);
-}
-
 //----------------------------------------------------------------------------------
-
 
 bool Texture::LoadImageMemory(const void* ImgData, unsigned ImgLen, ImageInfo& image) {
 #ifndef _DISABLE_FREEIMAGE_LIB_

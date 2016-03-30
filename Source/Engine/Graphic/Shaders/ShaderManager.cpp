@@ -114,7 +114,7 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 	
 	if(DoLoadDef) {
 		//Look for shader xml
-		FileSystem::XML xml;
+		FileSystem::XMLFile xml;
 		if (!GetFileSystem()->OpenResourceXML(xml, OnlyName, DataPath::Shaders)) {
 			AddLogf(Error, "There is no shader named '%s'", OnlyName.c_str());
 			sd.Type = ShaderType::Invalid;
@@ -218,14 +218,14 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 			string FileName = sd.Name;
 			FileName += ".";
 			FileName += type->ext;
-			auto fr = GetFileSystem()->OpenFile(FileName, DataPath::Shaders);
-			if (!fr){
+			StarVFS::ByteTable data;
+			if (!GetFileSystem()->OpenFile(FileName, DataPath::Shaders, data)){
 				AddLogf(Hint, "Unable to load file '%s' for shader '%s' ", FileName.c_str(), sd.Name.c_str());
 				continue;
 			}
 			// Compile 
 			ShaderCodeVector CodeVec;
-			CodeVec.push_copy(fr->GetFileData(), fr->Size());
+			CodeVec.push_copy(data.get(), data.size());
 			PreproccesShaderCode(sd, CodeVec);
 			GLuint shader = glCreateShader(type->value);
 			glShaderSource(shader, CodeVec.len(), (const GLchar**)CodeVec.get(), NULL);
@@ -285,8 +285,8 @@ GLuint ShaderManager::ConstructShaderGlsl(ShaderDefinition &parentsd, ShaderDefi
 
 ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlfx(ShaderDefinition &sd, const string &Name, const xml_node definition) {
 	const char* fname = definition.child("glfx").text().as_string(ERROR_STR);
-	auto fr = GetFileSystem()->OpenFile(fname, DataPath::Shaders);
-	if (!fr){
+	StarVFS::ByteTable data;
+	if (!GetFileSystem()->OpenFile(fname, DataPath::Shaders, data)){
 		AddLogf(Error, "Unable to load file for shader '%s'", sd.Name.c_str());
 		return nullptr;
 	}
@@ -298,7 +298,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlfx(ShaderDefinition 
 
 	parentsd.Handle = glfxGenEffect();
 	ShaderCodeVector CodeVec;
-	CodeVec.push_copy(fr->GetFileData(), fr->Size());
+	CodeVec.push_copy(data.get(), data.size());
 	PreproccesShaderCode(parentsd, CodeVec);
 	if (!glfxParseEffectFromMemory(parentsd.Handle, CodeVec.Linear().c_str())) {
 		AddLogf(Error, "Unable to parse shader file for shader '%s'", Name.c_str());
@@ -367,12 +367,13 @@ void ShaderManager::PreproccesShaderCode(ShaderDefinition &sd, ShaderCodeVector 
 
 			for (; c_back <= file_end; ++c_back) *c_back = ' ';
 
-			auto fr = GetFileSystem()->OpenFile(filename, DataPath::Shaders);
-			if (!fr){
+			StarVFS::ByteTable data;
+
+			if (!GetFileSystem()->OpenFile(filename, DataPath::Shaders, data)){
 				AddLogf(Error, "Unable to load include file '%s' for shader '%s'", filename.c_str(), sd.Name.c_str());
 				continue;
 			}
-			CodeTable.push_copy_front(fr->GetFileData(), fr->Size());
+			CodeTable.push_copy_front(data.get(), data.size());
 			return PreproccesShaderCode(sd, CodeTable);
 		}
 	}

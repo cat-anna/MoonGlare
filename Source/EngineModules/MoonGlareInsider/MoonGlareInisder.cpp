@@ -279,14 +279,16 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 
 	AddLogf(Insider, "Set script '%s' succeded", name.c_str());
 
-	if (saveFile) {
-		auto f = GetFileSystem()->OpenFileForWrite(name);
-		if (f) {
-			f->SetFileData(data.c_str(), data.length());
-			AddLogf(Warning, "Script file '%s' has been overwritten", name.c_str());
-		} else
-			AddLogf(Warning, "Failed to save script file '%s'", name.c_str());
-	}
+//	if (saveFile) {
+//		auto f = GetFileSystem()->OpenFileForWrite(name);
+//		if (f) {
+//			f->SetFileData(data.c_str(), data.length());
+//			AddLogf(Warning, "Script file '%s' has been overwritten", name.c_str());
+//		} else
+//			AddLogf(Warning, "Failed to save script file '%s'", name.c_str());
+//	}
+
+	AddLog(Error, "NOT IMPLEMENTED");
 
 	return true;
 }

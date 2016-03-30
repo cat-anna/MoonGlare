@@ -31,7 +31,7 @@ SimpleModelConstructor::Material* SimpleModelConstructor::NewMaterial() {
 	return m_Materials.back().get();
 }
 
-iSimpleModel* SimpleModelConstructor::GenerateModel(const string& Name, DataModule* OwnerModule, DataPath ModelOrigin) const {
+iSimpleModel* SimpleModelConstructor::GenerateModel(const string& Name, DataPath ModelOrigin) const {
 	EditableSimpleModel *esm = new EditableSimpleModel(Name);
 	
 	EditableModelFields req;

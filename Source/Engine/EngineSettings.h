@@ -112,9 +112,7 @@ public:
 	};
 
 	struct DataManager {
-		enum {
-			DefaultModulesReserve = 8,
-		};
+		static const size_t MaxLoadableModules = 16;
 	};
 
 	struct ModulesManager {

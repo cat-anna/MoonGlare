@@ -14,7 +14,7 @@ namespace Paths {
 class StaticPath : public iPath {
 	GABI_DECLARE_CLASS(StaticPath, iPath);
 public:
- 	StaticPath(DataModule *DataModule = 0);
+ 	StaticPath();
  	virtual ~StaticPath();
 
 	virtual float Length() const override;

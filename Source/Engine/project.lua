@@ -29,6 +29,8 @@ group ""
 		}
 		links {
 			"OrbitLogger",
+			"StarVFS",
+			"StaticZlib",
 		
 			"lua51jit",
 			"freeimage", 

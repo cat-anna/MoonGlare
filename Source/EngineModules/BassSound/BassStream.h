@@ -15,12 +15,12 @@ namespace BassSound {
 class BassStream : public iBassChannel {
 	GABI_DECLARE_CLASS(BassStream, iBassChannel);
 public:
- 	BassStream(DataModule *Owner = 0);
+ 	BassStream();
  	virtual ~BassStream();
 	virtual bool Initialize();
 	virtual bool Finalize();
 private: 
-	FileSystem::FileReader m_file;
+	StarVFS::ByteTable m_file;
 };
 
 } //namespace BassSound 

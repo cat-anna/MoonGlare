@@ -83,18 +83,15 @@ public:
 
 class ResourcePointerBase {
 public:
-	ResourcePointerBase(DataModule *Owner = nullptr) : m_Owner(Owner), m_Flags(0) { }
-	ResourcePointerBase(DataModule *Owner, const NameClassPair& info) : m_Owner(Owner), m_Info(info), m_Flags(0) { }
-	ResourcePointerBase(const NameClassPair& info) : m_Owner(nullptr), m_Info(info), m_Flags(0) { }
+	ResourcePointerBase() : m_Flags(0) { }
+	ResourcePointerBase(const NameClassPair& info) : m_Info(info), m_Flags(0) { }
 
 	const string& GetName() const { return m_Info.Name; }
 	const string& GetClass() const { return m_Info.Class; }
-	const DataModule* GetOwner() const { return m_Owner; }
 	bool LoadMeta(const xml_node Node) { return m_Info.LoadMeta(Node); }
 	bool SaveMeta(xml_node Node) const { return m_Info.SaveMeta(Node); }
 	DefineFlag(m_Flags, 0x01, Valid);
 protected:
-	DataModule *m_Owner;
 	NameClassPair m_Info;
 	unsigned m_Flags;
 };
@@ -104,20 +101,19 @@ class ResourcePointer : public ResourcePointerBase {
 public:
 	typedef RESTYPE Res_t;
 
-	DataModule* GetOwner() const { return m_Owner; }
 	bool IsLoaded() const { return m_Ptr != 0; }
-	template<class ...Args>
-	RESTYPE* GetResource(Args ...args) const {
+	template<class T, class ...Args>
+	RESTYPE* GetResource(T *Loader, Args ...args) const {
 		if (IsLoaded()) return m_Ptr;
-		m_Ptr = m_Owner->LoadResource(this, std::forward<Args>(args)...);
+		m_Ptr = Loader->LoadResource(this, std::forward<Args>(args)...);
 		return m_Ptr;
 	}
 
 	void ReleaseResource() { LOG_NOT_IMPLEMENTED(); }
 	unsigned UseCount() const { return 0; }
 
-	ResourcePointer(DataModule *Owner) : ResourcePointerBase(Owner), m_Ptr(0){}
-	ResourcePointer(DataModule *Owner, const NameClassPair& info) : ResourcePointerBase(Owner, info), m_Ptr(0) { }
+	ResourcePointer() : ResourcePointerBase(), m_Ptr(0){}
+	ResourcePointer(const NameClassPair& info) : ResourcePointerBase(info), m_Ptr(0) { }
 	~ResourcePointer() {
 		if (m_Ptr) {
 			m_Ptr->Finalize();
@@ -152,8 +148,8 @@ public:
 		} 
 	}
 
-	SmartResourceOld(DataModule *Owner) : ResourcePointerBase(Owner), m_Ptr(0) { }
-	SmartResourceOld(DataModule *Owner, const NameClassPair& info) : ResourcePointerBase(Owner, info), m_Ptr(0) { }
+	SmartResourceOld() : ResourcePointerBase(), m_Ptr(0) { }
+	SmartResourceOld(const NameClassPair& info) : ResourcePointerBase( info), m_Ptr(0) { }
 	~SmartResourceOld() { ReleaseResource(); }
 private:
 	mutable Smart_t m_Ptr;
@@ -181,17 +177,16 @@ class ResourceDefinition : public ResourcePointerBase {
 public:
 	typedef RESTYPE Ptr_t;
 
-	DataModule* GetOwner() const { return m_Owner; }
 	bool IsLoaded() const { return m_Ptr != 0; }
-	template<class ...Args>
-	Ptr_t GetResource(Args ...args) const {
-		return m_Owner->LoadResource(this, std::forward<Args>(args)...);
+	template<class T, class ...Args>
+	Ptr_t GetResource(T* Loader, Args ...args) const {
+		return Loader->LoadResource(this, std::forward<Args>(args)...);
 	}
 
 	void ReleaseResource() { }
 
-	ResourceDefinition(DataModule *Owner) : ResourcePointerBase(Owner) { }
-	ResourceDefinition(DataModule *Owner, const NameClassPair& info) : ResourcePointerBase(Owner) {
+	ResourceDefinition() : ResourcePointerBase() { }
+	ResourceDefinition( const NameClassPair& info) : ResourcePointerBase() {
 		m_Class = info.Class;
 		m_Name = info.Name;
 	}

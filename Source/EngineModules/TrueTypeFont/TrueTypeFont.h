@@ -28,7 +28,7 @@ protected:
 
 	FontGlyph* GetGlyph(wchar_t codepoint) const;
 private: 
-	FileSystem::FileReader m_FontFile = nullptr;
+	StarVFS::ByteTable m_FontFile;
 	FT_Face m_FontFace = nullptr; 
 	float m_CacheHight;
 

@@ -6,7 +6,7 @@
 #include <Engine/DataClasses/iFont.h>
 #include <Engine/Core/Scripts/GlobalContext.h>
 
-#include <libs/InternalFileSystem/InternalContainer.h>
+#include <StarVFS/core/nStarVFS.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -36,7 +36,7 @@ RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
 
 Manager::Manager() : cRootClass(), m_Flags(0) {
 	SetThisAsInstance();
-	m_Modules.reserve(StaticSettings::DataManager::DefaultModulesReserve);
+	m_Modules.reserve(StaticSettings::DataManager::MaxLoadableModules);
 	new DataClasses::Texture();
 	m_StringTables = std::make_unique<DataClasses::StringTable>();
 
@@ -84,24 +84,29 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 //------------------------------------------------------------------------------------------
 
 bool Manager::Initialize() {
-	if (IsInitialized()) return true;
+	ASSERT(!IsInitialized());
+	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 	
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
-	GetFileSystem()->LoadRegisteredContainers();
+	//GetFileSystem()->LoadRegisteredContainers();
 
-	for (auto &it : Settings->Modules.List) 
-		if (!GetFileSystem()->LoadModule(it, StaticSettings::FileSystem::DefaultLoadFlags)) {
+	SetInitialized(true);
+
+	for (auto &it : Settings->Modules.List) {
+		AddLogf(Debug, "Trying to load module '%s'", it.c_str());
+		
+		if (!GetFileSystem()->LoadContainer(it)) {
 			AddLogf(Error, "Unable to open module: '%s'", it.c_str());
 		}
+	}
 
 #ifdef DEBUG_RESOURCEDUMP
 	{
-		std::ofstream file("logs/ifs.txt");
+		std::ofstream file("logs/vfs.txt");
 		GetFileSystem()->DumpStructure(file);
 	}
 #endif
 
-	SetInitialized(true);
 	return true;
 }
 
@@ -123,6 +128,64 @@ bool Manager::Finalize() {
 
 //------------------------------------------------------------------------------------------
 
+bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
+	ASSERT(Container);
+	ASSERT(IsInitialized());
+
+	m_Modules.emplace_back();
+	auto &mod = m_Modules.back();
+
+	mod.m_Container = Container;
+	mod.m_ModuleName = "?";
+
+	auto cfid = Container->FindFile("/" xmlstr_Module_xml);
+	StarVFS::ByteTable data;
+	if (!Container->GetFileData(cfid, data)) {
+		AddLogf(Error, "Failed to read module meta-data from container '%s'", Container->GetContainerURI().c_str());
+		return true;
+	}
+
+	pugi::xml_document doc;
+	if (!doc.load_string(data.get())) {
+		AddLogf(Error, "Failed to parse container meta-data xml '%s'", Container->GetContainerURI().c_str());
+		return true;
+	}
+
+	auto rootnode = doc.document_element();
+	m_Configuration.LoadUpdate(rootnode.child("Options"));
+
+	mod.m_ModuleName = rootnode.child("ModuleName").text().as_string("?");
+
+	AddLogf(Hint, "Loaded module '%s' from container '%s'", mod.m_ModuleName.c_str(), Container->GetContainerURI().c_str());
+
+#if 0
+
+	if (!modptr->IsValid()) {
+		AddLogf(Error, "Unable to import module '%s'", modptr->GetContainer()->GetFileName().c_str());
+		return false;
+	}
+	if (!modptr->Open()) {
+		AddLogf(Error, "Unable to open module '%s'", modptr->GetContainer()->GetFileName().c_str());
+		return false;
+	}
+
+	DataClasses::NameClassList list;
+
+	auto ptr = modptr.get();
+
+	m_Modules.emplace_back(std::move(modptr));
+	//append configuration
+	m_Config.LoadMeta(ptr->GetConfig());
+	//append resources definitions
+	//append resources definitions to external managers
+
+	return true;
+#endif
+	return true;
+}
+
+//------------------------------------------------------------------------------------------
+
 void Manager::LoadGlobalData() {
 	::Core::GetScriptEngine()->LoadAllScripts();
 	GetSoundEngine()->ScanForSounds();
@@ -136,7 +199,7 @@ void Manager::LoadGlobalData() {
 //------------------------------------------------------------------------------------------
 
 DataClasses::FontPtr Manager::GetConsoleFont() {
-	return GetFont(m_Config.ConsoleFont);
+	return GetFont(m_Configuration.m_ConsoleFont);
 }
 
 DataClasses::FontPtr Manager::GetDefaultFont() { 
@@ -156,7 +219,7 @@ MapPtr Manager::GetMap(const string& Name) {
 	AddLogf(Debug, "Map '%s' not found or not loaded. Trying to load.", Name.c_str());
 	
 //	AddLog(TODO, "Move ownership of loaded map xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Maps)) {
 		AddLogf(Error, "Unable to open master resource xml for map '%s'", Name.c_str());
 		return nullptr;
@@ -196,7 +259,7 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
 	AddLogf(Debug, "Font '%s' not found. Trying to load.", Name.c_str());
 
 //	AddLog(TODO, "Move ownership of loaded font xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Fonts)) {
 		AddLogf(Error, "Unable to open master resource xml for font '%s'", Name.c_str());
 		fonts.unlock();
@@ -242,7 +305,7 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
 
 //	AddLog(TODO, "Move ownership of loaded model xml to map instance");
-	FileSystem::XML xml;
+	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
 		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());
 		return nullptr;
@@ -306,7 +369,7 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 	}
 	AddLogf(Debug, "Loading scene '%s' of class '%s'", Name.c_str(), Class.c_str());
 
-	FileSystem::XML doc;
+	FileSystem::XMLFile doc;
 	if (!GetFileSystem()->OpenResourceXML(doc, Name, DataPath::Scenes)) {
 		AddLog(Warning, "Unable to load xml for scene: " << Name);
 	} else {
@@ -320,7 +383,7 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 }
 
 bool Manager::LoadPlayer() {
-	FileSystem::XML doc;
+	FileSystem::XMLFile doc;
 	if (!GetFileSystem()->OpenXML(doc, PLAYER_XML_FILE, DataPath::Objects)) {
 		AddLog(Warning, "Unable to load player xml file");
 		return false;
@@ -350,6 +413,7 @@ bool Manager::LoadPlayer() {
 
 //------------------------------------------------------------------------------------------
 
+#if 0
 template <class C>
 void Manager::ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container) {
 	DataClasses::NameClassList list;
@@ -370,34 +434,7 @@ void Manager::ImportResources(DataModule *module, bool(DataModule::*srcfun)(Data
 						 std::tuple<DataClasses::DataModule*, DataClasses::NameClassPair&>(module, in));
 	}
 }
-
-bool Manager::ImportModule(UniqueModule &module) {
-	if (!module) return false;//just in case
-
-	UniqueModule modptr;
-	module.swap(modptr);
-
-	if (!modptr->IsValid()) {
-		AddLogf(Error, "Unable to import module '%s'", modptr->GetContainer()->GetFileName().c_str());
-		return false;
-	}
-	if (!modptr->Open()) {
-		AddLogf(Error, "Unable to open module '%s'", modptr->GetContainer()->GetFileName().c_str());
-		return false;
-	}
-
-	DataClasses::NameClassList list;
-
-	auto ptr = modptr.get();
-
-	m_Modules.emplace_back(std::move(modptr));
-//append configuration
-	m_Config.LoadMeta(ptr->GetConfig());
-//append resources definitions
-//append resources definitions to external managers
-
-	return true;
-}
+#endif
 
 //------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
