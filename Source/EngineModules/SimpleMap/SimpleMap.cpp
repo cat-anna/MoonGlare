@@ -145,6 +145,7 @@ bool SimpleMap::LoadStaticModel() {
 	m_MapObject->SetName(GetName());
 	m_MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
 	m_MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
+	m_MapObject->SetMass(0);
 	AddLog(Debug, "Finished generating simple map model of name " << GetName());
 	return true;
 }
