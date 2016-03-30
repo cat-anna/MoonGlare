@@ -29,8 +29,6 @@ protected:
 	std::vector<FontGlyph*> m_Chars;
 	Graphic::VAO m_VAO;
 	Graphic::vec3 m_Color;
-
-	Renderer::Resources::TextureHandle m_Texture;
 };
 
 } //namespace TrueTypeFont 

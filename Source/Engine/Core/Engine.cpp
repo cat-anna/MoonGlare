@@ -1,7 +1,6 @@
 ﻿#include <pch.h>
 #include <MoonGlare.h>
 #include <GUI/GUI.h>
-#include <Renderer/nRenderer.h>
 #include "Console.h"
 
 namespace Core {
@@ -267,8 +266,6 @@ void Engine::DoRender() {
 
 	dev.DispatchContextManipRequests();
 	
-	MoonGlare::Renderer::GetRenderer()->SubmitFrame();
-
 	dev.BeginFrame();
 	dev.ClearBuffer();
 	 

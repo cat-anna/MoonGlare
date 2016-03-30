@@ -6,7 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/Renderer/nRenderer.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
