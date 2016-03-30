@@ -8,6 +8,7 @@
 #include <MoonGlare.h>
 #include <Engine/iApplication.h>
 #include <Engine/Core/Console.h>
+#include "GraphicSettings.h"
 
 namespace Graphic {
 
@@ -275,10 +276,10 @@ void Window::CreateWindow() {
 
 	//auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
 	
-	unsigned w = Renderer::GraphicSettings::Width::get();
-	unsigned h = Renderer::GraphicSettings::Height::get();
-	int m = Renderer::GraphicSettings::Monitor::get();
-	bool fullscreen = Renderer::GraphicSettings::FullScreen::get();
+	unsigned w = GraphicSettings::Width::get();
+	unsigned h = GraphicSettings::Height::get();
+	int m = GraphicSettings::Monitor::get();
+	bool fullscreen = GraphicSettings::FullScreen::get();
 	GLFWmonitor *monitor = nullptr;
 
 	if (m < 0) {
@@ -295,8 +296,8 @@ void Window::CreateWindow() {
 		auto mon = glfwGetPrimaryMonitor();
 		auto mode = glfwGetVideoMode(mon);
 		w = mode->width; h = mode->height;
-		Renderer::GraphicSettings::Width::set(w);
-		Renderer::GraphicSettings::Height::set(h);
+		GraphicSettings::Width::set(w);
+		GraphicSettings::Height::set(h);
 	}
 
 	m_Size = uvec2(w, h);
