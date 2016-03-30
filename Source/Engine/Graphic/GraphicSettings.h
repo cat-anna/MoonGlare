@@ -9,8 +9,7 @@
 #ifndef GraphicSettings_H
 #define GraphicSettings_H
 
-namespace MoonGlare {
-namespace Renderer {
+namespace Graphic {
 
 struct GraphicSettings {
 	struct FullScreen : public Settings_t::BaseSettingInfo<bool, FullScreen> {
@@ -40,7 +39,6 @@ struct GraphicSettings {
 	};
 };
 
-} //namespace Renderer 
-} //namespace MoonGlare 
+} //namespace Graphic 
 
 #endif
