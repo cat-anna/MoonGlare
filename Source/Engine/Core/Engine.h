@@ -72,12 +72,16 @@ public:
 
 	static string GetVersionString();
 
+	std::unique_ptr<::Core::Objects::Object>& GetPlayer() { return m_Player; }
+
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 protected:
 	unsigned m_Flags;
 	ciScene* m_CurrentScene;
 	Utils::ActionQueue m_ActionQueue;
 	TimeEvents m_TimeEvents;
+
+	std::unique_ptr<::Core::Objects::Object> m_Player;
 
 	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 	std::unique_ptr<Graphic::Forward::ForwardPipeline> m_Forward;

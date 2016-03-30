@@ -8,8 +8,6 @@ namespace Core {
 } //namespace Core
 
 #include "Object.h"
-#include "Player.h"
-
 #include "ObjectRegister.h"
 
 #include "iLightSource.h"

@@ -60,9 +60,9 @@ bool Engine::Finalize() {
 	if (!IsReady()) return false;
 	GetInput()->Finalize();
 
-	if (Objects::Player::InstanceExists()) {
-		GetPlayer()->Finalize();
-		Objects::Player::DeleteInstance();
+	if (m_Player) {
+		m_Player->Finalize();
+		m_Player.reset();
 	}
 
 	m_Dereferred.reset();

@@ -23,7 +23,6 @@ namespace Core {
 	inline Scene::ScenesManager* GetScenesManager() { return Scene::ScenesManager::Instance(); }
 
 	inline Input* GetInput() { return Input::Instance(); }
-	inline Objects::Player* GetPlayer() { return Objects::Player::Instance(); }
 }
 
 #endif // NCORE_H_

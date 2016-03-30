@@ -18,7 +18,8 @@ Object::Object(::Core::GameScene *Scene):
 		m_ScriptHandlers(),
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
-		m_Scale(1.0f) {
+		m_Scale(1.0f),
+		m_BodyAngularFactor(1, 1, 1) {
 	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::InvokeOnTimer>(this));
 }
 
@@ -154,12 +155,14 @@ bool Object::LoadPattern(const xml_node node) {
 	}
 
 	xml_node Model = node.child("Model");
-	if (Model && GetScene()) {
+	if (Model) {
 		const char *name = Model.attribute(xmlAttr_Name).as_string(0);
 		if (!name)
 			AddLogf(Error, "Predef object '%s' has defined model without name!", GetName().c_str());
 		else {
-			m_ModelInstance = GetScene()->GetInstanceManager().CreateInstance(name);
+			m_Model = GetDataMgr()->GetModel(name);
+			if(GetScene())
+				m_ModelInstance = GetScene()->GetInstanceManager().CreateInstance(m_Model);
 		}
 	}
 
@@ -174,6 +177,7 @@ bool Object::LoadPattern(const xml_node node) {
 		Physics::BodyClassEnum::LoadFromXML(Collision, m_CollisionMask);
 	}
 
+	XML::Vector::Read(node, "BodyAngularFactor", m_BodyAngularFactor, Physics::vec3(1, 1, 1));
 
 	return true;
 }
@@ -210,14 +214,19 @@ int Object::InvokeOnUserEventD(int param) { SCRIPT_INVOKE(OnUserEventD, param); 
 
 void Object::SetOwnerScene(GameScene *NewOwner) {
 	m_Scene = NewOwner;
+	if (NewOwner) {
+		if (m_Model) {
+			m_ModelInstance = NewOwner->GetInstanceManager().CreateInstance(m_Model);
+			m_ModelInstance->Initialize(this);
+		}
+	} else {
+		if (HaveBody())
+			GetBody()->SetWorldOwner(nullptr);
+		m_ModelInstance.reset();
+	}
 }
 
 //---------------------------------------------------------------------------------------
-
-void Object::OnBodyConstruction() {
-	m_Body->SetCollisionMask(m_CollisionMask);
-
-}
 
 void Object::ReleaseBody() {
 	m_Body->SetWorldOwner(nullptr);
@@ -228,7 +237,8 @@ void Object::SetShape(Physics::SharedShape ss) {
 	if (m_Body) m_Body.reset();
 	if (!ss) return;
 	m_Body = Physics::Body::Create(this, ss);
-	OnBodyConstruction();
+	m_Body->SetCollisionMask(m_CollisionMask);
+	m_Body->SetAngularFactor(m_BodyAngularFactor);
 	if (GetScene())
 		m_Body->SetWorldOwner(&GetScene()->GetPhysicsEngine());
 }

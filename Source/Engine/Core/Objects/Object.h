@@ -12,7 +12,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(ObjectScriptEvents, iScriptEvents,
 		),
 		SCRIPT_EVENT_REMOVE());
 
-class Object/* final */: public NamedObject {
+class Object /*final*/ : public NamedObject {
 	GABI_DECLARE_STATIC_CLASS(Object, NamedObject);
 	DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 	DECLARE_EVENT_HOLDER();
@@ -65,14 +65,14 @@ public:
 	float GetMass() const { return m_Mass; }
 	void SetPhysicalProperties(const Physics::PhysicalProperties *prop);
 
-	virtual int InvokeOnDropDead();
-	virtual int InvokeOnInitialize();
-	virtual int InvokeOnFinalize();
-	virtual int InvokeOnTimer(int TimerID);
-	virtual int InvokeOnUserEventA(int param);
-	virtual int InvokeOnUserEventB(int param);
-	virtual int InvokeOnUserEventC(int param);
-	virtual int InvokeOnUserEventD(int param);
+	int InvokeOnDropDead();
+	int InvokeOnInitialize();
+	int InvokeOnFinalize();
+	int InvokeOnTimer(int TimerID);
+	int InvokeOnUserEventA(int param);
+	int InvokeOnUserEventB(int param);
+	int InvokeOnUserEventC(int param);
+	int InvokeOnUserEventD(int param);
 
 	int SetTimer(float secs, int tid, bool cyclic) { return GetScene()->SetProxyTimer(GetEventProxy(), secs, tid, cyclic); }
 	void KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProxy(), tid); }
@@ -102,8 +102,9 @@ protected:
 	Physics::vec3 m_LookDirection; /** Look direction of object */
 	Physics::DefaultMotionState m_MotionState;
 	float m_Mass, m_Scale;
+	::DataClasses::ModelPtr m_Model;
+	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
-	virtual void OnBodyConstruction();
 	virtual void InternalInfo(std::ostringstream &buff) const;
 	void SetMoveController(MoveControllers::iMoveController *ptr);
 private:
