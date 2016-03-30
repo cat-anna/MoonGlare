@@ -9,8 +9,8 @@
 namespace Core {
 namespace Camera {
 
-class iCamera : public Objects::DynamicObject {
-	GABI_DECLARE_STATIC_CLASS(iCamera, Objects::DynamicObject)
+class iCamera : public Objects::Object {
+	GABI_DECLARE_STATIC_CLASS(iCamera, Objects::Object)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	iCamera(GameScene *Scene = nullptr);

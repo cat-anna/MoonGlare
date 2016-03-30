@@ -76,8 +76,6 @@ void Interfaces::DumpLists(ostream &out) {
 	DataClasses::Fonts::FontClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nMap class list\n";
 	DataClasses::Maps::MapClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nObject class list\n";
-	::Core::Objects::ObjectClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nScene class list\n";
 	::Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nMove controllers class list\n";

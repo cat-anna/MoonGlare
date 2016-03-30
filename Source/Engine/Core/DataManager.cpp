@@ -343,7 +343,7 @@ Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner) {
 		NotifyResourcesChanged();
 	}
 
-	Object *obj = ::Core::Objects::ObjectClassRegister::CreateClass(meta.Class, Owner);
+	Object *obj = new ::Core::Objects::Object(Owner);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object class '%s'", meta.Class.c_str());
 		return nullptr;

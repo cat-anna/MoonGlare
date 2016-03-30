@@ -4,12 +4,12 @@
 namespace Core {
 namespace Objects {
 
-DECLARE_SCRIPT_EVENT_VECTOR(PlayerScriptEvents, DynamicObjectScriptEvents,
+DECLARE_SCRIPT_EVENT_VECTOR(PlayerScriptEvents, ObjectScriptEvents,
 		SCRIPT_EVENT_ADD(),
 		SCRIPT_EVENT_REMOVE());
 
-class Player : public DynamicObject {
-	GABI_DECLARE_CLASS_DYNAMIC_SINGLETON(Player, DynamicObject);
+class Player : public Object {
+	GABI_DECLARE_CLASS_DYNAMIC_SINGLETON(Player, Object);
 	DECLARE_SCRIPT_HANDLERS(PlayerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
