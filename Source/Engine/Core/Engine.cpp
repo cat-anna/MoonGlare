@@ -96,10 +96,10 @@ void Engine::ScriptApi(ApiInitializer &root){
 
 #if DEBUG_SCRIPTAPI
 
-void Engine::RegisterDebugScriptApi(ApiInitializer &root){
-}
+void Engine::RegisterDebugScriptApi(ApiInitializer &root){ }
 
 #endif
+
 //----------------------------------------------------------------------------------
 
 bool Engine::BeginGame() {
@@ -139,6 +139,9 @@ void Engine::EngineMain() {
 	float LastFrame = CurrentTime;
 	float LastMoveTime = CurrentTime;
 
+	MoveConfig conf;
+	conf.RenderList.reserve(2048);
+
 	while (m_Running) {
 		Graphic::Window::ProcessWindowSystem();
 		CurrentTime = static_cast<float>(glfwGetTime());
@@ -173,9 +176,12 @@ void Engine::EngineMain() {
 
 		if (dev.GetContext()->IsMouseHooked())
 			GetInput()->SetMouseDelta(dev.GetContext()->CursorDelta());
-		DoMove(CurrentTime - LastMoveTime);
+
+		conf.TimeDelta = CurrentTime - LastMoveTime;
+		DoMove(conf);
+
 		float MoveTime = static_cast<float>(glfwGetTime());
-		DoRender();
+		DoRender(conf);
 
 		float RenderTime = static_cast<float>(glfwGetTime());
 
@@ -260,7 +266,7 @@ void Engine::HandleSceneStateChangeImpl() {
 
 //----------------------------------------------------------------------------------
 
-void Engine::DoRender() {
+void Engine::DoRender(MoveConfig &conf) {
 	auto &dev = *Graphic::GetRenderDevice();
 	auto devsize = dev.GetContext()->Size();
 
@@ -268,9 +274,11 @@ void Engine::DoRender() {
 	
 	dev.BeginFrame();
 	dev.ClearBuffer();
+
+	dev.Bind(conf.Camera);
 	 
-	if (m_CurrentScene)
-		m_Dereferred->Execute(m_CurrentScene, dev);
+	if (conf.Scene)
+		m_Dereferred->Execute(conf, dev);
 	m_Forward->BeginFrame(dev);
 
 	dev.SetModelMatrix(math::mat4());
@@ -297,20 +305,15 @@ void Engine::DoRender() {
 	//dev.EndFrame();
 } 
 
-void Engine::DoMove(float TimeDelta) { 
-	MoveConfig conf;
-	conf.TimeDelta = TimeDelta;
+void Engine::DoMove(MoveConfig &conf) {
+	conf.RenderList.clear();
+	conf.Scene = nullptr;
 
 	MoonGlare::Core::Component::ComponentManager::Process(conf);
 
 	m_TimeEvents.CheckEvents(conf);
 	if (m_CurrentScene)
 		m_CurrentScene->DoMove(conf);
-
-	auto &dev = *Graphic::GetRenderDevice();
-	PreRenderConfig prec{ dev };
-	if (m_CurrentScene)
-		m_CurrentScene->PreRender(prec);
 }
 
 //----------------------------------------------------------------------------------

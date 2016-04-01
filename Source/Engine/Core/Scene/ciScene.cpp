@@ -116,22 +116,12 @@ bool ciScene::DoFinalize() {
 //----------------------------------------------------------------
 
 void ciScene::DoMove(const MoveConfig &conf) {
+	conf.Scene = this;
 	m_TimeEvents.CheckEvents(conf);
 	if (m_GUI)
 		m_GUI->Process(conf);
-}
-
-void ciScene::PreRender(const PreRenderConfig& conf) {
 	if (m_Camera)
 		m_Camera->Update(conf);
-}
-
-void ciScene::DoRender(cRenderDevice& Dev) const {
-	//nothing here
-}
-
-void ciScene::DoRenderMeshes(cRenderDevice &Dev) const {
-	//nothing here
 }
 
 Graphic::Light::LightConfiguration* ciScene::GetLightConfig() {

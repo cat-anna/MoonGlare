@@ -32,12 +32,8 @@ public:
 	virtual void EndScene() override;
 
 	virtual void DoMove(const MoveConfig &conf) override;
-	virtual void PreRender(const PreRenderConfig& conf);
-	virtual void DoRender(cRenderDevice& Dev) const override;
-	virtual void DoRenderMeshes(cRenderDevice &Dev) const override;
 	virtual Graphic::Light::LightConfiguration* GetLightConfig();
 
-	ModelInstanceManager& GetInstanceManager() { return *m_ModelIntances; }
 	Physics::PhysicEngine& GetPhysicsEngine() { return *m_Physics; }
 
 	void AddLightSource(::Core::Objects::iLightSource *ptr);
@@ -61,7 +57,6 @@ protected:
 	string m_MapName;
 	DataClasses::MapPtr m_MapData;
 	std::unique_ptr<Objects::ObjectRegister> m_Objects;
-	std::unique_ptr<ModelInstanceManager> m_ModelIntances;
 	std::list<Object*> m_DeadList;
 
 	Physics::PhysicEnginePtr m_Physics;

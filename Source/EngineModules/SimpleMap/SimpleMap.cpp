@@ -67,7 +67,7 @@ bool SimpleMap::DoInitialize() {
 bool SimpleMap::DoFinalize() {
 	if (m_MapModel) {
 		m_MapModel->Finalize();
-		m_MapModel.reset(0);
+		m_MapModel.reset();
 	}
 
 	if (m_MapObject) {
@@ -141,8 +141,9 @@ bool SimpleMap::LoadStaticModel() {
 	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), DataPath::Maps));
 
 	m_MapObject = std::make_unique<::Core::Objects::Object>(GetOwnerScene());
-	m_MapObject->SetModelInstance(GetOwnerScene()->GetInstanceManager().CreateInstance(m_MapModel.get()));
 	m_MapObject->SetName(GetName());
+	m_MapObject->GetModelInstance().SetModel(m_MapModel);
+//	m_MapObject->GetModelInstance().GetPhysicalSettings(m_MapObject.get());
 	m_MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
 	m_MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
 	m_MapObject->SetMass(0);

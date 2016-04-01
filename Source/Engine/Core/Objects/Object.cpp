@@ -12,6 +12,7 @@ Object::Object(::Core::GameScene *Scene):
 		BaseClass(),
 		m_Flags(),
 		m_ModelInstance(),
+		m_Visible(true),
 		m_Scene(Scene),
 		m_EventProxy(),
 		m_LightSource(),
@@ -26,7 +27,6 @@ Object::Object(::Core::GameScene *Scene):
 Object::~Object() {
 	SetScriptHandlers(new ScriptEventClass());
 	m_CollisionMask.Set(Physics::BodyClass::Object);
-	m_ModelInstance.reset();
 	m_LightSource.reset();
 	m_Body.reset();
 }
@@ -34,18 +34,23 @@ Object::~Object() {
 //---------------------------------------------------------------------------------------
 
 bool Object::Initialize(){
-	if (m_LightSource) m_LightSource->Initialize();
-	if (m_ModelInstance) m_ModelInstance->Initialize(this);
-	if (m_MoveController) m_MoveController->Initialize();
+	if (m_LightSource) 
+		m_LightSource->Initialize();
+	if (m_MoveController) 
+		m_MoveController->Initialize();
+
+	m_ModelInstance.GetPhysicalSettings(this);
+
 	InvokeOnInitialize();
 	return true;
 }
 
 bool Object::Finalize() {
 	InvokeOnFinalize();
-	if (m_MoveController) m_MoveController->Finalize();
-	if (m_LightSource) m_LightSource->Finalize();
-	if (m_ModelInstance) m_ModelInstance->Finalize();
+	if (m_MoveController) 
+		m_MoveController->Finalize();
+	if (m_LightSource) 
+		m_LightSource->Finalize();
 	return true;
 }
 
@@ -117,11 +122,13 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 void Object::DoMove(const MoveConfig &conf) {
 	if (m_MoveController) m_MoveController->DoMove(conf);
 	if (m_LightSource) m_LightSource->DoMove(conf);
-}
 
-void Object::PreRender(const PreRenderConfig& conf) {
 	if (m_LightSource) m_LightSource->Update();
-	if (m_ModelInstance) m_ModelInstance->Update(this);
+
+	if (m_Visible) {
+		m_ModelInstance.Update(this);
+		conf.RenderList.push_back(&m_ModelInstance);
+	}
 }
 
 void Object::DropDead(){
@@ -160,9 +167,7 @@ bool Object::LoadPattern(const xml_node node) {
 		if (!name)
 			AddLogf(Error, "Predef object '%s' has defined model without name!", GetName().c_str());
 		else {
-			m_Model = GetDataMgr()->GetModel(name);
-			if(GetScene())
-				m_ModelInstance = GetScene()->GetInstanceManager().CreateInstance(m_Model);
+			m_ModelInstance.SetModel(GetDataMgr()->GetModel(name));
 		}
 	}
 
@@ -197,7 +202,8 @@ bool Object::LoadDynamicState(const xml_node node) {
 //---------------------------------------------------------------------------------------
 
 int Object::InvokeOnDropDead(){
-	if (IsDead()) return 0;
+	if (IsDead()) 
+		return 0;
 	SCRIPT_INVOKE(OnDropDead);
 	return 0;
 }
@@ -214,16 +220,8 @@ int Object::InvokeOnUserEventD(int param) { SCRIPT_INVOKE(OnUserEventD, param); 
 
 void Object::SetOwnerScene(GameScene *NewOwner) {
 	m_Scene = NewOwner;
-	if (NewOwner) {
-		if (m_Model) {
-			m_ModelInstance = NewOwner->GetInstanceManager().CreateInstance(m_Model);
-			m_ModelInstance->Initialize(this);
-		}
-	} else {
-		if (HaveBody())
-			GetBody()->SetWorldOwner(nullptr);
-		m_ModelInstance.reset();
-	}
+	if (HaveBody() && NewOwner)
+		GetBody()->SetWorldOwner(&NewOwner->GetPhysicsEngine());
 }
 
 //---------------------------------------------------------------------------------------
@@ -234,8 +232,10 @@ void Object::ReleaseBody() {
 }
 
 void Object::SetShape(Physics::SharedShape ss) {
-	if (m_Body) m_Body.reset();
-	if (!ss) return;
+	if (m_Body) 
+		m_Body.reset();
+	if (!ss) 
+		return;
 	m_Body = Physics::Body::Create(this, ss);
 	m_Body->SetCollisionMask(m_CollisionMask);
 	m_Body->SetAngularFactor(m_BodyAngularFactor);

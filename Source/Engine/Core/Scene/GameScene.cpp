@@ -21,11 +21,9 @@ GameScene::GameScene():
 		m_MapName(),
 		m_MapData(),
 		m_Objects(),
-		m_ModelIntances(),
 		m_Physics(),
 		m_Environment(0) {
 	m_Objects = std::make_unique<Objects::ObjectRegister>();
-	m_ModelIntances = std::make_unique<ModelInstanceManager>(this);
 	m_Physics = std::make_unique<Physics::PhysicEngine>();
 	m_Camera = std::make_unique<Camera::iCamera>(this);
 }
@@ -33,7 +31,6 @@ GameScene::GameScene():
 GameScene::~GameScene() {
 	m_Objects->Clear();
 	//delete m_Physics;
-	//delete m_ModelIntances;
 }
  
 //---------------------------------------------------------------------------------------
@@ -66,8 +63,6 @@ void GameScene::BeginScene() {
 	} else {
 		AddLog(Error, "There is no player instance!");
 	}
-
-	m_ModelIntances->InitalizeInstances();
 
 	if (m_MapData) {
 		m_Environment = m_MapData->GetEnvironment();
@@ -110,7 +105,7 @@ bool GameScene::DoInitialize() {
 	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 
 	if (m_MapData) {
-		//m_Objects->Add(m_MapData->LoadMapObject());
+		m_Objects->Add(m_MapData->LoadMapObject());
 	}
 
 	for (auto *it : *m_Objects) {
@@ -287,7 +282,7 @@ void GameScene::DoMove(const MoveConfig &conf) {
 	static unsigned counter = 0;
 	++counter;
 	if ((counter & 0xF) == 0) {
-//		AddLogf(Performance, "pht: %f ms", (float)(sec.count() * 1000));
+		AddLogf(Performance, "pht: %f ms", (float)(sec.count() * 1000));
 	}
 
 	//AddLog(Hint, "Step end");
@@ -300,26 +295,9 @@ void GameScene::DoMove(const MoveConfig &conf) {
 		}
 		m_DeadList.clear();
 	}
-}
 
-void GameScene::PreRender(const PreRenderConfig& conf) {
-	for (auto *it : *m_Objects)
-		it->PreRender(conf);
-	BaseClass::PreRender(conf);
-}
-
-void GameScene::DoRender(cRenderDevice& dev) const {
-	THROW_ASSERT(IsReady(), 0);
- 	m_ModelIntances->DoRender(dev);
-
-	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
-		dev.SetModelMatrix(math::mat4()); 
-		m_Physics->DoDebugDraw(dev);
-	}
-}
-
-void GameScene::DoRenderMeshes(cRenderDevice &dev) const {
-	m_ModelIntances->DoRenderMeshes(dev);
+	if (m_Camera)
+		m_Camera->Update(conf);
 }
 
 Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
