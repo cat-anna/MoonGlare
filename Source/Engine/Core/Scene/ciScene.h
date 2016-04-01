@@ -77,10 +77,7 @@ public:
 	bool SetMetaData(FileSystem::XMLFile &file);
 
 	virtual void DoMove(const MoveConfig &conf);
-	virtual void PreRender(const PreRenderConfig& conf);
 
-	virtual void DoRender(cRenderDevice &Dev) const;
-	virtual void DoRenderMeshes(cRenderDevice &Dev) const;
 	virtual Graphic::Light::LightConfiguration* GetLightConfig();
 
 	int SetTimer(float secs, int TimerID, bool cyclic) { return SetProxyTimer(GetEventProxy(), secs, TimerID, cyclic); }

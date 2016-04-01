@@ -8,16 +8,75 @@
 
 namespace Physics {
 
+BulletDebugDrawer::BulletDebugDrawer() {
+	m_Shader = nullptr;
+	//m_LinePoints.reserve(1024 * 1024);
+	//m_LinePointsColors.reserve(1024 * 1024);
+	//m_ContactPoints.reserve(8 * 1024);
+}
+
+void BulletDebugDrawer::PrepareDebugDraw(cRenderDevice& dev) {
+	m_dev = &dev;
+	//	m_LinePoints.clear();
+//	m_LinePointsColors.clear();
+
+	if (!m_Shader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw.default", m_Shader)) {
+			AddLogf(Error, "Failed to load btDebgDraw shader");
+			return;
+		}
+//		m_VAO.New();
+	}
+	dev.Bind(m_Shader);
+	dev.SetModelMatrix(math::mat4());
+	dev.BindNullMaterial();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+}
+
+void BulletDebugDrawer::Submit(cRenderDevice& dev) {
+//	if (!m_Shader || m_LinePoints.empty()) {
+	//	return;
+//	}
+
+//	dev.Bind(m_Shader);
+
+	//m_VAO.Bind();
+	
+//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::CoordChannel, (float*)&m_LinePoints[0], m_LinePoints.size()/*, true*/);
+//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::ColorChannel, (float*)&m_LinePointsColors[0], m_LinePointsColors.size()/*, true*/);
+
+	//glDrawElements(GL_LINES, )
+
+//	m_VAO.DrawElements(m_LinePoints.size(), 0)
+	//glDrawArrays(GL_LINES, 0, m_LinePoints.size());
+
+	//m_VAO.UnBind();
+
+	glPopAttrib();
+}
+
 void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color){
-	dev->BindNullMaterial();
-	dev->CurrentShader()->SetBackColor(convert(color));
+//	m_LinePoints.push_back(convert(from));
+//	m_LinePoints.push_back(convert(to));
+//	m_LinePointsColors.push_back(convert(color));
+//	m_LinePointsColors.push_back(convert(color));
+	m_dev->CurrentShader()->SetBackColor(convert(color));
 	glBegin(GL_LINES);
-	glVertex3f(from.x(), from.y(), from.z());
-	glVertex3f(to.x(), to.y(), to.z());
+	glVertex3fv((float*)&from);
+	glVertex3fv((float*)&to);
 	glEnd();
 }
 
-void BulletDebugDrawer::drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &){
+void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color){
+	m_dev->CurrentShader()->SetBackColor(convert(color));
+	glBegin(GL_POINTS);
+	glVertex3fv((float*)&PointOnB);
+	glEnd();
+	glBegin(GL_LINES);
+	auto sum = PointOnB + normalOnB;
+	glVertex3fv((float*)&PointOnB);
+	glVertex3fv((float*)&sum);
+	glEnd();
 }
 
 void BulletDebugDrawer::reportErrorWarning(const char *c){

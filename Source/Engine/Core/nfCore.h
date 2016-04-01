@@ -3,17 +3,7 @@
 
 namespace MoonGlare {
 namespace Core {
-	struct MoveConfig {
-		float TimeDelta;
-	};
-
-	struct PreRenderConfig {
-		Graphic::cRenderDevice &device;
-
-		PreRenderConfig() = delete;
-		PreRenderConfig(const PreRenderConfig&) = delete;
-		PreRenderConfig& operator=(const PreRenderConfig&) = delete;
-	};
+	struct MoveConfig;
 }//namespace Core
 }//namespace MoonGlare
 
@@ -27,7 +17,6 @@ namespace Core {
 	struct MouseEventDispatcher;
 
 	using ::MoonGlare::Core::MoveConfig;
-	using ::MoonGlare::Core::PreRenderConfig;
 }
 
 #include "EntityManager.h"
@@ -37,5 +26,19 @@ namespace Core {
 #include "Scene/nfScene.h"
 #include "Objects/nfObjects.h"
 #include "Camera/nfCamera.h"
+
+namespace MoonGlare {
+namespace Core {
+
+struct MoveConfig { 
+	float TimeDelta;
+
+	mutable ::Core::ciScene *Scene = nullptr;
+	mutable Graphic::VirtualCamera *Camera = nullptr;
+	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
+};
+
+}//namespace Core
+}//namespace MoonGlare
 
 #endif // NFCORE_H_ 

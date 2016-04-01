@@ -24,13 +24,12 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	virtual void DoMove(const MoveConfig &conf);
-	virtual void PreRender(const PreRenderConfig& conf);
+	void DoMove(const MoveConfig &conf);
 
-	virtual void DropDead();
+	void DropDead();
 
-	virtual bool LoadPattern(const xml_node node);
-	virtual bool LoadDynamicState(const xml_node node);
+	bool LoadPattern(const xml_node node);
+	bool LoadDynamicState(const xml_node node);
 	
 	struct Flags {
 		enum {
@@ -85,24 +84,22 @@ public:
 	float GetScale() const { return m_Scale; }
 	using BaseClass::SetName;
 
-	void SetModelInstance(Scene::ModelInstancePtr &&inst) {
-		m_ModelInstance.release();
-		m_ModelInstance.swap(inst);
-	}
+	DefineDirectSetGet(Visible, bool);
+	Scene::ModelInstance& GetModelInstance() { return m_ModelInstance; }
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	iLightSourcePtr m_LightSource;
-	Scene::ModelInstancePtr m_ModelInstance;
+	Scene::ModelInstance m_ModelInstance;
 	unsigned m_Flags;
+	bool m_Visible;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
 	Physics::vec3 m_LookDirection; /** Look direction of object */
 	Physics::DefaultMotionState m_MotionState;
 	float m_Mass, m_Scale;
-	::DataClasses::ModelPtr m_Model;
 	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
 	virtual void InternalInfo(std::ostringstream &buff) const;

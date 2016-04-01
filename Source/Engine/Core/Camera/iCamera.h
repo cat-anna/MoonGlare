@@ -16,14 +16,13 @@ public:
 	iCamera(GameScene *GameScene);
 	~iCamera();
 
-	void Update(const PreRenderConfig& conf) ;
+	void Update(const MoveConfig& conf) ;
 
 	void PointAt(Objects::Object *PointAt = 0);
 	void TrackedObject(Objects::Object *TrackedObject);
 
 	DefineSetGetByRef(CameraDelta, Physics::vec3);
 
-	//void Bind(cRenderDevice &dev) { dev.Bind(m_Camera.get()); }
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	GameScene *m_GameScene;

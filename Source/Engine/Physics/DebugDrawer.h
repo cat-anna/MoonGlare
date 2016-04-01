@@ -26,7 +26,8 @@ namespace Physics {
 
 class BulletDebugDrawer : public btIDebugDraw {
 public:
-	Graphic::cRenderDevice *dev;
+	BulletDebugDrawer();
+
 	int m;
 
 #if 0
@@ -40,12 +41,22 @@ public:
 #endif // 0
 
 	virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
-	virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &);
+	virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color);
 	virtual void reportErrorWarning(const char *);
 	virtual void draw3dText(const btVector3 &, const char *);
 	virtual void setDebugMode(int p);
 	int getDebugMode(void) const;
 
+	void PrepareDebugDraw(cRenderDevice& dev);
+	void Submit(cRenderDevice& dev);
+
+private:
+	//std::vector<math::fvec3> m_LinePointsColors;
+	//std::vector<math::fvec3> m_LinePoints;
+	Graphic::Shaders::Shader *m_Shader;
+	//Graphic::VAO m_VAO;
+
+	cRenderDevice *m_dev;
 };
 
 } //namespace Physics 

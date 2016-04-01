@@ -27,7 +27,7 @@ public:
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	std::unique_ptr<iModel> m_MapModel;
+	::DataClasses::ModelPtr m_MapModel;
 	std::unique_ptr<::Core::Objects::Object> m_MapObject;
 
 	bool DoInitialize() override;

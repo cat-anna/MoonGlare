@@ -34,9 +34,9 @@ float LightAttenuation::Threshold(float ColorFactor) const {
 	//	//ret /= 2 * Exp;
 	//return ret;
 
-	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256)));// - 256 * ColorFactor
-	//if (Exp != 0)
-	//		ret /= 2 * Exp;
+	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256 * ColorFactor)));// - 256 * ColorFactor
+	if (Exp != 0)
+			ret /= 2 * Exp;
 	return ret;
 }
 

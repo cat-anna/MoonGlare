@@ -26,8 +26,8 @@ public:
 	void EngineMain();
 	bool Finalize();
 
-    void DoMove(float TimeDelta);
-    void DoRender();
+    void DoMove(MoveConfig &conf);
+    void DoRender(MoveConfig &conf);
 
 	/** Proxy call to SceneManager instance. Should be used only by scripts. */
 	void SetNextScene(const string& Name) const;

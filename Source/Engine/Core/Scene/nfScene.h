@@ -11,17 +11,11 @@
 namespace Core {
 	namespace Scene {
 		class ModelInstance;
-		class ModelInstanceManager;
 
 		class GameScene;
 		class ciScene;
 
 		class ScenesManager;
-
-		struct ModelInstanceDeleter {
-			void operator()(ModelInstance*);
-		};
-		using ModelInstancePtr = std::unique_ptr<ModelInstance, ModelInstanceDeleter>;
 
 		using SceneClassRegister = GabiLib::DynamicClassRegister < ciScene > ;
 	} // namespace Scene

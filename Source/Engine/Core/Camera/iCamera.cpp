@@ -43,7 +43,7 @@ void iCamera::RegisterScriptApi(ApiInitializer &api) {
 
 //---------------------------------------------------------------------------------------
 
-void iCamera::Update(const PreRenderConfig& conf) {
+void iCamera::Update(const MoveConfig& conf) {
 	if (m_TrackedObject) {
 		m_Camera->SetPosition(m_TrackedObject->GetPosition() + m_CameraDelta);
 		auto dir = m_TrackedObject->GetLookDirection();
@@ -52,7 +52,7 @@ void iCamera::Update(const PreRenderConfig& conf) {
 #pragma message ("CAMERA LOOK DIRECTION IS NOT SET")
 		m_Camera->UpdateMatrix();
 	}
-	conf.device.Bind(m_Camera.get());
+	conf.Camera = m_Camera.get();
 }
 
 void iCamera::PointAt(Objects::Object* PointAt) {

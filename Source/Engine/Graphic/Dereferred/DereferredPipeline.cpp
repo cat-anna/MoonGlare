@@ -64,14 +64,29 @@ bool DereferredPipeline::Finalize() {
 
 //--------------------------------------------------------------------------------------
  
-bool DereferredPipeline::Execute(::Core::ciScene *scene, cRenderDevice& dev) {
+bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
 	if (!IsReady())
 		return false;
 
-	RenderShadows(scene, dev);
+	RenderShadows(conf, dev);
 	BeginFrame(dev);
-	RenderGeometry(scene, dev);
-	RenderLights(scene, dev);
+	RenderGeometry(conf, dev);
+	RenderLights(conf, dev);
+
+	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
+		glEnable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+
+		auto *sc = dynamic_cast<::Core::Scene::GameScene*>(conf.Scene);
+		if (sc) {
+			sc->GetPhysicsEngine().DoDebugDraw(dev);
+		}
+
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+	}
+
 	FinalPass(dev.GetContext()->Size());
 	EndFrame();
 	return true;
@@ -85,15 +100,15 @@ void DereferredPipeline::BeginFrame(cRenderDevice& dev) {
 	m_Buffer.BeginFrame(); 
 } 
  
-bool DereferredPipeline::RenderShadows(::Core::ciScene *scene, cRenderDevice& dev) {
-	auto *lconf = scene->GetLightConfig();
+bool DereferredPipeline::RenderShadows(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
+	auto *lconf = conf.Scene->GetLightConfig();
 	if (!lconf) return true;
 	  
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);  
 
-	RenderSpotLightsShadows(scene, lconf->SpotLights, dev);
+	RenderSpotLightsShadows(conf, lconf->SpotLights, dev);
 
 	//float Width = (float)::Settings->Window.Width;
 	//float Height = (float)::Settings->Window.Height;
@@ -103,7 +118,7 @@ bool DereferredPipeline::RenderShadows(::Core::ciScene *scene, cRenderDevice& de
 	return true;
 }
 
-bool DereferredPipeline::RenderSpotLightsShadows(::Core::ciScene *scene, Light::SpotLightList &lights, cRenderDevice& dev) {
+bool DereferredPipeline::RenderSpotLightsShadows(const MoonGlare::Core::MoveConfig &conf, Light::SpotLightList &lights, cRenderDevice& dev) {
 	if (lights.empty()) return true;
 	//glEnable(GL_CULL_FACE); 
 	//glCullFace(GL_FRONT);
@@ -114,13 +129,14 @@ bool DereferredPipeline::RenderSpotLightsShadows(::Core::ciScene *scene, Light::
 		light->ShadowMap.BindAndClear();
 		dev.Bind(m_ShadowMapShader); 
 		m_ShadowMapShader->SetLightPosition(light->Position);
-		scene->DoRenderMeshes(dev);  
+		for (auto it : conf.RenderList)
+			it->DoRenderMesh(dev);
 	}           
 	//glDisable(GL_CULL_FACE); 
 	return true;     
 }
  
-bool DereferredPipeline::RenderGeometry(::Core::ciScene *scene, cRenderDevice& dev) {
+bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
 	dev.Bind(m_GeometryShader);
 	m_Buffer.BeginGeometryPass(); 
 	glDepthMask(GL_TRUE);
@@ -128,13 +144,16 @@ bool DereferredPipeline::RenderGeometry(::Core::ciScene *scene, cRenderDevice& d
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);  
 
-	scene->DoRender(dev);
+	//dev.Bind(conf.Camera);
+	dev.SetModelMatrix(math::mat4());
+	for (auto it : conf.RenderList)
+		it->DoRender(dev);
 
 	return true;
 }
 
-bool DereferredPipeline::RenderLights(::Core::ciScene *scene, cRenderDevice& dev) {
-	auto *lconf = scene->GetLightConfig();
+bool DereferredPipeline::RenderLights(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
+	auto *lconf = conf.Scene->GetLightConfig();
 	if (!lconf) return true;
 	glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);

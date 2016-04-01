@@ -7,16 +7,13 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
+
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ModelInstance)
-
-ModelInstance::ModelInstance(iModel *Model, ModelInstanceManager* Owner) :
-		BaseClass(),
-		m_Model(Model),
-		m_ModelMatrix(),
-		m_Owner(Owner) {
+ModelInstance::ModelInstance() :
+		m_Model(nullptr),
+		m_ModelMatrix() {
 }
 
 ModelInstance::~ModelInstance() {
@@ -24,33 +21,23 @@ ModelInstance::~ModelInstance() {
 
 //---------------------------------------------------------------------------------------
 
-void ModelInstanceDeleter::operator()(ModelInstance* i) {
-	i->Release();
-}
-
-//---------------------------------------------------------------------------------------
-
-void ModelInstance::InternalInfo(std::ostringstream& buff) const {
-	BaseClass::InternalInfo(buff);
-	//buff << " Model:" << m_Model->GetName() << " instc:" << InstancesCount();
-}
-
-//---------------------------------------------------------------------------------------
-
-bool ModelInstance::Initialize(Object* object) {
-	m_Model->Initialize();
+bool ModelInstance::GetPhysicalSettings(Object* object) {
+	ASSERT(m_Model);
 	object->SetShape(m_Model->ConstructShape(object->GetScale()));
 	object->SetPhysicalProperties(m_Model->GetPhysicalProperties());
 	Update(object);
 	return true;
 }
 
-bool ModelInstance::Finalize() {
-	LOG_NOT_IMPLEMENTED();
-	return true;
+void ModelInstance::SetModel(::DataClasses::ModelPtr model) {
+	m_Model.swap(model);
+	if (m_Model)
+		m_Model->Initialize();
 }
 
 void ModelInstance::Update(Object* object) {
+	if (!m_Model)
+		return;
 	//math::mat4 mat = glm::translate(glm::mat4(), state.Position);
 	//m_ModelMatrix = glm::rotate(m_ModelMatrix, m_Rotation[1], glm::vec3(0, -1, 0));
 	//m_ModelMatrix = glm::scale(mat, state.Scale);
@@ -60,10 +47,6 @@ void ModelInstance::Update(Object* object) {
 	m_ModelMatrix[0] *= scale;
 	m_ModelMatrix[1] *= scale;
 	m_ModelMatrix[2] *= scale;
-}
-
-void ModelInstance::Release() {
-	m_Owner->ReleaseInstance(this);
 }
 
 //---------------------------------------------------------------------------------------
