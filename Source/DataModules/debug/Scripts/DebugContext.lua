@@ -24,7 +24,10 @@ end
 function ToggleDebugDraw()
 	if Physics.DebugDraw(false) == false then
 		Physics.DebugDraw(true);
-	end 
+		Log.Console("DebugDraw enabled")
+	else
+		Log.Console("DebugDraw disabled")
+	end
 	return 0;
 end
 
