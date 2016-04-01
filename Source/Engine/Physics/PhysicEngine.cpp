@@ -144,8 +144,9 @@ void PhysicEngine::DoDebugDraw(Graphic::cRenderDevice &dev) {
 		m_DebugDrawer = std::make_unique<BulletDebugDrawer>();
 		m_DynamicsWorld->setDebugDrawer(m_DebugDrawer.get());
 	}
-	m_DebugDrawer->dev = &dev;
+	m_DebugDrawer->PrepareDebugDraw(dev);
 	m_DynamicsWorld->debugDrawWorld();
+	m_DebugDrawer->Submit(dev);
 }
 
 } //namespace Physics 
