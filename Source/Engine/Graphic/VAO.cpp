@@ -31,12 +31,13 @@ void VAO::Initialize(VertexVector &Verticles, TexCoordVector &TexCoords, NormalV
 
 	GetRenderDevice()->RequestContextManip([data, this]() {
 		New();
+		Bind();
 		if (!data->Verticles.empty())
-			AddDataChannel<3, float>(&data->Verticles[0][0], data->Verticles.size());
+			SetDataChannel<3, float>(CoordChannel, &data->Verticles[0][0], data->Verticles.size());
 		if (!data->TexCoords.empty())
-			AddDataChannel<2, float>(&data->TexCoords[0][0], data->TexCoords.size());
+			SetDataChannel<2, float>(UVChanel, &data->TexCoords[0][0], data->TexCoords.size());
 		if (!data->Normals.empty())
-			AddDataChannel<3, float>(&data->Normals[0][0], data->Normals.size());
+			SetDataChannel<3, float>(NormalChannel, &data->Normals[0][0], data->Normals.size());
 		WriteIndexes<>(&data->Index[0], data->Index.size());
 		UnBind();
 	});

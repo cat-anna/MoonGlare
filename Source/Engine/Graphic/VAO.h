@@ -28,7 +28,17 @@ public:
 		}
 	};
 
-	VAO(): m_VAO(0) { }
+	enum {
+		CoordChannel,
+		UVChanel,
+		NormalChannel,
+		ColorChannel,
+
+		IndexChannel,
+		MaxChannel = 8,
+	};
+
+	VAO() : m_VAO(0) { memset(m_Buffers, 0, sizeof(m_Buffers)); }
 	~VAO() { if(m_VAO) Finalize(); }
 
 	/** This function SWAPS vectors content into internal storage. */
@@ -57,35 +67,24 @@ public:
  //	     glDrawElements(ElementsType, NumIndices, m_IndexValueType, (void*)(m_IndexTypeSize * BaseIndex));
 	}
 
-	void AddDataChannel(const void* data, size_t ElementCount, const Types::TypeInfo& typeinfo, unsigned &Channel) {
-		GLuint buf;
-		Bind();
-		glGenBuffers(1, &buf);
-		Channel = (unsigned)m_Buffers.size();
-		m_Buffers.push_back(buf);
-		glBindBuffer(GL_ARRAY_BUFFER, buf);
-		glBufferData(GL_ARRAY_BUFFER, typeinfo.ElementSize * ElementCount * typeinfo.TypeSize, data, GL_STATIC_DRAW);
+	void SetDataChannel(GLuint Channel, const void* data, size_t ElementCount, const Types::TypeInfo& typeinfo, bool Dynamic = false) {
+		glBindBuffer(GL_ARRAY_BUFFER, GetChannel(Channel));
+		glBufferData(GL_ARRAY_BUFFER, typeinfo.ElementSize * ElementCount * typeinfo.TypeSize, data, Dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 		glEnableVertexAttribArray(Channel);
 		glVertexAttribPointer(Channel, typeinfo.ElementSize, typeinfo.GLTypeValue, GL_FALSE, 0, 0);
 	}
 
 	void WriteIndexes(const void* data, size_t Count, const Types::TypeInfo& typeinfo) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Index);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GetChannel(IndexChannel));
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, Count * typeinfo.TypeSize, data, GL_STATIC_DRAW);
 		m_IndexValueType = typeinfo.GLTypeValue;
 		m_IndexTypeSize = typeinfo.TypeSize;
 	}
 
 	template <unsigned LEN, class T>
-	void AddDataChannel(const T* data, size_t Count) {
+	void SetDataChannel(GLuint Channel, const T* data, size_t Count, bool Dynamic = false) {
 		Types::TypeInfo t(LEN, sizeof(T), Types::glType<T>::value());
-		unsigned ch;
-		AddDataChannel(data, Count, t, ch);
-	}
-	template <unsigned LEN, class T>
-	void AddDataChannel(const T* data, size_t Count, unsigned &Channel) {
-		Types::TypeInfo t(LEN, sizeof(T), Types::glType<T>::value());
-		AddDataChannel(data, Count, t, Channel);
+		SetDataChannel(Channel, data, Count, t, Dynamic);
 	}
 
 	template <class T>
@@ -95,32 +94,36 @@ public:
 	}
 
 	void swap(VAO &dest) {
-		m_Buffers.swap(dest.m_Buffers);
+		for (size_t i = 0; i < MaxChannel; ++i)
+			std::swap(m_Buffers[i], dest.m_Buffers[i]);
 		std::swap(m_VAO, dest.m_VAO);
-		std::swap(m_Index, dest.m_Index);
 		std::swap(m_IndexValueType, dest.m_IndexValueType);
 		std::swap(m_IndexTypeSize, dest.m_IndexTypeSize);
 	}
+
+	void New() {
+		if (m_VAO) Free();
+		glGenVertexArrays(1, &m_VAO);
+	}
 protected:
+	GLuint GetChannel(GLuint Channel) {
+		ASSERT(Channel < MaxChannel);
+		if (!m_Buffers[Channel])
+			glGenBuffers(1, m_Buffers + Channel);
+		return m_Buffers[Channel];
+	}
+
 	void Free() {
 		if(m_VAO){
-			if(!m_Buffers.empty())
-				glDeleteBuffers((GLsizei)m_Buffers.size(), &m_Buffers[0]);
-			m_Buffers.clear();
-			glDeleteBuffers(1, &m_Index);
+			glDeleteBuffers(MaxChannel, m_Buffers);
 			glDeleteVertexArrays(1, &m_VAO);
 		}
 		m_VAO = 0;
 	}
-	void New() {
-		if(m_VAO) Free();
-		glGenVertexArrays(1, &m_VAO);
-		Bind();
-		glGenBuffers(1, &m_Index);
-	}
+
 private:
-	std::vector<GLuint> m_Buffers;
-	GLuint m_VAO, m_Index;
+	GLuint m_Buffers[8];
+	GLuint m_VAO;
 
 	GLuint m_IndexValueType = 0;
 	GLuint m_IndexTypeSize = 0;
