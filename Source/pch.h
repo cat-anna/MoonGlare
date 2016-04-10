@@ -66,7 +66,7 @@ using LockGuard = std::lock_guard < std::mutex > ;
 #define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard < decltype(mutex) > name (mutex)
 #define LOCK_MUTEX(mutex) LOCK_MUTEX_NAMED(mutex, LOCK_MUTEX_LABEL_UNIQUE)
 
-#define thread_local __declspec(thread)
+//#define thread_local __declspec(thread)
 
 #undef min
 #undef max
@@ -78,20 +78,20 @@ using LockGuard = std::lock_guard < std::mutex > ;
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/locale.hpp>
 
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/Importer.hpp>     
+#include <assimp/scene.h>          
+#include <assimp/postprocess.h>    
 
 #include <bullet3-master/src/btBulletDynamicsCommon.h>
 #include <bullet3-master/src/btBulletCollisionCommon.h>
-
 //#include <bullet-2.82/src/btBulletDynamicsCommon.h>
 //#include <bullet-2.82/src/btBulletCollisionCommon.h>
-#pragma warning ( pop )
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
+
+#pragma warning ( pop )
 
 #define PUGIXML_NO_XPATH
 #define PUGIXML_HAS_LONG_LONG
@@ -168,6 +168,13 @@ using Core::ApiInitializer;
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>
 #include <OrbitLogger/OrbitLogger.h>
+
+#include <libSpace/src/Memory/Handle.h>
+#include <libSpace/src/Memory/MultiAllocator.h>
+#include <libSpace/src/Memory/MemoryAllocation.h>
+#include <libSpace/src/Memory/GenerationRandomAllocator.h>
+#include <libSpace/src/Memory/GenerationLinearAllocator.h>
+#include <libSpace/src/Memory/GenerationBuffer.h>
 
 #ifdef GLOBAL_CONFIGURATION_FILE
 #include GLOBAL_CONFIGURATION_FILE
