@@ -8,12 +8,12 @@ GABI_IMPLEMENT_STATIC_CLASS(Object);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(ObjectScriptEvents);
 RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 
-Object::Object(::Core::GameScene *Scene):
+Object::Object():
 		BaseClass(),
 		m_Flags(),
 		m_ModelInstance(),
 		m_Visible(true),
-		m_Scene(Scene),
+		m_Scene(nullptr),
 		m_EventProxy(),
 		m_LightSource(),
 		m_ScriptHandlers(),
@@ -135,7 +135,7 @@ void Object::DropDead(){
 	if(IsDead()) return;
 	if (InvokeOnDropDead() == 0) {
 		m_Flags |= Flags::Dead;
-		GetScene()->ObjectDied(this);
+		GetScene()->ObjectDied(GetSelfHandle());
 	}
 }
 
@@ -220,8 +220,12 @@ int Object::InvokeOnUserEventD(int param) { SCRIPT_INVOKE(OnUserEventD, param); 
 
 void Object::SetOwnerScene(GameScene *NewOwner) {
 	m_Scene = NewOwner;
-	if (HaveBody() && NewOwner)
-		GetBody()->SetWorldOwner(&NewOwner->GetPhysicsEngine());
+	if (HaveBody()) {
+		if (NewOwner)
+			GetBody()->SetWorldOwner(&NewOwner->GetPhysicsEngine());
+		else
+			m_Body.reset();
+	}
 }
 
 //---------------------------------------------------------------------------------------

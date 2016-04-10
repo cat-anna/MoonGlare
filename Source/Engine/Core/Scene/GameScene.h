@@ -43,11 +43,11 @@ public:
 	Object* SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position);
 	Object* SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos);
 
-	Object* GetObjectByName(const string& Name);
-	const Objects::ObjectList& GetObjectsByName(const string& Name);
-	const Objects::ObjectList& GetObjectsByType(const string& Type);
+//	Object* GetObjectByName(const string& Name);
+//	const Objects::ObjectList& GetObjectsByName(const string& Name);
+//	const Objects::ObjectList& GetObjectsByType(const string& Type);
 
-	void ObjectDied(::Core::Objects::Object *object);
+	void ObjectDied(Handle h);
 
 	const DataClasses::MapPtr& GetMapInstance() const { return m_MapData; }
 
@@ -56,12 +56,13 @@ public:
 protected:
 	string m_MapName;
 	DataClasses::MapPtr m_MapData;
-	std::unique_ptr<Objects::ObjectRegister> m_Objects;
-	std::list<Object*> m_DeadList;
+	Objects::UniqueObjectRegister m_Objects;
+	std::list<Handle> m_DeadList;
 
 	Physics::PhysicEnginePtr m_Physics;
 	Graphic::Environment *m_Environment;
 	Graphic::Light::LightConfiguration m_LightConfiguration;
+	Handle m_PlayerHandle;
 
 	virtual bool DoInitialize() override;
 	virtual bool DoFinalize() override;

@@ -44,9 +44,9 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("SpawnObject", &ThisClass::SpawnObject_api)
 		//.addFunction("SpawnObjectXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SpawnObject_api, float, float, float>::get())
 
-		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
-		.addFunction("GetObjectsByName", &ThisClass::GetObjectsByName)
-		.addFunction("GetObjectsByType", &ThisClass::GetObjectsByType)
+//		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
+//		.addFunction("GetObjectsByName", &ThisClass::GetObjectsByName)
+//		.addFunction("GetObjectsByType", &ThisClass::GetObjectsByType)
 	.endClass();
 }
 
@@ -58,7 +58,7 @@ void GameScene::BeginScene() {
 	auto player = GetEngine()->GetPlayer().get();
 	if (player) {
 		player->SetOwnerScene(this);
-		m_Objects->Add(player);
+		m_PlayerHandle = m_Objects->Insert(player);
 		//player->SetPosition(Physics::vec3(0, 0.6, 0));
 	} else {
 		AddLog(Error, "There is no player instance!");
@@ -82,7 +82,7 @@ void GameScene::EndScene() {
 	//do finalize objects in scene?
 	auto player = GetEngine()->GetPlayer().get();
 	if (player) {
-		m_Objects->Remove(player);
+		m_Objects->Release(m_PlayerHandle);
 		player->SetOwnerScene(nullptr);
 	} else {
 		AddLog(Error, "There is no player instance!");
@@ -105,18 +105,16 @@ bool GameScene::DoInitialize() {
 	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 
 	if (m_MapData) {
-		m_Objects->Add(m_MapData->LoadMapObject());
+		m_Objects->Insert(m_MapData->LoadMapObject());
 	}
 
-	for (auto *it : *m_Objects) {
-		it->Initialize();
-	}
+	m_Objects->InitializeObjects();
+
 	return true;
 } 
 
 bool GameScene::DoFinalize() {
 	if (m_MapData) {
-		m_Objects->Remove(m_MapData->LoadMapObject());
 		m_MapData->Finalize();
 	}
 	if (m_GUI) m_GUI->Finalize();
@@ -215,8 +213,9 @@ void GameScene::RemoveLightSource(iLightSource *ptr) {
 	}
 }
 
-void GameScene::ObjectDied(Object *object) { 
-	m_DeadList.push_back(object); 
+void GameScene::ObjectDied(Handle h) { 
+	ASSERT_HANDLE_TYPE(Object, h);
+	m_DeadList.push_back(h); 
 }
 
 Object* GameScene::CreateObject(const string& TypeName, const string& Name) {
@@ -228,7 +227,7 @@ Object* GameScene::CreateObject(const string& TypeName, const string& Name) {
 	obj->SetOwnerScene(this);
 	obj->Initialize();
 	obj->SetName(Name);
-	m_Objects->Add(obj);
+	m_Objects->Insert(obj);
 	return obj;
 }
 
@@ -289,9 +288,7 @@ void GameScene::DoMove(const MoveConfig &conf) {
 
 	if (!m_DeadList.empty()) {
 		for (auto i : m_DeadList) {
-			i->Finalize();
 			m_Objects->Remove(i);
-			delete i;
 		}
 		m_DeadList.clear();
 	}
@@ -319,9 +316,9 @@ Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
 
 //----------------------------------------------------------------
 
-Object* GameScene::GetObjectByName(const string& Name) { return m_Objects->GetFirstObjectByName(Name); }
-const Objects::ObjectList& GameScene::GetObjectsByName(const string& Name) { return m_Objects->GetObjectsByName(Name); }
-const Objects::ObjectList& GameScene::GetObjectsByType(const string& Type) { return m_Objects->GetObjectsByType(Type); }
+//Object* GameScene::GetObjectByName(const string& Name) { return m_Objects->GetFirstObjectByName(Name); }
+//const Objects::ObjectList& GameScene::GetObjectsByName(const string& Name) { return m_Objects->GetObjectsByName(Name); }
+//const Objects::ObjectList& GameScene::GetObjectsByType(const string& Type) { return m_Objects->GetObjectsByType(Type); }
 
 //----------------------------------------------------------------
 

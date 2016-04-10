@@ -19,7 +19,7 @@ class Object /*final*/ : public NamedObject {
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:
-	Object(::Core::GameScene *Scene);
+	Object();
 	virtual ~Object();
 	virtual bool Initialize();
 	virtual bool Finalize();
@@ -87,9 +87,12 @@ public:
 	DefineDirectSetGet(Visible, bool);
 	Scene::ModelInstance& GetModelInstance() { return m_ModelInstance; }
 
+	DefineDirectSetGet(SelfHandle, Handle);
+
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
+	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
 	Scene::ModelInstance m_ModelInstance;
 	unsigned m_Flags;

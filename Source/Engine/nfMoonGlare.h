@@ -5,6 +5,8 @@ namespace MoonGlare {
 }
 using namespace MoonGlare;
 
+#include "Configuration.h"
+
 #include "JobQueue.h"
 
 #include "Graphic/nfGraphic.h"
