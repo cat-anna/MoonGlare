@@ -343,7 +343,8 @@ Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner) {
 		NotifyResourcesChanged();
 	}
 
-	Object *obj = new ::Core::Objects::Object(Owner);
+	Object *obj = new ::Core::Objects::Object();
+	obj->SetOwnerScene(Owner);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object class '%s'", meta.Class.c_str());
 		return nullptr;
@@ -399,7 +400,7 @@ bool Manager::LoadPlayer() {
 		return false;
 	}
 
-	auto *pl = new ::Core::Objects::Object(nullptr);
+	auto *pl = new ::Core::Objects::Object();
 
 	if(!pl->LoadPattern(doc->document_element())) {
 		AddLog(Error, "An error has occur during loading player XML! Ignored!");

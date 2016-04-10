@@ -23,7 +23,7 @@ public:
 
 	virtual bool LoadMeta();
 	virtual bool LoadMapObjects(::Core::Objects::ObjectRegister& where); 
-	virtual ::Core::Objects::Object* LoadMapObject();
+	virtual std::unique_ptr<Object> LoadMapObject();
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
@@ -37,7 +37,7 @@ protected:
 	virtual int InvokeOnFinalize() override;
 	virtual int InvokeAfterLoad() override;
 
-	virtual bool LoadStaticModel();
+	virtual std::unique_ptr<Object> LoadStaticModel();
 
 	vec3 m_UnitSize;
 };

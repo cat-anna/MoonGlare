@@ -8,6 +8,8 @@ namespace Core {
 		class ObjectList;
 		class ObjectRegister;
 
+		using UniqueObjectRegister = std::unique_ptr<ObjectRegister>;
+
 		class iLightSource;
 		using iLightSourcePtr = std::unique_ptr < iLightSource > ;
 

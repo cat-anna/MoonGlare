@@ -31,7 +31,7 @@ protected:
 	Physics::vec3 m_CameraDelta;
 
 	//for scripts use
-	void SetTrackedObjectByName(const string& Name);
+	//void SetTrackedObjectByName(const string& Name);
 };
 
 } // namespace Camera 

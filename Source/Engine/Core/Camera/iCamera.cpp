@@ -33,7 +33,7 @@ iCamera::~iCamera() {
 void iCamera::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("cCamera")
-		.addFunction("SetTrackedObjectByName", &ThisClass::SetTrackedObjectByName)
+	//	.addFunction("SetTrackedObjectByName", &ThisClass::SetTrackedObjectByName)
 		.addFunction("SetTrackedObject", &ThisClass::TrackedObject)
 
 		.addFunction("SetCameraDelta", Utils::Template::HiddenVec3Set<ThisClass, Physics::vec3, &ThisClass::m_CameraDelta>::get())
@@ -63,9 +63,9 @@ void iCamera::TrackedObject(Objects::Object* TrackedObject) {
 	m_TrackedObject = TrackedObject;
 }
 
-void iCamera::SetTrackedObjectByName(const string& Name) {
-	TrackedObject(m_GameScene->GetObjectByName(Name));
-}
+//void iCamera::SetTrackedObjectByName(const string& Name) {
+//	TrackedObject(m_GameScene->GetObjectByName(Name));
+//}
 
 } // namespace Camera
 } // namespace Core
