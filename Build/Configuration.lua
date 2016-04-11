@@ -68,7 +68,6 @@ local function SetCommonConfig()
 		"STARVFS_USE_ORBITLOGGER",
 	}
 	libdirs {
-		"../../../../libs",
 		"../../../../../LibsC",
 		"assimp/lib", 
 		"bullet3-master/lib/",
