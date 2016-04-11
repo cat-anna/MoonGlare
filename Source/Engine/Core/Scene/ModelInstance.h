@@ -24,7 +24,7 @@ public:
 	void SetModel(::DataClasses::ModelPtr model);
 	::DataClasses::ModelPtr GetModel() const { return m_Model; }
 protected:
-	::DataClasses::ModelPtr  m_Model;
+	::DataClasses::ModelPtr m_Model;
 	math::mat4 m_ModelMatrix;
 };
 

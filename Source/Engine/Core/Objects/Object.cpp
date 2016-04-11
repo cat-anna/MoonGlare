@@ -20,7 +20,8 @@ Object::Object():
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
 		m_Scale(1.0f),
-		m_BodyAngularFactor(1, 1, 1) {
+		m_BodyAngularFactor(1, 1, 1),
+		m_PositionTransform(Physics::Quaternion(0,0,0)) {
 	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::InvokeOnTimer>(this));
 }
 

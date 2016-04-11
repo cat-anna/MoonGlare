@@ -104,7 +104,7 @@ public:
 		m_light.Position = convert(GetOwner()->GetPosition()) + m_PositionDelta;
 		
 		math::mat4 matrix;
-		GetOwner()->GetMotionState().GetGLMatrix(matrix);
+		GetOwner()->GetPositionTransform().getOpenGLMatrix((float*)&matrix);
 
 		m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * matrix) * -1.0f;
 		//m_light.Position[1] += 0.5f;

@@ -10,7 +10,7 @@
 
 namespace Physics {
 
-class Body : public cRootClass {
+class Body : public cRootClass, public btMotionState {
 	GABI_DECLARE_CLASS_NOCREATOR(Body, cRootClass);
 	friend struct BodyConstructor;
 public:
@@ -46,8 +46,16 @@ public:
 
 	Object* GetOwner() { (Object*)m_ptr->getUserPointer(); }
 	btRigidBody *GetRawBody() { return m_ptr.get(); }
+
+	///synchronizes world transform from user to physics
+	virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const override;
+	///synchronizes world transform from physics to user
+	///Bullet only calls the update of worldtransform for active objects
+	virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override;
 protected:
 	Body(Object* Owner, SharedShape ss);
+
+	Transform m_CenterOfMass;
 
 	SharedShape m_Shape;
 	float m_Mass;

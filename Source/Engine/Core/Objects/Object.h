@@ -44,19 +44,17 @@ public:
 	bool HaveBody() const { return static_cast<bool>(m_Body); }
 	Physics::Body* GetBody() const { assert(m_Body); return m_Body.get(); }
 
-	const Physics::vec3& GetPosition() const { return GetMotionState().m_graphicsWorldTrans.getOrigin(); }
-	Physics::Quaternion GetQuaternion() const { return GetMotionState().m_graphicsWorldTrans.getRotation(); }
-	const btTransform& GetTransform() const { return GetMotionState().m_graphicsWorldTrans; }
+	const Physics::vec3& GetPosition() const { return m_PositionTransform.getOrigin(); }
+	Physics::Quaternion GetQuaternion() const { return m_PositionTransform.getRotation(); }
 	const Physics::vec3& GetLinearVelocity(const Physics::vec3 &sp) { return GetBody()->GetLinearVelocity(); }
 	
-	void SetPosition(const Physics::vec3 &pos, const Physics::Quaternion &q) { GetMotionState().m_graphicsWorldTrans = Physics::Transform(q, pos); }
-	void SetPosition(const Physics::vec3 &pos) { GetMotionState().m_graphicsWorldTrans.setOrigin(pos); }
-	void SetQuaterion(const Physics::Quaternion &q) { GetMotionState().m_graphicsWorldTrans.setRotation(q); }
+	void SetPosition(const Physics::vec3 &pos, const Physics::Quaternion &q) { m_PositionTransform = Physics::Transform(q, pos); }
+	void SetPosition(const Physics::vec3 &pos) { m_PositionTransform.setOrigin(pos); }
+	void SetQuaterion(const Physics::Quaternion &q) { m_PositionTransform.setRotation(q); }
 	void SetLinearVelocity(const Physics::vec3 &sp) { GetBody()->SetLinearVelocity(sp); }
 	
 	void UpdateMotionState() { if(HaveBody()) GetBody()->UpdateMotionState(); }
 	DefineSetGetByRef(LookDirection, Physics::vec3);
-	DefineSetGetByRef(MotionState, Physics::DefaultMotionState);
 	DefineRefGetterAll(CollisionMask, Physics::CollisionMask)
 
 	void SetShape(Physics::SharedShape ss);
@@ -88,10 +86,13 @@ public:
 	Scene::ModelInstance& GetModelInstance() { return m_ModelInstance; }
 
 	DefineDirectSetGet(SelfHandle, Handle);
+	DefineRefSetGet(PositionTransform, Physics::Transform);
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
+	Physics::Transform m_PositionTransform;
+
 	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
 	Scene::ModelInstance m_ModelInstance;
@@ -101,7 +102,6 @@ protected:
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
 	Physics::vec3 m_LookDirection; /** Look direction of object */
-	Physics::DefaultMotionState m_MotionState;
 	float m_Mass, m_Scale;
 	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
