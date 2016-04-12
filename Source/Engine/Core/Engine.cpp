@@ -78,6 +78,14 @@ bool Engine::Finalize() {
 //----------------------------------------------------------------------------------
 
 void Engine::ScriptApi(ApiInitializer &root){
+
+	struct Helper {
+		void HandleInfo() {
+			Handle &h = *((Handle*)this);
+			AddLogf(Info, "Handle Index:%d Generation:%d Type:%d", h.GetIndex(), h.GetGeneration(), h.GetType());
+		}
+	};
+
 	root
 	.deriveClass<ThisClass, BaseClass>("cEngine")
 		.addFunction("GetFrameRate", &ThisClass::GetFrameRate)
@@ -93,6 +101,9 @@ void Engine::ScriptApi(ApiInitializer &root){
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("SetFrameRate", &ThisClass::SetFrameRate)
 #endif
+	.endClass()
+	.beginClass<Handle>("cHandle")
+		.addFunction("Info", (void(Handle::*)())&Helper::HandleInfo)
 	.endClass()
 	;
 }
