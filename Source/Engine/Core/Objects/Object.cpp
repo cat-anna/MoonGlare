@@ -20,6 +20,7 @@ Object::Object():
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
 		m_Scale(1.0f),
+		m_OwnerRegister(nullptr),
 		m_BodyAngularFactor(1, 1, 1),
 		m_PositionTransform(Physics::Quaternion(0,0,0)) {
 	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::InvokeOnTimer>(this));
@@ -68,9 +69,11 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 	};
 
 	api
-	.deriveClass<ThisClass, BaseClass>("cObjectBase")
+	.deriveClass<ThisClass, BaseClass>("cObject")
 		.addFunction("DropDead", &ThisClass::DropDead)
 		.addFunction("IsDead", &ThisClass::IsDead)
+
+		.addFunction("GetHandle", &ThisClass::GetSelfHandle)
 
 		.addFunction("GetMoveController", MoveControllerTweek::Get<&ThisClass::m_MoveController>())
 		.addFunction("SetMoveController", MoveControllerTweek::Set<&ThisClass::SetMoveController>())
@@ -127,8 +130,15 @@ void Object::DoMove(const MoveConfig &conf) {
 	if (m_LightSource) m_LightSource->Update();
 
 	if (m_Visible && m_ModelInstance.GetModel()) {
-		m_ModelInstance.Update(this);
-		conf.RenderList.push_back(&m_ModelInstance);
+		auto *mat = m_OwnerRegister->GetLocalMatrix(m_SelfHandle);
+		m_PositionTransform.getOpenGLMatrix((float*)mat);
+
+		float scale = GetScale();
+		(*mat)[0] *= scale;
+		(*mat)[1] *= scale;
+		(*mat)[2] *= scale;
+
+		conf.RenderList.push_back(std::make_pair(*mat, m_ModelInstance.GetModel()));
 	}  
 }
 
@@ -157,11 +167,6 @@ bool Object::LoadPattern(const xml_node node) {
 	m_Scale = node.child("Scale").attribute("Value").as_float(1);
 	m_Mass = node.child("Mass").attribute("Value").as_float(0);
 
-	if (m_Mass == 0.0f) {
-		GetCollisionMask().Set(Physics::BodyClass::StaticObject);
-		GetCollisionMask().Set(Physics::GroupMask::StaticObject);
-	}
-
 	xml_node Model = node.child("Model");
 	if (Model) {
 		const char *name = Model.attribute(xmlAttr_Name).as_string(0);
@@ -181,6 +186,9 @@ bool Object::LoadPattern(const xml_node node) {
 	if (Collision) {
 		Physics::GroupMaskEnum::LoadFromXML(Collision, m_CollisionMask);
 		Physics::BodyClassEnum::LoadFromXML(Collision, m_CollisionMask);
+	} else {
+		GetCollisionMask().Set(Physics::BodyClass::StaticObject);
+		GetCollisionMask().Set(Physics::GroupMask::StaticObject);
 	}
 
 	XML::Vector::Read(node, "BodyAngularFactor", m_BodyAngularFactor, Physics::vec3(1, 1, 1));

@@ -20,7 +20,9 @@ ObjectRegister::ObjectRegister() {
 }
 
 ObjectRegister::~ObjectRegister() {
-	Clear();
+	for (auto& it : m_Memory->m_ObjectPtr)
+		it.reset();
+	m_Memory.reset();
 }
 
 void ObjectRegister::RegisterScriptApi(ApiInitializer &api) {
@@ -80,8 +82,9 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 
 	h.SetType(Configuration::Handle::Types::Object);
 
+	obj->SetSelfHandle(h);
+	obj->SetOwnerRegister(this);
 	m_Memory->m_ObjectPtr[index].swap(obj);
-	m_Memory->m_ObjectPtr[index]->SetSelfHandle(h);
 	m_Memory->m_Parent[index] = Parent;
 	m_Memory->m_HandleIndex[index] = h.GetIndex();
 
@@ -98,6 +101,7 @@ void ObjectRegister::Release(Handle h) {
 	}
 
 	m_Memory->m_ObjectPtr[idx]->SetSelfHandle(Handle());
+	m_Memory->m_ObjectPtr[idx]->SetOwnerRegister(nullptr);
 	m_Memory->m_ObjectPtr[idx].release();
 	m_Memory->m_Parent[idx] = Handle();
 	m_Memory->m_HandleAllocator.Free(h);
@@ -157,7 +161,7 @@ void ObjectRegister::Reorder(size_t start) {
 Object *ObjectRegister::Get(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
 	size_t idx;
-	if (m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
 		AddLog(Warning, "Invalid handle!");
 		return nullptr;
 	}
@@ -182,7 +186,7 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 			continue;
 		}
 
-		Object *obj = GetDataMgr()->LoadObject(name, OwnerScene);
+		Object *obj = GetDataMgr()->LoadObject(name, OwnerScene, GetRootHandle());
 		if (!obj) {
 			AddLogf(Warning, "Unable to create object of name '%s'", name);
 			continue;

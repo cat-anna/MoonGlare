@@ -129,8 +129,10 @@ bool DereferredPipeline::RenderSpotLightsShadows(const MoonGlare::Core::MoveConf
 		light->ShadowMap.BindAndClear();
 		dev.Bind(m_ShadowMapShader); 
 		m_ShadowMapShader->SetLightPosition(light->Position);
-		for (auto it : conf.RenderList)
-			it->DoRenderMesh(dev);
+		for (auto it : conf.RenderList) {
+			dev.SetModelMatrix(it.first);
+			it.second->DoRenderMesh(dev);
+		}
 	}           
 	//glDisable(GL_CULL_FACE); 
 	return true;     
@@ -146,8 +148,10 @@ bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf,
 
 	//dev.Bind(conf.Camera);
 	dev.SetModelMatrix(math::mat4());
-	for (auto it : conf.RenderList)
-		it->DoRender(dev);
+	for (auto it : conf.RenderList) {
+		dev.SetModelMatrix(it.first);
+		it.second->DoRender(dev);
+	}
 
 	return true;
 }

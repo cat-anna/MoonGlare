@@ -17,10 +17,6 @@ public:
 
 	bool GetPhysicalSettings(Object* object);
 
-	void DoRender(cRenderDevice &dev) const;
-	void DoRenderMesh(cRenderDevice &dev) const;
-	void Update(Object* object);
-
 	void SetModel(::DataClasses::ModelPtr model);
 	::DataClasses::ModelPtr GetModel() const { return m_Model; }
 protected:

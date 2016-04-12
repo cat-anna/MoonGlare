@@ -86,13 +86,14 @@ public:
 	Scene::ModelInstance& GetModelInstance() { return m_ModelInstance; }
 
 	DefineDirectSetGet(SelfHandle, Handle);
+	DefineDirectSetGet(OwnerRegister, ObjectRegister*);
 	DefineRefSetGet(PositionTransform, Physics::Transform);
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	Physics::Transform m_PositionTransform;
-
+	ObjectRegister *m_OwnerRegister;
 	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
 	Scene::ModelInstance m_ModelInstance;

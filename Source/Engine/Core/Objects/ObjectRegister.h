@@ -52,6 +52,22 @@ public:
 
 	Handle GetRootHandle();
 
+	math::mat4* GetLocalMatrix(Handle h) {
+		ASSERT_HANDLE_TYPE(Object, h);
+		size_t idx;
+		if (!m_Memory->m_HandleAllocator.GetMapping(h, idx))
+			return nullptr;
+		return &m_Memory->m_LocalMatrix[idx];
+	}
+
+	math::mat4* GetGlobalMatrix(Handle h) {
+		ASSERT_HANDLE_TYPE(Object, h);
+		size_t idx;
+		if (!m_Memory->m_HandleAllocator.GetMapping(h, idx))
+			return nullptr;
+		return &m_Memory->m_GlobalMatrix[idx];
+	}
+
 	//Handle FindByName(const string& Name) {
 		//auto &list = m_NameMap[Name];
 		//if (list.empty()) return 0;
