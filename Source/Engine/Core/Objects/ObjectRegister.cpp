@@ -15,7 +15,8 @@ GABI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
 RegisterApiDerivedClass(ObjectRegister, &ObjectRegister::RegisterScriptApi);
 
 ObjectRegister::ObjectRegister() {
-	m_Objects.resize(Configuration::Storage::Static::ObjectBuffer);
+	m_Memory = std::make_unique<Memory>();
+	Clear();
 }
 
 ObjectRegister::~ObjectRegister() {
@@ -37,117 +38,142 @@ void ObjectRegister::RegisterScriptApi(ApiInitializer &api) {
 }
 
 void ObjectRegister::Clear() {
-	m_Generations.Clear();
-	m_Objects.clear();
-	m_Objects.resize(m_Objects.capacity());
+	for (auto& it: m_Memory->m_ObjectPtr) 
+		it.reset();
+
+	m_Memory->m_HandleAllocator.Clear();
+	m_Memory->m_GlobalMatrix.fill(math::mat4());
+	m_Memory->m_LocalMatrix.fill(math::mat4());
+	Space::MemZero(m_Memory->m_Parent);
+
+	auto h = m_Memory->m_HandleAllocator.Allocate();
+	m_Memory->m_HandleAllocator.SetMapping(h, 0);
+	m_Memory->m_ObjectPtr[0] = std::make_unique<Object>();
+	m_Memory->m_ObjectPtr[0]->SetSelfHandle(h);
 }
 
-std::pair<Object*, Handle> ObjectRegister::Allocate() {
-	auto h = m_Generations.Allocate();
-
-	if (!m_Generations.IsHandleValid(h)) {
-		AddLog(Warning, "No more space!");
-		return std::make_pair(nullptr, Handle());
-	}
-
+Handle ObjectRegister::GetRootHandle() {
+	auto h = m_Memory->m_HandleAllocator.GetHandleForIndex(0);
 	h.SetType(Configuration::Handle::Types::Object);
-	auto uptr = std::make_unique<Object>();
-	auto rawptr = uptr.get();
-	uptr->SetSelfHandle(h);
-	m_ActiveObjects.push_back(rawptr);
-	m_Objects[h.GetIndex()].swap(uptr);
-
-	return std::make_pair(rawptr, h);
-}
-
-Handle ObjectRegister::Insert(std::unique_ptr<Object> obj) {
-	auto h = m_Generations.Allocate();
-
-	if (!m_Generations.IsHandleValid(h)) {
-		AddLog(Warning, "Invalid handle!");
-		return Handle();
-	}
-
-	h.SetType(Configuration::Handle::Types::Object);
-
-	m_ActiveObjects.push_back(obj.get());
-	obj->SetSelfHandle(h);
-	m_Objects[h.GetIndex()].swap(obj);
-	obj.reset();
 	return h;
 }
 
-Handle ObjectRegister::Insert(Object* obj) {
-	auto h = m_Generations.Allocate();
+Handle ObjectRegister::NewObject(Handle Parent) {
+	return Insert(std::make_unique<Object>(), Parent);
+}
 
-	if (!m_Generations.IsHandleValid(h)) {
-		AddLog(Warning, "Invalid handle!");
+Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
+	ASSERT_HANDLE_TYPE(Object, Parent);
+
+	if (!m_Memory->m_HandleAllocator.IsHandleValid(Parent)) {
+		AddLog(Error, "Parent handle is not valid!");
 		return Handle();
 	}
 
-	m_ActiveObjects.push_back(obj);
+	auto h = m_Memory->m_HandleAllocator.Allocate();
+	if (!m_Memory->m_HandleAllocator.IsHandleValid(h)) {
+		AddLog(Error, "No more space!");
+		return Handle();
+	}
+	auto index = m_Memory->m_HandleAllocator.Allocated() - 1;
+	m_Memory->m_HandleAllocator.SetMapping(h, index);
+
 	h.SetType(Configuration::Handle::Types::Object);
-	obj->SetSelfHandle(h);
-	m_Objects[h.GetIndex()].reset(obj);
+
+	m_Memory->m_ObjectPtr[index].swap(obj);
+	m_Memory->m_ObjectPtr[index]->SetSelfHandle(h);
+	m_Memory->m_Parent[index] = Parent;
+	m_Memory->m_HandleIndex[index] = h.GetIndex();
 
 	return h;
 }
 
 void ObjectRegister::Release(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
-	if (!m_Generations.IsHandleValid(h)) {
+
+	size_t idx;
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
 		AddLog(Warning, "Invalid handle!");
 		return;
 	}
 
-	auto ptr = m_Objects[h.GetIndex()].release();
-	ptr->SetSelfHandle(Handle());
-	m_Generations.Free(h);
+	m_Memory->m_ObjectPtr[idx]->SetSelfHandle(Handle());
+	m_Memory->m_ObjectPtr[idx].release();
+	m_Memory->m_Parent[idx] = Handle();
+	m_Memory->m_HandleAllocator.Free(h);
 
-	for (auto it = m_ActiveObjects.begin(), jt = m_ActiveObjects.end(); it != jt; ++it) {
-		if (*it != ptr)
-			continue;
-
-		std::swap(it, --jt);
-		m_ActiveObjects.pop_back();
-		break;
-	}
+	Reorder(idx);
 }
 
 void ObjectRegister::Remove(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
-	if (!m_Generations.IsHandleValid(h)) {
+
+	size_t idx;
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
 		AddLog(Warning, "Invalid handle!");
 		return;
 	}
 
-	auto ptr = std::move(m_Objects[h.GetIndex()]);
-	m_Generations.Free(h);
+	m_Memory->m_ObjectPtr[idx].reset();
+	m_Memory->m_Parent[idx] = Handle();
+	m_Memory->m_HandleAllocator.Free(h);
+	Reorder(idx);
+}
 
-	for (auto it = m_ActiveObjects.begin(), jt = m_ActiveObjects.end(); it != jt; ++it) {
-		if (*it != ptr.get())
+void ObjectRegister::Reorder(size_t start) {
+
+	size_t spread = 1;
+	for (size_t i = start; i < m_Memory->m_HandleAllocator.Allocated(); ) {
+
+		size_t other = i + spread;
+		__debugbreak();
+		auto OtherParentHandle = m_Memory->m_Parent[other];
+
+		if (m_Memory->m_HandleAllocator.IsHandleValid(OtherParentHandle)) {
+			m_Memory->m_GlobalMatrix[i] = m_Memory->m_GlobalMatrix[other];
+			m_Memory->m_LocalMatrix[i] = m_Memory->m_LocalMatrix[other];
+			m_Memory->m_Parent[i] = m_Memory->m_Parent[other];
+			m_Memory->m_ObjectPtr[i] = std::move(m_Memory->m_ObjectPtr[other]);
+			 
+			size_t OtherHandleIdx = m_Memory->m_HandleIndex[other];
+			m_Memory->m_HandleIndex[i] = OtherHandleIdx;
+			m_Memory->m_HandleAllocator.SetMapping(OtherHandleIdx, i);
+
+			i += spread;
 			continue;
-
-		std::swap(it, --jt);
-		m_ActiveObjects.pop_back();
-		break;
+		} 
+		else
+		{
+			m_Memory->m_ObjectPtr[i].reset();
+			auto SelfHandleIdx = m_Memory->m_HandleIndex[i];
+			auto h = m_Memory->m_HandleAllocator.GetHandleForIndex(SelfHandleIdx);
+			m_Memory->m_HandleAllocator.Free(h);
+			++spread;
+			continue;
+		}
 	}
-
-	ptr->Finalize();
-	ptr.reset();
 }
 
 Object *ObjectRegister::Get(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
-	if (!m_Generations.IsHandleValid(h)) {
+	size_t idx;
+	if (m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
 		AddLog(Warning, "Invalid handle!");
 		return nullptr;
 	}
-	return m_Objects[h.GetIndex()].get();
+	return m_Memory->m_ObjectPtr[idx].get();
+}
+
+bool ObjectRegister::InitializeObjects() {
+	bool ret = true;
+	for (auto &it : *this)
+		ret &= it->Initialize();
+	return ret;
 }
 
 bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) {
-	if (!SrcNode) return true;
+	if (!SrcNode) 
+		return true;
 
 	for (xml_node itnode = SrcNode.child("Item"); itnode; itnode = itnode.next_sibling("Item")) {
 		const char* name = itnode.attribute(xmlAttr_Object).as_string(0);
@@ -167,7 +193,7 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 			delete obj;
 			continue;
 		}
-		Insert(obj);
+		Insert(std::unique_ptr<Object>(obj));
 	}
 	return true;
 }

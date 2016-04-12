@@ -126,10 +126,10 @@ void Object::DoMove(const MoveConfig &conf) {
 
 	if (m_LightSource) m_LightSource->Update();
 
-	if (m_Visible) {
+	if (m_Visible && m_ModelInstance.GetModel()) {
 		m_ModelInstance.Update(this);
 		conf.RenderList.push_back(&m_ModelInstance);
-	}
+	}  
 }
 
 void Object::DropDead(){

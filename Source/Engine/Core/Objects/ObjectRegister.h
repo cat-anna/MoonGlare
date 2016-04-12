@@ -13,87 +13,69 @@ namespace Objects {
 class ObjectRegister : public cRootClass {
 	GABI_DECLARE_CLASS_NOCREATOR(ObjectRegister, cRootClass)
 public:
-	template<class ... ARGS>
-	using Allocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::Static::ObjectBuffer, ARGS...>;
-	using Generations_t = Space::Memory::GenerationRandomAllocator<Allocator_t, Handle>;
+	struct Memory {
+		template<class T> using Array = std::array<T, Configuration::Storage::Static::ObjectBuffer>;
+
+		template<class ... ARGS>
+		using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::Static::ObjectBuffer, ARGS...>;
+		using Generations_t = Space::Memory::GenerationRandomBuffer<GenerationsAllocator_t, Handle>;
+
+		Array<math::mat4> m_GlobalMatrix;
+		Array<math::mat4> m_LocalMatrix;
+		Array<Handle> m_Parent;
+		Array<Handle::Index_t> m_HandleIndex;
+		Array<std::unique_ptr<Object>> m_ObjectPtr;
+		Generations_t m_HandleAllocator;
+	};
 
 	ObjectRegister();
 	~ObjectRegister();
 
-	bool InitializeObjects() {
-		bool ret = true;
-		for (auto &it : m_ActiveObjects)
-			ret &= it->Initialize();
-		return ret;
-	}
-	bool FinalizeObjects() {
-		bool ret = true;
-		for (auto &it : m_ActiveObjects)
-			ret &= it->Finalize();
-		return ret;
-	}
+	bool InitializeObjects();
+	bool FinalizeObjects();
 
-	using iterator = std::vector<Object*>::iterator;
-	iterator begin() { return m_ActiveObjects.begin(); }
-	iterator end() { return m_ActiveObjects.end(); }
+	using iterator = Memory::Array<std::unique_ptr<Object>>::iterator;
+	iterator begin() { return m_Memory->m_ObjectPtr.begin() + 1; }
+	iterator end() { return m_Memory->m_ObjectPtr.begin() + m_Memory->m_HandleAllocator.Allocated(); }
 
-	size_t size() const { return m_Objects.size(); }
+	size_t size() const { return m_Memory->m_HandleAllocator.Allocated(); }
 
-	Handle NewObject() { return Allocate().second; }
-	Object* NewObjectByPtr() { return Allocate().first; }
+	Handle NewObject(Handle Parent); //Not thread-safe!
+	Handle NewObject() { return NewObject(GetRootHandle()); }
 
-	Handle Insert(Object* obj);
-	Handle Insert(std::unique_ptr<Object> obj);
+	Handle Insert(std::unique_ptr<Object> obj, Handle Parent);
+	Handle Insert(std::unique_ptr<Object> obj) { return Insert(std::move(obj), GetRootHandle()); }
+
 	void Release(Handle h);
 	void Remove(Handle h);
 	Object *Get(Handle h);
 
-	Handle FindByName(const string& Name) {
-		//auto &list = m_NameMap[Name];
-		//if (list.empty()) return 0;
-		//return list.front();
-	}
+	Handle GetRootHandle();
 
-	HandleSet FindAllByName(const string& Name) {
+	//Handle FindByName(const string& Name) {
 		//auto &list = m_NameMap[Name];
 		//if (list.empty()) return 0;
 		//return list.front();
-	}
+	//}
+
+	//HandleSet FindAllByName(const string& Name) {
+		//auto &list = m_NameMap[Name];
+		//if (list.empty()) return 0;
+		//return list.front();
+	//}
 
 	//const ObjectList& GetObjectsByType(const string& Type) {
 	//	return m_TypeMap[Type];
 	//}
-
-//	void Remove(Object* object) { 
-//		if (!object) {
-//			AddLog(Error, "Attempt to remove null object from register!");
-//			return;
-//		}
-//		m_List.remove(object); 
-//		m_NameMap[object->GetName()].remove(object);
-//		m_TypeMap[object->GetPatternName()].remove(object);
-//	}
-//
-//	void Add(Object* object) { 
-//		if (!object) {
-//			AddLog(Error, "Attempt to add null object to register!");
-//			return;
-//		}
-//		m_List.push_back(object); 
-//		m_NameMap[object->GetName()].push_back(object);
-//		m_TypeMap[object->GetPatternName()].push_back(object);
-//	}
 
 	void Clear();
 	static void RegisterScriptApi(ApiInitializer &api);
 
 	bool LoadObjects(const xml_node SrcNode, GameScene *OwnerScene);
 protected:
-	Generations_t m_Generations;
-	std::vector<std::unique_ptr<Object>> m_Objects;
-	std::vector<Object*> m_ActiveObjects;
+	std::unique_ptr<Memory> m_Memory;
 
-	std::pair<Object*, Handle> Allocate();
+	void Reorder(size_t start);
 };
 
 } // namespace Objects

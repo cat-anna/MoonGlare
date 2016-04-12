@@ -58,7 +58,7 @@ void GameScene::BeginScene() {
 	auto player = GetEngine()->GetPlayer().get();
 	if (player) {
 		player->SetOwnerScene(this);
-		m_PlayerHandle = m_Objects->Insert(player);
+		m_PlayerHandle = m_Objects->Insert(std::unique_ptr<Object>(player));
 		//player->SetPosition(Physics::vec3(0, 0.6, 0));
 	} else {
 		AddLog(Error, "There is no player instance!");
@@ -227,7 +227,7 @@ Object* GameScene::CreateObject(const string& TypeName, const string& Name) {
 	obj->SetOwnerScene(this);
 	obj->Initialize();
 	obj->SetName(Name);
-	m_Objects->Insert(obj);
+	m_Objects->Insert(std::unique_ptr<Object>(obj));
 	return obj;
 }
 
@@ -250,7 +250,7 @@ Object* GameScene::SpawnObject_api(const string& TypeName, const string& Name, c
 void GameScene::DoMove(const MoveConfig &conf) {
 	BaseClass::DoMove(conf);
 
-	for (auto *it : *m_Objects)
+	for (auto &it : *m_Objects)
 		it->DoMove(conf);
 
 	struct T {

@@ -22,7 +22,8 @@ ModelInstance::~ModelInstance() {
 //---------------------------------------------------------------------------------------
 
 bool ModelInstance::GetPhysicalSettings(Object* object) {
-	ASSERT(m_Model);
+	if (!m_Model)
+		return false;
 	object->SetShape(m_Model->ConstructShape(object->GetScale()));
 	object->SetPhysicalProperties(m_Model->GetPhysicalProperties());
 	Update(object);
