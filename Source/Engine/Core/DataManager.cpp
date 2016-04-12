@@ -329,7 +329,7 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	return model;
 }
 
-Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner) {
+Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner, Handle Parent) {
 	auto objects = m_PredefObjects.Lock();
 	PredefObjectMeta &meta = objects[Name];
 	if (!meta.Meta) {
@@ -342,8 +342,8 @@ Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner) {
 		meta.Class = meta.Meta->document_element().attribute(xmlAttr_Class).as_string(ERROR_STR);
 		NotifyResourcesChanged();
 	}
-
-	Object *obj = new ::Core::Objects::Object();
+	auto objH = Owner->GetObjectRegister()->NewObject(Parent);
+	Object *obj = Owner->GetObjectRegister()->Get(objH);
 	obj->SetOwnerScene(Owner);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object class '%s'", meta.Class.c_str());

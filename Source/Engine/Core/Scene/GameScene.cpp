@@ -42,6 +42,7 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 
 		.addFunction("CreateObject", &ThisClass::CreateObject)
 		.addFunction("SpawnObject", &ThisClass::SpawnObject_api)
+		.addFunction("SpawnObjectChild", &ThisClass::SpawnObjectChild_api)
 		//.addFunction("SpawnObjectXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SpawnObject_api, float, float, float>::get())
 
 //		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
@@ -218,8 +219,8 @@ void GameScene::ObjectDied(Handle h) {
 	m_DeadList.push_back(h); 
 }
 
-Object* GameScene::CreateObject(const string& TypeName, const string& Name) {
-	Object *obj = GetDataMgr()->LoadObject(TypeName, this);
+Object* GameScene::CreateObject(const string& TypeName, Handle Parent, const string& Name) {
+	Object *obj = GetDataMgr()->LoadObject(TypeName, this, Parent);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object of name '%s'", TypeName.c_str());
 		return 0;
@@ -227,12 +228,11 @@ Object* GameScene::CreateObject(const string& TypeName, const string& Name) {
 	obj->SetOwnerScene(this);
 	obj->Initialize();
 	obj->SetName(Name);
-	m_Objects->Insert(std::unique_ptr<Object>(obj));
 	return obj;
 }
 
 Object* GameScene::SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position) {
-	auto *o = CreateObject(TypeName, Name);
+	auto *o = CreateObject(TypeName, m_Objects->GetRootHandle(), Name);
 	if (!o)
 		return nullptr;
 	o->SetPosition(Position);
@@ -243,6 +243,23 @@ Object* GameScene::SpawnObject(const string& TypeName, const string& Name, const
 
 Object* GameScene::SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos) {
 	return SpawnObject(TypeName, Name, convert(pos));
+}
+
+Object* GameScene::SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent) {
+	auto *o = CreateObject(TypeName, Parent, Name);
+	if (!o)
+		return nullptr;
+
+	auto pptr = m_Objects->Get(Parent);
+
+	o->SetPosition(Position + pptr->GetPosition());
+	o->UpdateMotionState();
+	AddLog(Debug, "Created object child '" << TypeName << "' of name '" << Name << "' at " << Position);
+	return o;
+}
+
+Object* GameScene::SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent) {
+	return SpawnObjectChild(TypeName, Name, convert(pos), Parent);
 }
 
 //----------------------------------------------------------------

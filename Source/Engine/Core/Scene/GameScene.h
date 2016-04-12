@@ -19,8 +19,6 @@ public:
 	GameScene();
 	virtual ~GameScene();
 
-	using Objecy = ::Core::Objects::Object;
-
 	virtual int InvokeOnTimer(int TimerID) override;
 	virtual int InvokeOnEscape() override;
 	virtual int InvokeOnBeginScene() override;
@@ -38,10 +36,12 @@ public:
 
 	void AddLightSource(::Core::Objects::iLightSource *ptr);
 	void RemoveLightSource(::Core::Objects::iLightSource *ptr);
-	Object* CreateObject(const string& TypeName, const string& Name = "");
+	Object* CreateObject(const string& TypeName, Handle Parent, const string& Name = "");
 
 	Object* SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position);
 	Object* SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos);
+	Object* SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent);
+	Object* SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent);
 
 //	Object* GetObjectByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByName(const string& Name);
@@ -50,6 +50,8 @@ public:
 	void ObjectDied(Handle h);
 
 	const DataClasses::MapPtr& GetMapInstance() const { return m_MapData; }
+
+	Objects::ObjectRegister* GetObjectRegister() { return m_Objects.get(); }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 //old

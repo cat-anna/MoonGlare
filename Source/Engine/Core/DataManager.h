@@ -118,7 +118,7 @@ public:
 
 	DataClasses::MapPtr GetMap(const string& Name);
 	DataClasses::FontPtr GetFont(const string &Name);
-	Object* LoadObject(const string& Name, ::Core::GameScene *Owner);
+	Object* LoadObject(const string& Name, ::Core::GameScene *Owner, Handle Parent);
 	DataClasses::ModelPtr GetModel(const string& Name);
 
 	const string& GetString(const string &Id, const string& TableName);
