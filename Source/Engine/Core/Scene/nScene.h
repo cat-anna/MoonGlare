@@ -7,8 +7,6 @@
 #ifndef NSCENE_H_
 #define NSCENE_H_
 
-#include "ModelInstance.h"
-
 #include "ciScene.h"
 #include "ScenesManager.h"
 

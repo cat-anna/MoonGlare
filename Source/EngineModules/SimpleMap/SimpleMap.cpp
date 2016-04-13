@@ -142,8 +142,7 @@ std::unique_ptr<Object> SimpleMap::LoadStaticModel() {
 	auto MapObject = std::make_unique<::Core::Objects::Object>();
 	MapObject->SetOwnerScene(GetOwnerScene());
 	MapObject->SetName(GetName());
-	MapObject->GetModelInstance().SetModel(m_MapModel);
-//	MapObject->GetModelInstance().GetPhysicalSettings(m_MapObject.get());
+	MapObject->SetModel(m_MapModel);
 	MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
 	MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
 	MapObject->SetMass(0);

@@ -71,8 +71,8 @@ public:
 	int InvokeOnUserEventC(int param);
 	int InvokeOnUserEventD(int param);
 
-	int SetTimer(float secs, int tid, bool cyclic) { return GetScene()->SetProxyTimer(GetEventProxy(), secs, tid, cyclic); }
-	void KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProxy(), tid); }
+	int SetTimer(float secs, int tid, bool cyclic);
+	void KillTimer(int tid);
 
 	DefineRefGetterAll(MoveController, iMoveControllerPtr);
 	DefineREADAccesPTR(Scene, ::Core::GameScene);
@@ -83,11 +83,13 @@ public:
 	using BaseClass::SetName;
 
 	DefineDirectSetGet(Visible, bool);
-	Scene::ModelInstance& GetModelInstance() { return m_ModelInstance; }
 
 	DefineDirectSetGet(SelfHandle, Handle);
 	DefineDirectSetGet(OwnerRegister, ObjectRegister*);
 	DefineRefSetGet(PositionTransform, Physics::Transform);
+
+	void SetModel(::DataClasses::ModelPtr Model);
+	::DataClasses::ModelPtr& GetModel() { return m_Model; }
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
@@ -96,9 +98,9 @@ protected:
 	ObjectRegister *m_OwnerRegister;
 	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
-	Scene::ModelInstance m_ModelInstance;
 	unsigned m_Flags;
 	bool m_Visible;
+	::DataClasses::ModelPtr m_Model;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;

@@ -11,7 +11,6 @@ RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 Object::Object():
 		BaseClass(),
 		m_Flags(),
-		m_ModelInstance(),
 		m_Visible(true),
 		m_Scene(nullptr),
 		m_EventProxy(),
@@ -41,8 +40,10 @@ bool Object::Initialize(){
 	if (m_MoveController) 
 		m_MoveController->Initialize();
 
-	m_ModelInstance.GetPhysicalSettings(this);
-
+	if (m_Model) {
+		SetShape(m_Model->ConstructShape(GetScale()));
+		SetPhysicalProperties(m_Model->GetPhysicalProperties());
+	}
 	InvokeOnInitialize();
 	return true;
 }
@@ -173,7 +174,7 @@ bool Object::LoadPattern(const xml_node node) {
 		if (!name)
 			AddLogf(Error, "Predef object '%s' has defined model without name!", GetName().c_str());
 		else {
-			m_ModelInstance.SetModel(GetDataMgr()->GetModel(name));
+			SetModel(GetDataMgr()->GetModel(name));
 		}
 	}
 
@@ -271,6 +272,15 @@ void Object::SetMoveController(MoveControllers::iMoveController *ptr) {
 	m_MoveController.reset(ptr);
 	m_MoveController->SetOwner(this);
 }
+
+void Object::SetModel(::DataClasses::ModelPtr Model) {
+	m_Model.swap(Model);
+	if (m_Model)
+		m_Model->Initialize();
+}
+
+int Object::SetTimer(float secs, int tid, bool cyclic) { return GetScene()->SetProxyTimer(GetEventProxy(), secs, tid, cyclic); }
+void Object::KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProxy(), tid); }
 
 } //namespace Objects
 } //namespace Core
