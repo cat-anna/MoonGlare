@@ -13,10 +13,9 @@ using namespace MoonGlare;
 #include "EngineSettings.h"
 
 #include "Physics/nfPhysics.h"
-#include "Core/nfCore.h"
-
-#include "MoveControllers/nfMoveControllers.h"
 #include "DataClasses/nfDataClasses.h"
+#include "Core/nfCore.h"
+#include "MoveControllers/nfMoveControllers.h"
 #include "GUI/nfGUI.h"
 
 #include "RootClass.h"

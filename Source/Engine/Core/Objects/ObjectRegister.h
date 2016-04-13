@@ -68,6 +68,8 @@ public:
 		return &m_Memory->m_GlobalMatrix[idx];
 	}
 
+	void Process(const MoveConfig &conf);
+
 	//Handle FindByName(const string& Name) {
 		//auto &list = m_NameMap[Name];
 		//if (list.empty()) return 0;

@@ -23,13 +23,12 @@ GameScene::GameScene():
 		m_Objects(),
 		m_Physics(),
 		m_Environment(0) {
-	m_Objects = std::make_unique<Objects::ObjectRegister>();
 	m_Physics = std::make_unique<Physics::PhysicEngine>();
 	m_Camera = std::make_unique<Camera::iCamera>(this);
 }
 
 GameScene::~GameScene() {
-	m_Objects->Clear();
+	m_Objects.Clear();
 	//delete m_Physics;
 }
  
@@ -59,7 +58,7 @@ void GameScene::BeginScene() {
 	auto player = GetEngine()->GetPlayer().get();
 	if (player) {
 		player->SetOwnerScene(this);
-		m_PlayerHandle = m_Objects->Insert(std::unique_ptr<Object>(player));
+		m_PlayerHandle = m_Objects.Insert(std::unique_ptr<Object>(player));
 		//player->SetPosition(Physics::vec3(0, 0.6, 0));
 	} else {
 		AddLog(Error, "There is no player instance!");
@@ -83,7 +82,7 @@ void GameScene::EndScene() {
 	//do finalize objects in scene?
 	auto player = GetEngine()->GetPlayer().get();
 	if (player) {
-		m_Objects->Release(m_PlayerHandle);
+		m_Objects.Release(m_PlayerHandle);
 		player->SetOwnerScene(nullptr);
 	} else {
 		AddLog(Error, "There is no player instance!");
@@ -106,10 +105,10 @@ bool GameScene::DoInitialize() {
 	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 
 	if (m_MapData) {
-		m_Objects->Insert(m_MapData->LoadMapObject());
+		m_Objects.Insert(m_MapData->LoadMapObject());
 	}
 
-	m_Objects->InitializeObjects();
+	m_Objects.InitializeObjects();
 
 	return true;
 } 
@@ -135,13 +134,12 @@ bool GameScene::LoadMeta(const xml_node Node) {
 		m_MapName = MapName;
 	}
 
-
 	if (!m_MapData && !m_MapName.empty()) {
 		m_MapData = GetDataMgr()->GetMap(m_MapName);
 		if (m_MapData){
 			m_MapData->SetOwnerScene(this);
 			m_MapData->LoadMeta();
-			m_MapData->LoadMapObjects(*m_Objects);
+			m_MapData->LoadMapObjects(m_Objects);
 			if (!m_MapData->Initialize()){
 				AddLogf(Error, "Unable to initialize map '%s' for game scene '%s'", m_MapName.c_str(), GetName().c_str());
 				return false;
@@ -152,7 +150,7 @@ bool GameScene::LoadMeta(const xml_node Node) {
 		}
 	}
 
-	m_Objects->LoadObjects(Node.child("Objects"), this);
+	m_Objects.LoadObjects(Node.child("Objects"), this);
 
 	return true;
 }
@@ -232,7 +230,7 @@ Object* GameScene::CreateObject(const string& TypeName, Handle Parent, const str
 }
 
 Object* GameScene::SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position) {
-	auto *o = CreateObject(TypeName, m_Objects->GetRootHandle(), Name);
+	auto *o = CreateObject(TypeName, m_Objects.GetRootHandle(), Name);
 	if (!o)
 		return nullptr;
 	o->SetPosition(Position);
@@ -250,9 +248,9 @@ Object* GameScene::SpawnObjectChild(const string& TypeName, const string& Name, 
 	if (!o)
 		return nullptr;
 
-	auto pptr = m_Objects->Get(Parent);
+	//auto pptr = m_Objects.Get(Parent);
 
-	o->SetPosition(Position + pptr->GetPosition());
+	o->SetPosition(Position/* + pptr->GetPosition()*/);
 	o->UpdateMotionState();
 	AddLog(Debug, "Created object child '" << TypeName << "' of name '" << Name << "' at " << Position);
 	return o;
@@ -267,8 +265,7 @@ Object* GameScene::SpawnObjectChild_api(const string& TypeName, const string& Na
 void GameScene::DoMove(const MoveConfig &conf) {
 	BaseClass::DoMove(conf);
 
-	for (auto &it : *m_Objects)
-		it->DoMove(conf);
+	m_Objects.Process(conf);
 
 	struct T {
 		static bool t(btManifoldPoint& cp, void* body0,void* body1) {
@@ -305,7 +302,7 @@ void GameScene::DoMove(const MoveConfig &conf) {
 
 	if (!m_DeadList.empty()) {
 		for (auto i : m_DeadList) {
-			m_Objects->Remove(i);
+			m_Objects.Remove(i);
 		}
 		m_DeadList.clear();
 	}

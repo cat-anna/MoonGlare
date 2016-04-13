@@ -125,22 +125,7 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 //---------------------------------------------------------------------------------------
 
 void Object::DoMove(const MoveConfig &conf) {
-	if (m_MoveController) m_MoveController->DoMove(conf);
-	if (m_LightSource) m_LightSource->DoMove(conf);
 
-	if (m_LightSource) m_LightSource->Update();
-
-	if (m_Visible && m_ModelInstance.GetModel()) {
-		auto *mat = m_OwnerRegister->GetLocalMatrix(m_SelfHandle);
-		m_PositionTransform.getOpenGLMatrix((float*)mat);
-
-		float scale = GetScale();
-		(*mat)[0] *= scale;
-		(*mat)[1] *= scale;
-		(*mat)[2] *= scale;
-
-		conf.RenderList.push_back(std::make_pair(*mat, m_ModelInstance.GetModel()));
-	}  
 }
 
 void Object::DropDead(){

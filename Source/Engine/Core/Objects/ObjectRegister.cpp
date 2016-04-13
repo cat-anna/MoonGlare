@@ -202,5 +202,42 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 	return true;
 }
 
+void ObjectRegister::Process(const MoveConfig &conf) {
+	for (size_t i = 1, j = m_Memory->m_HandleAllocator.Allocated(); i < j; ++i) {
+
+		size_t pid;
+		if (!m_Memory->m_HandleAllocator.GetMapping(m_Memory->m_Parent[i], pid)) {
+			continue;
+		}
+
+		auto obj = m_Memory->m_ObjectPtr[i].get();
+
+		obj->DoMove(conf);
+
+		auto &gm = m_Memory->m_GlobalMatrix[i];
+		auto &lm = m_Memory->m_LocalMatrix[i];
+
+		obj->GetPositionTransform().getOpenGLMatrix((float*)&lm);
+		gm = m_Memory->m_GlobalMatrix[pid] * lm;
+
+		if (obj->GetMoveController())
+			obj->GetMoveController()->DoMove(conf);
+		if (obj->GetLightSource()) {
+			auto *l = obj->GetLightSource();
+			l->Update();
+		}
+
+		float scale = obj->GetScale();
+		auto sgm = gm;
+		sgm[0] *= scale;
+		sgm[1] *= scale;
+		sgm[2] *= scale;
+
+		if (obj->GetVisible() && obj->GetModel()) {
+			conf.RenderList.push_back(std::make_pair(sgm, obj->GetModel()));
+		}
+	}
+}
+
 } //namespace Objects
 } //namespace Core

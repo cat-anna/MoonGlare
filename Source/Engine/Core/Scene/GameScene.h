@@ -51,14 +51,14 @@ public:
 
 	const DataClasses::MapPtr& GetMapInstance() const { return m_MapData; }
 
-	Objects::ObjectRegister* GetObjectRegister() { return m_Objects.get(); }
+	Objects::ObjectRegister* GetObjectRegister() { return &m_Objects; }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 //old
 protected:
 	string m_MapName;
 	DataClasses::MapPtr m_MapData;
-	Objects::UniqueObjectRegister m_Objects;
+	Objects::ObjectRegister m_Objects;
 	std::list<Handle> m_DeadList;
 
 	Physics::PhysicEnginePtr m_Physics;
