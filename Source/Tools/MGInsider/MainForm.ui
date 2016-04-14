@@ -62,7 +62,13 @@
      <string>Settings</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuWindows">
+    <property name="title">
+     <string>Windows</string>
+    </property>
+   </widget>
    <addaction name="menuSettings"/>
+   <addaction name="menuWindows"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -73,7 +79,6 @@
    </attribute>
    <addaction name="actionBrowse_resources"/>
    <addaction name="actionScript_editor"/>
-   <addaction name="actionShow_quick_actions"/>
    <addaction name="actionShow_logs"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -85,11 +90,6 @@
   <action name="actionBrowse_resources">
    <property name="text">
     <string>Browse resources</string>
-   </property>
-  </action>
-  <action name="actionShow_quick_actions">
-   <property name="text">
-    <string>Show quick actions</string>
    </property>
   </action>
   <action name="actionShow_logs">

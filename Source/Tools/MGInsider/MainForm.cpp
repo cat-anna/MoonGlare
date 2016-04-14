@@ -1,11 +1,12 @@
 #include PCH_HEADER
+#include <QSettings>
 #include "mgdtSettings.h"
 #include "MainForm.h"
 #include "ui_MainForm.h"
+#include "DockWindow.h"
 
 #include "LuaEditor/LuaWindow.h"
 #include "ResourceEditor/ResourceBrowser.h"
-#include "QuickActions/QuickActions.h"
 #include "LogWindow/LogWindow.h"
 
 class EngineInfoRequest : public RemoteConsoleObserver {
@@ -15,8 +16,6 @@ public:
 		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineExeName, "");
 		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineBuildDate, "");
 	}
-
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override { };
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
 		if(m_Queue)
@@ -45,9 +44,6 @@ public:
 
 	EnginePingPong(RemoteConsoleRequestQueue *Queue): RemoteConsoleObserver(InsiderApi::MessageTypes::Ping, Queue) {
 	}
-
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
-	};
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
 		m_Queue->RequestFinished(this);
@@ -114,7 +110,6 @@ MainForm::MainForm(QWidget *parent)
 
 	connect(ui->actionScript_editor, SIGNAL(triggered()), SLOT(ShowScriptEditor()));
 	connect(ui->actionBrowse_resources, SIGNAL(triggered()), SLOT(ShowResourceBrowser()));
-	connect(ui->actionShow_quick_actions, SIGNAL(triggered()), SLOT(ShowQuickActions()));
 	connect(ui->actionShow_logs, SIGNAL(triggered()), SLOT(ShowLogWindow()));
 
 	auto &settings = mgdtSettings::get();
@@ -131,9 +126,35 @@ MainForm::MainForm(QWidget *parent)
 	ui->treeViewState->setColumnWidth(1, 100);
 
 	QueueRequest(std::make_shared<EnginePingPong>(this));
+
+	m_DockWindows.reserve(256);//because why not
+	DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
+		auto ptr = ci.SharedCreate();
+		m_DockWindows.push_back(ptr);
+
+		ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
+		AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
+
+		ptr->LoadSettings();
+	});
+
+
+	{
+		QSettings settings("S.ini", QSettings::IniFormat);
+		restoreState(settings.value("MainWindow/State").toByteArray());
+		restoreGeometry(settings.value("MainWindow/Geometry").toByteArray());
+	}
 }
 
 MainForm::~MainForm() {
+	{
+		QSettings settings("S.ini", QSettings::IniFormat);
+		settings.setValue("MainWindow/State", saveState());
+		settings.setValue("MainWindow/Geometry", saveGeometry());
+	}
+	for (auto &it : m_DockWindows)
+		it->SaveSettings();
+	m_DockWindows.clear();
 	auto &settings = mgdtSettings::get();
 	settings.Window.MainForm.Store(this);
 	delete ui;
@@ -155,8 +176,6 @@ void MainForm::showEvent(QShowEvent * event) {
 			ShowScriptEditor();
 		if (settings.Window.ResourceBrowser.Opened)
 			ShowResourceBrowser();
-		if (settings.Window.QuickActions.Opened)
-			ShowQuickActions();
 		ShowResourceBrowser();
 		if (settings.Window.LogWindow.Opened)
 			ShowLogWindow();
@@ -168,7 +187,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 
 	bool LuaEditor = m_LuaEditor.get() != nullptr;
 	bool ResEditor = m_ResourceBrowser.get() != nullptr;
-	bool qactions = m_QuickActions.get() != nullptr;
 	bool logwindow = m_LogWindow.get() != nullptr;
 
 	if (m_LuaEditor) 
@@ -179,10 +197,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 		if (!m_ResourceBrowser->close())
 			return;
 
-	if (m_QuickActions)
-		if (!m_QuickActions->close())
-			return;
-
 	if (m_LogWindow)
 		if (!m_LogWindow->close())
 			return;
@@ -190,7 +204,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 	auto &settings = mgdtSettings::get();
 	settings.Window.LuaEditor.Opened = LuaEditor;
 	settings.Window.ResourceBrowser.Opened = ResEditor;
-	settings.Window.QuickActions.Opened = qactions;
 	settings.Window.LogWindow.Opened = logwindow;
 
 	event->accept();
@@ -222,19 +235,6 @@ void MainForm::ShowScriptEditor() {
 
 void MainForm::ScriptEditorClosed() {
 	m_LuaEditor.reset();
-}
-
-void MainForm::ShowQuickActions() { 
-	if (!m_QuickActions) {
-		m_QuickActions = std::make_unique<QuickActions>(nullptr);
-		connect(m_QuickActions.get(), SIGNAL(WindowClosed()), SLOT(ScriptEditorClosed()));
-	}
-	m_QuickActions->show();
-	m_QuickActions->activateWindow();
-}
-
-void MainForm::QuickActionsClosed()	{ 
-	m_QuickActions.reset();
 }
 
 void MainForm::ShowLogWindow() {

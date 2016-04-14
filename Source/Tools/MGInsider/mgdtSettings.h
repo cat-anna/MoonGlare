@@ -15,7 +15,6 @@
 class mgdtSettings : public QObject {
 	Q_OBJECT;
 public:
-
 	struct Editor_t {
 		std::string FontName;
 		int FontSize;
@@ -123,7 +122,6 @@ public:
 		WindowPosition_t MainForm;
 		WindowPosition_t LuaEditor;
 		WindowPosition_t ResourceBrowser;
-		WindowPosition_t QuickActions;
 		WindowPosition_t LogWindow;
 
 		template <class T> void Serialize(T & s) {
@@ -132,7 +130,6 @@ public:
 			s.Group(MainForm, "MainForm");
 			s.Group(LuaEditor, "LuaEditor");
 			s.Group(ResourceBrowser, "ResourceBrowser");
-			s.Group(QuickActions, "QuickActions");
 			s.Group(LogWindow, "LogWindow");
 		}
 	} Window;
@@ -191,17 +188,55 @@ public:
 	static mgdtSettings& get();
 
 	void Save();
+
+	struct iSettingsUser {
+		virtual ~iSettingsUser() {}
+
+		void SaveSettings();
+		void LoadSettings();
+		virtual bool DoSaveSettings(pugi::xml_node node) const = 0;
+		virtual bool DoLoadSettings(const pugi::xml_node node) = 0;
+		const std::string& GetSettingID() const { return m_SettingID; }
+	protected:
+		void SetSettingID(std::string v) { m_SettingID.swap(v); }
+
+		static void SaveGeometry(pugi::xml_node node, QWidget *widget, const char *Name) {
+			XML::UniqeChild(node, Name).text() = widget->saveGeometry().toHex().constData();
+		}
+		static void LoadGeometry(const pugi::xml_node node, QWidget *widget, const char *Name) {
+			widget->restoreGeometry(QByteArray::fromHex(node.child(Name).text().as_string()));
+		}
+
+		template<class T>
+		static void SaveState(pugi::xml_node node, T *widget, const char *Name) {
+			XML::UniqeChild(node, Name).text() = widget->saveState().toHex().constData();
+		}
+		template<class T>
+		static void LoadState(const pugi::xml_node node, T *widget, const char *Name) {
+			widget->restoreState(QByteArray::fromHex(node.child(Name).text().as_string()));
+		}
+	private:
+		std::string m_SettingID;
+	};
+
 protected:
 	void Load();
+	void SaveSettings(iSettingsUser *user);
+	void LoadSettings(iSettingsUser *user);
 signals:
 	void EditorFontChanged(const QFont &);
 private: 
+	std::unique_ptr<pugi::xml_document> m_SettingsDoc;
  	mgdtSettings();
  	~mgdtSettings();
+
+	pugi::xml_node StaticSettingsRoot();
+	pugi::xml_node DynamicSettingsRoot();
 
 	static mgdtSettings *_Instance;
 };
 
+using iSettingsUser = mgdtSettings::iSettingsUser;
 inline mgdtSettings& GetSettings() { return mgdtSettings::get(); }
 
 #endif

@@ -376,7 +376,7 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 		buffer.PushString(info->Name);
 	}
 	list->Count = count;
-	hdr->MessageType = MessageTypes::MemoryStatus;
+	hdr->MessageType = MessageTypes::MemoryStatusList;
 	return true;
 }
 

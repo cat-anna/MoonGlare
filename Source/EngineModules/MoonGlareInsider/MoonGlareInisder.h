@@ -12,7 +12,7 @@
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
-#include "MoonGlareInisderApi.h"
+#include <Shared/MoonGlareInsider/Api.h>
 
 namespace MoonGlare {
 namespace Debug {

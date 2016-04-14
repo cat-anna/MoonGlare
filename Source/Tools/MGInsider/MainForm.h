@@ -2,6 +2,7 @@
 #define MAINFORM_H
 
 #include "RemoteConsole.h"
+#include "DockWindowInfo.h"
 
 class SubWindow;
 class LuaWindow;
@@ -66,9 +67,10 @@ protected:
 private:
 	Ui::MainForm *ui;
 
+	std::vector<SharedDockWindowInfo> m_DockWindows;
+
 	std::unique_ptr<LuaWindow> m_LuaEditor;
 	std::unique_ptr<SubWindow> m_ResourceBrowser;
-	std::unique_ptr<SubWindow> m_QuickActions;
 	std::unique_ptr<SubWindow> m_LogWindow;
 	
 	std::unique_ptr<QStandardItemModel> m_StateModelView;
@@ -83,8 +85,6 @@ protected slots:
 	void ScriptEditorClosed();
 	void ShowResourceBrowser();
 	void ResourceBrowserClosed();
-	void ShowQuickActions();
-	void QuickActionsClosed();
 	void ShowLogWindow();
 	void LogWindowClosed();
 };

@@ -16,6 +16,7 @@
 #include <qfileinfo.h>
 #include <QTabWidget.h>
 #include <qboxlayout.h>
+#include <QtWidgets/QDockWidget>
 #include <QTextBlock>
 #include <QStandardItemModel.h>
 #include <qmessagebox.h>

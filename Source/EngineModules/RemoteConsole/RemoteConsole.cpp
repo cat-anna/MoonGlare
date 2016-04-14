@@ -7,7 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
-#include "../MoonGlareInsider/MoonGlareInisderApi.h"
+#include <Shared/MoonGlareInsider/Api.h>
 
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>

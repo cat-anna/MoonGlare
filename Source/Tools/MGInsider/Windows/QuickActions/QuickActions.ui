@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>QuickActions</class>
- <widget class="QMainWindow" name="QuickActions">
+ <widget class="QDockWidget" name="QuickActions">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -42,32 +42,9 @@
     </item>
    </layout>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionNew_quick_action"/>
-   <addaction name="actionRemove_quick_action"/>
-   <addaction name="actionModify_quick_action"/>
-   <addaction name="separator"/>
-   <addaction name="actionExecute_quick_action"/>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>616</width>
-     <height>21</height>
-    </rect>
-   </property>
-  </widget>
   <action name="actionNew_quick_action">
    <property name="icon">
-    <iconset resource="mgdt.qrc">
+    <iconset resource="../../mgdt.qrc">
      <normaloff>:/mgdt/icons/yellow_note.png</normaloff>:/mgdt/icons/yellow_note.png</iconset>
    </property>
    <property name="text">
@@ -76,7 +53,7 @@
   </action>
   <action name="actionRemove_quick_action">
    <property name="icon">
-    <iconset resource="mgdt.qrc">
+    <iconset resource="../../mgdt.qrc">
      <normaloff>:/mgdt/icons/red_minus.png</normaloff>:/mgdt/icons/red_minus.png</iconset>
    </property>
    <property name="text">
@@ -85,7 +62,7 @@
   </action>
   <action name="actionExecute_quick_action">
    <property name="icon">
-    <iconset resource="mgdt.qrc">
+    <iconset resource="../../mgdt.qrc">
      <normaloff>:/mgdt/icons/blue_top_left_arrow.png</normaloff>:/mgdt/icons/blue_top_left_arrow.png</iconset>
    </property>
    <property name="text">
@@ -94,7 +71,7 @@
   </action>
   <action name="actionModify_quick_action">
    <property name="icon">
-    <iconset resource="mgdt.qrc">
+    <iconset resource="../../mgdt.qrc">
      <normaloff>:/mgdt/icons/blue_tool.png</normaloff>:/mgdt/icons/blue_tool.png</iconset>
    </property>
    <property name="text">
@@ -104,7 +81,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="mgdt.qrc"/>
+  <include location="../../mgdt.qrc"/>
  </resources>
  <connections/>
 </ui>
