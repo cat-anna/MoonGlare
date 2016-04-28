@@ -9,6 +9,7 @@ namespace InsiderApi {
 
 #pragma warning ( push )
 #pragma warning ( disable: 4200 )
+#pragma pack( push, 1 )
 
 using u32 = unsigned __int32;
 using u16 = unsigned __int16;
@@ -40,6 +41,7 @@ enum class MessageTypes : u32 {
 //Errors
 	UnknownError							= BidirectionalBase + GroupDelta,
 	NotSupported,							//message is not supported
+	NotPossibleInCurrentState,				//try later or on different scene or ...
 
 //to engine
 	EngineReciver							= BidirectionalBase + DirectionDelta,	
@@ -232,14 +234,15 @@ struct PayLoad_MemoryStatus {
 };
 
 struct PayLoad_ObjectInfo {
-	u32 ID;
-	u32 ParentID;
+	Handle ObjectHandle;
+	Handle ParentHandle;
 	float Position[3];
-	float Quaternion[3];
+	float Quaternion[4];
 	u16 NameLen;
 	u8 Name[0];
 };
 
+#pragma pack( pop )
 #pragma warning ( pop )
 
 } //namespace InsiderApi

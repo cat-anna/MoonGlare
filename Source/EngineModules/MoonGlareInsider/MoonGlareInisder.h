@@ -60,6 +60,7 @@ private:
 	bool Ping(InsiderMessageBuffer& buffer);
 	bool EnumerateAudio(InsiderMessageBuffer& buffer);
 	bool EnumerateMemory(InsiderMessageBuffer& buffer);
+	bool EnumerateObjects(InsiderMessageBuffer& buffer);
 }; 
 
 } //namespace Insider
