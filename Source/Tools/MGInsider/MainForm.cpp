@@ -9,90 +9,6 @@
 #include "ResourceEditor/ResourceBrowser.h"
 #include "LogWindow/LogWindow.h"
 
-class EngineInfoRequest : public RemoteConsoleObserver {
-public:
-	EngineInfoRequest(RemoteConsoleRequestQueue *Queue): RemoteConsoleObserver(InsiderApi::MessageTypes::InfoRequest, Queue) {
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineVersion, "");
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineExeName, "");
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineBuildDate, "");
-	}
-
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		if(m_Queue)
-			m_Queue->RequestFinished(this);
-		//auto *hdr = 
-			message.GetAndPull<InsiderApi::PayLoad_InfoResponse>();
-
-		auto ver = message.PullString();
-		auto exen = message.PullString();
-		auto buildd = message.PullString();
-
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineVersion, ver);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineExeName, exen);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineBuildDate, buildd);
-
-		return HanderStatus::Remove;
-	};
-private:
-};
-
-class EnginePingPong : public RemoteConsoleObserver {
-public:
-	enum class EngineState {
-		Unknown, Active, Broken,
-	};
-
-	EnginePingPong(RemoteConsoleRequestQueue *Queue): RemoteConsoleObserver(InsiderApi::MessageTypes::Ping, Queue) {
-	}
-
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		m_Queue->RequestFinished(this);
-		ChangeState(EngineState::Active);
-
-		auto sthis = shared_from_this();
-		QTimer::singleShot(m_Timeout, [sthis, this]() {
-			m_Queue->QueueRequest(sthis);
-		});
-
-		return HanderStatus::Remove;
-	};
-
-	virtual void OnSend() override  {
-		RemoteConsoleObserver::OnSend();
-		m_SendTime = std::chrono::steady_clock::now();
-	}
-	virtual void OnRecive() override {
-		RemoteConsoleObserver::OnRecive();
-		auto t = std::chrono::steady_clock::now();
-		std::chrono::duration<double> sec = t - m_SendTime;
-		char buf[64];
-		sprintf_s(buf, "%d ms", static_cast<int>(sec.count() * 1000));
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EnginePing, buf);
-	}
-
-	virtual TimeOutAction TimedOut() override {
-		ChangeState(EngineState::Broken);
-		return TimeOutAction::Resend;
-	}
-
-	void ChangeState(EngineState val) {
-		if (m_EngineState == val)
-			return;
-		m_EngineState = val;
-
-		if (m_EngineState == EngineState::Active) {
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineState, "Active", ":/mgdt/icons/blue_ok.png");
-			m_Queue->QueueRequest(std::make_shared<EngineInfoRequest>(m_Queue));
-		} else {
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineState, "Broken", ":/mgdt/icons/red_flag.png");
-			m_Queue->QueueRequest(std::make_shared<EngineInfoRequest>(nullptr));
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EnginePing, "");
-		}
-	}
-private:
-	std::chrono::steady_clock::time_point m_SendTime;
-	EngineState m_EngineState = EngineState::Unknown;
-};
 
 //-----------------------------------------
 //-----------------------------------------
@@ -114,18 +30,6 @@ MainForm::MainForm(QWidget *parent)
 
 	auto &settings = mgdtSettings::get();
 	settings.Window.MainForm.Apply(this);
-
-	m_StateModelView = std::make_unique<QStandardItemModel>();
-	m_StateModelView->setHorizontalHeaderItem(0, new QStandardItem("Parameter"));
-	m_StateModelView->setHorizontalHeaderItem(1, new QStandardItem("Value"));
-
-	ui->treeViewState->setModel(m_StateModelView.get());
-	ui->treeViewState->setSelectionMode(QAbstractItemView::SingleSelection);
-
-	ui->treeViewState->setColumnWidth(0, 150);
-	ui->treeViewState->setColumnWidth(1, 100);
-
-	QueueRequest(std::make_shared<EnginePingPong>(this));
 
 	m_DockWindows.reserve(256);//because why not
 	DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {

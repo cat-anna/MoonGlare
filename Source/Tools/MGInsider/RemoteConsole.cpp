@@ -9,6 +9,7 @@
 #include "mgdtSettings.h"
 #include "RemoteConsole.h"
 #include "MainForm.h"
+#include <Notifications.h>
 
 using namespace MoonGlare::Debug::InsiderApi;
 
@@ -108,8 +109,9 @@ void RemoteConsole::ProcessMessage(InsiderApi::InsiderMessageBuffer &buffer) {
 		return;
 	default:
 		auto ret = ptr->Message(buffer);
-		if (ret == RemoteConsoleObserver::HanderStatus::Remove)
+		if (ret == RemoteConsoleObserver::HanderStatus::Remove) {
 			m_Impl->m_PendingRequests.erase(it);
+		}
 	}
 }
 
@@ -193,17 +195,17 @@ void RemoteConsole::Tick() {
 
 	if (m_Impl->m_MessagesRecived > 0) {
 		sprintf_s(buffer, "%llu (%.2f kib)", m_Impl->m_MessagesRecived, m_Impl->m_BytesRecived / 1024.0f);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::RemoteConsoleMessagesRecived, buffer);
+		Notifications::SendSetStateValue("Connection/Recived", buffer);
 	}
 
 	if (m_Impl->m_MessagesSent > 0) {
 		sprintf_s(buffer, "%llu (%.2f kib)", m_Impl->m_MessagesSent, m_Impl->m_BytesSent / 1024.0f);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::RemoteConsoleMessagesSent, buffer);
+		Notifications::SendSetStateValue("Connection/Send", buffer);
 	}
 
 	if (m_Impl->m_MessagesTimedout > 0) {
 		sprintf_s(buffer, "%llu", m_Impl->m_MessagesTimedout);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::RemoteConsoleMessagesTimedout, buffer);
+		Notifications::SendSetStateValue("Connection/Timedout", buffer);
 	}
 }
 

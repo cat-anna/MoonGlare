@@ -3,7 +3,10 @@
 
 #include "mgdtSettings.h"
 
-class DockWindow : public QDockWidget, public iSettingsUser {
+class DockWindow 
+	: public QDockWidget
+	, public iSettingsUser
+	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT
 public:
 	DockWindow(QWidget *parent);

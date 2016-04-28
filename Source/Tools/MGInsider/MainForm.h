@@ -53,7 +53,7 @@ struct EngineStateValueGroups : GabiLib::EnumConverter < EngineStateValue, Engin
 };
 using EngineStateValueGroupsValues = GabiLib::EnumConverterHolder < EngineStateValueGroups >;
 
-class MainForm : public QMainWindow, public RemoteConsoleRequestQueue {
+class MainForm : public QMainWindow {
 	Q_OBJECT
 public:
 	MainForm(QWidget *parent = 0);

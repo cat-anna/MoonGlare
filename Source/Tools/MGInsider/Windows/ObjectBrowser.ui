@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>526</height>
+    <height>602</height>
    </rect>
   </property>
   <property name="floating">
@@ -22,23 +22,38 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="leftMargin">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="topMargin">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="rightMargin">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>5</number>
+     <number>0</number>
     </property>
     <item>
      <widget class="QToolBar" name="mainToolBar">
-      <addaction name="separator"/>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="toolButtonStyle">
+       <enum>Qt::ToolButtonIconOnly</enum>
+      </property>
+      <property name="floatable">
+       <bool>false</bool>
+      </property>
+      <addaction name="actionRefresh"/>
      </widget>
     </item>
     <item>
@@ -64,6 +79,9 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="childrenCollapsible">
+          <bool>false</bool>
+         </property>
          <widget class="QWidget" name="widget_3" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <property name="spacing">
@@ -82,7 +100,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QTreeView" name="treeView"/>
+            <widget class="QTreeView" name="treeViewObjects"/>
            </item>
           </layout>
          </widget>
@@ -104,7 +122,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QTreeView" name="treeView_2"/>
+            <widget class="QTreeView" name="treeViewDetails"/>
            </item>
           </layout>
          </widget>
@@ -115,6 +133,15 @@
     </item>
    </layout>
   </widget>
+  <action name="actionRefresh">
+   <property name="icon">
+    <iconset resource="../mgdt.qrc">
+     <normaloff>:/mgdt/icons/blue_circle_left_arrow.png</normaloff>:/mgdt/icons/blue_circle_left_arrow.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
