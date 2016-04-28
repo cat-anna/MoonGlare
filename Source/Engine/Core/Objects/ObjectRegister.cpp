@@ -158,6 +158,16 @@ void ObjectRegister::Reorder(size_t start) {
 	}
 }
 
+Handle ObjectRegister::GetParentHandle(Handle h) {
+	ASSERT_HANDLE_TYPE(Object, h);
+	size_t idx;
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
+		AddLog(Warning, "Invalid handle!");
+		return Handle();
+	}
+	return m_Memory->m_Parent[idx];
+}
+
 Object *ObjectRegister::Get(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
 	size_t idx;

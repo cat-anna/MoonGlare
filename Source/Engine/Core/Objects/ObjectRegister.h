@@ -52,6 +52,8 @@ public:
 
 	Handle GetRootHandle();
 
+	Handle GetParentHandle(Handle h);
+
 	math::mat4* GetLocalMatrix(Handle h) {
 		ASSERT_HANDLE_TYPE(Object, h);
 		size_t idx;
