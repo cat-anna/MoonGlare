@@ -9,6 +9,7 @@
 
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 #ifdef WINDOWS
 #include "PlatformWindows.h"

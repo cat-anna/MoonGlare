@@ -21,6 +21,8 @@ inline std::ostream& operator << (std::ostream &o, const glm::detail::tvec4<T, P
 	return (o << b);
 }
 
+#ifdef XMATH_H
+
 inline std::ostream& operator << (std::ostream &o, const Physics::Quaternion &t) {
 	auto axis = t.getAxis();
 	auto angle = t.getAngle();
@@ -35,3 +37,4 @@ inline std::ostream& operator << (std::ostream &o, const Physics::vec3 &t) {
 	return (o << b);
 }
 
+#endif
