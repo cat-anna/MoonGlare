@@ -61,7 +61,6 @@ public:
 	}
 	static void ClearResources(Manager *mgr) {
 		AddLogf(Warning, "Clearing resources");
-		mgr->m_PredefObjects.Lock()->clear();
 		mgr->m_Fonts.Lock()->clear();
 		mgr->m_StringTables->Clear();
 	}
@@ -118,7 +117,6 @@ bool Manager::Finalize() {
 	m_Fonts.clear();
 	m_Maps.clear();
 	m_Models.clear();
-	m_PredefObjects.clear();
 
 	m_Modules.clear();
 
@@ -329,35 +327,6 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	return model;
 }
 
-Object* Manager::LoadObject(const string& Name, ::Core::GameScene *Owner, Handle Parent) {
-	auto objects = m_PredefObjects.Lock();
-	PredefObjectMeta &meta = objects[Name];
-	if (!meta.Meta) {
-		AddLogf(Debug, "Predef object '%s' is not valid. Trying to load.", Name.c_str());
-
-		if (!GetFileSystem()->OpenResourceXML(meta.Meta, Name, DataPath::Objects)) {
-			AddLogf(Error, "Unable to open master resource xml for object '%s'", Name.c_str());
-			return nullptr;
-		}
-		meta.Class = meta.Meta->document_element().attribute(xmlAttr_Class).as_string(ERROR_STR);
-		NotifyResourcesChanged();
-	}
-	auto objH = Owner->GetObjectRegister()->NewObject(Parent);
-	Object *obj = Owner->GetObjectRegister()->Get(objH);
-	obj->SetOwnerScene(Owner);
-	if (!obj) {
-		AddLogf(Error, "Unable to create object class '%s'", meta.Class.c_str());
-		return nullptr;
-	}
-	if (!obj->LoadPattern(meta.Meta->document_element())) {
-		AddLogf(Error, "An Error has occur during loading meta of predef object '%s' od class '%s'",
-				Name.c_str(), meta.Class.c_str());
-		delete obj;
-		return nullptr;
-	}
-	return obj;
-}
-
 const string& Manager::GetString(const string &Id, const string& TableName) {
 	return m_StringTables->GetString(Id, TableName);
 }
@@ -472,7 +441,6 @@ void Manager::DumpAllResources(std::ostream &out) {
 	Dumper::DumpRes<>(m_Maps, "Maps", out);
 	Dumper::DumpRes<>(*m_Fonts.Lock(), "Fonts", out);
 	Dumper::DumpRes<>(*m_Models.Lock(), "Models", out);
-	Dumper::DumpPredef<>(*m_PredefObjects.Lock(), "Predef Objects", out);
 }
 
 #endif

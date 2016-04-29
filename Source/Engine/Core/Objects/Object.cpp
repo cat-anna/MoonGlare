@@ -179,7 +179,7 @@ bool Object::LoadPattern(const xml_node node) {
 
 	XML::Vector::Read(node, "BodyAngularFactor", m_BodyAngularFactor, Physics::vec3(1, 1, 1));
 
-	return true;
+	return LoadDynamicState(node);
 }
 
 bool Object::LoadDynamicState(const xml_node node) {
@@ -187,10 +187,11 @@ bool Object::LoadDynamicState(const xml_node node) {
 	if (n) {
 		SetName(n);
 	}
-	math::vec3 pos, rot;
+	math::vec3 pos;
+	math::vec4 rot;
 	XML::ReadVector(node, "Position", pos, math::vec3(0));
-	XML::ReadVector(node, "Rotation", rot, math::vec3(0));
-	SetPosition(convert(pos), Physics::Quaternion(rot[0], rot[1], rot[2]));
+	XML::Vector::Read(node, "Rotation", rot, math::vec4(0, 0, 0, 1));
+	SetPosition(convert(pos), Physics::Quaternion(rot[0], rot[1], rot[2], rot[3]));
 	return true;
 }
 

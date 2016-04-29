@@ -185,9 +185,56 @@ bool ObjectRegister::InitializeObjects() {
 	return ret;
 }
 
+Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *OwnerScene) {
+	auto objH = NewObject(Parent);
+	Object *obj = Get(objH);
+	obj->SetOwnerScene(OwnerScene);
+
+	if (!obj->LoadPattern(MetaXML)) {
+		AddLogf(Error, "An Error has occur during loading meta of predef object (%s)", MetaXML.attribute("Name").as_string(ERROR_STR));
+		Remove(objH);
+		return Handle();
+	}
+
+	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
+		auto h = LoadObject(objH, it, OwnerScene);
+		Object *childobj = Get(objH);
+		if (!childobj) {
+			AddLogf(Error, "Loading predef object child failed (%s)", it.attribute("Name").as_string(ERROR_STR));
+			continue;
+		}
+	}
+
+	return objH;
+}
+
+Handle ObjectRegister::LoadObject(const std::string &Name, GameScene *OwnerScene, Handle Parent) {
+	FileSystem::XMLFile Meta;
+	if (!GetFileSystem()->OpenResourceXML(Meta, Name, DataPath::Objects)) {
+		AddLogf(Error, "Unable to open master resource xml for object '%s'", Name.c_str());
+		return Handle();
+	}
+
+	if (!Get(Parent)) {
+		Parent = GetRootHandle();
+	}
+
+	auto objH = LoadObject(Parent, Meta->document_element(), OwnerScene);
+	Object *obj = Get(objH);
+	if (!obj) {
+		AddLogf(Error, "Loading predef object failed: '%s'", Name.c_str());
+		Remove(objH);
+		return Handle();
+	}
+
+	return objH;
+}
+
 bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) {
 	if (!SrcNode) 
 		return true;
+
+	auto RootHandle = GetRootHandle();
 
 	for (xml_node itnode = SrcNode.child("Item"); itnode; itnode = itnode.next_sibling("Item")) {
 		const char* name = itnode.attribute(xmlAttr_Object).as_string(0);
@@ -196,19 +243,20 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 			continue;
 		}
 
-		Object *obj = GetDataMgr()->LoadObject(name, OwnerScene, GetRootHandle());
+		auto objH = LoadObject(name, OwnerScene, RootHandle);
+		Object *obj = Get(objH);
 		if (!obj) {
-			AddLogf(Warning, "Unable to create object of name '%s'", name);
+			//already logged
 			continue;
 		}
 
-		if(!obj->LoadDynamicState(itnode)) {
+		if (!obj->LoadDynamicState(itnode)) {
 			AddLog(Error, "Unable to load dynamic state of object. Pattern: '" << name << "'");
-			delete obj;
+			Remove(objH);
 			continue;
 		}
-		Insert(std::unique_ptr<Object>(obj));
 	}
+
 	return true;
 }
 

@@ -92,10 +92,13 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 
 	bool LoadObjects(const xml_node SrcNode, GameScene *OwnerScene);
+	Handle LoadObject(const std::string &Name, GameScene *OwnerScene, Handle Parent = Handle());
 protected:
 	std::unique_ptr<Memory> m_Memory;
 
 	void Reorder(size_t start);
+
+	Handle LoadObject(Handle Parent, xml_node MetaXML, GameScene *OwnerScene);
 };
 
 } // namespace Objects

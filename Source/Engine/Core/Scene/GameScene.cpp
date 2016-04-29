@@ -218,7 +218,8 @@ void GameScene::ObjectDied(Handle h) {
 }
 
 Object* GameScene::CreateObject(const string& TypeName, Handle Parent, const string& Name) {
-	Object *obj = GetDataMgr()->LoadObject(TypeName, this, Parent);
+	auto ObjH = GetObjectRegister()->LoadObject(TypeName, this, Parent);
+	auto obj = GetObjectRegister()->Get(ObjH);
 	if (!obj) {
 		AddLogf(Error, "Unable to create object of name '%s'", TypeName.c_str());
 		return 0;
