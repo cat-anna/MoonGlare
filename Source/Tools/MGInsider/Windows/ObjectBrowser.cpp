@@ -34,7 +34,6 @@ struct ObjectBrowser::ObjectData {
 	};
 
 	std::map<MoonGlare::Handle, Triplet, HandleLess> m_ObjectMap;
-
 	InsiderApi::InsiderMessageBuffer m_Data;
 };
 
@@ -149,18 +148,7 @@ ObjectBrowser::ObjectBrowser(QWidget *parent)
 	connect(Notifications::Get(), SIGNAL(OnEngineConnected()), SLOT(RefreshView()));
 	connect(m_Ui->actionRefresh, SIGNAL(triggered()), SLOT(RefreshView()));
 
-//	ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
-//	ui->treeView->setExpandsOnDoubleClick(false);
-//	ui->treeView->addAction(ui->actionExecute_quick_action);
-//	auto a = new QAction(this); a->setSeparator(true);
-//	ui->treeView->addAction(a);
-//	ui->treeView->addAction(ui->actionModify_quick_action);
-//	ui->treeView->addAction(ui->actionRemove_quick_action);
 	connect(m_Ui->treeViewObjects, SIGNAL(clicked(const QModelIndex &)), SLOT(ItemClicked(const QModelIndex&)));
-//	connect(ui->actionNew_quick_action, SIGNAL(triggered()), SLOT(NewAction()));
-//	connect(ui->actionRemove_quick_action, SIGNAL(triggered()), SLOT(RemoveAction()));
-//	connect(ui->actionModify_quick_action, SIGNAL(triggered()), SLOT(ModifyAction()));
-//	connect(ui->actionExecute_quick_action, SIGNAL(triggered()), SLOT(ExecuteAction()));
 }
 
 ObjectBrowser::~ObjectBrowser() {

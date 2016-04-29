@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/iSoundEngine.h>
 
 namespace MoonGlare {

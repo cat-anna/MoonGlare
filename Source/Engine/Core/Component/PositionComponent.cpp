@@ -5,8 +5,8 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
-#include "PositionComponent.h"
+//#include <MoonGlare.h>
+//#include "PositionComponent.h"
 
 namespace MoonGlare {
 namespace Component {

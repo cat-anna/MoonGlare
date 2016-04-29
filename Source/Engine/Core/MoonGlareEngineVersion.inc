@@ -3,5 +3,5 @@
  * 
  */
 
-const Version::Info MoonGlareEngineVersion{ 0, 1, 2199, __DATE__ " at " __TIME__ } ;
+const Version::Info MoonGlareEngineVersion{ 0, 1, 234, __DATE__ " at " __TIME__ } ;
 
