@@ -15,11 +15,6 @@ namespace Data {
 #define DEFAULT_FONT_NAME	"Arial"
 #define PLAYER_XML_FILE		"Player00.xml"
 
-struct PredefObjectMeta {
-	string Class;
-	FileSystem::XMLFile Meta;
-};
-
 template<class T>
 struct SynchronizedResourceMap {
 	using Map_t = std::unordered_map < string, T > ;
@@ -118,7 +113,6 @@ public:
 
 	DataClasses::MapPtr GetMap(const string& Name);
 	DataClasses::FontPtr GetFont(const string &Name);
-	Object* LoadObject(const string& Name, ::Core::GameScene *Owner);
 	DataClasses::ModelPtr GetModel(const string& Name);
 
 	const string& GetString(const string &Id, const string& TableName);
@@ -150,7 +144,6 @@ private:
 	RuntimeConfiguration m_Configuration;
 
 	SynchronizedResourceMap<FontResPtr> m_Fonts;
-	SynchronizedResourceMap<PredefObjectMeta> m_PredefObjects;
 	SynchronizedResourceMap<ModelResPtr> m_Models;
 	
 	std::unordered_map<string, MapResPtr> m_Maps;

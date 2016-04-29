@@ -7,8 +7,8 @@
 
 #include "DataManager.h"
 #include "Scripts/nScripts.h"
-#include "Scene/nScene.h"
 #include "Objects/nObjects.h"
+#include "Scene/nScene.h"
 #include "Camera/nCamera.h"
 
 #include "Engine.h"

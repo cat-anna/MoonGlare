@@ -19,8 +19,6 @@ public:
 	GameScene();
 	virtual ~GameScene();
 
-	using Objecy = ::Core::Objects::Object;
-
 	virtual int InvokeOnTimer(int TimerID) override;
 	virtual int InvokeOnEscape() override;
 	virtual int InvokeOnBeginScene() override;
@@ -38,30 +36,35 @@ public:
 
 	void AddLightSource(::Core::Objects::iLightSource *ptr);
 	void RemoveLightSource(::Core::Objects::iLightSource *ptr);
-	Object* CreateObject(const string& TypeName, const string& Name = "");
+	Object* CreateObject(const string& TypeName, Handle Parent, const string& Name = "");
 
 	Object* SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position);
 	Object* SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos);
+	Object* SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent);
+	Object* SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent);
 
-	Object* GetObjectByName(const string& Name);
-	const Objects::ObjectList& GetObjectsByName(const string& Name);
-	const Objects::ObjectList& GetObjectsByType(const string& Type);
+//	Object* GetObjectByName(const string& Name);
+//	const Objects::ObjectList& GetObjectsByName(const string& Name);
+//	const Objects::ObjectList& GetObjectsByType(const string& Type);
 
-	void ObjectDied(::Core::Objects::Object *object);
+	void ObjectDied(Handle h);
 
 	const DataClasses::MapPtr& GetMapInstance() const { return m_MapData; }
+
+	Objects::ObjectRegister* GetObjectRegister() { return &m_Objects; }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 //old
 protected:
 	string m_MapName;
 	DataClasses::MapPtr m_MapData;
-	std::unique_ptr<Objects::ObjectRegister> m_Objects;
-	std::list<Object*> m_DeadList;
+	Objects::ObjectRegister m_Objects;
+	std::list<Handle> m_DeadList;
 
 	Physics::PhysicEnginePtr m_Physics;
 	Graphic::Environment *m_Environment;
 	Graphic::Light::LightConfiguration m_LightConfiguration;
+	Handle m_PlayerHandle;
 
 	virtual bool DoInitialize() override;
 	virtual bool DoFinalize() override;

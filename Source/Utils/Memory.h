@@ -152,6 +152,13 @@ struct DynamicMessageBuffer {
 
 	DynamicMessageBuffer() : m_UsedSize(0), m_PullLocation(0) { Clear(); }
 
+	void CloneFrom(const DynamicMessageBuffer& other) {
+		LockPolicy::Guard_t lock(m_Lock);
+		LockPolicy::Guard_t lock2(other.m_Lock);
+		m_UsedSize = other.m_UsedSize;
+		m_PullLocation = other.m_PullLocation;
+		memcpy(m_Buffer, other.m_Buffer, Size);
+	}
 	
 	void Fill(char value) {
 		LockPolicy::Guard_t lock(m_Lock);
@@ -250,9 +257,8 @@ struct DynamicMessageBuffer {
 		Pull<T>();
 		return t;
 	}
-
 private:
-	LockPolicy m_Lock;
+	mutable LockPolicy m_Lock;
 	size_t m_UsedSize;
 	size_t m_PullLocation;
 	char m_Buffer[Size];

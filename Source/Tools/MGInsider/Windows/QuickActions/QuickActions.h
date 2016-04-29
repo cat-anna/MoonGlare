@@ -1,19 +1,18 @@
 #ifndef QuickActions_H
 #define QuickActions_H
 
-#include <SubWindow.h>
-
-class SubWindow;
-class LuaWindow;
-class ResourceBrowser;
+#include <DockWindow.h>
 
 namespace Ui { class QuickActions; }
 
-class QuickActions : public SubWindow {
+class QuickActions : public DockWindow {
 	Q_OBJECT
 public:
 	QuickActions(QWidget *parent = 0);
 	~QuickActions();
+
+	virtual bool DoSaveSettings(pugi::xml_node node) const override;
+	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 protected:
 private:
 	Ui::QuickActions *ui;

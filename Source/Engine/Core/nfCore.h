@@ -35,7 +35,9 @@ struct MoveConfig {
 
 	mutable ::Core::ciScene *Scene = nullptr;
 	mutable Graphic::VirtualCamera *Camera = nullptr;
-	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
+	
+//	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
+	mutable std::vector<std::pair<math::mat4, ::DataClasses::ModelPtr>> RenderList;
 };
 
 }//namespace Core

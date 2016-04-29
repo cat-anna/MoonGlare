@@ -93,13 +93,6 @@ bool SimpleMap::LoadMeta() {
 	LoadEvents(MapData);
 	LoadEnvironment(MapData);
 
-	try {
-		if (!LoadStaticModel()) throw false;
-	} 
-	catch (...) {
-		AddLog(Error, "Unable to load static model!");
-		return false;
-	}
 
 	if (InvokeAfterLoad() != 0) 
 		return false;
@@ -113,14 +106,20 @@ bool SimpleMap::LoadMapObjects(::Core::Objects::ObjectRegister& where) {
 	return where.LoadObjects(node.child("Objects"), GetOwnerScene());
 }
 
-::Core::Objects::Object* SimpleMap::LoadMapObject() {
+std::unique_ptr<Object> SimpleMap::LoadMapObject() {
 	if (!IsLoaded() && !LoadMeta()) return 0;		
-	return m_MapObject.get();
+	try {
+		return LoadStaticModel();
+	}
+	catch (...) {
+		AddLog(Error, "Unable to load static model!");
+	}
+	return nullptr;
 }
 
 //----------------------------------------------------------------
 
-bool SimpleMap::LoadStaticModel() {
+std::unique_ptr<Object> SimpleMap::LoadStaticModel() {
 	StaticModelLoader loader(convert(m_UnitSize));
 
 	auto reader = GetDataReader();
@@ -140,15 +139,15 @@ bool SimpleMap::LoadStaticModel() {
 
 	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), DataPath::Maps));
 
-	m_MapObject = std::make_unique<::Core::Objects::Object>(GetOwnerScene());
-	m_MapObject->SetName(GetName());
-	m_MapObject->GetModelInstance().SetModel(m_MapModel);
-//	m_MapObject->GetModelInstance().GetPhysicalSettings(m_MapObject.get());
-	m_MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
-	m_MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
-	m_MapObject->SetMass(0);
+	auto MapObject = std::make_unique<::Core::Objects::Object>();
+	MapObject->SetOwnerScene(GetOwnerScene());
+	MapObject->SetName(GetName());
+	MapObject->SetModel(m_MapModel);
+	MapObject->GetCollisionMask().Set(Physics::BodyClass::Map);
+	MapObject->GetCollisionMask().Set(Physics::GroupMask::Map);
+	MapObject->SetMass(0);
 	AddLog(Debug, "Finished generating simple map model of name " << GetName());
-	return true;
+	return std::move(MapObject);
 }
 
 //----------------------------------------------------------------

@@ -9,6 +9,7 @@ namespace InsiderApi {
 
 #pragma warning ( push )
 #pragma warning ( disable: 4200 )
+#pragma pack( push, 1 )
 
 using u32 = unsigned __int32;
 using u16 = unsigned __int16;
@@ -40,6 +41,7 @@ enum class MessageTypes : u32 {
 //Errors
 	UnknownError							= BidirectionalBase + GroupDelta,
 	NotSupported,							//message is not supported
+	NotPossibleInCurrentState,				//try later or on different scene or ...
 
 //to engine
 	EngineReciver							= BidirectionalBase + DirectionDelta,	
@@ -57,6 +59,7 @@ enum class MessageTypes : u32 {
 	EnumerateLua,							//payload is PayLoad_EnumerateRequest
 	EnumerateAudio,							//no payload
 	EnumerateMemory,						//no payload
+	EnumerateObjects,						//no payload
 
 //from engine
 	EngineSender							= EngineReciver + DirectionDelta,
@@ -72,9 +75,9 @@ enum class MessageTypes : u32 {
 	FolderContentList,						// Folder content
 	LuaElementList,
 	AudioList,								//payload is PayLoad_AudioListItem
-	MemoryStatus,							//PayLoad_MemoryStatus
+	ObjectList,								//PayLoad_ObjectInfo
+	MemoryStatusList,						//PayLoad_MemoryStatus
 	
-
 	//Notification about something
 	EngineNotificationBase					= EngineListOutputBase + GroupDelta,	
 	NotificationSettingsChanged,			//PayLoad_NotificationSettingsChanged
@@ -230,6 +233,16 @@ struct PayLoad_MemoryStatus {
 	u8 Name[0];
 };
 
+struct PayLoad_ObjectInfo {
+	Handle ObjectHandle;
+	Handle ParentHandle;
+	float Position[3];
+	float Quaternion[4];
+	u16 NameLen;
+	u8 Name[0];
+};
+
+#pragma pack( pop )
 #pragma warning ( pop )
 
 } //namespace InsiderApi

@@ -3,10 +3,25 @@
 #include "ui_QuickActions.h"
 #include "QuickActions.h"
 #include "QuickActionEditor.h"
+#include <DockWindowInfo.h>
+
+struct QuickActionsInfo : public DockWindowInfo {
+	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+		return std::make_shared<QuickActions>(parent);
+	}
+
+	QuickActionsInfo() {
+		SetSettingID("QuickActionsInfo");
+		SetDisplayName(tr("Quick actions"));
+		SetShortcut("F5");
+	}
+};
+DockWindowClassRgister::Register<QuickActionsInfo> QuickActionsInfoReg("QuickActions");
 
 QuickActions::QuickActions(QWidget *parent)
-	: SubWindow(parent)
+	: DockWindow(parent)
 {
+	SetSettingID("QuickActions");
 	ui = new Ui::QuickActions();
 	ui->setupUi(this);
 
@@ -26,15 +41,22 @@ QuickActions::QuickActions(QWidget *parent)
 	connect(ui->actionModify_quick_action, SIGNAL(triggered()), SLOT(ModifyAction()));
 	connect(ui->actionExecute_quick_action, SIGNAL(triggered()), SLOT(ExecuteAction()));
 
-	auto &settings = mgdtSettings::get();
-	settings.Window.QuickActions.Apply(this);
 	RefreshView();
 }
 
 QuickActions::~QuickActions() {
 	auto &settings = mgdtSettings::get();
-	settings.Window.QuickActions.Store(this);
 	delete ui;
+}
+
+bool QuickActions::DoSaveSettings(pugi::xml_node node) const {
+	DockWindow::DoSaveSettings(node);
+	return true;
+}
+
+bool QuickActions::DoLoadSettings(const pugi::xml_node node) {
+	DockWindow::DoLoadSettings(node);
+	return true;
 }
 
 //-----------------------------------------

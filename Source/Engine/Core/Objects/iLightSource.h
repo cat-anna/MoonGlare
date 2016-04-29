@@ -21,7 +21,6 @@ public:
 
 	static iLightSourcePtr LoadLightSource(Object *Owner, xml_node node);
 
-	virtual void DoMove(const MoveConfig& conf);///Perform per frame updates
 	virtual void Update(); ///Perform PreRender updates
 
 	virtual bool LoadMeta(const xml_node node);

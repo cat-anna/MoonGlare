@@ -19,10 +19,10 @@ public:
 	~PointLightSource() { }
 
 	void Update() override {
-		m_light.Position = convert(GetOwner()->GetPosition()) + m_PositionDelta;
+		auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
+		m_light.Position = math::vec3(mat[3]);
 	}
 	bool LoadMeta(const xml_node node) override { 
-		XML::Vector::Read(node, "PositionDelta", m_PositionDelta);
 		return m_light.LoadMeta(node); 
 	}
 	bool Initialize() override { 
@@ -31,22 +31,15 @@ public:
 		return BaseClass::Initialize(); 
 	}
 
-	void SetPosition(const math::vec3 &d) { m_PositionDelta = d; }
-	const math::vec3& GetPosition() const { return m_PositionDelta; }
-	void SetPosition3f(float r, float g, float b) { m_light.Position = math::vec3(r, g, b); }
-
 	Graphic::Light::LightAttenuation* GetAttenuation() { return &m_light.Attenuation; }
 
 	static void RegisterScriptApi(ApiInitializer &api){
 		api
 		.deriveClass<ThisClass, BaseClass>("cPointLightSource")
-			.addData("Position", &ThisClass::m_PositionDelta)
-			.addFunction("SetPosition", &ThisClass::SetPosition3f)
 			.addFunction("GetAttenuation", &ThisClass::GetAttenuation)
 		.endClass();
 	}	
 protected:
-	math::vec3 m_PositionDelta{0, 0, 0};
 	Graphic::Light::PointLight m_light;
 };
 
@@ -101,18 +94,15 @@ public:
 	~SpotLightSource() {}
 
 	void Update() override {
-		m_light.Position = convert(GetOwner()->GetPosition()) + m_PositionDelta;
-		
-		math::mat4 matrix;
-		GetOwner()->GetMotionState().GetGLMatrix(matrix);
+		auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
 
-		m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * matrix) * -1.0f;
-		//m_light.Position[1] += 0.5f;
+		m_light.Position = math::vec3(mat[3]);
+		
+		m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * mat) * -1.0f;
 		m_light.RecalculateMatrices();
 	}
 
 	bool LoadMeta(const xml_node node) override { 
-		XML::Vector::Read(node, "PositionDelta", m_PositionDelta);
 		XML::Vector::Read(node, "DirectionDelta", m_DirectionDelta);
 		return m_light.LoadMeta(node); 
 	}
@@ -122,8 +112,6 @@ public:
 		return BaseClass::Initialize(); 
 	}
 
-	void SetPosition(const math::vec3 &d) { m_PositionDelta = d; }
-	const math::vec3& GetPosition() const { return m_PositionDelta; }
 	void SetDirection(const math::vec3 &d) { m_DirectionDelta = d; }
 	const math::vec3& GetDirection() const { return m_DirectionDelta; }
 	void SetDirection3f(float r, float g, float b) { m_light.Direction = math::vec3(r, g, b); }
@@ -137,7 +125,6 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api){
 		api
 		.deriveClass<ThisClass, BaseClass>("cSpotLightSource")
-			.addData("Position", &ThisClass::m_PositionDelta)
 			.addProperty("Direction", &ThisClass::GetDirection, &ThisClass::SetDirection)
 			.addFunction("GetAttenuation", &ThisClass::GetAttenuation)
 			.addFunction("SetDirection", &ThisClass::SetDirection3f)
@@ -146,7 +133,6 @@ public:
 		.endClass();
 	}
 protected:
-	math::vec3 m_PositionDelta{ 0, 0, 0 };
 	math::vec3 m_DirectionDelta{ 0, 0, 0 };
 	Graphic::Light::SpotLight m_light;
 };
@@ -229,10 +215,6 @@ bool iLightSource::Finalize() {
 }
 
 //---------------------------------------------------------------------------------------
-
-void iLightSource::DoMove(const MoveConfig& conf) {
-	//nothing here
-}
 
 void iLightSource::Update() {
 	//nothing here

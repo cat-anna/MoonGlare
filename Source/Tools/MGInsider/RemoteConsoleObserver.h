@@ -58,7 +58,7 @@ protected:
 private:
 	InsiderApi::u32 m_RequestId;
 	InsiderApi::MessageTypes m_MessageType;
-	static InsiderApi::u32 _RequestCounter;
+	static std::atomic<InsiderApi::u32> s_RequestCounter;
 	std::unique_ptr<QTimer> m_Timer;
 private slots:
 	void Expired();
@@ -82,11 +82,20 @@ private:
 struct RemoteConsoleRequestQueue {
 	using SharedLuaStateRequest = std::shared_ptr < RemoteConsoleObserver >;
 
+	RemoteConsoleRequestQueue();
+	~RemoteConsoleRequestQueue();
+
 	void CancelRequests();
 	void RequestFinished(RemoteConsoleObserver *sender);
 	void QueueRequest(SharedLuaStateRequest request);
+
+	void SetQueueName(const std::string &Name);
 private:
 	std::list<SharedLuaStateRequest> m_RequestList;
+	SharedLuaStateRequest m_CurrentRequest;
+	std::string m_QueueName;
+
+	void Process();
 };
 
 #endif

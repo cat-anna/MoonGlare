@@ -16,7 +16,7 @@ shader VSmain(in vec3 Pos : 0, in vec3 Color : 3, out VSOutput VSout) {
 };
 
 shader FSmain(in VSOutput FSin, out vec4 FragColor) {
-	WorldPosOut = FSin.VertexPosition.xyz;
+	//WorldPosOut = FSin.VertexPosition.xyz;
 	FragColor = vec4( Material.BackColor, 1.0);
 };
 

@@ -85,6 +85,8 @@ LuaGlobalStateWidget::LuaGlobalStateWidget(QWidget *parent)
 	//connect(ui.ButtonRefresh, SIGNAL(clicked(bool)), SLOT(Refresh()));
 	ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+	SetQueueName("Lua state list");
+
 	ResetTreeView();
 }
 

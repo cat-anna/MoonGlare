@@ -12,7 +12,7 @@
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
-#include "MoonGlareInisderApi.h"
+#include <Shared/MoonGlareInsider/Api.h>
 
 namespace MoonGlare {
 namespace Debug {
@@ -60,6 +60,7 @@ private:
 	bool Ping(InsiderMessageBuffer& buffer);
 	bool EnumerateAudio(InsiderMessageBuffer& buffer);
 	bool EnumerateMemory(InsiderMessageBuffer& buffer);
+	bool EnumerateObjects(InsiderMessageBuffer& buffer);
 }; 
 
 } //namespace Insider

@@ -107,7 +107,8 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 #ifdef DEBUG_INTERFACE
 	case MessageTypes::EnumerateMemory: return EnumerateMemory(buffer);
 #endif
-	case MessageTypes::SetScriptCode: return SetScriptCode(buffer); 
+	case MessageTypes::EnumerateObjects: return EnumerateObjects(buffer);
+	case MessageTypes::SetScriptCode: return SetScriptCode(buffer);
 	case MessageTypes::GetScriptCode: return GetScriptCode(buffer);
 	case MessageTypes::InfoRequest: return InfoRequest(buffer);
 	case MessageTypes::Ping: return Ping(buffer);
@@ -142,6 +143,8 @@ void Insider::SendInsiderMessage(InsiderMessageBuffer& buffer) {
 }
 
 void Insider::ThreadEntry() {
+	std::this_thread::sleep_for(std::chrono::seconds(2));//let the engine start
+
 	OrbitLogger::ThreadInfo::SetName("INSI", true);
 	AddLog(Info, "Insider thread started");
 	EnableScriptsInThisThread();
@@ -175,7 +178,9 @@ void Insider::ThreadEntry() {
 			PerformanceCounter_inc(BytesSend, sendb);
 		}
 	}
-	catch (...) { }
+	catch (...) { 
+		AddLogf(Error, "Insider thread failed");
+	}
 }
 
 //----------------------------------------------------------------
@@ -270,7 +275,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 	std::string name = buffer.PullString();
 	std::string data = buffer.PullString();
 
-	bool saveFile = request->OverwriteContainerFile > 0;
+//	bool saveFile = request->OverwriteContainerFile > 0;
 
 	::Core::GetScriptEngine()->SetCode(name, data);
 
@@ -376,7 +381,40 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 		buffer.PushString(info->Name);
 	}
 	list->Count = count;
-	hdr->MessageType = MessageTypes::MemoryStatus;
+	hdr->MessageType = MessageTypes::MemoryStatusList;
+	return true;
+}
+
+bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
+	buffer.Clear();
+	auto *hdr = buffer.GetHeader();
+
+	auto rawscene = ::Core::GetEngine()->GetCurrentScene();
+	auto scene = dynamic_cast<::Core::Scene::GameScene*>(rawscene);
+	if (!scene) {
+		hdr->MessageType = MessageTypes::NotPossibleInCurrentState;
+		AddLogf(Insider, "Enumerating objects is not supported by current scene");
+		return true;
+	}
+
+	auto *list = buffer.AllocAndZero<PayLoad_ListBase>();
+	auto oreg = scene->GetObjectRegister();
+	list->Count = oreg->size();
+
+	for (auto it = oreg->begin(), jt = oreg->end(); it != jt; ++it) {
+		auto obj = it->get();
+
+		auto info = buffer.AllocAndZero<PayLoad_ObjectInfo>();
+		buffer.PushString(obj->GetName());
+		info->ObjectHandle = obj->GetSelfHandle();
+		info->ParentHandle = oreg->GetParentHandle(info->ObjectHandle);
+		*((::math::fvec3*)info->Position) = convert(obj->GetPosition());
+		auto q = obj->GetQuaternion();
+		*((::math::fvec4*)info->Quaternion) = math::fvec4(q[0], q[1], q[2], q[3]);
+		info->NameLen = obj->GetName().length();
+	}
+
+	hdr->MessageType = MessageTypes::ObjectList;
 	return true;
 }
 

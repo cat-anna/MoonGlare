@@ -1,102 +1,14 @@
 #include PCH_HEADER
+#include <QSettings>
 #include "mgdtSettings.h"
 #include "MainForm.h"
 #include "ui_MainForm.h"
+#include "DockWindow.h"
 
 #include "LuaEditor/LuaWindow.h"
 #include "ResourceEditor/ResourceBrowser.h"
-#include "QuickActions/QuickActions.h"
 #include "LogWindow/LogWindow.h"
 
-class EngineInfoRequest : public RemoteConsoleObserver {
-public:
-	EngineInfoRequest(RemoteConsoleRequestQueue *Queue): RemoteConsoleObserver(InsiderApi::MessageTypes::InfoRequest, Queue) {
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineVersion, "");
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineExeName, "");
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineBuildDate, "");
-	}
-
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override { };
-
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		if(m_Queue)
-			m_Queue->RequestFinished(this);
-		//auto *hdr = 
-			message.GetAndPull<InsiderApi::PayLoad_InfoResponse>();
-
-		auto ver = message.PullString();
-		auto exen = message.PullString();
-		auto buildd = message.PullString();
-
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineVersion, ver);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineExeName, exen);
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineBuildDate, buildd);
-
-		return HanderStatus::Remove;
-	};
-private:
-};
-
-class EnginePingPong : public RemoteConsoleObserver {
-public:
-	enum class EngineState {
-		Unknown, Active, Broken,
-	};
-
-	EnginePingPong(RemoteConsoleRequestQueue *Queue): RemoteConsoleObserver(InsiderApi::MessageTypes::Ping, Queue) {
-	}
-
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
-	};
-
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		m_Queue->RequestFinished(this);
-		ChangeState(EngineState::Active);
-
-		auto sthis = shared_from_this();
-		QTimer::singleShot(m_Timeout, [sthis, this]() {
-			m_Queue->QueueRequest(sthis);
-		});
-
-		return HanderStatus::Remove;
-	};
-
-	virtual void OnSend() override  {
-		RemoteConsoleObserver::OnSend();
-		m_SendTime = std::chrono::steady_clock::now();
-	}
-	virtual void OnRecive() override {
-		RemoteConsoleObserver::OnRecive();
-		auto t = std::chrono::steady_clock::now();
-		std::chrono::duration<double> sec = t - m_SendTime;
-		char buf[64];
-		sprintf_s(buf, "%d ms", static_cast<int>(sec.count() * 1000));
-		MainForm::Get()->EngineStateValueChanged(EngineStateValue::EnginePing, buf);
-	}
-
-	virtual TimeOutAction TimedOut() override {
-		ChangeState(EngineState::Broken);
-		return TimeOutAction::Resend;
-	}
-
-	void ChangeState(EngineState val) {
-		if (m_EngineState == val)
-			return;
-		m_EngineState = val;
-
-		if (m_EngineState == EngineState::Active) {
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineState, "Active", ":/mgdt/icons/blue_ok.png");
-			m_Queue->QueueRequest(std::make_shared<EngineInfoRequest>(m_Queue));
-		} else {
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EngineState, "Broken", ":/mgdt/icons/red_flag.png");
-			m_Queue->QueueRequest(std::make_shared<EngineInfoRequest>(nullptr));
-			MainForm::Get()->EngineStateValueChanged(EngineStateValue::EnginePing, "");
-		}
-	}
-private:
-	std::chrono::steady_clock::time_point m_SendTime;
-	EngineState m_EngineState = EngineState::Unknown;
-};
 
 //-----------------------------------------
 //-----------------------------------------
@@ -114,26 +26,39 @@ MainForm::MainForm(QWidget *parent)
 
 	connect(ui->actionScript_editor, SIGNAL(triggered()), SLOT(ShowScriptEditor()));
 	connect(ui->actionBrowse_resources, SIGNAL(triggered()), SLOT(ShowResourceBrowser()));
-	connect(ui->actionShow_quick_actions, SIGNAL(triggered()), SLOT(ShowQuickActions()));
 	connect(ui->actionShow_logs, SIGNAL(triggered()), SLOT(ShowLogWindow()));
 
 	auto &settings = mgdtSettings::get();
 	settings.Window.MainForm.Apply(this);
 
-	m_StateModelView = std::make_unique<QStandardItemModel>();
-	m_StateModelView->setHorizontalHeaderItem(0, new QStandardItem("Parameter"));
-	m_StateModelView->setHorizontalHeaderItem(1, new QStandardItem("Value"));
+	m_DockWindows.reserve(256);//because why not
+	DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
+		auto ptr = ci.SharedCreate();
+		m_DockWindows.push_back(ptr);
 
-	ui->treeViewState->setModel(m_StateModelView.get());
-	ui->treeViewState->setSelectionMode(QAbstractItemView::SingleSelection);
+		ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
+		AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
 
-	ui->treeViewState->setColumnWidth(0, 150);
-	ui->treeViewState->setColumnWidth(1, 100);
+		ptr->LoadSettings();
+	});
 
-	QueueRequest(std::make_shared<EnginePingPong>(this));
+
+	{
+		QSettings settings("S.ini", QSettings::IniFormat);
+		restoreState(settings.value("MainWindow/State").toByteArray());
+		restoreGeometry(settings.value("MainWindow/Geometry").toByteArray());
+	}
 }
 
 MainForm::~MainForm() {
+	{
+		QSettings settings("S.ini", QSettings::IniFormat);
+		settings.setValue("MainWindow/State", saveState());
+		settings.setValue("MainWindow/Geometry", saveGeometry());
+	}
+	for (auto &it : m_DockWindows)
+		it->SaveSettings();
+	m_DockWindows.clear();
 	auto &settings = mgdtSettings::get();
 	settings.Window.MainForm.Store(this);
 	delete ui;
@@ -155,8 +80,6 @@ void MainForm::showEvent(QShowEvent * event) {
 			ShowScriptEditor();
 		if (settings.Window.ResourceBrowser.Opened)
 			ShowResourceBrowser();
-		if (settings.Window.QuickActions.Opened)
-			ShowQuickActions();
 		ShowResourceBrowser();
 		if (settings.Window.LogWindow.Opened)
 			ShowLogWindow();
@@ -168,7 +91,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 
 	bool LuaEditor = m_LuaEditor.get() != nullptr;
 	bool ResEditor = m_ResourceBrowser.get() != nullptr;
-	bool qactions = m_QuickActions.get() != nullptr;
 	bool logwindow = m_LogWindow.get() != nullptr;
 
 	if (m_LuaEditor) 
@@ -179,10 +101,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 		if (!m_ResourceBrowser->close())
 			return;
 
-	if (m_QuickActions)
-		if (!m_QuickActions->close())
-			return;
-
 	if (m_LogWindow)
 		if (!m_LogWindow->close())
 			return;
@@ -190,7 +108,6 @@ void MainForm::closeEvent(QCloseEvent * event) {
 	auto &settings = mgdtSettings::get();
 	settings.Window.LuaEditor.Opened = LuaEditor;
 	settings.Window.ResourceBrowser.Opened = ResEditor;
-	settings.Window.QuickActions.Opened = qactions;
 	settings.Window.LogWindow.Opened = logwindow;
 
 	event->accept();
@@ -222,19 +139,6 @@ void MainForm::ShowScriptEditor() {
 
 void MainForm::ScriptEditorClosed() {
 	m_LuaEditor.reset();
-}
-
-void MainForm::ShowQuickActions() { 
-	if (!m_QuickActions) {
-		m_QuickActions = std::make_unique<QuickActions>(nullptr);
-		connect(m_QuickActions.get(), SIGNAL(WindowClosed()), SLOT(ScriptEditorClosed()));
-	}
-	m_QuickActions->show();
-	m_QuickActions->activateWindow();
-}
-
-void MainForm::QuickActionsClosed()	{ 
-	m_QuickActions.reset();
 }
 
 void MainForm::ShowLogWindow() {

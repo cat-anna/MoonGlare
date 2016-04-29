@@ -28,7 +28,7 @@ namespace XML {
 typedef const char *xml_string;
 
 namespace Captions {
-	static const xml_string XYZ[]  ={ "X", "Y", "Z", 0, };
+	static const xml_string XYZ[]  ={ "X", "Y", "Z", "W", };
 	static const xml_string UVW[]  ={ "U", "V", "W", 0, };
 	static const xml_string RGBA[] = { "R", "G", "B", "A", 0 };
 };
@@ -158,6 +158,9 @@ struct Vector : public XML_Common {
 		return Read_template<unsigned, uvec2, 2>(parent, Name, out, default, captions);
 	}
 
+	static bool Read(pugi::xml_node parent, xml_string Name, math::vec4 &out, const math::vec4 &default = math::vec4(), const xml_string captions[] = Captions::XYZ) {
+		return Read_template<float, math::vec4, 4>(parent, Name, out, default, captions);
+	}
 	static bool Read(pugi::xml_node parent, xml_string Name, math::vec3 &out, const math::vec3 &default = math::vec3(), const xml_string captions[] = Captions::XYZ) {
 		return Read_template<float, math::vec3, 3>(parent, Name, out, default, captions);
 	}

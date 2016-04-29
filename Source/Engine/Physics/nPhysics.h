@@ -11,7 +11,6 @@ namespace Physics {
 
 #include "Collision.h"
 
-#include "MotionState.h"
 #include "Material.h"
 #include "Shape.h"
 

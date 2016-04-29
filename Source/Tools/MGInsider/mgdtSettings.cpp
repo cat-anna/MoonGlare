@@ -146,6 +146,9 @@ mgdtSettings::mgdtSettings() {
 	DefaultSetter setter;
 	setter.Group(*this, "");
 
+	m_SettingsDoc = std::make_unique<pugi::xml_document>();
+	m_SettingsDoc->load_file("Settings.MGInsider.xml");
+	
 	Load();
 }
 
@@ -162,19 +165,56 @@ mgdtSettings& mgdtSettings::get() {
 //-----------------------------------------
 
 void mgdtSettings::Load() {
-	pugi::xml_document xml;
-	xml.load_file("Settings.MGInsider.xml");
-	auto node = xml.document_element();
-	PugiReaderSerializer reader(node.child("Settings"));
+	PugiReaderSerializer reader(StaticSettingsRoot());
 	Serialize(reader);
 }
 
 void mgdtSettings::Save() {
-	pugi::xml_document xml;
-	auto root = xml.append_child("Settings");
-	PugiWritterSerializer writter(root.append_child("Settings"));
+	{
+		auto root = StaticSettingsRoot();
+		root.parent().remove_child(root);
+	}
+	PugiWritterSerializer writter(StaticSettingsRoot());
 	Serialize(writter);
-	xml.save_file("Settings.MGInsider.xml");
+	m_SettingsDoc->save_file("Settings.MGInsider.xml");
+}
+
+void mgdtSettings::SaveSettings(iSettingsUser *user) {
+	auto &group = user->GetSettingID();
+	auto root = DynamicSettingsRoot();
+	auto child = root.child(group.c_str());
+	if (!child) {
+		child = root.append_child(group.c_str());
+	}
+	user->DoSaveSettings(child);
+}
+
+void mgdtSettings::LoadSettings(iSettingsUser *user) {
+	user->DoLoadSettings(DynamicSettingsRoot().child(user->GetSettingID().c_str()));
+}
+
+pugi::xml_node mgdtSettings::StaticSettingsRoot() {
+	auto root = m_SettingsDoc->document_element();
+	if (!root) {
+		root = m_SettingsDoc->append_child("Settings");
+	}
+	auto Static = root.child("Settings");
+	if (!Static) {
+		Static = root.append_child("Settings");
+	}
+	return Static;
+}
+
+pugi::xml_node mgdtSettings::DynamicSettingsRoot() {
+	auto root = m_SettingsDoc->document_element();
+	if (!root) {
+		root = m_SettingsDoc->append_child("Settings");
+	}
+	auto dynamic = root.child("Dynamic");
+	if (!dynamic) {
+		dynamic = root.append_child("Dynamic");
+	}
+	return dynamic;
 }
 
 //-----------------------------------------
@@ -218,4 +258,14 @@ void mgdtSettings::Window_t::WindowPosition_t::Store(QWidget *window) {
 	PosY = pos.y();
 	Width = pos.width();
 	Height = pos.height();
+}
+
+//-----------------------------------------
+
+void iSettingsUser::SaveSettings() {
+	GetSettings().SaveSettings(this);
+}
+
+void iSettingsUser::LoadSettings() {
+	GetSettings().LoadSettings(this);
 }

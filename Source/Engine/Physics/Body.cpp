@@ -16,8 +16,9 @@ Body::Body(Object* Owner, SharedShape ss):
 		m_Shape(),
 		m_ptr(),
 		m_Owner(Owner),
-		m_World(0) {  
-	m_ptr.reset(new btRigidBody(1.0f, &Owner->GetMotionState(), nullptr));
+		m_World(0),
+		m_CenterOfMass(Quaternion(0, 0, 0)){  
+	m_ptr.reset(new btRigidBody(1.0f, this, nullptr));
 
 	if (m_Mass > 0.0f)
 		m_ptr->forceActivationState(DISABLE_DEACTIVATION);
@@ -81,6 +82,17 @@ void Body::SetPhysicalProperties(const PhysicalProperties& phprop) {
 	m_ptr->setDamping(phprop.Damping.Linear, phprop.Damping.Angular);
 	m_ptr->setRestitution(phprop.Restitution);
 	m_ptr->setFriction(phprop.Friction);
+}
+
+///synchronizes world transform from user to physics
+void Body::getWorldTransform(btTransform& centerOfMassWorldTrans) const {
+	centerOfMassWorldTrans = m_Owner->GetPositionTransform() * m_CenterOfMass.inverse();
+}
+
+///synchronizes world transform from physics to user
+///Bullet only calls the update of worldtransform for active objects
+void Body::setWorldTransform(const btTransform& centerOfMassWorldTrans) {
+	m_Owner->SetPositionTransform(centerOfMassWorldTrans * m_CenterOfMass);
 }
 
 } //namespace Physics 

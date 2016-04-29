@@ -1,10 +1,11 @@
-#pragma once
+#pragma once	
 
 #include <Config/pch_common.h>
 
 #pragma warning (disable: 4251)
 
 #pragma warning (push, 0)
+
 #include <qapplication.h>
 #include <qobject.h>
 #include <QtWidgets/QMainWindow>
@@ -16,8 +17,9 @@
 #include <qfileinfo.h>
 #include <QTabWidget.h>
 #include <qboxlayout.h>
+#include <QtWidgets/QDockWidget>
 #include <QTextBlock>
-#include <QStandardItemModel.h>
+#include <QStandardItemModel>
 #include <qmessagebox.h>
 #include <qmenu.h>
 #include <QVariant>
@@ -33,6 +35,10 @@
 #include <qinputdialog.h>
 #include <qclipboard.h>
 #include <QThread>
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm/glm.hpp>
+
 #pragma warning ( pop )
 
 #include <OrbitLogger/OrbitLogger.h>
@@ -51,3 +57,8 @@
 #include <GabiLib/src/utils/EnumConverter.h>
 #include <GabiLib/src/rtti/RTTI.h>
 #include <GabiLib/src/rtti/DynamicClassRegister.h>
+
+#include <libSpace/src/Memory/Handle.h>
+#include <Engine/Configuration.h>
+
+Q_DECLARE_METATYPE(MoonGlare::Handle);
