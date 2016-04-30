@@ -24,8 +24,6 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	void DoMove(const MoveConfig &conf);
-
 	void DropDead();
 
 	bool LoadPattern(const xml_node node);
@@ -80,6 +78,7 @@ public:
 	DefineREADAcces(PatternName, string);
 	iLightSource* GetLightSource() { return m_LightSource.get(); }
 	float GetScale() const { return m_Scale; }
+	float GetEffectiveScale() const { return m_EffectiveScale; }
 	using BaseClass::SetName;
 
 	DefineDirectSetGet(Visible, bool);
@@ -105,7 +104,7 @@ protected:
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
 	Physics::vec3 m_LookDirection; /** Look direction of object */
-	float m_Mass, m_Scale;
+	float m_Mass, m_Scale, m_EffectiveScale;
 	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
 	virtual void InternalInfo(std::ostringstream &buff) const;

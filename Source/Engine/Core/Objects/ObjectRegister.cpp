@@ -270,8 +270,6 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 		auto obj = m_Memory->m_ObjectPtr[i].get();
 
-		obj->DoMove(conf);
-
 		auto &gm = m_Memory->m_GlobalMatrix[i];
 		auto &lm = m_Memory->m_LocalMatrix[i];
 
@@ -285,13 +283,12 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			l->Update();
 		}
 
-		float scale = obj->GetScale();
-		auto sgm = gm;
-		sgm[0] *= scale;
-		sgm[1] *= scale;
-		sgm[2] *= scale;
-
 		if (obj->GetVisible() && obj->GetModel()) {
+			float scale = obj->GetEffectiveScale();
+			auto sgm = gm;
+			sgm[0] *= scale;
+			sgm[1] *= scale;
+			sgm[2] *= scale;
 			conf.RenderList.push_back(std::make_pair(sgm, obj->GetModel()));
 		}
 	}

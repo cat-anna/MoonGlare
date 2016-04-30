@@ -19,6 +19,7 @@ Object::Object():
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
 		m_Scale(1.0f),
+		m_EffectiveScale(1.0f),
 		m_OwnerRegister(nullptr),
 		m_BodyAngularFactor(1, 1, 1),
 		m_PositionTransform(Physics::Quaternion(0,0,0)) {
@@ -124,10 +125,6 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 
 //---------------------------------------------------------------------------------------
 
-void Object::DoMove(const MoveConfig &conf) {
-
-}
-
 void Object::DropDead(){
 	if(IsDead()) return;
 	if (InvokeOnDropDead() == 0) {
@@ -150,8 +147,15 @@ bool Object::LoadPattern(const xml_node node) {
 	}
 	m_ScriptHandlers->LoadFromXML(node);
 
-	m_Scale = node.child("Scale").attribute("Value").as_float(1);
+	m_Scale = m_EffectiveScale = node.child("Scale").attribute("Value").as_float(1);
 	m_Mass = node.child("Mass").attribute("Value").as_float(0);
+
+	if (m_OwnerRegister) {
+		auto ParentH = m_OwnerRegister->GetParentHandle(GetSelfHandle());
+		auto Parent = m_OwnerRegister->Get(ParentH);
+		if (Parent)
+			m_EffectiveScale *= Parent->GetEffectiveScale();
+	}
 
 	xml_node Model = node.child("Model");
 	if (Model) {
