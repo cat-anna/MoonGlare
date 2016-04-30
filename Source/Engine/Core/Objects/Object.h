@@ -24,8 +24,6 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	void DoMove(const MoveConfig &conf);
-
 	void DropDead();
 
 	bool LoadPattern(const xml_node node);

@@ -270,8 +270,6 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 		auto obj = m_Memory->m_ObjectPtr[i].get();
 
-		obj->DoMove(conf);
-
 		auto &gm = m_Memory->m_GlobalMatrix[i];
 		auto &lm = m_Memory->m_LocalMatrix[i];
 

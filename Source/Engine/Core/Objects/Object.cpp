@@ -125,10 +125,6 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 
 //---------------------------------------------------------------------------------------
 
-void Object::DoMove(const MoveConfig &conf) {
-
-}
-
 void Object::DropDead(){
 	if(IsDead()) return;
 	if (InvokeOnDropDead() == 0) {
