@@ -69,6 +69,20 @@ int main(int argc, char** argv) {
 	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.log"); });
 	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.last.log", false); });
 	LogCollector::OpenLogSink<StdNoDebugFileLoggerSink>([](StdNoDebugFileLoggerSink* sink) { sink->Open("logs/Engine.filtered.log"); });
+	LogCollector::SetCaptureStdOutAndErr(OrbitLogger::LogChannels::StdOut, OrbitLogger::LogChannels::StdErr);
+	LogCollector::SetChannelName(OrbitLogger::LogChannels::StdOut, "SOUT");
+	LogCollector::SetChannelName(OrbitLogger::LogChannels::StdErr, "SERR");
+
+	std::thread([] {
+		std::this_thread::sleep_for(std::chrono::seconds(10));
+
+		for (int i = 0; i < 20; ++i) {
+			printf("TEST - %d\n", i);
+			fprintf(stderr, "TEST - %d\n", i);
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+
+	}).detach();
 
 	Config::Current::Initialize();
 	AddLog(Info, "MainThread");

@@ -41,7 +41,7 @@
 
 #pragma warning ( pop )
 
-#include <OrbitLogger/OrbitLogger.h>
+#include <OrbitLogger/src/OrbitLogger.h>
 
 #include <cassert>
 

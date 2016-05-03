@@ -1,13 +1,16 @@
 #pragma once
 
 
-#include <OrbitLogger/OrbitLogger.h>
+#include <OrbitLogger/src/OrbitLogger.h>
 
 namespace OrbitLogger {
 namespace LogChannels {
 enum GlobalChanels : LogChannel {
 
 	StarVFS = FirstUserChannel,
+
+	StdErr = FirstUserChannel + 4,
+	StdOut,
 
 
 	Script = FirstUserChannel + 8,
