@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Paths {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iPath);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iPath);
 RegisterApiDerivedClass(iPath, &iPath::RegisterScriptApi);
 
 iPath::iPath():

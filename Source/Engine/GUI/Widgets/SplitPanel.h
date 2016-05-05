@@ -17,7 +17,7 @@ class SplittingPanel;
 
 /** Two-split panel */
 class SplitPanel  : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(SplitPanel, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(SplitPanel, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	SplitPanel(iWidget *Parent);

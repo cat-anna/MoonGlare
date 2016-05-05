@@ -13,7 +13,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(SimpleMapScriptEvents, MapScriptEvents,
 	);
 
 class SimpleMap : public iMap {
-	GABI_DECLARE_STATIC_CLASS(SimpleMap, iMap)
+	SPACERTTI_DECLARE_STATIC_CLASS(SimpleMap, iMap)
 	DECLARE_SCRIPT_HANDLERS(SimpleMapScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();

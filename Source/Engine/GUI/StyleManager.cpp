@@ -11,7 +11,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-GABI_IMPLEMENT_STATIC_CLASS(StyleManager);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(StyleManager);
 
 StyleManager::StyleManager(GUIEngine *Owner) :
 		BaseClass(),

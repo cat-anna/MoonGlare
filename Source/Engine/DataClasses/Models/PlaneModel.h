@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Models {
 
 class PlaneModel : public iSimpleModel {
-	GABI_DECLARE_STATIC_CLASS(PlaneModel, iSimpleModel);
+	SPACERTTI_DECLARE_STATIC_CLASS(PlaneModel, iSimpleModel);
 public:
 	PlaneModel(const string &Name);
  	virtual ~PlaneModel();

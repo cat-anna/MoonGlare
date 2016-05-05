@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Dereferred {
 
 class LightingPassShader : public Shader {
-	GABI_DECLARE_ABSTRACT_CLASS(LightingPassShader, Shader);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(LightingPassShader, Shader);
 public:
  	LightingPassShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~LightingPassShader();

@@ -8,7 +8,7 @@
 
 namespace Graphic {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(Environment);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Environment);
 
 Environment::Environment(): 
 		BaseClass(),

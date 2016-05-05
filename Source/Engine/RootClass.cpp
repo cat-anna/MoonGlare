@@ -1,11 +1,11 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 
-GABI_IMPLEMENT_CLASS(cRootClass);
+SPACERTTI_IMPLEMENT_CLASS(cRootClass);
 RegisterApiBaseClass(cRootClass, &cRootClass::RegisterScriptApi);
 
 cRootClass::cRootClass(): 
-		GabiObject() {
+		BaseClass() {
 }
 
 cRootClass::~cRootClass() {
@@ -61,7 +61,7 @@ void cRootClass::ReadFlagPack(const xml_node Node, unsigned &Flags, const sFlagS
 
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS(NamedObject);
+SPACERTTI_IMPLEMENT_CLASS(NamedObject);
 RegisterApiDerivedClass(NamedObject, &NamedObject::RegisterScriptApi);
 
 NamedObject::NamedObject(): cRootClass(), m_Name("?") { }

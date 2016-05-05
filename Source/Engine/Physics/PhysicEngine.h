@@ -11,7 +11,7 @@
 namespace Physics {
 
 class PhysicEngine : public cRootClass {
-	GABI_DECLARE_CLASS(PhysicEngine, cRootClass);
+	SPACERTTI_DECLARE_CLASS(PhysicEngine, cRootClass);
 public:
 	PhysicEngine();
 	~PhysicEngine();

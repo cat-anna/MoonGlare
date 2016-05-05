@@ -15,7 +15,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(PathControllerScriptEvents, MoveControllerScriptEven
 	SCRIPT_EVENT_REMOVE());
 
 class PathController : public iMoveController {
-	GABI_DECLARE_CLASS(PathController, iMoveController);
+	SPACERTTI_DECLARE_CLASS(PathController, iMoveController);
 	DECLARE_SCRIPT_HANDLERS(PathControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:

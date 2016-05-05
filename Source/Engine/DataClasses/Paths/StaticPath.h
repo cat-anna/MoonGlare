@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Paths {
 
 class StaticPath : public iPath {
-	GABI_DECLARE_CLASS(StaticPath, iPath);
+	SPACERTTI_DECLARE_CLASS(StaticPath, iPath);
 public:
  	StaticPath();
  	virtual ~StaticPath();

@@ -5,7 +5,7 @@
 
 namespace Core {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(TimeEvents)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(TimeEvents)
 
 TimeEvents::TimeEvents(){
 }

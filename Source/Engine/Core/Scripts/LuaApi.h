@@ -16,7 +16,7 @@ class ApiInit {
 public:
 	static void Initialize(Script *s);
 
-	static void RegisterApi(void(*func)(ApiInitializer&), const GabiLib::GabiTypeInfo *Class, const GabiLib::GabiTypeInfo *BaseClass, const char *where = 0);
+	static void RegisterApi(void(*func)(ApiInitializer&), const Space::RTTI::TypeInfo *Class, const Space::RTTI::TypeInfo *BaseClass, const char *where = 0);
 
 	struct ApiRegister {
 		template <void(*func)(ApiInitializer&)> 

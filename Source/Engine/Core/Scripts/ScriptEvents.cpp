@@ -11,7 +11,7 @@
 namespace Core {
 namespace Scripts {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iScriptEvents);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iScriptEvents);
 
 bool iScriptEvents::SaveToXML(xml_node Parent) const {
 	xml_node ScriptNode;

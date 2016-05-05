@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Paths {
 
 class PathRegister : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(PathRegister, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(PathRegister, cRootClass);
 public:
 	PathRegister(iMap *Owner);
 	virtual ~PathRegister();

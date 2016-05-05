@@ -13,7 +13,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(ObjectScriptEvents, iScriptEvents,
 		SCRIPT_EVENT_REMOVE());
 
 class Object /*final*/ : public NamedObject {
-	GABI_DECLARE_STATIC_CLASS(Object, NamedObject);
+	SPACERTTI_DECLARE_STATIC_CLASS(Object, NamedObject);
 	DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 	DECLARE_EVENT_HOLDER();
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();

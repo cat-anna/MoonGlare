@@ -5,7 +5,7 @@
 namespace Graphic {
 namespace Dereferred {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(LightingPassShader);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(LightingPassShader);
 
 LightingPassShader::LightingPassShader(GLuint ShaderProgram, const string &ProgramName):
 		BaseClass(ShaderProgram, ProgramName) {

@@ -12,7 +12,7 @@ namespace Objects {
 //---------------------------------------------------------------------------------------
 
 class PointLightSource : public iLightSource {
-	GABI_DECLARE_CLASS_NOCREATOR(PointLightSource, iLightSource);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(PointLightSource, iLightSource);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	PointLightSource(Object *Owner) : BaseClass(Owner, &m_light) { }
@@ -43,14 +43,14 @@ protected:
 	Graphic::Light::PointLight m_light;
 };
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(PointLightSource);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(PointLightSource);
 RegisterApiDerivedClass(PointLightSource, &PointLightSource::RegisterScriptApi);
 LightSoureClassRegister::Register<PointLightSource> PointLightSourceReg;
 
 //---------------------------------------------------------------------------------------
 
 class DirectionalLightSource: public iLightSource {
-	GABI_DECLARE_CLASS_NOCREATOR(DirectionalLightSource, iLightSource);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(DirectionalLightSource, iLightSource);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	DirectionalLightSource(Object *Owner) : BaseClass(Owner, &m_light) { }
@@ -80,14 +80,14 @@ protected:
 	Graphic::Light::DirectionalLight m_light;
 };
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(DirectionalLightSource);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(DirectionalLightSource);
 RegisterApiDerivedClass(DirectionalLightSource, &DirectionalLightSource::RegisterScriptApi);
 LightSoureClassRegister::Register<DirectionalLightSource> DirectionalLightSourceReg;
 
 //---------------------------------------------------------------------------------------
 
 class SpotLightSource: public iLightSource {
-	GABI_DECLARE_CLASS_NOCREATOR(SpotLightSource, iLightSource);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(SpotLightSource, iLightSource);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SpotLightSource(Object *Owner) : BaseClass(Owner, &m_light) { }
@@ -137,13 +137,13 @@ protected:
 	Graphic::Light::SpotLight m_light;
 };
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(SpotLightSource);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(SpotLightSource);
 RegisterApiDerivedClass(SpotLightSource, &SpotLightSource::RegisterScriptApi);
 LightSoureClassRegister::Register<SpotLightSource> SpotLightSourceReg;
 
 //---------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iLightSource);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iLightSource);
 RegisterApiDerivedClass(iLightSource, &iLightSource::RegisterScriptApi);
 
 iLightSource::iLightSource(Object *Owner, Graphic::Light::LightBase *Base):

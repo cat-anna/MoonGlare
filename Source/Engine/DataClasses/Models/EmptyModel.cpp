@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_STATIC_CLASS(EmptyModel)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(EmptyModel)
 ModelClassRegister::Register<EmptyModel> EmptyModelReg("EmptyModel");
 
 EmptyModel::EmptyModel(const string &Name):

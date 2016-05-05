@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace Core {
 
-struct Entity final : public Utils::Handle::BaseDoubleHandle32<unsigned, 16, 16> {
+struct Entity final : public Space::Memory::DoubleHandle32<16, 16> {
 	bool IsValid() const;
 	operator bool() const { return IsValid(); }
 	bool operator!() const { return !IsValid(); }

@@ -8,7 +8,7 @@ namespace Shaders {
 	
 	class ShadowMapShader;
 
-	using ShaderClassRegister = GabiLib::DynamicClassRegister < Shader, int, const string&> ;
+	using ShaderClassRegister = Space::DynamicClassRegister < Shader, int, const string&> ;
 }// namespace Shaders
 
 using Shader = Shaders::Shader;

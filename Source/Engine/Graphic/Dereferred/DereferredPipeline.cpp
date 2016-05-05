@@ -4,7 +4,7 @@
 namespace Graphic {
 namespace Dereferred {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(DereferredPipeline);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(DereferredPipeline);
 
 DereferredPipeline::DereferredPipeline():
 		m_GeometryShader(0),

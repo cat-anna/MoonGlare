@@ -12,7 +12,7 @@ namespace Core {
 namespace Scene {
 
 class DefaultLoadingScene : public LoadingBaseScene {
-	GABI_DECLARE_CLASS(DefaultLoadingScene, LoadingBaseScene)
+	SPACERTTI_DECLARE_CLASS(DefaultLoadingScene, LoadingBaseScene)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	DefaultLoadingScene();

@@ -12,7 +12,7 @@ namespace Core {
 namespace Scene {
 
 class BackstageScene : public ciScene {
-	GABI_DECLARE_CLASS(BackstageScene, ciScene)
+	SPACERTTI_DECLARE_CLASS(BackstageScene, ciScene)
 public:
  	BackstageScene();
  	virtual ~BackstageScene();

@@ -14,7 +14,7 @@ namespace MoonGlare {
 namespace GUI {
 namespace Widgets {
 
-GABI_IMPLEMENT_STATIC_CLASS(Label);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Label);
 RegisterApiDerivedClass(Label, &Label::RegisterScriptApi);
 WidgetClassRegister::Register<Label> LabelReg;
 

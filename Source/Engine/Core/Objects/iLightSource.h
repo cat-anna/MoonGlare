@@ -12,7 +12,7 @@ namespace Core {
 namespace Objects {
 
 class iLightSource : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(iLightSource, cRootClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iLightSource, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	//DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 public:

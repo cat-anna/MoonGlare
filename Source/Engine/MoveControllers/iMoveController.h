@@ -19,7 +19,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(MoveControllerScriptEvents, ::Core::Scripts::iScript
 	
 */
 class iMoveController : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(iMoveController, cRootClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iMoveController, cRootClass);
 	DECLARE_SCRIPT_HANDLERS_ROOT(MoveControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:

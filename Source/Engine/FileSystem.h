@@ -26,8 +26,8 @@ using FileInfoTable = std::vector<FileInfo>;
 //-------------------------------------------------------------------------------------------------
 
 /** File system is not yes fully thread-safe! */
-class MoonGlareFileSystem : public GabiLib::GabiObject {
-	GABI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, GabiLib::GabiObject)
+class MoonGlareFileSystem : public Space::RTTI::RTTIObject {
+	SPACERTTI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, Space::RTTI::RTTIObject)
 public:
  	MoonGlareFileSystem();
  	virtual ~MoonGlareFileSystem();
@@ -82,7 +82,7 @@ private:
 };
 
 class DirectoryReader : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
 public:
 	DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
 	DirectoryReader(DataPath origin, const string& OwnerName) : m_origin(origin), m_OwnerName(OwnerName) { }

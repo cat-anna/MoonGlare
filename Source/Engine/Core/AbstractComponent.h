@@ -27,8 +27,8 @@ struct ComponentFlags {
 
 class ComponentOwner;
 
-class AbstractComponent : public GabiLib::GabiObject {
-	GABI_DECLARE_STATIC_CLASS(AbstractComponent, GabiLib::GabiObject);
+class AbstractComponent : public Space::RTTI::RTTIObject {
+	SPACERTTI_DECLARE_STATIC_CLASS(AbstractComponent, Space::RTTI::RTTIObject);
 public:
  	AbstractComponent(ComponentOwner *Owner, ComponentRank Rank);
  	virtual ~AbstractComponent();

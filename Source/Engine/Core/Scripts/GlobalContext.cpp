@@ -15,7 +15,7 @@ class ContextBaseElement;
 using ContextElementPtr = std::unique_ptr < ContextBaseElement > ;
 
 class ContextBaseElement : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(ContextBaseElement, cRootClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(ContextBaseElement, cRootClass);
 	DISABLE_COPY();
 public:
 	ContextBaseElement(ContextBaseElement *Parent, const string& Name, int Type) : 
@@ -85,11 +85,11 @@ private:
 	string m_Name;
 };
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(ContextBaseElement);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(ContextBaseElement);
 
 //---------------------------------------------------------------------------------------
 
-struct LuaTypeEnumConverter : GabiLib::EnumConverter < int, LUA_TNIL > {
+struct LuaTypeEnumConverter : Space::EnumConverter < int, LUA_TNIL > {
 	LuaTypeEnumConverter() {
 		Add("Nil", LUA_TNIL);
 		Add("Bool", LUA_TBOOLEAN);
@@ -102,7 +102,7 @@ struct LuaTypeEnumConverter : GabiLib::EnumConverter < int, LUA_TNIL > {
 #define LUA_TTHREAD		8
 	}
 };
-using LuaTypeEnum = GabiLib::EnumConverterHolder < LuaTypeEnumConverter > ;
+using LuaTypeEnum = Space::EnumConverterHolder < LuaTypeEnumConverter > ;
 
 struct ElementConstructionTable {
 	using func_t = ContextElementPtr(*)(ContextBaseElement *Parent, const string& Name);
@@ -124,7 +124,7 @@ const ElementConstructionTable ElementConstructionTableInstance;
 //---------------------------------------------------------------------------------------
 
 class ContextStringElement : public ContextBaseElement {
-	GABI_DECLARE_STATIC_CLASS(ContextStringElement, ContextBaseElement);
+	SPACERTTI_DECLARE_STATIC_CLASS(ContextStringElement, ContextBaseElement);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ContextStringElement(ContextBaseElement *Parent, const string& Name):
@@ -174,12 +174,12 @@ protected:
 	std::recursive_mutex m_mutex;
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ContextStringElement);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ContextStringElement);
 
 //---------------------------------------------------------------------------------------
 
 class ContextNumberElement : public ContextBaseElement {
-	GABI_DECLARE_STATIC_CLASS(ContextNumberElement, ContextBaseElement);
+	SPACERTTI_DECLARE_STATIC_CLASS(ContextNumberElement, ContextBaseElement);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ContextNumberElement(ContextBaseElement *Parent, const string& Name):
@@ -383,7 +383,7 @@ protected:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ContextNumberElement);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ContextNumberElement);
 const ContextNumberElement::ContextNumberFunctionMap ContextNumberElement::_ContextNumberFunctionMap;
 
 //---------------------------------------------------------------------------------------
@@ -391,7 +391,7 @@ const ContextNumberElement::ContextNumberFunctionMap ContextNumberElement::_Cont
 const char* BooleanTable[] ={ "False", "True" };
 
 class ContextBooleanElement : public ContextBaseElement {
-	GABI_DECLARE_STATIC_CLASS(ContextBooleanElement, ContextBaseElement);
+	SPACERTTI_DECLARE_STATIC_CLASS(ContextBooleanElement, ContextBaseElement);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ContextBooleanElement(ContextBaseElement *Parent, const string& Name):
@@ -430,11 +430,11 @@ protected:
 	bool m_Value;
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ContextBooleanElement);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ContextBooleanElement);
 //---------------------------------------------------------------------------------------
 
 class ContextNilElement : public ContextBaseElement {
-	GABI_DECLARE_STATIC_CLASS(ContextNilElement, ContextBaseElement);
+	SPACERTTI_DECLARE_STATIC_CLASS(ContextNilElement, ContextBaseElement);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ContextNilElement(ContextBaseElement *Parent, const string& Name):
@@ -465,7 +465,7 @@ public:
 protected:
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ContextNilElement);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ContextNilElement);
 
 //---------------------------------------------------------------------------------------
 
@@ -492,7 +492,7 @@ ElementConstructionTable::ElementConstructionTable() {
 //---------------------------------------------------------------------------------------
 
 class ContextGroup : public ContextBaseElement {
-	GABI_DECLARE_STATIC_CLASS(ContextGroup, ContextBaseElement);
+	SPACERTTI_DECLARE_STATIC_CLASS(ContextGroup, ContextBaseElement);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ContextGroup(ContextBaseElement *Parent, const string& Name):
@@ -750,12 +750,12 @@ protected:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ContextGroup);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ContextGroup);
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_SINGLETON(GlobalContext);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(GlobalContext);
 RegisterApiDerivedClass(GlobalContext, &GlobalContext::RegisterScriptApi);
 RegisterApiInstance(GlobalContext, &GlobalContext::Instance, "GlobalContext");
 

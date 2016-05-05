@@ -17,7 +17,7 @@ namespace Core {
 
 		class ScenesManager;
 
-		using SceneClassRegister = GabiLib::DynamicClassRegister < ciScene > ;
+		using SceneClassRegister = Space::DynamicClassRegister < ciScene > ;
 	} // namespace Scene
 	using Scene::GameScene;
 	using Scene::ciScene;

@@ -9,7 +9,7 @@
 namespace Graphic {
 namespace Shaders {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ShadowMapShader);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ShadowMapShader);
 ShaderClassRegister::Register<ShadowMapShader> ShaderReg;
 
 ShadowMapShader::ShadowMapShader(GLuint ShaderProgram, const string &ProgramName):

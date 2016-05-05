@@ -20,7 +20,7 @@ namespace Core {
 
 #define DECLARE_SCRIPT_EVENT_VECTOR(CLASS, BASE, ADD, REMOVE)								\
 	class CLASS : public BASE {																\
-		GABI_DECLARE_STATIC_CLASS(CLASS, BASE);												\
+		SPACERTTI_DECLARE_STATIC_CLASS(CLASS, BASE);												\
 	protected:																				\
 		class EventVector : public BASE::EventVector {										\
 		public:																				\
@@ -38,7 +38,7 @@ namespace Core {
 	}																						\
 
 #define IMPLEMENT_SCRIPT_EVENT_VECTOR(CLASS)												\
-	GABI_IMPLEMENT_CLASS_NOCREATOR(CLASS)													\
+	SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(CLASS)													\
 	CLASS::EventVector CLASS::_Events														\
 
 #define DECLARE_SCRIPT_HANDLERS_ROOT(CLASS)													\
@@ -59,7 +59,7 @@ namespace Core {
 		CLASS* GetScriptEvents() { return m_ScriptHandlers.get<CLASS>(); }					\
 
 class iScriptEvents : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(iScriptEvents, cRootClass)
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iScriptEvents, cRootClass)
 protected:
 	class EventVector : protected std::unordered_map<string, string iScriptEvents::*> {
 	protected:

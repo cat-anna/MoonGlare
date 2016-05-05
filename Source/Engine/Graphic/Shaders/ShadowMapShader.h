@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Shaders {
 
 class ShadowMapShader : public Shader {
-	GABI_DECLARE_CLASS_NOCREATOR(ShadowMapShader, Shader);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(ShadowMapShader, Shader);
 public:
  	ShadowMapShader(GLuint ShaderProgram, const string &ProgramName);
  	 ~ShadowMapShader();

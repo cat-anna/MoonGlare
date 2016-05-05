@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Shaders {
 
 class Shader : public NamedObject {
-	GABI_DECLARE_CLASS_NOCREATOR(Shader, NamedObject);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(Shader, NamedObject);
 public:
 	Shader(GLuint ShaderProgram, const string &ProgramName);
 	virtual ~Shader();

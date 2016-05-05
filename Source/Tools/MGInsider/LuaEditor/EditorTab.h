@@ -24,14 +24,14 @@ enum class EditorFileSource {
 	Engine,
 };
 
-struct EditorFileSourceConverter : GabiLib::EnumConverter < EditorFileSource, EditorFileSource::DummyFile > {
+struct EditorFileSourceConverter : Space::EnumConverter < EditorFileSource, EditorFileSource::DummyFile > {
 	EditorFileSourceConverter() {
 		Add("RawFile", Enum::DummyFile);
 		Add("Default", Enum::RawFile);
 		Add("Engine", Enum::Engine);
 	}
 };
-using EditorFileSourceEnum = GabiLib::EnumConverterHolder < EditorFileSourceConverter >;
+using EditorFileSourceEnum = Space::EnumConverterHolder < EditorFileSourceConverter >;
 
 struct EditorStatusLine {
 	std::string Message;

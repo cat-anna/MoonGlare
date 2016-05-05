@@ -15,7 +15,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(ScenesManager)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScenesManager)
 RegisterApiDerivedClass(ScenesManager, &ScenesManager::RegisterScriptApi);
 
 struct ScenesManagerTimers {

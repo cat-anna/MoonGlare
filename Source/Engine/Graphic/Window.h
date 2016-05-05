@@ -11,7 +11,7 @@
 namespace Graphic {
 
 class Window : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(Window, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(Window, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:

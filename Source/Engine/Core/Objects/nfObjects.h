@@ -13,7 +13,7 @@ namespace Core {
 		class iLightSource;
 		using iLightSourcePtr = std::unique_ptr < iLightSource > ;
 
-		using LightSoureClassRegister = GabiLib::DynamicClassRegister < iLightSource, Object* > ;
+		using LightSoureClassRegister = Space::DynamicClassRegister < iLightSource, Object* > ;
 	}
 } //namespace Core
 

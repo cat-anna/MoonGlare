@@ -12,7 +12,7 @@ namespace GUI {
 		MiddleTop, MiddleBottom,
 		Parent, Center,
 	};
-	struct AlignModeEnumConverter : GabiLib::EnumConverter < AlignMode, AlignMode::None > {
+	struct AlignModeEnumConverter : Space::EnumConverter < AlignMode, AlignMode::None > {
 		AlignModeEnumConverter() {
 			Add("Default", Enum::None);
 			Add("Parent", Enum::Parent);
@@ -28,7 +28,7 @@ namespace GUI {
 			Add("MiddleBottom", Enum::MiddleBottom);
 		}
 	};
-	using AlignModeEnum = GabiLib::EnumConverterHolder < AlignModeEnumConverter > ;
+	using AlignModeEnum = Space::EnumConverterHolder < AlignModeEnumConverter > ;
 
 //----------------------------------------------------------------------------------
 	
@@ -38,7 +38,7 @@ namespace GUI {
 		LeftBottom,		MiddleBottom,	RightBottom,
 		//Justified, //:)
 	};
-	struct TextAlignModeEnumConverter : GabiLib::EnumConverter < TextAlignMode, TextAlignMode::LeftTop > {
+	struct TextAlignModeEnumConverter : Space::EnumConverter < TextAlignMode, TextAlignMode::LeftTop > {
 		TextAlignModeEnumConverter() {
 			Add("Default", Enum::LeftTop);
 			//Add("Justified", Enum::Justified);
@@ -53,7 +53,7 @@ namespace GUI {
 			Add("RightBottom", Enum::RightBottom);
 		}
 	};
-	using TextAlignModeEnum = GabiLib::EnumConverterHolder < TextAlignModeEnumConverter > ;
+	using TextAlignModeEnum = Space::EnumConverterHolder < TextAlignModeEnumConverter > ;
 	
 	using InnerAlignMode = TextAlignMode;
 	using InnerAlignModeEnum = TextAlignModeEnum;
@@ -63,21 +63,21 @@ namespace GUI {
 	enum class Orientation {
 		Horizontal, Vertical,
 	};
-	struct OrientationEnumConverter : GabiLib::EnumConverter < Orientation, Orientation::Horizontal > {
+	struct OrientationEnumConverter : Space::EnumConverter < Orientation, Orientation::Horizontal > {
 		OrientationEnumConverter() {
 			Add("Default", Enum::Horizontal);
 			Add("Horizontal", Enum::Horizontal);
 			Add("Vertical", Enum::Vertical);
 		}
 	};
-	using OrientationEnum = GabiLib::EnumConverterHolder < OrientationEnumConverter > ;
+	using OrientationEnum = Space::EnumConverterHolder < OrientationEnumConverter > ;
 
 //----------------------------------------------------------------------------------
 
 	enum class ScaleMode {
 		None, Fit, ProportionalFit, User,
 	};
-	struct ScaleModeEnumConverter : GabiLib::EnumConverter < ScaleMode, ScaleMode::None > {
+	struct ScaleModeEnumConverter : Space::EnumConverter < ScaleMode, ScaleMode::None > {
 		ScaleModeEnumConverter() {
 			Add("Default", Enum::None);
 			Add("None", Enum::None);
@@ -86,7 +86,7 @@ namespace GUI {
 			Add("User", Enum::User);
 		}
 	};
-	using ScaleModeEnum = GabiLib::EnumConverterHolder < ScaleModeEnumConverter > ;
+	using ScaleModeEnum = Space::EnumConverterHolder < ScaleModeEnumConverter > ;
 
 //----------------------------------------------------------------------------------
 

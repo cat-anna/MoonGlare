@@ -11,7 +11,7 @@
 namespace Graphic {
 namespace Shaders {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(ShaderManager);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ShaderManager);
 
 ShaderManager::ShaderManager(): 
 		cRootClass(), 

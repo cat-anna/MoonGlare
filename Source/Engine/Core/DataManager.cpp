@@ -30,7 +30,7 @@ const Node RootNode = { Flags::Folder, nullptr, 0, Root_folder, "Internal", };
 };
 #endif
 
-GABI_IMPLEMENT_CLASS_SINGLETON(Manager)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Manager)
 RegisterApiInstance(Manager, &Manager::Instance, "Data");
 RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
 

@@ -84,7 +84,7 @@ protected:
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_SINGLETON(Console);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Console);
 RegisterApiDerivedClass(Console, &Console::RegisterScriptApi);
 RegisterApiInstance(Console, &Console::Instance, "Console");
 

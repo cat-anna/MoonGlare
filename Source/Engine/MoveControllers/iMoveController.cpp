@@ -10,7 +10,7 @@
 
 namespace MoveControllers {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iMoveController);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iMoveController);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(MoveControllerScriptEvents);
 RegisterApiDerivedClass(iMoveController, &iMoveController::RegisterScriptApi);
 

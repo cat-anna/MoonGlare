@@ -21,7 +21,7 @@ namespace MoonGlare {
 namespace Modules {
 namespace MenuScene {
 
-GABI_IMPLEMENT_STATIC_CLASS(MenuItemInfo);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(MenuItemInfo);
 RegisterApiDerivedClass(MenuItemInfo, &MenuItemInfo::RegisterScriptApi);
 
 MenuItemInfo::MenuItemInfo(MenuScene *Owner, SharedMenuItemInfo Parent) : 
@@ -60,7 +60,7 @@ int MenuItemInfo::InvokeOnSubExit() { SCRIPT_INVOKE(OnSubExit, m_OwnerScene, m_I
 //----------------------------------------------------------------
 
 class ListMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(ListMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(ListMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ListMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -272,13 +272,13 @@ private:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ListMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ListMenuItem);
 RegisterApiDerivedClass(ListMenuItem, &ListMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
 class ButtonMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(ButtonMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(ButtonMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ButtonMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -318,13 +318,13 @@ public:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(ButtonMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ButtonMenuItem);
 RegisterApiDerivedClass(ButtonMenuItem, &ButtonMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
 class GoBackMenuItem : public SubMenuItem {
-	GABI_DECLARE_STATIC_CLASS(GoBackMenuItem, SubMenuItem);
+	SPACERTTI_DECLARE_STATIC_CLASS(GoBackMenuItem, SubMenuItem);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	GoBackMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -342,13 +342,13 @@ public:
 private:
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(GoBackMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(GoBackMenuItem);
 RegisterApiDerivedClass(GoBackMenuItem, &GoBackMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
 class CheckBoxMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(CheckBoxMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(CheckBoxMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	CheckBoxMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -433,13 +433,13 @@ private:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(CheckBoxMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(CheckBoxMenuItem);
 RegisterApiDerivedClass(CheckBoxMenuItem, &CheckBoxMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
 class SteppedBarMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(SteppedBarMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(SteppedBarMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SteppedBarMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -532,13 +532,13 @@ private:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(SteppedBarMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SteppedBarMenuItem);
 RegisterApiDerivedClass(SteppedBarMenuItem, &SteppedBarMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
 class LabelMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(LabelMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(LabelMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	LabelMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):
@@ -571,12 +571,12 @@ public:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(LabelMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(LabelMenuItem);
 RegisterApiDerivedClass(LabelMenuItem, &ButtonMenuItem::RegisterScriptApi);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(SubMenuItem);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SubMenuItem);
 RegisterApiDerivedClass(SubMenuItem, &SubMenuItem::RegisterScriptApi);
 
 SubMenuItem::SubMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent):

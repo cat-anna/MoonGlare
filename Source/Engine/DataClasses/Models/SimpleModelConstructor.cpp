@@ -13,7 +13,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(SimpleModelConstructor)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(SimpleModelConstructor)
 
 SimpleModelConstructor::SimpleModelConstructor() {
 }

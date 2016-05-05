@@ -17,7 +17,7 @@ enum class InternalEvents {
 };
 
 class EventBaseProxy : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(EventBaseProxy, cRootClass)
+	SPACERTTI_DECLARE_STATIC_CLASS(EventBaseProxy, cRootClass)
 public:
 	EventBaseProxy();
 	virtual ~EventBaseProxy();

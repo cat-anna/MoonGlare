@@ -15,8 +15,8 @@
 
 #define ASSERT(CHECK, ...)			THROW_ASSERTs(CHECK, __VA_ARGS__)
 
-#define GABI_SINGLETON_CHECK		ASSERT(_Instance, "Singleton check failed!")
-#define GABI_SINGLETON_SET_CHECK	THROW_ASSERT(!_Instance, "Cannot change existing singleton instance!")
+#define SPACERTTI_SINGLETON_CHECK		ASSERT(_Instance, "Singleton check failed!")
+#define SPACERTTI_SINGLETON_SET_CHECK	THROW_ASSERT(!_Instance, "Cannot change existing singleton instance!")
 
 #define REQUIRE_REIMPLEMENT()		do { AddLog(Error, "Reached code has to be reimplemented! Quitting."); throw "Code need to be reimplemented"; } while (false)
 

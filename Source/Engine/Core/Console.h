@@ -5,7 +5,7 @@ namespace MoonGlare {
 namespace Core {
 
 class Console : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(Console, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(Console, cRootClass)
 public:
 	class ConsoleLine;
 	class InputLine;

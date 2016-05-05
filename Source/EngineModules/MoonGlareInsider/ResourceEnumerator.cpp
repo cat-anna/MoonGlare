@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace Debug {
 namespace Insider {
 
-GABI_IMPLEMENT_STATIC_CLASS(ResourceEnumerator);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ResourceEnumerator);
 RegisterApiDerivedClass(ResourceEnumerator, &ResourceEnumerator::RegisterScriptApi);
 
 ResourceEnumerator::ResourceEnumerator(InsiderMessageBuffer &buffer, MessageTypes Type):

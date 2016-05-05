@@ -77,7 +77,7 @@ DEFINE_MODULE(InsiderModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(Insider);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Insider);
 
 Insider::Insider(): BaseClass() {
 	m_Running = true;

@@ -15,7 +15,7 @@ namespace Scripts {
 class ContextGroup;
 
 class GlobalContext : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(GlobalContext, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(GlobalContext, cRootClass);
 public:
  	GlobalContext();
  	virtual ~GlobalContext();

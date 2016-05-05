@@ -8,11 +8,11 @@
 
 namespace Physics {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(ShapeSubBase);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(ShapeSubBase);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ShapeConstructor);
 
 ShapeConstructor::ShapeConstructor() {
 }
@@ -52,8 +52,8 @@ void ShapeConstructor::CommonInitShape(SharedShape shape) {
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(BoxShape);
-GABI_IMPLEMENT_CLASS(BoxShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(BoxShape);
+SPACERTTI_IMPLEMENT_CLASS(BoxShapeConstructor);
 BodyShapeClassRegister::Register<BoxShapeConstructor> BoxShapeConstructorReg("BoxShape");
 
 BoxShapeConstructor::BoxShapeConstructor() { }
@@ -85,8 +85,8 @@ bool BoxShapeConstructor::LoadMeta(const xml_node node) {
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(SphereShape);
-GABI_IMPLEMENT_CLASS(SphereShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(SphereShape);
+SPACERTTI_IMPLEMENT_CLASS(SphereShapeConstructor);
 BodyShapeClassRegister::Register<SphereShapeConstructor> SphereShapeConstructorReg("SphereShape");
 
 SphereShapeConstructor::SphereShapeConstructor(float Radius) : m_Radius(Radius) { }
@@ -118,8 +118,8 @@ bool SphereShapeConstructor::LoadMeta(const xml_node node) {
 }
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(CapsuleShapeShape);
-GABI_IMPLEMENT_CLASS(CapsuleShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(CapsuleShapeShape);
+SPACERTTI_IMPLEMENT_CLASS(CapsuleShapeConstructor);
 BodyShapeClassRegister::Register<CapsuleShapeConstructor> CapsuleShapeConstructorReg("CapsuleShape");
 
 CapsuleShapeConstructor::CapsuleShapeConstructor(float Radius, float Height):
@@ -159,8 +159,8 @@ bool CapsuleShapeConstructor::LoadMeta(const xml_node node) {
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(CylinderShapeShape);
-GABI_IMPLEMENT_CLASS(CylinderShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(CylinderShapeShape);
+SPACERTTI_IMPLEMENT_CLASS(CylinderShapeConstructor);
 BodyShapeClassRegister::Register<CylinderShapeConstructor> CylinderShapeConstructorReg("CylinderShape");
 
 CylinderShapeConstructor::CylinderShapeConstructor(float Radius, float Height):
@@ -200,7 +200,7 @@ bool CylinderShapeConstructor::LoadMeta(const xml_node node) {
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ConvexMeshShape);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ConvexMeshShape);
 
 ConvexMeshShape::ConvexMeshShape(const Graphic::VertexVector &verticles):
 		btConvexHullShape(&verticles[0][0], verticles.size(), sizeof(verticles[0])) {
@@ -208,7 +208,7 @@ ConvexMeshShape::ConvexMeshShape(const Graphic::VertexVector &verticles):
 
 //---
 
-GABI_IMPLEMENT_CLASS(ConvexMeshShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS(ConvexMeshShapeConstructor);
 BodyShapeClassRegister::Register<ConvexMeshShapeConstructor> ConvexMeshShapeConstructorReg("ConvexHullMesh");
 
 ConvexMeshShapeConstructor::ConvexMeshShapeConstructor() { }
@@ -245,8 +245,8 @@ bool ConvexMeshShapeConstructor::AddTriangles(const Graphic::VertexVector &verti
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(TriangleMeshShape);
-GABI_IMPLEMENT_CLASS(TriangleMeshShapeConstructor);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(TriangleMeshShape);
+SPACERTTI_IMPLEMENT_CLASS(TriangleMeshShapeConstructor);
 BodyShapeClassRegister::Register<TriangleMeshShapeConstructor> TriangleMeshShapeConstructorReg("TriangleMesh");
 
 void TriangleMeshShape::CalculateLocalInertia(float mass, vec3 &Inertia) const {

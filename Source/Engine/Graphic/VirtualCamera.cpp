@@ -9,7 +9,7 @@
 
 namespace Graphic {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(VirtualCamera)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(VirtualCamera)
 
 VirtualCamera::VirtualCamera() :
 		BaseClass(),

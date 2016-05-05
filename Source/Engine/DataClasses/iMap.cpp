@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Maps {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iMap)
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iMap)
 IMPLEMENT_SCRIPT_EVENT_VECTOR(MapScriptEvents);
 RegisterApiDerivedClass(iMap, &iMap::RegisterScriptApi);
 

@@ -17,7 +17,7 @@ DEFINE_MODULE(AppModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(GameApplication);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(GameApplication);
 
 GameApplication::GameApplication(int argc, char** argv) {
 	m_argc = argc;

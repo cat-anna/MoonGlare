@@ -25,7 +25,7 @@ DEFINE_MODULE(BitmapFontModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(BitmapFont);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(BitmapFont);
 
 BitmapFont::BitmapFont(const string& Name): 
 		BaseClass(Name) {
@@ -161,7 +161,7 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 
 //----------------BitmapWrapper-------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(BitmapFontWrapper);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(BitmapFontWrapper);
 
 BitmapFontWrapper::BitmapFontWrapper(const BitmapFont *font): 
 		BaseClass(),

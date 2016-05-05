@@ -14,7 +14,7 @@ namespace DataClasses {
 namespace Models {
 
 class ModelMaterial: public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(ModelMaterial, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(ModelMaterial, cRootClass);
 protected:
 	iModel *m_Owner;
 	Graphic::Material m_Material;

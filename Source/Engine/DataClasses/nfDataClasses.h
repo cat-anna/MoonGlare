@@ -90,7 +90,7 @@ namespace DataClasses {
 			void operator()(iMap*);
 		};
 		using MapPtr = std::shared_ptr < iMap >;
-		using MapClassRegister = GabiLib::DynamicClassRegisterDeleter < iMap, iMapDeleter, const string& > ;
+		using MapClassRegister = Space::DynamicClassRegisterDeleter < iMap, iMapDeleter, const string& > ;
 	}
 	using Maps::iMap;
 	using Maps::MapPtr;

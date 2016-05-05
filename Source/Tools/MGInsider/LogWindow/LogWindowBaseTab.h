@@ -9,7 +9,7 @@ public:
 
 	const QString& GetName() const { return m_Name; }
 
-	static GabiLib::GabiTypeInfo* GetStaticTypeInfo() { return nullptr; }
+	static Space::RTTI::TypeInfo* GetStaticTypeInfo() { return nullptr; }
 protected:
 	void SetName(QString Name) { m_Name.swap(Name); }
 private:
@@ -20,4 +20,4 @@ public slots:
 	virtual void Refresh() { }
 };
 
-using LogWindowTabRegister = GabiLib::DynamicClassRegister<LogWindowBaseTab, QWidget*>;
+using LogWindowTabRegister = Space::DynamicClassRegister<LogWindowBaseTab, QWidget*>;

@@ -11,7 +11,7 @@
 namespace DataClasses {
 namespace Paths {
 
-GABI_IMPLEMENT_CLASS(StaticPath);
+SPACERTTI_IMPLEMENT_CLASS(StaticPath);
 RegisterApiDerivedClass(StaticPath, &StaticPath::RegisterScriptApi);
 //::Core::Interfaces::AutoResourceClassReg<StaticPath> StaticPathReg;
 

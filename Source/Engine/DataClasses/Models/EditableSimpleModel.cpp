@@ -11,7 +11,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(EditableSimpleModel)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(EditableSimpleModel)
 
 EditableSimpleModel::EditableSimpleModel(const string& Name) : BaseClass(Name) {
 	SetName(Name);

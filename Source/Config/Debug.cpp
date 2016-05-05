@@ -81,13 +81,13 @@ void Debug::DumpRuntime() {
 #ifdef _BUILDING_ENGINE_
 void Debug::DumpAll(const char* prefixname) {
 	char buf[256];
-	GabiLib::GabiTracker::SortList();
+	Space::RTTI::Tracker::SortList();
 
 	std::ofstream Instances((sprintf(buf, "logs/%s_Instances.txt", prefixname), buf));
-	GabiLib::GabiTracker::DumpInstances(Instances);
+	Space::RTTI::Tracker::DumpInstances(Instances);
 
 	std::ofstream ClassInfo((sprintf(buf, "logs/%s_ClassInfo.txt", prefixname), buf));
-	GabiLib::GabiTracker::DumpClasees(ClassInfo);
+	Space::RTTI::Tracker::DumpClasees(ClassInfo);
 
 	std::ofstream ClassLists((sprintf(buf, "logs/%s_ClassLists.txt", prefixname), buf));
 	::Core::Interfaces::DumpLists(ClassLists);
@@ -95,7 +95,7 @@ void Debug::DumpAll(const char* prefixname) {
 
 void Debug::CheckInstances() {
 	bool hdr = false;
-	for (auto it = GabiLib::GabiTracker::begin(), jt = GabiLib::GabiTracker::end(); it != jt; ++it) {
+	for (auto it = Space::RTTI::Tracker::begin(), jt = Space::RTTI::Tracker::end(); it != jt; ++it) {
 		if ((*it)->InstancesCount == 0)
 			continue;
 		if (!hdr) {

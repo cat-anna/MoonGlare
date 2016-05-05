@@ -29,7 +29,7 @@ namespace Physics {
 
 	struct PhysicalProperties;
 
-	using BodyShapeClassRegister = GabiLib::DynamicClassRegister < ShapeConstructor > ;
+	using BodyShapeClassRegister = Space::DynamicClassRegister < ShapeConstructor > ;
 
 } //namespace Physics
 

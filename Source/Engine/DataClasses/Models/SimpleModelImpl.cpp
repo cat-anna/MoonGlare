@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_STATIC_CLASS(SimpleModelImpl);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SimpleModelImpl);
 ModelClassRegister::Register<SimpleModelImpl> SimpleModelImplReg("SimpleModel");
 
 SimpleModelImpl::SimpleModelImpl(const string& Name) :

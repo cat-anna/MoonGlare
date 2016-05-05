@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 
 class Mouse : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(Mouse, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(Mouse, cRootClass);
 	DISABLE_COPY();
 public:
  	Mouse(GUIEngine *Owner);

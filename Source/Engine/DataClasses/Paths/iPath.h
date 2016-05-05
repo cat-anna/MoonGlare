@@ -29,7 +29,7 @@ struct PathCalcState {
 };
 
 class iPath : public DataClass, public std::enable_shared_from_this<iPath> {
-	GABI_DECLARE_ABSTRACT_CLASS(iPath, DataClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iPath, DataClass);
 public:
 	iPath();
 	virtual ~iPath();
@@ -63,7 +63,7 @@ protected:
 	DefineFlagSetter(m_Flags, Flags::Repetitive, Repetitive)
 };
 
-using PathClassRegister = GabiLib::DynamicClassRegister < iPath >;
+using PathClassRegister = Space::DynamicClassRegister < iPath >;
 
 } // namespace Paths 
 } // namespace DataClasses 

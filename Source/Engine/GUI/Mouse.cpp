@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-GABI_IMPLEMENT_STATIC_CLASS(Mouse);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Mouse);
 RegisterApiDerivedClass(Mouse, &Mouse::RegisterScriptApi);
 
 Mouse::Mouse(GUIEngine *Owner):	

@@ -21,7 +21,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(WidgetScriptEvents, iScriptEvents,
 		SCRIPT_EVENT_REMOVE());
 
 class iWidget : public NamedObject {
-	GABI_DECLARE_ABSTRACT_CLASS(iWidget, NamedObject);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iWidget, NamedObject);
 	DECLARE_SCRIPT_HANDLERS_ROOT(WidgetScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();

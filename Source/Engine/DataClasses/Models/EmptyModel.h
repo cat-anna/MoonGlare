@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Models {
 
 class EmptyModel : public iModel {
-	GABI_DECLARE_STATIC_CLASS(EmptyModel, iModel);
+	SPACERTTI_DECLARE_STATIC_CLASS(EmptyModel, iModel);
 public:
  	EmptyModel(const string &Name);
  	virtual ~EmptyModel();

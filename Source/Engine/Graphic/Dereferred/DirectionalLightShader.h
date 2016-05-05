@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Dereferred {
 
 class DirectionalLightShader : public LightingPassShader {
-	GABI_DECLARE_CLASS_NOCREATOR(DirectionalLightShader, LightingPassShader);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(DirectionalLightShader, LightingPassShader);
 public:
  	DirectionalLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~DirectionalLightShader();

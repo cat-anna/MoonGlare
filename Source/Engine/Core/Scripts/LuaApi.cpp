@@ -18,8 +18,8 @@ struct CallInfo {
 };
 
 struct ApiRegInfo {
-	const GabiLib::GabiTypeInfo *Class;
-	const GabiLib::GabiTypeInfo *Base;
+	const Space::RTTI::TypeInfo *Class;
+	const Space::RTTI::TypeInfo *Base;
 	void(*func)(ApiInitializer&);
 	const char* Where;
 };
@@ -28,8 +28,8 @@ static std::list<CallInfo> *_InitFuncs = 0;
 static std::list<ApiRegInfo> *_GatherList = 0;
 
 void ApiInit::RegisterApi(void(*func)(ApiInitializer&),
-							const GabiLib::GabiTypeInfo *Class,
-							const GabiLib::GabiTypeInfo *BaseClass,
+							const Space::RTTI::TypeInfo *Class,
+							const Space::RTTI::TypeInfo *BaseClass,
 							const char *where) {
 	ApiRegInfo reg;
 	reg.Base = BaseClass;
@@ -52,7 +52,7 @@ void ApiInit::Initialize(Script *s) {
 			return;
 		}
 
-		std::map<const GabiLib::GabiTypeInfo*, const GabiLib::GabiTypeInfo*> registered;
+		std::map<const Space::RTTI::TypeInfo*, const Space::RTTI::TypeInfo*> registered;
 		_InitFuncs = new std::list < CallInfo > ;
 
 		while (!_GatherList->empty()) {
@@ -60,7 +60,7 @@ void ApiInit::Initialize(Script *s) {
 			for (auto it = _GatherList->begin(), jt = _GatherList->end(); it != jt; ++it) {
 				if (!it->Base) {
 					if (it->Class)
-						registered.insert(std::make_pair(it->Class, (GabiLib::GabiTypeInfo*)0));
+						registered.insert(std::make_pair(it->Class, (Space::RTTI::TypeInfo*)0));
 
 					_InitFuncs->emplace_back(CallInfo{ it->func, it->Where, it->Class ? it->Class->Name : 0 });
 					// push_back(std::make_pair(it->func, it->Where));

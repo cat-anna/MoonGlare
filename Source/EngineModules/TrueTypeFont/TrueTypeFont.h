@@ -16,7 +16,7 @@ namespace TrueTypeFont {
 using namespace DataClasses::Fonts;
 
 class TrueTypeFont : public iFont {
-	GABI_DECLARE_STATIC_CLASS(TrueTypeFont, iFont);
+	SPACERTTI_DECLARE_STATIC_CLASS(TrueTypeFont, iFont);
 public:
  	TrueTypeFont(const string& Name);
  	virtual ~TrueTypeFont();

@@ -12,7 +12,7 @@
 
 namespace DataClasses {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(Texture)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Texture)
 
 Texture::Texture() : BaseClass() {
 	SetThisAsInstance();

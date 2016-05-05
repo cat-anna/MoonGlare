@@ -12,7 +12,7 @@ namespace Graphic {
 
 //! This class holds information about scene environment.
 class Environment : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(Environment, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(Environment, cRootClass);
 public:
 	Environment();
 	~Environment();

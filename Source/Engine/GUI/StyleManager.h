@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 
 class StyleManager : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(StyleManager, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(StyleManager, cRootClass);
 public:
  	StyleManager(GUIEngine *Owner);
  	virtual ~StyleManager();

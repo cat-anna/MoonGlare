@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace Sound {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(iSoundEngine);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(iSoundEngine);
 RegisterApiInstance(iSoundEngine, &iSoundEngine::Instance, "SoundEngine");
 RegisterApiDerivedClass(iSoundEngine, &iSoundEngine::RegisterScriptApi);
 
@@ -62,7 +62,7 @@ void iSoundEngine::RegisterScriptApi(ApiInitializer &api) {
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iSound);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iSound);
 RegisterApiDerivedClass(iSound, &iSound::RegisterScriptApi);
 
 iSound::iSound():
@@ -96,7 +96,7 @@ void iSound::Configure(const string& FileName, const string& Name, SoundType Typ
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(PlayList);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(PlayList);
 RegisterApiDerivedClass(PlayList, &PlayList::RegisterScriptApi);
 
 PlayList::PlayList():

@@ -21,11 +21,11 @@ class PlayList;
 using PlayListPtr = std::unique_ptr < PlayList > ;
 
 using SoundEndAction = std::function < void(iSound*) > ;
-using SoundClassRegister = GabiLib::DynamicClassRegister < iSound > ;
+using SoundClassRegister = Space::DynamicClassRegister < iSound > ;
 
 class iSoundEngine : public cRootClass {
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
-	GABI_DECLARE_CLASS_SINGLETON(iSoundEngine, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(iSoundEngine, cRootClass);
 public:
  	iSoundEngine();
  	virtual ~iSoundEngine();
@@ -78,7 +78,7 @@ private:
 //----------------------------------------------------------------------------------
 
 class iSound : public DataClasses::DataClass {
-	GABI_DECLARE_ABSTRACT_CLASS(iSound, DataClasses::DataClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iSound, DataClasses::DataClass);
 	DISABLE_COPY();
 public:
  	iSound();
@@ -108,7 +108,7 @@ private:
 //----------------------------------------------------------------------------------
 
 class PlayList : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(PlayList, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(PlayList, cRootClass);
 public:
  	PlayList();
  	~PlayList();

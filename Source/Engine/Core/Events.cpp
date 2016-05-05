@@ -10,7 +10,7 @@ s/*
 namespace Core {
 namespace Events {
 
-GABI_IMPLEMENT_STATIC_CLASS(EventBaseProxy)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(EventBaseProxy)
 
 EventBaseProxy::EventBaseProxy() {}
 EventBaseProxy::~EventBaseProxy() {}

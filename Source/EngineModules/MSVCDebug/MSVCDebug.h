@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace Debug {
 
 class MSVCDebug : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(MSVCDebug, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(MSVCDebug, cRootClass)
 public:
  	MSVCDebug();
  	virtual ~MSVCDebug();

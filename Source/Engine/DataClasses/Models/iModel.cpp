@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iModel)
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iModel)
 
 iModel::iModel(const string& Name) :
 		BaseClass(Name) {

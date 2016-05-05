@@ -15,7 +15,7 @@ namespace GUI {
 namespace Widgets {
 
 class TablePanel : public Panel {
-	GABI_DECLARE_STATIC_CLASS(TablePanel, Panel)
+	SPACERTTI_DECLARE_STATIC_CLASS(TablePanel, Panel)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	TablePanel(iWidget *Parent): BaseClass(Parent) { }
@@ -36,12 +36,12 @@ public:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(TablePanel);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(TablePanel);
 RegisterApiDerivedClass(TablePanel, &TablePanel::RegisterScriptApi);
 
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(Table);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Table);
 RegisterApiDerivedClass(Table, &Table::RegisterScriptApi);
 WidgetClassRegister::Register<Table> TablelReg;
 

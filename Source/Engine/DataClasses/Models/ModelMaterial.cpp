@@ -11,7 +11,7 @@ namespace Models {
 
 #define xmlMaterialNode_Texture		"Texture"
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ModelMaterial)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ModelMaterial)
 
 ModelMaterial::ModelMaterial(iModel *Owner, const aiMaterial *Material) :
 				m_Owner(Owner), m_Material() {

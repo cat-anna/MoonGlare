@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 
 class Screen : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(Screen, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(Screen, iWidget)
 public:
  	Screen(GUIEngine *Owner, Graphic::Window *Window);
  	virtual ~Screen();

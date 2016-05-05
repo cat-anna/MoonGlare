@@ -14,7 +14,7 @@ namespace Debug {
 namespace RemoteConsoleModule {
 
 class RemoteConsole : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(RemoteConsole, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(RemoteConsole, cRootClass);
 public:
  	RemoteConsole();
  	virtual ~RemoteConsole();

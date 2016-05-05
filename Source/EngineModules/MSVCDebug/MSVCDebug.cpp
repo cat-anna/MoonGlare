@@ -64,7 +64,7 @@ DEFINE_MODULE(MSVCDebugModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_SINGLETON(MSVCDebug);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(MSVCDebug);
 RegisterApiDerivedClass(MSVCDebug, &MSVCDebug::RegisterScriptApi);
 
 MSVCDebug::MSVCDebug() {

@@ -12,7 +12,7 @@ namespace Core {
 namespace Scene {
 
 class GameScene : public ciScene {
-	GABI_DECLARE_CLASS(GameScene, ciScene)
+	SPACERTTI_DECLARE_CLASS(GameScene, ciScene)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:

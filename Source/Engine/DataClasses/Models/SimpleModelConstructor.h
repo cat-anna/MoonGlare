@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Models {
 
 class SimpleModelConstructor : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(SimpleModelConstructor, cRootClass)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(SimpleModelConstructor, cRootClass)
 public:
 	SimpleModelConstructor();
 	virtual ~SimpleModelConstructor();

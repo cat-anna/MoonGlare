@@ -7,8 +7,8 @@ struct sFlagStruct {
 	bool Default;
 };
 
-class cRootClass : public GabiLib::GabiObject {
-	GABI_DECLARE_CLASS(cRootClass, GabiLib::GabiObject);
+class cRootClass : public Space::RTTI::RTTIObject {
+	SPACERTTI_DECLARE_CLASS(cRootClass, Space::RTTI::RTTIObject);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public: 
 	cRootClass();
@@ -24,7 +24,7 @@ protected:
 };
 
 class NamedObject : public cRootClass {
-	GABI_DECLARE_CLASS(NamedObject, cRootClass)
+	SPACERTTI_DECLARE_CLASS(NamedObject, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	NamedObject();

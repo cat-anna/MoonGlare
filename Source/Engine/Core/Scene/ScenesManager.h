@@ -44,7 +44,7 @@ struct SceneDescriptor {
 };
 
 class ScenesManager : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(ScenesManager, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(ScenesManager, cRootClass);
 	DECLARE_PROTECTED_EVENT_HOLDER();
 public:
 	ScenesManager();

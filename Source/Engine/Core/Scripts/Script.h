@@ -15,7 +15,7 @@ public:
 };
 
 class Script : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(Script, cRootClass)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(Script, cRootClass)
 public:
 	Script();
 	~Script();

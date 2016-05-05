@@ -3,7 +3,7 @@
 #include "DockWindowInfo.h"
 #include "MainForm.h"
 
-GABI_IMPLEMENT_STATIC_CLASS(DockWindowInfo);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(DockWindowInfo);
 
 DockWindowInfo::DockWindowInfo() {
 	m_DisplayName = "{?}";

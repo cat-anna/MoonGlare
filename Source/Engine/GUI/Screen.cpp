@@ -11,7 +11,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-GABI_IMPLEMENT_STATIC_CLASS(Screen);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Screen);
 RegisterApiDerivedClass(Screen, &Screen::RegisterScriptApi);
 
 Screen::Screen(GUIEngine *Owner, Graphic::Window *Window):

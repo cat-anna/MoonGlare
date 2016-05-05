@@ -101,15 +101,10 @@ using pugi::xml_node;
 using pugi::xml_attribute;
 using pugi::xml_document;
 
-#include <GabiLib/src/GabiLib.h>
-#include <GabiLib/src/math/D2Math.h>
-#include <GabiLib/src/rtti/RTTI.h>
-#include <GabiLib/src/rtti/TemplateClassList.h>
-#include <GabiLib/src/rtti/DynamicClassRegister.h>
-#include <GabiLib/src/rtti/Exceptions.h>
-#include <GabiLib/src/utils/SharedString.h>
-#include <GabiLib/src/utils/EnumConverter.h>
-#include <GabiLib/src/utils/Serialize.h>
+#include <libSpace/src/RTTI.h>
+#include <libSpace/src/Utils.h>
+
+#include "Serialize.h"
 
 //scripts
 #include <luaJiT/lua.hpp>

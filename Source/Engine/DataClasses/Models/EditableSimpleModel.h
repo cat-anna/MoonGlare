@@ -11,7 +11,7 @@ namespace DataClasses {
 namespace Models {
 
 class EditableSimpleModel : public iSimpleModel {
-	GABI_DECLARE_CLASS_NOCREATOR(EditableSimpleModel, iSimpleModel)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(EditableSimpleModel, iSimpleModel)
 public:
 	EditableSimpleModel(const string& Name);
 	virtual ~EditableSimpleModel();

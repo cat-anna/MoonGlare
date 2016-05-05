@@ -5,7 +5,7 @@
 
 namespace Core {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(Engine);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
 RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
 Object* GetPlayer() { return GetEngine()->GetPlayer().get(); }

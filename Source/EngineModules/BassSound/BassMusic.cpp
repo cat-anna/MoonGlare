@@ -14,7 +14,7 @@ namespace MoonGlare {
 namespace Modules {
 namespace BassSound {
 
-GABI_IMPLEMENT_CLASS(BassMusic);
+SPACERTTI_IMPLEMENT_CLASS(BassMusic);
 
 BassMusic::BassMusic():
 		BaseClass() {

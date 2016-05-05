@@ -54,11 +54,11 @@
 #include "Utils/Memory.h"
 #include <source/Utils/LuaUtils.h>
 
-#include <GabiLib/src/utils/EnumConverter.h>
-#include <GabiLib/src/rtti/RTTI.h>
-#include <GabiLib/src/rtti/DynamicClassRegister.h>
-
+#include <libSpace/src/Utils/EnumConverter.h>
+#include <libSpace/src/RTTI/RTTI.h>
+#include <libSpace/src/Utils/DynamicClassRegister.h>
 #include <libSpace/src/Memory/Handle.h>
+
 #include <Engine/Configuration.h>
 
 Q_DECLARE_METATYPE(MoonGlare::Handle);

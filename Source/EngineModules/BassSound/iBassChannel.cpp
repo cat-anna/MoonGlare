@@ -49,7 +49,7 @@ DEFINE_MODULE(BassSoundModule);
 
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iBassChannel);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iBassChannel);
 
 bool iBassChannel::InitializeBass() {
 	auto ver = BASS_GetVersion();

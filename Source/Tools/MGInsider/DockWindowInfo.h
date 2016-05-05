@@ -7,10 +7,10 @@ class DockWindow;
 
 class DockWindowInfo 
 		: public QObject
-		, public GabiLib::GabiObject
+		, public Space::RTTI::RTTIObject
 		, public iSettingsUser {
 	Q_OBJECT;
-	GABI_DECLARE_STATIC_CLASS(DockWindowInfo, GabiLib::GabiObject);
+	SPACERTTI_DECLARE_STATIC_CLASS(DockWindowInfo, Space::RTTI::RTTIObject);
 public:
 	DockWindowInfo();
 	virtual ~DockWindowInfo();
@@ -44,7 +44,7 @@ private:
 	std::shared_ptr<DockWindow> m_Instance;
 };
 
-using DockWindowClassRgister = GabiLib::DynamicClassRegister<DockWindowInfo>;
+using DockWindowClassRgister = Space::DynamicClassRegister<DockWindowInfo>;
 using SharedDockWindowInfo = std::shared_ptr<DockWindowInfo>;
 
 #endif // SUBWINDOW_H

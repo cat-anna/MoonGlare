@@ -13,7 +13,7 @@ namespace Modules {
 namespace BassSound {
 
 class BassMusic : public iBassChannel {
-	GABI_DECLARE_CLASS(BassMusic, iBassChannel);
+	SPACERTTI_DECLARE_CLASS(BassMusic, iBassChannel);
 public:
  	BassMusic();
  	virtual ~BassMusic();

@@ -13,7 +13,7 @@ namespace Shaders {
 class ShaderCodeVector;
 
 class ShaderManager : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(ShaderManager, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(ShaderManager, cRootClass);
 public:
 	ShaderManager();
 	virtual ~ShaderManager();

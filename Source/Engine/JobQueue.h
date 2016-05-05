@@ -11,8 +11,8 @@
 
 namespace MoonGlare {
 
-class JobQueue : public GabiLib::GabiObject {
-	GABI_DECLARE_CLASS_SINGLETON(JobQueue, GabiLib::GabiObject);
+class JobQueue : public Space::RTTI::RTTIObject {
+	SPACERTTI_DECLARE_CLASS_SINGLETON(JobQueue, Space::RTTI::RTTIObject);
 public:
  	JobQueue();
  	virtual ~JobQueue();

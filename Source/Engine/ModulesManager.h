@@ -18,7 +18,7 @@ namespace Modules {
 enum class ModuleType {
 	Unknown, Core, Resources, Functional, Application, Debug,
 };
-struct ModuleTypeEnumConverter : GabiLib::EnumConverter < ModuleType, ModuleType::Unknown > {
+struct ModuleTypeEnumConverter : Space::EnumConverter < ModuleType, ModuleType::Unknown > {
 	ModuleTypeEnumConverter() {
 		Add("Unknown", Enum::Unknown);
 		Add("Default", Enum::Unknown);
@@ -29,7 +29,7 @@ struct ModuleTypeEnumConverter : GabiLib::EnumConverter < ModuleType, ModuleType
 		Add("Debug", Enum::Debug);
 	}
 };
-using ModuleTypeEnum = GabiLib::EnumConverterHolder < ModuleTypeEnumConverter > ;
+using ModuleTypeEnum = Space::EnumConverterHolder < ModuleTypeEnumConverter > ;
 
 enum class NotifyEvent {
 	None,
@@ -66,7 +66,7 @@ private:
 };
 
 class ModulesManager : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(ModulesManager, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(ModulesManager, cRootClass);
 public:
  	ModulesManager();
  	virtual ~ModulesManager();

@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 
 struct StyleSet : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(StyleSet, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(StyleSet, cRootClass);
 	DISABLE_COPY();
 public:
 	Style Regular;
