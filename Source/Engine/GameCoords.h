@@ -1,10 +1,11 @@
 #ifndef GameCoordsH
 #define GameCoordsH
 
+#if 0
 namespace MoonGlare {
 
 class GameCoords : public cRootClass {
-	GABI_DECLARE_CLASS(GameCoords, cRootClass);
+	SPACERTTI_DECLARE_CLASS(GameCoords, cRootClass);
 public:	
 	GameCoords();
 	virtual ~GameCoords(); 
@@ -24,5 +25,7 @@ private:
 };
 
 } //namespace MoonGlare
+
+#endif
 
 #endif
