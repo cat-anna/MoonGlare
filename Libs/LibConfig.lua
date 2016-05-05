@@ -7,6 +7,9 @@ Libraries{
 				origin = "git@smaug.lan:~/projects/libs/OrbitLogger.git",
 			},
 			branch = "master",
+			projects = {
+				"src/library.lua",
+			}
 		},
 		{ 
 			name = "StarVFS",
@@ -21,6 +24,9 @@ Libraries{
 				origin = "git@smaug.lan:~/projects/libs/libSpace.git",
 			},
 			branch = "master",
+			projects = {
+				"src/library.lua",
+			}
 		},			
 	},
 }

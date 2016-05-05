@@ -73,7 +73,6 @@ local function SetCommonConfig()
 		"bullet3-master/lib/",
 	}
 	includedirs {
-		"../../../libs",
 		"../../../../LibsC",
 		dir.base,
 		dir.src,
