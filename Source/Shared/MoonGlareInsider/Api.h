@@ -226,11 +226,12 @@ struct PayLoad_MemoryStatus {
 	u16 unused;
 	u32 Capacity;
 	u32 Allocated;
-	u32 MaxAllocated;
-	u32 unused_32_0, unused_32_1;
 	u16 ElementSize;
+	u16 unused_16_0;
+	u32 unused_32_0, unused_32_1;
 	u16 NameLen;
-	u8 Name[0];
+	u16 OwnerNameLen;
+	u8 Name_OwnerName[0];
 };
 
 struct PayLoad_ObjectInfo {

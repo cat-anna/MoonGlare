@@ -14,30 +14,41 @@ namespace Debug {
 
 #ifdef DEBUG_MEMORY
 
-struct MemoryInterface {
-
-	struct Info {
+struct DebugMemoryInterface {
+	struct DebugMemoryCounter {
 		uint32_t Allocated;
-		uint32_t MaxAllocated;
 		uint32_t ElementSize;
 		uint32_t Capacity;
-		const char *Name;
-
-		void Update(uint32_t allocated) {
-			Allocated = allocated;
-			if (MaxAllocated < allocated)
-				MaxAllocated = allocated;
-		}
+	};
+	
+	using DebugMemoryInfoFunction = std::function<void(DebugMemoryCounter &)>;
+	struct DebugMemoryCounterInfo {
+		DebugMemoryInfoFunction m_Function;
+		std::string m_Name;
 	};
 
-	MemoryInterface();
-	~MemoryInterface();
-	virtual Info* GetInfo() const = 0;
+	DebugMemoryInterface();
+	~DebugMemoryInterface();
 
-	static const std::list<MemoryInterface*>& GetInterfaces() { return s_Interfaces; }
+	void DebugMemorySetClassName(std::string ClassName);
+	void DebugMemoryRegisterCounter(std::string CounterName, DebugMemoryInfoFunction func);
+
+	DebugMemoryInterface* GetNext() { return m_Next; }
+	DebugMemoryInterface* GetPrev() { return m_Prev; }
+	const std::vector<DebugMemoryCounterInfo> &DebugMemoryGetCounters() { return m_Counters; }
+	const std::string &DebugMemoryGetClassName() const { return m_ClassName; }
+
+	static std::pair<std::unique_lock<std::mutex>, DebugMemoryInterface*> GetFirstDebugMemoryInterface();
 private:
-	static std::list<MemoryInterface*> s_Interfaces;
+	std::vector<DebugMemoryCounterInfo> m_Counters;
+	std::string m_ClassName;
+	DebugMemoryInterface *m_Next;
+	DebugMemoryInterface *m_Prev;
+
+	static DebugMemoryInterface* s_First;
+	static std::mutex m_DebugMemoryMutex;
 };
+
 #endif
 
 } //namespace Debug 

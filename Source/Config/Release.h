@@ -41,6 +41,13 @@ struct EnableFlags {
 	};
 };
 
+struct DebugMemoryInterface {
+	template<class ... ARGS> void DebugMemorySetClassName(ARGS ... args) {}
+	template<class ... ARGS> void DebugMemoryRegisterCounter(ARGS ... args) {}
+	DebugMemoryInterface* GetNext() { return nullptr; }
+	DebugMemoryInterface* GetPrev() { return nullptr; }
+};
+
 } //namespace Release
 } //namespace Config
 
