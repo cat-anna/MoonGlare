@@ -28,4 +28,5 @@ group "Tools"
 		links {
 			"lua51jit",
             "OrbitLogger",
+			"libSpace",
 		}

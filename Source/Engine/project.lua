@@ -28,6 +28,7 @@ group ""
 			".",
 		}
 		links {
+			"libSpace",
 			"OrbitLogger",
 			"StarVFS",
 			"StaticZlib",
