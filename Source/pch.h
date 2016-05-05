@@ -132,7 +132,6 @@ class cRootClass;
 #include "Utils/Memory.h"
 #include "Utils/ActionQueue.h"
 #include "Utils/StringUtils.h"
-#include "Utils/Handle.h"
 #include "Version.h"
 #include "TemplateUtils.h"
 #include "MathConstants.h"
