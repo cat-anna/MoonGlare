@@ -12,25 +12,26 @@
 namespace MoonGlare {
 namespace Core {
 
-struct Entity final : public Utils::Handle::BaseDoubleHandle32<unsigned, 16, 16> {
-	bool IsValid() const;
-	operator bool() const { return IsValid(); }
-	bool operator!() const { return !IsValid(); }
-	bool operator ==(const Entity &other) const { return m_IntegerValue == other.m_IntegerValue; }
-};
+//struct Entity final : public Space::::BaseDoubleHandle32<unsigned, 16, 16> {
+	//bool IsValid() const;
+	//operator bool() const { return IsValid(); }
+	//bool operator!() const { return !IsValid(); }
+	//bool operator ==(const Entity &other) const { return m_IntegerValue == other.m_IntegerValue; }
+//};
 
-class EntityManager final {
+class EntityManager final 
+	: public Config::Current::DebugMemoryInterface {
 public:
-	static bool Initialize();
-	static bool Finalize();
-
-	static Entity Allocate();
-	static void Release(Entity e);
-protected:
-private: 
-	//std::mutex m_Lock;
 	EntityManager();
 	~EntityManager();
+
+	bool Initialize();
+	bool Finalize();
+
+	Entity Allocate();
+	void Release(Entity e);
+	bool IsValid(Entity e);
+private: 
 };
 
 } //namespace Core 

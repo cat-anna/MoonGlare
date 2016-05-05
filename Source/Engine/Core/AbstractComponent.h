@@ -49,7 +49,9 @@ private:
 
 	DefineFlagSetter(m_Flags, FlagBit(ComponentFlags::ProcessingEnabled), ProcessingEnabled);
 };
+
 #endif
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

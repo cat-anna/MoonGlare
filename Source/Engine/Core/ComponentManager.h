@@ -9,6 +9,8 @@
 #ifndef ComponentOwner_H
 #define ComponentOwner_H
 
+#if 0
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -77,5 +79,7 @@ private:
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 
+
+#endif
 
 #endif

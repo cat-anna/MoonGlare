@@ -6,6 +6,18 @@ namespace MoonGlare {
 
 	namespace Configuration {
 
+		struct Entity {
+			enum {
+				GenerationBits = 16,
+				IndexBits = 16,
+				TypeBits = 16, 
+				ValueBits = 16,
+			};
+
+			struct Types {
+				//TBD
+			};
+		};
 
 		struct Handle {
 			enum {
@@ -21,7 +33,6 @@ namespace MoonGlare {
 				};
 			};
 		};
-
 
 		struct Storage {
 			enum {
@@ -43,12 +54,18 @@ namespace MoonGlare {
 
 	} //namespace Configuration
 
+using Entity = Space::Memory::QuadrupleHandle64<
+			Configuration::Entity::GenerationBits,
+			Configuration::Entity::IndexBits,
+			Configuration::Entity::TypeBits,
+			Configuration::Entity::ValueBits
+		>;
+
 using Handle = Space::Memory::TripleHandle64<
 			Configuration::Handle::GenerationBits,
 			Configuration::Handle::IndexBits,
 			Configuration::Handle::TypeBits
 		>;
-
 
 using HandleSet = std::vector<Handle>;
 

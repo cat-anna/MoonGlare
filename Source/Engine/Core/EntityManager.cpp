@@ -11,6 +11,45 @@
 namespace MoonGlare {
 namespace Core {
 
+EntityManager::EntityManager() {
+
+	DebugMemorySetClassName("EntityManager");
+
+	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = 0;
+		counter.Capacity = 0;
+		counter.ElementSize = 0;
+	});
+}
+
+EntityManager::~EntityManager() {
+}
+
+//------------------------------------------------------------------------------------------
+
+bool EntityManager::Initialize() {
+	return true;
+}
+
+bool EntityManager::Finalize() {
+	return true;
+}
+
+//------------------------------------------------------------------------------------------
+
+Entity EntityManager::Allocate() {
+	return Entity();
+}
+
+void EntityManager::Release(Entity e) {
+}
+
+bool EntityManager::IsValid(Entity e) {
+	return false;
+}
+
+#if 0
+
 using EntityIndex = unsigned short;
 using EntityGeneration = unsigned short;
 using EntityIndexQueue = Utils::Memory::StaticIndexQueue<EntityIndex, StaticSettings::StaticStorage::EntityBuffer, Utils::Memory::NoLockPolicy>;
@@ -66,6 +105,7 @@ static struct EntityManagerInfo_t : Config::Debug::MemoryInterface {
 } EntityManagerInfo;
 #endif
 
+#endif
+
 } //namespace Core 
 } //namespace MoonGlare 
-
