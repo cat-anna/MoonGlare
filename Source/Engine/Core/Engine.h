@@ -73,6 +73,7 @@ public:
 	static string GetVersionString();
 
 	std::unique_ptr<::Core::Objects::Object>& GetPlayer() { return m_Player; }
+	World* GetWorld() { return m_World.get(); }
 
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 protected:
@@ -80,6 +81,8 @@ protected:
 	ciScene* m_CurrentScene;
 	Utils::ActionQueue m_ActionQueue;
 	TimeEvents m_TimeEvents;
+
+	std::unique_ptr<World> m_World;
 
 	std::unique_ptr<::Core::Objects::Object> m_Player;
 

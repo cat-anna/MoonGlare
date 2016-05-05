@@ -2,6 +2,8 @@
 
 #include "nfMoonGlare.h"
 
+#include "World.h"
+
 #include "Core/Scripts/ScriptEvents.h"
 
 #include "Graphic/nGraphic.h"

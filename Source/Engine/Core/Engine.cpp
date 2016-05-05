@@ -44,6 +44,13 @@ Engine::~Engine() {
 bool Engine::Initialize() {
 	if (IsReady()) return false;
 
+	m_World = std::make_unique < World>();
+
+	if (!m_World->Initialize()) {
+		AddLogf(Error, "Failed to initialize world!");
+		return false;
+	}
+
 	GetInput()->Initialize();
 
 	m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
@@ -71,6 +78,11 @@ bool Engine::Finalize() {
 	m_Forward.reset();
 
 	AddLog(Performance, "Frames skipped: " << m_SkippedFrames);
+
+	if (!m_World->Finalize()) {
+		AddLogf(Error, "Failed to finalize world!");
+	}
+	m_World.reset();
 
 	return true;
 }
@@ -323,7 +335,7 @@ void Engine::DoMove(MoveConfig &conf) {
 	conf.RenderList.clear();
 	conf.Scene = nullptr;
 
-	MoonGlare::Core::Component::ComponentManager::Process(conf);
+//	MoonGlare::Core::Component::ComponentManager::Process(conf);
 
 	m_TimeEvents.CheckEvents(conf);
 	if (m_CurrentScene)
