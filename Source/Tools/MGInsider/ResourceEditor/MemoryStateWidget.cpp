@@ -25,7 +25,7 @@ public:
 			sprintf_s(buffer, "%d [%.2f%%]", item->Allocated, ((float)item->Allocated / (float)item->Capacity) * 100.0f);
 			cols << new QStandardItem(buffer);
 			cols << new QStandardItem(itoa(item->Capacity, buffer, 10));
-			cols << new QStandardItem(itoa(item->MaxAllocated, buffer, 10));
+			cols << new QStandardItem("?"); //itoa(item->MaxAllocated, buffer, 10));
 			cols << new QStandardItem(itoa(item->ElementSize, buffer, 10));
 			root->appendRow(cols);
 		}
