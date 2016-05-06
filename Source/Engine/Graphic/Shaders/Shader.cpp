@@ -27,8 +27,8 @@ Shader::ShaderParamNames::ShaderParamNames() {
 #undef _addx
 }
 
-ShaderClassRegister::Register<Shader> ShaderReg;
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Shader);
+ShaderClassRegister::Register<Shader> ShaderReg;
 
 Shader::ShaderParamNames Shader::ParamNames;
 

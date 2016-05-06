@@ -9,8 +9,8 @@
 namespace Graphic {
 namespace Dereferred {
 
-Shaders::ShaderClassRegister::Register<SpotLightShader> ShaderReg;
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(SpotLightShader);
+Shaders::ShaderClassRegister::Register<SpotLightShader> ShaderReg;
  
 SpotLightShader::SpotLightShader(GLuint ShaderProgram, const string &ProgramName):
 		BaseClass(ShaderProgram, ProgramName) {
