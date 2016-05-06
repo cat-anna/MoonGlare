@@ -15,7 +15,7 @@ namespace BitmapFont {
 using namespace DataClasses::Fonts;
 
 class BitmapFontWrapper : public Wrapper {
-	GABI_DECLARE_STATIC_CLASS(BitmapFontWrapper, Wrapper);
+	SPACERTTI_DECLARE_STATIC_CLASS(BitmapFontWrapper, Wrapper);
 	DISABLE_COPY();
 	friend class BitmapFont;
 public:
@@ -33,7 +33,7 @@ protected:
 };
 
 class BitmapFont : public iFont {
-	GABI_DECLARE_CLASS(BitmapFont, iFont);
+	SPACERTTI_DECLARE_CLASS(BitmapFont, iFont);
 public:
 	BitmapFont(const string& Name);
 	~BitmapFont();

@@ -10,7 +10,7 @@
 
 namespace DataClasses {
 
-GABI_IMPLEMENT_STATIC_CLASS(StringTable)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(StringTable)
 //RegisterApiDerivedClass(StringTable, &StringTable::RegisterScriptApi);
 
 StringTable::StringTable() {

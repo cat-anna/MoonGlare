@@ -3,7 +3,7 @@
 
 namespace DataClasses {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
 RegisterApiDerivedClass(BasicResource, &BasicResource::RegisterScriptApi);
 
 BasicResource::BasicResource() {
@@ -38,7 +38,7 @@ FileSystem::XMLFile BasicResource::OpenMetaData() const {
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(DataClass)
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(DataClass)
 RegisterApiDerivedClass(DataClass, &DataClass::RegisterScriptApi);
 
 DataClass::DataClass(): 

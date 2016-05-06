@@ -9,7 +9,7 @@
 namespace Graphic {
 namespace Dereferred {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(DirectionalLightShader);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(DirectionalLightShader);
 Shaders::ShaderClassRegister::Register<DirectionalLightShader> ShaderReg;
  
 DirectionalLightShader::DirectionalLightShader(GLuint ShaderProgram, const string &ProgramName):

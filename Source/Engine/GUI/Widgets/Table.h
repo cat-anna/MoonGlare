@@ -16,7 +16,7 @@ namespace Widgets {
 class TablePanel;
 
 class Table : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(Table, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(Table, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	Table(iWidget *Parent);

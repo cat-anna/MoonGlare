@@ -19,7 +19,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(EngineLoadScene)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(EngineLoadScene)
 
 EngineLoadScene::EngineLoadScene():
 		BaseClass(),

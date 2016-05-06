@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Dereferred {
 
 class GeometryPassShader : public Shader {
-	GABI_DECLARE_CLASS_NOCREATOR(GeometryPassShader, Shader);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(GeometryPassShader, Shader);
 public:
  	GeometryPassShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~GeometryPassShader();

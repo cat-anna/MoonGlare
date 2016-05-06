@@ -16,7 +16,7 @@ namespace TrueTypeFont {
 using namespace DataClasses::Fonts; 
 
 class TrueTypeWrapper : public Wrapper {
-	GABI_DECLARE_STATIC_CLASS(TrueTypeWrapper, Wrapper);
+	SPACERTTI_DECLARE_STATIC_CLASS(TrueTypeWrapper, Wrapper);
 	DISABLE_COPY();
 	friend class TrueTypeFont;
 public:

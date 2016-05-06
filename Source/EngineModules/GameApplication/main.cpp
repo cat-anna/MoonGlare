@@ -3,7 +3,7 @@
 #include <Engine/iApplication.h>
 #include "GameApplication.h"
 
-#include <GabiLib/src/utils/ParamParser.cpp>
+//#include <libs/src/utils/ParamParser.cpp>
 using namespace std;
 using namespace MoonGlare::Application;
 
@@ -29,7 +29,7 @@ void option_setHeight(StringVector &arglist){
 	//Settings->Window.Height = c;
 }
 
-const GabiLib::ProgramParameters::Parameter Parameters[] = {
+const Space::ProgramParameters::Parameter Parameters[] = {
 //	{'s', 1, 0, 			SettingsFile,	"Select settings file."},
 // 	{'', 0, f, 0, ""},
 
@@ -44,8 +44,8 @@ const GabiLib::ProgramParameters::Parameter Parameters[] = {
 	{'\0', 0, 0, 0, 0, 0},
 }; 
 
-GabiLib::ProgramParameters Params = {
-	GabiLib::ProgramParameters::disable_helpmsg_on_noparams,
+Space::ProgramParameters Params = {
+	Space::ProgramParameters::disable_helpmsg_on_noparams,
 	"FPS Engine",
 	0,//	Settings->Modules.List,
 	"MainModule OtherModules",

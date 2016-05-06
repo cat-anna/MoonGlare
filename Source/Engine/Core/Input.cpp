@@ -9,7 +9,7 @@
 
 namespace Core {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(Input);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Input);
 MouseEventDispatcher *Input::_MouseDispatcher = nullptr;
 
 Input::Input(): m_KeyStatus(0), m_MouseDelta(0, 0) {
@@ -40,7 +40,7 @@ bool Input::Finalize() {
 
 //-------------------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS(KeyMap)
+SPACERTTI_IMPLEMENT_CLASS(KeyMap)
 
 //-------------------------------------------------------------------------------------------------
 

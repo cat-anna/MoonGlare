@@ -37,7 +37,7 @@ bool MenuSceneConfig::Load(const xml_node node) {
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS(MenuScene);
+SPACERTTI_IMPLEMENT_CLASS(MenuScene);
 RegisterApiDerivedClass(MenuScene, &MenuScene::RegisterScriptApi);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(MenuItemScriptEvents);
 ::Core::Scene::SceneClassRegister::Register<MenuScene> MenuSceneReg;

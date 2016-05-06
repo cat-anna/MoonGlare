@@ -15,7 +15,7 @@ namespace BassSound {
 using namespace ::MoonGlare::Sound; 
 
 class iBassChannel : public iSound {
-	GABI_DECLARE_ABSTRACT_CLASS(iBassChannel, iSound);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iBassChannel, iSound);
 public:
  	iBassChannel();
  	virtual ~iBassChannel();

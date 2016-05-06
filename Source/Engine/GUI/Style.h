@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 
 struct Style : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(Style, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(Style, cRootClass);
 	DISABLE_COPY();
 public:
 	DataClasses::FontPtr Font;

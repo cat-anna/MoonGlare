@@ -11,7 +11,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-GABI_IMPLEMENT_STATIC_CLASS(Animation);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Animation);
 
 Animation::Animation():
 		BaseClass(),

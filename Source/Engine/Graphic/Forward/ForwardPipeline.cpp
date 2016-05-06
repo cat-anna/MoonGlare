@@ -11,7 +11,7 @@
 namespace Graphic {
 namespace Forward {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ForwardPipeline);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ForwardPipeline);
 
 ForwardPipeline::ForwardPipeline() {
 	m_Shader = GetShaderMgr()->GetShader("Default.default");

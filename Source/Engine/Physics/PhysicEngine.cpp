@@ -20,7 +20,7 @@ namespace Physics {
 
 //---------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS(PhysicEngine);
+SPACERTTI_IMPLEMENT_CLASS(PhysicEngine);
 RegisterApiDerivedClass(PhysicEngine, &PhysicEngine::RegisterScriptApi);
 RegisterDebugApi(Physics, &PhysicEngine::RegisterDebugScriptApi, "Physics");
 

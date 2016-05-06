@@ -5,7 +5,7 @@
 namespace Core {
 
 class TimeEvents : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(TimeEvents, cRootClass)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(TimeEvents, cRootClass)
 public:
 	TimeEvents();
 	~TimeEvents();

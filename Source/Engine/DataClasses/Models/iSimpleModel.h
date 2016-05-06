@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Models {
 
 class iSimpleModel : public iModel {
-	GABI_DECLARE_ABSTRACT_CLASS(iSimpleModel, iModel);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iSimpleModel, iModel);
 public:
 	iSimpleModel(const string& Name);
 	virtual ~iSimpleModel();

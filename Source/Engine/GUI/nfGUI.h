@@ -27,7 +27,7 @@ namespace GUI {
 	using SharedStyleSet = std::shared_ptr < StyleSet > ;
 	class StyleManager;
 
-	using WidgetClassRegister = GabiLib::DynamicClassRegister < iWidget, iWidget* > ;
+	using WidgetClassRegister = Space::DynamicClassRegister < iWidget, iWidget* > ;
 
 	using MouseButton = ::Graphic::WindowInput::MouseButton;
 	using ModsStatus = ::Graphic::WindowInput::ModsStatus;

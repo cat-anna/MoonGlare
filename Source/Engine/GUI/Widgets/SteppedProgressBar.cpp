@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 namespace Widgets {
 
-GABI_IMPLEMENT_STATIC_CLASS(SteppedProgressBar);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SteppedProgressBar);
 RegisterApiDerivedClass(SteppedProgressBar, &SteppedProgressBar::RegisterScriptApi);
 WidgetClassRegister::Register<SteppedProgressBar> SteppedProgressBarReg;
 

@@ -12,7 +12,7 @@ namespace MoonGlare {
 namespace GUI {
 	
 class Animation : public cRootClass, public std::enable_shared_from_this<Animation> {
-	GABI_DECLARE_STATIC_CLASS(Animation, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(Animation, cRootClass);
 public:
  	Animation();
  	~Animation();

@@ -11,7 +11,7 @@
 namespace Core {
 
 class KeyMap : public cRootClass {
-	GABI_DECLARE_CLASS(KeyMap, cRootClass)
+	SPACERTTI_DECLARE_CLASS(KeyMap, cRootClass)
 public:
 	uint64_t Querry(uint32_t index) const {
 		if(index >= MapSize) return 0;
@@ -49,7 +49,7 @@ struct MouseEventDispatcher {
 };
 
 class Input : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(Input, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(Input, cRootClass)
 public:
  	Input();
  	virtual ~Input();

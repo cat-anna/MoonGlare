@@ -15,7 +15,7 @@ namespace GUI {
 namespace Widgets {
 
 class SplittingPanel : public Panel {
-	GABI_DECLARE_STATIC_CLASS(SplittingPanel, Panel)
+	SPACERTTI_DECLARE_STATIC_CLASS(SplittingPanel, Panel)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SplittingPanel(iWidget *Parent): BaseClass(Parent) { }
@@ -37,13 +37,13 @@ public:
 	}
 };
 
-GABI_IMPLEMENT_STATIC_CLASS(SplittingPanel);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SplittingPanel);
 RegisterApiDerivedClass(SplittingPanel, &SplittingPanel::RegisterScriptApi);
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(SplitPanel);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SplitPanel);
 RegisterApiDerivedClass(SplitPanel, &SplitPanel::RegisterScriptApi);
 WidgetClassRegister::Register<SplitPanel> SplitPanelReg;
 

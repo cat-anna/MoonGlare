@@ -34,7 +34,7 @@ enum class MenuItemType {
 	Unknown, Menu, Return, List, Button, CheckBox, Separator, SteppedProgressBar, Label,
 };
 
-struct MenuItemTypeEnumConverter : GabiLib::EnumConverter < MenuItemType, MenuItemType::Unknown > {
+struct MenuItemTypeEnumConverter : Space::EnumConverter < MenuItemType, MenuItemType::Unknown > {
 	MenuItemTypeEnumConverter() {
 		Add("Unknown", Enum::Unknown); 
 		Add("Menu", Enum::Menu);
@@ -47,10 +47,10 @@ struct MenuItemTypeEnumConverter : GabiLib::EnumConverter < MenuItemType, MenuIt
 		Add("List", Enum::List);
 	}
 };
-using MenuItemTypeEnum = GabiLib::EnumConverterHolder < MenuItemTypeEnumConverter >;
+using MenuItemTypeEnum = Space::EnumConverterHolder < MenuItemTypeEnumConverter >;
 
 struct MenuItemInfo : public cRootClass, public std::enable_shared_from_this<MenuItemInfo> {
-	GABI_DECLARE_STATIC_CLASS(MenuItemInfo, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(MenuItemInfo, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DECLARE_SCRIPT_HANDLERS_ROOT(MenuItemScriptEvents);
 public:
@@ -102,7 +102,7 @@ private:
 //----------------------------------------------------------------
 
 class SubMenuItem : public MenuItemInfo {
-	GABI_DECLARE_STATIC_CLASS(SubMenuItem, MenuItemInfo);
+	SPACERTTI_DECLARE_STATIC_CLASS(SubMenuItem, MenuItemInfo);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	SubMenuItem(MenuScene *Owner, SharedMenuItemInfo Parent);

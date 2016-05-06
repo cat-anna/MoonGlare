@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 namespace Widgets {
 
-GABI_IMPLEMENT_STATIC_CLASS(Panel);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Panel);
 RegisterApiDerivedClass(Panel, &Panel::RegisterScriptApi);
 WidgetClassRegister::Register<Panel> PanellReg;
 

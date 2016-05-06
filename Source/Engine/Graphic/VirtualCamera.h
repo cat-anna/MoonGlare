@@ -11,7 +11,7 @@
 namespace Graphic {
 
 class VirtualCamera: public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(VirtualCamera, cRootClass)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(VirtualCamera, cRootClass)
 public:
 	~VirtualCamera();
 	VirtualCamera();

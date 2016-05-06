@@ -50,7 +50,7 @@ DEFINE_MODULE(RemoteConsoleModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(RemoteConsole);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(RemoteConsole);
 
 RemoteConsole::RemoteConsole(): BaseClass() {
 	m_Running = true;

@@ -9,7 +9,7 @@
 
 namespace Graphic {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
 RegisterDebugApi(Graphic, &cRenderDevice::RegisterDebugScriptApi, "Graphic");
 inline Window* WindowInstance() { return GetRenderDevice()->GetContext().get(); }
 RegisterApiDynamicInstance(Window, &WindowInstance, "Window");

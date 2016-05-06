@@ -35,7 +35,8 @@ local function ProcessLibrary(conf, libconf)
 	libconf.path = conf.path .. libconf.name
 
 	libconf.exists = os.isdir(libconf.path)
-
+	libconf.projects = libconf.projects or {}
+	
 	if not libconf.exists then
 		if libconf.cloneattempt then
 			print "Clone attempt failed."
@@ -54,7 +55,11 @@ local function ProcessLibrary(conf, libconf)
 	local branch = firstline("git rev-parse --symbolic-full-name --abbrev-ref HEAD")
 	local commithash = firstline("git rev-parse HEAD")
 	
-	print (string.format("Status: %s, branch: %s, commit:%s", "ok", branch, commithash))
+	for i,v in ipairs(libconf.projects) do
+		conf.projects[#conf.projects + 1] = libconf.path .. "/" .. v
+	end
+	
+	print (string.format("Status: %s, projects:%d, branch: %s, commit:%s", "ok", #libconf.projects, branch, commithash))
 	
 	--local result = { os.execute("git diff --cached --exit-code") }
 	--local changed = result[#result]
@@ -72,6 +77,7 @@ function Libraries(config)
 	local conf = {
 		path = dir.libsrc,
 		startpath = os.getcwd() .. "/",
+		projects = { }
 	}
 	
 	local i,v
@@ -80,8 +86,14 @@ function Libraries(config)
 	end
 	
 	os.chdir(conf.startpath)
+	
+	for i,v in ipairs(conf.projects) do
+		print("Loading library project: " .. v)
+		include(v)
+	end	
 end
 
 function MoonGlare.CheckLibraries()
 	include(dir.libsrc .. "LibConfig.lua")
+
 end

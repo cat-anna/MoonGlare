@@ -33,7 +33,7 @@ static bool IsModeSuggested(const GLFWvidmode* mode) {
 
 //-------------------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(Window)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Window)
 RegisterApiDerivedClass(Window, &Window::RegisterScriptApi);
 RegisterDebugApi(DbgWindow, &Window::RegisterDebugScriptApi, "Graphic");
 

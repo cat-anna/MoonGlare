@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Dereferred {
 
 class SpotLightShader : public LightingPassShader {
-	GABI_DECLARE_CLASS_NOCREATOR(SpotLightShader, LightingPassShader);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(SpotLightShader, LightingPassShader);
 public:
  	SpotLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~SpotLightShader();

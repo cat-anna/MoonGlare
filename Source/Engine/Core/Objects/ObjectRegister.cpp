@@ -11,7 +11,7 @@
 namespace Core {
 namespace Objects {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
 RegisterApiDerivedClass(ObjectRegister, &ObjectRegister::RegisterScriptApi);
 
 ObjectRegister::ObjectRegister() {

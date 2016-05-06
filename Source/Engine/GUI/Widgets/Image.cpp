@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace GUI {
 namespace Widgets {
 
-GABI_IMPLEMENT_STATIC_CLASS(Image);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Image);
 RegisterApiDerivedClass(Image, &Image::RegisterScriptApi);
 WidgetClassRegister::Register<Image> ImageReg;
 

@@ -24,7 +24,7 @@ enum class EngineStateValue {
 	CurrentScene,
 };
 
-struct EngineStateValueCaptions : GabiLib::EnumConverter < EngineStateValue, EngineStateValue::None > {
+struct EngineStateValueCaptions : Space::EnumConverter < EngineStateValue, EngineStateValue::None > {
 	EngineStateValueCaptions() {
 		Add("None", Enum::None);
 		Add("Version", Enum::EngineVersion);
@@ -38,9 +38,9 @@ struct EngineStateValueCaptions : GabiLib::EnumConverter < EngineStateValue, Eng
 		Add("Messages timedout", Enum::RemoteConsoleMessagesTimedout);
 	}
 };
-using EngineStateValueCaptionValues = GabiLib::EnumConverterHolder < EngineStateValueCaptions >;
+using EngineStateValueCaptionValues = Space::EnumConverterHolder < EngineStateValueCaptions >;
 
-struct EngineStateValueGroups : GabiLib::EnumConverter < EngineStateValue, EngineStateValue::None > {
+struct EngineStateValueGroups : Space::EnumConverter < EngineStateValue, EngineStateValue::None > {
 	EngineStateValueGroups() {
 		Add("Engine", Enum::EngineVersion);
 		Add("Engine", Enum::EngineBuildDate);
@@ -51,7 +51,7 @@ struct EngineStateValueGroups : GabiLib::EnumConverter < EngineStateValue, Engin
 		Add("", Enum::None);
 	}
 };
-using EngineStateValueGroupsValues = GabiLib::EnumConverterHolder < EngineStateValueGroups >;
+using EngineStateValueGroupsValues = Space::EnumConverterHolder < EngineStateValueGroups >;
 
 class MainForm : public QMainWindow {
 	Q_OBJECT

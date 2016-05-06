@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace Application {
 
 class iApplication : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	iApplication();

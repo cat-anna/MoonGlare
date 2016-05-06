@@ -96,7 +96,7 @@ struct RuntimeConfiguration {
 
 class Manager : public cRootClass {
 	friend class DataManagerDebugScritpApi;
-	GABI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
 public:
 	Manager();
 	virtual ~Manager();

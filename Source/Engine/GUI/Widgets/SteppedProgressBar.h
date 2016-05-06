@@ -14,7 +14,7 @@ namespace GUI {
 namespace Widgets {
 
 class SteppedProgressBar : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(SteppedProgressBar, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(SteppedProgressBar, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	SteppedProgressBar(iWidget *Parent);

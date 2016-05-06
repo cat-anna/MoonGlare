@@ -77,7 +77,7 @@ DEFINE_MODULE(ThreadedSoundEngineModule);
 	3d sound support
 */
 
-GABI_IMPLEMENT_STATIC_CLASS(SoundEngine);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SoundEngine);
 RegisterApiDerivedClass(SoundEngine, &SoundEngine::RegisterScriptApi);
 
 SoundEngine::SoundEngine():

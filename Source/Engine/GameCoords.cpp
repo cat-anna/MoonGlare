@@ -1,10 +1,11 @@
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 #include "GameCoords.h"
 
 namespace MoonGlare {
 
-GABI_IMPLEMENT_CLASS(GameCoords);
+SPACERTTI_IMPLEMENT_CLASS(GameCoords);
 
 GameCoords::GameCoords(): cRootClass(), m_MapName() {
 }
@@ -14,7 +15,6 @@ GameCoords::~GameCoords(){
 
 } //namespace MoonGlare
 
-#if 0
 
 /*
 cGameCoords::cGameCoords(const string &MapName, const c3DPoint &Position, const c3DPoint &CameraRotation):

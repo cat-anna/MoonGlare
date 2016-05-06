@@ -9,7 +9,7 @@
 #include "ScriptMoveController.h"
 namespace MoveControllers {
 
-GABI_IMPLEMENT_CLASS(ScriptMoveController);
+SPACERTTI_IMPLEMENT_CLASS(ScriptMoveController);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(ScriptControllerScriptEvents);
 RegisterApiDerivedClass(ScriptMoveController, &ScriptMoveController::RegisterScriptApi);
 //MoveControllerClassRegister::Register<PathController> PathControllerReg;

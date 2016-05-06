@@ -6,7 +6,7 @@
 namespace Core {
 namespace Scripts {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(cScriptEngine)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cScriptEngine)
 RegisterApiInstance(cScriptEngine, &cScriptEngine::Instance, "ScriptEngine");
 RegisterApiDerivedClass(cScriptEngine, &cScriptEngine::RegisterScriptApi);
 

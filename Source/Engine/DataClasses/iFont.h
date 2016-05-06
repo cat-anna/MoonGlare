@@ -5,7 +5,7 @@ namespace DataClasses {
 namespace Fonts {
 
 class Wrapper : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(Wrapper, cRootClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(Wrapper, cRootClass);
 	DISABLE_COPY();
 public:
 	Wrapper() { }
@@ -22,7 +22,7 @@ protected:
 };
 
 class EmptyWrapper : public Wrapper {
-	GABI_DECLARE_CLASS(EmptyWrapper, Wrapper);
+	SPACERTTI_DECLARE_CLASS(EmptyWrapper, Wrapper);
 	DISABLE_COPY();
 public:
 	EmptyWrapper() { }
@@ -36,7 +36,7 @@ protected:
 //-----------------------------------------------------------------------------
 
 class iFont : public DataClasses::DataClass {
-	GABI_DECLARE_ABSTRACT_CLASS(iFont, DataClass);
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(iFont, DataClass);
 	DISABLE_COPY();
 public:
 	iFont(const string& Name);
@@ -52,7 +52,7 @@ protected:
 
 //-----------------------------------------------------------------------------
 
-using FontClassRegister = GabiLib::DynamicClassRegisterDeleter < iFont, ResourceFinalizer<iFont>, const string& > ;
+using FontClassRegister = Space::DynamicClassRegisterDeleter < iFont, ResourceFinalizer<iFont>, const string& > ;
 
 } //namespace Fonts
 } //namespace DataClasses 

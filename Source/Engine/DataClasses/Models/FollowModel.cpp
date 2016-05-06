@@ -10,7 +10,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_STATIC_CLASS(FollowModel)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(FollowModel)
 //ModelClassRegister::Register<SimpleModelImpl> SimpleModelImplReg("SimpleModel");
 //Core::Interfaces::AutoResourceClassReg<FollowModel> FollowModelReg("FollowModel");
 

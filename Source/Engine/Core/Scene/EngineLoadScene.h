@@ -12,7 +12,7 @@ namespace Core {
 namespace Scene {
 
 class EngineLoadScene : public DefaultLoadingScene {
-	GABI_DECLARE_CLASS_NOCREATOR(EngineLoadScene, DefaultLoadingScene)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(EngineLoadScene, DefaultLoadingScene)
 	//DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	EngineLoadScene();

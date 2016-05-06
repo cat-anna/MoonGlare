@@ -57,7 +57,7 @@ static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Se
 		case LUA_TUSERDATA: {
 			unsigned *ptr = (unsigned*)lua_touserdata(L, i);
 			try {
-				cRootClass *obj = dynamic_cast<cRootClass*>((GabiObject*)(void*)*(ptr + 1));
+				cRootClass *obj = dynamic_cast<cRootClass*>((Space::RTTI::RTTIObject*)(void*)*(ptr + 1));
 				if (!obj)
 					throw false;
 				lg << "[" << obj->Info() << "]";
@@ -179,7 +179,7 @@ RegisterApiNonClass(LogScriptApi, &LogScriptApi, "Log");
 //-------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(Script)
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Script)
 RegisterApiDerivedClass(Script, &Script::RegisterScriptApi);
 
 Script::Script(): BaseClass(), m_Lua(0), m_Flags(0), m_OwnerProxy(nullptr) {

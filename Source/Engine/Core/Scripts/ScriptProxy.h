@@ -13,7 +13,7 @@ namespace Core {
 namespace Scripts {
 
 class ScriptProxy : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(ScriptProxy, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(ScriptProxy, cRootClass);
 public:
  	ScriptProxy();
  	~ScriptProxy();

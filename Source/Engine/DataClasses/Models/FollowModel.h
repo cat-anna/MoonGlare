@@ -12,7 +12,7 @@ namespace DataClasses {
 namespace Models {
 
 class FollowModel : public iModel {
-	GABI_DECLARE_STATIC_CLASS(FollowModel, iModel);
+	SPACERTTI_DECLARE_STATIC_CLASS(FollowModel, iModel);
 public:
  	FollowModel(const string &Name);
  	virtual ~FollowModel();

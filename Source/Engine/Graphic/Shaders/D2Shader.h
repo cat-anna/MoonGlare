@@ -13,7 +13,7 @@ namespace Graphic {
 namespace Shaders {
 
 class D2Shader : public Shader {
-	GABI_DECLARE_CLASS_NOCREATOR(D2Shader, Shader);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(D2Shader, Shader);
 public:
  	D2Shader(GLuint ShaderProgram, const string &ProgramNam);
  	virtual ~D2Shader();

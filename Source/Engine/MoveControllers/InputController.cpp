@@ -10,7 +10,7 @@
 
 namespace MoveControllers {
 
-GABI_IMPLEMENT_CLASS(InputController);
+SPACERTTI_IMPLEMENT_CLASS(InputController);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(InputControllerScriptEvents);
 RegisterApiDerivedClass(InputController, &InputController::RegisterScriptApi);
 MoveControllerClassRegister::Register<InputController> InputControllerReg;

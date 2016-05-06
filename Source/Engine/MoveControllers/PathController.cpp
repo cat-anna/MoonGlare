@@ -10,7 +10,7 @@
 
 namespace MoveControllers {
 
-GABI_IMPLEMENT_CLASS(PathController)
+SPACERTTI_IMPLEMENT_CLASS(PathController)
 IMPLEMENT_SCRIPT_EVENT_VECTOR(PathControllerScriptEvents);
 RegisterApiDerivedClass(PathController, &PathController::RegisterScriptApi);
 MoveControllerClassRegister::Register<PathController> PathControllerReg;

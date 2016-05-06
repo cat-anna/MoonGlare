@@ -14,7 +14,7 @@ namespace MoonGlare {
 namespace Modules {
 namespace BassSound {
 
-GABI_IMPLEMENT_CLASS(BassStream);
+SPACERTTI_IMPLEMENT_CLASS(BassStream);
 
 BassStream::BassStream():
 		BaseClass(),

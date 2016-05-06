@@ -11,7 +11,7 @@ namespace Core {
 namespace Objects {
 
 class ObjectRegister : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(ObjectRegister, cRootClass)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(ObjectRegister, cRootClass)
 public:
 	struct Memory {
 		template<class T> using Array = std::array<T, Configuration::Storage::Static::ObjectBuffer>;

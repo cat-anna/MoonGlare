@@ -10,7 +10,7 @@ namespace Core {
 namespace Camera {
 
 class iCamera : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(iCamera, cRootClass)
+	SPACERTTI_DECLARE_STATIC_CLASS(iCamera, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	iCamera(GameScene *GameScene);

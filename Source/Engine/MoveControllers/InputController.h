@@ -18,7 +18,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(InputControllerScriptEvents, MoveControllerScriptEve
 		SCRIPT_EVENT_REMOVE());
 
 class InputController : public iMoveController {
-	GABI_DECLARE_CLASS(InputController, iMoveController);
+	SPACERTTI_DECLARE_CLASS(InputController, iMoveController);
 	DECLARE_SCRIPT_HANDLERS(InputControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:

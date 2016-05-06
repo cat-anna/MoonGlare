@@ -11,7 +11,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iWidget)
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iWidget)
 IMPLEMENT_SCRIPT_EVENT_VECTOR(WidgetScriptEvents);
 RegisterApiDerivedClass(iWidget, &iWidget::RegisterScriptApi);
 

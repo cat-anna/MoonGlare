@@ -15,7 +15,7 @@ namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
 	
-GABI_IMPLEMENT_STATIC_CLASS(TrueTypeFont);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(TrueTypeFont);
 
 TrueTypeFont::TrueTypeFont(const string& Name): 
 		BaseClass(Name) {

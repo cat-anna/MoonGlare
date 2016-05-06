@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Forward {
 
 class ForwardPipeline : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(ForwardPipeline, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(ForwardPipeline, cRootClass);
 public:
  	ForwardPipeline();
  	virtual ~ForwardPipeline();

@@ -64,7 +64,7 @@ void DataPathsTable::Translate(string& out, DataPath origin) const {
 
 //-------------------------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS_SINGLETON(MoonGlareFileSystem)
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(MoonGlareFileSystem)
 RegisterDebugApi(MoonGlareFileSystem, &MoonGlareFileSystem::RegisterDebugScriptApi, "FileSystem");
 
 MoonGlareFileSystem::MoonGlareFileSystem():
@@ -298,7 +298,7 @@ bool MoonGlareFileSystem::LoadContainer(const std::string &URI) {
 
 //----------------------------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(DirectoryReader);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(DirectoryReader);
 RegisterApiDerivedClass(DirectoryReader, &DirectoryReader::RegisterScriptApi);
 
 void DirectoryReader::RegisterScriptApi(ApiInitializer &api) {

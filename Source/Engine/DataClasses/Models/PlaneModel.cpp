@@ -11,7 +11,7 @@
 namespace DataClasses {
 namespace Models {
 
-GABI_IMPLEMENT_STATIC_CLASS(PlaneModel);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(PlaneModel);
 ModelClassRegister::Register<PlaneModel> PlaneModelReg("PlaneModel");
 
 PlaneModel::PlaneModel(const string &Name):

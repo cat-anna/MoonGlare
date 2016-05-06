@@ -24,7 +24,7 @@ using InsiderMessageBuffer = InsiderApi::InsiderMessageBuffer;
 //using InsiderLogSink = ::Log::LogSink < > ;
 
 class Insider : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(Insider, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(Insider, cRootClass);
 public:
  	Insider();
  	virtual ~Insider();

@@ -14,7 +14,7 @@ namespace GUI {
 namespace Widgets {
 
 class Label : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(Label, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(Label, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	Label(iWidget *Parent);

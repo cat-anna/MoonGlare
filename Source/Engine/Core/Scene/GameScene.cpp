@@ -12,7 +12,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS(GameScene);
+SPACERTTI_IMPLEMENT_CLASS(GameScene);
 RegisterApiDerivedClass(GameScene, &GameScene::RegisterScriptApi);
 SceneClassRegister::Register<GameScene> GameSceneReg;
 

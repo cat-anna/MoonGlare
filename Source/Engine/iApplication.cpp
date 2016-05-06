@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace Application {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(iApplication);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(iApplication);
 
 iApplication::iApplication() : BaseClass(), m_Flags(0) {
 	SetThisAsInstance();

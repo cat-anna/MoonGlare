@@ -14,7 +14,7 @@ namespace GUI {
 namespace Widgets {
 
 class Image : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(Image, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(Image, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	Image(iWidget *Parent);

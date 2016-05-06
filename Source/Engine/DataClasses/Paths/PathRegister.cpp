@@ -9,7 +9,7 @@
 namespace DataClasses {
 namespace Paths {
 
-GABI_IMPLEMENT_STATIC_CLASS(PathRegister)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(PathRegister)
 
 PathRegister::PathRegister(iMap *Owner):
 		BaseClass(),

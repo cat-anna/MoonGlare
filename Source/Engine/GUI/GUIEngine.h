@@ -20,8 +20,8 @@ struct EventDispatcherTable;
 using GuiEventBuffer = Utils::Memory::DynamicCyclicBuffer < 100, Events::Event, Utils::Memory::MemoryNoLockPolicy> ;
 
 class GUIEngine : public cRootClass {
-	//GABI_DECLARE_CLASS_SINGLETON(GUIEngine, cRootClass)
-	GABI_DECLARE_STATIC_CLASS(GUIEngine, cRootClass)
+	//SPACERTTI_DECLARE_CLASS_SINGLETON(GUIEngine, cRootClass)
+	SPACERTTI_DECLARE_STATIC_CLASS(GUIEngine, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	friend struct EventDispatcherTable;
 public:

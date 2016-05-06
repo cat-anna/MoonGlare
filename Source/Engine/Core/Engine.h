@@ -10,7 +10,7 @@ const Version::Info& GetMoonGlareEngineVersion();
 namespace Core {
 
 class Engine : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
     Engine();

@@ -110,14 +110,14 @@ struct CollisionMask {
 	}
 };
 
-struct BodyClassEnumCoverter : GabiLib::EnumConverter < BodyClass, BodyClass::Default > {
+struct BodyClassEnumCoverter : Space::EnumConverter < BodyClass, BodyClass::Default > {
 	BodyClassEnumCoverter() {
 		Add("Default", Enum::Default);
 		Add("Player", Enum::Player);
 	}
 };
 
-struct GroupMaskEnumCoverter : GabiLib::EnumConverter < GroupMask, GroupMask::Default > {
+struct GroupMaskEnumCoverter : Space::EnumConverter < GroupMask, GroupMask::Default > {
 	GroupMaskEnumCoverter() {
 		Add("Default", Enum::Default);
 		Add("None", Enum::None);
@@ -127,11 +127,11 @@ struct GroupMaskEnumCoverter : GabiLib::EnumConverter < GroupMask, GroupMask::De
 	}
 };
 
-struct BodyClassEnum : public GabiLib::EnumConverterHolder < BodyClassEnumCoverter > {
+struct BodyClassEnum : public Space::EnumConverterHolder < BodyClassEnumCoverter > {
 	static void LoadFromXML(const xml_node parent, CollisionMask& out);
 };
 
-struct GroupMaskEnum : public GabiLib::EnumConverterHolder < GroupMaskEnumCoverter > {
+struct GroupMaskEnum : public Space::EnumConverterHolder < GroupMaskEnumCoverter > {
 	static void LoadFromXML(const xml_node parent, CollisionMask& out);
 };
 

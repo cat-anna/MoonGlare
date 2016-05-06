@@ -4,7 +4,7 @@
 namespace DataClasses {
 
 class BasicResource : public NamedObject {
-	GABI_DECLARE_CLASS_NOCREATOR(BasicResource, NamedObject)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(BasicResource, NamedObject)
 public:
 	BasicResource();
 	BasicResource(const string& Name);
@@ -19,7 +19,7 @@ private:
 
 /** basic class for data containers like font */
 class DataClass : public BasicResource {
-	GABI_DECLARE_ABSTRACT_CLASS(DataClass, BasicResource)
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(DataClass, BasicResource)
 public:
 	virtual ~DataClass();
 	DataClass();

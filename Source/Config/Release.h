@@ -20,8 +20,8 @@
 #define THROW_ASSERT(CHECK, MSG)	VoidAction
 #define THROW_ASSERTs(...)			VoidAction
 
-#define GABI_SINGLETON_CHECK		VoidAction
-#define GABI_SINGLETON_SET_CHECK	VoidAction
+#define SPACERTTI_SINGLETON_CHECK		VoidAction
+#define SPACERTTI_SINGLETON_SET_CHECK	VoidAction
 
 #define REQUIRE_REIMPLEMENT			VoidAction
 //#define REQUIRE_REIMPLEMENT		//should not be defined. Forbidden in release code.

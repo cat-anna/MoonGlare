@@ -10,7 +10,7 @@
 
 namespace MoonGlare {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(JobQueue);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(JobQueue);
 
 JobQueue::JobQueue():
 		m_PendingJobs(0), 

@@ -13,7 +13,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(ciScene)
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(ciScene)
 IMPLEMENT_SCRIPT_EVENT_VECTOR(SceneScriptEvents);
 RegisterApiDerivedClass(ciScene, &ciScene::RegisterScriptApi);
 inline ciScene* CurrentInstance() { return GetEngine()->GetCurrentScene(); }

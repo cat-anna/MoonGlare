@@ -5,18 +5,18 @@
 namespace DataClasses {
 namespace Fonts {
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(Wrapper);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(Wrapper);
 
 //-----------------------------------------------------------------------------
 
-GABI_IMPLEMENT_CLASS(EmptyWrapper);
+SPACERTTI_IMPLEMENT_CLASS(EmptyWrapper);
 
 void EmptyWrapper::Render(Graphic::cRenderDevice &dev) { }
 void EmptyWrapper::RenderMesh(Graphic::cRenderDevice &dev) { }
 
 //-----------------------------------------------------------------------------
 
-GABI_IMPLEMENT_ABSTRACT_CLASS(iFont);
+SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iFont);
 
 iFont::iFont(const string& Name): 
 		BaseClass(Name) {

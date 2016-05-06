@@ -10,7 +10,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS(BackstageScene)
+SPACERTTI_IMPLEMENT_CLASS(BackstageScene)
 
 BackstageScene::BackstageScene() {
 	SetName(string("_") + this->GetDynamicTypeInfo()->Name);

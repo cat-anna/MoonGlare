@@ -4,7 +4,7 @@
 namespace Core {
 namespace Objects {
 
-GABI_IMPLEMENT_STATIC_CLASS(Object);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Object);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(ObjectScriptEvents);
 RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 

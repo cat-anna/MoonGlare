@@ -10,7 +10,7 @@
 namespace Graphic {
 namespace Shaders {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(D2Shader);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(D2Shader);
 ShaderClassRegister::Register<D2Shader> D2ShaderReg;
 
 D2Shader::D2Shader(GLuint ShaderProgram, const string &ProgramName):

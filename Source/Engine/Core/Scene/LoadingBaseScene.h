@@ -13,7 +13,7 @@ namespace Core {
 namespace Scene {
 
 class LoadingBaseScene : public ciScene {
-	GABI_DECLARE_ABSTRACT_CLASS(LoadingBaseScene, ciScene)
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(LoadingBaseScene, ciScene)
 public:
  	LoadingBaseScene();
  	virtual ~LoadingBaseScene();

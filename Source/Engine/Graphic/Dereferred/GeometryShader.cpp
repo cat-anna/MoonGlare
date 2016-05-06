@@ -4,7 +4,7 @@
 namespace Graphic {
 namespace Dereferred {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(GeometryPassShader);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(GeometryPassShader);
 Shaders::ShaderClassRegister::Register<GeometryPassShader> ShaderReg;
 
 GeometryPassShader::GeometryPassShader(GLuint ShaderProgram, const string &ProgramName) : 

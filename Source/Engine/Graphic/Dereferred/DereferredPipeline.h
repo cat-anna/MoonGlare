@@ -12,7 +12,7 @@ namespace Graphic {
 namespace Dereferred {
 
 class DereferredPipeline : public cRootClass {
-	GABI_DECLARE_CLASS_NOCREATOR(DereferredPipeline, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(DereferredPipeline, cRootClass);
 public:
  	DereferredPipeline();
  	virtual ~DereferredPipeline();

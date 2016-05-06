@@ -14,7 +14,7 @@ namespace GUI {
 namespace Widgets {
 
 class Panel : public iWidget {
-	GABI_DECLARE_STATIC_CLASS(Panel, iWidget)
+	SPACERTTI_DECLARE_STATIC_CLASS(Panel, iWidget)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	Panel(iWidget *Parent);

@@ -10,7 +10,7 @@
 namespace DataClasses {
 
 class Texture : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(Texture, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(Texture, cRootClass)
 public:
 	Texture();
 	~Texture();

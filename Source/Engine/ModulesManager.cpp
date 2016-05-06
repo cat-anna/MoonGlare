@@ -11,7 +11,7 @@
 namespace MoonGlare {
 namespace Modules {
 
-GABI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
 
 using ModuleInfoList = std::vector < ModuleInfo* > ;
 

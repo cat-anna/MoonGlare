@@ -12,7 +12,7 @@ namespace Physics {
 
 //! Dummy middle class to join different inheritance trees
 class ShapeSubBase : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(ShapeSubBase, cRootClass)
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(ShapeSubBase, cRootClass)
 public:
 	ShapeSubBase() { }
 	~ShapeSubBase() { }
@@ -27,7 +27,7 @@ protected:
 
 //! Base class for shape constructors
 class ShapeConstructor : public cRootClass {
-	GABI_DECLARE_ABSTRACT_CLASS(ShapeConstructor, cRootClass)
+	SPACERTTI_DECLARE_ABSTRACT_CLASS(ShapeConstructor, cRootClass)
 public:
 	ShapeConstructor();
 	~ShapeConstructor();
@@ -63,7 +63,7 @@ private:
 
 //! Box collision shape constructor
 class BoxShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(BoxShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(BoxShapeConstructor, ShapeConstructor);
 public:
 	BoxShapeConstructor();
 	BoxShapeConstructor(const math::vec3 &Edge);
@@ -78,7 +78,7 @@ private:
 
 //! Class represents box shaped collision shape
 class BoxShape : public btBoxShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(BoxShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(BoxShape, ShapeSubBase)
 public:
 	//! \param boxHalfExtents half sizes of the box edges
 	BoxShape(const btVector3 &boxHalfExtents) : btBoxShape(boxHalfExtents) {  }
@@ -94,7 +94,7 @@ protected:
 //! Capsule collision shape constructor
 //! May be used to humanoid characters
 class CapsuleShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(CapsuleShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(CapsuleShapeConstructor, ShapeConstructor);
 public:
 	CapsuleShapeConstructor(float Radius = 0, float Height = 0);
 	~CapsuleShapeConstructor();
@@ -109,7 +109,7 @@ private:
 //! Class represents Capsule shaped collision shape
 //! The total height is height+2*radius
 class CapsuleShapeShape : public btCapsuleShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(CapsuleShapeShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(CapsuleShapeShape, ShapeSubBase)
 public:
 	//! \param Radius Radius of the spheres
 	//! \param Height Distance between center of spheres
@@ -124,7 +124,7 @@ protected:
 //! Capsule collision shape constructor
 //! May be used to humanoid characters
 class CylinderShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(CylinderShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(CylinderShapeConstructor, ShapeConstructor);
 public:
 	CylinderShapeConstructor(float Radius = 0, float Height = 0);
 	~CylinderShapeConstructor();
@@ -139,7 +139,7 @@ private:
 //! Class represents Capsule shaped collision shape
 //! The total height is height+2*radius
 class CylinderShapeShape : public btCylinderShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(CylinderShapeShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(CylinderShapeShape, ShapeSubBase)
 public:
 	//! \param Radius Radius of the spheres
 	//! \param Height Distance between center of spheres
@@ -153,7 +153,7 @@ protected:
 
 //! Sphere collision shape constructor
 class SphereShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(SphereShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(SphereShapeConstructor, ShapeConstructor);
 public:
 	SphereShapeConstructor(float Radius = 0);
 	~SphereShapeConstructor();
@@ -167,7 +167,7 @@ private:
 
 //! Class represents sphare shaped collision shape
 class SphereShape : public btSphereShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(SphereShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(SphereShape, ShapeSubBase)
 public:
 	//! \param Radius Radius of the sphere
 	SphereShape(btScalar Radius) : btSphereShape(Radius) {  }
@@ -179,7 +179,7 @@ protected:
 //----------------------------------------------------------------
 
 class ConvexMeshShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(ConvexMeshShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(ConvexMeshShapeConstructor, ShapeConstructor);
 public:
 	ConvexMeshShapeConstructor();
 	~ConvexMeshShapeConstructor();
@@ -194,7 +194,7 @@ private:
 
 //! Class represents collision shape built of convex hull of independent points
 class ConvexMeshShape : public btConvexHullShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(ConvexMeshShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(ConvexMeshShape, ShapeSubBase)
 public:
 	//! \param verticles vector of points
 	ConvexMeshShape(const Graphic::VertexVector &verticles);
@@ -206,7 +206,7 @@ protected:
 //----------------------------------------------------------------
 
 class TriangleMeshShapeConstructor : public ShapeConstructor {
-	GABI_DECLARE_CLASS(TriangleMeshShapeConstructor, ShapeConstructor);
+	SPACERTTI_DECLARE_CLASS(TriangleMeshShapeConstructor, ShapeConstructor);
 public:
 	TriangleMeshShapeConstructor();
 	~TriangleMeshShapeConstructor();
@@ -222,7 +222,7 @@ private:
 
 //! Class represents collision mesh built of triangles
 class TriangleMeshShape : public btBvhTriangleMeshShape, public ShapeSubBase {
-	GABI_DECLARE_CLASS_NOCREATOR(TriangleMeshShape, ShapeSubBase)
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(TriangleMeshShape, ShapeSubBase)
 public:
 	//! \param mesh mesh construdted from triangles
 	TriangleMeshShape(btStridingMeshInterface *mesh): BaseClass(), btBvhTriangleMeshShape(mesh, true) { }

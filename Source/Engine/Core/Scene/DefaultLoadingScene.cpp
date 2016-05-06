@@ -17,7 +17,7 @@
 namespace Core {
 namespace Scene {
 
-GABI_IMPLEMENT_CLASS(DefaultLoadingScene)
+SPACERTTI_IMPLEMENT_CLASS(DefaultLoadingScene)
 RegisterApiDerivedClass(DefaultLoadingScene, &DefaultLoadingScene::RegisterScriptApi);
 SceneClassRegister::Register<DefaultLoadingScene> SceneReg;
 

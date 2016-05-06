@@ -22,7 +22,7 @@ struct MenuSceneConfig {
 };
 
 class MenuScene : public ::Core::Scene::ciScene {
-	GABI_DECLARE_CLASS(MenuScene, ::Core::Scene::ciScene)
+	SPACERTTI_DECLARE_CLASS(MenuScene, ::Core::Scene::ciScene)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:

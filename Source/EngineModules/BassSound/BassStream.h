@@ -13,7 +13,7 @@ namespace Modules {
 namespace BassSound {
 
 class BassStream : public iBassChannel {
-	GABI_DECLARE_CLASS(BassStream, iBassChannel);
+	SPACERTTI_DECLARE_CLASS(BassStream, iBassChannel);
 public:
  	BassStream();
  	virtual ~BassStream();

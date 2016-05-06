@@ -9,7 +9,7 @@
 #include "StaticMoveController.h"
 namespace MoveControllers {
 
-GABI_IMPLEMENT_CLASS(StaticMoveController);
+SPACERTTI_IMPLEMENT_CLASS(StaticMoveController);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(StaticMoveControllerEvents);
 RegisterApiDerivedClass(StaticMoveController, &StaticMoveController::RegisterScriptApi);
 MoveControllerClassRegister::Register<StaticMoveController> StaticMoveControllerReg("StaticController");

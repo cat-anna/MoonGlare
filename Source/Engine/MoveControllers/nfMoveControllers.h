@@ -13,7 +13,7 @@ namespace MoveControllers {
 
 	using iMoveControllerPtr = std::unique_ptr<iMoveController>;
 
-	using MoveControllerClassRegister = GabiLib::DynamicClassRegister < iMoveController > ;
+	using MoveControllerClassRegister = Space::DynamicClassRegister < iMoveController > ;
 }
 
 //Reveal interfaces

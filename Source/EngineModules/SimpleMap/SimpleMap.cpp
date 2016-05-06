@@ -19,7 +19,7 @@ DEFINE_MODULE(SimpleMapModule);
 
 //----------------------------------------------------------------
 
-GABI_IMPLEMENT_STATIC_CLASS(SimpleMap);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(SimpleMap);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(SimpleMapScriptEvents);
 RegisterApiDerivedClass(SimpleMap, &SimpleMap::RegisterScriptApi);
 

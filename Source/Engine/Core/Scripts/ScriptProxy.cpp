@@ -14,7 +14,7 @@ namespace Scripts {
 using ::OrbitLogger::ThreadInfo;
 
 __declspec(thread) ScriptProxy *ScriptProxy::_Instance = nullptr;
-GABI_IMPLEMENT_STATIC_CLASS(ScriptProxy);
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ScriptProxy);
 
 ScriptProxy::ScriptProxy():
 		BaseClass(),

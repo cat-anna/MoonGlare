@@ -84,15 +84,15 @@ Entity EntityManager::Allocate() {
 		return e;
 	}
 	Entity e;
-	e.m_Value = index;
+	e.m_Index = index;
 	e.m_Generation = EMImpl.m_Generations.Generation(index);
 	return e;
 }
 
 void EntityManager::Release(Entity e) {
 	LOCK_MUTEX(EMImpl.m_Lock);
-	EMImpl.m_Generations.NewGeneration(e.m_Value);
-	EMImpl.m_IndexQueue.push(e.m_Value);
+	EMImpl.m_Generations.NewGeneration(e.m_Index);
+	EMImpl.m_IndexQueue.push(e.m_Index);
 }
 
 #ifdef DEBUG_MEMORY

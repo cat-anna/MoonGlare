@@ -8,7 +8,7 @@
 
 namespace Physics {
 
-GABI_IMPLEMENT_STATIC_CLASS(Body)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(Body)
 
 Body::Body(Object* Owner, SharedShape ss): 
 		cRootClass(),

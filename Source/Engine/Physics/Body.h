@@ -11,7 +11,7 @@
 namespace Physics {
 
 class Body : public cRootClass, public btMotionState {
-	GABI_DECLARE_CLASS_NOCREATOR(Body, cRootClass);
+	SPACERTTI_DECLARE_CLASS_NOCREATOR(Body, cRootClass);
 	friend struct BodyConstructor;
 public:
 	static BodyPtr Create(Object* Owner, SharedShape ss) { return BodyPtr(new Body(Owner, ss)); }

@@ -14,7 +14,7 @@ namespace Debug {
 namespace Insider {
 
 class ResourceEnumerator : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(ResourceEnumerator, cRootClass);
+	SPACERTTI_DECLARE_STATIC_CLASS(ResourceEnumerator, cRootClass);
 public:
  	ResourceEnumerator(InsiderMessageBuffer &buffer, MessageTypes Type);
  	~ResourceEnumerator();

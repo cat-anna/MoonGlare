@@ -31,9 +31,9 @@ void Interfaces::Initialize() {
 }
 
 void Interfaces::DumpLists(ostream &out) {
-	auto regdump = [&out](const GabiLib::TemplateClassListBase::ClassInfoBase &type) {
+	auto regdump = [&out](const Space::TemplateClassListBase::ClassInfoBase &type) {
 		char buffer[256];
-		sprintf(buffer, "%30s  [class %s]\n", type.Alias.c_str(), type.TypeInfo->GetFullName());
+		sprintf(buffer, "%30s  [class %s]\n", type.Alias.c_str(), (type.TypeInfo ? type.TypeInfo->GetFullName() : "?"));
 		out << buffer;
 	};
 	out << "\nModel class list\n";
@@ -59,10 +59,10 @@ void Interfaces::DumpLists(ostream &out) {
 	out << "\n"; 
 	out << "\n";
 	out << "\n";
-	auto func = [&out](const GabiLib::ClassListRegisterBase<> *r) {
+	auto func = [&out](const Space::ClassListRegisterBase<> *r) {
 		out << r->GetCompilerName() << "\n";
 	};
-	GabiLib::ClassListRegisterBase<>::EnumerateRegisters(func);
+	Space::ClassListRegisterBase<>::EnumerateRegisters(func);
 
 	out << "\n";
 	out << "\n";

@@ -14,7 +14,7 @@ namespace Graphic {
 	This class represents (more or less) current state of opengl context
 */
 class cRenderDevice : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
+	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
 	cRenderDevice(WindowPtr Context, unsigned Flags = 0);
 	virtual ~cRenderDevice();

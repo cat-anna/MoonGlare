@@ -4,7 +4,7 @@ namespace Core {
 namespace Scripts {
 
 class cScriptEngine : public cRootClass {
-	GABI_DECLARE_CLASS_SINGLETON(cScriptEngine, cRootClass);
+	SPACERTTI_DECLARE_CLASS_SINGLETON(cScriptEngine, cRootClass);
 public:
 	cScriptEngine();
 	virtual ~cScriptEngine();

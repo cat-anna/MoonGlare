@@ -12,7 +12,7 @@
 namespace DataClasses {
 
 class StringTable : public cRootClass {
-	GABI_DECLARE_STATIC_CLASS(StringTable, cRootClass)
+	SPACERTTI_DECLARE_STATIC_CLASS(StringTable, cRootClass)
 public:
  	StringTable();
  	virtual ~StringTable();

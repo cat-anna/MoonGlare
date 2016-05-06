@@ -9,7 +9,7 @@
 namespace Graphic {
 namespace Dereferred {
 
-GABI_IMPLEMENT_CLASS_NOCREATOR(PointLightShader);
+SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(PointLightShader);
 Shaders::ShaderClassRegister::Register<PointLightShader> ShaderReg;
  
 PointLightShader::PointLightShader(GLuint ShaderProgram, const string &ProgramName):

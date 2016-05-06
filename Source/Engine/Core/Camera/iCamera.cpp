@@ -9,7 +9,7 @@
 namespace Core {
 namespace Camera {
 
-GABI_IMPLEMENT_STATIC_CLASS(iCamera)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(iCamera)
 inline iCamera* CurrentInstance() { return GetEngine()->GetCurrentScene()->GetCamera().get(); }
 RegisterApiInstance(iCamera, &CurrentInstance, "Camera");
 RegisterApiDerivedClass(iCamera, &iCamera::RegisterScriptApi);
