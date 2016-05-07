@@ -10,7 +10,7 @@
 namespace Core {
 namespace Objects {
 
-class ObjectRegister : public cRootClass {
+class ObjectRegister : public cRootClass, public WorldUser {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(ObjectRegister, cRootClass)
 public:
 	struct Memory {
@@ -26,9 +26,11 @@ public:
 		Array<Handle::Index_t> m_HandleIndex;
 		Array<std::unique_ptr<Object>> m_ObjectPtr;
 		Generations_t m_HandleAllocator;
+
+		Array<Entity> m_Entity;
 	};
 
-	ObjectRegister();
+	ObjectRegister(World* world);
 	~ObjectRegister();
 
 	bool InitializeObjects();
@@ -53,6 +55,7 @@ public:
 	Handle GetRootHandle();
 
 	Handle GetParentHandle(Handle h);
+	Entity GetParentEntity(Handle h);
 
 	math::mat4* GetLocalMatrix(Handle h) {
 		ASSERT_HANDLE_TYPE(Object, h);

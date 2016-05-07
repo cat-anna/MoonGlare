@@ -12,26 +12,40 @@
 namespace MoonGlare {
 namespace Core {
 
-//struct Entity final : public Space::::BaseDoubleHandle32<unsigned, 16, 16> {
-	//bool IsValid() const;
-	//operator bool() const { return IsValid(); }
-	//bool operator!() const { return !IsValid(); }
-	//bool operator ==(const Entity &other) const { return m_IntegerValue == other.m_IntegerValue; }
-//};
-
 class EntityManager final 
 	: public Config::Current::DebugMemoryInterface {
 public:
+	struct Memory {
+		template<class T> using Array = std::array<T, Configuration::Storage::Static::EntityStorage>;
+
+		template<class ... ARGS>
+		using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::Static::ObjectBuffer, ARGS...>;
+		using Generations_t = Space::Memory::GenerationRandomAllocator<GenerationsAllocator_t, Entity>;
+
+		Array<Entity> m_Parent;
+		Generations_t m_Allocator;
+
+		template<class T>
+		Memory(T t): m_Allocator(t){ }
+	};
+
 	EntityManager();
 	~EntityManager();
 
 	bool Initialize();
 	bool Finalize();
 
+	Entity GetRootEntity() { return m_Root; }
+
 	Entity Allocate();
-	void Release(Entity e);
-	bool IsValid(Entity e);
+	Entity Allocate(Entity parent);
+	void Release(Entity entity);
+
+	Entity GetParent(Entity entity) const;
+	bool IsValid(Entity entity) const;
 private: 
+	Entity m_Root;
+	Memory m_Memory;
 };
 
 } //namespace Core 

@@ -15,7 +15,11 @@ namespace MoonGlare {
 			};
 
 			struct Types {
-				//TBD
+				enum {
+					//TBD
+					Unknown,
+					Object,
+				};
 			};
 		};
 
@@ -48,6 +52,7 @@ namespace MoonGlare {
 			struct Static {
 				enum {
 					ObjectBuffer = HugeBuffer,
+					EntityStorage = HugeBuffer,
 				};
 			};
 		};

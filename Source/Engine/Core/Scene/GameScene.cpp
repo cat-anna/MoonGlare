@@ -20,9 +20,9 @@ GameScene::GameScene():
 		BaseClass(),
 		m_MapName(),
 		m_MapData(),
-		m_Objects(),
+		m_Objects(GetEngine()->GetWorld()),
 		m_Physics(),
-		m_Environment(0) {
+		m_Environment(nullptr) {
 	m_Physics = std::make_unique<Physics::PhysicEngine>();
 	m_Camera = std::make_unique<Camera::iCamera>(this);
 }

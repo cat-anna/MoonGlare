@@ -11,13 +11,14 @@
 namespace MoonGlare {
 namespace Core {
 
-EntityManager::EntityManager() {
+EntityManager::EntityManager():
+		m_Memory(Space::NoConstruct()) {
 
 	DebugMemorySetClassName("EntityManager");
 
 	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
-		counter.Allocated = 0;
-		counter.Capacity = 0;
+		counter.Allocated = m_Memory.m_Allocator.Allocated();
+		counter.Capacity = m_Memory.m_Allocator.Capacity();
 		counter.ElementSize = 0;
 	});
 }
@@ -28,24 +29,66 @@ EntityManager::~EntityManager() {
 //------------------------------------------------------------------------------------------
 
 bool EntityManager::Initialize() {
+	m_Memory.m_Allocator.Clear();
+	Space::MemZero(m_Memory.m_Parent);
+
+	m_Root = m_Memory.m_Allocator.Allocate();
+	m_Memory.m_Parent[m_Root.GetIndex()] = m_Root;
+
 	return true;
 }
 
 bool EntityManager::Finalize() {
+	m_Root = Entity();
 	return true;
 }
 
 //------------------------------------------------------------------------------------------
 
 Entity EntityManager::Allocate() {
-	return Entity();
+	return Allocate(GetRootEntity());
 }
 
-void EntityManager::Release(Entity e) {
+Entity EntityManager::Allocate(Entity parent) {
+
+	if (!m_Memory.m_Allocator.IsHandleValid(parent)) {
+		AddLog(Error, "Parent entity is not valid!");
+		return Entity();
+	}
+
+	auto h = m_Memory.m_Allocator.Allocate();
+	if (!m_Memory.m_Allocator.IsHandleValid(h)) {
+		AddLog(Error, "No more space!");
+		return Entity();
+	}
+	auto index = h.GetIndex();
+
+	m_Memory.m_Parent[index] = parent;
+
+	return h;
 }
 
-bool EntityManager::IsValid(Entity e) {
-	return false;
+void EntityManager::Release(Entity entity) {
+	size_t idx;
+	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
+		AddLog(Error, "entity is not valid!");
+		return;
+	}
+
+	m_Memory.m_Allocator.Free(entity);
+}
+
+bool EntityManager::IsValid(Entity entity) const {
+	return m_Memory.m_Allocator.IsHandleValid(entity);
+}
+
+Entity EntityManager::GetParent(Entity entity) const {
+	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
+		AddLog(Error, "entity is not valid!");
+		return Entity();;
+	}
+	auto index = entity.GetIndex();
+	return m_Memory.m_Parent[index];
 }
 
 #if 0
