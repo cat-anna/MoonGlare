@@ -844,9 +844,6 @@ bool GlobalContext::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void GlobalContext::InitGlobals(const char* code) {
-	if (!ScriptProxy::IsMain())
-		return;
-
 	AddLog(Hint, "Initializing globals.");
 
 	ScriptProxy::ExecuteCode(code, strlen(code), "GlobalInit");

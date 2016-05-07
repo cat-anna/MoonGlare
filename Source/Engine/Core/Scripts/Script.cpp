@@ -182,7 +182,7 @@ RegisterApiNonClass(LogScriptApi, &LogScriptApi, "Log");
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Script)
 RegisterApiDerivedClass(Script, &Script::RegisterScriptApi);
 
-Script::Script(): BaseClass(), m_Lua(0), m_Flags(0), m_OwnerProxy(nullptr) {
+Script::Script(): BaseClass(), m_Lua(0), m_Flags(0) {
 	SetPerformanceCounterOwner(ExecutionErrors);
 	SetPerformanceCounterOwner(ExecutionCount);
 }
@@ -202,8 +202,8 @@ void Script::RegisterScriptApi(ApiInitializer &api) {
 }
 
 bool Script::Initialize() {
+	LOCK_MUTEX(m_Mutex);
 	if (IsReady()) return true;
-	m_OwnerProxy = ScriptProxy::CurrentInstance();//set temporary owner
 
 	m_Lua = luaL_newstate();
 	luaopen_base(m_Lua);
@@ -262,15 +262,18 @@ bool Script::Initialize() {
 }
 
 bool Script::Finalize() {
+	LOCK_MUTEX(m_Mutex);
 	if (!IsReady())
 		return true;
 	PrintMemoryUsage();
 	lua_close(m_Lua);
 	m_Lua = 0;
+	SetReady(false);
 	return true;
 }
 
 int Script::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
+	LOCK_MUTEX(m_Mutex);
 	if (!IsReady()) {
 		AddLog(Error, "Unable to load code. Script is not initialized.");
 		return -1;
@@ -289,10 +292,10 @@ int Script::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
 		}
 		break;
 	case LUA_ERRSYNTAX:
-		AddLog(Error, "Unable to load scritp: Syntax Error!");
+		AddLog(Error, "Unable to load script: Syntax Error!");
 		break;
 	case LUA_ERRMEM:
-		AddLog(Error, "Unable to load scritp: Memory allocation failed!");
+		AddLog(Error, "Unable to load script: Memory allocation failed!");
 		break;
 	}
 
@@ -321,25 +324,25 @@ int Script::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
 //-------------------------------------------------------------------------------------
 
 void Script::CollectGarbage() {
+	LOCK_MUTEX(m_Mutex);
 #ifdef DEBUG
 	float prev = GetMemoryUsage();
 	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
 	float next = GetMemoryUsage();
-	AddLogf(Debug, "cScript (%x) Owner (%s) finished lua garbage collection. %.2f -> %.2f kb (released %.2f kb)",
-			this, GetOwnerProxy()->GetThreadSignature(), prev, next, prev - next);
+	AddLogf(Debug, "Finished lua garbage collection. %.2f -> %.2f kb (released %.2f kb)", prev, next, prev - next);
 #else
 	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
 #endif
 }
 
 float Script::GetMemoryUsage() const {
+	LOCK_MUTEX(m_Mutex);
 	return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
 }
 
 void Script::PrintMemoryUsage() const {
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
-	AddLogf(Performance, "cScript (%x) Owner (%s). lua memory usage: %.2fkb ", 
-			this, GetOwnerProxy()->GetThreadSignature(), GetMemoryUsage());
+	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
 #endif
 }
 
@@ -384,7 +387,6 @@ int Script::Lua_ProcessResult(lua_State *L) {
 	return 1;
 }
 #endif // 0
-
 
 } // namespace Scripts
 } // namespace Core

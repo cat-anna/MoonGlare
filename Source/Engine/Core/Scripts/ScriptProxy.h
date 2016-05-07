@@ -12,20 +12,18 @@
 namespace Core {
 namespace Scripts {
 
-class ScriptProxy : public cRootClass {
+class ScriptProxy : public cRootClass, public std::enable_shared_from_this<ScriptProxy> {
 	SPACERTTI_DECLARE_STATIC_CLASS(ScriptProxy, cRootClass);
 public:
  	ScriptProxy();
  	~ScriptProxy();
 
 	static bool RequestInstance() {
-		LOCK_MUTEX(_Instance->m_Mutex);
 		return EnsureScriptInstance();
 	}
 
 	template<class RET, class ... Types>
 	static RET RunFunction(const char *FuncName, Types ... args) {
-		LOCK_MUTEX(_Instance->m_Mutex);
 		if (!EnsureScriptInstance())
 			return 0;
 		//AddLog(Hint, "Script function call is not yet implemented! (" << FuncName << ")");
@@ -33,32 +31,27 @@ public:
 	}
 
 	static int ExecuteCode(const string& code, const char *CodeName = nullptr) {
-		LOCK_MUTEX(_Instance->m_Mutex);
 		if (!EnsureScriptInstance())
 			return 0;
 		return _Instance->m_Script->LoadCode(code.c_str(), code.length(), CodeName);
 	}
 
 	static int ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr) {
-		LOCK_MUTEX(_Instance->m_Mutex);
 		if (!EnsureScriptInstance())
 			return 0;
 		return _Instance->m_Script->LoadCode(code, len, CodeName);
 	}
 
-	UniqueScript DropScriptOwnership() {
-		LOCK_MUTEX(_Instance->m_Mutex);
-		AddLogf(Debug, "Thread %s is dropping script ownership!", m_ThreadSignature);
-		return std::move(m_Script);
+	void DropScript() {
+		m_Script.reset();
+		AddLogf(Debug, "Thread is dropping script ownership!");
 	}
-	const char* GetThreadSignature() const { return m_ThreadSignature; }
 
 	static ScriptProxy* CurrentInstance() { return _Instance; }
-	static bool IsMain() { return _Instance->m_IsMainContext; }
 protected:
 	static bool EnsureScriptInstance() {
 		if (!_Instance) {
-			AddLog(Error, "Thread does not have initialzed script proxy. Scripts cannot be executed");
+			AddLog(Error, "Thread does not have initialized script proxy. Scripts cannot be executed");
 			return false;
 		}
 		if (!_Instance->m_Script && !_Instance->RunTimeInitialze()) {
@@ -70,17 +63,14 @@ protected:
 
 	bool RunTimeInitialze();
 
-	UniqueScript m_Script;
-	char m_ThreadSignature[8];
-	bool m_IsMainContext;
-	std::recursive_mutex m_Mutex;
-	__declspec(thread) static ScriptProxy *_Instance;
+	SharedScript m_Script;
+	thread_local static ScriptProxy *_Instance;
 };
 
 #if !defined(_USE_API_GENERATOR_) && !defined(_DISABLE_SCRIPT_ENGINE_) && defined(_BUILDING_ENGINE_)
 
 #define EnableScriptsInThisThread()\
-	auto __ScriptProxy = std::make_unique<::Core::Scripts::ScriptProxy>();
+	auto __ScriptProxy = std::make_shared<::Core::Scripts::ScriptProxy>();
 
 #else
 

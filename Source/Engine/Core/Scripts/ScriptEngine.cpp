@@ -16,9 +16,6 @@ cScriptEngine::cScriptEngine() :
 	SetThisAsInstance();
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
-
-	SetPerformanceCounterOwner(ScriptInstancesConstructed);
-	SetPerformanceCounterOwner(ScriptInstancesDestroyed);
 }
 
 cScriptEngine::~cScriptEngine() {
@@ -40,7 +37,7 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 
 	root
 	.deriveClass<ThisClass, BaseClass>("cScriptEngine")
-		.addFunction("BcastCode", &ThisClass::BroadcastCode)
+		.addFunction("LoadCode", &ThisClass::LoadCode)
 		.addFunction("DefferExecution", &ThisClass::DefferExecution)
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("CollectGarbage", &ThisClass::CollectGarbage)
@@ -61,21 +58,13 @@ void cScriptEngine::DefferExecution(string fname, int parameter) {
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::CollectGarbage() {
-	for (auto &it : m_ScriptList) {
-		Script *s = it.first;
-		GetEngine()->PushSynchronizedAction([s] {
-			s->CollectGarbage();
-		});
-	}	
+	if (m_Script)
+		m_Script->CollectGarbage();
 }
 
 void cScriptEngine::PrintMemoryInfo() {
-	for (auto &it : m_ScriptList) {
-		Script *s = it.first;
-		GetEngine()->PushSynchronizedAction([s] {
-			s->PrintMemoryUsage();
-		});
-	}	
+	if (m_Script)
+		m_Script->PrintMemoryUsage();
 }
 
 //---------------------------------------------------------------------------------------
@@ -86,8 +75,8 @@ bool cScriptEngine::Initialize() {
 	new GlobalContext();
 	GlobalContext::Instance()->Initialize();
 
-	SetReady(true);
-	return true;
+	SetReady(ConstructScript());
+	return IsReady();
 }
 
 bool cScriptEngine::Finalize() {
@@ -95,7 +84,6 @@ bool cScriptEngine::Finalize() {
 	SetReady(false);
 
 	KillAllScripts();
-
 
 	GlobalContext::Instance()->Finalize();
 	GlobalContext::DeleteInstance();
@@ -107,19 +95,17 @@ bool cScriptEngine::Finalize() {
 
 void cScriptEngine::KillAllScripts() {
 	LOCK_MUTEX(m_Mutex);
+
 	while (!m_ScriptList.empty()) {
-		auto &fr = m_ScriptList.front();
-		if (fr.second) {
-			auto ptr = fr.second->DropScriptOwnership();
-			if (!ptr) {
-				m_ScriptList.pop_front();
-				continue;//highly unexpected case
-			}
-			DestroyScript(ptr);
-		} else {
-			m_ScriptList.pop_front();
-		}
+		auto fr = m_ScriptList.back().lock();
+		m_ScriptList.pop_back();
+		if (!fr)
+			continue;
+
+		fr->DropScript();
 	}
+
+	DestroyScript();
 }
 
 void cScriptEngine::LoadAllScriptsImpl() {
@@ -168,19 +154,13 @@ void cScriptEngine::RegisterScript(string Name) {
 		AddLogf(Debug, "Loaded script code: %s", sc.Name.c_str());
 	}
 
-	if (m_ScriptList.empty())
-		return;
-
-	for (auto &it : m_ScriptList) {
-		Script *s = it.first;
-		GetEngine()->PushSynchronizedAction([s, sc] {
-			try {
-				s->LoadCode(sc.Data.c_str(), sc.Data.length(), sc.Name.c_str());
-			}
-			catch (...) {
-				AddLog(Error, "Unexpected exception while loading script code!");
-			}
-		});
+	if (m_Script) {
+		try {
+			m_Script->LoadCode(sc.Data.c_str(), sc.Data.length(), sc.Name.c_str());
+		}
+		catch (...) {
+			AddLog(Error, "Unexpected exception while loading script code!");
+		}
 	}
 }
 
@@ -207,118 +187,110 @@ void cScriptEngine::SetCode(const string& ChunkName, string Code) {
 
 	ScriptCode &sc = *item;
 	sc.Data.swap(Code);
-	AddLogf(Debug, "Excanged code for chunk '%s'", ChunkName.c_str());
+	AddLogf(Debug, "Exchanged code for chunk '%s'", ChunkName.c_str());
 }
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::BroadcastCode(string code) {
+void cScriptEngine::LoadCode(string code) {
 	ScriptCode *last;
 	{
 		ScriptCode sc;
 		sc.Type = ScriptCode::Source::Code;
 		sc.Data.swap(code);
 		char buffer[64];
-		sprintf(buffer, "BroadcastedCode_%d", m_ScriptCodeList.size());
+		sprintf(buffer, "Code_%d", m_ScriptCodeList.size());
 		sc.Name = buffer;
 		LOCK_MUTEX(m_Mutex);
 		m_ScriptCodeList.emplace_back(std::move(sc));
 		last = &m_ScriptCodeList.back();
 	}
 
-	for (auto &it : m_ScriptList) {
-		Script *s = it.first;
-		GetEngine()->PushSynchronizedAction([last, s] {
-			try {
-				s->LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
-			}
-			catch (...) {
-				AddLog(Error, "Unexpected exception while broadcasting script code!");
-			}
-		});
-	}	 
+	try {
+		LOCK_MUTEX(m_Mutex);
+		if (m_Script)
+			m_Script->LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
+	}
+	catch (...) {
+		AddLog(Error, "Unexpected exception while broadcasting script code!");
+	}
 
 	GetDataMgr()->NotifyResourcesChanged();
 }
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::ConstructScript(UniqueScript &ptr) {
-	if (!IsReady()) {
-		AddLog(Error, "Script engine is not ready!");
-		return false;
-	}
+bool cScriptEngine::ConstructScript() {
+	LOCK_MUTEX(m_Mutex);
+
+	if (m_Script)
+		return true;
+
 	AddLog(Debug, "Constructing script object");
-	UniqueScript s = std::make_unique<Script>();
+	auto s = std::make_shared<Script>();
 	if(!s->Initialize()) {
 		AddLog(Error, "Unable to initialize script instance!");
 		s.reset();
 		return false;
 	}
-	ptr.swap(s);
-	{
-		LOCK_MUTEX(m_Mutex);
-		auto sx = ptr.get();
-		m_ScriptList.push_back(std::make_pair(sx, (ScriptProxy*)nullptr));
-		for (auto &it : m_ScriptCodeList) {
-			ptr->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
-		}
+
+	for (auto &it : m_ScriptCodeList) {
+		s->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
 	}
+	m_Script.swap(s);
+
 	AddLog(Debug, "Construction finished");
-	IncrementPerformanceCounter(ScriptInstancesConstructed);
 	return true;
 }
 
-bool cScriptEngine::DestroyScript(UniqueScript &ptr) {
-	if (!ptr) {
+bool cScriptEngine::DestroyScript() {
+	LOCK_MUTEX(m_Mutex);
+	if (!m_Script) {
 		//unexpected case, silently ignore
 		return true;
 	}
+
 	AddLog(Debug, "Destroying script object");
-	{
-		LOCK_MUTEX(m_Mutex);
-		m_ScriptList.remove_if([&ptr](const std::pair<Script*, ScriptProxy*>& item)->bool {
-			return item.first == ptr.get();
-		});
-	}
-	if (!ptr->Finalize()) {
+	SharedScript s;
+	s.swap(m_Script);
+	if (!s->Finalize()) {
 		AddLog(Warning, "An error has occur during finalization of script instance!");
 	}
-	ptr.reset();
+
+	s.reset();
 
 	AddLog(Debug, "Destruction finished");
-	IncrementPerformanceCounter(ScriptInstancesDestroyed);
 	return true;
 }
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::InitializeScriptProxy(ScriptProxy &proxy, UniqueScript& ptr) {
+bool cScriptEngine::InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr) {
 	AddLog(Hint, "Thread requested script instance");
 	LOCK_MUTEX(m_Mutex);
-	if (!ConstructScript(ptr))
-		return false;
 
-	ptr->SetOwnerProxy(&proxy);
-	for (auto &it: m_ScriptList)
-		if (it.first == ptr.get()) {
-			it.second = &proxy;
-			break;
-		}
+	if (!m_Script) {
+		return false;
+	}
+
+	ptr = m_Script;
+	m_ScriptList.push_back(proxy.shared_from_this());
+
 	return true;
 }
 
-bool cScriptEngine::FinalizeScriptProxy(ScriptProxy &proxy, UniqueScript& ptr) {
+bool cScriptEngine::FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr) {
 	AddLog(Hint, "Thread returned script instance");
-	{
-		LOCK_MUTEX(m_Mutex);
-		for (auto &it: m_ScriptList)
-			if (it.first == ptr.get()) {
-				it.second = nullptr;
-				break;
-			}
-	}
-	DestroyScript(ptr);
+//	{
+//		LOCK_MUTEX(m_Mutex);
+//		for (auto &it: m_ScriptList)
+//			if (it.first == ptr.get()) {
+//				it.second = nullptr;
+//				break;
+//			}
+//	}
+	ptr.reset();
+
 	return true;
 }
 
