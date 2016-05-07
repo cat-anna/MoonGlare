@@ -138,7 +138,7 @@ local function SetCommonConfig()
 	filter "configurations:Debug"
 		defines { 
 			"DEBUG", 
-			"GABI_TRACK_INSTANCES", 
+			"SPACERTTI_TRACK_INSTANCES", 
 			"CONFIGURATION_NAME=\"Debug\"",
 		}
 		flags { "Symbols", }

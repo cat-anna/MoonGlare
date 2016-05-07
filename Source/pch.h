@@ -163,14 +163,7 @@ using Core::ApiInitializer;
 #include <StarVFS/core/nfStarVFS.h>
 #include <OrbitLogger/src/OrbitLogger.h>
 
-#include <libSpace/src/Utils.h>
-#include <libSpace/src/Memory/Handle.h>
-#include <libSpace/src/Memory/MultiAllocator.h>
-#include <libSpace/src/Memory/MemoryAllocation.h>
-#include <libSpace/src/Memory/GenerationRandomBuffer.h>
-#include <libSpace/src/Memory/GenerationRandomAllocator.h>
-#include <libSpace/src/Memory/GenerationLinearAllocator.h>
-#include <libSpace/src/Memory/GenerationBuffer.h>
+#include <libSpace/src/Space.h>
 
 #ifdef GLOBAL_CONFIGURATION_FILE
 #include GLOBAL_CONFIGURATION_FILE
