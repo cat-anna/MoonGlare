@@ -170,8 +170,13 @@ void Insider::ThreadEntry() {
 			if (error && error != boost::asio::error::message_size)
 				continue;
 				//throw boost::system::system_error(error);
-			if (!Command(buffer, remote_endpoint))
-				continue;
+			try {
+				if (!Command(buffer, remote_endpoint))
+					continue;
+			}
+			catch (...) {
+				AddLogf(Error, "Unknown command error!");
+			}
 			boost::system::error_code ignored_error;
 			buffer.GetHeader()->PayloadSize = buffer.PayLoadSize();
 			auto sendb = m_socket->send_to(boost::asio::buffer(buffer.GetBuffer(), buffer.UsedSize()), remote_endpoint, 0, ignored_error);
@@ -261,7 +266,7 @@ bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
 bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
-	AddLogf(Insider, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+	AddLogf(Insider, "Received lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
 	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 	buffer.Clear();
 	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
@@ -282,7 +287,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
 
-	AddLogf(Insider, "Set script '%s' succeded", name.c_str());
+	AddLogf(Insider, "Set script '%s' succeed", name.c_str());
 
 //	if (saveFile) {
 //		auto f = GetFileSystem()->OpenFileForWrite(name);
@@ -324,7 +329,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.GetHeader()->MessageType = MessageTypes::ScriptCode;
 
 	if (found)
-		AddLogf(Insider, "Get script '%s' succeded", name.c_str());
+		AddLogf(Insider, "Get script '%s' succeed", name.c_str());
 	else
 		AddLogf(Error, "Get script '%s' failed: no such script", name.c_str());
 
@@ -369,17 +374,31 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
 	u16 count = 0;
-	for (auto it: Config::Debug::MemoryInterface::GetInterfaces()) {
-		auto *item = buffer.Alloc<PayLoad_MemoryStatus>();
-		auto info = it->GetInfo();
-		item->Index = ++count;
-		item->Allocated = info->Allocated;
-		item->Capacity = info->Capacity;
-		item->MaxAllocated = info->MaxAllocated;
-		item->ElementSize = (u16)info->ElementSize;
-		item->NameLen = (u16)strlen(info->Name);
-		buffer.PushString(info->Name);
+
+	{
+		auto dbgmem = Config::Current::DebugMemoryInterface::GetFirstDebugMemoryInterface();
+		auto it = dbgmem.second;
+
+		while (it) {
+			for (auto counterinfo : it->DebugMemoryGetCounters()) {
+				auto *item = buffer.Alloc<PayLoad_MemoryStatus>();
+				item->Index = ++count;
+
+				Config::Current::DebugMemoryInterface::DebugMemoryCounter counter = {};
+				counterinfo.m_Function(counter);
+
+				item->Allocated = counter.Allocated;
+				item->Capacity = counter.Capacity;
+				item->ElementSize = static_cast<u16>(counter.ElementSize);
+				item->NameLen = static_cast<u16>(counterinfo.m_Name.length());
+				item->OwnerNameLen = static_cast<u16>(it->DebugMemoryGetClassName().length());
+				buffer.PushString(counterinfo.m_Name);
+				buffer.PushString(it->DebugMemoryGetClassName());
+			}
+			it = it->GetNext();
+		}
 	}
+
 	list->Count = count;
 	hdr->MessageType = MessageTypes::MemoryStatusList;
 	return true;

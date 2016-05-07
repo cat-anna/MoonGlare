@@ -5,16 +5,17 @@
 #include "RemoteConsole.h"
 #include "MainForm.h"
 
-class MemoryStateWidget::LuaRequest : public RemoteConsoleEnumerationObserver {
+class MemoryStateWidget::MemoryRequest : public RemoteConsoleEnumerationObserver {
 public:
-	LuaRequest(QStandardItem *parent, MemoryStateWidget *Owner):
+	MemoryRequest(QStandardItem *parent, MemoryStateWidget *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
+		m_ItemParent = parent;
 	}
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override { 
 		auto hdr = message.GetAndPull<InsiderApi::PayLoad_ListBase>();
 
-		auto *root = m_Owner->m_ViewModel->invisibleRootItem();
+		auto *root = m_ItemParent;
 		for (unsigned i = 0; i < hdr->Count; ++i) {
 			auto *item = message.GetAndPull<InsiderApi::PayLoad_MemoryStatus>();
 			
@@ -25,14 +26,16 @@ public:
 			sprintf_s(buffer, "%d [%.2f%%]", item->Allocated, ((float)item->Allocated / (float)item->Capacity) * 100.0f);
 			cols << new QStandardItem(buffer);
 			cols << new QStandardItem(itoa(item->Capacity, buffer, 10));
-			cols << new QStandardItem(itoa(item->MaxAllocated, buffer, 10));
+			cols << new QStandardItem("?"); //itoa(item->MaxAllocated, buffer, 10));
 			cols << new QStandardItem(itoa(item->ElementSize, buffer, 10));
 			root->appendRow(cols);
 		}
-		root->sortChildren(0);
+		if(hdr->Count > 0)
+			root->sortChildren(0);
 		return HanderStatus::Remove; 
 	};
 private:
+	QStandardItem *m_ItemParent;
 	MemoryStateWidget *m_Owner;
 };
 
@@ -88,7 +91,7 @@ void MemoryStateWidget::Refresh() {
 	CancelRequests();
 	ResetTreeView();
 
-	QueueRequest(std::make_shared<LuaRequest>(m_ViewModel->invisibleRootItem(), this));
+	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel->invisibleRootItem(), this));
 }
 
 //-----------------------------------------

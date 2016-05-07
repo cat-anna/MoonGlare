@@ -40,14 +40,14 @@ bool GameApplication::Initialize() {
 	using Modules::ModulesManager;
 	using MoonGlare::Core::Console;
 	using FileSystem::MoonGlareFileSystem;
-	using MoonGlare::Core::EntityManager;
-	using MoonGlare::Core::Component::ComponentManager;
+//	using MoonGlare::Core::EntityManager;
+//	using MoonGlare::Core::Component::ComponentManager;
 	using ::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
 	::Core::Interfaces::Initialize();
-	_chk_ret(EntityManager::Initialize(),					"Entity manager initialization failed!");
-	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
+//	_chk_ret(EntityManager::Initialize(),					"Entity manager initialization failed!");
+//	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
 
 	_init_chk(new MoonGlareFileSystem(),					"Unable to initialize internal filesystem!");
 	_init_chk(new cScriptEngine(),							"Unable to initialize script engine!");
@@ -78,8 +78,8 @@ bool GameApplication::Finalize() {
 
 	using Modules::ModulesManager;
 	using MoonGlare::Core::Console;
-	using MoonGlare::Core::EntityManager;
-	using MoonGlare::Core::Component::ComponentManager;
+//	using MoonGlare::Core::EntityManager;
+//	using MoonGlare::Core::Component::ComponentManager;
 	using ::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
@@ -103,8 +103,8 @@ bool GameApplication::Finalize() {
 	_del_chk(cScriptEngine,							"Finalization of script engine failed!");
 	_del_chk(FileSystem::MoonGlareFileSystem,		"Finalization of filesystem failed!");
 
-	_chk(ComponentManager::Finalize(),				"Component manager initialization failed");
-	_chk(EntityManager::Finalize(),					"Entity manager initialization failed!");
+//	_chk(ComponentManager::Finalize(),				"Component manager initialization failed");
+//	_chk(EntityManager::Finalize(),					"Entity manager initialization failed!");
 
 	AddLog(Debug, "Application finalized");
 #undef _finit_chk

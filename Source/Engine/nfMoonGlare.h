@@ -6,6 +6,7 @@ namespace MoonGlare {
 using namespace MoonGlare;
 
 #include "Configuration.h"
+#include "WorldUser.h"
 
 #include "JobQueue.h"
 

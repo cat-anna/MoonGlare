@@ -12,15 +12,47 @@ namespace Config {
 namespace Debug {
 
 #ifdef DEBUG_MEMORY
-std::list<MemoryInterface*> MemoryInterface::s_Interfaces;
 
-MemoryInterface::MemoryInterface() {
-	s_Interfaces.push_back(this);
+DebugMemoryInterface* DebugMemoryInterface::s_First = nullptr;
+std::mutex DebugMemoryInterface::m_DebugMemoryMutex;
+
+DebugMemoryInterface::DebugMemoryInterface() {
+	m_Next = nullptr;
+	m_Prev = nullptr;
+	m_Counters.reserve(8);
+
+	LOCK_MUTEX(m_DebugMemoryMutex);
+
+	m_Next = s_First;
+	if (m_Next) {
+		m_Next->m_Prev = this;
+	}
+	s_First = this;
 }
 
-MemoryInterface::~MemoryInterface() {
-	s_Interfaces.remove_if([this](MemoryInterface *item) { return item == this; });
+DebugMemoryInterface::~DebugMemoryInterface() {
+	LOCK_MUTEX(m_DebugMemoryMutex);
+
+	m_Next->m_Prev = m_Prev;
+	m_Prev->m_Next = m_Next;
+
+	m_Next = nullptr;
+	m_Prev = nullptr;
 }
+
+std::pair<std::unique_lock<std::mutex>, DebugMemoryInterface*> DebugMemoryInterface::GetFirstDebugMemoryInterface() {
+	return std::make_pair(std::unique_lock<std::mutex>(m_DebugMemoryMutex), s_First);
+}
+
+void DebugMemoryInterface::DebugMemorySetClassName(std::string ClassName) {
+	m_ClassName = std::move(ClassName);
+}
+
+void DebugMemoryInterface::DebugMemoryRegisterCounter(std::string CounterName, DebugMemoryInfoFunction func) {
+	LOCK_MUTEX(m_DebugMemoryMutex);
+	m_Counters.push_back(DebugMemoryCounterInfo{ func, std::move(CounterName) });
+}
+
 #endif
 
 } //namespace Debug 

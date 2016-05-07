@@ -14,7 +14,9 @@ namespace Objects {
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
 RegisterApiDerivedClass(ObjectRegister, &ObjectRegister::RegisterScriptApi);
 
-ObjectRegister::ObjectRegister() {
+ObjectRegister::ObjectRegister(World* world) :
+		BaseClass(),
+		WorldUser(world) {
 	m_Memory = std::make_unique<Memory>();
 	Clear();
 }
@@ -52,6 +54,7 @@ void ObjectRegister::Clear() {
 	m_Memory->m_HandleAllocator.SetMapping(h, 0);
 	m_Memory->m_ObjectPtr[0] = std::make_unique<Object>();
 	m_Memory->m_ObjectPtr[0]->SetSelfHandle(h);
+	m_Memory->m_Entity[0] = GetWorld()->GetEntityManager()->GetRootEntity();
 }
 
 Handle ObjectRegister::GetRootHandle() {
@@ -87,6 +90,7 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	m_Memory->m_ObjectPtr[index].swap(obj);
 	m_Memory->m_Parent[index] = Parent;
 	m_Memory->m_HandleIndex[index] = h.GetIndex();
+	m_Memory->m_Entity[index] = GetWorld()->GetEntityManager()->Allocate(GetParentEntity(Parent));
 
 	return h;
 }
@@ -105,7 +109,7 @@ void ObjectRegister::Release(Handle h) {
 	m_Memory->m_ObjectPtr[idx].release();
 	m_Memory->m_Parent[idx] = Handle();
 	m_Memory->m_HandleAllocator.Free(h);
-
+	GetWorld()->GetEntityManager()->Release(m_Memory->m_Entity[idx]);
 	Reorder(idx);
 }
 
@@ -121,6 +125,7 @@ void ObjectRegister::Remove(Handle h) {
 	m_Memory->m_ObjectPtr[idx].reset();
 	m_Memory->m_Parent[idx] = Handle();
 	m_Memory->m_HandleAllocator.Free(h);
+	GetWorld()->GetEntityManager()->Release(m_Memory->m_Entity[idx]);
 	Reorder(idx);
 }
 
@@ -137,6 +142,7 @@ void ObjectRegister::Reorder(size_t start) {
 			m_Memory->m_GlobalMatrix[i] = m_Memory->m_GlobalMatrix[other];
 			m_Memory->m_LocalMatrix[i] = m_Memory->m_LocalMatrix[other];
 			m_Memory->m_Parent[i] = m_Memory->m_Parent[other];
+			m_Memory->m_Entity[i] = m_Memory->m_Entity[other];
 			m_Memory->m_ObjectPtr[i] = std::move(m_Memory->m_ObjectPtr[other]);
 			 
 			size_t OtherHandleIdx = m_Memory->m_HandleIndex[other];
@@ -166,6 +172,16 @@ Handle ObjectRegister::GetParentHandle(Handle h) {
 		return Handle();
 	}
 	return m_Memory->m_Parent[idx];
+}
+
+Entity ObjectRegister::GetParentEntity(Handle h) {
+	ASSERT_HANDLE_TYPE(Object, h);
+	size_t idx;
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
+		AddLog(Warning, "Invalid handle!");
+		return Entity();
+	}
+	return m_Memory->m_Entity[idx];
 }
 
 Object *ObjectRegister::Get(Handle h) {

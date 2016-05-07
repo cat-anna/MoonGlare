@@ -25,6 +25,13 @@ RemoteConsoleObserver::RemoteConsoleObserver(InsiderApi::MessageTypes MessageTyp
 	connect(m_Timer.get(), SIGNAL(timeout()), SLOT(Expired()));
 }
 
+RemoteConsoleObserver::HanderStatus RemoteConsoleObserver::ProcessMessage(InsiderApi::InsiderMessageBuffer &message) {
+	auto ret = Message(message);
+	m_Queue->RequestFinished(this);
+	return ret;
+}
+
+
 void RemoteConsoleObserver::SetRetriesCount(unsigned timeout, unsigned attempts) {
 	m_Timeout = timeout;
 	m_Attempts = attempts;

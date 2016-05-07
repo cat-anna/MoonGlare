@@ -11,7 +11,7 @@ public:
 	MemoryStateWidget(QWidget *parent = 0);
 	~MemoryStateWidget();
 protected:
-	class LuaRequest; 
+	class MemoryRequest; 
 	void ResetTreeView();
 private:
 	Ui::MemoryStateWidget *ui;

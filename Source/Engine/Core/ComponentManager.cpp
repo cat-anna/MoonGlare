@@ -5,6 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 //#include "AbstractComponent.h"
 #include "ComponentManager.h"
@@ -176,6 +177,7 @@ static struct ComponentArrayInfo_t : Config::Debug::MemoryInterface {
 	}
 } ComponentArrayInf;
 
+
 //static struct EntityManagerInfo_t : Debug::MemoryInterface {
 //	virtual Info* GetInfo() const {
 //		static Info i = { 0, sizeof(EntityIndexQueue::Item) + sizeof(EntityGenerationBuffer::Item), EntityIndexQueue::Size, "EntityManager" };
@@ -190,3 +192,4 @@ static struct ComponentArrayInfo_t : Config::Debug::MemoryInterface {
 } //namespace Core 
 } //namespace MoonGlare 
 
+#endif
