@@ -23,6 +23,7 @@ public:
 		Keep,
 	};
 	virtual HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) { return HanderStatus::Remove; };
+	HanderStatus ProcessMessage(InsiderApi::InsiderMessageBuffer &message);
 
 	enum class TimeOutAction {
 		Remove,

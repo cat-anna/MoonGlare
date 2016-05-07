@@ -108,7 +108,7 @@ void RemoteConsole::ProcessMessage(InsiderApi::InsiderMessageBuffer &buffer) {
 		ptr->OnError(RemoteConsoleObserver::ErrorStatus::MessageNotSupported);
 		return;
 	default:
-		auto ret = ptr->Message(buffer);
+		auto ret = ptr->ProcessMessage(buffer);
 		if (ret == RemoteConsoleObserver::HanderStatus::Remove) {
 			m_Impl->m_PendingRequests.erase(it);
 		}

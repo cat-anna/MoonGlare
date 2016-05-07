@@ -170,8 +170,13 @@ void Insider::ThreadEntry() {
 			if (error && error != boost::asio::error::message_size)
 				continue;
 				//throw boost::system::system_error(error);
-			if (!Command(buffer, remote_endpoint))
-				continue;
+			try {
+				if (!Command(buffer, remote_endpoint))
+					continue;
+			}
+			catch (...) {
+				AddLogf(Error, "Unknown command error!");
+			}
 			boost::system::error_code ignored_error;
 			buffer.GetHeader()->PayloadSize = buffer.PayLoadSize();
 			auto sendb = m_socket->send_to(boost::asio::buffer(buffer.GetBuffer(), buffer.UsedSize()), remote_endpoint, 0, ignored_error);
