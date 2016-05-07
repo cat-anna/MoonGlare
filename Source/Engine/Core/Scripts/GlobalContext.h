@@ -32,14 +32,12 @@ public:
 	void LogDump();
 #endif
 
-	void InitGlobals(const char* code);
-
 	static void RegisterScriptApi(::ApiInitializer &api);
 protected:
-	std::unique_ptr<ContextGroup> m_GlobalBase;
+//	std::unique_ptr<ContextGroup> m_GlobalBase;
 	std::unique_ptr<ContextGroup> m_PermanentBase;
 
-	static ContextGroup* GetGlobalContext() { return Instance()->m_GlobalBase.get(); }
+//	static ContextGroup* GetGlobalContext() { return Instance()->m_GlobalBase.get(); }
 	static ContextGroup* GetPermanentContext() { return Instance()->m_PermanentBase.get(); }
 private: 
 };

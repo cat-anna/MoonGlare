@@ -215,6 +215,9 @@ bool Script::Initialize() {
 	lua_atpanic(m_Lua, Script::Lua_panic);
 	//RegisterLuaFunction(Script::Lua_ProcessResult, "ProcessResult", m_Lua);
 	RegisterLuaFunction(Lua_print, "print", m_Lua);
+
+	lua_newtable(m_Lua);
+	lua_setglobal(m_Lua, "global");
 	
 #ifndef _USE_API_GENERATOR_
 #ifdef DEBUG

@@ -772,7 +772,6 @@ GlobalContext::~GlobalContext() {
 void GlobalContext::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("cContext")
-		.addFunction("Init", &ThisClass::InitGlobals)
 #ifdef DEBUG_DUMP
 		.addFunction("Dump", &ThisClass::LogDump)
 #endif
@@ -801,8 +800,6 @@ bool GlobalContext::Install(lua_State *lua) {
 		//	.addProperty<ContextGroup*, ContextGroup*>("permanent", &ThisClass::GetPermanentContext, nullptr)
 		//	;
 
-		m_GlobalBase->Push(lua);
-		lua_setglobal(lua, "global");
 		m_PermanentBase->Push(lua);
 		lua_setglobal(lua, "static");
 	}
@@ -821,7 +818,7 @@ void GlobalContext::CleanContext() {
 }
 
 bool GlobalContext::Initialize() {
-	m_GlobalBase.reset(new ContextGroup(nullptr, "global"));
+//	m_GlobalBase.reset(new ContextGroup(nullptr, "global"));
 	m_PermanentBase.reset(new ContextGroup(nullptr, "static"));
 
 	xml_document doc;
@@ -836,17 +833,9 @@ bool GlobalContext::Finalize() {
 	m_PermanentBase->SaveMeta(doc.append_child("Static"));
 	doc.save_file("Static.xml");
 
-	m_GlobalBase.reset();
+//	m_GlobalBase.reset();
 	m_PermanentBase.reset();
 	return true;
-}
-
-//---------------------------------------------------------------------------------------
-
-void GlobalContext::InitGlobals(const char* code) {
-	AddLog(Hint, "Initializing globals.");
-
-	ScriptProxy::ExecuteCode(code, strlen(code), "GlobalInit");
 }
 
 //---------------------------------------------------------------------------------------
@@ -854,11 +843,16 @@ void GlobalContext::InitGlobals(const char* code) {
 #ifdef DEBUG_DUMP
 void GlobalContext::Dump(std::ostream& out) {
 	out << "Global context dump:\n";
-	if (m_GlobalBase) {
+
+	auto ret = ScriptProxy::RunFunction<const char *>("Dump_GlobalCtx");
+	if (ret) {
 		out << "GlobalBase:\n";
-		m_GlobalBase->Dump(out);
+		out << ret;
 		out << "\n";
+	} else {
+		out << "Failed to obtain global ctx!\n";
 	}
+
 	if (m_PermanentBase) {
 		out << "PermanentBase:\n";
 		m_PermanentBase->Dump(out);
