@@ -32,9 +32,14 @@ DebugMemoryInterface::DebugMemoryInterface() {
 
 DebugMemoryInterface::~DebugMemoryInterface() {
 	LOCK_MUTEX(m_DebugMemoryMutex);
+	
+	if (m_Next)
+		m_Next->m_Prev = m_Prev;
+	if (m_Prev)
+		m_Prev->m_Next = m_Next;
 
-	m_Next->m_Prev = m_Prev;
-	m_Prev->m_Next = m_Next;
+	if (s_First == this)
+		s_First = m_Next;
 
 	m_Next = nullptr;
 	m_Prev = nullptr;
