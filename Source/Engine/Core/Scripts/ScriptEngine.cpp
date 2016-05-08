@@ -114,6 +114,11 @@ void cScriptEngine::LoadAllScriptsImpl() {
 		AddLog(Error, "Unable to look for scripts!");
 	}
 
+	using FileInfo = MoonGlare::FileSystem::FileInfo;
+	std::sort(files.begin(), files.end(), [](const FileInfo &a, const FileInfo &b) -> bool{
+		return a.m_RelativeFileName < b.m_RelativeFileName;
+	});
+
 	for (auto &it : files){
 		if (it.m_IsFolder)
 			continue;
@@ -124,7 +129,7 @@ void cScriptEngine::LoadAllScriptsImpl() {
 	}
 
 	GetDataMgr()->NotifyResourcesChanged();
-	AddLog(Debug, "Finished looking for sounds");
+	AddLog(Debug, "Finished looking for scripts");
 }
 
 void cScriptEngine::LoadAllScripts() {
