@@ -31,7 +31,6 @@ RemoteConsoleObserver::HanderStatus RemoteConsoleObserver::ProcessMessage(Inside
 	return ret;
 }
 
-
 void RemoteConsoleObserver::SetRetriesCount(unsigned timeout, unsigned attempts) {
 	m_Timeout = timeout;
 	m_Attempts = attempts;

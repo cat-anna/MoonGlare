@@ -47,7 +47,7 @@ private:
 	udp::endpoint m_ConnectedAddress;
 	bool m_Connected;
 
-	/** Return fals to skip sending response */
+	/** Return false to skip sending response */
 	bool Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender);
 	void ThreadEntry();
 	
@@ -61,6 +61,7 @@ private:
 	bool EnumerateAudio(InsiderMessageBuffer& buffer);
 	bool EnumerateMemory(InsiderMessageBuffer& buffer);
 	bool EnumerateObjects(InsiderMessageBuffer& buffer);
+	bool OrbitLoggerState(InsiderMessageBuffer& buffer);
 }; 
 
 } //namespace Insider

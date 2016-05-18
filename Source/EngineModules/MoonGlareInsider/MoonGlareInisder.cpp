@@ -8,6 +8,7 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
+
 #define __LOG_ACTION_Tool(T, A)						ORBITLOGGER_BeginLog(None, A)
 #define __LOG_ACTION_F_Tool(T, ...)					ORBITLOGGER_BeginLogf(None, __VA_ARGS__)
 #define __LOG_ACTION_Recon(T, A)					ORBITLOGGER_BeginLog(T, A)
@@ -112,6 +113,7 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 	case MessageTypes::GetScriptCode: return GetScriptCode(buffer);
 	case MessageTypes::InfoRequest: return InfoRequest(buffer);
 	case MessageTypes::Ping: return Ping(buffer);
+	case MessageTypes::OrbitLoggerStateRequest: return OrbitLoggerState(buffer);
 
 	case MessageTypes::Bind:
 		m_Connected = true;
@@ -434,6 +436,29 @@ bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 	}
 
 	hdr->MessageType = MessageTypes::ObjectList;
+	return true;
+}
+
+bool Insider::OrbitLoggerState(InsiderMessageBuffer& buffer) {
+	buffer.Clear();
+	auto *hdr = buffer.GetHeader();
+
+	auto data = buffer.AllocAndZero<PayLoad_OrbitLoggerStateResponse>();
+	OrbitLogger::LogCollector::ChannelInfoTable table;
+
+	if (OrbitLogger::LogCollector::GetChannelInfo(table)) {
+		for (size_t i = 0; i < OrbitLogger::LogChannels::MaxLogChannels; ++i) {
+			auto &ch = table[i];
+			auto &info = data->m_Table[i];
+
+			info.Enabled = ch.m_Enabled ? 1 : 0;
+			info.Channel = ch.m_Channel;
+			info.LinesPushed = ch.m_LinesPushed;
+			strncpy(info.Name, ch.m_Name, sizeof(info.Name));
+		}
+	}
+
+	hdr->MessageType = MessageTypes::OrbitLoggerStateResponse;
 	return true;
 }
 

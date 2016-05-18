@@ -50,7 +50,7 @@ public:
 				continue;
 
 			if (m_Recursive && item->LuaType == 5)  {//table
-				std::string loc = GetLocation() + "." + name;
+				std::string loc = GetLocation() + "[" + name + "]";
 				m_Owner->QueueRequest(SharedLuaStateRequest(new LuaRequest(loc.c_str(), first, m_Owner)));
 
 				QList<QStandardItem*> cols;

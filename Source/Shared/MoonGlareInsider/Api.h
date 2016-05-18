@@ -52,6 +52,7 @@ enum class MessageTypes : u32 {
 	GetScriptCode,							//PayLoad_GetScriptCode
 	InfoRequest,							//no payload
 	Ping,									//no payload
+	OrbitLoggerStateRequest,			    //no payload
 
 	EnumerationBase							= EngineReciver + GroupDelta,
 	EnumerateScripts,						//Request to send description of all scripts. No payload
@@ -68,6 +69,7 @@ enum class MessageTypes : u32 {
 	ScriptCode,								//PayLoad_ScriptCode
 	InfoResponse,							//PayLoad_InfoResponse
 	Pong,									//no payload
+	OrbitLoggerStateResponse,			    //no payload
 
 	//payload is PayLoad_ListBase and then dedicated struct
 	EngineListOutputBase					= EngineSender + GroupDelta,
@@ -241,6 +243,16 @@ struct PayLoad_ObjectInfo {
 	float Quaternion[4];
 	u16 NameLen;
 	u8 Name[0];
+};
+
+struct PayLoad_OrbitLoggerStateResponse {
+	struct ChannelInfo {
+		u8 Enabled;
+		OrbitLogger::LogChannel Channel;
+		char Name[8];
+		u32 LinesPushed;
+	};
+	ChannelInfo m_Table[OrbitLogger::LogChannels::MaxLogChannels];
 };
 
 #pragma pack( pop )
