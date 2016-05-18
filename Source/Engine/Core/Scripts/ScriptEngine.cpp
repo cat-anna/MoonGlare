@@ -16,6 +16,7 @@ cScriptEngine::cScriptEngine() :
 	SetThisAsInstance();
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
 }
 
 cScriptEngine::~cScriptEngine() {

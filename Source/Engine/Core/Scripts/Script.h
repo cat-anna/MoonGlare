@@ -39,7 +39,7 @@ public:
 #else
 	template<class RET, class ... Types>
 	RET RunFunction(const char *FuncName, Types ... args) {
-		AddLogf(Debug, "all to: '%s'", FuncName);
+		AddLogf(ScriptCall, "Call to: '%s'", FuncName);
 		LOCK_MUTEX(m_Mutex);
 		try {
 			IncrementPerformanceCounter(ExecutionCount);
