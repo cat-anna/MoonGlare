@@ -43,6 +43,8 @@ public:
 
 	Entity GetParent(Entity entity) const;
 	bool IsValid(Entity entity) const;
+
+	void RegisterScriptApi(ApiInitializer &root);
 private: 
 	Entity m_Root;
 	Memory m_Memory;
