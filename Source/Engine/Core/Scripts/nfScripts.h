@@ -13,13 +13,10 @@ namespace Core {
 		class iScriptEvents;
 
 		class Script;
-		using UniqueScript = std::unique_ptr < Script > ;
+		using SharedScript = std::shared_ptr < Script > ;
 
 		class cScriptEngine;
-
 		class ScriptProxy;
-
-
 	} //namespace Scripts
 	using Scripts::cScriptEngine;
 } //namespace Core

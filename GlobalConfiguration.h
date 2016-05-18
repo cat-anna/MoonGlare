@@ -17,6 +17,7 @@ enum GlobalChanels : LogChannel {
 	Insider,
 	Performance,
 	Resources,
+	ScriptCall,
 
 };
 }

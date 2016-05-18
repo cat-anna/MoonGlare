@@ -9,7 +9,6 @@ public:
 	cScriptEngine();
 	virtual ~cScriptEngine();
 
-
 	struct ScriptCode {
 		enum class Source {
 			File, Code,
@@ -33,13 +32,16 @@ public:
 
 	bool Initialize();
 	bool Finalize();
-	bool InitializeScriptProxy(ScriptProxy &proxy, UniqueScript& ptr);
-	bool FinalizeScriptProxy(ScriptProxy &proxy, UniqueScript& ptr);
+
+	SharedScript GetScript(ScriptProxy &proxy);
+
+	bool InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
+	bool FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
 	void KillAllScripts();
 
 	void LoadAllScripts();
 	void RegisterScript(string Name);
-	void BroadcastCode(string code);
+	void LoadCode(string code);
 	/** Changes code of specified chunk. Does not reload the code. */
 	void SetCode(const string& ChunkName, string Code);
 
@@ -53,30 +55,27 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	unsigned m_Flags;
-
+	SharedScript m_Script;
 	std::list<ScriptCode> m_ScriptCodeList;
 
 	std::recursive_mutex m_Mutex;
-	std::list<std::pair<Script*, ScriptProxy*>> m_ScriptList;
+	std::vector<std::weak_ptr<ScriptProxy>> m_ScriptList;
 
-	bool ConstructScript(UniqueScript &ptr);
-	bool DestroyScript(UniqueScript &ptr);
+	bool ConstructScript();
+	bool DestroyScript();
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 private:
-	DeclarePerformanceCounter(ScriptInstancesConstructed);
-	DeclarePerformanceCounter(ScriptInstancesDestroyed);
-
 	void LoadAllScriptsImpl();
 };
 
 #ifdef _USE_API_GENERATOR_
 
-#define SCRIPT_INVOKE(F, ...)	 						API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__) 	return 0;
+#define SCRIPT_INVOKE(F, ...)	 						API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__) return 0;
 #define SCRIPT_INVOKE_NORETURN(F, ...)					API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
 #define SCRIPT_INVOKE_RESULT(RESULT, F, ...)			API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
-#define SCRIPT_INVOKE_STATIC(F, this, ...)	 			API_GEN_MAKE_DECL(F, this, this,  __VA_ARGS__) 	return 0;
-#define SCRIPT_INVOKE_STATIC_NORETURN(F, this, ...)		API_GEN_MAKE_DECL(F, this, this,  __VA_ARGS__)
+#define SCRIPT_INVOKE_STATIC(F, this, ...)	 			API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__) return 0;
+#define SCRIPT_INVOKE_STATIC_NORETURN(F, this, ...)		API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
 
 #elif !defined(DISABLE_SCRIPT_ENGINE)
 

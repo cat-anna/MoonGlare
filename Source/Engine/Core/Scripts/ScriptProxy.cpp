@@ -13,7 +13,7 @@ namespace Scripts {
 
 using ::OrbitLogger::ThreadInfo;
 
-__declspec(thread) ScriptProxy *ScriptProxy::_Instance = nullptr;
+thread_local ScriptProxy *ScriptProxy::_Instance = nullptr;
 SPACERTTI_IMPLEMENT_STATIC_CLASS(ScriptProxy);
 
 ScriptProxy::ScriptProxy():
@@ -23,9 +23,6 @@ ScriptProxy::ScriptProxy():
 		AddLog(Error, "Thread already has script proxy set!");
 		return;
 	}
-	memset(m_ThreadSignature, 0, sizeof(m_ThreadSignature));
-	*((ThreadInfo::Signature*)m_ThreadSignature) = ThreadInfo::GetSignature();
-	m_IsMainContext = ThreadInfo::IsMain();
 	_Instance = this;
 	AddLog(Debug, "Thread initialized script proxy instance!");
 }
@@ -34,8 +31,7 @@ ScriptProxy::~ScriptProxy() {
 	if (_Instance && _Instance != this)
 		return;
 	_Instance = nullptr;
-	if (m_Script) 
-		GetScriptEngine()->FinalizeScriptProxy(*this, m_Script);
+	m_Script.reset();
 	AddLog(Debug, "Thread finalized script proxy instance!");
 }
 

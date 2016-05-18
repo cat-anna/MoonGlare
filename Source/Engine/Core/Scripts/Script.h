@@ -39,20 +39,20 @@ public:
 #else
 	template<class RET, class ... Types>
 	RET RunFunction(const char *FuncName, Types ... args) {
+		AddLogf(ScriptCall, "Call to: '%s'", FuncName);
+		LOCK_MUTEX(m_Mutex);
 		try {
-			//AddLogf(Debug, "Script owner: %s, call to: '%s'", GetOwnerProxy()->GetThreadSignature(), FuncName);
 			IncrementPerformanceCounter(ExecutionCount);
 			luabridge::LuaRef fun = luabridge::getGlobal(m_Lua, FuncName);
 			luabridge::LuaRef ret = fun(args...);
 			return ret.cast<RET>();
 		} catch (const std::exception & e) {
-			AddLogf(Error, "Runtime script error! Function '%s', Script owner: %s, message: '%s'", 
-					FuncName, GetOwnerProxy()->GetThreadSignature(), e.what());
+			AddLogf(Error, "Runtime script error! Function '%s', message: '%s'", 
+					FuncName, e.what());
 			IncrementPerformanceCounter(ExecutionErrors);
 			return RET(0);
 		} catch (...) {
-			AddLogf(Error, "Runtime script error! Function '%s' failed with unknown message!", 
-					FuncName, GetOwnerProxy()->GetThreadSignature());
+			AddLogf(Error, "Runtime script error! Function '%s' failed with unknown message!", FuncName);
 			IncrementPerformanceCounter(ExecutionErrors);
 			return RET(0);
 		}
@@ -68,18 +68,15 @@ public:
 	void PrintMemoryUsage() const;
 
 	enum {
-		sf_HasCode			 = 0x0001,
 		sf_Ready			 = 0x0002,
 	};
 	DefineFlagGetter(m_Flags, sf_Ready, Ready);
 
-	DefineDirectSetGet(OwnerProxy, ScriptProxy*)
-
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	lua_State *m_Lua;
+	mutable std::recursive_mutex m_Mutex;
 	unsigned m_Flags;
-	ScriptProxy *m_OwnerProxy;
 
 	DefineFlagSetter(m_Flags, sf_Ready, Ready);
 
