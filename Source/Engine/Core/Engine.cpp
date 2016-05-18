@@ -338,6 +338,7 @@ void Engine::DoMove(MoveConfig &conf) {
 //	MoonGlare::Core::Component::ComponentManager::Process(conf);
 
 	m_TimeEvents.CheckEvents(conf);
+	GetScriptEngine()->Step(conf);
 	if (m_CurrentScene)
 		m_CurrentScene->DoMove(conf);
 }

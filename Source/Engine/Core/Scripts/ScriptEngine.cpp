@@ -25,17 +25,19 @@ cScriptEngine::~cScriptEngine() {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
-#ifdef DEBUG_SCRIPTAPI
-	struct T {
-		static void KillAllScripts() {
-			GetEngine()->PushSynchronizedAction([](){
-				GetScriptEngine()->KillAllScripts();
-			});
-		}
-	};
-#endif
+void cScriptEngine::Step(const MoveConfig &config) {
 
+
+
+	lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, 1);
+#ifdef PERF_PERIODIC_PRINT
+	AddLogf(Performance, "Lua memory usage: %f kbytes", m_Script->GetMemoryUsage());
+#endif
+}
+
+//---------------------------------------------------------------------------------------
+
+void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 	root
 	.deriveClass<ThisClass, BaseClass>("cScriptEngine")
 		.addFunction("LoadCode", &ThisClass::LoadCode)
@@ -43,7 +45,6 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("CollectGarbage", &ThisClass::CollectGarbage)
 		.addFunction("PrintMemoryInfo", &ThisClass::PrintMemoryInfo)
-		.addFunction("KillAllScripts", Utils::Template::InstancedStaticCall<ThisClass, void>::get<&T::KillAllScripts>())
 #endif
 	.endClass();
 }
@@ -84,17 +85,6 @@ bool cScriptEngine::Finalize() {
 	if (!IsReady()) return true;
 	SetReady(false);
 
-	KillAllScripts();
-
-	GlobalContext::Instance()->Finalize();
-	GlobalContext::DeleteInstance();
-
-	return true;
-}
-
-//---------------------------------------------------------------------------------------
-
-void cScriptEngine::KillAllScripts() {
 	LOCK_MUTEX(m_Mutex);
 
 	while (!m_ScriptList.empty()) {
@@ -107,7 +97,14 @@ void cScriptEngine::KillAllScripts() {
 	}
 
 	DestroyScript();
+
+	GlobalContext::Instance()->Finalize();
+	GlobalContext::DeleteInstance();
+
+	return true;
 }
+
+//---------------------------------------------------------------------------------------
 
 void cScriptEngine::LoadAllScriptsImpl() {
 	FileSystem::FileInfoTable files;

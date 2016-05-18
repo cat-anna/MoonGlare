@@ -1,5 +1,6 @@
 #ifndef ScriptEngineH
 #define ScriptEngineH
+
 namespace Core {
 namespace Scripts {
 
@@ -27,17 +28,16 @@ public:
 
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 
+	void Step(const MoveConfig &config);
+
 	void CollectGarbage();
 	void PrintMemoryInfo();
 
 	bool Initialize();
 	bool Finalize();
 
-	SharedScript GetScript(ScriptProxy &proxy);
-
 	bool InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
 	bool FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
-	void KillAllScripts();
 
 	void LoadAllScripts();
 	void RegisterScript(string Name);
@@ -148,4 +148,5 @@ private:
 
 } //namespace Scripts
 } //namespace Core
+
 #endif

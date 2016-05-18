@@ -73,6 +73,8 @@ public:
 	DefineFlagGetter(m_Flags, sf_Ready, Ready);
 
 	static void RegisterScriptApi(ApiInitializer &api);
+
+	lua_State* GetLuaState() { return m_Lua; }
 protected:
 	lua_State *m_Lua;
 	mutable std::recursive_mutex m_Mutex;
