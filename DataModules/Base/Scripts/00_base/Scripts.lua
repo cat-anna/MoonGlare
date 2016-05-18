@@ -1,10 +1,15 @@
 --part of MoonGlare engine internal module
 
+Interfaces = { 
+	Script = oo.NewClass(),
+}
+
 Scripts = {
 	Table = { }
 }
 
 local Table = Scripts.Table
+local ScriptInterface = Interfaces.Script
 
 function Scripts.Register(data)
 	if not data.Name then
@@ -35,4 +40,8 @@ function Scripts.Register(data)
 	end
 	
 	return true
+end
+
+function ScriptInterface:SetFixedProcess()
+	return ScriptComponent:SetFixedProcess(self)
 end
