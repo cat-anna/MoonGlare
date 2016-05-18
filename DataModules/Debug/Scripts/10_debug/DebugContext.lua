@@ -31,4 +31,4 @@ function ToggleDebugDraw()
 	return 0;
 end
 
-Inst.GlobalContext:Init([[ Debug_OnInit() ]])
+Debug_OnInit()
