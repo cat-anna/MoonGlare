@@ -174,7 +174,7 @@ Handle ObjectRegister::GetParentHandle(Handle h) {
 	return m_Memory->m_Parent[idx];
 }
 
-Entity ObjectRegister::GetParentEntity(Handle h) {
+Entity ObjectRegister::GetEntity(Handle h) {
 	ASSERT_HANDLE_TYPE(Object, h);
 	size_t idx;
 	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
@@ -182,6 +182,16 @@ Entity ObjectRegister::GetParentEntity(Handle h) {
 		return Entity();
 	}
 	return m_Memory->m_Entity[idx];
+}
+
+Entity ObjectRegister::GetParentEntity(Handle h) {
+	ASSERT_HANDLE_TYPE(Object, h);
+	size_t idx;
+	if (!m_Memory->m_HandleAllocator.GetMapping(h, idx)) {
+		AddLog(Warning, "Invalid handle!");
+		return Entity();
+	}
+	return GetWorld()->GetEntityManager()->GetParent(m_Memory->m_Entity[idx]);
 }
 
 Object *ObjectRegister::Get(Handle h) {
@@ -210,6 +220,17 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 		AddLogf(Error, "An Error has occur during loading meta of predef object (%s)", MetaXML.attribute("Name").as_string(ERROR_STR));
 		Remove(objH);
 		return Handle();
+	}
+	{
+		auto Script = MetaXML.child("Script");
+		if (Script) {
+			auto sname = Script.attribute("Name").as_string(nullptr);
+			if (!sname) {
+				AddLogf(Warning, "Object script definition without a name (%s)", obj->GetName().c_str());
+			} else {
+				GetScriptEngine()->CreateScript(sname, GetEntity(objH) );
+			}
+		}
 	}
 
 	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {

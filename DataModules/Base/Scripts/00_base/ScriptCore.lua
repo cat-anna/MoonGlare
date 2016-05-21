@@ -15,11 +15,10 @@ function ScriptComponent:RunFixedProcess(data)
 	local i = 1
 	
 	while i <= count do
-		local obj = self.FixedProcess[idx]
+		local obj = self.FixedProcess[i]
 		obj:Process(data)
 		i = i + 1
 	end
-	
 end
 
 function ScriptComponent:SetFixedProcess(sender)
@@ -30,23 +29,18 @@ function ScriptComponent:SetFixedProcess(sender)
 end
 
 function ScriptComponent.AllocScript(Entity, ClassName)
-	local script = { }
+	print("Alloc attempt")
+	local classinfo = Scripts.GetClass(ClassName)
+	local object = classinfo.Class:new()
+	
 	ScriptComponent.EntityTable[Entity:GetIndex()] = {
-		script = script,
+		object = object,
 	}
 	
-	script.Entity = Entity
+	object.Entity = Entity
 	
-	script.Class = Scripts.GetClass(ClassName)
-	--script.BaseClass = nil
-	
-	script.Instance = {
-		Entity = Entity,
-	}
-	
-	local initf = script.Class.Init
-	if initf then
-		initf(script.Instance)
+	if object.OnInit then
+		object:OnInit()
 	end
 	
 	return true

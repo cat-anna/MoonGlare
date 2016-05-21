@@ -12,6 +12,9 @@ RegisterApiDerivedClass(cScriptEngine, &cScriptEngine::RegisterScriptApi);
 
 cScriptEngine::cScriptEngine() :
 		cRootClass(),
+		m_CurrentGCStep(1),
+		m_CurrentGCRiseCounter(0),
+		m_LastMemUsage(0),
 		m_Flags(0) {
 	SetThisAsInstance();
 
@@ -27,12 +30,40 @@ cScriptEngine::~cScriptEngine() {
 
 void cScriptEngine::Step(const MoveConfig &config) {
 
+	//TBD
+	if (!IsScriptsLoaded()) {
+		return;
+	}
 
+	auto t = std::chrono::steady_clock::now();
+	{
+		auto &mutex = m_Script->GetMutex();
+		LOCK_MUTEX(mutex);
+		auto sc = luabridge::getGlobal(m_Script->GetLuaState(), "ScriptComponent");
+		sc["Step"](&config);
+		lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, m_CurrentGCStep);
+	}
+	if (config.m_SecondPeriod) {
+		AddLogf(Performance, "Lua step: %f ms", (float)((std::chrono::steady_clock::now() - t).count() * 1000.0f));
+	}
 
-	lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, 1);
+	if (config.m_SecondPeriod) {
+		float memusage = m_Script->GetMemoryUsage();
+		if (memusage > (m_LastMemUsage + 10.0f) ) {
+			m_LastMemUsage = memusage;
+			++m_CurrentGCRiseCounter;
+			if (m_CurrentGCRiseCounter == 5) {
+				++m_CurrentGCStep;
+				m_CurrentGCRiseCounter = 0;
+				AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
+			}
+		}
+
 #ifdef PERF_PERIODIC_PRINT
-	AddLogf(Performance, "Lua memory usage: %f kbytes", m_Script->GetMemoryUsage());
+		AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
 #endif
+	}
+
 }
 
 //---------------------------------------------------------------------------------------
@@ -46,6 +77,10 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 		.addFunction("CollectGarbage", &ThisClass::CollectGarbage)
 		.addFunction("PrintMemoryInfo", &ThisClass::PrintMemoryInfo)
 #endif
+	.endClass()
+	.beginClass<MoveConfig>("cMoveConfig")
+		.addData("TimeDelta", &MoveConfig::TimeDelta, false)
+		.addData("SecondPeriod", &MoveConfig::m_SecondPeriod, false)
 	.endClass();
 }
 
@@ -106,6 +141,24 @@ bool cScriptEngine::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+bool cScriptEngine::CreateScript(const std::string& Class, Entity Owner) {
+	if (!IsScriptsLoaded()) {
+		//TODO: log fatal error!
+		return false;
+	}
+
+	{
+		auto &mutex = m_Script->GetMutex();
+		LOCK_MUTEX(mutex);
+		auto sc = luabridge::getGlobal(m_Script->GetLuaState(), "ScriptComponent");
+		sc["AllocScript"](&Owner, Class.c_str());
+	}
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
 void cScriptEngine::LoadAllScriptsImpl() {
 	FileSystem::FileInfoTable files;
 	if (!GetFileSystem()->EnumerateFolder(DataPath::Scripts, files, true)) {
@@ -125,6 +178,8 @@ void cScriptEngine::LoadAllScriptsImpl() {
 		FileSystem::DataSubPaths.Translate(path, it.m_RelativeFileName, DataPath::Scripts);
 		RegisterScript(path);
 	}
+
+	SetScriptsLoaded(true);
 
 	GetDataMgr()->NotifyResourcesChanged();
 	AddLog(Debug, "Finished looking for scripts");

@@ -4,7 +4,7 @@
 namespace Core {
 namespace Scripts {
 
-class cScriptEngine : public cRootClass {
+class cScriptEngine final : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cScriptEngine, cRootClass);
 public:
 	cScriptEngine();
@@ -23,10 +23,12 @@ public:
 	struct Flags {
 		enum {
 			Ready	= 0x01,
+			ScriptsLoaded = 0x02,
 		};
 	};
 
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
+	DefineFlagGetter(m_Flags, Flags::ScriptsLoaded, ScriptsLoaded);
 
 	void Step(const MoveConfig &config);
 
@@ -35,6 +37,8 @@ public:
 
 	bool Initialize();
 	bool Finalize();
+
+	bool CreateScript(const std::string& Class, Entity Owner);
 
 	bool InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
 	bool FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
@@ -65,7 +69,11 @@ protected:
 	bool DestroyScript();
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
+	DefineFlagSetter(m_Flags, Flags::ScriptsLoaded, ScriptsLoaded);
 private:
+	int m_CurrentGCStep;
+	int m_CurrentGCRiseCounter;
+	float m_LastMemUsage;
 	void LoadAllScriptsImpl();
 };
 

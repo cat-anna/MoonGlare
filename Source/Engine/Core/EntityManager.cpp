@@ -11,9 +11,9 @@
 namespace MoonGlare {
 namespace Core {
 
-RegisterApiInstance(EntityManager, &cScriptEngine::Instance, "EntityManager");
+SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
+//RegisterApiInstance(EntityManager, &cScriptEngine::Instance, "EntityManager");
 RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
-
 
 EntityManager::EntityManager():
 		m_Memory(Space::NoConstruct()) {
@@ -29,12 +29,20 @@ EntityManager::EntityManager():
 
 EntityManager::~EntityManager() {
 }
+
 //---------------------------------------------------------------------------------------
 
 void EntityManager::RegisterScriptApi(ApiInitializer &root) {
+
+	struct T {
+		int GetIndex() {
+			return ((Entity*)this)->GetIndex();
+		}
+	};
+
 	root
-	.beginClass<Entity>("Entity")
-		.addFunction("GetIndex", &Entity::GetIndex)
+	.beginClass<Entity>("cEntity")
+		.addFunction("GetIndex", (int (Entity::*)())&T::GetIndex)
 	.endClass()
 
 	.beginClass<EntityManager>("cEntityManager")

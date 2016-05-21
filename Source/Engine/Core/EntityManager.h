@@ -13,7 +13,9 @@ namespace MoonGlare {
 namespace Core {
 
 class EntityManager final 
-	: public Config::Current::DebugMemoryInterface {
+	: Space::RTTI::RTTIObject
+	, public Config::Current::DebugMemoryInterface {
+SPACERTTI_DECLARE_STATIC_CLASS(EntityManager, Space::RTTI::RTTIObject);
 public:
 	struct Memory {
 		template<class T> using Array = std::array<T, Configuration::Storage::Static::EntityStorage>;
@@ -44,7 +46,7 @@ public:
 	Entity GetParent(Entity entity) const;
 	bool IsValid(Entity entity) const;
 
-	void RegisterScriptApi(ApiInitializer &root);
+	static void RegisterScriptApi(ApiInitializer &root);
 private: 
 	Entity m_Root;
 	Memory m_Memory;

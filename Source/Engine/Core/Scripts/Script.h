@@ -67,6 +67,8 @@ public:
 	void CollectGarbage();
 	void PrintMemoryUsage() const;
 
+	std::recursive_mutex& GetMutex() { return m_Mutex; }
+
 	enum {
 		sf_Ready			 = 0x0002,
 	};

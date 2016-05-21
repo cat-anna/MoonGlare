@@ -10,14 +10,13 @@ function oo.InheritsFrom( base )
 		__index = class
 	}
  
---	function class:new(...)
---		body = { }
---		body.Class = class
---		body.BaseClass = base
---		setmetatable( body, classmt )
---		body:Create(...)
---		return body
---	end
+	function class:new()
+		body = { }
+		body.Class = class
+		body.BaseClass = base
+		setmetatable( body, classmt )
+		return body
+	end
          
     if base then
 		local basemt = {
