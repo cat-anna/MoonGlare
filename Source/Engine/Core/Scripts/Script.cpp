@@ -218,7 +218,7 @@ bool Script::Initialize() {
 
 	lua_newtable(m_Lua);
 	lua_setglobal(m_Lua, "global");
-	
+
 #ifndef _USE_API_GENERATOR_
 #ifdef DEBUG
 	luabridge::setHideMetatables(false);
@@ -231,7 +231,7 @@ bool Script::Initialize() {
 
 	luabridge::getGlobalNamespace(m_Lua)
 		.beginNamespace("Inst")
-			//.addPtrVariable("Script", this)
+			.addPtrVariable("Script", this)
 		.endNamespace()
 	;
 
@@ -258,6 +258,8 @@ bool Script::Initialize() {
 	lua_pcall(m_Lua, 0, 0, 0);
 #endif // 0
 
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+	lua_gc(m_Lua, LUA_GCSTOP, 0);
 	PrintMemoryUsage();
 
 	SetReady(true);
@@ -295,7 +297,7 @@ int Script::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
 		}
 		break;
 	case LUA_ERRSYNTAX:
-		AddLog(Error, "Unable to load script: Syntax Error!");
+		AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName, lua_tostring(m_Lua, -1), Code );
 		break;
 	case LUA_ERRMEM:
 		AddLog(Error, "Unable to load script: Memory allocation failed!");

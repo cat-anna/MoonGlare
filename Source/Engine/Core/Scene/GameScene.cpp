@@ -292,11 +292,9 @@ void GameScene::DoMove(const MoveConfig &conf) {
 	//AddLog(Hint, "Step begin");
 	auto t = std::chrono::steady_clock::now();
 	m_Physics->Step(conf.TimeDelta);
-	std::chrono::duration<double> sec = std::chrono::steady_clock::now() - t;
-	static unsigned counter = 0;
-	++counter;
-	if ((counter & 0xF) == 0) {
-		AddLogf(Performance, "pht: %f ms", (float)(sec.count() * 1000));
+	if (conf.m_SecondPeriod) {
+		std::chrono::duration<double> sec = std::chrono::steady_clock::now() - t;
+		AddLogf(Performance, "ph step: %f ms", (float)(sec.count() * 1000));
 	}
 
 	//AddLog(Hint, "Step end");

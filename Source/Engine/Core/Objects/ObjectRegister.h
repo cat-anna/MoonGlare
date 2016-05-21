@@ -56,6 +56,7 @@ public:
 
 	Handle GetParentHandle(Handle h);
 	Entity GetParentEntity(Handle h);
+	Entity GetEntity(Handle h);
 
 	math::mat4* GetLocalMatrix(Handle h) {
 		ASSERT_HANDLE_TYPE(Object, h);

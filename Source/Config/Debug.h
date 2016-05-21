@@ -31,6 +31,8 @@
 #define DEBUG_INTERFACE 1
 #define DEBUG_MEMORY 1
 
+#define PERF_PERIODIC_PRINT	1
+
 #define _FEATURE_LOG_COUNTERS_ 1
 
 #define DEBUG_LOG_FOLDER	"logs/"

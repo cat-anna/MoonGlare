@@ -11,6 +11,10 @@
 namespace MoonGlare {
 namespace Core {
 
+SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
+//RegisterApiInstance(EntityManager, &cScriptEngine::Instance, "EntityManager");
+RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
+
 EntityManager::EntityManager():
 		m_Memory(Space::NoConstruct()) {
 
@@ -24,6 +28,26 @@ EntityManager::EntityManager():
 }
 
 EntityManager::~EntityManager() {
+}
+
+//---------------------------------------------------------------------------------------
+
+void EntityManager::RegisterScriptApi(ApiInitializer &root) {
+
+	struct T {
+		int GetIndex() {
+			return ((Entity*)this)->GetIndex();
+		}
+	};
+
+	root
+	.beginClass<Entity>("cEntity")
+		.addFunction("GetIndex", (int (Entity::*)())&T::GetIndex)
+	.endClass()
+
+	.beginClass<EntityManager>("cEntityManager")
+		.addFunction("IsValid", &EntityManager::IsValid)
+	.endClass();
 }
 
 //------------------------------------------------------------------------------------------
@@ -69,7 +93,6 @@ Entity EntityManager::Allocate(Entity parent) {
 }
 
 void EntityManager::Release(Entity entity) {
-	size_t idx;
 	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
 		AddLog(Error, "entity is not valid!");
 		return;

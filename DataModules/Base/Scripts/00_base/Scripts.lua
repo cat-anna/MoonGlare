@@ -1,10 +1,15 @@
 --part of MoonGlare engine internal module
 
+Interfaces = { 
+	Script = oo.NewClass(),
+}
+
 Scripts = {
 	Table = { }
 }
 
 local Table = Scripts.Table
+local ScriptInterface = Interfaces.Script
 
 function Scripts.Register(data)
 	if not data.Name then
@@ -25,14 +30,26 @@ function Scripts.Register(data)
 	
 	if Script.Class then
 		warning("Overwritting script " .. data.Name)
-	
-	else
-		Script.Class = {}
 	end
 	
-	for k,v in pairs(data.Class) do
-		Script.Class[k] = v
-	end
+	Script.Class = data.Class
 	
 	return true
+end
+
+function Scripts.GetClass(name)
+	if not name then
+		error("Attempt to get nameless script")
+		return
+	end
+	
+	local s = Table[name]
+	if not s then
+	error("Script ", name, " does not exists!")
+	end
+	return s
+end
+
+function ScriptInterface:SetFixedProcess()
+	return ScriptComponent:SetFixedProcess(self)
 end

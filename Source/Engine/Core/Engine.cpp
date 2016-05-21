@@ -216,7 +216,8 @@ void Engine::EngineMain() {
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
 
-		if(CurrentTime - TitleRefresh >= 1.0) {
+		conf.m_SecondPeriod = CurrentTime - TitleRefresh >= 1.0;
+		if(conf.m_SecondPeriod) {
 			TitleRefresh = CurrentTime;
 			m_LastFPS = m_FrameCounter;
 			m_FrameCounter = 0;
@@ -227,7 +228,7 @@ void Engine::EngineMain() {
 						(RenderTime - MoveTime) * 1000.0f,
 						(EndTime - RenderTime) * 1000.0f
 						);
-				//AddLog(Performance, Buffer);
+				AddLogf(Performance, Buffer);
 				dev.GetContext()->SetTitle(Buffer);
 			//}
 		}
@@ -338,6 +339,7 @@ void Engine::DoMove(MoveConfig &conf) {
 //	MoonGlare::Core::Component::ComponentManager::Process(conf);
 
 	m_TimeEvents.CheckEvents(conf);
+	GetScriptEngine()->Step(conf);
 	if (m_CurrentScene)
 		m_CurrentScene->DoMove(conf);
 }
