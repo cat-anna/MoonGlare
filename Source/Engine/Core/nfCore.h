@@ -38,6 +38,8 @@ struct MoveConfig {
 	
 //	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
 	mutable std::vector<std::pair<math::mat4, ::DataClasses::ModelPtr>> RenderList;
+
+	bool m_SecondPeriod;
 };
 
 }//namespace Core
