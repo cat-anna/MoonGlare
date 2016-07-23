@@ -222,7 +222,7 @@ bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	
 	unsigned count = 0;
 	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	::Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
+	Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
 		auto *item = buffer.Alloc<PayLoad_ScriptList_Item>();
 		item->DataLen = (u16)code.Data.length();
 		item->Index = (u16)count;
@@ -284,7 +284,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 
 //	bool saveFile = request->OverwriteContainerFile > 0;
 
-	::Core::GetScriptEngine()->SetCode(name, data);
+	Core::GetScriptEngine()->SetCode(name, data);
 
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
@@ -313,7 +313,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	bool found = false;
 
 	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	::Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
+	Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
 		if (!found && name == code.Name) {
 			auto *response = buffer.Alloc<PayLoad_ScriptCode>();
 			response->DataLength = (u16)code.Data.length();
@@ -410,8 +410,8 @@ bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 
-	auto rawscene = ::Core::GetEngine()->GetCurrentScene();
-	auto scene = dynamic_cast<::Core::Scene::GameScene*>(rawscene);
+	auto rawscene = Core::GetEngine()->GetCurrentScene();
+	auto scene = dynamic_cast<Core::Scene::GameScene*>(rawscene);
 	if (!scene) {
 		hdr->MessageType = MessageTypes::NotPossibleInCurrentState;
 		AddLogf(Insider, "Enumerating objects is not supported by current scene");

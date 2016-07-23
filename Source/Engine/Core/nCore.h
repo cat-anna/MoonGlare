@@ -17,14 +17,16 @@
 #include "Interfaces.h"
 
 //core shortcut getters
+namespace MoonGlare {
 namespace Core {
-	inline Engine* GetEngine() { return ::Core::Engine::Instance(); }
-	inline cScriptEngine* GetScriptEngine() { return Scripts::cScriptEngine::Instance(); }
+	inline Engine* GetEngine() { return Engine::Instance(); }
+	inline ::Core::Scripts::cScriptEngine* GetScriptEngine() { return ::Core::Scripts::cScriptEngine::Instance(); }
 	//inline cGameEngine* GetGameEngine() { return cGameEngine::Instance(); }
 
 	inline Scene::ScenesManager* GetScenesManager() { return Scene::ScenesManager::Instance(); }
 
-	inline Input* GetInput() { return Input::Instance(); }
+	inline ::Core::Input* GetInput() { return ::Core::Input::Instance(); }
 }
+} //namespace MoonGlare 
 
 #endif // NCORE_H_

@@ -8,6 +8,7 @@
 #include "PlaneModel.h"
 #include "SimpleModelConstructor.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -121,4 +122,4 @@ bool PlaneModel::LoadFromXML(const xml_node Node) {
 
 } //namespace Models 
 } //namespace DataClasses 
-
+} //namespace MoonGlare 

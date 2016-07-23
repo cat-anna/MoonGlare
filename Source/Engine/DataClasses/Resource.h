@@ -7,6 +7,8 @@
 
 #ifndef CRESOURCEMANAGER_H_
 #define CRESOURCEMANAGER_H_
+
+namespace MoonGlare {
 namespace DataClasses {
 
 struct NameClassPair {
@@ -196,4 +198,6 @@ public:
 };
 
 } // namespace DataClasses
+} //namespace MoonGlare 
+
 #endif // CDATAMANAGER_H_ 

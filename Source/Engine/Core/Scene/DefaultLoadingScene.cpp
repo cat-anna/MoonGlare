@@ -14,6 +14,7 @@
 #include "LoadingBaseScene.h"
 #include "DefaultLoadingScene.h"
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -114,3 +115,4 @@ bool DefaultLoadingScene::SetDefaultLayout() {
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 

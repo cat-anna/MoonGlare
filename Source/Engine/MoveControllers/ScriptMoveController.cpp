@@ -14,7 +14,7 @@ IMPLEMENT_SCRIPT_EVENT_VECTOR(ScriptControllerScriptEvents);
 RegisterApiDerivedClass(ScriptMoveController, &ScriptMoveController::RegisterScriptApi);
 //MoveControllerClassRegister::Register<PathController> PathControllerReg;
 
-ScriptMoveController::ScriptMoveController(const ScriptMoveController& source, ::Core::Objects::Object* Owner) :
+ScriptMoveController::ScriptMoveController(const ScriptMoveController& source, MoonGlare::Core::Objects::Object* Owner) :
 		iMoveController(source, Owner),
 		m_StaticRotation(source.m_StaticRotation),
 		m_StaticSpeed(source.m_StaticSpeed),
@@ -24,7 +24,7 @@ ScriptMoveController::ScriptMoveController(const ScriptMoveController& source, :
 	//SetScriptHandlers(source.m_ScriptHandlers->Duplicate());
 }
 
-ScriptMoveController::ScriptMoveController(::Core::Objects::Object* Owner) :
+ScriptMoveController::ScriptMoveController(MoonGlare::Core::Objects::Object* Owner) :
 		iMoveController(Owner),
 		m_StaticRotation(),
 		m_StaticSpeed(),
@@ -68,7 +68,7 @@ void ScriptMoveController::DoMove(const ::Core::MoveConfig& conf) {
 #endif // 0
 }
 
-iMoveController* ScriptMoveController::Duplicate(::Core::Objects::Object* NewOwner) const {
+iMoveController* ScriptMoveController::Duplicate(MoonGlare::Core::Objects::Object* NewOwner) const {
 	return new ThisClass(*this, NewOwner);
 }
 

@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 			} 
 		
 			if (Result == 0) //when there are no errors so far
-				::Core::GetEngine()->EngineMain();
+				MoonGlare::Core::GetEngine()->EngineMain();
 
 			if (!GetApplication()->Finalize()) {
 				AddLog(Error, "Unable to finalize application!");

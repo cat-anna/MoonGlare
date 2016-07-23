@@ -10,6 +10,7 @@
 #include "EditableSimpleModel.h"
 #include "SimpleModelConstructor.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -165,3 +166,4 @@ void SimpleModelConstructor::cMesh::PushQuad(math::vec3 *vertexes, math::vec3 *N
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 

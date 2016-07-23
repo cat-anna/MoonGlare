@@ -7,6 +7,7 @@
 #include <MoonGlare.h>
 #include "SimpleModelImpl.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -166,4 +167,5 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 

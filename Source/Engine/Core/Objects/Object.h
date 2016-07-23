@@ -1,6 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -73,7 +74,7 @@ public:
 	void KillTimer(int tid);
 
 	DefineRefGetterAll(MoveController, iMoveControllerPtr);
-	DefineREADAccesPTR(Scene, ::Core::GameScene);
+	DefineREADAccesPTR(Scene, Core::GameScene);
 	virtual void SetOwnerScene(GameScene *Scene);
 	DefineREADAcces(PatternName, string);
 	iLightSource* GetLightSource() { return m_LightSource.get(); }
@@ -87,8 +88,8 @@ public:
 	DefineDirectSetGet(OwnerRegister, ObjectRegister*);
 	DefineRefSetGet(PositionTransform, Physics::Transform);
 
-	void SetModel(::DataClasses::ModelPtr Model);
-	::DataClasses::ModelPtr& GetModel() { return m_Model; }
+	void SetModel(DataClasses::ModelPtr Model);
+	DataClasses::ModelPtr& GetModel() { return m_Model; }
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
@@ -99,7 +100,7 @@ protected:
 	iLightSourcePtr m_LightSource;
 	unsigned m_Flags;
 	bool m_Visible;
-	::DataClasses::ModelPtr m_Model;
+	DataClasses::ModelPtr m_Model;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
@@ -112,7 +113,7 @@ protected:
 private:
 	DefineWRITEAcces(PatternName, string);
 	iMoveControllerPtr m_MoveController;
-	::Core::GameScene *m_Scene;
+	Core::GameScene *m_Scene;
 	string m_PatternName;
 
 	void ReleaseBody();
@@ -120,5 +121,6 @@ private:
 
 } //namespace Objects
 } //namespace Core
+} //namespace MoonGlare 
 
 #endif // OBJECT_H

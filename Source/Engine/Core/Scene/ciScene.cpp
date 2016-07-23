@@ -10,6 +10,7 @@
 #include <Engine/GUI/nGUI.h>
 #include <Engine/iSoundEngine.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -194,3 +195,4 @@ bool SceneSettings::LoadMeta(const xml_node node) {
 
 } // namespace Scene
 } // namespace Core
+} // namespace MoonGlare

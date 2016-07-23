@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -42,3 +43,4 @@ bool iModel::DoFinalize() {
 
 } // namespace Models 
 } // namespace DataClasses 
+} //namespace MoonGlare 

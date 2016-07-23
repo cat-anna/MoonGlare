@@ -7,6 +7,7 @@
 #ifndef CTEXTUREMANAGER_H_
 #define CTEXTUREMANAGER_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 
 class Texture : public cRootClass {
@@ -49,4 +50,6 @@ protected:
 };
 
 } // namespace DataClasses
+} //namespace MoonGlare 
+
 #endif // CTEXTUREMANAGER_H_ 

@@ -8,6 +8,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -333,3 +334,4 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 } //namespace Objects
 } //namespace Core
+} //namespace MoonGlare 

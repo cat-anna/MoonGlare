@@ -23,8 +23,8 @@ class InputController : public iMoveController {
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	virtual ~InputController();
-	InputController(const InputController& other, ::Core::Objects::Object *Owner);
-	InputController(::Core::Objects::Object *Owner = 0);
+	InputController(const InputController& other, MoonGlare::Core::Objects::Object *Owner);
+	InputController(MoonGlare::Core::Objects::Object *Owner = 0);
 
 	virtual bool SaveToXML(xml_node Node) const;
 	virtual bool LoadFromXML(const xml_node Node);
@@ -50,7 +50,7 @@ public:
 	virtual int InvokeOnMoveStart();
 	virtual int InvokeOnMoveStop();
 
-	virtual iMoveController* Duplicate(::Core::Objects::Object *NewOwner) const;
+	virtual iMoveController* Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const;
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	vec2 m_Rotation;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 
+namespace MoonGlare {
 namespace Core {
 
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(TimeEvents)
@@ -18,7 +19,7 @@ void TimeEvents::Clear(){
 	m_CurrentTime = 0;
 }
 
-void TimeEvents::KillTimersForObject(::Core::EventProxyPtr Owner){
+void TimeEvents::KillTimersForObject(EventProxyPtr Owner){
 	auto req = Owner.lock();
 	for (auto it = m_Queue.begin(), jt = m_Queue.end(); it != jt; ++it) {
 		if (it->Owner.expired() || it->Owner.lock() == req) {
@@ -50,7 +51,7 @@ void TimeEvents::CheckEvents(const MoveConfig &conf){
 	}
 }
 
-int TimeEvents::SetTimer(int EventID, float ElapseTime, bool Cyclic, ::Core::EventProxyPtr Owner){
+int TimeEvents::SetTimer(int EventID, float ElapseTime, bool Cyclic, EventProxyPtr Owner){
 	if (ElapseTime <= 0) {
 		AddLog(Warning, "Attempt to set timer with negative elapse time!");
 		return 0;
@@ -60,7 +61,7 @@ int TimeEvents::SetTimer(int EventID, float ElapseTime, bool Cyclic, ::Core::Eve
 	return EventID;
 }
 
-int TimeEvents::KillTimer(int Event, ::Core::EventProxyPtr Owner){
+int TimeEvents::KillTimer(int Event, EventProxyPtr Owner){
 	auto req = Owner.lock();
 	for (auto it = m_Queue.begin(), jt = m_Queue.end(); it != jt; ++it) {
 		if (it->Owner.expired() || it->EventID != Event) continue;
@@ -74,3 +75,4 @@ int TimeEvents::KillTimer(int Event, ::Core::EventProxyPtr Owner){
 }
 
 } //namespace Core
+} //namespace MoonGlare 

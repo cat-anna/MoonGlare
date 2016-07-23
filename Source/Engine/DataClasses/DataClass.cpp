@@ -1,6 +1,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
@@ -126,3 +127,4 @@ bool DataClass::ReadNameFromXML(const xml_node Node) {
 }
 
 } // namespace DataClasses
+} //namespace MoonGlare 

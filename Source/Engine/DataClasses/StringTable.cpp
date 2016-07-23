@@ -8,6 +8,7 @@
 #include <nfMoonGlare.h>
 #include "StringTable.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(StringTable)
@@ -107,3 +108,4 @@ const string& StringTable::GetString(const string& id, const string& Table) {
 }
 
 } //namespace DataClasses 
+} //namespace MoonGlare 

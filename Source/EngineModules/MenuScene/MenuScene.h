@@ -21,8 +21,8 @@ struct MenuSceneConfig {
 	bool Load(const xml_node node);
 };
 
-class MenuScene : public ::Core::Scene::ciScene {
-	SPACERTTI_DECLARE_CLASS(MenuScene, ::Core::Scene::ciScene)
+class MenuScene : public Core::Scene::ciScene {
+	SPACERTTI_DECLARE_CLASS(MenuScene, Core::Scene::ciScene)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:

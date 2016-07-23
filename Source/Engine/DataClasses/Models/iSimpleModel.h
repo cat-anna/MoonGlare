@@ -8,6 +8,7 @@
 #ifndef CSINGLEMODEL_H_
 #define CSINGLEMODEL_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -44,5 +45,6 @@ protected:
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 
 
 #endif // CSINGLEMODEL_H_ 

@@ -335,10 +335,10 @@ void Window::key_callback(int key, bool Pressed) {
 		if (!Pressed) return;
 		if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
 			ReleaseMouse();
-			::Core::GetInput()->ClearMouseDelta();
+			MoonGlare::Core::GetInput()->ClearMouseDelta();
 			return;
 		}
-		::Core::GetEngine()->HandleEscapeKey();
+		MoonGlare::Core::GetEngine()->HandleEscapeKey();
 		return;
 	case GLFW_KEY_GRAVE_ACCENT://` - 0xC0
 		if (!Pressed) return;
@@ -350,10 +350,10 @@ void Window::key_callback(int key, bool Pressed) {
 		return;
 	case GLFW_KEY_PRINT_SCREEN:
 		if (!Pressed) return;
-		::Core::GetEngine()->CaptureScreenShot();
+		MoonGlare::Core::GetEngine()->CaptureScreenShot();
 		return;
 	default:
-		::Core::GetInput()->KeyChange((unsigned)key, Pressed);
+		MoonGlare::Core::GetInput()->KeyChange((unsigned)key, Pressed);
 		return;
 	}
 	//	AddLog(Hint, "Key: " << Key << "  hex: 0x" << std::hex << (unsigned)Key);

@@ -38,7 +38,7 @@ ScriptProxy::~ScriptProxy() {
 //---------------------------------------------------------------------------------------
 
 bool ScriptProxy::RunTimeInitialze() {
-	return GetScriptEngine()->InitializeScriptProxy(*this, m_Script);
+	return ::MoonGlare::Core::GetScriptEngine()->InitializeScriptProxy(*this, m_Script);
 }
 
 } //namespace Scripts 

@@ -3,6 +3,7 @@
 #include <GUI/GUI.h>
 #include "Console.h"
 
+namespace MoonGlare {
 namespace Core {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
@@ -31,11 +32,11 @@ Engine::Engine() :
 
 	SetThisAsInstance();
 	new JobQueue();
-	new Input();
+	new ::Core::Input();
 }
 
 Engine::~Engine() {
-	Input::DeleteInstance();
+	::Core::Input::DeleteInstance();
 	JobQueue::DeleteInstance();
 }
 
@@ -431,3 +432,4 @@ void Engine::ClearScenesUntil(const string& Name) const {
 
 
 } //namespace Core
+} //namespace MoonGlare 

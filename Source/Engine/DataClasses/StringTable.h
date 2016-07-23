@@ -9,6 +9,7 @@
 #ifndef StringTable_H
 #define StringTable_H
 
+namespace MoonGlare {
 namespace DataClasses {
 
 class StringTable : public cRootClass {
@@ -35,5 +36,6 @@ protected:
 };
 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef FONT_H
 #define FONT_H
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
@@ -56,5 +57,6 @@ using FontClassRegister = Space::DynamicClassRegisterDeleter < iFont, ResourceFi
 
 } //namespace Fonts
 } //namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif // FONT_H

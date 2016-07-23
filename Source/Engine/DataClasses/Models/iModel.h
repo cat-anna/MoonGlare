@@ -8,6 +8,7 @@
 #ifndef CMODEL_H_
 #define CMODEL_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -33,4 +34,6 @@ protected:
 
 } // namespace Models 
 } // namespace DataClasses 
+} //namespace MoonGlare 
+
 #endif // CMODEL_H_ 

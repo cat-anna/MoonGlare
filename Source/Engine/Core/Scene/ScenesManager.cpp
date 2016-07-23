@@ -12,6 +12,7 @@
 #include "DefaultLoadingScene.h"
 #include "EngineLoadScene.h"
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -140,7 +141,7 @@ void ScenesManager::LoadingSceneTimedOutJob() {
 	GetEngine()->ChangeScene();
 }
 
-void ScenesManager::LoadSceneJob(const string& Name, int Param, ::Core::EventProxyPtr proxy) {
+void ScenesManager::LoadSceneJob(const string& Name, int Param, EventProxyPtr proxy) {
 	auto *desc = GetSceneDescriptor(Name);
 	if (!desc) {
 		AddLogf(Error, "Unable to find descriptor for scene: '%s'", Name.c_str());
@@ -215,7 +216,7 @@ ciScene* ScenesManager::GetNextScene() {
 	return PopScene();
 }
 
-void ScenesManager::ScenePrepeareImpl(const string& Name, int Param, ::Core::EventProxyPtr proxy) {
+void ScenesManager::ScenePrepeareImpl(const string& Name, int Param, EventProxyPtr proxy) {
 	LOCK_MUTEX(m_Lock);
 	if (IsNextScenePending()) {
 //		AddLog(FixMe, "Setting next scene while next scene is pending is not implemented");
@@ -228,12 +229,12 @@ void ScenesManager::ScenePrepeareImpl(const string& Name, int Param, ::Core::Eve
 	JobQueue::QueueJob([this, Name, Param, proxy] { LoadSceneJob(Name, Param, proxy); });
 }
 
-void ScenesManager::AsyncSetNextScene(const string& Name, ::Core::EventProxyPtr proxy, int Param) {
+void ScenesManager::AsyncSetNextScene(const string& Name, EventProxyPtr proxy, int Param) {
 	ScenePrepeareImpl(Name, Param, proxy);
 }
 
 void ScenesManager::SetNextScene(const string& Name, int Param) {
-	ScenePrepeareImpl(Name, Param, ::Core::EventProxyPtr());
+	ScenePrepeareImpl(Name, Param, EventProxyPtr());
 }
 
 void ScenesManager::PushScene(ciScene *scene) {
@@ -395,3 +396,4 @@ ciScene* ScenesManager::GetSceneInstance(SceneDescriptor *descr) {
 
 } //namespace Scene
 } //namespace Core
+} //namespace MoonGlare 

@@ -10,6 +10,7 @@
 
 #include "RootClass.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -33,5 +34,6 @@ typedef boost::ptr_vector<ModelMaterial> MaterialVector;
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 
 
 #endif // ModelMaterial_H_ 

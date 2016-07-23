@@ -8,6 +8,7 @@
 #ifndef EmptyModel_H
 #define EmptyModel_H
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -30,5 +31,6 @@ private:
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace Component 
 
 #endif

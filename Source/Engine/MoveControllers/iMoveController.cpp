@@ -14,7 +14,7 @@ SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iMoveController);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(MoveControllerScriptEvents);
 RegisterApiDerivedClass(iMoveController, &iMoveController::RegisterScriptApi);
 
-iMoveController::iMoveController(::Core::Objects::Object *Owner) :
+iMoveController::iMoveController(MoonGlare::Core::Objects::Object *Owner) :
 		BaseClass(), 
 		m_Owner(Owner), 
 		m_Flags(),
@@ -23,7 +23,7 @@ iMoveController::iMoveController(::Core::Objects::Object *Owner) :
 	SetRunning(true);
 }
 
-iMoveController::iMoveController(const iMoveController& other, ::Core::Objects::Object *Owner) :
+iMoveController::iMoveController(const iMoveController& other, MoonGlare::Core::Objects::Object *Owner) :
 		BaseClass(),
 		m_Owner(Owner), 
 		m_Flags(other.m_Flags),
@@ -95,7 +95,7 @@ void iMoveController::Stop() {
 }
 //-------------------------------------------------------------------------------------------------
 
-iMoveController* iMoveController::CreateFromXML(const xml_node Node, ::Core::Objects::Object *Owner) {
+iMoveController* iMoveController::CreateFromXML(const xml_node Node, MoonGlare::Core::Objects::Object *Owner) {
 	if (!Owner) {
 		AddLog(Error, "Attempt to create MoveController without owner!");
 		return 0;

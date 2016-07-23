@@ -8,6 +8,7 @@
 #ifndef CPATH_H_
 #define CPATH_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
 
@@ -67,5 +68,6 @@ using PathClassRegister = Space::DynamicClassRegister < iPath >;
 
 } // namespace Paths 
 } // namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif // CPATH_H_ 

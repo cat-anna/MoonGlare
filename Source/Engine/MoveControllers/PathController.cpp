@@ -15,7 +15,7 @@ IMPLEMENT_SCRIPT_EVENT_VECTOR(PathControllerScriptEvents);
 RegisterApiDerivedClass(PathController, &PathController::RegisterScriptApi);
 MoveControllerClassRegister::Register<PathController> PathControllerReg;
 
-PathController::PathController(::Core::Objects::Object *Owner):
+PathController::PathController(MoonGlare::Core::Objects::Object *Owner):
 		BaseClass(Owner), 
 		m_PositionPathState(), 
 		m_LookAtPathState(), 
@@ -28,7 +28,7 @@ PathController::PathController(::Core::Objects::Object *Owner):
 PathController::~PathController() {
 }
 
-PathController::PathController(const PathController& source, ::Core::Objects::Object *Owner):
+PathController::PathController(const PathController& source, MoonGlare::Core::Objects::Object *Owner):
 		BaseClass(source, Owner),
 		m_PositionPathState(source.m_PositionPathState), 
 		m_LookAtPathState(source.m_LookAtPathState), 
@@ -39,7 +39,7 @@ PathController::PathController(const PathController& source, ::Core::Objects::Ob
 	LOG_NOT_IMPLEMENTED();
 }
 
-iMoveController* PathController::Duplicate(::Core::Objects::Object* NewOwner) const {
+iMoveController* PathController::Duplicate(MoonGlare::Core::Objects::Object* NewOwner) const {
 	return new ThisClass(*this, NewOwner);
 }
 
@@ -53,7 +53,7 @@ R UnionCast(I i) {
 	return _r;
 }
 
-using DataClasses::Paths::PathCalcState;
+using MoonGlare::DataClasses::Paths::PathCalcState;
 template<PathCalcState PathController::*PTR, float PathCalcState::*VALUE>
 struct T {
 	using ptr_t = float PathController::*;

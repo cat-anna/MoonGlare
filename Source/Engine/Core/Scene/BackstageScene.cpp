@@ -7,6 +7,7 @@
 #include <MoonGlare.h>
 #include "BackstageScene.h"
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -56,3 +57,4 @@ int BackstageScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 
 } //namespace Scenes 
 } //namespace Core 
+} //namespace MoonGlare 

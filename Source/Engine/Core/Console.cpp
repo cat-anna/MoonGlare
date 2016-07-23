@@ -224,7 +224,7 @@ void Console::AddLine(const wstring &Text, unsigned lineType) {
 }
 
 void Console::AsyncLine(const string &Text, unsigned lineType) {
-	::Core::GetEngine()->PushSynchronizedAction([=]() {
+	Core::GetEngine()->PushSynchronizedAction([=]() {
 		AddLine(Text, lineType);
 	});
 }

@@ -8,6 +8,7 @@
 #ifndef GameScene_H_
 #define GameScene_H_
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -34,8 +35,8 @@ public:
 
 	Physics::PhysicEngine& GetPhysicsEngine() { return *m_Physics; }
 
-	void AddLightSource(::Core::Objects::iLightSource *ptr);
-	void RemoveLightSource(::Core::Objects::iLightSource *ptr);
+	void AddLightSource(Core::Objects::iLightSource *ptr);
+	void RemoveLightSource(Core::Objects::iLightSource *ptr);
 	Object* CreateObject(const string& TypeName, Handle Parent, const string& Name = "");
 
 	Object* SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position);
@@ -73,5 +74,6 @@ protected:
 
 } // namespace Scene 
 } // namespace Core 
+} //namespace MoonGlare 
 
 #endif // GameScene_H_ 

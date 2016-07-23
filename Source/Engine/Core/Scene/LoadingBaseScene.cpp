@@ -13,6 +13,7 @@
 #include <Engine/GUI/Widgets/Label.h>
 #include "LoadingBaseScene.h"
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -36,3 +37,4 @@ void LoadingBaseScene::RegisterScriptApi(ApiInitializer &api) {
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 

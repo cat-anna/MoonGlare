@@ -7,6 +7,7 @@ s/*
 #include <nfMoonGlare.h>
 #include "Events.h"
 
+namespace MoonGlare {
 namespace Core {
 namespace Events {
 
@@ -22,3 +23,4 @@ int EventBaseProxy::InternalEvent(InternalEvents event, int Param) { return 0; }
 
 } //namespace Events
 } //namespace Core 
+} //namespace MoonGlare 

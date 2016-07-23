@@ -8,6 +8,7 @@
 #ifndef PlaneModel_H
 #define PlaneModel_H
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -24,5 +25,6 @@ protected:
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif

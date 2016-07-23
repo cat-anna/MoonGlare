@@ -100,7 +100,7 @@ bool SimpleMap::LoadMeta() {
 	return true; 
 }
 
-bool SimpleMap::LoadMapObjects(::Core::Objects::ObjectRegister& where) {
+bool SimpleMap::LoadMapObjects(Core::Objects::ObjectRegister& where) {
 	auto node = GetPrimaryXML();
 	if (!node) return false;
 	return where.LoadObjects(node.child("Objects"), GetOwnerScene());
@@ -139,7 +139,7 @@ std::unique_ptr<Object> SimpleMap::LoadStaticModel() {
 
 	m_MapModel.reset(loader.GetConstructor()->GenerateModel(GetName(), DataPath::Maps));
 
-	auto MapObject = std::make_unique<::Core::Objects::Object>();
+	auto MapObject = std::make_unique<Core::Objects::Object>();
 	MapObject->SetOwnerScene(GetOwnerScene());
 	MapObject->SetName(GetName());
 	MapObject->SetModel(m_MapModel);

@@ -185,7 +185,7 @@ bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
 //------------------------------------------------------------------------------------------
 
 void Manager::LoadGlobalData() {
-	::Core::GetScriptEngine()->LoadAllScripts();
+	Core::GetScriptEngine()->LoadAllScripts();
 	GetSoundEngine()->ScanForSounds();
 
 	//for (auto it = m_Modules.rbegin(), jt = m_Modules.rend(); it != jt; ++it) {
@@ -331,8 +331,8 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 	return m_StringTables->GetString(Id, TableName);
 }
 
-::Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const {
-	::Core::ciScene* ptr = ::Core::Scene::SceneClassRegister::CreateClass(Class);
+Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const {
+	Core::ciScene* ptr = Core::Scene::SceneClassRegister::CreateClass(Class);
 	if (!ptr) {
 		AddLogf(Error, "Unable to create scene class '%s' for object '%s'", Class.c_str(), Name.c_str());
 		return 0;
@@ -369,7 +369,7 @@ bool Manager::LoadPlayer() {
 		return false;
 	}
 
-	auto *pl = new ::Core::Objects::Object();
+	auto *pl = new Core::Objects::Object();
 
 	if(!pl->LoadPattern(doc->document_element())) {
 		AddLog(Error, "An error has occur during loading player XML! Ignored!");
@@ -377,7 +377,7 @@ bool Manager::LoadPlayer() {
 		return false;
 	}
 
-	::Core::GetEngine()->GetPlayer().reset(pl);
+	Core::GetEngine()->GetPlayer().reset(pl);
 
 	return true;
 }
@@ -454,8 +454,8 @@ void Manager::DumpResources() {
 	file << "Revision index: " << RevisionIndex << "\n\n";
 	++RevisionIndex;
 	GetDataMgr()->DumpAllResources(file);
-	::Core::GetScriptEngine()->DumpScripts(file);
-	::Core::GetScenesManager()->DumpAllDescriptors(file);
+	Core::GetScriptEngine()->DumpScripts(file);
+	Core::GetScenesManager()->DumpAllDescriptors(file);
 	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);

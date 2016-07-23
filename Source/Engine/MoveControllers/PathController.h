@@ -19,11 +19,11 @@ class PathController : public iMoveController {
 	DECLARE_SCRIPT_HANDLERS(PathControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-	PathController(::Core::Objects::Object *Owner = 0);
+	PathController(MoonGlare::Core::Objects::Object *Owner = 0);
 	~PathController();
 
-	virtual void DoMove(const ::Core::MoveConfig& conf);
-	virtual iMoveController* Duplicate(::Core::Objects::Object *NewOwner) const;
+	virtual void DoMove(const MoonGlare::Core::MoveConfig& conf);
+	virtual iMoveController* Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const;
 
 	virtual int InvokeOnPositionReached(float position, int param);
 	virtual int InvokeOnStart();
@@ -43,8 +43,8 @@ public:
 	DefineREADAcces(PositionPath, iPathSharedPtr);
 	DefineREADAcces(LookAtPath, iPathSharedPtr);
 
-	DefineRefGetterAll(PositionPathState, DataClasses::Paths::PathCalcState);
-	DefineRefGetterAll(LookAtPathState, DataClasses::Paths::PathCalcState);
+	DefineRefGetterAll(PositionPathState, MoonGlare::DataClasses::Paths::PathCalcState);
+	DefineRefGetterAll(LookAtPathState, MoonGlare::DataClasses::Paths::PathCalcState);
 
 	DefineFlag(m_Flags, Flags::Repetitive, Repetitive);
 
@@ -53,11 +53,11 @@ public:
 	using PositionTimerEntry = std::pair<float, int>;
 	using PositionTimer = std::list<PositionTimerEntry>;
 protected:
-	DataClasses::Paths::PathCalcState m_PositionPathState, m_LookAtPathState;
+	MoonGlare::DataClasses::Paths::PathCalcState m_PositionPathState, m_LookAtPathState;
 	iPathSharedPtr m_PositionPath, m_LookAtPath;
 	PositionTimer m_PositionTimer;
 
-	PathController(const PathController& source, ::Core::Objects::Object *Owner);
+	PathController(const PathController& source, MoonGlare::Core::Objects::Object *Owner);
 };
 
 

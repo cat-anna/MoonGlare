@@ -40,7 +40,7 @@ bool MenuSceneConfig::Load(const xml_node node) {
 SPACERTTI_IMPLEMENT_CLASS(MenuScene);
 RegisterApiDerivedClass(MenuScene, &MenuScene::RegisterScriptApi);
 IMPLEMENT_SCRIPT_EVENT_VECTOR(MenuItemScriptEvents);
-::Core::Scene::SceneClassRegister::Register<MenuScene> MenuSceneReg;
+Core::Scene::SceneClassRegister::Register<MenuScene> MenuSceneReg;
 
 MenuScene::MenuScene():
 		BaseClass() {

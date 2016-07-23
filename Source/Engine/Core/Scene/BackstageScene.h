@@ -8,6 +8,7 @@
 #ifndef BackstageScene_H
 #define BackstageScene_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -36,5 +37,6 @@ private:
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 
 
 #endif

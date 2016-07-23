@@ -7,6 +7,7 @@
 #ifndef CEDITABLESIMPLEMODEL_H_
 #define CEDITABLESIMPLEMODEL_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -28,4 +29,6 @@ protected:
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 
+
 #endif // CEDITABLESIMPLEMODEL_H_ 

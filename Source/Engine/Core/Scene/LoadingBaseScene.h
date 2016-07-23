@@ -9,6 +9,7 @@
 #ifndef LoadingBaseScene_H
 #define LoadingBaseScene_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -23,5 +24,6 @@ protected:
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 
 
 #endif

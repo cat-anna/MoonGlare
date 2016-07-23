@@ -23,15 +23,15 @@ class iMoveController : public cRootClass {
 	DECLARE_SCRIPT_HANDLERS_ROOT(MoveControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-	iMoveController(::Core::Objects::Object *Owner = 0);
+	iMoveController(MoonGlare::Core::Objects::Object *Owner = 0);
 	virtual ~iMoveController();
 	virtual bool SaveToXML(xml_node Node) const;
 	virtual bool LoadFromXML(const xml_node Node);
 
 	virtual bool Initialize();
 	virtual bool Finalize();
-	virtual void DoMove(const ::Core::MoveConfig& conf) = 0;
-	virtual iMoveController* Duplicate(::Core::Objects::Object *NewOwner) const = 0;
+	virtual void DoMove(const MoonGlare::Core::MoveConfig& conf) = 0;
+	virtual iMoveController* Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const = 0;
 
 	virtual void Start();
 	virtual void Stop();
@@ -39,10 +39,10 @@ public:
 	virtual int InvokeOnStart();
 	virtual int InvokeOnStop();
 
-	DefineFULLAccesPTR(Owner, ::Core::Objects::Object);
+	DefineFULLAccesPTR(Owner, MoonGlare::Core::Objects::Object);
 	DefineREADAcces(Flags, unsigned);
 
-	static iMoveController* CreateFromXML(const xml_node Node, ::Core::Objects::Object *Owner);
+	static iMoveController* CreateFromXML(const xml_node Node, MoonGlare::Core::Objects::Object *Owner);
 
 	enum eMoveControllerFlags {
 		mfRunning			= 0x10000000,
@@ -60,9 +60,9 @@ public:
 
 	DefineFlagGetter(m_Flags, Flags::Running, Running)
 protected:
-	::Core::Objects::Object *m_Owner;
+	MoonGlare::Core::Objects::Object *m_Owner;
 	unsigned m_Flags;
-	iMoveController(const iMoveController& other, ::Core::Objects::Object *Owner);
+	iMoveController(const iMoveController& other, MoonGlare::Core::Objects::Object *Owner);
 	DefineFlagSetter(m_Flags, Flags::Running, Running)
 };
 

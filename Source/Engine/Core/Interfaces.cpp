@@ -9,6 +9,7 @@
 #include <Engine/iSoundEngine.h>
 #include <Engine/DataClasses/iFont.h>
 
+namespace MoonGlare {
 namespace Core {
 
 Interfaces *Interfaces::Instance = 0;
@@ -43,13 +44,13 @@ void Interfaces::DumpLists(ostream &out) {
 	out << "\nMap class list\n";
 	DataClasses::Maps::MapClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nScene class list\n";
-	::Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
+	Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nMove controllers class list\n";
 	MoveControllers::MoveControllerClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nShaders class list\n";
 	Graphic::Shaders::ShaderClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nLightSoure class list\n";
-	::Core::Objects::LightSoureClassRegister::GetRegister()->Enumerate(regdump);
+	Core::Objects::LightSoureClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nBody shapes class list\n";
 	Physics::BodyShapeClassRegister::GetRegister()->Enumerate(regdump);	
 	out << "\nGUI widgets class list\n";
@@ -70,3 +71,4 @@ void Interfaces::DumpLists(ostream &out) {
 }
 
 } // namespace Core 
+} //namespace MoonGlare 

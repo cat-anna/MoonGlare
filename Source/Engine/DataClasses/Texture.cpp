@@ -10,6 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <JobQueue.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Texture)
@@ -171,3 +172,4 @@ void Texture::ImageInfo::Unload() {
 }
 
 } // namespace DataClasses
+} //namespace MoonGlare 

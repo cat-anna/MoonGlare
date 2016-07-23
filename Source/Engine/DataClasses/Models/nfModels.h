@@ -1,6 +1,7 @@
 #ifndef NFMODELSH
 #define NFMODELSH
 
+namespace MoonGlare {
 namespace DataClasses {
 	namespace Models {
 		class iModel;
@@ -11,8 +12,9 @@ namespace DataClasses {
 	}
 	using Models::ModelPtr;
 }
+} //namespace MoonGlare 
 
-using DataClasses::Models::iModel;
-using DataClasses::Models::iSimpleModel;
+using MoonGlare::DataClasses::Models::iModel;
+using MoonGlare::DataClasses::Models::iSimpleModel;
 
 #endif // NFMODELSH 

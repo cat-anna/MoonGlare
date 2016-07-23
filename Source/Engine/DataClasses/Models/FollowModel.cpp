@@ -7,6 +7,7 @@
 #include <MoonGlare.h>
 #include "FollowModel.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -120,4 +121,5 @@ bool FollowModel::LoadFromXML(const xml_node Node) {
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 

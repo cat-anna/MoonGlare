@@ -116,7 +116,7 @@ public:
 	DataClasses::ModelPtr GetModel(const string& Name);
 
 	const string& GetString(const string &Id, const string& TableName);
-	::Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const;
+	Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const;
 
 	bool Initialize();
 	bool Finalize();

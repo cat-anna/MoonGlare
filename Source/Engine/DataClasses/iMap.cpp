@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Maps {
 
@@ -24,7 +25,7 @@ iMap::iMap(const string &Name) :
 iMap::~iMap() {
 }
 
-void iMap::SetOwnerScene(::Core::Scene::GameScene* Scene) {
+void iMap::SetOwnerScene(Core::Scene::GameScene* Scene) {
 	m_OwnerScene = Scene;
 }
 
@@ -88,7 +89,7 @@ xml_node iMap::GetPrimaryXML() {
 	return m_MapMeta->document_element();
 }
 
-bool iMap::LoadMapObjects(::Core::Objects::ObjectRegister& where) {
+bool iMap::LoadMapObjects(Core::Objects::ObjectRegister& where) {
 	auto node = GetPrimaryXML();
 	if (!node) return false;
 	auto MapData = node.child("Objects");
@@ -109,3 +110,4 @@ bool iMap::LoadEvents(const xml_node RootNode) {
 
 } // namespace Maps
 } // namespace DataClasses
+} //namespace MoonGlare 

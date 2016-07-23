@@ -6,6 +6,7 @@
  */
 #ifndef CGAMECAMERA_H_
 #define CGAMECAMERA_H_
+namespace MoonGlare {
 namespace Core {
 namespace Camera {
 
@@ -36,4 +37,6 @@ protected:
 
 } // namespace Camera 
 } // namespace Core 
+} //namespace MoonGlare 
+
 #endif 

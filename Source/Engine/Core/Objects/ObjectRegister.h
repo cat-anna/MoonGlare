@@ -7,6 +7,8 @@
 
 #ifndef COBJECTLIST_H_
 #define COBJECTLIST_H_
+
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -107,4 +109,6 @@ protected:
 
 } // namespace Objects
 } // namespace Core
+} //namespace MoonGlare 
+
 #endif // COBJECTLIST_H_ 

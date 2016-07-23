@@ -295,7 +295,7 @@ struct SettingsImpl {
 		}
 		if (restart) {
 			GetApplication()->SetDoRestart(true);
-			::Core::GetEngine()->Exit();
+			MoonGlare::Core::GetEngine()->Exit();
 		}
 	}
 

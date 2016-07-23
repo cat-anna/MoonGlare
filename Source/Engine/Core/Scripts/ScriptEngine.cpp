@@ -151,7 +151,8 @@ bool cScriptEngine::CreateScript(const std::string& Class, Entity Owner) {
 		auto &mutex = m_Script->GetMutex();
 		LOCK_MUTEX(mutex);
 		auto sc = luabridge::getGlobal(m_Script->GetLuaState(), "ScriptComponent");
-		sc["AllocScript"](&Owner, Class.c_str());
+		auto ret = sc["AllocScript"](&Owner, Class.c_str());
+	//	return ret.cast<int>() > 0;
 	}
 
 	return true;
@@ -363,6 +364,7 @@ void cScriptEngine::EnumerateScripts(EnumerateFunc func) {
 //---------------------------------------------------------------------------------------
 
 #ifdef DEBUG_DUMP
+
 void cScriptEngine::DumpScripts(std::ostream &out) {
 	out << "Registered scripts:\n";
 	{
@@ -373,6 +375,7 @@ void cScriptEngine::DumpScripts(std::ostream &out) {
 	}
 	out << "\n";
 }
+
 #endif
 
 } //namespace Scripts

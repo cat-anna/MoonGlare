@@ -16,6 +16,7 @@
 
 #define ELSLoadingFirstSceneTitle	"EngineLoadScene_LoadingFirstScene"
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -86,7 +87,7 @@ int EngineLoadScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 
 int EngineLoadScene::InternalEventNotification(Events::InternalEvents event, int Param) {
 	switch (event) {
-	case ::Core::Events::InternalEvents::SceneLoadingFinished:
+	case Core::Events::InternalEvents::SceneLoadingFinished:
 		AddLog(Hint, "Scene loading has been finished.");
 		FinishScene();
 		return 0;
@@ -96,3 +97,4 @@ int EngineLoadScene::InternalEventNotification(Events::InternalEvents event, int
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 
