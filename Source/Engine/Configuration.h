@@ -51,6 +51,8 @@ namespace MoonGlare {
 
 			struct Static {
 				enum {
+					TransformComponent	= HugeBuffer,
+
 					ObjectBuffer = HugeBuffer,
 					EntityStorage = HugeBuffer,
 				};
