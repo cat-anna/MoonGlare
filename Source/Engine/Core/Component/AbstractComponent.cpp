@@ -5,6 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+#include <nfMoonGlare.h>
 #include "AbstractComponent.h"
 
 namespace MoonGlare {

@@ -5,10 +5,14 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+#include <nfMoonGlare.h>
+#include "AbstractComponent.h"
+#include "TransformComponent.h"
 //#include <MoonGlare.h>
 //#include "PositionComponent.h"
 
 namespace MoonGlare {
+namespace Core {
 namespace Component {
 
 //using EntityIndex = unsigned short;
@@ -65,5 +69,5 @@ namespace Component {
 //} EntityManagerInfo;
 
 } //namespace Component 
+} //namespace Core 
 } //namespace MoonGlare 
-
