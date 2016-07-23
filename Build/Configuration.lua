@@ -57,7 +57,8 @@ function SetPCH(pch)
 	filter { }
 end
 
-local function SetCommonConfig() 
+local function SetCommonConfig() 	
+	editorintegration "on"
 	configurations { "Debug", "Release", }
 	platforms { "x32", "x64", }
 	language "C++"
