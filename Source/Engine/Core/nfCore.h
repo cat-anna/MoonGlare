@@ -20,12 +20,13 @@ namespace Core {
 }
 
 #include "EntityManager.h"
-#include "ComponentManager.h"
 
 #include "Scripts/nfScripts.h"
 #include "Scene/nfScene.h"
 #include "Objects/nfObjects.h"
 #include "Camera/nfCamera.h"
+
+#include "Component/nfComponent.h"
 
 namespace MoonGlare {
 namespace Core {

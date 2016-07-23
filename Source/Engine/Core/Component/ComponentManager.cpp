@@ -5,11 +5,11 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#if 0
-#include <MoonGlare.h>
-//#include "AbstractComponent.h"
+#include <nfMoonGlare.h>
+#include "AbstractComponent.h"
 #include "ComponentManager.h"
 
+#if 0
 namespace MoonGlare {
 namespace Core {
 namespace Component {

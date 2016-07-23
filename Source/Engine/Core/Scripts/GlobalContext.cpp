@@ -193,7 +193,7 @@ public:
 		return true;
 	}
 	virtual bool SaveMeta(xml_node node) const override {
-		node.text() = m_Value.load();
+		node.text() = m_Value;
 		return true;
 	}
 
@@ -219,7 +219,7 @@ public:
 
 	//	lua_setmetatable (lua, -2);(with metatable)
 
-		AddLogf(Debug, "Pushed value '%s' which is %f", FullName().c_str(), m_Value.load());
+		AddLogf(Debug, "Pushed value '%s' which is %f", FullName().c_str(), m_Value);
 		return 1;
 	}
 	virtual int Set(lua_State *lua, int index) override{
@@ -230,7 +230,7 @@ public:
 	void Set(lua_Number value) { m_Value = value; }
 
 	virtual void Dump(std::ostream& o) const override { 
-		o << FullName() << " = " << m_Value.load() << "\n";
+		o << FullName() << " = " << m_Value << "\n";
 	}
 
 	static void Register(lua_State *lua) {
@@ -264,7 +264,7 @@ public:
 #endif
 	}
 protected:
-	std::atomic<lua_Number> m_Value;
+	lua_Number m_Value;
 
 	static ThisClass* NumberGetSelf(lua_State *lua, int index) {
 		if (!lua_isnumber(lua, index)) {
@@ -293,12 +293,9 @@ protected:
 		if (!ptr) return 0;
 		auto param = lua_tonumber(lua, -1);
 		auto &val = ptr->m_Value;
-
-		auto current = val.load();
-		while (!val.compare_exchange_weak(current, current + param)) ;
-
-		lua_pushnumber(lua, val.load());
-		AddLogf(Debug, "Atomic add %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val.load());
+		val += param;
+		lua_pushnumber(lua, val);
+		AddLogf(Debug, "Atomic add %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val);
 		return 1;
 	}
 	static int NumberSub(lua_State *lua) {
@@ -306,12 +303,9 @@ protected:
 		if (!ptr) return 0;
 		auto param = lua_tonumber(lua, -1);
 		auto &val = ptr->m_Value;
-
-		auto current = val.load();
-		while (!val.compare_exchange_weak(current, current - param)) ;
-
-		lua_pushnumber(lua, val.load());
-		AddLogf(Debug, "Atomic sub %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val.load());
+		val -= param;
+		lua_pushnumber(lua, val);
+		AddLogf(Debug, "Atomic sub %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val);
 		return 1;
 	}
 	static int NumberMul(lua_State *lua) {
@@ -319,12 +313,9 @@ protected:
 		if (!ptr) return 0;
 		auto param = lua_tonumber(lua, -1);
 		auto &val = ptr->m_Value;
-
-		auto current = val.load();
-		while (!val.compare_exchange_weak(current, current * param)) ;
-
-		lua_pushnumber(lua, val.load());
-		AddLogf(Debug, "Atomic mul %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val.load());
+		val *= param;
+		lua_pushnumber(lua, val);
+		AddLogf(Debug, "Atomic mul %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val);
 		return 1;
 	}
 	static int NumberDiv(lua_State *lua) {
@@ -332,12 +323,9 @@ protected:
 		if (!ptr) return 0;
 		auto param = lua_tonumber(lua, -1);
 		auto &val = ptr->m_Value;
-
-		auto current = val.load();
-		while (!val.compare_exchange_weak(current, current / param)) ;
-
-		lua_pushnumber(lua, val.load());
-		AddLogf(Debug, "Atomic div %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val.load());
+		val /= param;
+		lua_pushnumber(lua, val);
+		AddLogf(Debug, "Atomic div %f into '%s' new value '%s'", param, ptr->FullName().c_str(), val);
 		return 1;
 	}
 	static int NumberSet(lua_State *lua) {
@@ -345,8 +333,8 @@ protected:
 		if (!ptr) return 0;
 		auto param = lua_tonumber(lua, -1);
 		auto &val = ptr->m_Value;
-		val.store(param);
-		lua_pushnumber(lua, val.load());
+		val = param;
+		lua_pushnumber(lua, val);
 		AddLogf(Debug, "Atomic set '%s' new value '%s'", param, ptr->FullName().c_str());
 		return 1;
 	}

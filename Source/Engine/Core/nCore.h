@@ -11,10 +11,12 @@
 #include "Scene/nScene.h"
 #include "Camera/nCamera.h"
 
+#include "Component/nfComponent.h"
+
 #include "Engine.h"
 #include "Interfaces.h"
 
-//core shortuct getters
+//core shortcut getters
 namespace Core {
 	inline Engine* GetEngine() { return ::Core::Engine::Instance(); }
 	inline cScriptEngine* GetScriptEngine() { return Scripts::cScriptEngine::Instance(); }

@@ -10,7 +10,7 @@ dir.libsrc = dir.base .. "Libs/"
 MoonGlare = {
 }
 
---require "VersionRule"
+include "CustomRules.lua"
 --require "Repositories"
 include "Configuration.lua"
 include "Projects.lua"
