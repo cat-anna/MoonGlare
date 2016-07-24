@@ -149,7 +149,6 @@ void Insider::ThreadEntry() {
 
 	OrbitLogger::ThreadInfo::SetName("INSI", true);
 	AddLog(Info, "Insider thread started");
-	EnableScriptsInThisThread();
 
 	InsiderMessageBuffer buffer;
 	buffer.Fill(0);
@@ -203,11 +202,14 @@ bool Insider::EnumerateLua(InsiderMessageBuffer& buffer) {
 
 	std::string code = ss.str();
 	//int ret = 
+#if 0
 	::Core::Scripts::ScriptProxy::ExecuteCode(code, "InisiderEnumerator");
 
 	ResourceEnumerator enumerator(buffer, MessageTypes::EnumerateLua);
 	::Core::Scripts::ScriptProxy::RunFunction<int>("InsiderDynamicFunction", &enumerator);
 	enumerator.finish();
+#endif
+	THROW_ASSERT(false, "Insider::EnumerateLua does not use new lua api!");
 	return true;
 }
 
@@ -269,11 +271,12 @@ bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
 	AddLogf(Insider, "Received lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
-	buffer.Clear();
-	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
-	payload->ReturnCode = ret;
-	header->MessageType = MessageTypes::ExecutionResult;
+//	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+	THROW_ASSERT(false, "Insider::ExecuteCode does not use new lua api!");
+	//buffer.Clear();
+	//auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
+	//payload->ReturnCode = ret;
+	//header->MessageType = MessageTypes::ExecutionResult;
 	return true;
 }
 

@@ -112,8 +112,33 @@ bool cScriptEngine::Initialize() {
 	new GlobalContext();
 	GlobalContext::Instance()->Initialize();
 
-	SetReady(ConstructScript());
-	return IsReady();
+	LOCK_MUTEX(m_Mutex);
+
+	AddLog(Debug, "Constructing script object");
+	auto s = std::make_shared<Script>();
+	if (!s->Initialize()) {
+		AddLog(Error, "Unable to initialize script instance!");
+		s.reset();
+		return false;
+	}
+
+	for (auto &it : m_ScriptCodeList) {
+		s->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
+	}
+	m_Script.swap(s);
+
+	auto lua = m_Script->GetLuaState();
+	luabridge::Stack<cScriptEngine*>::push(lua, this);
+	lua_setglobal(lua, "Script");
+
+	lua_pushlightuserdata(lua, (void *)this);  /* push address */
+	lua_createtable(lua, 0, 0);
+	lua_settable(lua, LUA_REGISTRYINDEX);
+
+	AddLog(Debug, "Script construction finished");
+
+	SetReady(true);
+	return true;
 }
 
 bool cScriptEngine::Finalize() {
@@ -122,20 +147,19 @@ bool cScriptEngine::Finalize() {
 
 	LOCK_MUTEX(m_Mutex);
 
-	while (!m_ScriptList.empty()) {
-		auto fr = m_ScriptList.back().lock();
-		m_ScriptList.pop_back();
-		if (!fr)
-			continue;
-
-		fr->DropScript();
+	AddLog(Debug, "Destroying script object");
+	SharedScript s;
+	s.swap(m_Script);
+	if (!s->Finalize()) {
+		AddLog(Warning, "An error has occur during finalization of script instance!");
 	}
 
-	DestroyScript();
+	s.reset();
 
 	GlobalContext::Instance()->Finalize();
 	GlobalContext::DeleteInstance();
 
+	AddLog(Debug, "Destruction finished");
 	return true;
 }
 

@@ -10,6 +10,5 @@
 #include "LuaApi.h"
 #include "ScriptEngine.h"
 #include "Script.h"
-#include "ScriptProxy.h"
 
 #endif // NSCRIPTS_H_

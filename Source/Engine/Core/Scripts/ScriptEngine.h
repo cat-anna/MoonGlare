@@ -10,6 +10,11 @@ public:
 	cScriptEngine();
 	virtual ~cScriptEngine();
 
+	template<class RET, class ... Types>
+	RET RunFunction(const char *FuncName, Types ... args) {
+		return m_Script->RunFunction<RET>(FuncName, std::forward<Types>(args)...);
+	}
+
 	struct ScriptCode {
 		enum class Source {
 			File, Code,
@@ -40,9 +45,6 @@ public:
 
 	bool CreateScript(const std::string& Class, Entity Owner);
 
-	bool InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
-	bool FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr);
-
 	void LoadAllScripts();
 	void RegisterScript(string Name);
 	void LoadCode(string code);
@@ -63,10 +65,7 @@ protected:
 	std::list<ScriptCode> m_ScriptCodeList;
 
 	std::recursive_mutex m_Mutex;
-	std::vector<std::weak_ptr<ScriptProxy>> m_ScriptList;
 
-	bool ConstructScript();
-	bool DestroyScript();
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 	DefineFlagSetter(m_Flags, Flags::ScriptsLoaded, ScriptsLoaded);
@@ -77,18 +76,11 @@ private:
 	void LoadAllScriptsImpl();
 };
 
-#ifdef _USE_API_GENERATOR_
+#ifndef DISABLE_SCRIPT_ENGINE
+//::Core::Scripts::ScriptProxy::RunFunction<int>(F.c_str(), __VA_ARGS__);
 
-#define SCRIPT_INVOKE(F, ...)	 						API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__) return 0;
-#define SCRIPT_INVOKE_NORETURN(F, ...)					API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
-#define SCRIPT_INVOKE_RESULT(RESULT, F, ...)			API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
-#define SCRIPT_INVOKE_STATIC(F, this, ...)	 			API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__) return 0;
-#define SCRIPT_INVOKE_STATIC_NORETURN(F, this, ...)		API_GEN_MAKE_DECL(F, this, this, __VA_ARGS__)
-
-#elif !defined(DISABLE_SCRIPT_ENGINE)
-
-#define __SCRIPT_FAST_RUN(F, ...)						::Core::Scripts::ScriptProxy::RunFunction<int>(F.c_str(), __VA_ARGS__);
-#define __SCRIPT_FAST_RUN_Ex(RET, F, ...)				::Core::Scripts::ScriptProxy::RunFunction<RET>(F.c_str(), __VA_ARGS__);
+#define __SCRIPT_FAST_RUN(F, ...)						::MoonGlare::Core::GetScriptEngine()->RunFunction<int>(F.c_str(), __VA_ARGS__);		 		
+#define __SCRIPT_FAST_RUN_Ex(RET, F, ...)				::MoonGlare::Core::GetScriptEngine()->RunFunction<RET>(F.c_str(), __VA_ARGS__);	
 #define __SCRIPT_GET_HANDLE(NAME)						auto *NAME = GetScriptEvents()
 
 #define	SCRIPT_INVOKE(F, ...) 											\
@@ -148,11 +140,6 @@ private:
 #define SCRIPT_INVOKE_STATIC_NORETURN(...)		do { } while(false)
 
 #endif
-
-#define INVOKE_FUNCTION_noparam(...) 			do { return 0; } while(false)
-#define INVOKE_FUNCTION_noparam_noret(...)		do { } while(false)
-#define INVOKE_FUNCTION(...) 					do { return 0; } while(false)
-#define INVOKE_FUNCTION_NORET(...)				do { } while(false)	
 
 } //namespace Scripts
 } //namespace Core

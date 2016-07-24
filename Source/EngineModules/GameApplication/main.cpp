@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
 		try {
 			Params.Parse(argc, argv);
 			new GameApplication(argc, argv);
-			EnableScriptsInThisThread();
 			if (!GetApplication()->Initialize()) {
 				AddLog(Error, "Unable to initialize application!");
 				Result = 1;

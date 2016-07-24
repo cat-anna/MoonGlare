@@ -68,7 +68,6 @@ RemoteConsole::~RemoteConsole() {
 void RemoteConsole::ThreadEntry() {
 	::OrbitLogger::ThreadInfo::SetName("RECO");
 	AddLog(Info, "RemoteConsole Thread started");
-	EnableScriptsInThisThread();
 
 	char buffer[Configuration::MaxMessageSize];
 	auto *header = reinterpret_cast<MessageHeader*>(buffer);
@@ -96,11 +95,12 @@ void RemoteConsole::ThreadEntry() {
 			switch (header->MessageType) {
 			case MessageTypes::ExecuteCode: {
 				AddLogf(Info, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-				int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
-				auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
-				payload->ReturnCode = ret;
-				header->MessageType = MessageTypes::ExecutionResult;
-				header->PayloadSize = sizeof(PayLoad_ExecutionResult);
+			//	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+				THROW_ASSERT(false, "Remote console does not use new lua api!");
+				//auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
+				//payload->ReturnCode = ret;
+				//header->MessageType = MessageTypes::ExecutionResult;
+				//header->PayloadSize = sizeof(PayLoad_ExecutionResult);
 				break;
 			}
 			default:

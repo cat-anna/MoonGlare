@@ -45,8 +45,6 @@ void JobQueue::ThreadMain(unsigned ThreadIndex) {
 		sprintf(buffer, "THQ%X", ThreadIndex);
 		::OrbitLogger::ThreadInfo::SetName(buffer);
 	}
-	EnableScriptsInThisThread();
-
 	m_RunningThreads += 1;
 	AddLogf(Debug, "Job thread %d started", ThreadIndex);
 	

@@ -24,13 +24,7 @@ public:
 
 	int LoadCode(const char* Code, unsigned len, const char* ChunkName);
 
-#ifdef _USE_API_GENERATOR_
-	template<class CALLER, class ... Types>
-	int RunFunction(const string &Function, CALLER *const caller, Types ... args) { return 0; }
-	ApiInitializer GetApiInitializer(){
-		return ApiDefAutoGen::Namespace::Begin();
-	}
-#elif defined(_DISABLE_SCRIPT_ENGINE_)
+#ifdef _DISABLE_SCRIPT_ENGINE_
 	template<class CALLER, class ... Types>
 	int RunFunction(const string &Function, CALLER *const caller, Types ... args) { return 0; }
 	ApiInitializer GetApiInitializer() {

@@ -135,8 +135,6 @@ void SoundEngine::ThreadEntry() {
 	try {
 		OrbitLogger::ThreadInfo::SetName("SNDE");
 		AddLog(Info, "SoundEngine thread started");
-		EnableScriptsInThisThread();
-
 		AddLog(Debug, "Initializing SoundEngine");
 		InternalInitialize();
 		AddLog(Debug, "SoundEngine Initialized");
