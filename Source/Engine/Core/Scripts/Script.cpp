@@ -13,12 +13,7 @@ namespace Core {
 namespace Scripts {
 
 #define lua_registerF(V, N, Lua) lua_pushcfunction(Lua, V);  lua_setglobal(Lua, N)
-
-#ifdef _USE_DUMMY_SCRIPT_ENGINE_
-#define RegisterLuaFunction(A, B, C)
-#else
 #define RegisterLuaFunction(A, B, C) lua_registerF(A, B, C)
-#endif
 
 #if 0
 const char LUA_DEFAULT_SCRIPT_FUNCTION[] = "StringScriptLoader";
@@ -228,12 +223,6 @@ bool Script::Initialize() {
 #endif
 
 	ApiInit::Initialize(this);
-
-	luabridge::getGlobalNamespace(m_Lua)
-		.beginNamespace("Inst")
-			.addPtrVariable("Script", this)
-		.endNamespace()
-	;
 
 	GlobalContext::Instance()->Install(m_Lua);
 	

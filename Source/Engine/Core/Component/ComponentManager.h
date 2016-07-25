@@ -18,13 +18,33 @@ public:
 	ComponentManager();
 	~ComponentManager();
 
-	bool Initialize();
+	bool Initialize(ciScene *scene);
 	bool Finalize();
 
-	bool AddComponent(UniqueAbstractComponent uac);
+	template<class T, class ... ARGS>
+	bool InstallComponent(ARGS ... args) {
+		return InsertComponent(std::make_unique<T>(this, std::forward<ARGS>(args)...), T::GetComponentID());
+	}
 
-	void Process(const MoveConfig &config);
+	void Step(const MoveConfig &config);
+
+	template<class T> 
+	T* GetComponent() {
+		return dynamic_cast<T*>(GetComponent(T::GetComponentID));
+	}
+
+	AbstractComponent* GetComponent(ComponentID cid);
+
+	ciScene* GetScene() { return m_Scene; }
+	World* GetWorld() { return m_World; }
 private:
+	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
+	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
+	size_t m_UsedCount;
+	ciScene *m_Scene;
+	World *m_World;
+
+	bool InsertComponent(UniqueAbstractComponent cptr, ComponentID cid);
 };
 
 } //namespace Component 

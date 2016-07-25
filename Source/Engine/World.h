@@ -18,12 +18,14 @@ public:
  	World();
  	~World();
 
-	bool Initialize();
+	bool Initialize(::Core::cScriptEngine *se);
 	bool Finalize();
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
 
+	::Core::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 private: 
+	::Core::cScriptEngine *m_ScriptEngine;
 	Core::EntityManager m_EntityManager;
 };
 

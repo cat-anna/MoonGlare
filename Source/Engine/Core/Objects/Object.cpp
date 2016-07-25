@@ -105,7 +105,7 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("UpdateMotionState", &ThisClass::UpdateMotionState)
 		.addFunction("GetPosition", (math::vec3(ThisClass::*)())&Helper::getpos)
 		.addFunction("GetLookDirection", (math::vec3(ThisClass::*)())&Helper::getlookdir)
-		.endClass();
+	.endClass();
 }
 
 //---------------------------------------------------------------------------------------

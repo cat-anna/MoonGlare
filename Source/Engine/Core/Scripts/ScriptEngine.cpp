@@ -29,41 +29,29 @@ cScriptEngine::~cScriptEngine() {
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::Step(const MoveConfig &config) {
+	auto &mutex = m_Script->GetMutex();
+	LOCK_MUTEX(mutex);
 
-	//TBD
-	if (!IsScriptsLoaded()) {
+	lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, m_CurrentGCStep);
+
+	if (!config.m_SecondPeriod) {
 		return;
 	}
 
-	auto t = std::chrono::steady_clock::now();
-	{
-		auto &mutex = m_Script->GetMutex();
-		LOCK_MUTEX(mutex);
-		auto sc = luabridge::getGlobal(m_Script->GetLuaState(), "ScriptComponent");
-		sc["Step"](&config);
-		lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, m_CurrentGCStep);
-	}
-	if (config.m_SecondPeriod) {
-		AddLogf(Performance, "Lua step: %f ms", (float)((std::chrono::steady_clock::now() - t).count() * 1000.0f));
-	}
-
-	if (config.m_SecondPeriod) {
-		float memusage = m_Script->GetMemoryUsage();
-		if (memusage > (m_LastMemUsage + 10.0f) ) {
-			m_LastMemUsage = memusage;
-			++m_CurrentGCRiseCounter;
-			if (m_CurrentGCRiseCounter == 5) {
-				++m_CurrentGCStep;
-				m_CurrentGCRiseCounter = 0;
-				AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
-			}
+	float memusage = m_Script->GetMemoryUsage();
+	if (memusage > (m_LastMemUsage + 10.0f) ) {
+		m_LastMemUsage = memusage;
+		++m_CurrentGCRiseCounter;
+		if (m_CurrentGCRiseCounter == 5) {
+			++m_CurrentGCStep;
+			m_CurrentGCRiseCounter = 0;
+			AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
 		}
+	}
 
 #ifdef PERF_PERIODIC_PRINT
-		AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
+	AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
 #endif
-	}
-
 }
 
 //---------------------------------------------------------------------------------------
@@ -71,8 +59,8 @@ void cScriptEngine::Step(const MoveConfig &config) {
 void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 	root
 	.deriveClass<ThisClass, BaseClass>("cScriptEngine")
-		.addFunction("LoadCode", &ThisClass::LoadCode)
-		.addFunction("DefferExecution", &ThisClass::DefferExecution)
+		.addCFunction("New", &ThisClass::RegisterNewScript)
+		.addCFunction("Modify", &ThisClass::RegisterModifyScript)
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("CollectGarbage", &ThisClass::CollectGarbage)
 		.addFunction("PrintMemoryInfo", &ThisClass::PrintMemoryInfo)
@@ -82,14 +70,6 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 		.addData("TimeDelta", &MoveConfig::TimeDelta, false)
 		.addData("SecondPeriod", &MoveConfig::m_SecondPeriod, false)
 	.endClass();
-}
-
-//---------------------------------------------------------------------------------------
-
-void cScriptEngine::DefferExecution(string fname, int parameter) {
-	JobQueue::QueueJob([fname, parameter]() {
-		ScriptProxy::RunFunction<int>(fname.c_str(), parameter);
-	});
 }
 
 //---------------------------------------------------------------------------------------
@@ -131,8 +111,15 @@ bool cScriptEngine::Initialize() {
 	luabridge::Stack<cScriptEngine*>::push(lua, this);
 	lua_setglobal(lua, "Script");
 
-	lua_pushlightuserdata(lua, (void *)this);  /* push address */
+	lua_pushlightuserdata(lua, (void *)this);  
 	lua_createtable(lua, 0, 0);
+#if DEBUG
+	lua_pushvalue(lua, -1);
+	char name[64];
+	sprintf_s(name, "cScriptEngine_%p", this);
+	lua_setglobal(lua, name);
+	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", name, this, typeid(*this).name());
+#endif
 	lua_settable(lua, LUA_REGISTRYINDEX);
 
 	AddLog(Debug, "Script construction finished");
@@ -146,6 +133,15 @@ bool cScriptEngine::Finalize() {
 	SetReady(false);
 
 	LOCK_MUTEX(m_Mutex);
+
+	auto lua = m_Script->GetLuaState();
+#if DEBUG
+	lua_pushnil(lua);
+	char name[64];
+	sprintf_s(name, "cScriptEngine_%p", this);
+	lua_setglobal(lua, name);
+	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", name, this, typeid(*this).name());
+#endif
 
 	AddLog(Debug, "Destroying script object");
 	SharedScript s;
@@ -164,7 +160,7 @@ bool cScriptEngine::Finalize() {
 }
 
 //---------------------------------------------------------------------------------------
-
+#if 0
 bool cScriptEngine::CreateScript(const std::string& Class, Entity Owner) {
 	if (!IsScriptsLoaded()) {
 		//TODO: log fatal error!
@@ -181,7 +177,7 @@ bool cScriptEngine::CreateScript(const std::string& Class, Entity Owner) {
 
 	return true;
 }
-
+#endif
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::LoadAllScriptsImpl() {
@@ -295,7 +291,7 @@ void cScriptEngine::LoadCode(string code) {
 			m_Script->LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
 	}
 	catch (...) {
-		AddLog(Error, "Unexpected exception while broadcasting script code!");
+		AddLog(Error, "Unexpected exception while loading script code!");
 	}
 
 	GetDataMgr()->NotifyResourcesChanged();
@@ -303,79 +299,104 @@ void cScriptEngine::LoadCode(string code) {
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::ConstructScript() {
-	LOCK_MUTEX(m_Mutex);
-
-	if (m_Script)
-		return true;
-
-	AddLog(Debug, "Constructing script object");
-	auto s = std::make_shared<Script>();
-	if(!s->Initialize()) {
-		AddLog(Error, "Unable to initialize script instance!");
-		s.reset();
+bool cScriptEngine::GetRegisteredScript(const char *name) {
+	if (!name) {
 		return false;
 	}
 
-	for (auto &it : m_ScriptCodeList) {
-		s->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
-	}
-	m_Script.swap(s);
+	auto lua = m_Script->GetLuaState();
+	lua_pushlightuserdata(lua, (void *)this);
+	lua_gettable(lua, LUA_REGISTRYINDEX);  
 
-	AddLog(Debug, "Construction finished");
-	return true;
-}
+	lua_pushstring(lua, name);
+	lua_gettable(lua, -2);
 
-bool cScriptEngine::DestroyScript() {
-	LOCK_MUTEX(m_Mutex);
-	if (!m_Script) {
-		//unexpected case, silently ignore
+	if (lua_isnil(lua, -1)) {
+		lua_pop(lua, 2);
+		return false;
+	} else {
+		lua_insert(lua, -2);
+		lua_pop(lua, 1);
 		return true;
 	}
+}
 
-	AddLog(Debug, "Destroying script object");
-	SharedScript s;
-	s.swap(m_Script);
-	if (!s->Finalize()) {
-		AddLog(Warning, "An error has occur during finalization of script instance!");
+int cScriptEngine::RegisterNewScript(lua_State * lua) {
+	const char *name = lua_tostring(lua, -1);
+	if (!name) {
+		AddLog(Error, "Attempt to register nameless script!");
+		return 0;
 	}
 
-	s.reset();
+	//Utils::Scripts::LuaStackOverflowAssert check(lua);
+	lua_pushlightuserdata(lua, (void *)this);
+	lua_gettable(lua, LUA_REGISTRYINDEX); 
 
-	AddLog(Debug, "Destruction finished");
-	return true;
+	lua_getfield(lua, -1, name);
+
+	if (!lua_isnil(lua, -1)) {
+		AddLogf(Error, "Attempt to redefine script: %s", name);
+		lua_pop(lua, 2);
+		return 0;
+	} else {
+		AddLogf(Info, "Registering script: %s", name);
+		lua_pop(lua, 1);
+		lua_createtable(lua, 0, 0);
+		lua_pushvalue(lua, -1);
+		lua_setfield(lua, -3, name);
+
+		lua_insert(lua, -2);
+		lua_pop(lua, 1);
+
+		lua_pushstring(lua, name);
+		lua_setfield(lua, -2, "Name");
+
+		lua_createtable(lua, 0, 0);
+		lua_pushvalue(lua, -1);
+		lua_setfield(lua, -3, "__index");
+
+		lua_insert(lua, -2);
+
+		lua_pop(lua, 1);
+
+		return 1;
+	}
+}
+
+int cScriptEngine::RegisterModifyScript(lua_State * lua) {
+	const char *name = lua_tostring(lua, -1);
+	if (!name) {
+		AddLog(Error, "Attempt to register nameless script!");
+		return 0;
+	}
+
+	//Utils::Scripts::LuaStackOverflowAssert check(lua);
+	lua_pushlightuserdata(lua, (void *)this);
+	lua_gettable(lua, LUA_REGISTRYINDEX);
+
+	lua_getfield(lua, -1, name);
+
+	if (lua_isnil(lua, -1)) {
+		AddLogf(Error, "Attempt to define script: %s", name);
+		lua_pop(lua, 2);
+		return 0;
+	} else {
+		//TODO: Test this!
+		AddLogf(Info, "Modifying script: %s", name);
+
+		lua_getfield(lua, -1, "__index");
+
+		lua_insert(lua, -3);
+
+		lua_pop(lua, 2);
+
+		return 1;
+	}
 }
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::InitializeScriptProxy(ScriptProxy &proxy, SharedScript& ptr) {
-	AddLog(Hint, "Thread requested script instance");
-	LOCK_MUTEX(m_Mutex);
-
-	if (!m_Script) {
-		return false;
-	}
-
-	ptr = m_Script;
-	m_ScriptList.push_back(proxy.shared_from_this());
-
-	return true;
-}
-
-bool cScriptEngine::FinalizeScriptProxy(ScriptProxy &proxy, SharedScript& ptr) {
-	AddLog(Hint, "Thread returned script instance");
-//	{
-//		LOCK_MUTEX(m_Mutex);
-//		for (auto &it: m_ScriptList)
-//			if (it.first == ptr.get()) {
-//				it.second = nullptr;
-//				break;
-//			}
-//	}
-	ptr.reset();
-
-	return true;
-}
+//empty section 
 
 //---------------------------------------------------------------------------------------
 

@@ -8,7 +8,7 @@
 #define NFSCRIPTS_H_
 
 #include "LuaApi.h"
-#include "ScriptEngine.h"
 #include "Script.h"
+#include "ScriptEngine.h"
 
 #endif // NSCRIPTS_H_

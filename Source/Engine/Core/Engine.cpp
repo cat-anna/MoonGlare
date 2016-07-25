@@ -47,7 +47,7 @@ bool Engine::Initialize() {
 
 	m_World = std::make_unique < World>();
 
-	if (!m_World->Initialize()) {
+	if (!m_World->Initialize(GetScriptEngine())) {
 		AddLogf(Error, "Failed to initialize world!");
 		return false;
 	}
@@ -336,8 +336,6 @@ void Engine::DoRender(MoveConfig &conf) {
 void Engine::DoMove(MoveConfig &conf) {
 	conf.RenderList.clear();
 	conf.Scene = nullptr;
-
-//	MoonGlare::Core::Component::ComponentManager::Process(conf);
 
 	m_TimeEvents.CheckEvents(conf);
 	GetScriptEngine()->Step(conf);

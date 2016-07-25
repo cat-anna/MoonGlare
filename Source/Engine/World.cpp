@@ -10,7 +10,8 @@
 
 namespace MoonGlare {
 
-World::World() {
+World::World()
+	: m_ScriptEngine(nullptr) {
 }
 
 World::~World() {
@@ -18,7 +19,10 @@ World::~World() {
 
 //------------------------------------------------------------------------------------------
 
-bool World::Initialize() {
+bool World::Initialize(::Core::cScriptEngine *se) {
+	m_ScriptEngine = se;
+	THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
+
 	if (!m_EntityManager.Initialize()) {
 		AddLogf(Error, "Failed to initialize EntityManager!");
 		return false;

@@ -105,12 +105,23 @@ bool ciScene::Finalize() {
 }
 
 bool ciScene::DoInitialize() {
+	if (!m_ComponentManager.Initialize(this)) {
+		AddLogf(Error, "Failed to initialize component manager");
+		return false;
+	}
+
 	return true;
 }
 
 bool ciScene::DoFinalize() {
 	if (m_GUI) m_GUI->Finalize();
 	m_GUI.reset();
+
+	if (!m_ComponentManager.Finalize()) {
+		AddLogf(Error, "Failed to finalize component manager");
+		return false;
+	}
+
 	return true;
 }
 
@@ -123,6 +134,8 @@ void ciScene::DoMove(const MoveConfig &conf) {
 		m_GUI->Process(conf);
 	if (m_Camera)
 		m_Camera->Update(conf);
+
+	m_ComponentManager.Step(conf);
 }
 
 Graphic::Light::LightConfiguration* ciScene::GetLightConfig() {

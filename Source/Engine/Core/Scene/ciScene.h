@@ -56,6 +56,8 @@ public:
 	ciScene();
 	virtual ~ciScene();
 
+	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
+
 	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);

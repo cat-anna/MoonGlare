@@ -1,5 +1,6 @@
 --part of MoonGlare engine internal module
 
+--[[
 ScriptComponent = { }
 ScriptComponent.EntityTable = { }
 ScriptComponent.FixedProcess = { }
@@ -43,5 +44,7 @@ function ScriptComponent.AllocScript(Entity, ClassName)
 		object:OnInit()
 	end
 	
-	return true
+	return 1
 end
+
+]]

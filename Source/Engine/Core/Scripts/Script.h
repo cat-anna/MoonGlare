@@ -61,8 +61,6 @@ public:
 	void CollectGarbage();
 	void PrintMemoryUsage() const;
 
-	std::recursive_mutex& GetMutex() { return m_Mutex; }
-
 	enum {
 		sf_Ready			 = 0x0002,
 	};
@@ -71,6 +69,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 
 	lua_State* GetLuaState() { return m_Lua; }
+	std::recursive_mutex& GetMutex() { return m_Mutex; }
 protected:
 	lua_State *m_Lua;
 	mutable std::recursive_mutex m_Mutex;

@@ -15,6 +15,30 @@ public:
 		return m_Script->RunFunction<RET>(FuncName, std::forward<Types>(args)...);
 	}
 
+	int ExecuteCode(const string& code, const char *CodeName = nullptr) {
+		return m_Script->LoadCode(code.c_str(), code.length(), CodeName);
+	}
+  
+	int ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr) {
+		return m_Script->LoadCode(code, len, CodeName);
+	}
+
+
+	lua_State *GetLua() { return m_Script->GetLuaState(); }
+	std::recursive_mutex& GetLuaMutex() { return m_Script->GetMutex(); }
+	///script will be on top of lua stack
+	bool GetRegisteredScript(const char* name);
+
+	void CollectGarbage();
+	void PrintMemoryInfo();
+
+	bool Initialize();
+	bool Finalize();
+
+	void Step(const MoveConfig & conf);
+
+//old
+
 	struct ScriptCode {
 		enum class Source {
 			File, Code,
@@ -27,31 +51,19 @@ public:
 
 	struct Flags {
 		enum {
-			Ready	= 0x01,
-			ScriptsLoaded = 0x02,
+			Ready			= 0x01,
+			ScriptsLoaded	= 0x02,
 		};
 	};
 
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 	DefineFlagGetter(m_Flags, Flags::ScriptsLoaded, ScriptsLoaded);
 
-	void Step(const MoveConfig &config);
-
-	void CollectGarbage();
-	void PrintMemoryInfo();
-
-	bool Initialize();
-	bool Finalize();
-
-	bool CreateScript(const std::string& Class, Entity Owner);
-
 	void LoadAllScripts();
 	void RegisterScript(string Name);
 	void LoadCode(string code);
 	/** Changes code of specified chunk. Does not reload the code. */
 	void SetCode(const string& ChunkName, string Code);
-
-	void DefferExecution(string fname, int parameter);
 
 	void DumpScripts(std::ostream &out);
 
@@ -60,16 +72,20 @@ public:
 	
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
+	int RegisterModifyScript(lua_State *lua);
+	int RegisterNewScript(lua_State *lua);
+
+//old
 	unsigned m_Flags;
 	SharedScript m_Script;
 	std::list<ScriptCode> m_ScriptCodeList;
 
 	std::recursive_mutex m_Mutex;
 
-
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 	DefineFlagSetter(m_Flags, Flags::ScriptsLoaded, ScriptsLoaded);
 private:
+//old
 	int m_CurrentGCStep;
 	int m_CurrentGCRiseCounter;
 	float m_LastMemUsage;

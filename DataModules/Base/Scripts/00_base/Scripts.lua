@@ -1,5 +1,6 @@
 --part of MoonGlare engine internal module
 
+--[[
 Interfaces = { 
 	Script = oo.NewClass(),
 }
@@ -50,6 +51,14 @@ function Scripts.GetClass(name)
 	return s
 end
 
+----------------------------------------------
+
 function ScriptInterface:SetFixedProcess()
 	return ScriptComponent:SetFixedProcess(self)
 end
+
+function ScriptInterface:SetPositionXYZ(x,y,z)
+	
+end
+
+]]
