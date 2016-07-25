@@ -62,7 +62,7 @@ protected:
 	};
 	std::list<MenuState> m_MenuStack;
 	MenuSceneConfig m_Config;
-	Utils::ActionQueue m_ActionQueue;
+	Space::ActionQueue m_ActionQueue;
 
 	GUI::Widgets::Table *m_MenuTable = nullptr;
 	GUI::Widgets::Panel *m_OuterPanel = nullptr;

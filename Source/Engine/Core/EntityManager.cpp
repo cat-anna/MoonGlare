@@ -16,7 +16,7 @@ SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
 RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
 
 EntityManager::EntityManager():
-		m_Memory(Space::NoConstruct()) {
+		m_Memory(Space::NoConstruct) {
 
 	DebugMemorySetClassName("EntityManager");
 

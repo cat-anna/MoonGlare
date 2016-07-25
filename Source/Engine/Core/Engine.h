@@ -76,7 +76,7 @@ public:
 protected:
 	unsigned m_Flags;
 	ciScene* m_CurrentScene;
-	Utils::ActionQueue m_ActionQueue;
+	Space::ActionQueue m_ActionQueue;
 	TimeEvents m_TimeEvents;
 
 	std::unique_ptr<World> m_World;
