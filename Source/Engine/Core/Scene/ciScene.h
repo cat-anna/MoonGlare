@@ -52,6 +52,7 @@ public:
 	ciScene();
 	virtual ~ciScene();
 
+//old
 	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);
@@ -88,7 +89,7 @@ public:
 	static void RegisterScriptApi(::ApiInitializer &api);
 
 	const GUI::GUIEnginePtr& GetGUI() const { return m_GUI; }
-//old
+//very old
 	DefineFlagGetter(m_Flags, sfset_IsReady, Ready)
 	DefineFlagGetter(m_Flags, sf_Initialized, Initialized)
 	enum eSceneFlags {
@@ -98,6 +99,7 @@ public:
 		sfset_IsReady = sf_Ready | sf_Initialized,
 	};
 protected:
+//old
 	TimeEvents m_TimeEvents;
 	::Core::Camera::iCameraPtr m_Camera;
 	GUI::GUIEnginePtr m_GUI;
@@ -113,11 +115,12 @@ protected:
 	void SetFinishedState();
 
 	virtual int InternalEventNotification(Events::InternalEvents event, int Param);
-//old
+//very old
 	unsigned m_Flags;
 	DefineFlagSetter(m_Flags, sf_Initialized, Initialized);
 	DefineFlagSetter(m_Flags, sf_Ready, Ready);
 private:
+//old
 	SceneState m_SceneState;
 	SceneSettings m_Settings;
 };
