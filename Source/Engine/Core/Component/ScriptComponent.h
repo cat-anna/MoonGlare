@@ -25,11 +25,14 @@ public:
 
 	using LuaHandle = int;
 
-	union FunctionMap {
+	union FlagsMap {
 		struct MapBits_t {
-			bool m_Step : 1;
+			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 
-			//bool m_OnCreate : 1;
+			bool m_StepFunction : 1;
+			bool m_OnCreateFunction : 1;
+			bool m_OnDestroyFunction : 1;
+
 			//bool m_OnStart : 1;
 			//bool m_OnStop : 1;
 		};
@@ -42,7 +45,7 @@ public:
 	};
 
 	struct ScriptEntry {
-		FunctionMap m_Functions;
+		FlagsMap m_Flags;
 		Entity m_Owner;	
 	};
 	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
@@ -61,6 +64,12 @@ protected:
 	::Core::cScriptEngine *m_ScriptEngine;
 	Array<ScriptEntry> m_Array;
 	Generations_t m_Generations;
+
+
+	void ReleaseComponent(lua_State *lua, size_t Index);
+private:
+	static int lua_DestroyComponent(lua_State *lua);
+	static int lua_DestroyObject(lua_State *lua);
 };
 
 } //namespace Component 
