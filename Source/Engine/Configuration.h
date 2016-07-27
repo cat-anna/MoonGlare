@@ -8,10 +8,10 @@ namespace MoonGlare {
 
 		struct Entity {
 			enum {
-				GenerationBits = 16,
-				IndexBits = 16,
-				TypeBits = 16, 
-				ValueBits = 16,
+				GenerationBits = 12,
+				IndexBits = 12,
+				TypeBits = 8, 
+				ValueBits = 0,
 			};
 
 			struct Types {
@@ -25,9 +25,9 @@ namespace MoonGlare {
 
 		struct Handle {
 			enum {
-				GenerationBits = 16,
-				IndexBits = 16,
-				TypeBits = 32,//can be divided if needed (some flags?)
+				GenerationBits = 12,
+				IndexBits = 12,
+				TypeBits = 8,
 			};
 
 			struct Types {
@@ -43,7 +43,7 @@ namespace MoonGlare {
 				TinyBuffer = 64,
 				SmallBuffer = 256,
 				MediumBuffer = 1024,
-				HugeBuffer = 4096,
+				HugeBuffer = 4096, 
 
 				EntityBuffer = HugeBuffer,
 				ComponentBuffer = SmallBuffer,//there is no need for more now
@@ -61,14 +61,14 @@ namespace MoonGlare {
 
 	} //namespace Configuration
 
-using Entity = Space::Memory::QuadrupleHandle64<
+using Entity = Space::Memory::TripleHandle32<
 			Configuration::Entity::GenerationBits,
 			Configuration::Entity::IndexBits,
-			Configuration::Entity::TypeBits,
-			Configuration::Entity::ValueBits
+			Configuration::Entity::TypeBits//,
+		//	Configuration::Entity::ValueBits
 		>;
 
-using Handle = Space::Memory::TripleHandle64<
+using Handle = Space::Memory::TripleHandle32<
 			Configuration::Handle::GenerationBits,
 			Configuration::Handle::IndexBits,
 			Configuration::Handle::TypeBits
