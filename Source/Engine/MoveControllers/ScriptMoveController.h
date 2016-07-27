@@ -19,11 +19,11 @@ class ScriptMoveController: public iMoveController {
 	DECLARE_SCRIPT_HANDLERS(ScriptControllerScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-	ScriptMoveController(::Core::Objects::Object *Owner = 0);
+	ScriptMoveController(MoonGlare::Core::Objects::Object *Owner = 0);
 	~ScriptMoveController();
 
-	virtual void DoMove(const ::Core::MoveConfig& conf);
-	virtual iMoveController* Duplicate(::Core::Objects::Object *NewOwner) const;
+	virtual void DoMove(const MoonGlare::Core::MoveConfig& conf);
+	virtual iMoveController* Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const;
 
 //functions for scripts
 	void SetStaticRotation(float x, float y, float z);
@@ -36,7 +36,7 @@ public:
 	virtual int InvokeOnProgress();
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	ScriptMoveController(const ScriptMoveController& source, ::Core::Objects::Object *Owner);
+	ScriptMoveController(const ScriptMoveController& source, MoonGlare::Core::Objects::Object *Owner);
 	math::vec3 m_StaticRotation, m_StaticSpeed;
 	float m_ProgressGoal, m_Progress;
 };

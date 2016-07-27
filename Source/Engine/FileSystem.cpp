@@ -71,6 +71,8 @@ MoonGlareFileSystem::MoonGlareFileSystem():
 		BaseClass(),
 		m_StarVFSCallback(this) {
 	SetThisAsInstance();
+
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::FSEvent, "FSEV");
 }
 
 MoonGlareFileSystem::~MoonGlareFileSystem() {
@@ -197,6 +199,8 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 		AddLogf(Warning, "Failed to read file: (fid:%d) %s", fid, path.c_str());
 		return false;
 	}
+
+	AddLogf(FSEvent, "Opened file: %u(%s)", (unsigned)fid, path.c_str());
 
 	return true;
 }

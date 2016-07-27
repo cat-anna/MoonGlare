@@ -44,6 +44,7 @@ enum class DataPath {
 #define InternalStringTable			"MoonGlare"
 #define MenusStringTable			"Menus"
 
+namespace MoonGlare {
 namespace DataClasses {
 
 	template<class T>
@@ -107,9 +108,10 @@ namespace DataClasses {
 	class StringTable;
 
 }
+} //namespace MoonGlare 
 
-using DataClasses::Maps::MapPtr;
-using DataClasses::Paths::iPathSharedPtr;
+using MoonGlare::DataClasses::Maps::MapPtr;
+using MoonGlare::DataClasses::Paths::iPathSharedPtr;
 
 #include "Models\nfModels.h"
 

@@ -8,6 +8,7 @@
 #ifndef SimpleModelImpl_H
 #define SimpleModelImpl_H
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -26,5 +27,6 @@ private:
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif

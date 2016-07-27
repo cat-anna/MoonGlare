@@ -8,6 +8,7 @@
 #ifndef CIMAP_H_
 #define CIMAP_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Maps {
 
@@ -26,16 +27,16 @@ public:
 	virtual ~iMap();
 
 	virtual bool LoadMeta() = 0;
-	virtual bool LoadMapObjects(::Core::Objects::ObjectRegister& where); 
+	virtual bool LoadMapObjects(Core::Objects::ObjectRegister& where); 
 	virtual std::unique_ptr<Object> LoadMapObject() = 0;
 
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
-	virtual void SetOwnerScene(::Core::Scene::GameScene* Scene);
+	virtual void SetOwnerScene(Core::Scene::GameScene* Scene);
 	
 	iPathSharedPtr GetPath(const string& Name) const { return m_PathRegister->GetPath(Name); }
 
-	DefineDirectGetterAll(OwnerScene, ::Core::Scene::GameScene*);
+	DefineDirectGetterAll(OwnerScene, Core::Scene::GameScene*);
 	virtual DataPath GetResourceType() const override final { return DataPath::Maps; }
 	
 	Graphic::Environment* GetEnvironment() { return &m_Environment; }
@@ -55,7 +56,7 @@ protected:
 	virtual int InvokeAfterLoad();
 private:
 	Graphic::Environment m_Environment;
-	::Core::Scene::GameScene* m_OwnerScene;
+	Core::Scene::GameScene* m_OwnerScene;
 	std::unique_ptr<Paths::PathRegister> m_PathRegister;
 	FileSystem::XMLFile m_MapMeta;
 };
@@ -67,5 +68,6 @@ inline void iMapDeleter::operator()(iMap* m) {
 
 } // namespace Maps
 } // namespace DataClasses
+} //namespace MoonGlare 
 
 #endif // CIMAP_H_ 

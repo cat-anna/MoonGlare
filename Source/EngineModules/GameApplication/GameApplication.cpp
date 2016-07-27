@@ -42,10 +42,10 @@ bool GameApplication::Initialize() {
 	using FileSystem::MoonGlareFileSystem;
 //	using MoonGlare::Core::EntityManager;
 //	using MoonGlare::Core::Component::ComponentManager;
-	using ::Core::Scene::ScenesManager;
+	using MoonGlare::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
-	::Core::Interfaces::Initialize();
+	Core::Interfaces::Initialize();
 //	_chk_ret(EntityManager::Initialize(),					"Entity manager initialization failed!");
 //	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
 
@@ -58,14 +58,14 @@ bool GameApplication::Initialize() {
 	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true));
 
 	new ScenesManager();
-	new ::Core::Engine();
+	new MoonGlare::Core::Engine();
 		
 	if (Settings->Engine.EnableConsole)
 		_init_chk(new Console(),							"Unable to initialize console!");
 	
 	Graphic::GetRenderDevice()->Initialize();
-	::Core::GetEngine()->Initialize();
-	::Core::GetScenesManager()->Initialize();
+	MoonGlare::Core::GetEngine()->Initialize();
+	MoonGlare::Core::GetScenesManager()->Initialize();
 
 	AddLog(Debug, "Application initialized");
 #undef _init_chk
@@ -80,20 +80,20 @@ bool GameApplication::Finalize() {
 	using MoonGlare::Core::Console;
 //	using MoonGlare::Core::EntityManager;
 //	using MoonGlare::Core::Component::ComponentManager;
-	using ::Core::Scene::ScenesManager;
+	using MoonGlare::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
 	_del_chk(Console,								"Console finalization failed");
 
 	_finit_chk(ScenesManager,						"Scenes Manager finalization failed");
-	_finit_chk(::Core::Engine,						"Engine finalization failed");
+	_finit_chk(MoonGlare::Core::Engine,				"Engine finalization failed");
 	_finit_chk(Graphic::cRenderDevice,				"Render device finalization failed");
 	_finit_chk(MoonGlare::Core::Data::Manager,		"Data Manager finalization failed");
 	_finit_chk(ModulesManager,						"Finalization of modules manager failed!");
 	
 	ModulesManager::DeleteInstance();
 	ScenesManager::DeleteInstance();
-	::Core::Engine::DeleteInstance();
+	MoonGlare::Core::Engine::DeleteInstance();
 	MoonGlare::Core::Data::Manager::DeleteInstance();
 
 	Graphic::cRenderDevice::DeleteInstance();

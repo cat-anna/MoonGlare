@@ -8,6 +8,7 @@
 #ifndef CLOADINGSCENE_H_
 #define CLOADINGSCENE_H_
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -37,5 +38,6 @@ protected:
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 
 
 #endif // DefaultLoadingScene_H

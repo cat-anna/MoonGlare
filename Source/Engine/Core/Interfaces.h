@@ -6,6 +6,8 @@
  */
 #ifndef INTERFACESH
 #define INTERFACES_H
+
+namespace MoonGlare {
 namespace Core {
 
 class Interfaces {
@@ -22,4 +24,6 @@ private:
 };
 
 } //namespace Core
+} //namespace MoonGlare 
+
 #endif // CINTERFACESLIST_H_ 

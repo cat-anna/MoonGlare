@@ -8,6 +8,7 @@
 #ifndef FollowModel_H
 #define FollowModel_H
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -37,5 +38,6 @@ protected:
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif

@@ -3,8 +3,26 @@
 namespace Utils {
 namespace Scripts {
 
-#if 0
-inline void stackDump(lua_State *L) {
+struct LuaStackOverflowAssert {
+	LuaStackOverflowAssert(lua_State *lua) {
+		m_lua = lua;
+		m_InitStack = lua_gettop(lua);
+		m_CheckStack = m_InitStack;
+	}
+	~LuaStackOverflowAssert() {
+		Test();
+	}
+	void Test() {
+		m_CheckStack = lua_gettop(m_lua);
+		assert(m_CheckStack == m_InitStack);
+	}
+private:
+	lua_State *m_lua;
+	int m_InitStack;
+	int m_CheckStack;
+};
+
+inline void StackDump(lua_State *L) {
 	int i;
 	int top = lua_gettop(L);
 	for (i = 1; i <= top; i++) {  /* repeat for each level */
@@ -14,7 +32,6 @@ inline void stackDump(lua_State *L) {
 	}
 	printf("\n");  /* end the listing */
 }
-#endif
 
 //----------------------------------------------------
 

@@ -6,6 +6,7 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
+namespace MoonGlare {
 namespace Core {
 namespace Camera {
 
@@ -69,3 +70,4 @@ void iCamera::TrackedObject(Objects::Object* TrackedObject) {
 
 } // namespace Camera
 } // namespace Core
+} //namespace MoonGlare 

@@ -8,6 +8,7 @@
 #ifndef EngineLoadScene_H
 #define EngineLoadScene_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -37,5 +38,6 @@ private:
 
 } //namespace Scene 
 } //namespace Core 
+} //namespace MoonGlare 
 
 #endif // EngineLoadScene_H

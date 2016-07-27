@@ -6,6 +6,8 @@
  */
 #ifndef SCENESMANAGER_H_
 #define SCENESMANAGER_H_
+
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -58,7 +60,7 @@ public:
 
 	ciScene* GetNextScene();
 	void SetNextScene(const string& Name, int Param = 0);
-	void AsyncSetNextScene(const string& Name, ::Core::EventProxyPtr proxy, int Param = 0);
+	void AsyncSetNextScene(const string& Name, EventProxyPtr proxy, int Param = 0);
 	void PushScene(ciScene *scene);
 	void ClearSceneStack();
 	void PopScenes(int count);
@@ -89,10 +91,10 @@ protected:
 	ciScene* PopScene();
 	ciScene* GetSceneInstance(SceneDescriptor *descr);
 	int HandleTimer(int TimerID);
-	void ScenePrepeareImpl(const string& Name, int Param, ::Core::EventProxyPtr proxy);
+	void ScenePrepeareImpl(const string& Name, int Param, EventProxyPtr proxy);
 
 	void LoadingSceneTimedOutJob();
-	void LoadSceneJob(const string& Name, int Param, ::Core::EventProxyPtr proxy);
+	void LoadSceneJob(const string& Name, int Param, EventProxyPtr proxy);
 
 	SceneDescriptor& AllocDescriptor(const string& Name, SceneType Type);
 	SceneDescriptor* GetSceneDescriptor(const string &Name);
@@ -104,5 +106,6 @@ protected:
 
 } //namespace Scene
 } //namespace Core
+} //namespace MoonGlare 
 
 #endif //SCENEMANAGER_H_

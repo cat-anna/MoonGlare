@@ -14,7 +14,7 @@
 //-----------------------------------------
 
 struct HandleLess {
-	bool operator () (MoonGlare::Handle a, MoonGlare::Handle b) {
+	bool operator () (MoonGlare::Handle a, MoonGlare::Handle b) const {
 		return a.GetIndex() < b.GetIndex();
 	}
 };

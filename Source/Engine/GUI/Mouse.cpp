@@ -63,7 +63,7 @@ bool Mouse::Finalize() {
 //----------------------------------------------------------------
 
 void Mouse::Process(const Core::MoveConfig &conf) {
-	auto delta = ::Core::GetInput()->GetMouseDelta();
+	auto delta = Core::GetInput()->GetMouseDelta();
 
 	bool Moved = delta[0] != 0 || delta[1] != 0;
 	if (Moved) {

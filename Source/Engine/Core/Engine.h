@@ -3,11 +3,8 @@
 
 namespace MoonGlare {
 namespace Core {
-const Version::Info& GetMoonGlareEngineVersion();
-}
-}
 
-namespace Core {
+const Version::Info& GetMoonGlareEngineVersion();
 
 class Engine : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
@@ -58,8 +55,8 @@ public:
 	void HandleEscapeKey() { m_ActionQueue.Add([this]() { HandleEscapeKeyImpl(); }); }
 	void CaptureScreenShot();
 
-	int SetProxyTimer(::Core::EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
-	void KillProxyTimer(::Core::EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
+	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
+	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
 	static void ScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
@@ -72,19 +69,19 @@ public:
 
 	static string GetVersionString();
 
-	std::unique_ptr<::Core::Objects::Object>& GetPlayer() { return m_Player; }
+	std::unique_ptr<Objects::Object>& GetPlayer() { return m_Player; }
 	World* GetWorld() { return m_World.get(); }
 
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 protected:
 	unsigned m_Flags;
 	ciScene* m_CurrentScene;
-	Utils::ActionQueue m_ActionQueue;
+	Space::ActionQueue m_ActionQueue;
 	TimeEvents m_TimeEvents;
 
 	std::unique_ptr<World> m_World;
 
-	std::unique_ptr<::Core::Objects::Object> m_Player;
+	std::unique_ptr<Objects::Object> m_Player;
 
 	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 	std::unique_ptr<Graphic::Forward::ForwardPipeline> m_Forward;
@@ -109,5 +106,6 @@ protected:
 }; 
 
 } //namespace Core
+} //namespace MoonGlare 
 
 #endif // ENGINE_H

@@ -8,6 +8,7 @@
 #ifndef PATHREGISTER_H_
 #define PATHREGISTER_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
 
@@ -37,5 +38,6 @@ private:
 
 } // namespace Paths 
 } // namespace DataClasses 
+} //namespace MoonGlare 
 
 #endif  PATHREGISTER_H_ 

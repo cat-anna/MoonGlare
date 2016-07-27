@@ -6,6 +6,10 @@
  */
 #ifndef CISCENE_H_
 #define CISCENE_H_
+
+#include "../Component/nComponent.h"
+
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -52,11 +56,13 @@ public:
 	ciScene();
 	virtual ~ciScene();
 
+	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
+
 //old
 	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);
-	::Core::Camera::iCameraPtr& GetCamera() { return m_Camera; }
+	Core::Camera::iCameraPtr& GetCamera() { return m_Camera; }
 
 	/** Script code invokers  */
 	virtual int InvokeOnTimer(int TimerID);
@@ -83,8 +89,8 @@ public:
 
 	int SetTimer(float secs, int TimerID, bool cyclic) { return SetProxyTimer(GetEventProxy(), secs, TimerID, cyclic); }
 	void KillTimer(int TimerID) { return KillProxyTimer(GetEventProxy(), TimerID); }
-	int SetProxyTimer(::Core::EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
-	void KillProxyTimer(::Core::EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
+	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
+	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
@@ -99,9 +105,11 @@ public:
 		sfset_IsReady = sf_Ready | sf_Initialized,
 	};
 protected:
+	Component::ComponentManager m_ComponentManager;
 //old
+
 	TimeEvents m_TimeEvents;
-	::Core::Camera::iCameraPtr m_Camera;
+	Core::Camera::iCameraPtr m_Camera;
 	GUI::GUIEnginePtr m_GUI;
 	XMLFile m_MetaData;
 
@@ -127,5 +135,6 @@ private:
 
 } //namespace Scene
 } //namespace Core
+} //namespace MoonGlare
 
 #endif // CSCENE_H_

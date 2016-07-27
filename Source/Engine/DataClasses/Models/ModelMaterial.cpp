@@ -6,6 +6,8 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
+
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -52,3 +54,4 @@ ModelMaterial::~ModelMaterial() {
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 

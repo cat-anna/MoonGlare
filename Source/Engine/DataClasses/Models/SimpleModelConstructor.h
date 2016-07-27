@@ -8,6 +8,7 @@
 #ifndef CMODELCONSTRUCTOR_H_
 #define CMODELCONSTRUCTOR_H_
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -79,4 +80,6 @@ protected:
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 
+
 #endif // CMODELCONSTRUCTOR_H_ 

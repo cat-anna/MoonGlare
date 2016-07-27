@@ -19,13 +19,13 @@ class StaticMoveController : public iMoveController {
 	DECLARE_SCRIPT_HANDLERS(StaticMoveControllerEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-	StaticMoveController(::Core::Objects::Object *Owner = 0);
+	StaticMoveController(MoonGlare::Core::Objects::Object *Owner = 0);
  	virtual ~StaticMoveController();
 
-	virtual void DoMove(const ::Core::MoveConfig& conf);
+	virtual void DoMove(const MoonGlare::Core::MoveConfig& conf);
 
 	virtual bool LoadFromXML(const xml_node Node);
-	virtual iMoveController* Duplicate(::Core::Objects::Object *NewOwner) const;
+	virtual iMoveController* Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const;
 
 	virtual int InvokeOnStart();
 	virtual int InvokeOnStop();
@@ -35,7 +35,7 @@ public:
 	void SetStaticAcceleration(float x, float y, float z);
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	StaticMoveController(const StaticMoveController& source, ::Core::Objects::Object *Owner);
+	StaticMoveController(const StaticMoveController& source, MoonGlare::Core::Objects::Object *Owner);
 	Physics::vec3 m_StaticRotation, m_StaticSpeed, m_Acceleration;
 	Physics::vec3 m_Rotation;
 private:

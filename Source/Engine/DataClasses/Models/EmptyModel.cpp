@@ -7,6 +7,7 @@
 #include <MoonGlare.h>
 #include "EmptyModel.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -74,3 +75,4 @@ bool EmptyModel::LoadBodyShape(xml_node node) {
 
 } //namespace Models 
 } //namespace DataClasses 
+} //namespace MoonGlare 

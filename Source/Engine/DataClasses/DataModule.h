@@ -1,5 +1,7 @@
  #ifndef DataModuleH
 #define DataModuleH
+
+namespace MoonGlare {
 namespace DataClasses {
 
 #define xmlstr_Module_xml			"Module.xml"
@@ -39,5 +41,6 @@ namespace DataClasses {
 #define xmlModuleNode_GameEngine	"GameEngine"
 
 } //namespace DataClasses
+} //namespace MoonGlare 
 
 #endif // DataModule_H

@@ -12,9 +12,9 @@
 #include "DataClass.h"
 #include "Resource.h"
 
-using MapResPtr = DataClasses::SmartResource<DataClasses::MapPtr>;
-using FontResPtr = DataClasses::SmartResource<DataClasses::FontPtr>;
-using ModelResPtr = DataClasses::SmartResource<DataClasses::ModelPtr>;
+using MapResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::MapPtr>;
+using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
+using ModelResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::ModelPtr>;
 
 #include "Paths/iPath.h"
 #include "Paths/PathRegister.h"

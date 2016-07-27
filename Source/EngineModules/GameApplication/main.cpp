@@ -82,14 +82,13 @@ int main(int argc, char** argv) {
 		try {
 			Params.Parse(argc, argv);
 			new GameApplication(argc, argv);
-			EnableScriptsInThisThread();
 			if (!GetApplication()->Initialize()) {
 				AddLog(Error, "Unable to initialize application!");
 				Result = 1;
 			} 
 		
 			if (Result == 0) //when there are no errors so far
-				::Core::GetEngine()->EngineMain();
+				MoonGlare::Core::GetEngine()->EngineMain();
 
 			if (!GetApplication()->Finalize()) {
 				AddLog(Error, "Unable to finalize application!");

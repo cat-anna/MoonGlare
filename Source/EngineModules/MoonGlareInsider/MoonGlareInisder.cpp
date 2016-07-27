@@ -149,7 +149,6 @@ void Insider::ThreadEntry() {
 
 	OrbitLogger::ThreadInfo::SetName("INSI", true);
 	AddLog(Info, "Insider thread started");
-	EnableScriptsInThisThread();
 
 	InsiderMessageBuffer buffer;
 	buffer.Fill(0);
@@ -201,12 +200,15 @@ bool Insider::EnumerateLua(InsiderMessageBuffer& buffer) {
 		"	return Insider.EnumerateLuaTable(" << request->Path << ", ...)\n"
 		"end\n";
 
+	AddLogf(Insider, "Lua enum path: %s", request->Path);
+
 	std::string code = ss.str();
 	//int ret = 
-	::Core::Scripts::ScriptProxy::ExecuteCode(code, "InisiderEnumerator");
+	
+	Core::GetScriptEngine()->ExecuteCode(code, "InisiderEnumerator");
 
 	ResourceEnumerator enumerator(buffer, MessageTypes::EnumerateLua);
-	::Core::Scripts::ScriptProxy::RunFunction<int>("InsiderDynamicFunction", &enumerator);
+	Core::GetScriptEngine()->RunFunction<int>("InsiderDynamicFunction", &enumerator);
 	enumerator.finish();
 	return true;
 }
@@ -222,7 +224,7 @@ bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	
 	unsigned count = 0;
 	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	::Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
+	Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
 		auto *item = buffer.Alloc<PayLoad_ScriptList_Item>();
 		item->DataLen = (u16)code.Data.length();
 		item->Index = (u16)count;
@@ -269,7 +271,7 @@ bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 	auto *header = buffer.GetHeader();
 	IncrementPerformanceCounter(CodeExecutionCount);
 	AddLogf(Insider, "Received lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+	int ret = Core::GetScriptEngine()->ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
 	buffer.Clear();
 	auto *payload = buffer.Alloc<PayLoad_ExecutionResult>();
 	payload->ReturnCode = ret;
@@ -284,7 +286,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 
 //	bool saveFile = request->OverwriteContainerFile > 0;
 
-	::Core::GetScriptEngine()->SetCode(name, data);
+	Core::GetScriptEngine()->SetCode(name, data);
 
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
@@ -313,7 +315,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	bool found = false;
 
 	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	::Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
+	Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
 		if (!found && name == code.Name) {
 			auto *response = buffer.Alloc<PayLoad_ScriptCode>();
 			response->DataLength = (u16)code.Data.length();
@@ -410,8 +412,8 @@ bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	auto *hdr = buffer.GetHeader();
 
-	auto rawscene = ::Core::GetEngine()->GetCurrentScene();
-	auto scene = dynamic_cast<::Core::Scene::GameScene*>(rawscene);
+	auto rawscene = Core::GetEngine()->GetCurrentScene();
+	auto scene = dynamic_cast<Core::Scene::GameScene*>(rawscene);
 	if (!scene) {
 		hdr->MessageType = MessageTypes::NotPossibleInCurrentState;
 		AddLogf(Insider, "Enumerating objects is not supported by current scene");

@@ -14,7 +14,7 @@ IMPLEMENT_SCRIPT_EVENT_VECTOR(StaticMoveControllerEvents);
 RegisterApiDerivedClass(StaticMoveController, &StaticMoveController::RegisterScriptApi);
 MoveControllerClassRegister::Register<StaticMoveController> StaticMoveControllerReg("StaticController");
 
-StaticMoveController::StaticMoveController(::Core::Objects::Object *Owner) :
+StaticMoveController::StaticMoveController(MoonGlare::Core::Objects::Object *Owner) :
 		BaseClass(Owner),
 		m_StaticRotation(0, 0, 0),
 		m_StaticSpeed(0, 0, 0),
@@ -23,7 +23,7 @@ StaticMoveController::StaticMoveController(::Core::Objects::Object *Owner) :
 	SetScriptHandlers(new ScriptEventClass());
 }
 
-StaticMoveController::StaticMoveController(const StaticMoveController& source, ::Core::Objects::Object *Owner) :
+StaticMoveController::StaticMoveController(const StaticMoveController& source, MoonGlare::Core::Objects::Object *Owner) :
 		BaseClass(source, Owner),
 		m_StaticRotation(source.m_StaticRotation),
 		m_StaticSpeed(source.m_StaticSpeed) {
@@ -46,7 +46,7 @@ void StaticMoveController::RegisterScriptApi(ApiInitializer &api) {
 
 //-------------------------------------------------------------------------------------------------
 
-iMoveController* StaticMoveController::Duplicate(::Core::Objects::Object* NewOwner) const {
+iMoveController* StaticMoveController::Duplicate(MoonGlare::Core::Objects::Object* NewOwner) const {
 	return new ThisClass(*this, NewOwner);
 }
 

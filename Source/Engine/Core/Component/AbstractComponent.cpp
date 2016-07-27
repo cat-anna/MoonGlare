@@ -12,6 +12,14 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+AbstractComponent::AbstractComponent(ComponentManager * Owner)
+	: m_Owner(Owner) {
+
+}
+
+AbstractComponent::~AbstractComponent() {
+}
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

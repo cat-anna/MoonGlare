@@ -90,7 +90,7 @@ void Debug::DumpAll(const char* prefixname) {
 	Space::RTTI::Tracker::DumpClasees(ClassInfo);
 
 	std::ofstream ClassLists((sprintf(buf, "logs/%s_ClassLists.txt", prefixname), buf));
-	::Core::Interfaces::DumpLists(ClassLists);
+	MoonGlare::Core::Interfaces::DumpLists(ClassLists);
 }
 
 void Debug::CheckInstances() {

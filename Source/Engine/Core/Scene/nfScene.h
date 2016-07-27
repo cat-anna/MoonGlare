@@ -8,6 +8,7 @@
 #ifndef NFSCENE_H_
 #define NFSCENE_H_
 
+namespace MoonGlare {
 namespace Core {
 	namespace Scene {
 		class ModelInstance;
@@ -23,5 +24,6 @@ namespace Core {
 	using Scene::ciScene;
 
 } // namespace Core
+} //namespace MoonGlare 
 
 #endif // SCENE_H_ 

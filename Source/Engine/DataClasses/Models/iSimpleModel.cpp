@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -96,3 +97,4 @@ bool iSimpleModel::LoadBodyShape(xml_node node) {
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 

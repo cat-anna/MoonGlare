@@ -6,6 +6,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
 
@@ -95,3 +96,4 @@ iPathSharedPtr PathRegister::GetPath(const string& Name) const {
 
 } // namespace Paths 
 } // namespace DataClasses 
+} //namespace MoonGlare 

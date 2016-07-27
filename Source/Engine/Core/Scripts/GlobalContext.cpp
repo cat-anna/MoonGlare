@@ -832,7 +832,8 @@ bool GlobalContext::Finalize() {
 void GlobalContext::Dump(std::ostream& out) {
 	out << "Global context dump:\n";
 
-	auto ret = ScriptProxy::RunFunction<const char *>("Dump_GlobalCtx");
+	
+	auto ret = ::MoonGlare::Core::GetScriptEngine()->RunFunction<const char *>("Dump_GlobalCtx");
 	if (ret) {
 		out << "GlobalBase:\n";
 		out << ret;

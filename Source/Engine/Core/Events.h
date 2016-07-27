@@ -7,6 +7,7 @@
 #ifndef Events_H
 #define Events_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Events {
 
@@ -82,5 +83,5 @@ using Events::EventProxyHolder;
 using Events::EventProxy;
 
 } //namespace Core 
-
+} //namespace MoonGlare 
 #endif

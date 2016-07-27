@@ -33,7 +33,7 @@ void iApplication::OnDeactivate() {
 
 void iApplication::Exit() {
 	AddLog(Debug, "Exit called");
-	::Core::GetEngine()->Exit();
+	MoonGlare::Core::GetEngine()->Exit();
 }
 
 const char* iApplication::ExeName() const {

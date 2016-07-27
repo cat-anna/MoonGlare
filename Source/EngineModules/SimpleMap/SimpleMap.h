@@ -22,13 +22,13 @@ public:
 	virtual ~SimpleMap();
 
 	virtual bool LoadMeta();
-	virtual bool LoadMapObjects(::Core::Objects::ObjectRegister& where); 
+	virtual bool LoadMapObjects(Core::Objects::ObjectRegister& where); 
 	virtual std::unique_ptr<Object> LoadMapObject();
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	::DataClasses::ModelPtr m_MapModel;
-	std::unique_ptr<::Core::Objects::Object> m_MapObject;
+	DataClasses::ModelPtr m_MapModel;
+	std::unique_ptr<Core::Objects::Object> m_MapObject;
 
 	bool DoInitialize() override;
 	bool DoFinalize() override;

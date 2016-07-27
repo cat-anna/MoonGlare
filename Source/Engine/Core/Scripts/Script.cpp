@@ -13,12 +13,7 @@ namespace Core {
 namespace Scripts {
 
 #define lua_registerF(V, N, Lua) lua_pushcfunction(Lua, V);  lua_setglobal(Lua, N)
-
-#ifdef _USE_DUMMY_SCRIPT_ENGINE_
-#define RegisterLuaFunction(A, B, C)
-#else
 #define RegisterLuaFunction(A, B, C) lua_registerF(A, B, C)
-#endif
 
 #if 0
 const char LUA_DEFAULT_SCRIPT_FUNCTION[] = "StringScriptLoader";
@@ -211,6 +206,9 @@ bool Script::Initialize() {
 	luaopen_bit(m_Lua);
 	luaopen_string(m_Lua);
 	luaopen_table(m_Lua);
+#ifdef DEBUG
+	luaopen_debug(m_Lua);
+#endif
 
 	lua_atpanic(m_Lua, Script::Lua_panic);
 	//RegisterLuaFunction(Script::Lua_ProcessResult, "ProcessResult", m_Lua);
@@ -228,12 +226,6 @@ bool Script::Initialize() {
 #endif
 
 	ApiInit::Initialize(this);
-
-	luabridge::getGlobalNamespace(m_Lua)
-		.beginNamespace("Inst")
-			.addPtrVariable("Script", this)
-		.endNamespace()
-	;
 
 	GlobalContext::Instance()->Install(m_Lua);
 	
@@ -353,9 +345,30 @@ void Script::PrintMemoryUsage() const {
 
 //-------------------------------------------------------------------------------------
 
+void traceback(lua_State *L) {
+#ifdef DEBUG
+	lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+	if (lua_isnil(L, -1)) {
+		return;
+	}
+	lua_getfield(L, -1, "traceback");
+	if (lua_isnil(L, -1)) {
+		return;
+	}
+	lua_pushvalue(L, 1);
+	lua_pushinteger(L, 2);
+	lua_call(L, 2, 1);
+
+	const char *cs = lua_tostring(L, 1);
+	AddLogf(Error, "Lua callstack:\n%s", cs);
+	lua_pop(L, 2);
+#endif
+}
+
 int Script::Lua_panic(lua_State *L) {
 	const char *m = lua_tostring(L, 1);
-	AddLogf(Error, "Lua panic! message: '%s'", m);
+	AddLogf(Error, "Lua panic! message: %s", m);
+	traceback(L);
 	if (!m)
 		throw eLuaPanic("NO MESSAGE");
 	throw eLuaPanic(m);

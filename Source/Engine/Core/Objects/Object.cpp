@@ -1,6 +1,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -104,7 +105,7 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("UpdateMotionState", &ThisClass::UpdateMotionState)
 		.addFunction("GetPosition", (math::vec3(ThisClass::*)())&Helper::getpos)
 		.addFunction("GetLookDirection", (math::vec3(ThisClass::*)())&Helper::getlookdir)
-		.endClass();
+	.endClass();
 }
 
 //---------------------------------------------------------------------------------------
@@ -263,7 +264,7 @@ void Object::SetMoveController(MoveControllers::iMoveController *ptr) {
 	m_MoveController->SetOwner(this);
 }
 
-void Object::SetModel(::DataClasses::ModelPtr Model) {
+void Object::SetModel(DataClasses::ModelPtr Model) {
 	m_Model.swap(Model);
 	if (m_Model)
 		m_Model->Initialize();
@@ -274,3 +275,4 @@ void Object::KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProx
 
 } //namespace Objects
 } //namespace Core
+} //namespace MoonGlare 

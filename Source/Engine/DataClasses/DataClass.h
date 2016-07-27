@@ -1,6 +1,7 @@
 #ifndef DataClassH
 #define DataClassH
 
+namespace MoonGlare {
 namespace DataClasses {
 
 class BasicResource : public NamedObject {
@@ -55,5 +56,6 @@ protected:
 };
 
 } // namespace DataClasses
+} //namespace MoonGlare 
 
 #endif

@@ -15,7 +15,7 @@ IMPLEMENT_SCRIPT_EVENT_VECTOR(InputControllerScriptEvents);
 RegisterApiDerivedClass(InputController, &InputController::RegisterScriptApi);
 MoveControllerClassRegister::Register<InputController> InputControllerReg;
 
-InputController::InputController(::Core::Objects::Object *Owner) :
+InputController::InputController(MoonGlare::Core::Objects::Object *Owner) :
 		iMoveController(Owner),
 		m_SpeedModifier(1.0f),
 		m_RunSpeedModifier(2.0f),
@@ -35,7 +35,7 @@ InputController::InputController(::Core::Objects::Object *Owner) :
 #endif
 }
 
-InputController::InputController(const InputController& other, ::Core::Objects::Object *Owner) :
+InputController::InputController(const InputController& other, MoonGlare::Core::Objects::Object *Owner) :
 		iMoveController(Owner),
 		m_SpeedModifier(other.m_SpeedModifier),
 		m_RunSpeedModifier(other.m_RunSpeedModifier),
@@ -108,7 +108,7 @@ bool InputController::LoadFromXML(const xml_node Node) {
 	return true;
 }
 
-iMoveController* InputController::Duplicate(::Core::Objects::Object *NewOwner) const {
+iMoveController* InputController::Duplicate(MoonGlare::Core::Objects::Object *NewOwner) const {
 	return new InputController(*this, NewOwner);
 }
 
@@ -132,7 +132,7 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 
 	float MouseSensitivity = ::Settings->Input.MouseSensitivity;
 	MouseSensitivity *= Settings->Input.GetStaticMouseSensivity();
-	auto &MouseDelta = ::Core::GetInput()->GetMouseDelta();
+	auto &MouseDelta = MoonGlare::Core::GetInput()->GetMouseDelta();
 
 	Physics::vec3 LinearSpeed(0, 0, 0);
 	Physics::vec3 Rotation(0, 0, 0);
@@ -159,7 +159,7 @@ void InputController::DoMove(const ::Core::MoveConfig& conf) {
 
 	Physics::vec3 AngleDirection(sin(m_Rotation[0]), 0.0f, cos(m_Rotation[0]));
 
-	auto keys = ::Core::GetInput()->GetKeyStatus();
+	auto keys = MoonGlare::Core::GetInput()->GetKeyStatus();
 	if (keys & KeyFlags::Move_Mask) {
 		NewMoveState = true;
 		if (keys & (KeyFlags::Move_Up | KeyFlags::Move_Down)) {

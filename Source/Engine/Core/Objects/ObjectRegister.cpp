@@ -8,6 +8,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -215,22 +216,30 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 	auto objH = NewObject(Parent);
 	Object *obj = Get(objH);
 	obj->SetOwnerScene(OwnerScene);
+	Entity objE = GetEntity(objH);
 
 	if (!obj->LoadPattern(MetaXML)) {
 		AddLogf(Error, "An Error has occur during loading meta of predef object (%s)", MetaXML.attribute("Name").as_string(ERROR_STR));
 		Remove(objH);
 		return Handle();
 	}
-	{
-		auto Script = MetaXML.child("Script");
-		if (Script) {
-			auto sname = Script.attribute("Name").as_string(nullptr);
-			if (!sname) {
-				AddLogf(Warning, "Object script definition without a name (%s)", obj->GetName().c_str());
-			} else {
-				GetScriptEngine()->CreateScript(sname, GetEntity(objH) );
-			}
+
+	auto &cm = OwnerScene->GetComponentManager();
+	for (auto it = MetaXML.child("Component"); it; it = it.next_sibling("Component")) {
+		auto idxml = it.attribute("Id");
+		if (!idxml) {
+			AddLog(Error, "Component definition without id!");
+			continue;
 		}
+
+		auto cid = idxml.as_uint(0);
+		auto c = cm.GetComponent(cid);
+		if (!c) {
+			AddLogf(Warning, "No such component: %d", cid);
+			continue;
+		}
+
+		c->Load(it, objE);
 	}
 
 	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
@@ -333,3 +342,4 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 } //namespace Objects
 } //namespace Core
+} //namespace MoonGlare 

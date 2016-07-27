@@ -50,14 +50,18 @@ public:
 				continue;
 
 			if (m_Recursive && item->LuaType == 5)  {//table
-				std::string loc = GetLocation() + "[" + name + "]";
+				std::string loc = GetLocation();
+				if (std::string(name) == std::to_string(strtoul(name, nullptr, 10)))
+					loc += std::string("[") + name + "]";
+				else	  
+					loc += std::string("['") + name + "']";
 				m_Owner->QueueRequest(SharedLuaStateRequest(new LuaRequest(loc.c_str(), first, m_Owner)));
 
 				QList<QStandardItem*> cols;
 				QStandardItem *firstmeta;
 				cols << (firstmeta = new QStandardItem("__metatable"));
 				first->appendRow(cols);
-				loc = "getmetatable(" + GetLocation() + ")";
+				loc = "getmetatable(" + loc + ")";
 				m_Owner->QueueRequest(SharedLuaStateRequest(new LuaRequest(loc.c_str(), firstmeta, m_Owner, false)));
 			}
 		}

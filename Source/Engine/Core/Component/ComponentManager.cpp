@@ -5,15 +5,17 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <nfMoonGlare.h>
+#include <MoonGlare.h>
 #include "AbstractComponent.h"
 #include "ComponentManager.h"
 
-#if 0
+#include "ScriptComponent.h"
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+#if 0
 template <size_t SIZE, size_t SORTINDEX, class ...ARGS>
 struct StaticMultiArray {
 
@@ -139,30 +141,81 @@ struct Impl {
 
 static Impl *_Impl = nullptr;
 
-bool ComponentManager::Initialize() {
-	assert(!_Impl);
-	_Impl = new Impl();
+#endif
+
+ComponentManager::ComponentManager() 
+	: m_UsedCount(0)
+	, m_Scene(nullptr) {
+}
+
+ComponentManager::~ComponentManager() {
+}
+
+bool ComponentManager::Initialize(ciScene *scene) {
+	if (!scene) {
+		AddLog(Error, "No scene pointer!");
+		return false;
+	}
+	m_Scene = scene;
+	m_World = GetEngine()->GetWorld();
+
+	if (!InstallComponent<ScriptComponent>()) {
+		AddLog(Error, "Failed to install script component");
+		return false;
+	}
+
+	for (size_t i = 0; i < m_UsedCount; ++i) {
+		if (!m_Components[i]->Initialize()) {
+			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()));
+			return false;
+		}
+	}
+
 	return true;
 }
 
 bool ComponentManager::Finalize() {
-	assert(_Impl);
-	delete _Impl;
-	_Impl = nullptr;
+	for (size_t i = 0; i < m_UsedCount; ++i) {
+		if (!m_Components[i]->Finalize()) {
+			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()));
+		}
+	}
 	return true;
 }
 
-bool ComponentManager::RegisterComponent(ComponentInfo& info) {
-	assert(_Impl);
-	return _Impl->m_ComponentArray.Add(info);
+bool ComponentManager::InsertComponent(UniqueAbstractComponent cptr, ComponentID cid) {
+	if (m_UsedCount >= m_Components.size()) {
+		AddLogf(Error, "Not enough space to install component: %s", typeid(*cptr.get()).name());
+		return false;
+	}
+
+	m_Components[m_UsedCount].swap(cptr);
+	m_ComponentsIDs[m_UsedCount] = cid;
+	++m_UsedCount;
+
+	return true;
 }
 
-//void ComponentManager::DeregisterComponent(const ComponentInfo& info);
-
-void ComponentManager::Process(const MoveConfig &config) {
-	assert(_Impl);
-	_Impl->m_ComponentArray.Process(config);
+void ComponentManager::Step(const MoveConfig &config) {
+	for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
+		m_Components[i]->Step(config);
+	}
 }
+
+AbstractComponent* ComponentManager::GetComponent(ComponentID cid) {
+
+	//TODO: some smart search
+	for (size_t i = 0; i < m_UsedCount; ++i) {
+		if (m_ComponentsIDs[i] == cid) {
+			return m_Components[i].get();
+		}
+	}
+
+	AddLogf(Error, "There is no component with id %d", cid);
+	return nullptr;
+}
+
+#if 0
 
 //----------------------------------------------------------------
 
@@ -187,9 +240,8 @@ static struct ComponentArrayInfo_t : Config::Debug::MemoryInterface {
 //} EntityManagerInfo;
 
 } //namespace Debug
+#endif
 
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 
-
-#endif

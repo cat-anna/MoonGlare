@@ -13,38 +13,30 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class AbstractComponent
-	//: public Space::RTTI::RTTIObject 
-{
-//	SPACERTTI_DECLARE_STATIC_CLASS(AbstractComponent, Space::RTTI::RTTIObject);
+class AbstractComponent {
 public:
-//	AbstractComponent(ComponentOwner *Owner, ComponentRank Rank);
-//	virtual ~AbstractComponent();
+	AbstractComponent(ComponentManager *Owner);
+	virtual ~AbstractComponent();
 
 	virtual bool Initialize() = 0;
 	virtual bool Finalize() = 0;
 
 	virtual void Step(const MoveConfig &conf) = 0;
 
-	virtual bool IsHandleValid(Handle h) = 0;
-	virtual bool Allocate(Entity owner, Handle &out) = 0;
-	virtual bool Release(Handle h) = 0;
-	virtual bool Release(Entity e) = 0;
 
-	virtual Handle GetHandle(Entity e) = 0;
+//	virtual bool IsHandleValid(Handle h) = 0;
+//	virtual bool Allocate(Entity owner, Handle &out) = 0;
+//	virtual bool Release(Handle h) = 0;
+//	virtual bool Release(Entity e) = 0;
+//	virtual Handle GetHandle(Entity e) = 0;
 
-//	DefineDirectGetter(Rank, ComponentRank);
-//	DefineDirectGetter(Owner, ComponentOwner*);
-//	DefineFlagGetter(m_Flags, FlagBit(ComponentFlags::ProcessingEnabled), ProcessingEnabled);
+	ComponentManager* GetManager() { return m_Owner; }
+
+	virtual Handle Load(xml_node node, Entity Owner) = 0;
 protected:
-//	Utils::FlagSet m_Flags;
-//	void EnableProcessing();
-//	void DisableProcessing();
 private:
-//	ComponentOwner *m_Owner;
-//	ComponentRank m_Rank;
-//
-//	DefineFlagSetter(m_Flags, FlagBit(ComponentFlags::ProcessingEnabled), ProcessingEnabled);
+	ComponentManager *m_Owner;
+	void *m_padding;
 };
 
 } //namespace Component 

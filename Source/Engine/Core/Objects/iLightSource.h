@@ -8,6 +8,7 @@
 #ifndef LightSource_H
 #define LightSource_H
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -54,5 +55,6 @@ private:
 
 } //namespace Objects 
 } //namespace Core 
+} //namespace MoonGlare 
 
 #endif

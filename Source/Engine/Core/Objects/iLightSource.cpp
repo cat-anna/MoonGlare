@@ -6,6 +6,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
@@ -222,3 +223,4 @@ void iLightSource::Update() {
 
 } //namespace Objects 
 } //namespace Core 
+} //namespace MoonGlare 

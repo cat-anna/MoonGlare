@@ -2,6 +2,7 @@
 #include <MoonGlare.h>
 #include "iFont.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
@@ -37,3 +38,4 @@ bool iFont::DoFinalize() {
 
 } //namespace Fonts
 } //namespace DataClasses
+} //namespace MoonGlare 

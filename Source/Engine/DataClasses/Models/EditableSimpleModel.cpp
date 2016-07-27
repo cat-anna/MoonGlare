@@ -8,6 +8,7 @@
 #include <MoonGlare.h>
 #include "EditableSimpleModel.h"
 
+namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
@@ -31,3 +32,4 @@ bool EditableSimpleModel::DoFinalize() {
 
 } // namespace Models
 } // namespace DataClasses
+} //namespace MoonGlare 

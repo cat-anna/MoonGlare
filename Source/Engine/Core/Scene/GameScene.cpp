@@ -9,6 +9,7 @@
 #include <Engine/Core/DataManager.h>
 #include <Engine/GUI/nGUI.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
@@ -344,3 +345,4 @@ int GameScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 
 } // namespace Scene
 } // namespace Core
+} //namespace MoonGlare 

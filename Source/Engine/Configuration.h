@@ -6,6 +6,8 @@ namespace MoonGlare {
 
 	namespace Configuration {
 
+		using HashID = uint32_t;
+
 		struct Entity {
 			enum {
 				GenerationBits = 12,
@@ -40,19 +42,19 @@ namespace MoonGlare {
 
 		struct Storage {
 			enum {
-				TinyBuffer = 64,
+				TinyBuffer = 32,
 				SmallBuffer = 256,
 				MediumBuffer = 1024,
 				HugeBuffer = 4096, 
 
 				EntityBuffer = HugeBuffer,
-				ComponentBuffer = SmallBuffer,//there is no need for more now
+				ComponentBuffer = HugeBuffer,
+
+				MaxComponentCount = TinyBuffer,
 			};
 
 			struct Static {
 				enum {
-					TransformComponent	= HugeBuffer,
-
 					ObjectBuffer = HugeBuffer,
 					EntityStorage = HugeBuffer,
 				};
@@ -60,6 +62,8 @@ namespace MoonGlare {
 		};
 
 	} //namespace Configuration
+
+using Configuration::HashID;
 
 using Entity = Space::Memory::TripleHandle32<
 			Configuration::Entity::GenerationBits,

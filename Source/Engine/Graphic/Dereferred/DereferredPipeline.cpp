@@ -78,7 +78,7 @@ bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRende
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 
-		auto *sc = dynamic_cast<::Core::Scene::GameScene*>(conf.Scene);
+		auto *sc = dynamic_cast<MoonGlare::Core::Scene::GameScene*>(conf.Scene);
 		if (sc) {
 			sc->GetPhysicsEngine().DoDebugDraw(dev);
 		}

@@ -21,8 +21,8 @@ struct MenuSceneConfig {
 	bool Load(const xml_node node);
 };
 
-class MenuScene : public ::Core::Scene::ciScene {
-	SPACERTTI_DECLARE_CLASS(MenuScene, ::Core::Scene::ciScene)
+class MenuScene : public Core::Scene::ciScene {
+	SPACERTTI_DECLARE_CLASS(MenuScene, Core::Scene::ciScene)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
 public:
@@ -62,7 +62,7 @@ protected:
 	};
 	std::list<MenuState> m_MenuStack;
 	MenuSceneConfig m_Config;
-	Utils::ActionQueue m_ActionQueue;
+	Space::ActionQueue m_ActionQueue;
 
 	GUI::Widgets::Table *m_MenuTable = nullptr;
 	GUI::Widgets::Panel *m_OuterPanel = nullptr;

@@ -13,12 +13,12 @@ enum GlobalChanels : LogChannel {
 	StdOut,
 
 
-	Script = FirstUserChannel + 8,
-	Insider,
+	Insider = FirstUserChannel + 8,
+	Script,
+	ScriptCall,
 	Performance,
 	Resources,
-	ScriptCall,
-
+	FSEvent,
 };
 }
 }
