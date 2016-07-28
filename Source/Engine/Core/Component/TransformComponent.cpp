@@ -68,6 +68,37 @@ namespace Component {
 //	}
 //} EntityManagerInfo;
 
+TransformComponent::TransformComponent(ComponentManager * Owner) 
+	: AbstractComponent(Owner) {
+
+}
+
+TransformComponent::~TransformComponent() {}
+
+bool TransformComponent::Initialize() {
+	return true;
+}
+
+bool TransformComponent::Finalize() {
+	return true;
+}
+
+void TransformComponent::Step(const MoveConfig & conf) {}
+
+Handle TransformComponent::Load(xml_node node, Entity Owner) {
+	return Handle();
+}
+
+//-------------------------------------------------------------------------------------------------
+
+//void TransformComponent::BulletMotionStateProxy::getWorldTransform(btTransform & centerOfMassWorldTrans) const {
+//	//	centerOfMassWorldTrans = m_Transform * m_CenterOfMass.inverse();
+//}
+//
+//void TransformComponent::BulletMotionStateProxy::setWorldTransform(const btTransform & centerOfMassWorldTrans) {
+//	//	m_Transform = centerOfMassWorldTrans * m_CenterOfMass;
+//}
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

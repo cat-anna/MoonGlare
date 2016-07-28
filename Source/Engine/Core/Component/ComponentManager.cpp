@@ -32,13 +32,13 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	m_Scene = scene;
 	m_World = GetEngine()->GetWorld();
 
-	if (!InstallComponent<TransformComponent>()) {
-		AddLog(Error, "Failed to install TransformComponent");
+	if (!InstallComponent<ScriptComponent>()) {
+		AddLog(Error, "Failed to install ScriptComponent");
 		return false;
 	}
 
-	if (!InstallComponent<ScriptComponent>()) {
-		AddLog(Error, "Failed to install ScriptComponent");
+	if (!InstallComponent<TransformComponent>()) {
+		AddLog(Error, "Failed to install TransformComponent");
 		return false;
 	}
 
