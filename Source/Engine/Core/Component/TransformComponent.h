@@ -15,35 +15,36 @@ namespace Component {
 
 class TransformComponent : public AbstractComponent {
 public:
+	TransformComponent(ComponentManager *Owner);
+	virtual ~TransformComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
+	virtual void Step(const MoveConfig &conf) override;
+	virtual Handle Load(xml_node node, Entity Owner) override;
+	constexpr static ComponentID GetComponentID() { return 2; };
 
-	struct TransformEntry : public btMotionState {
+
+	struct TransformEntry {
+		Entity m_Owner;
+
 		math::mat4 m_LocalMatrix;
 		math::mat4 m_GlobalMatrix;
-		float m_LocalScale;
-		float m_GlobalScale;
-
-		Entity m_Owner;
+		Physics::vec3 m_LocalScale;
+		Physics::vec3 m_GlobalScale;
 
 		Physics::Transform m_Transform;
 		Physics::Transform m_CenterOfMass;
-		///synchronizes world transform from user to physics
-		void getWorldTransform(btTransform& centerOfMassWorldTrans) const {
-			centerOfMassWorldTrans = m_Transform * m_CenterOfMass.inverse();
-		}
-		///synchronizes world transform from physics to user
-		///Bullet only calls the update of worldtransform for active objects
-		void setWorldTransform(const btTransform& centerOfMassWorldTrans) {
-			m_Transform = centerOfMassWorldTrans * m_CenterOfMass;
-		}
 	};
-	 
-	template<class T> using Array = std::array<T, Configuration::Storage::Static::TransformComponent>;
-	Array<TransformEntry> m_PositionData;
 
-	TransformEntry* GetForEntry(Entity e);
+//	struct BulletMotionStateProxy : public btMotionState {
+//		///synchronizes world transform from user to physics
+//		virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const override;
+//		///synchronizes world transform from physics to user
+//		///Bullet only calls the update of worldtransform for active objects
+//		virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override;
+//	};
 
+//	TransformEntry* GetForEntry();
 
 /*
 	btTransform
@@ -58,10 +59,10 @@ public:
 	indirect 
 */
 
-	//static Entity Allocate();
-	//static void Release(Entity e);
 protected:
-private:
+	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
+	Array<TransformEntry> m_Array;
+//	Array<BulletMotionStateProxy> m_Proxies;
 };
 
 } //namespace Component 
