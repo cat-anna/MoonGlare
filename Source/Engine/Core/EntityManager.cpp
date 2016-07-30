@@ -19,7 +19,6 @@ EntityManager::EntityManager():
 		m_Memory(Space::NoConstruct) {
 
 	DebugMemorySetClassName("EntityManager");
-
 	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Memory.m_Allocator.Allocated();
 		counter.Capacity = m_Memory.m_Allocator.Capacity();
@@ -42,7 +41,6 @@ void EntityManager::RegisterScriptApi(ApiInitializer &root) {
 
 	root
 	.beginClass<Entity>("cEntity")
-		.addFunction("GetIndex", (int (Entity::*)())&T::GetIndex)
 	.endClass()
 
 	.beginClass<EntityManager>("cEntityManager")
