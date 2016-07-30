@@ -35,11 +35,14 @@ public:
 
 	AbstractComponent* GetComponent(ComponentID cid);
 
+	TransformComponent* GetTransformComponent() { return m_TransformComponent; }
+
 	ciScene* GetScene() { return m_Scene; }
 	World* GetWorld() { return m_World; }
 private:
 	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
 	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
+	TransformComponent *m_TransformComponent;
 	size_t m_UsedCount;
 	ciScene *m_Scene;
 	World *m_World;

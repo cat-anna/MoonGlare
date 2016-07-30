@@ -21,19 +21,36 @@ public:
 	virtual bool Finalize() override;
 	virtual void Step(const MoveConfig &conf) override;
 	virtual Handle Load(xml_node node, Entity Owner) override;
-	constexpr static ComponentID GetComponentID() { return 2; };
 
+	constexpr static ComponentID GetComponentID() { return 2; };
+	constexpr static uint16_t GetHandleType() { return 2; };
+
+	union FlagsMap {
+		struct MapBits_t {
+			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
+
+		};
+		MapBits_t m_Map;
+		uint32_t m_UintValue;
+
+		void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
+		void ClearAll() { m_UintValue = 0; }
+
+		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
+	};
 
 	struct TransformEntry {
-		Entity m_Owner;
-
+		Handle m_SelfHandle;
+		Entity m_OwnerEntity;
+		FlagsMap m_Flags;
 		math::mat4 m_LocalMatrix;
 		math::mat4 m_GlobalMatrix;
-		Physics::vec3 m_LocalScale;
-		Physics::vec3 m_GlobalScale;
+//		Physics::vec3 m_LocalScale;
+//		Physics::vec3 m_GlobalScale;
 
-		Physics::Transform m_Transform;
-		Physics::Transform m_CenterOfMass;
+		Physics::Transform m_LocalTransform;
+//		Physics::Transform m_GlobalTransform;
+//		Physics::Transform m_CenterOfMass;
 	};
 
 //	struct BulletMotionStateProxy : public btMotionState {
@@ -44,24 +61,26 @@ public:
 //		virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override;
 //	};
 
-//	TransformEntry* GetForEntry();
+	TransformEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
+	TransformEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
 
 /*
 	btTransform
 	
-	d3		position
+	d3		position`
 	d4		quaternion
 	mat3x3	matrix
 	?scale
 
 	//process (position & quaternion) -> matrix  [done by physics engine]
-	//static & dynamic <- future optimalisation
+	//static & dynamic <- future optimization
 	indirect 
 */
-
 protected:
 	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
 	Array<TransformEntry> m_Array;
+	EntityMapper m_EntityMapper;
+	std::atomic<size_t> m_Allocated;
 //	Array<BulletMotionStateProxy> m_Proxies;
 };
 

@@ -6,76 +6,43 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
+#include "ComponentManager.h"
 #include "AbstractComponent.h"
 #include "TransformComponent.h"
-//#include <MoonGlare.h>
-//#include "PositionComponent.h"
 
 namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-//using EntityIndex = unsigned short;
-//using EntityGeneration = unsigned short;
-//using EntityIndexQueue = Utils::Memory::StaticIndexQueue<EntityIndex, StaticSettings::StaticStorage::EntityBuffer, Utils::Memory::NoLockPolicy>;
-//using EntityGenerationBuffer = Utils::Memory::GenerationBuffer<EntityGeneration, StaticSettings::StaticStorage::EntityBuffer>;
-//
-//struct EntityManagerImpl {
-//	std::mutex m_Lock;
-//	EntityIndexQueue m_IndexQueue;
-//	EntityGenerationBuffer m_Generations;
-//};
-//
-//static EntityManagerImpl EMImpl;
-//
-//bool EntityManager::Initialize() {
-//	EntityIndex e;
-//	EMImpl.m_IndexQueue.get(e); //reserve index 0 for invalid entry;
-//	EMImpl.m_Generations.NewGeneration(e); //increment generation for invalid index;
-//	return true;
-//}
-//
-//bool EntityManager::Finalize() {
-//	return true;
-//}
-//
-//Entity EntityManager::Allocate() {
-//	LOCK_MUTEX(EMImpl.m_Lock);
-//	EntityIndex index;
-//	if (!EMImpl.m_IndexQueue.get(index)) {
-//		AddLogf(Error, "No more free entity indexes!");
-//		Entity e;
-//		e.m_IntegerValue = 0;
-//		return e;
-//	}
-//	Entity e;
-//	e.m_Value = index;
-//	e.m_Generation = EMImpl.m_Generations.Generation(index);
-//	return e;
-//}
-//
-//void EntityManager::Release(Entity e) {
-//	LOCK_MUTEX(EMImpl.m_Lock);
-//	EMImpl.m_Generations.NewGeneration(e.m_Value);
-//	EMImpl.m_IndexQueue.push(e.m_Value);
-//}
-//
-//static struct EntityManagerInfo_t : Debug::MemoryInterface {
-//	virtual Info* GetInfo() const {
-//		static Info i = { 0, sizeof(EntityIndexQueue::Item) + sizeof(EntityGenerationBuffer::Item), EntityIndexQueue::Size, "EntityManager" };
-//		i.Allocated = EntityIndexQueue::Size - EMImpl.m_IndexQueue.count();
-//		return &i;
-//	}
-//} EntityManagerInfo;
-
 TransformComponent::TransformComponent(ComponentManager * Owner) 
-	: AbstractComponent(Owner) {
+		: AbstractComponent(Owner)
+		, m_Allocated(0){
 
 }
 
 TransformComponent::~TransformComponent() {}
 
 bool TransformComponent::Initialize() {
+	memset(&m_Array, 0, m_Array.size() * sizeof(m_Array[0]));
+
+	HandleIndex index = m_Allocated++;
+	auto &RootEntry = m_Array[index];
+	RootEntry.m_Flags.ClearAll();
+	RootEntry.m_Flags.m_Map.m_Valid = true;
+	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
+	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
+	RootEntry.m_GlobalMatrix = math::mat4();
+
+	auto *ht = GetManager()->GetWorld()->GetHandeTable();
+	Handle h;
+	if (!ht->Allocate(this, RootEntry.m_OwnerEntity, h, index)) {
+		AddLog(Error, "Failed to allocate root handle");
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+		return false;
+	}
+
+	m_EntityMapper.SetHandle(RootEntry.m_OwnerEntity, h);
+
 	return true;
 }
 
@@ -83,10 +50,93 @@ bool TransformComponent::Finalize() {
 	return true;
 }
 
-void TransformComponent::Step(const MoveConfig & conf) {}
+void TransformComponent::Step(const MoveConfig & conf) {
+	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
+	auto *HandleTable = GetManager()->GetWorld()->GetHandeTable();
+
+	size_t LastInvalidEntry = 0;
+	size_t InvalidEntryCount = 0;
+
+	for (size_t i = 1; i < m_Allocated; ++i) {//ignore root entry
+		auto &item = m_Array[i];
+
+		if (!item.m_Flags.m_Map.m_Valid) {
+			//mark and continue
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			continue;
+		}
+
+		if (!HandleTable->IsValid(this, item.m_SelfHandle)) {
+			item.m_Flags.m_Map.m_Valid = false;
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			//mark and continue but set valid to false to avoid further checks
+			continue;
+		}
+
+		auto &gm = item.m_GlobalMatrix;
+		auto &lm = item.m_LocalMatrix;
+		item.m_LocalTransform.getOpenGLMatrix((float*)&lm);
+
+		Entity ParentEntity;
+		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
+			auto *ParentEntry = GetEntry(ParentEntity);
+			gm = ParentEntry->m_GlobalMatrix * lm;
+		} else {
+			item.m_Flags.m_Map.m_Valid = false;
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			//mark and continue but set valid to false to avoid further processing
+		}
+	}
+
+	if (InvalidEntryCount > 0) {
+		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+		//ReleaseComponent(lua, LastInvalidEntry);
+	}
+}
 
 Handle TransformComponent::Load(xml_node node, Entity Owner) {
+	Physics::vec3 pos;
+	if (!XML::Vector::Read(node, "Position", pos)) {
+		return Handle();
+	}
+
+	auto *ht = GetManager()->GetWorld()->GetHandeTable();
+	Handle h;
+	HandleIndex index = m_Allocated++;
+	auto &entry = m_Array[index];
+	entry.m_Flags.ClearAll();
+	if (!ht->Allocate(this, Owner, h, index)) {
+		AddLog(Error, "Failed to allocate handle");
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+		return Handle();
+	}
+
+	m_EntityMapper.SetHandle(Owner, h);
+
+	entry.m_Flags.m_Map.m_Valid = true;
+	entry.m_LocalTransform.setOrigin(pos);
+	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
+	entry.m_SelfHandle = h;
+	entry.m_OwnerEntity = Owner;
+
 	return Handle();
+}
+
+TransformComponent::TransformEntry* TransformComponent::GetEntry(Handle h) {
+	auto *ht = GetManager()->GetWorld()->GetHandeTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		//AddLog(Debug, "Attempt to get TransformEntry for invalid Entity!");
+		return nullptr;
+	}
+	return &m_Array[hi];
+}
+
+TransformComponent::TransformEntry* TransformComponent::GetEntry(Entity e) {
+	return GetEntry(m_EntityMapper.GetHandle(e));
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -37,6 +37,23 @@ public:
 	bool GetHandleData(Handle h, HandlePrivateData &value);
 	bool SetHandleData(Handle h, HandlePrivateData value);
 
+	//template shortcut versions for components
+	template<class COMPONENT>
+	bool GetHandleIndex(COMPONENT *c, Handle h, HandleIndex &index) {
+		if (h.GetType() != c->GetHandleType()) return false;
+		return GetHandleIndex(h, index);
+	}
+	template<class COMPONENT>
+	bool Allocate(COMPONENT *c, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0) {
+		return Allocate(Owner, hout, c->GetHandleType(), index, value);
+	}
+
+	template<class COMPONENT>
+	bool IsValid(COMPONENT *c, Handle h) {
+		if (h.GetType() != c->GetHandleType()) return false;
+	return IsValid(h);
+}
+
 	union HandleFlags {
 		struct {
 			bool m_HasEntityOwner;

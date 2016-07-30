@@ -37,7 +37,9 @@ bool ComponentManager::Initialize(ciScene *scene) {
 		return false;
 	}
 
-	if (!InstallComponent<TransformComponent>()) {
+	auto tc = std::make_unique<TransformComponent>(this);
+	m_TransformComponent = tc.get();
+	if (!InsertComponent(std::move(tc), TransformComponent::GetComponentID())) {
 		AddLog(Error, "Failed to install TransformComponent");
 		return false;
 	}

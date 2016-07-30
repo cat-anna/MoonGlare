@@ -114,7 +114,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	for (size_t i = 0; i < count; ++i) {
 		auto &item = m_Array[i];
 		if (!item.m_Flags.m_Map.m_Valid) {
-			//silently ignore
+			//mark and ignore
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;

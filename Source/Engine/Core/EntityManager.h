@@ -17,11 +17,11 @@ class EntityManager final
 	, public Config::Current::DebugMemoryInterface {
 SPACERTTI_DECLARE_STATIC_CLASS(EntityManager, Space::RTTI::RTTIObject);
 public:
+	template<class T> using Array = std::array<T, Configuration::Entity::IndexLimit>;
 	struct Memory {
-		template<class T> using Array = std::array<T, Configuration::Storage::Static::EntityStorage>;
 
 		template<class ... ARGS>
-		using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::Static::ObjectBuffer, ARGS...>;
+		using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Entity::IndexLimit, ARGS...>;
 		using Generations_t = Space::Memory::GenerationRandomAllocator<GenerationsAllocator_t, Entity>;
 
 		Array<Entity> m_Parent;
@@ -43,13 +43,31 @@ public:
 	Entity Allocate(Entity parent);
 	void Release(Entity entity);
 
-	Entity GetParent(Entity entity) const;
+	bool GetParent(Entity entity, Entity &ParentOut) const;
 	bool IsValid(Entity entity) const;
 
 	static void RegisterScriptApi(ApiInitializer &root);
 private: 
 	Entity m_Root;
 	Memory m_Memory;
+};
+
+struct EntityMapper {
+	template<class T> using Array = EntityManager::Array<T>;
+
+	Handle GetHandle(Entity e) const {
+		return m_Array[e.GetIndex()].m_Handle;
+	}
+
+	void SetHandle(Entity e, Handle h) {
+		m_Array[e.GetIndex()].m_Handle = h;
+	}
+
+	struct Entry {
+		Handle m_Handle;
+	};
+protected:
+	Array<Entry> m_Array;
 };
 
 } //namespace Core 

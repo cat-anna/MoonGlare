@@ -61,9 +61,9 @@ bool HandeTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, Handle
 		return false;
 	}
 
-	h.SetType(Type);
-	m_Allocator.SetMapping(h, index);
-	auto &item = m_Array[h.GetIndex()];
+	hout.SetType(Type);
+	m_Allocator.SetMapping(hout, index);
+	auto &item = m_Array[hout.GetIndex()];
 	item.m_Data = value;
 	item.m_Type = Type;
 	item.m_Flags.m_UIntValue = 0;
@@ -76,15 +76,15 @@ bool HandeTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex
 		AddLog(Warning, "Attempt to allocate handle for invalid entity");
 		return false;
 	}
-	Handle h;
-	if (!m_Allocator.Allocate(h)) {
+
+	if (!m_Allocator.Allocate(hout)) {
 		AddLogf(Error, "Failed to allocate handle!");
 		return false;
 	}
 	
-	h.SetType(Type);
-	m_Allocator.SetMapping(h, index);
-	auto &item = m_Array[h.GetIndex()];
+	hout.SetType(Type);
+	m_Allocator.SetMapping(hout, index);
+	auto &item = m_Array[hout.GetIndex()];
 	item.m_Data = value;
 	item.m_Owner = Owner;
 	item.m_Type = Type;
@@ -103,6 +103,20 @@ bool HandeTable::Release(Handle h) {
 	m_Allocator.Free(h);
 
 	return false;
+}
+
+bool HandeTable::GetHandleIndex(Handle h, HandleIndex & index) {
+	if (!IsValid(h)) {
+		return false;
+	}
+	return m_Allocator.GetMapping(h, index);
+}
+
+bool HandeTable::SetHandleIndex(Handle h, HandleIndex index) {
+	if (!IsValid(h)) {
+		return false;
+	}
+	return m_Allocator.SetMapping(h, index);
 }
 
 } //namespace Core 

@@ -29,6 +29,8 @@ namespace math {
 	typedef glm::uvec3 uvec3;
 	typedef glm::uvec4 uvec4;
 
+	using Transform = Physics::Transform;
+
 	template<class T>
 	inline T clamp(T t, T tmin, T tmax) {
 		if (t > tmax) return tmax;

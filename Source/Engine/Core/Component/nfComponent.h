@@ -16,6 +16,9 @@ using UniqueAbstractComponent = std::unique_ptr<AbstractComponent>;
 
 class ComponentManager;
 
+class ScriptComponent;
+class TransformComponent;
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

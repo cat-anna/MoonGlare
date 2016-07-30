@@ -103,13 +103,14 @@ bool EntityManager::IsValid(Entity entity) const {
 	return m_Memory.m_Allocator.IsHandleValid(entity);
 }
 
-Entity EntityManager::GetParent(Entity entity) const {
+bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
 		AddLog(Error, "entity is not valid!");
-		return Entity();;
+		return false;
 	}
 	auto index = entity.GetIndex();
-	return m_Memory.m_Parent[index];
+	ParentOut = m_Memory.m_Parent[index];
+	return true;
 }
 
 #if 0

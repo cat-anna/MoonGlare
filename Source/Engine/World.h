@@ -23,6 +23,7 @@ public:
 	bool Finalize();
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
+	Core::HandeTable* GetHandeTable() { return &m_HandleTable; }
 
 	::Core::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 private: 

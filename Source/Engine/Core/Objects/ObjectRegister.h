@@ -32,7 +32,7 @@ public:
 		Array<Entity> m_Entity;
 	};
 
-	ObjectRegister(World* world);
+	ObjectRegister(World* world, GameScene *OwnerScene);
 	~ObjectRegister();
 
 	bool InitializeObjects();
@@ -101,7 +101,7 @@ public:
 	Handle LoadObject(const std::string &Name, GameScene *OwnerScene, Handle Parent = Handle());
 protected:
 	std::unique_ptr<Memory> m_Memory;
-
+	GameScene *m_OwnerScene;
 	void Reorder(size_t start);
 
 	Handle LoadObject(Handle Parent, xml_node MetaXML, GameScene *OwnerScene);

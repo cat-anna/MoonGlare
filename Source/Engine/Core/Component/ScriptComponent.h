@@ -25,7 +25,6 @@ public:
 	constexpr static ComponentID GetComponentID() { return 1; };
 
 
-	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
 
 	using LuaHandle = int;
 
@@ -60,6 +59,7 @@ protected:
 	template<class ... ARGS>
 	using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::ComponentBuffer, ARGS...>;
 	using Generations_t = Space::Memory::GenerationLinearBuffer<GenerationsAllocator_t, Handle>;
+	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
 
 	::Core::cScriptEngine *m_ScriptEngine;
 	Array<ScriptEntry> m_Array;

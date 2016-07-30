@@ -8,6 +8,10 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Core/Component/ComponentManager.h>
+#include <Core/Component/AbstractComponent.h>	
+#include <Core/Component/TransformComponent.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Objects {
@@ -15,9 +19,10 @@ namespace Objects {
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
 RegisterApiDerivedClass(ObjectRegister, &ObjectRegister::RegisterScriptApi);
 
-ObjectRegister::ObjectRegister(World* world) :
+ObjectRegister::ObjectRegister(World* world, GameScene *OwnerScene) :
 		BaseClass(),
-		WorldUser(world) {
+		WorldUser(world),
+		m_OwnerScene(OwnerScene) {
 	m_Memory = std::make_unique<Memory>();
 	Clear();
 }
@@ -47,8 +52,8 @@ void ObjectRegister::Clear() {
 		it.reset();
 
 	m_Memory->m_HandleAllocator.Rebuild();
-	m_Memory->m_GlobalMatrix.fill(math::mat4());
-	m_Memory->m_LocalMatrix.fill(math::mat4());
+//	m_Memory->m_GlobalMatrix.fill(math::mat4());
+//	m_Memory->m_LocalMatrix.fill(math::mat4());
 	Space::MemZero(m_Memory->m_Parent);
 
 	Handle h;
@@ -97,7 +102,13 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	m_Memory->m_ObjectPtr[index].swap(obj);
 	m_Memory->m_Parent[index] = Parent;
 	m_Memory->m_HandleIndex[index] = h.GetIndex();
-	m_Memory->m_Entity[index] = GetWorld()->GetEntityManager()->Allocate(GetParentEntity(Parent));
+	auto eparent = GetEntity(Parent);
+	auto em = GetWorld()->GetEntityManager();
+	auto e = em->Allocate(eparent);
+
+	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
+
+	m_Memory->m_Entity[index] = e;
 
 	return h;
 }
@@ -146,8 +157,8 @@ void ObjectRegister::Reorder(size_t start) {
 		auto OtherParentHandle = m_Memory->m_Parent[other];
 
 		if (m_Memory->m_HandleAllocator.IsHandleValid(OtherParentHandle)) {
-			m_Memory->m_GlobalMatrix[i] = m_Memory->m_GlobalMatrix[other];
-			m_Memory->m_LocalMatrix[i] = m_Memory->m_LocalMatrix[other];
+//			m_Memory->m_GlobalMatrix[i] = m_Memory->m_GlobalMatrix[other];
+//			m_Memory->m_LocalMatrix[i] = m_Memory->m_LocalMatrix[other];
 			m_Memory->m_Parent[i] = m_Memory->m_Parent[other];
 			m_Memory->m_Entity[i] = m_Memory->m_Entity[other];
 			m_Memory->m_ObjectPtr[i] = std::move(m_Memory->m_ObjectPtr[other]);
@@ -198,7 +209,9 @@ Entity ObjectRegister::GetParentEntity(Handle h) {
 		AddLog(Warning, "Invalid handle!");
 		return Entity();
 	}
-	return GetWorld()->GetEntityManager()->GetParent(m_Memory->m_Entity[idx]);
+	Entity Parent;
+	GetWorld()->GetEntityManager()->GetParent(m_Memory->m_Entity[idx], Parent);
+	return Parent;
 }
 
 Object *ObjectRegister::Get(Handle h) {
@@ -313,6 +326,10 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 }
 
 void ObjectRegister::Process(const MoveConfig &conf) {
+
+	auto *cm = &m_OwnerScene->GetComponentManager();
+	auto *tc = cm->GetTransformComponent();
+
 	for (size_t i = 1, j = m_Memory->m_HandleAllocator.Allocated(); i < j; ++i) {
 
 		size_t pid;
@@ -321,12 +338,19 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 		}
 
 		auto obj = m_Memory->m_ObjectPtr[i].get();
+		math::mat4 *gm = nullptr;
 
-		auto &gm = m_Memory->m_GlobalMatrix[i];
-		auto &lm = m_Memory->m_LocalMatrix[i];
+		auto *tcentry = tc->GetEntry(m_Memory->m_Entity[i]);
 
-		obj->GetPositionTransform().getOpenGLMatrix((float*)&lm);
-		gm = m_Memory->m_GlobalMatrix[pid] * lm;
+		if (!tcentry) {
+			gm = &m_Memory->m_GlobalMatrix[i];
+			auto &lm = m_Memory->m_LocalMatrix[i];
+
+			obj->GetPositionTransform().getOpenGLMatrix((float*)&lm);
+			*gm = m_Memory->m_GlobalMatrix[pid] * lm;
+		} else {
+			gm = &tcentry->m_GlobalMatrix;
+		}
 
 		if (obj->GetMoveController())
 			obj->GetMoveController()->DoMove(conf);
@@ -337,7 +361,7 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 		if (obj->GetVisible() && obj->GetModel()) {
 			float scale = obj->GetEffectiveScale();
-			auto sgm = gm;
+			auto sgm = *gm;
 			sgm[0] *= scale;
 			sgm[1] *= scale;
 			sgm[2] *= scale;
