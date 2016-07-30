@@ -4,15 +4,11 @@
 namespace MoonGlare {
 namespace Core {
 	struct MoveConfig;
+	class HandleTable;
 }//namespace Core
 }//namespace MoonGlare
 
 namespace Core {
-	namespace Data {
-		class Manager;
-	}
-
-	class Engine;
 	class Input;
 	struct MouseEventDispatcher;
 

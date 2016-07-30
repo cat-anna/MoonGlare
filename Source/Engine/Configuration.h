@@ -30,6 +30,11 @@ namespace MoonGlare {
 				GenerationBits = 12,
 				IndexBits = 12,
 				TypeBits = 8,
+				ValueBits = 0,
+
+				GenerationLimit = 1 << GenerationBits,
+				IndexLimit = 1 << IndexBits,
+				TypeLimit = 1 << TypeBits,
 			};
 
 			struct Types {
@@ -78,6 +83,7 @@ using Handle = Space::Memory::TripleHandle32<
 			Configuration::Handle::TypeBits
 		>;
 
+using HandleIndex = Handle::Index_t;
 using HandleSet = std::vector<Handle>;
 
 } //namespace MoonGlare
