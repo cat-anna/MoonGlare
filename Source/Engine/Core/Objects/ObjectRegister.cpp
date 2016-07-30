@@ -46,12 +46,15 @@ void ObjectRegister::Clear() {
 	for (auto& it: m_Memory->m_ObjectPtr) 
 		it.reset();
 
-	m_Memory->m_HandleAllocator.Clear();
+	m_Memory->m_HandleAllocator.Rebuild();
 	m_Memory->m_GlobalMatrix.fill(math::mat4());
 	m_Memory->m_LocalMatrix.fill(math::mat4());
 	Space::MemZero(m_Memory->m_Parent);
 
-	auto h = m_Memory->m_HandleAllocator.Allocate();
+	Handle h;
+	if (!m_Memory->m_HandleAllocator.Allocate(h)) {
+		THROW_ASSERT(false, "critical error");
+	}
 	m_Memory->m_HandleAllocator.SetMapping(h, 0);
 	m_Memory->m_ObjectPtr[0] = std::make_unique<Object>();
 	m_Memory->m_ObjectPtr[0]->SetSelfHandle(h);
@@ -76,7 +79,10 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 		return Handle();
 	}
 
-	auto h = m_Memory->m_HandleAllocator.Allocate();
+	Handle h;
+	if (!m_Memory->m_HandleAllocator.Allocate(h)) {
+		THROW_ASSERT(false, "critical error");
+	}
 	if (!m_Memory->m_HandleAllocator.IsHandleValid(h)) {
 		AddLog(Error, "No more space!");
 		return Handle();

@@ -28,10 +28,19 @@ bool World::Initialize(::Core::cScriptEngine *se) {
 		return false;
 	}
 
+	if (!m_HandleTable.Initialize(&m_EntityManager)) {
+		AddLogf(Error, "Failed to initialize HandleTable!");
+		return false;
+	}
+
 	return true;
 }
 
 bool World::Finalize() {
+	if (!m_HandleTable.Finalize()) {
+		AddLogf(Error, "Failed to finalize HandleTable!");
+	}
+
 	if (!m_EntityManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize EntityManager!");
 	}
