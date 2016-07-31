@@ -97,16 +97,18 @@ void ApiInit::Initialize(Script *s) {
 
 	for (auto &it : *_InitFuncs) {
 		const char *where = it.where;
-		if (!where)
-		where = "api";
-		auto api = s->GetApiInitializer().beginNamespace(where);
+
+
 #if 0
 		if (it.Class)
 			AddLog(Debug, "Registering api of class '" << it.Class << "' in namespace " << where);
 		else
 			AddLog(Debug, "Registering independent api in namespace " << where);
 #endif // 0
-		it.func(api);
+		if (where)
+			it.func(s->GetApiInitializer().beginNamespace(where));
+		else
+			it.func(s->GetApiInitializer());
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 		++ApiInitFunctionsRun;
 #endif
@@ -115,65 +117,6 @@ void ApiInit::Initialize(Script *s) {
 	AddLogf(Performance, "Executed %d api init functions.", ApiInitFunctionsRun);
 #endif
 }
-
-#if 0
-
-void cLuaApiInit::Primary(ApiDefInitializer root){
-	auto Flags = root
-		.beginNamespace("api")
-	//	RegisterLuaFunction(&cScriptEngine::Lua_AddLog, "AddLog", root.);
-	//	RegisterLuaFunction(, "rand", Lua, "integer|", m_MLua);
-	/*
-		.beginClass<c3DPoint>("c3DPoint")
-		.addConstructor<void(*)(float, float, float)>()
-		//		.Constructor()
-		//		.Constructor<c3DPoint>()
-		//		.Constructor<float>()
-		//		.Member("x", &c3DPoint::x)
-		//		.Member("y", &c3DPoint::y)
-		//		.Member("z", &c3DPoint::z)
-		.addFunction("Distance", &c3DPoint::Distance)
-		.addFunction("DistanceXZ", &c3DPoint::DistanceXZ)
-		.addFunction("Versor", &c3DPoint::Versor)
-		.addFunction("VersorXZ", &c3DPoint::VersorXZ)
-		.addFunction("Length", &c3DPoint::Length)
-		.addFunction("LengthXZ", &c3DPoint::LengthXZ)
-		.endClass()*/
-	//--------------------------------AreaEvents-----------------------------------------------
-	/*	.deriveClass<cBasicEventArea, cObject>("cBasicEventArea")
-		.endClass()
-
-		.deriveClass<cDamageZone, cBasicEventArea>("cDamageZone")
-		.endClass()
-
-		.deriveClass<cKillZone, cDamageZone>("cKillZone")
-		.endClass()
-
-		.deriveClass<cNearestAttackZone, cDamageZone>("cNearestAttackZone")
-		.endClass()
-
-		.deriveClass<cScriptEventArea, cBasicEventArea>("cScriptEventArea")
-		.endClass()*/
-	//--------------------------------Engine---------------------------------------------------------
-	/*	.deriveClass<cGameEngine, cRootClass>("cGameEngine")
-			.addFunction("test", &cGameEngine::test)
-			.endClass()*/
-	//------------------------------------------Fog---------------------------------------------------
-	//	.beginClass<Graphic::cFog>("cFog")
-	//		.addFunction("Enable", &cFog::Enable)
-	//		.addFunction("Disable", &cFog::Disable)
-	//		.addFunction("SetFog", &cFog::SetFog)
-	//	.endClass()
-	//------------------------------------------cMovers---------------------------------------------------
-	/*.deriveClass<MoveControllers::cPathController, iMoveController>("cPathMover")
-	.endClass()*/
-	//--------------------------------------------------------------------------------------------
-	/*ML->Insert(mluabind::Class<cGameCoords>("cGameCoords")
-			.Constructor()
-			.Constructor<const char*, float, float, float>()
-			);*/
-}
-#endif
 
 struct consttable_t {
 	const char *name;

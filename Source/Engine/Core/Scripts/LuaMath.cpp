@@ -14,55 +14,12 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
-int randomi(int rmin, int rmax){
-	int d = rmax - rmin + 1;
-	int r = (rand() % d) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
-int RandRange(int rmin, int rmax){
-	int d = rmax - rmin + 1;
-	int r = (rand() % d) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
-float randomf(float rmin, float rmax){
-	float d = rmax - rmin;
-	float r = (rand() % static_cast<int>(d)) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
 template<class T>
 T VecNormalize(T *vec) { return glm::normalize(*vec); }
 
-void ScriptMath(ApiInitializer &root){
-	struct T {
-		static math::vec4 MakeVec4(float x, float y, float z, float w) {
-			return math::vec4(x, y, z, w);
-		}
-		static math::vec3 MakeVec3(float x, float y, float z) {
-			return math::vec3(x, y, z);
-		}
-		static math::vec2 MakeVec2(float x, float y) {
-			return math::vec2(x, y);
-		}
-
-
-	};
+void ScriptMathClasses(ApiInitializer &root){
 	root
-	//.addFunction("randomseed", &srand)
-	//.addFunction("rand", &rand)
-	.addFunction("random", &randomi)
-	.addFunction("RandRange", &randomi)
-	//.addFunction("randomf", &randomf)
-	.addFunction("MakeVec4", &T::MakeVec4)
-	.addFunction("MakeVec3", &T::MakeVec3)
-	.addFunction("MakeVec2", &T::MakeVec2)
-
-	.beginClass<math::vec4>("vec4")
+	.beginClass<math::vec4>("cVec4")
 		.addConstructor<void(*)(float, float, float, float)>()
 		.addData("x", &math::vec4::x)
 		.addData("y", &math::vec4::y)
@@ -71,17 +28,15 @@ void ScriptMath(ApiInitializer &root){
 		.addFunction("length", &math::vec4::length)
 		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec4, math::vec4>::callee<VecNormalize>())
 	.endClass()
-
-	.beginClass<math::vec3>("vec3")
+	.beginClass<math::vec3>("cVec3")
 		.addConstructor<void(*)(float, float, float)>()
 		.addData("x", &math::vec3::x)
 		.addData("y", &math::vec3::y)
 		.addData("z", &math::vec3::z)
 		.addFunction("length", &math::vec3::length)
 		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec3, math::vec3>::callee<VecNormalize>())
-		.endClass()
-
-	.beginClass<math::vec2>("vec2")
+	.endClass()
+	.beginClass<math::vec2>("cVec2")
 		.addConstructor<void(*)(float, float)>()
 		.addData("x", &math::vec2::x)
 		.addData("y", &math::vec2::y)
@@ -90,12 +45,62 @@ void ScriptMath(ApiInitializer &root){
 		.endClass()
 	;
 }
+RegisterApiNonClass(ScriptMathClasses, &ScriptMathClasses, "math");
 
-RegisterApiNonClass(ScriptMath, &ScriptMath, "math");
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+void ScriptMathGlobal(ApiInitializer &root) {
+	struct T {
+		static int Vec4(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+		static int Vec3(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+		static int Vec2(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+	};
+
+	root
+		.addCFunction("Vec4", &T::Vec4)
+		.addCFunction("Vec3", &T::Vec3)
+		.addCFunction("Vec2", &T::Vec2)
+	;
+}
+RegisterApiNonClass(ScriptMathGlobal, &ScriptMathGlobal, nullptr);
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+int randomi(int rmin, int rmax) {
+	int d = rmax - rmin + 1;
+	int r = (rand() % d) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
+int RandRange(int rmin, int rmax) {
+	int d = rmax - rmin + 1;
+	int r = (rand() % d) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
+float randomf(float rmin, float rmax) {
+	float d = rmax - rmin;
+	float r = (rand() % static_cast<int>(d)) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
 
 std::random_device _RandomDevice;
 std::mt19937 _PseudoRandom(_RandomDevice());
-
 void RandomNamespace(ApiInitializer &root) {
 	struct T {
 		static void Seed(int seed) {
@@ -129,6 +134,9 @@ void RandomNamespace(ApiInitializer &root) {
 		}
 	};
 	root
+	.addFunction("random", &randomi)
+	.addFunction("RandRange", &randomi)
+
 	.addFunction("Seed", &T::Seed)
 	.addFunction("Randomize", &T::Randomize)
 
