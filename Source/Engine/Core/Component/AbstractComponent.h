@@ -31,11 +31,13 @@ public:
 //	virtual Handle GetHandle(Entity e) = 0;
 
 	ComponentManager* GetManager() { return m_Owner; }
+	HandleTable* GetHandleTable() { return m_HandleTable; }
 
 	virtual Handle Load(xml_node node, Entity Owner) = 0;
 protected:
 private:
 	ComponentManager *m_Owner;
+	HandleTable *m_HandleTable;
 	void *m_padding;
 };
 

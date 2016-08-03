@@ -6,19 +6,19 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef HandeTable_H
-#define HandeTable_H
+#ifndef HandleTable_H
+#define HandleTable_H
 
 #include "EntityManager.h"
 
 namespace MoonGlare {
 namespace Core {
 
-class HandeTable final 
+class HandleTable final 
 	: public Config::Current::DebugMemoryInterface {
 public:
- 	HandeTable();
- 	~HandeTable();
+ 	HandleTable();
+ 	~HandleTable();
 
 	bool Initialize(EntityManager *EntityManager);
 	bool Finalize();
@@ -29,6 +29,8 @@ public:
 	bool Allocate(Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value = 0);
 	bool Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value = 0);
 	bool Release(Handle h);
+
+	bool GetHandleParentEntity(Handle h, Entity &eout);
 
 	//below function return false if handle or owner entity is not valid
 	bool GetHandleIndex(Handle h, HandleIndex &index);
