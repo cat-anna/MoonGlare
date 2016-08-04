@@ -23,6 +23,15 @@ public:
 
 	virtual void Step(const MoveConfig &conf) = 0;
 
+	virtual bool Load(xml_node node, Entity Owner, Handle &hout) = 0;
+	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) = 0;
+
+	/** 
+		Push component entry to lua for manipulation by scripts. May not be reimplemented.
+		@return false if not supported otherwise true (even if handle is not valid)
+	*/
+	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
+
 
 //	virtual bool IsHandleValid(Handle h) = 0;
 //	virtual bool Allocate(Entity owner, Handle &out) = 0;
@@ -31,10 +40,9 @@ public:
 //	virtual Handle GetHandle(Entity e) = 0;
 
 	ComponentManager* GetManager() { return m_Owner; }
-	HandleTable* GetHandleTable() { return m_HandleTable; }
 
-	virtual Handle Load(xml_node node, Entity Owner) = 0;
 protected:
+	HandleTable* GetHandleTable() { return m_HandleTable; }
 private:
 	ComponentManager *m_Owner;
 	HandleTable *m_HandleTable;

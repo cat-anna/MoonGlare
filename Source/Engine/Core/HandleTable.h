@@ -39,6 +39,8 @@ public:
 	bool GetHandleData(Handle h, HandlePrivateData &value);
 	bool SetHandleData(Handle h, HandlePrivateData value);
 
+	bool SwapHandleIndexes(Handle ha, Handle hb);
+
 	//template shortcut versions for components
 	template<class COMPONENT>
 	bool GetHandleIndex(COMPONENT *c, Handle h, HandleIndex &index) {
@@ -49,12 +51,16 @@ public:
 	bool Allocate(COMPONENT *c, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0) {
 		return Allocate(Owner, hout, c->GetHandleType(), index, value);
 	}
-
 	template<class COMPONENT>
 	bool IsValid(COMPONENT *c, Handle h) {
 		if (h.GetType() != c->GetHandleType()) return false;
-	return IsValid(h);
-}
+		return IsValid(h);
+	}
+	template<class COMPONENT>
+	bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) {
+		if (ha.GetType() != c->GetHandleType() || hb.GetType() != c->GetHandleType()) return false;
+		return SwapHandleIndexes(ha, bh);
+	}
 
 	union HandleFlags {
 		struct {

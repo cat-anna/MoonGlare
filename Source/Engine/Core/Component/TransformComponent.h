@@ -20,7 +20,9 @@ public:
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
 	virtual void Step(const MoveConfig &conf) override;
-	virtual Handle Load(xml_node node, Entity Owner) override;
+	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) override;
+	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
 
 	constexpr static ComponentID GetComponentID() { return 2; };
 	constexpr static uint16_t GetHandleType() { return 2; };
@@ -48,9 +50,15 @@ public:
 //		Physics::vec3 m_LocalScale;
 //		Physics::vec3 m_GlobalScale;
 
-		Physics::Transform m_LocalTransform;
+		math::Transform m_LocalTransform;
 //		Physics::Transform m_GlobalTransform;
 //		Physics::Transform m_CenterOfMass;
+
+		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
+		void SetPosition(math::vec3 pos) { m_LocalTransform.setOrigin(convert(pos)); }
+//		void SetPosition(Physics::vec3 pos) {  }
+		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
+		void SetRotation(math::vec4 rot) { m_LocalTransform.setRotation(convert(rot)); }
 	};
 
 //	struct BulletMotionStateProxy : public btMotionState {
@@ -76,6 +84,7 @@ public:
 	//static & dynamic <- future optimization
 	indirect 
 */
+	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
 	Array<TransformEntry> m_Array;

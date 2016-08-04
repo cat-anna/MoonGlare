@@ -106,7 +106,7 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	auto em = GetWorld()->GetEntityManager();
 	auto e = em->Allocate(eparent);
 
-	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
+//	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
 
 	m_Memory->m_Entity[index] = e;
 
@@ -258,7 +258,10 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 			continue;
 		}
 
-		c->Load(it, objE);
+		Handle h;
+		if (!c->Load(it, objE, h)) {
+			AddLog(Error, "Failure during loading component!");
+		}
 	}
 
 	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {

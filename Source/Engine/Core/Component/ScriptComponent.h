@@ -21,10 +21,11 @@ public:
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
 	virtual void Step(const MoveConfig &conf) override;
-	virtual Handle Load(xml_node node, Entity Owner) override;
+	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+
 	constexpr static ComponentID GetComponentID() { return 1; };
-
-
+	constexpr static uint16_t GetHandleType() { return 2; };
 
 	using LuaHandle = int;
 
@@ -50,26 +51,27 @@ public:
 	struct ScriptEntry {
 		FlagsMap m_Flags;
 		Entity m_Owner;	
+		Handle m_Handle;
+		uint32_t padding;
 	};
 	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 
 
 protected:
-	template<class ... ARGS>
-	using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Storage::ComponentBuffer, ARGS...>;
-	using Generations_t = Space::Memory::GenerationLinearBuffer<GenerationsAllocator_t, Handle>;
-	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
-
 	::Core::cScriptEngine *m_ScriptEngine;
+	std::atomic<size_t> m_Allocated;
+
+	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
 	Array<ScriptEntry> m_Array;
-	Generations_t m_Generations;
 
 	void ReleaseComponent(lua_State *lua, size_t Index);
 private:
 	static int lua_DestroyComponent(lua_State *lua);
 	static int lua_DestroyObject(lua_State *lua);
-};
+	static int lua_GetComponent(lua_State *lua);
+	static int lua_DereferenceHandle(lua_State *lua);
+}; 
 
 } //namespace Component 
 } //namespace Core 

@@ -21,6 +21,10 @@ AbstractComponent::AbstractComponent(ComponentManager * Owner)
 AbstractComponent::~AbstractComponent() {
 }
 
+bool AbstractComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
+	return false;
+}
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

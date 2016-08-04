@@ -128,5 +128,18 @@ bool HandleTable::GetHandleParentEntity(Handle h, Entity &eout) {
 	return true;
 }
 
+bool HandleTable::SwapHandleIndexes(Handle ha, Handle hb) {
+	if (!IsValid(ha) || !IsValid(hb)) {
+		return false;
+	}
+	HandleIndex hia, hib;
+	if (!m_Allocator.GetMapping(ha.GetIndex(), hia) || !m_Allocator.GetMapping(hb.GetIndex(), hib)) {
+		return false;
+	}
+	m_Allocator.SetMapping(ha.GetIndex(), hib);
+	m_Allocator.SetMapping(hb.GetIndex(), hia);
+	return true;
+}
+
 } //namespace Core 
 } //namespace MoonGlare 
