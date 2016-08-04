@@ -10,6 +10,8 @@
 #include <Engine/Core/Console.h>
 #include "GraphicSettings.h"
 
+#include <Core/InputMap.h>
+
 namespace Graphic {
 
 static string DumpGLFWMode(const GLFWvidmode* mode) {

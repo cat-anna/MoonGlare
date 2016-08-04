@@ -6,6 +6,9 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
+#include "InputMap.h"
+
+//#include <Input.x2c.h>
 
 namespace Core {
 

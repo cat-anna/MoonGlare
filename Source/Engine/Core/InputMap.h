@@ -107,4 +107,10 @@ private:
 
 } //namespace Core 
 
+namespace MoonGlare {
+namespace Core {
+	inline ::Core::Input* GetInput() { return ::Core::Input::Instance(); }
+} //namespace Core 
+} //namespace MoonGlare 
+
 #endif

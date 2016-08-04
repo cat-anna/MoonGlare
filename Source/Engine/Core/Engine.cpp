@@ -2,6 +2,7 @@
 #include <MoonGlare.h>
 #include <GUI/GUI.h>
 #include "Console.h"
+#include <Core/InputMap.h>
 
 namespace MoonGlare {
 namespace Core {
