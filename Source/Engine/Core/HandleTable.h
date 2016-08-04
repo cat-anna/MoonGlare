@@ -6,19 +6,19 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef HandeTable_H
-#define HandeTable_H
+#ifndef HandleTable_H
+#define HandleTable_H
 
 #include "EntityManager.h"
 
 namespace MoonGlare {
 namespace Core {
 
-class HandeTable final 
+class HandleTable final 
 	: public Config::Current::DebugMemoryInterface {
 public:
- 	HandeTable();
- 	~HandeTable();
+ 	HandleTable();
+ 	~HandleTable();
 
 	bool Initialize(EntityManager *EntityManager);
 	bool Finalize();
@@ -30,12 +30,37 @@ public:
 	bool Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value = 0);
 	bool Release(Handle h);
 
+	bool GetHandleParentEntity(Handle h, Entity &eout);
+
 	//below function return false if handle or owner entity is not valid
 	bool GetHandleIndex(Handle h, HandleIndex &index);
 	bool SetHandleIndex(Handle h, HandleIndex index);
 
 	bool GetHandleData(Handle h, HandlePrivateData &value);
 	bool SetHandleData(Handle h, HandlePrivateData value);
+
+	bool SwapHandleIndexes(Handle ha, Handle hb);
+
+	//template shortcut versions for components
+	template<class COMPONENT>
+	bool GetHandleIndex(COMPONENT *c, Handle h, HandleIndex &index) {
+		if (h.GetType() != c->GetHandleType()) return false;
+		return GetHandleIndex(h, index);
+	}
+	template<class COMPONENT>
+	bool Allocate(COMPONENT *c, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0) {
+		return Allocate(Owner, hout, c->GetHandleType(), index, value);
+	}
+	template<class COMPONENT>
+	bool IsValid(COMPONENT *c, Handle h) {
+		if (h.GetType() != c->GetHandleType()) return false;
+		return IsValid(h);
+	}
+	template<class COMPONENT>
+	bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) {
+		if (ha.GetType() != c->GetHandleType() || hb.GetType() != c->GetHandleType()) return false;
+		return SwapHandleIndexes(ha, bh);
+	}
 
 	union HandleFlags {
 		struct {

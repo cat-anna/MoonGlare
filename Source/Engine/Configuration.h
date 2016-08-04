@@ -10,10 +10,14 @@ namespace MoonGlare {
 
 		struct Entity {
 			enum {
-				GenerationBits = 12,
-				IndexBits = 12,
-				TypeBits = 8, 
+				GenerationBits = 14,
+				IndexBits = 14,
+				TypeBits = 4, 
 				ValueBits = 0,
+
+				GenerationLimit = 1 << GenerationBits,
+				IndexLimit = 1 << IndexBits,
+				TypeLimit = 1 << TypeBits,
 			};
 
 			struct Types {
@@ -87,3 +91,15 @@ using HandleIndex = Handle::Index_t;
 using HandleSet = std::vector<Handle>;
 
 } //namespace MoonGlare
+
+inline std::ostream& operator<<(std::ostream &o, MoonGlare::Entity e) {
+	char buf[128];
+	sprintf_s(buf, "(Entity; Index:%d; Type:%d; Generation:%d)", e.GetIndex(), e.GetType(), e.GetGeneration());
+	return o << buf;
+}
+
+inline std::ostream& operator<<(std::ostream &o, MoonGlare::Handle h) {
+	char buf[128];
+	sprintf_s(buf, "(Handle; Index:%d; Type:%d; Generation:%d)", h.GetIndex(), h.GetType(), h.GetGeneration());
+	return o << buf;
+}

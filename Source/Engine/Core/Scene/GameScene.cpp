@@ -21,7 +21,7 @@ GameScene::GameScene():
 		BaseClass(),
 		m_MapName(),
 		m_MapData(),
-		m_Objects(GetEngine()->GetWorld()),
+		m_Objects(GetEngine()->GetWorld(), this),
 		m_Physics(),
 		m_Environment(nullptr) {
 	m_Physics = std::make_unique<Physics::PhysicEngine>();

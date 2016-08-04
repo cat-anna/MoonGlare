@@ -10,7 +10,7 @@
 #define World_H
 
 #include "Core/EntityManager.h"
-#include "Core/HandeTable.h"
+#include "Core/HandleTable.h"
 
 namespace MoonGlare {
 
@@ -23,11 +23,12 @@ public:
 	bool Finalize();
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
+	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
 
 	::Core::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 private: 
 	::Core::cScriptEngine *m_ScriptEngine;
-	Core::HandeTable m_HandleTable;
+	Core::HandleTable m_HandleTable;
 	Core::EntityManager m_EntityManager;
 };
 

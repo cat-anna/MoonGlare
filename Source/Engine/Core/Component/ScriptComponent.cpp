@@ -27,7 +27,9 @@ namespace lua {
 	static const char *Function_OnDestroy = "OnDestroy";
 
 	static const char *HandleMemberName = "Handle";
-
+	static const char *ComponentIDMemberName = "ComponentId";
+	static const char *DereferenceHandlerName = "Get";
+	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
 			AddLogf(ScriptCall, "Call to %s", CaleeName);
@@ -35,14 +37,15 @@ namespace lua {
 			return true;
 		}
 		catch (::Core::Scripts::eLuaPanic &err) {
-			AddLogf(Error, "Failure during call to %s", CaleeName);
+			AddLogf(Error, "Failure during call to %s message: %s", CaleeName, err.what());
 			return false;
 		}
 	}
 }
 
 ScriptComponent::ScriptComponent(ComponentManager *Owner)
-	: AbstractComponent(Owner) {
+	: AbstractComponent(Owner) 
+	, m_Allocated(0) {
 }
 
 ScriptComponent::~ScriptComponent() {
@@ -53,6 +56,7 @@ bool ScriptComponent::Initialize() {
 	THROW_ASSERT(m_ScriptEngine, "No script engine instance!");
 
 	Space::MemZero(m_Array);
+	m_Allocated = 0;
 
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
@@ -88,16 +92,13 @@ bool ScriptComponent::Finalize() {
 }
 
 void ScriptComponent::Step(const MoveConfig & conf) {
-	auto count = m_Generations.Allocated();
-	if (count == 0) {
+	if (m_Allocated == 0) {
 		return;
 	}
 
 #ifdef PERF_PERIODIC_PRINT
 	auto t = std::chrono::steady_clock::now();
 #endif
-
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
@@ -111,16 +112,16 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	for (size_t i = 0; i < count; ++i) {
+	for (size_t i = 0; i < m_Allocated; ++i) {
 		auto &item = m_Array[i];
 		if (!item.m_Flags.m_Map.m_Valid) {
-			//silently ignore
+			//mark and ignore
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;
 		}
 
-		if (!EntityManager->IsValid(item.m_Owner)) {
+		if (!GetHandleTable()->IsValid(item.m_Handle)) {
 			AddLogf(Error, "ScriptComponent: invalid entity at index %d", i);
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
@@ -178,14 +179,14 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 }
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
-	if (!m_Generations.MoveIndexToBack(Index)) {
+	auto last = m_Allocated.load();
+	if (!GetHandleTable()->SwapHandleIndexes(m_Array[Index].m_Handle, m_Array[last - 1].m_Handle)) {
 		AddLogf(Error, "Failed to move last ScriptComponent entry to back!");
 		return;
 	}
 
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	auto last = m_Generations.Allocated();
-	auto current = Index + 1;
+	auto current = Index + 1; //lua index
 
 	lua_pushlightuserdata(lua, (void *)this);
 	lua_gettable(lua, LUA_REGISTRYINDEX);  //stack: self
@@ -201,8 +202,9 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	lua_pushinteger(lua, last);			//stack: self current_table last_id
 	lua_pushnil(lua);					//stack: self current_table last_id nil
 	lua_settable(lua, -4);				//stack: self current_table 
-
 	//current remains on stack, so OnDestroy can be called
+
+	std::swap(m_Array[Index], m_Array[last - 1]);
 
 	lua_getfield(lua, -1, lua::Function_OnDestroy); //stack: self current_table OnDestroy/nil
 	if (lua_isnil(lua, -1)) {
@@ -215,30 +217,23 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	}
 	//stack: self current_table
 	lua_pop(lua, 2); //stack: -
-	std::swap(m_Array[Index], m_Array[m_Generations.Allocated() - 1]);
 
-	if (!m_Generations.ReleaseLastIndex()) {
-		AddLogf(Error, "Failed to release ScriptComponent handle");
-	}
+	--m_Allocated;
 }
 
-Handle ScriptComponent::Load(xml_node node, Entity Owner) {
+bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	auto name = node.child("Script").text().as_string(0);
 	if (!name) {
 		AddLogf(Error, "Attempt to load nameless script!");
-		return Handle();
+		return false;
 	}
 
-	auto ch = m_Generations.Allocate();
-	if (!m_Generations.IsHandleValid(ch)) {
+	Handle &ch = hout;
+	size_t index = m_Allocated++;
+	if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
 		AddLogf(Error, "Failed to allocate handle!");
-		return Handle();
-	}
-	size_t index;
-	if (!m_Generations.GetTableIndex(ch, index)) {
-		AddLogf(Error, "Failed to get handle table index!");
-		m_Generations.Free(ch);
-		return Handle();
+		--m_Allocated;
+		return false;
 	}
 
 	auto lua = m_ScriptEngine->GetLua();
@@ -247,11 +242,13 @@ Handle ScriptComponent::Load(xml_node node, Entity Owner) {
 
 	if (!m_ScriptEngine->GetRegisteredScript(name)) {
 		AddLogf(Error, "There is no such script: %s", name);
-		m_Generations.Free(ch);
-		return Handle();
+		GetHandleTable()->Release(ch);
+		--m_Allocated;
+		return false;
 	}
 
 	m_Array[index].m_Owner = Owner;
+	m_Array[index].m_Handle = ch;
 	m_Array[index].m_Flags.SetAll();
 
 	lua_createtable(lua, 0, 0);
@@ -270,7 +267,11 @@ Handle ScriptComponent::Load(xml_node node, Entity Owner) {
 	lua_pushcclosure(lua, &lua_DestroyComponent, 2);
 	lua_setfield(lua, -2, "DestroyComponent");
 
-	//TODO: GetComponent(name)
+	lua_pushlightuserdata(lua, this);
+	lua_pushlightuserdata(lua, ch.GetVoidPtr());
+	lua_pushcclosure(lua, &lua_GetComponent, 2);
+	lua_setfield(lua, -2, "GetComponent");
+	
 	//TODO: DestroyObject(void/other)
 
 	lua_getfield(lua, -1, lua::Function_OnCreate);
@@ -296,23 +297,30 @@ Handle ScriptComponent::Load(xml_node node, Entity Owner) {
 	lua_settable(lua, -3);
 	lua_pop(lua, 1);
 
-	return ch;
+	return true;
+}
+
+bool ScriptComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
+	return false;
+	//TODO
 }
 
 //-------------------------------------------------------------------------------------------------
 
-bool ExtractHandleFromArgument(lua_State *lua, int location, Handle &h) {
-	bool success = true;
-	int type = lua_type(lua, -1);
+bool ExtractHandleFromArgument(lua_State *lua, int location, Handle &h, bool AllowSelfHandle = true) {
+	int type = lua_type(lua, location);
 	switch (type) {
 	case LUA_TNIL:
+		if (!AllowSelfHandle) {//TODO
+			throw "!AllowSelfHandle";
+		}
 		h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
 		break;
 	case LUA_TLIGHTUSERDATA:
-		h = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+		h = Handle::FromVoidPtr(lua_touserdata(lua, location));
 		break;
 	case LUA_TTABLE:
-		lua_getfield(lua, -1, lua::HandleMemberName);
+		lua_getfield(lua, location, lua::HandleMemberName);
 		if (!lua_islightuserdata(lua, -1)) {
 			lua_pop(lua, 1);
 			return false;
@@ -338,7 +346,7 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
 	size_t index;
-	if (!This->m_Generations.GetTableIndex(h, index)) {
+	if (!This->GetHandleTable()->GetHandleIndex(h, index)) {
 		AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Invalid argument #1: invalid handle");
 		lua_pushboolean(lua, 0);
 		return 1;
@@ -362,14 +370,13 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
 	size_t index;
-	if (!This->m_Generations.GetTableIndex(h, index)) {
+	if (!This->GetHandleTable()->GetHandleIndex(h, index)) {
 		AddLogf(Error, "ScriptComponent::DestroyObject: Error: Invalid argument #1: invalid handle");
 		lua_pushboolean(lua, 0);
 		return 1;
 	}
 
-	auto &item = This->m_Array[index];
-	
+	//auto &item = This->m_Array[index];
 	//auto *scene = static_cast<GameScene*>(This->GetManager()->GetScene());
 	//auto reg = scene->GetObjectRegister();
 
@@ -379,6 +386,95 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
 
 	lua_pushboolean(lua, 0);
 	return 1;
+}
+
+int ScriptComponent::lua_GetComponent(lua_State *lua) {
+	int argc = lua_gettop(lua);
+
+	ComponentID cid = 0;
+	Handle RequestHandle;
+
+	switch (argc) {
+	case 2:
+		if (!lua_isnumber(lua, -1)) {
+			AddLogf(Error, "ScriptComponent::GetComponent: Error: Invalid argument #1: invalid type! (single argument mode)");
+			return 0;
+		}
+		cid = static_cast<ComponentID>(lua_tointeger(lua, -1));
+		if (!ExtractHandleFromArgument(lua, -2, RequestHandle)) {
+			AddLogf(Error, "ScriptComponent::GetComponent: Error: Invalid argument #2: unknown type!");
+			return 0;
+		}
+		break;
+	case 3:
+		if (!lua_isnumber(lua, -2)) {
+			AddLogf(Error, "ScriptComponent::GetComponent: Error: Invalid argument #1: invalid type! (double argument mode)");
+			return 0;
+		}
+		if (!lua_islightuserdata(lua, -1)) {
+			AddLogf(Error, "ScriptComponent::GetComponent: Error: Invalid argument #32: invalid type! (double argument mode)");
+			return 0;
+		}
+		cid = static_cast<ComponentID>(lua_tointeger(lua, -2));
+		RequestHandle = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+		break;
+	default:
+		AddLogf(Error, "ScriptComponent::GetComponent: Error: Invalid argument count");
+		return 0;
+	}
+
+	void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
+
+	auto cptr = This->GetManager()->GetComponent(cid);
+	if (!cptr) {
+		AddLogf(Error, "ScripComponent::GetComponent: Error: There is no component %d", cid);
+		return 0;
+	}
+
+	Entity OwnerEntity;
+	auto HandleTable = This->GetManager()->GetWorld()->GetHandleTable();
+	if (!HandleTable->GetHandleParentEntity(RequestHandle, OwnerEntity)) {
+		AddLogf(Error, "ScripComponent::GetComponent: Error: Invalid owner handle!");
+		return 0;
+	}
+
+	Handle ComponentHandle;
+
+	if (!cptr->GetInstanceHandle(OwnerEntity, ComponentHandle)) {
+		AddLogf(Error, "ScripComponent::GetComponent: no component instance for requested object");
+		return 0;
+	}
+
+	lua_createtable(lua, 0, 5);
+
+	lua_pushlightuserdata(lua, ComponentHandle.GetVoidPtr());
+	lua_setfield(lua, -2, lua::HandleMemberName);
+
+	lua_pushinteger(lua, static_cast<int>(cid));
+	lua_setfield(lua, -2, lua::ComponentIDMemberName);
+
+	lua_pushlightuserdata(lua, cptr);
+	lua_pushlightuserdata(lua, ComponentHandle.GetVoidPtr());
+	lua_pushcclosure(lua, &lua_DereferenceHandle, 2);
+	lua_setfield(lua, -2, lua::DereferenceHandlerName);
+
+	return 1;
+}
+
+int ScriptComponent::lua_DereferenceHandle(lua_State *lua) {
+	void *voidcptr = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	AbstractComponent *cptr = reinterpret_cast<AbstractComponent*>(voidcptr);
+
+	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
+
+	int rets = 0;
+	if (!cptr->PushEntryToLua(h, lua, rets)) {
+		AddLogf(Error, "ComponentInstanceInfo::Get: Error: Component '%s' does not support lua api", typeid(*cptr).name());
+		return 0;
+	}
+
+	return rets;
 }
 
 } //namespace Component 

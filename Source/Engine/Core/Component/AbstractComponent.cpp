@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
+#include "ComponentManager.h"
 #include "AbstractComponent.h"
 
 namespace MoonGlare {
@@ -13,11 +14,15 @@ namespace Core {
 namespace Component {
 
 AbstractComponent::AbstractComponent(ComponentManager * Owner)
-	: m_Owner(Owner) {
-
+		: m_Owner(Owner) {
+	m_HandleTable = Owner->GetWorld()->GetHandleTable();
 }
 
 AbstractComponent::~AbstractComponent() {
+}
+
+bool AbstractComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
+	return false;
 }
 
 } //namespace Component 

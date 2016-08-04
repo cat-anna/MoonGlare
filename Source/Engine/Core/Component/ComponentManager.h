@@ -35,17 +35,42 @@ public:
 
 	AbstractComponent* GetComponent(ComponentID cid);
 
+	TransformComponent* GetTransformComponent() { return m_TransformComponent; }
+
 	ciScene* GetScene() { return m_Scene; }
 	World* GetWorld() { return m_World; }
 private:
 	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
 	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
+	TransformComponent *m_TransformComponent;
 	size_t m_UsedCount;
 	ciScene *m_Scene;
 	World *m_World;
 
 	bool InsertComponent(UniqueAbstractComponent cptr, ComponentID cid);
 };
+
+template<class T>
+struct RegisterComponentID {
+	RegisterComponentID(const char *Name) {
+		THROW_ASSERT(!s_Name, "Attempt to re-register component ID");
+		s_Name = Name;
+		RegisterApiNonClass(local, &RegisterComponentID<T>::RegisterScriptApi, "Component");
+	}
+private:
+	static const char *s_Name;
+	static int get() { 
+		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
+		return static_cast<int>(T::GetComponentID());
+	}
+	static void RegisterScriptApi(ApiInitializer &root) {
+		root
+			.addProperty(s_Name, &get, (void(*)(int))nullptr);
+	}
+};
+
+template<class T>
+const char * RegisterComponentID<T>::s_Name = nullptr;
 
 } //namespace Component 
 } //namespace Core 
