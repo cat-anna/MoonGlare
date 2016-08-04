@@ -12,15 +12,10 @@ namespace Core {
 
 class Interfaces {
 public:
+	Interfaces() = delete;
 	static void DumpLists(ostream &out);
-
-	static void Initialize();
-
 	static void RegisterScriptApi(ApiInitializer &api);
 private:
-	Interfaces();
-
-	static Interfaces *Instance;
 };
 
 } //namespace Core

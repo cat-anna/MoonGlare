@@ -10,6 +10,8 @@
 #ifdef DEBUG
 #include <MoonGlare.h>
 
+#include "Core/Interfaces.h"
+
 namespace Config {
 namespace Debug {
 

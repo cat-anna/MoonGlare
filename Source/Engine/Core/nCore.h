@@ -14,7 +14,6 @@
 #include "Component/nfComponent.h"
 
 #include "Engine.h"
-#include "Interfaces.h"
 
 //core shortcut getters
 namespace MoonGlare {

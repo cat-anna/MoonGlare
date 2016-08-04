@@ -8,28 +8,21 @@
 #include <MoonGlare.h>
 #include <Engine/iSoundEngine.h>
 #include <Engine/DataClasses/iFont.h>
+#include "Core/Interfaces.h"
 
 namespace MoonGlare {
 namespace Core {
 
-Interfaces *Interfaces::Instance = 0;
+#if 0
 RegisterApiNonClass(Interfaces, &Interfaces::RegisterScriptApi);
-
-Interfaces::Interfaces() {
-}
 
 void Interfaces::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.beginNamespace("Interface")
-		.addFunction("CreateMoveController", &MoveControllers::MoveControllerClassRegister::CreateClass)
 	.endNamespace()
 	;
 }
-
-void Interfaces::Initialize() {
-	if (Instance) return;
-	Instance = new Interfaces();
-}
+#endif
 
 void Interfaces::DumpLists(ostream &out) {
 	auto regdump = [&out](const Space::TemplateClassListBase::ClassInfoBase &type) {

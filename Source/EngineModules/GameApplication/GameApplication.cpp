@@ -45,7 +45,6 @@ bool GameApplication::Initialize() {
 	using MoonGlare::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
-	Core::Interfaces::Initialize();
 //	_chk_ret(EntityManager::Initialize(),					"Entity manager initialization failed!");
 //	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
 
