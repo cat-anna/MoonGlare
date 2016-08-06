@@ -10,10 +10,7 @@ namespace Core {
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
 RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
-Object* GetPlayer() { return GetEngine()->GetPlayer().get(); }
-RegisterApiInstance(Object, &GetPlayer, "Player");
 RegisterDebugApi(EngineDebug, &Engine::RegisterDebugScriptApi, "Debug");
-
 
 Engine::Engine() :
 		cRootClass(),
@@ -70,11 +67,6 @@ bool Engine::Initialize() {
 bool Engine::Finalize() {
 	if (!IsReady()) return false;
 	GetInput()->Finalize();
-
-	if (m_Player) {
-		m_Player->Finalize();
-		m_Player.reset();
-	}
 
 	m_Dereferred.reset();
 	m_Forward.reset();
