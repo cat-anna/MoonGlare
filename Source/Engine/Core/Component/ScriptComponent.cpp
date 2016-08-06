@@ -64,13 +64,7 @@ bool ScriptComponent::Initialize() {
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	lua_pushlightuserdata(lua, (void *)this);
 	lua_createtable(lua, m_Array.size(), 0);
-#if DEBUG
-	lua_pushvalue(lua, -1);
-	char name[64]; 
-	sprintf_s(name, "ScriptComponent_%p", this);
-	lua_setglobal(lua, name);
-	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", name, this, typeid(*this).name());
-#endif
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptComponent", this, -1);
 	lua_settable(lua, LUA_REGISTRYINDEX);
 	return true;
 }
@@ -78,13 +72,7 @@ bool ScriptComponent::Initialize() {
 bool ScriptComponent::Finalize() {
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-#if DEBUG
-	lua_pushnil(lua);
-	char name[64];
-	sprintf_s(name, "ScriptComponent_%p", this);
-	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", name, this, typeid(*this).name());
-	lua_setglobal(lua, name);
-#endif
+	MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptComponent", this);
 	lua_pushlightuserdata(lua, (void *)this);
 	lua_pushnil(lua);
 	lua_settable(lua, LUA_REGISTRYINDEX);

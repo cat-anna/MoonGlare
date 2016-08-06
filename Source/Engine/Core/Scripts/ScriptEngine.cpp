@@ -207,7 +207,9 @@ void cScriptEngine::LoadAllScriptsImpl() {
 }
 
 void cScriptEngine::LoadAllScripts() {
-	JobQueue::QueueJob([this]() { LoadAllScriptsImpl(); });
+//	JobQueue::QueueJob([this]() { 
+		LoadAllScriptsImpl(); 
+	//});
 }
 
 void cScriptEngine::RegisterScript(string Name) {
@@ -335,9 +337,21 @@ int cScriptEngine::RegisterNewScript(lua_State * lua) {
 	lua_getfield(lua, -1, name);
 
 	if (!lua_isnil(lua, -1)) {
+#ifdef DEBUG
+		AddLogf(Info, "Modifying script: %s", name);
+
+		lua_getfield(lua, -1, "__index");
+
+		lua_insert(lua, -3);
+
+		lua_pop(lua, 2);
+
+		return 1;
+#else
 		AddLogf(Error, "Attempt to redefine script: %s", name);
 		lua_pop(lua, 2);
 		return 0;
+#endif
 	} else {
 		AddLogf(Info, "Registering script: %s", name);
 		lua_pop(lua, 1);

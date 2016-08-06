@@ -18,9 +18,10 @@ public:
  	Window(bool IsMainWindow = false);
  	~Window();
 
-	static void ProcessWindowSystem();
 	static void InitializeWindowSystem();
 	static void FinalzeWindowSystem();
+
+	void Process();
 
 	void MakeCurrent() { glfwMakeContextCurrent(m_Window); }
 	void SwapBuffers() { glfwSwapBuffers(m_Window); }
@@ -82,6 +83,8 @@ public:
 
 	void SetPosition(const math::uvec2 &pos);
 
+	void SetInputProcessor(MoonGlare::Core::InputProcessor *iproc) { m_InputProcessor = iproc; }
+
 	static void RegisterDebugScriptApi(::ApiInitializer &api);
 	static void RegisterScriptApi(::ApiInitializer &api);
 protected:
@@ -94,6 +97,7 @@ protected:
 	void key_callback(int key, bool Pressed);
 	void ProcessChar(unsigned  Key);
 private:
+	MoonGlare::Core::InputProcessor *m_InputProcessor;
 	GLFWwindow *m_Window;
 	unsigned m_Flags;
 	vec2 m_CursorPos, m_CursorDelta;
@@ -106,6 +110,7 @@ private:
 	static void glfw_mousepos_callback(GLFWwindow *window, double x, double y);
 	static void glfwMouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 	static void glfw_char_callback(GLFWwindow *window, unsigned int key);
+	static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static bool _GLFWInitialized;
 };
 
