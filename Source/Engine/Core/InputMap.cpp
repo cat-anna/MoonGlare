@@ -8,8 +8,6 @@
 #include <MoonGlare.h>
 #include "InputMap.h"
 
-//#include <Input.x2c.h>
-
 namespace Core {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Input);

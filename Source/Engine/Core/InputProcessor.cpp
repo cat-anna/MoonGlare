@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 #include "InputProcessor.h"
 
-#include <Input.x2c.h>
+//#include <Input.x2c.h>
 
 namespace MoonGlare {
 namespace Core {

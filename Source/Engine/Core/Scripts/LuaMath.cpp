@@ -93,7 +93,7 @@ void ScriptMath(ApiInitializer &root){
 		static math::vec4 AxisAngle(float x, float y, float z, float a) {
 			// Here we calculate the sin( theta / 2) once for optimization
 			a = glm::radians(a);
-			float factor = sin(a / 2.0);
+			float factor = sin(a / 2.0f);
 
 			// Calculate the x, y and z of the quaternion
 			x *= factor;
@@ -101,7 +101,7 @@ void ScriptMath(ApiInitializer &root){
 			z *= factor;
 
 			// Calcualte the w value by cos( theta / 2 )
-			float w = cos(a / 2.0);
+			float w = cos(a / 2.0f);
 
 			return glm::normalize(math::vec4(x, y, z, w));
 		}
