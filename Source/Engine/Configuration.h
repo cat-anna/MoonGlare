@@ -70,6 +70,22 @@ namespace MoonGlare {
 			};
 		};
 
+		namespace Input {
+			enum {
+				MaxKeyCode = 512,
+				MaxInputStates = 32,
+				MaxMouseButton = 8,
+				MaxMouseAxes = 4,
+			};
+			static const float StaticMouseSensivity = 0.005f;
+			static const float StaticMouseScrollSensivity = 1.0f;
+		};
+
+		struct Console {
+			enum {
+				MaxConsoleLines = 20,
+			};
+		};
 	} //namespace Configuration
 
 using Configuration::HashID;

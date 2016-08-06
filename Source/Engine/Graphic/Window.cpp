@@ -11,6 +11,7 @@
 #include "GraphicSettings.h"
 
 #include <Core/InputMap.h>
+#include <Core/InputProcessor.h>
 
 namespace Graphic {
 
@@ -47,7 +48,9 @@ Window::Window(bool IsMainWindow):
 		m_Flags(0), 
 		m_CursorPos(0), 
 		m_CursorDelta(0), 
-		m_Size(0) {
+		m_Size(0),
+		m_InputProcessor(nullptr) {
+
 	InitializeWindowSystem();
 	THROW_ASSERT(_GLFWInitialized, "GLFW is not initialized. Cannot create window!");
 	CreateWindow();
@@ -321,6 +324,7 @@ void Window::CreateWindow() {
 	glfwSetWindowCloseCallback(m_Window, glfw_close_callback);
 	glfwSetMouseButtonCallback(m_Window, glfwMouseButtonCallback);
 	glfwSetWindowFocusCallback(m_Window, glfw_focus_callback);
+	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 	//glfwSetCursorPosCallback(m_Window, glfw_mousepos_callback);
 
 	AddLogf(Debug, "Created window %dx%d", w, h);
@@ -356,6 +360,8 @@ void Window::key_callback(int key, bool Pressed) {
 		return;
 	default:
 		MoonGlare::Core::GetInput()->KeyChange((unsigned)key, Pressed);
+		if (m_InputProcessor)
+			m_InputProcessor->SetKeyState(key, Pressed);
 		return;
 	}
 	//	AddLog(Hint, "Key: " << Key << "  hex: 0x" << std::hex << (unsigned)Key);
@@ -416,8 +422,16 @@ void Window::FinalzeWindowSystem() {
 	AddLog(Debug, "GLFW finalized");
 }
 
-void Window::ProcessWindowSystem() {
-	glfwPollEvents(); 
+void Window::Process() {
+	if (m_InputProcessor)
+		m_InputProcessor->ClearStates();
+	glfwPollEvents();
+	if (IsMouseHooked()) {
+		auto delta = CursorDelta();
+		MoonGlare::Core::GetInput()->SetMouseDelta(delta);
+		if (m_InputProcessor)
+			m_InputProcessor->SetMouseDelta(delta);
+	}
 }
 
 void Window::glfw_mousepos_callback(GLFWwindow *window, double x, double y) {
@@ -465,6 +479,9 @@ void Window::glfwMouseButtonCallback(GLFWwindow *window, int button, int action,
 	auto MouseBtn = static_cast<WindowInput::MouseButton>(button);
 	WindowInput::ModsStatus mods{ (unsigned)rawmods };
 
+	if (w->m_InputProcessor)
+		w->m_InputProcessor->SetMouseButtonState(button, action == GLFW_PRESS);
+
 	if (action == GLFW_PRESS)
 		::Core::Input::MouseDownEvent(MouseBtn, mods);
 	else
@@ -486,6 +503,16 @@ void Window::glfw_focus_callback(GLFWwindow* window, int focus) {
 		GetApplication()->OnActivate();
 		//w->GrabMouse();
 	}
+}
+
+void Window::glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	Window* w = ((Window*)glfwGetWindowUserPointer(window));
+	if (!w->IsMouseHooked()) {
+		return;
+	}
+
+	if (w->m_InputProcessor)
+		w->m_InputProcessor->SetMouseScrollDelta(math::vec2(xoffset, yoffset));
 }
 
 //-------------------------------------------------------------------------------------------------

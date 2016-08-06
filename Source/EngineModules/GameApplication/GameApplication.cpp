@@ -66,6 +66,9 @@ bool GameApplication::Initialize() {
 	MoonGlare::Core::GetEngine()->Initialize();
 	MoonGlare::Core::GetScenesManager()->Initialize();
 
+	//Temporary solution which probably will be used for eternity
+	Graphic::GetRenderDevice()->GetContext()->SetInputProcessor(MoonGlare::Core::GetEngine()->GetWorld()->GetInputProcessor());
+
 	AddLog(Debug, "Application initialized");
 #undef _init_chk
 	return true;

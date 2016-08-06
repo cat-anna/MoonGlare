@@ -24,10 +24,14 @@ public:
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
 	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
+	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
 
 	::Core::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 private: 
+	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
+
 	::Core::cScriptEngine *m_ScriptEngine;
+
 	Core::HandleTable m_HandleTable;
 	Core::EntityManager m_EntityManager;
 };
