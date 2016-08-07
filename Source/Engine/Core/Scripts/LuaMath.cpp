@@ -14,27 +14,6 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
-int randomi(int rmin, int rmax){
-	int d = rmax - rmin + 1;
-	int r = (rand() % d) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
-int RandRange(int rmin, int rmax){
-	int d = rmax - rmin + 1;
-	int r = (rand() % d) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
-float randomf(float rmin, float rmax){
-	float d = rmax - rmin;
-	float r = (rand() % static_cast<int>(d)) + rmin;
-	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
-	return r;
-}
-
 template<class T> T VecNormalized(const T * vec) { return glm::normalize(*vec); }
 template<class T> void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
 
@@ -78,23 +57,11 @@ inline std::string Vec4ToString(math::vec4 *vec) {
 	return b;
 }
 
-void ScriptMath(ApiInitializer &root){
-	struct T {
-		static math::vec4 MakeVec4(float x, float y, float z, float w) {
-			return math::vec4(x, y, z, w);
-		}
-		static math::vec3 MakeVec3(float x, float y, float z) {
-			return math::vec3(x, y, z);
-		}
-		static math::vec2 MakeVec2(float x, float y) {
-			return math::vec2(x, y);
-		}
-
+void ScriptMathClasses(ApiInitializer &root){
 		static math::vec4 AxisAngle(float x, float y, float z, float a) {
 			// Here we calculate the sin( theta / 2) once for optimization
 			a = glm::radians(a);
 			float factor = sin(a / 2.0f);
-
 			// Calculate the x, y and z of the quaternion
 			x *= factor;
 			y *= factor;
@@ -105,19 +72,9 @@ void ScriptMath(ApiInitializer &root){
 
 			return glm::normalize(math::vec4(x, y, z, w));
 		}
-	};
 	root
-	//.addFunction("randomseed", &srand)
-	//.addFunction("rand", &rand)
-	.addFunction("random", &randomi)
-	.addFunction("RandRange", &randomi)
-	//.addFunction("randomf", &randomf)
-	.addFunction("MakeVec4", &T::MakeVec4)
-	.addFunction("MakeVec3", &T::MakeVec3)
-	.addFunction("MakeVec2", &T::MakeVec2)
+	.beginClass<math::vec4>("cVec4")
 	.addFunction("QuaternionFromAxisAngle", &T::AxisAngle)
-
-	.beginClass<math::vec4>("vec4")
 		.addConstructor<void(*)(float, float, float, float)>()
 		.addData("x", &math::vec4::x)
 		.addData("y", &math::vec4::y)
@@ -133,8 +90,7 @@ void ScriptMath(ApiInitializer &root){
 		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecSub>())
 		.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecCrossProduct>())
 	.endClass()
-
-	.beginClass<math::vec3>("vec3")
+	.beginClass<math::vec3>("cVec3")
 		.addConstructor<void(*)(float, float, float)>()
 		.addData("x", &math::vec3::x)
 		.addData("y", &math::vec3::y)
@@ -149,8 +105,7 @@ void ScriptMath(ApiInitializer &root){
 		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecSub>())
 		.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecCrossProduct>())
 	.endClass()
-
-	.beginClass<math::vec2>("vec2")
+	.beginClass<math::vec2>("cVec2")
 		.addConstructor<void(*)(float, float)>()
 		.addData("x", &math::vec2::x)
 		.addData("y", &math::vec2::y)
@@ -165,12 +120,62 @@ void ScriptMath(ApiInitializer &root){
 	.endClass()
 	;
 }
+RegisterApiNonClass(ScriptMathClasses, &ScriptMathClasses, "math");
 
-RegisterApiNonClass(ScriptMath, &ScriptMath, "math");
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+void ScriptMathGlobal(ApiInitializer &root) {
+	struct T {
+		static int Vec4(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+		static int Vec3(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+		static int Vec2(lua_State *lua) {
+			throw __FUNCTION__;
+			return 0;
+		}
+	};
+
+	root
+		.addCFunction("Vec4", &T::Vec4)
+		.addCFunction("Vec3", &T::Vec3)
+		.addCFunction("Vec2", &T::Vec2)
+	;
+}
+RegisterApiNonClass(ScriptMathGlobal, &ScriptMathGlobal, nullptr);
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+int randomi(int rmin, int rmax) {
+	int d = rmax - rmin + 1;
+	int r = (rand() % d) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
+int RandRange(int rmin, int rmax) {
+	int d = rmax - rmin + 1;
+	int r = (rand() % d) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
+float randomf(float rmin, float rmax) {
+	float d = rmax - rmin;
+	float r = (rand() % static_cast<int>(d)) + rmin;
+	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
+	return r;
+}
+
 
 std::random_device _RandomDevice;
 std::mt19937 _PseudoRandom(_RandomDevice());
-
 void RandomNamespace(ApiInitializer &root) {
 	struct T {
 		static void Seed(int seed) {
@@ -204,6 +209,9 @@ void RandomNamespace(ApiInitializer &root) {
 		}
 	};
 	root
+	.addFunction("random", &randomi)
+	.addFunction("RandRange", &randomi)
+
 	.addFunction("Seed", &T::Seed)
 	.addFunction("Randomize", &T::Randomize)
 

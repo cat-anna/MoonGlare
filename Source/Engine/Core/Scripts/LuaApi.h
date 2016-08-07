@@ -20,7 +20,7 @@ public:
 
 	struct ApiRegister {
 		template <void(*func)(ApiInitializer&)> 
-		struct Function { Function(const char* where = 0) { RegisterApi(func, 0, 0, where); } };
+		struct Function { Function(const char* where = "api") { RegisterApi(func, 0, 0, where); } };
 
 		template <class T, void(*func)(ApiInitializer&)>
 		struct Base { Base() { RegisterApi(func, T::GetStaticTypeInfo(), 0); } };
