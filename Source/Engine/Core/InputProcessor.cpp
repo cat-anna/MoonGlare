@@ -156,18 +156,15 @@ void InputProcessor::ResetToInternalDefault() {
 	Clear();
 
 	//AddKeyboardAxis("Forward", GLFW_KEY_UP, GLFW_KEY_DOWN);
-	//AddKeyboardAxis("LeftRight", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
+	//AddKeyboardAxis("SideStep", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
 
-	AddKeyboardAxis("Forward", GLFW_KEY_U, GLFW_KEY_J);
-	AddKeyboardAxis("LeftRight", GLFW_KEY_LEFT, GLFW_KEY_RIGHT);
-
-	//AddKeyboardAxis("Forward", GLFW_KEY_W, GLFW_KEY_S);
-	//AddKeyboardAxis("LeftRight", GLFW_KEY_A, GLFW_KEY_D);
+	AddKeyboardAxis("Forward", GLFW_KEY_W, GLFW_KEY_S);
+	AddKeyboardAxis("SideStep", GLFW_KEY_A, GLFW_KEY_D);
 
 	AddKeyboardSwitch("Run", GLFW_KEY_LEFT_SHIFT);
 
-	AddMouseAxis("MouseX", MouseAxisId::ScrollX, 1.5f);
-	AddMouseAxis("MouseY", MouseAxisId::ScrollY, 1.5f);
+	AddMouseAxis("Turn", MouseAxisId::X, 0.5f);
+	AddMouseAxis("LookAngle", MouseAxisId::Y, 0.5f);
 }
 
 //---------------------------------------------------------------------------------------
@@ -202,7 +199,7 @@ bool InputProcessor::AddKeyboardAxis(const char *Name, unsigned ForwardKey, unsi
 	return true;
 }
 
-bool InputProcessor::AddKeyboardSwitch(const char * Name, unsigned Key) {
+bool InputProcessor::AddKeyboardSwitch(const char *Name, unsigned Key) {
 	THROW_ASSERT(Key < Configuration::Input::MaxKeyCode, "Key id overflow!");
 
 	size_t InputIndex;
