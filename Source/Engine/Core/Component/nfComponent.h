@@ -15,6 +15,7 @@ class ComponentManager;
 
 class ScriptComponent;
 class TransformComponent;
+class CameraComponent;
 
 enum class ComponentIDs : ComponentID {
 	Invalid = 0,

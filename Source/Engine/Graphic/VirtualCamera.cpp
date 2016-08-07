@@ -9,10 +9,7 @@
 
 namespace Graphic {
 
-SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(VirtualCamera)
-
 VirtualCamera::VirtualCamera() :
-		BaseClass(),
 		m_UseViewMatrix(true),
 		m_Position(0, 0, 0),
 		m_Direction(-1, 0, 0),
@@ -26,12 +23,12 @@ VirtualCamera::~VirtualCamera() {
 //----------------------------------------------------------------------------------
 
 VirtualCameraPtr VirtualCamera::Orthogonal() {
-	auto camera = std::make_unique<ThisClass>();
+	auto camera = std::make_unique<VirtualCamera>();
 	camera->SetDefaultOrthogonal();
 	return camera;
 }
 VirtualCameraPtr VirtualCamera::Perspective() {
-	auto camera = std::make_unique<ThisClass>();
+	auto camera = std::make_unique<VirtualCamera>();
 	camera->SetDefaultPerspective();
 	return camera;
 }

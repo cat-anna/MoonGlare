@@ -77,6 +77,10 @@ namespace MoonGlare {
 				MaxComponentCount = TinyBuffer,
 			};
 
+			enum {
+				CameraComponent = 8,
+			};
+
 			struct Static {
 				enum {
 					ObjectBuffer = HugeBuffer,

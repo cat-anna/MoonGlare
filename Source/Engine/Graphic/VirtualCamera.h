@@ -10,8 +10,7 @@
 
 namespace Graphic {
 
-class VirtualCamera: public cRootClass {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(VirtualCamera, cRootClass)
+class VirtualCamera {
 public:
 	~VirtualCamera();
 	VirtualCamera();
