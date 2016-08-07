@@ -353,6 +353,7 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			*gm = m_Memory->m_GlobalMatrix[pid] * lm;
 		} else {
 			gm = &tcentry->m_GlobalMatrix;
+			obj->SetPositionTransform(tcentry->m_LocalTransform);
 		}
 
 		if (obj->GetMoveController())
@@ -371,6 +372,17 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			conf.RenderList.push_back(std::make_pair(sgm, obj->GetModel()));
 		}
 	}
+}
+
+Object *ObjectRegister::GetFirstObjectByName(const std::string &Name) {
+	for (size_t i = 0; i < m_Memory->m_HandleAllocator.Allocated(); ++i) {
+		auto &optr = m_Memory->m_ObjectPtr[i];
+		if (!optr)
+			continue;
+		if (optr->GetName() == Name)
+			return optr.get();
+	}
+	return nullptr;
 }
 
 } //namespace Objects

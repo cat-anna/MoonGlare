@@ -45,7 +45,7 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("SpawnObjectChild", &ThisClass::SpawnObjectChild_api)
 		//.addFunction("SpawnObjectXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SpawnObject_api, float, float, float>::get())
 
-//		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
+		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
 //		.addFunction("GetObjectsByName", &ThisClass::GetObjectsByName)
 //		.addFunction("GetObjectsByType", &ThisClass::GetObjectsByType)
 	.endClass();
@@ -109,6 +109,8 @@ bool GameScene::DoInitialize() {
 		m_Objects.Insert(m_MapData->LoadMapObject());
 	}
 
+	m_Objects.LoadObjects(GetRootNode().child("Objects"), this);
+
 	m_Objects.InitializeObjects();
 
 	return true;
@@ -150,8 +152,6 @@ bool GameScene::LoadMeta(const xml_node Node) {
 			return false;
 		}
 	}
-
-	m_Objects.LoadObjects(Node.child("Objects"), this);
 
 	return true;
 }
@@ -330,7 +330,7 @@ Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
 
 //----------------------------------------------------------------
 
-//Object* GameScene::GetObjectByName(const string& Name) { return m_Objects->GetFirstObjectByName(Name); }
+Object* GameScene::GetObjectByName(const string& Name) { return m_Objects.GetFirstObjectByName(Name); }
 //const Objects::ObjectList& GameScene::GetObjectsByName(const string& Name) { return m_Objects->GetObjectsByName(Name); }
 //const Objects::ObjectList& GameScene::GetObjectsByType(const string& Type) { return m_Objects->GetObjectsByType(Type); }
 
