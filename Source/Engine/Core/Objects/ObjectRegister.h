@@ -78,6 +78,8 @@ public:
 
 	void Process(const MoveConfig &conf);
 
+	Object* GetFirstObjectByName(const std::string &Name);
+
 	//Handle FindByName(const string& Name) {
 		//auto &list = m_NameMap[Name];
 		//if (list.empty()) return 0;

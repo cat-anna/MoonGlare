@@ -14,13 +14,40 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+RegisterApiNonClass(TransformComponent, &TransformComponent::RegisterScriptApi);
+RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
+
 TransformComponent::TransformComponent(ComponentManager * Owner) 
 		: AbstractComponent(Owner)
 		, m_Allocated(0){
-
 }
 
 TransformComponent::~TransformComponent() {}
+
+//---------------------------------------------------------------------------------------
+
+void TransformComponent::RegisterScriptApi(ApiInitializer &root) {
+	root
+	.beginClass<TransformEntry>("cTransformComponentEntry")
+		.addProperty("Position", &TransformEntry::GetPosition, &TransformEntry::SetPosition)
+		.addProperty("Rotation", &TransformEntry::GetRotation, &TransformEntry::SetRotation)
+	.endClass()
+	;
+}
+
+bool TransformComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
+	auto entry = GetEntry(h);
+	if (!entry) {
+		return true;
+	}
+
+	luarets = 1;
+	luabridge::Stack<TransformEntry*>::push(lua, entry);
+
+	return true;
+}
+
+//------------------------------------------------------------------------------------------
 
 bool TransformComponent::Initialize() {
 	memset(&m_Array, 0, m_Array.size() * sizeof(m_Array[0]));
@@ -33,7 +60,7 @@ bool TransformComponent::Initialize() {
 	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
 	RootEntry.m_GlobalMatrix = math::mat4();
 
-	auto *ht = GetManager()->GetWorld()->GetHandeTable();
+	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	Handle h;
 	if (!ht->Allocate(this, RootEntry.m_OwnerEntity, h, index)) {
 		AddLog(Error, "Failed to allocate root handle");
@@ -52,7 +79,7 @@ bool TransformComponent::Finalize() {
 
 void TransformComponent::Step(const MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-	auto *HandleTable = GetManager()->GetWorld()->GetHandeTable();
+	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -93,25 +120,25 @@ void TransformComponent::Step(const MoveConfig & conf) {
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		//ReleaseComponent(lua, LastInvalidEntry);
+		ReleaseElement(LastInvalidEntry);
 	}
 }
 
-Handle TransformComponent::Load(xml_node node, Entity Owner) {
+bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	Physics::vec3 pos;
 	if (!XML::Vector::Read(node, "Position", pos)) {
-		return Handle();
+		return false;
 	}
 
-	auto *ht = GetManager()->GetWorld()->GetHandeTable();
-	Handle h;
+	auto *ht = GetManager()->GetWorld()->GetHandleTable();
+	Handle &h = hout;
 	HandleIndex index = m_Allocated++;
 	auto &entry = m_Array[index];
 	entry.m_Flags.ClearAll();
 	if (!ht->Allocate(this, Owner, h, index)) {
 		AddLog(Error, "Failed to allocate handle");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return Handle();
+		return false;
 	}
 
 	m_EntityMapper.SetHandle(Owner, h);
@@ -122,11 +149,11 @@ Handle TransformComponent::Load(xml_node node, Entity Owner) {
 	entry.m_SelfHandle = h;
 	entry.m_OwnerEntity = Owner;
 
-	return Handle();
+	return true;
 }
 
 TransformComponent::TransformEntry* TransformComponent::GetEntry(Handle h) {
-	auto *ht = GetManager()->GetWorld()->GetHandeTable();
+	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	HandleIndex hi;
 	if (!ht->GetHandleIndex(this, h, hi)) {
 		//AddLog(Debug, "Attempt to get TransformEntry for invalid Entity!");
@@ -139,6 +166,19 @@ TransformComponent::TransformEntry* TransformComponent::GetEntry(Entity e) {
 	return GetEntry(m_EntityMapper.GetHandle(e));
 }
 
+bool TransformComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
+	auto h = m_EntityMapper.GetHandle(Owner);
+	if (!GetHandleTable()->IsValid(h)) {
+		return false;
+	}
+	hout = h;
+	return true;
+}
+
+void TransformComponent::ReleaseElement(size_t Index) {
+	LOG_NOT_IMPLEMENTED();
+}
+
 //-------------------------------------------------------------------------------------------------
 
 //void TransformComponent::BulletMotionStateProxy::getWorldTransform(btTransform & centerOfMassWorldTrans) const {
@@ -148,6 +188,8 @@ TransformComponent::TransformEntry* TransformComponent::GetEntry(Entity e) {
 //void TransformComponent::BulletMotionStateProxy::setWorldTransform(const btTransform & centerOfMassWorldTrans) {
 //	//	m_Transform = centerOfMassWorldTrans * m_CenterOfMass;
 //}
+
+//-------------------------------------------------------------------------------------------------
 
 } //namespace Component 
 } //namespace Core 

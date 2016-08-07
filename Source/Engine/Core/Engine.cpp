@@ -2,6 +2,7 @@
 #include <MoonGlare.h>
 #include <GUI/GUI.h>
 #include "Console.h"
+#include <Core/InputMap.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -170,9 +171,7 @@ void Engine::EngineMain() {
 	conf.RenderList.reserve(2048);
 
 	while (m_Running) {
-		Graphic::Window::ProcessWindowSystem();
 		CurrentTime = static_cast<float>(glfwGetTime());
-
 		float FrameTimeDelta = CurrentTime - LastFrame;
 		if (FrameTimeDelta < m_FrameTimeSlice) {
 			std::this_thread::sleep_for(std::chrono::microseconds(500));
@@ -201,10 +200,8 @@ void Engine::EngineMain() {
 		++m_FrameCounter;
 		float StartTime = static_cast<float>(glfwGetTime());
 
-		if (dev.GetContext()->IsMouseHooked())
-			GetInput()->SetMouseDelta(dev.GetContext()->CursorDelta());
-
 		conf.TimeDelta = CurrentTime - LastMoveTime;
+		dev.GetContext()->Process();
 		DoMove(conf);
 
 		float MoveTime = static_cast<float>(glfwGetTime());

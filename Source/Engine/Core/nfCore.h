@@ -3,8 +3,12 @@
 
 namespace MoonGlare {
 namespace Core {
+
 	struct MoveConfig;
+
 	class HandleTable;
+	class InputProcessor;
+
 }//namespace Core
 }//namespace MoonGlare
 

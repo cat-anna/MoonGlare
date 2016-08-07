@@ -1,7 +1,6 @@
 #ifndef NCORE_H_
 #define NCORE_H_
 
-#include "Input.h"
 #include "Events.h"
 #include "TimeEvents.h"
 
@@ -14,7 +13,6 @@
 #include "Component/nfComponent.h"
 
 #include "Engine.h"
-#include "Interfaces.h"
 
 //core shortcut getters
 namespace MoonGlare {
@@ -24,9 +22,7 @@ namespace Core {
 	//inline cGameEngine* GetGameEngine() { return cGameEngine::Instance(); }
 
 	inline Scene::ScenesManager* GetScenesManager() { return Scene::ScenesManager::Instance(); }
-
-	inline ::Core::Input* GetInput() { return ::Core::Input::Instance(); }
-}
+} //namespace Core 
 } //namespace MoonGlare 
 
 #endif // NCORE_H_

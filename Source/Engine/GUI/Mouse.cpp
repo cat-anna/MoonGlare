@@ -8,6 +8,7 @@
 #include <MoonGlare.h>
 #include "GUI.h"
 #include "Widgets/Image.h"
+#include <Core/InputMap.h>
 
 namespace MoonGlare {
 namespace GUI {

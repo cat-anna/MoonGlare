@@ -106,7 +106,7 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	auto em = GetWorld()->GetEntityManager();
 	auto e = em->Allocate(eparent);
 
-	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
+//	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
 
 	m_Memory->m_Entity[index] = e;
 
@@ -258,7 +258,10 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 			continue;
 		}
 
-		c->Load(it, objE);
+		Handle h;
+		if (!c->Load(it, objE, h)) {
+			AddLog(Error, "Failure during loading component!");
+		}
 	}
 
 	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
@@ -350,6 +353,7 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			*gm = m_Memory->m_GlobalMatrix[pid] * lm;
 		} else {
 			gm = &tcentry->m_GlobalMatrix;
+			obj->SetPositionTransform(tcentry->m_LocalTransform);
 		}
 
 		if (obj->GetMoveController())
@@ -368,6 +372,17 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			conf.RenderList.push_back(std::make_pair(sgm, obj->GetModel()));
 		}
 	}
+}
+
+Object *ObjectRegister::GetFirstObjectByName(const std::string &Name) {
+	for (size_t i = 0; i < m_Memory->m_HandleAllocator.Allocated(); ++i) {
+		auto &optr = m_Memory->m_ObjectPtr[i];
+		if (!optr)
+			continue;
+		if (optr->GetName() == Name)
+			return optr.get();
+	}
+	return nullptr;
 }
 
 } //namespace Objects

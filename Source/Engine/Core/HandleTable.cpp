@@ -6,14 +6,14 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "HandeTable.h"
+#include "HandleTable.h"
 
 namespace MoonGlare {
 namespace Core {
 
-HandeTable::HandeTable()
+HandleTable::HandleTable()
 		: m_Allocator(Space::NoConstruct) {
-	DebugMemorySetClassName("HandeTable");
+	DebugMemorySetClassName("HandleTable");
 	DebugMemoryRegisterCounter("HandleUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Allocator.Allocated();
 		counter.Capacity = m_Allocator.Capacity();
@@ -21,10 +21,10 @@ HandeTable::HandeTable()
 	});
 }
 
-HandeTable::~HandeTable() {
+HandleTable::~HandleTable() {
 }
 
-bool HandeTable::Initialize(EntityManager *EntityManager) {
+bool HandleTable::Initialize(EntityManager *EntityManager) {
 	m_EntityManager = EntityManager;
 	THROW_ASSERT(m_EntityManager, "!m_EntityManager");
 	Space::MemZero(m_Array);
@@ -32,11 +32,11 @@ bool HandeTable::Initialize(EntityManager *EntityManager) {
 	return true;
 }
 
-bool HandeTable::Finalize() {
+bool HandleTable::Finalize() {
 	return true;
 }
 
-bool HandeTable::IsValid(Handle h) {
+bool HandleTable::IsValid(Handle h) {
 	if (!m_Allocator.IsHandleValid(h)) {
 		return false;
 	}
@@ -54,7 +54,7 @@ bool HandeTable::IsValid(Handle h) {
 	return true;
 }
 
-bool HandeTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
 	Handle h;
 	if (!m_Allocator.Allocate(h)) {
 		AddLogf(Error, "Failed to allocate handle!");
@@ -71,7 +71,7 @@ bool HandeTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, Handle
 	return true;
 }
 
-bool HandeTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
 	if (!m_EntityManager->IsValid(Owner)) {
 		AddLog(Warning, "Attempt to allocate handle for invalid entity");
 		return false;
@@ -94,7 +94,7 @@ bool HandeTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex
 	return true;
 }
 
-bool HandeTable::Release(Handle h) {
+bool HandleTable::Release(Handle h) {
 	if (!m_Allocator.IsHandleValid(h)) {
 		//silently ignore;
 		return true;
@@ -105,18 +105,40 @@ bool HandeTable::Release(Handle h) {
 	return false;
 }
 
-bool HandeTable::GetHandleIndex(Handle h, HandleIndex & index) {
+bool HandleTable::GetHandleIndex(Handle h, HandleIndex & index) {
 	if (!IsValid(h)) {
 		return false;
 	}
 	return m_Allocator.GetMapping(h, index);
 }
 
-bool HandeTable::SetHandleIndex(Handle h, HandleIndex index) {
+bool HandleTable::SetHandleIndex(Handle h, HandleIndex index) {
 	if (!IsValid(h)) {
 		return false;
 	}
 	return m_Allocator.SetMapping(h, index);
+}
+
+bool HandleTable::GetHandleParentEntity(Handle h, Entity &eout) {
+	if (!IsValid(h)) {
+		return false;
+	}
+	auto index = h.GetIndex();
+	eout = m_Array[index].m_Owner;
+	return true;
+}
+
+bool HandleTable::SwapHandleIndexes(Handle ha, Handle hb) {
+	if (!IsValid(ha) || !IsValid(hb)) {
+		return false;
+	}
+	HandleIndex hia, hib;
+	if (!m_Allocator.GetMapping(ha.GetIndex(), hia) || !m_Allocator.GetMapping(hb.GetIndex(), hib)) {
+		return false;
+	}
+	m_Allocator.SetMapping(ha.GetIndex(), hib);
+	m_Allocator.SetMapping(hb.GetIndex(), hia);
+	return true;
 }
 
 } //namespace Core 

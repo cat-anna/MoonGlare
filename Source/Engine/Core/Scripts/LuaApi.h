@@ -148,7 +148,43 @@ private:
 #undef PRIV_SCRIPT_API_GEN
 #undef PRIV_SCRIPT_API_DISABLED
 
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
 } //namespace Scritps
 } //namespace Core
+
+namespace MoonGlare {
+namespace Core {
+namespace Scripts {
+
+template <class T>
+inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, int selfLuaIndex) {
+#if DEBUG
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	lua_pushvalue(lua, -1);
+	char buf[64];
+	sprintf_s(buf, "%s_%p", name, OwnerPtr);
+	lua_setglobal(lua, buf);
+	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", buf, OwnerPtr, typeid(*OwnerPtr).name());
+#endif
+}
+
+template <class T>
+inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
+#if DEBUG
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	lua_pushnil(lua);
+	char buf[64];
+	sprintf_s(buf, "%s_%p", name, OwnerPtr);
+	lua_setglobal(lua, buf);
+	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", buf, OwnerPtr, typeid(*OwnerPtr).name());
+#endif
+}
+
+} //namespace Scritps
+} //namespace Core
+} //namespace MoonGlare 
 
 #endif

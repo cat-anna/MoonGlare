@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "GUI.h"
+#include <Core/InputMap.h>
 //#include <Engine/Graphic/nGraphic.h>
 
 namespace MoonGlare {

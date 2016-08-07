@@ -44,7 +44,7 @@ public:
 	Object* SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent);
 	Object* SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent);
 
-//	Object* GetObjectByName(const string& Name);
+	Object* GetObjectByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByType(const string& Type);
 

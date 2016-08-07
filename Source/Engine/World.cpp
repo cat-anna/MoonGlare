@@ -8,6 +8,8 @@
 #include <MoonGlare.h>
 #include "World.h"
 
+#include "Core/InputProcessor.h"
+
 namespace MoonGlare {
 
 World::World()
@@ -33,10 +35,22 @@ bool World::Initialize(::Core::cScriptEngine *se) {
 		return false;
 	}
 
+	m_InputProcessor = std::make_unique<Core::InputProcessor>();
+	if (!m_InputProcessor->Initialize(this)) {
+		AddLogf(Error, "Failed to initialize InputProcessor");
+		m_InputProcessor.reset();
+		return false;
+	}
+
 	return true;
 }
 
 bool World::Finalize() {
+	if (m_InputProcessor && !m_InputProcessor->Finalize()) {
+		AddLogf(Error, "Failed to finalize InputProcessor");
+	}
+	m_InputProcessor.reset();
+
 	if (!m_HandleTable.Finalize()) {
 		AddLogf(Error, "Failed to finalize HandleTable!");
 	}

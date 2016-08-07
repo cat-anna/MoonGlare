@@ -45,7 +45,6 @@ bool GameApplication::Initialize() {
 	using MoonGlare::Core::Scene::ScenesManager;
 	using ::Core::Scripts::cScriptEngine;
 
-	Core::Interfaces::Initialize();
 //	_chk_ret(EntityManager::Initialize(),					"Entity manager initialization failed!");
 //	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
 
@@ -66,6 +65,9 @@ bool GameApplication::Initialize() {
 	Graphic::GetRenderDevice()->Initialize();
 	MoonGlare::Core::GetEngine()->Initialize();
 	MoonGlare::Core::GetScenesManager()->Initialize();
+
+	//Temporary solution which probably will be used for eternity
+	Graphic::GetRenderDevice()->GetContext()->SetInputProcessor(MoonGlare::Core::GetEngine()->GetWorld()->GetInputProcessor());
 
 	AddLog(Debug, "Application initialized");
 #undef _init_chk

@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "InputController.h"
+#include <Core/InputMap.h>
 
 namespace MoveControllers {
 
