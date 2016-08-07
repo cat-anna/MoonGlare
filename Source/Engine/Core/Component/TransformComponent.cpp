@@ -120,7 +120,7 @@ void TransformComponent::Step(const MoveConfig & conf) {
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		//ReleaseComponent(lua, LastInvalidEntry);
+		ReleaseElement(LastInvalidEntry);
 	}
 }
 
@@ -173,6 +173,10 @@ bool TransformComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
 	}
 	hout = h;
 	return true;
+}
+
+void TransformComponent::ReleaseElement(size_t Index) {
+	LOG_NOT_IMPLEMENTED();
 }
 
 //-------------------------------------------------------------------------------------------------

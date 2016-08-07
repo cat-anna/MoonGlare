@@ -192,6 +192,9 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	lua_settable(lua, -4);				//stack: self current_table 
 	//current remains on stack, so OnDestroy can be called
 
+	auto &item = m_Array[Index];
+	item.m_Flags.m_Map.m_Valid = false;
+
 	std::swap(m_Array[Index], m_Array[last - 1]);
 
 	lua_getfield(lua, -1, lua::Function_OnDestroy); //stack: self current_table OnDestroy/nil
@@ -218,9 +221,13 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	Handle &ch = hout;
 	size_t index = m_Allocated++;
+
+	auto &entry = m_Array[index];
+	entry.m_Flags.ClearAll();
+
 	if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
 		AddLogf(Error, "Failed to allocate handle!");
-		--m_Allocated;
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
 
@@ -231,13 +238,13 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	if (!m_ScriptEngine->GetRegisteredScript(name)) {
 		AddLogf(Error, "There is no such script: %s", name);
 		GetHandleTable()->Release(ch);
-		--m_Allocated;
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
 
-	m_Array[index].m_Owner = Owner;
-	m_Array[index].m_Handle = ch;
-	m_Array[index].m_Flags.SetAll();
+	entry.m_Owner = Owner;
+	entry.m_Handle = ch;
+	entry.m_Flags.SetAll();
 
 	lua_createtable(lua, 0, 0);
 	lua_insert(lua, -2);
@@ -289,6 +296,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 }
 
 bool ScriptComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
+	LOG_NOT_IMPLEMENTED();
 	return false;
 	//TODO
 }

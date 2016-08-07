@@ -25,7 +25,7 @@ public:
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
 
 	constexpr static ComponentID GetComponentID() { return 1; };
-	constexpr static uint16_t GetHandleType() { return 2; };
+	constexpr static uint16_t GetHandleType() { return 1; };
 
 	using LuaHandle = int;
 
@@ -44,6 +44,7 @@ public:
 		uint32_t m_UintValue;
 
 		void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
+		void ClearAll() { m_UintValue = 0; }
 
 		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 	};

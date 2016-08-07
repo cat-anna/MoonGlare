@@ -91,6 +91,7 @@ protected:
 	EntityMapper m_EntityMapper;
 	std::atomic<size_t> m_Allocated;
 //	Array<BulletMotionStateProxy> m_Proxies;
+	void ReleaseElement(size_t Index);
 };
 
 } //namespace Component 
