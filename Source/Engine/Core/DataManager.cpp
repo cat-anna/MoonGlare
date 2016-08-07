@@ -352,36 +352,6 @@ Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const
 	return ptr;
 }
 
-bool Manager::LoadPlayer() {
-	FileSystem::XMLFile doc;
-	if (!GetFileSystem()->OpenXML(doc, PLAYER_XML_FILE, DataPath::Objects)) {
-		AddLog(Warning, "Unable to load player xml file");
-		return false;
-	}
-
-	xml_node node = doc->document_element();
-	if (!node) 
-		return false;
-	const char *Class = node.attribute(xmlAttr_Class).as_string();
-
-	if (!Class) {
-		AddLog(Error, "Player definition lack of required fields");
-		return false;
-	}
-
-	auto *pl = new Core::Objects::Object();
-
-	if(!pl->LoadPattern(doc->document_element())) {
-		AddLog(Error, "An error has occur during loading player XML! Ignored!");
-		delete pl;
-		return false;
-	}
-
-	Core::GetEngine()->GetPlayer().reset(pl);
-
-	return true;
-}
-
 //------------------------------------------------------------------------------------------
 
 #if 0

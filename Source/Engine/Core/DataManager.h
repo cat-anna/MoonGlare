@@ -13,7 +13,6 @@ namespace Core {
 namespace Data {
 
 #define DEFAULT_FONT_NAME	"Arial"
-#define PLAYER_XML_FILE		"Player00.xml"
 
 template<class T>
 struct SynchronizedResourceMap {
@@ -105,7 +104,6 @@ public:
 
 	const RuntimeConfiguration& GetConfiguration() const { return m_Configuration; }
 
-	bool LoadPlayer();
 	void LoadGlobalData();
 
 	DataClasses::FontPtr GetConsoleFont();

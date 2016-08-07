@@ -56,15 +56,6 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 void GameScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
 
-	auto player = GetEngine()->GetPlayer().get();
-	if (player) {
-		player->SetOwnerScene(this);
-		m_PlayerHandle = m_Objects.Insert(std::unique_ptr<Object>(player));
-		//player->SetPosition(Physics::vec3(0, 0.6, 0));
-	} else {
-		AddLog(Error, "There is no player instance!");
-	}
-
 	if (m_MapData) {
 		m_Environment = m_MapData->GetEnvironment();
 		if (m_Environment) {
@@ -79,15 +70,6 @@ void GameScene::BeginScene() {
 
 void GameScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
-
-	//do finalize objects in scene?
-	auto player = GetEngine()->GetPlayer().get();
-	if (player) {
-		m_Objects.Release(m_PlayerHandle);
-		player->SetOwnerScene(nullptr);
-	} else {
-		AddLog(Error, "There is no player instance!");
-	}
 
 	if (m_Environment) {
 		m_Environment->Finalize();
