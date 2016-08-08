@@ -79,6 +79,11 @@ Handle ObjectRegister::NewObject(Handle Parent) {
 Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	ASSERT_HANDLE_TYPE(Object, Parent);
 
+	if (!obj) {
+		AddLog(Error, "Attempt to add null object!");
+		return Handle();
+	}
+
 	if (!m_Memory->m_HandleAllocator.IsHandleValid(Parent)) {
 		AddLog(Error, "Parent handle is not valid!");
 		return Handle();

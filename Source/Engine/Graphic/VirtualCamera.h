@@ -20,6 +20,7 @@ public:
 	static VirtualCameraPtr Perspective();
 
 	DefineREADAcces(WorldMatrix, mat4)
+	DefineREADAcces(ProjectionMatrix, mat4)
 
 	const vec3 &GetPosition() const { return m_Position; }
 	const mat4& GetCameraMatrix() const { return m_WorldMatrix; }
@@ -32,6 +33,11 @@ public:
 	void UpdateMatrix() {
 		if (!m_UseViewMatrix) return;
 		m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Direction, vec3(0,1,0));//TODO: calculate up vector!
+		m_WorldMatrix = m_ProjectionMatrix * m_ViewMatrix;
+	}
+
+	void UpdateWorldMatrix() {
+		if (!m_UseViewMatrix) return;
 		m_WorldMatrix = m_ProjectionMatrix * m_ViewMatrix;
 	}
 
