@@ -38,9 +38,6 @@ void EngineLoadScene::LoadMain() {
 	AddLog(Info, "EngineLoadScene thread started");
 
 	GetDataMgr()->LoadGlobalData();
-	GetDataMgr()->LoadPlayer();
-	ASSERT(GetEngine()->GetPlayer());
-	GetEngine()->GetPlayer()->Initialize();
 
 	SetInfoText(ELSLoadingFirstSceneTitle);
 

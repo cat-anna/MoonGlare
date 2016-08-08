@@ -103,8 +103,18 @@ static int Lua_print(lua_State *L) {
 			break;
 #ifdef DEBUG
 		case LUA_TUSERDATA:
-			out << "[PTR]";
+		{
+			int top = lua_gettop(L);
+			lua_pushvalue(L, i);
+			lua_getglobal(L, "tostring");
+			lua_insert(L, -2);
+			if (lua_pcall(L, 1, 1, 0) == 0) {
+				out << lua_tostring(L, -1);
+			} else
+				out << "[PTR]";
+			lua_settop(L, top);
 			break;
+		}
 		case LUA_TNIL:
 			out << "[NULL]";
 			break;
