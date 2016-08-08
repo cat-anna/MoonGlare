@@ -10,6 +10,8 @@
 #include <cmath>
 #include "Math.h"
 
+#include <Libs/LuaBridge/dump.cpp>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
@@ -26,7 +28,6 @@ template<class T> inline std::string ToString(T *vec) {
 	oss << *vec;
 	return oss.str();
 }
-
 template<class T, class A, int ... ints> inline T StaticVec() { return T(static_cast<A>(ints)...); }
 
 //-------------------------------------------------------------------------------------------------
@@ -48,40 +49,72 @@ inline std::string QuaternionToString(math::vec4 *vec) {
 	sprintf(b, "Quaternion(%f, %f, %f, %f)", t[0], t[1], t[2], t[3]);
 	return b;
 }
-inline math::vec4 QuaternionFromAxisAngle(float x, float y, float z, float a) {
-	// Here we calculate the sin( theta / 2) once for optimization
-	a = glm::radians(a);
-	float factor = sin(a / 2.0f);
-	// Calculate the x, y and z of the quaternion
-	x *= factor;
-	y *= factor;
-	z *= factor;
+inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b) {
+	// Based on Stan Melax's article in Game Programming Gems
+	math::Quaternion q;
+	// Copy, since cannot modify local
+	Physics::vec3 v0 = convert(a);
+	Physics::vec3 v1 = convert(b);
 
-	// Calcualte the w value by cos( theta / 2 )
-	float w = cos(a / 2.0f);
+	v0.normalize();
+	v1.normalize();
 
-	return glm::normalize(math::vec4(x, y, z, w));
+	float d = v0.dot(v1);
+	// If dot == 1, vectors are the same
+	if (d >= 1.0f) {
+		return convert(math::Quaternion::getIdentity());
+	}
+	if (d < (1e-6f - 1.0f)) {
+		if (v1 != Physics::vec3(0, 0, 0)) {
+			// rotate 180 degrees about the fallback axis
+			q = math::Quaternion(v1, glm::radians(180.0f));
+		} else {
+			// Generate an axis
+			Physics::vec3 axis = Physics::vec3(1, 0, 0).cross(v0);
+			if (axis.length2() < 1e-06f * 1e-06f) // pick another if colinear
+				axis = Physics::vec3(0, 1, 0).cross(v0);
+			axis.normalize();
+			q = math::Quaternion(axis, glm::radians(180.0f));
+		}
+	} else {
+		float s = sqrtf((1 + d) * 2);
+		float invs = 1 / s;
+
+		Physics::vec3 c = v0.cross(v1);
+
+		c *= invs;
+		q = math::Quaternion(c.getX(), c.getY(), c.getZ(), s * 0.5f);
+		q.normalize();
+	}
+	return convert(q);
 }
-inline math::vec4 QuaternionFromVec3Angle(const math::vec4 &vec, float a) {
-	return QuaternionFromAxisAngle(vec.x, vec.y, vec.z, a);
+inline math::vec4 QuaternionFromVec3Angle(const math::vec3 &vec, float a) {
+	return convert(math::Quaternion(convert(vec), a));
+}
+inline math::vec4 QuaternionFromEulerXYZ(float x, float y, float z) {
+	return convert(math::Quaternion(x, y, z));
+}
+inline math::vec4 QuaternionFromAxisAngle(float x, float y, float z, float a) {
+	return QuaternionFromVec3Angle(math::vec3(x, y, z), a);
 }
 inline int lua_NewQuaternion(lua_State *lua) {
 	int argc = lua_gettop(lua);
+	luabridge::dumpLuaState(lua);
 	switch (argc) {
-	case 0:
+	case 1:
 		luabridge::Stack<math::vec4>::push(lua, math::vec4());
 		return 1;
-	case 1:
+	case 2:
 		if (lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec4>::push(lua, math::vec4(lua_tonumber(lua, -1)));
 			return 1;
 		}
 		break;
-	case 2:
-		break;
 	case 3:
 		break;
 	case 4:
+		break;
+	case 5:
 		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2) && lua_isnumber(lua, -3) && lua_isnumber(lua, -4)) {
 			luabridge::Stack<math::vec4>::push(lua, math::vec4(lua_tonumber(lua, -1), lua_tonumber(lua, -2), lua_tonumber(lua, -3), lua_tonumber(lua, -4)));
 			return 1;
@@ -90,7 +123,8 @@ inline int lua_NewQuaternion(lua_State *lua) {
 		break;
 	}
 	AddLog(Error, "Invalid arguments!");
-	return 0;
+	lua_pushnil(lua);
+	return 1;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -105,19 +139,20 @@ inline std::string Vec3ToString(math::vec3 *vec) {
 }
 inline int lua_NewVec3(lua_State *lua) {
 	int argc = lua_gettop(lua);
+	luabridge::dumpLuaState(lua);
 	switch (argc) {
-	case 0:
+	case 1:
 		luabridge::Stack<math::vec3>::push(lua, math::vec3());
 		return 1;
-	case 1:
+	case 2:
 		if (lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec3>::push(lua, math::vec3(lua_tonumber(lua, -1)));
 			return 1;
 		}
 
-	case 2:
-		break;
 	case 3:
+		break;
+	case 4:
 		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2) && lua_isnumber(lua, -3)) {
 			luabridge::Stack<math::vec3>::push(lua, math::vec3(lua_tonumber(lua, -1), lua_tonumber(lua, -2), lua_tonumber(lua, -3)));
 			return 1;
@@ -126,7 +161,8 @@ inline int lua_NewVec3(lua_State *lua) {
 		break;
 	}
 	AddLog(Error, "Invalid arguments!");
-	return 0;
+	lua_pushnil(lua);
+	return 1;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -140,18 +176,19 @@ inline std::string Vec2ToString(math::vec2 *vec) {
 }
 inline int lua_NewVec2(lua_State *lua) {
 	int argc = lua_gettop(lua);
+	luabridge::dumpLuaState(lua);
 	switch (argc) {
-	case 0:
+	case 1:
 		luabridge::Stack<math::vec2>::push(lua, math::vec2());
 		return 1;
 
-	case 1:
+	case 2:
 		if (lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1)));
 			return 1;
 		}
 
-	case 2:
+	case 3:
 		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2)) {
 			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1), lua_tonumber(lua, -2)));
 			return 1;
@@ -160,7 +197,23 @@ inline int lua_NewVec2(lua_State *lua) {
 		break;
 	}
 	AddLog(Error, "Invalid arguments!");
-	return 0;
+	lua_pushnil(lua);
+	return 1;
+}
+
+//-------------------------------------------------------------------------------------------------
+//Linear
+
+float Clamp(float v, float min, float max) {
+	if (v < min) return min;
+	if (v > max) return max;
+	return v;
+}
+
+float Clamp01(float v) {
+	if (v < 0.0f) return 0.0f;
+	if (v > 1.0f) return 1.0f;
+	return v;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -169,16 +222,19 @@ inline int lua_NewVec2(lua_State *lua) {
 void ScriptMathClasses(ApiInitializer &root){
 
 	root
+	.addFunction("Clamp", &Clamp)
+	.addFunction("Clamp01", &Clamp01)
+
 	.beginClass<math::vec4>("cQuaternion")
 	//	.addConstructor<void(*)(float, float, float, float)>()
 		.addData("x", &math::vec4::x)
 		.addData("y", &math::vec4::y)
 		.addData("z", &math::vec4::z)
 		.addData("w", &math::vec4::w)
-		.addProperty<math::vec4, math::vec4>("normalized", &VecNormalized<math::vec4>)
+		.addProperty<math::vec4, math::vec4>("Normalized", &VecNormalized<math::vec4>)
 	//	.addFunction("length", &math::vec4::length)
 	//	.addFunction("lengthSquare", &math::vec4::length)
-		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec4, void>::callee<VecNormalize>())
+		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec4, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec4, std::string>::callee<QuaternionToString>())
 		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec4, float, math::vec4*>::callee<VecDotProduct>())
 		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecAdd>())
@@ -191,9 +247,9 @@ void ScriptMathClasses(ApiInitializer &root){
 		.addData("x", &math::vec3::x)
 		.addData("y", &math::vec3::y)
 		.addData("z", &math::vec3::z)
-		.addProperty<math::vec3, math::vec3>("normalized", &VecNormalized<math::vec3>)
+		.addProperty<math::vec3, math::vec3>("Normalized", &VecNormalized<math::vec3>)
 	//	.addFunction("length", &math::vec3::length)
-		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec3, void>::callee<VecNormalize>())
+		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec3, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec3, std::string>::callee<Vec3ToString>())
 		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec3, float, math::vec3*>::callee<VecDotProduct>())
 		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecAdd>())
@@ -222,15 +278,26 @@ RegisterApiNonClass(ScriptMathClasses, &ScriptMathClasses, "math");
 void ScriptMathGlobal(ApiInitializer &root) {
 	root
 	.beginNamespace("Quaternion")
+		.addCFunction("__call", &lua_NewQuaternion)
+
 		.addFunction("FromAxisAngle", &QuaternionFromAxisAngle)
 		.addFunction("FromVec3Angle", &QuaternionFromAxisAngle)
-		.addCFunction("__call", &lua_NewQuaternion)
+		.addFunction("FromEulerXYZ", &QuaternionFromEulerXYZ)
+		.addFunction("RotationTo", &QuaternionRotationTo)
+
+		.addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec3))nullptr)
 	.endNamespace()
 
 	.beginNamespace("Vec3")
 		.addCFunction("__call", &lua_NewVec3)
-		.addProperty("up", &StaticVec<math::vec3, float, 0, 1, 0>, (void(*)(math::vec3))nullptr)
-		.addProperty("down", &StaticVec<math::vec3, float, 0, -1, 0>, (void(*)(math::vec3))nullptr)
+
+		.addProperty("Up", &StaticVec<math::vec3, float, 0, 1, 0>, (void(*)(math::vec3))nullptr)
+		.addProperty("Down", &StaticVec<math::vec3, float, 0, -1, 0>, (void(*)(math::vec3))nullptr)
+
+		.addProperty("X", &StaticVec<math::vec3, float, 1, 0, 0>, (void(*)(math::vec3))nullptr)
+		.addProperty("Y", &StaticVec<math::vec3, float, 0, 1, 0>, (void(*)(math::vec3))nullptr)
+		.addProperty("Z", &StaticVec<math::vec3, float, 0, 0, 1>, (void(*)(math::vec3))nullptr)
+
 	.endNamespace()
 		
 	.beginNamespace("Vec2")
@@ -262,7 +329,6 @@ float randomf(float rmin, float rmax) {
 	// AddLog("random: " << rmin << "   " << r << "    " << rmax);
 	return r;
 }
-
 
 std::random_device _RandomDevice;
 std::mt19937 _PseudoRandom(_RandomDevice());
