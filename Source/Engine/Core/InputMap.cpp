@@ -13,7 +13,7 @@ namespace Core {
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Input);
 MouseEventDispatcher *Input::_MouseDispatcher = nullptr;
 
-Input::Input(): m_KeyStatus(0), m_MouseDelta(0, 0) {
+Input::Input(): m_MouseDelta(0, 0) {
 	SetThisAsInstance();
 }
 
@@ -22,15 +22,7 @@ Input::~Input() {
 
 //-------------------------------------------------------------------------------------------------
 
-void Input::RefreshKeyMap() {
-	m_KeyMap.Clear();
-	for (auto &it : Settings->Input.KeyMap) {
-		m_KeyMap.AddValue(it.Key, it.Flag);
-	}
-}
-
 bool Input::Initialize() {
-	RefreshKeyMap();
 	return true;
 }
 
@@ -38,10 +30,6 @@ bool Input::Finalize() {
 	Clear();
 	return true;
 }
-
-//-------------------------------------------------------------------------------------------------
-
-SPACERTTI_IMPLEMENT_CLASS(KeyMap)
 
 //-------------------------------------------------------------------------------------------------
 

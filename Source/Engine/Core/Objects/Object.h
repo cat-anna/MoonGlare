@@ -53,7 +53,6 @@ public:
 	void SetLinearVelocity(const Physics::vec3 &sp) { GetBody()->SetLinearVelocity(sp); }
 	
 	void UpdateMotionState() { if(HaveBody()) GetBody()->UpdateMotionState(); }
-	DefineSetGetByRef(LookDirection, Physics::vec3);
 	DefineRefGetterAll(CollisionMask, Physics::CollisionMask)
 
 	void SetShape(Physics::SharedShape ss);
@@ -73,7 +72,6 @@ public:
 	int SetTimer(float secs, int tid, bool cyclic);
 	void KillTimer(int tid);
 
-	DefineRefGetterAll(MoveController, iMoveControllerPtr);
 	DefineREADAccesPTR(Scene, Core::GameScene);
 	virtual void SetOwnerScene(GameScene *Scene);
 	DefineREADAcces(PatternName, string);
@@ -104,15 +102,12 @@ protected:
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
-	Physics::vec3 m_LookDirection; /** Look direction of object */
 	float m_Mass, m_Scale, m_EffectiveScale;
 	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
 	virtual void InternalInfo(std::ostringstream &buff) const;
-	void SetMoveController(MoveControllers::iMoveController *ptr);
 private:
 	DefineWRITEAcces(PatternName, string);
-	iMoveControllerPtr m_MoveController;
 	Core::GameScene *m_Scene;
 	string m_PatternName;
 

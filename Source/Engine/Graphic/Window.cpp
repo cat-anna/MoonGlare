@@ -359,7 +359,6 @@ void Window::key_callback(int key, bool Pressed) {
 		MoonGlare::Core::GetEngine()->CaptureScreenShot();
 		return;
 	default:
-		MoonGlare::Core::GetInput()->KeyChange((unsigned)key, Pressed);
 		if (m_InputProcessor)
 			m_InputProcessor->SetKeyState(key, Pressed);
 		return;

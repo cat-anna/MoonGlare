@@ -361,8 +361,6 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			obj->SetPositionTransform(tcentry->m_LocalTransform);
 		}
 
-		if (obj->GetMoveController())
-			obj->GetMoveController()->DoMove(conf);
 		if (obj->GetLightSource()) {
 			auto *l = obj->GetLightSource();
 			l->Update();

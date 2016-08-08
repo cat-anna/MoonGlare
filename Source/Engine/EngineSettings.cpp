@@ -79,14 +79,6 @@ struct SettingsImpl {
 				static void set(Type f) { Settings.Graphic.Shadows = EnumCastClamp<EnumType>(f); }
 			};
 		};
-		struct Input {
-			struct MouseSensivity {
-				using Type = float;
-				static Type default() { return 0.5f; }
-				static Type get() { return Settings.Input.MouseSensitivity; }
-				static void set(Type v) { Settings.Input.MouseSensitivity = v; }
-			};
-		};
 		struct Localization {
 			struct Code {
 				using Type = const char *;
@@ -110,7 +102,6 @@ struct SettingsImpl {
 		RegisterBuffered<InternalSettings::Graphic::TextureFiltering>("Graphic.TextureFiltering", SettingsGroup::None);
 		RegisterBuffered<InternalSettings::Graphic::ShadowQuality>("Graphic.ShadowsQuality", SettingsGroup::None);
 		RegisterBuffered<InternalSettings::Localization::Code>("Localization.Code", SettingsGroup::Localization);
-		Register<InternalSettings::Input::MouseSensivity>("Input.MouseSensivity", SettingsGroup::Input);
 	
 		GabiLib::Serialize::DefaultSetter def;
 		Settings.Serialize(def);
@@ -379,54 +370,6 @@ void Settings_t::GetStdModuleList(std::vector<string> &table) {
 		"./source/DataModules/debug",
 #endif
 	}.swap(table);
-}
-
-//-------------------------------------------------------------------------------------------------
-
-void Settings_t::GetStdKeyMap(std::vector<KeyMapItem> &table) {
-	using keys = ::Graphic::WindowInput::Key;
-	std::vector < KeyMapItem > {
-		KeyMapItem(keys::Char_A,		MoveControllers::KeyFlags::Move_Left),
-		KeyMapItem(keys::Char_D,		MoveControllers::KeyFlags::Move_Right),
-		KeyMapItem(keys::Char_S,		MoveControllers::KeyFlags::Move_Down),
-		KeyMapItem(keys::Char_W,		MoveControllers::KeyFlags::Move_Up),
-
-		KeyMapItem(keys::LeftShift,		MoveControllers::KeyFlags::Run),
-		KeyMapItem(keys::Space,			MoveControllers::KeyFlags::Jump),
-
-		KeyMapItem( 81,					MoveControllers::KeyFlags::User_A),
-		KeyMapItem( 69,					MoveControllers::KeyFlags::User_B),
-		KeyMapItem(keys::Key_F1,		MoveControllers::KeyFlags::User_F),
-		KeyMapItem(keys::Key_F2,		MoveControllers::KeyFlags::User_G),
-	} .swap(table);
-}
-
-#if 0
-//<Item Index="340" Value="10" />
-	Turn_Up			= 0x00000010,
-	Turn_Down		= 0x00000020,
-	Turn_Left		= 0x00000040,
-	Turn_Right		= 0x00000080,
-	Crouch			= 0x00000200,
-	User_C			= 0x00040000,
-	User_D			= 0x00080000,
-	User_E			= 0x00100000,
-	User_H			= 0x00800000,
-#endif
-
-bool Settings_t::KeyMapItem::Save(xml_node node) const {
-	node.append_attribute("Key") = Key;
-	char buf[16];
-	sprintf(buf, "%llx", Flag);
-	node.append_attribute("Value") = buf;
-	return true;
-}
-
-bool Settings_t::KeyMapItem::Load(const xml_node node) {
-	Key = node.attribute("Key").as_uint();
-	const char* value = node.attribute("Value").as_string("0");
-	Flag = strtol(value, 0, 16);
-	return true;
 }
 
 //-------------------------------------------------------------------------------------------------

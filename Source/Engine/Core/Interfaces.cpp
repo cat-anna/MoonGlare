@@ -38,8 +38,6 @@ void Interfaces::DumpLists(ostream &out) {
 	DataClasses::Maps::MapClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nScene class list\n";
 	Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nMove controllers class list\n";
-	MoveControllers::MoveControllerClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nShaders class list\n";
 	Graphic::Shaders::ShaderClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nLightSoure class list\n";

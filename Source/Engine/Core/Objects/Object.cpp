@@ -39,9 +39,6 @@ Object::~Object() {
 bool Object::Initialize(){
 	if (m_LightSource) 
 		m_LightSource->Initialize();
-	if (m_MoveController) 
-		m_MoveController->Initialize();
-
 	if (m_Model) {
 		SetShape(m_Model->ConstructShape(GetScale()));
 		SetPhysicalProperties(m_Model->GetPhysicalProperties());
@@ -52,22 +49,15 @@ bool Object::Initialize(){
 
 bool Object::Finalize() {
 	InvokeOnFinalize();
-	if (m_MoveController) 
-		m_MoveController->Finalize();
 	if (m_LightSource) 
 		m_LightSource->Finalize();
 	return true;
 }
 
 void Object::RegisterScriptApi(ApiInitializer &api) {
-	using MoveControllerTweek = Utils::Template::SmartPointerTweeks<ThisClass, iMoveControllerPtr>;
-
 	struct Helper {
 		math::vec3 getpos() {
 			return convert(((Object*)this)->GetPosition());
-		}
-		math::vec3 getlookdir() {
-			return convert(((Object*)this)->GetLookDirection());
 		}
 	};
 
@@ -77,9 +67,6 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("IsDead", &ThisClass::IsDead)
 
 		.addFunction("GetHandle", &ThisClass::GetSelfHandle)
-
-		.addFunction("GetMoveController", MoveControllerTweek::Get<&ThisClass::m_MoveController>())
-		.addFunction("SetMoveController", MoveControllerTweek::Set<&ThisClass::SetMoveController>())
 
 		.addFunction("InvokeOnDropDead", &ThisClass::InvokeOnDropDead)
 		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
@@ -99,12 +86,10 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		
 		.addFunction("SetLinearVelocityXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SetLinearVelocity, float, float, float>::get())
 		.addFunction("SetPositionXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SetPosition, float, float, float>::get())
-		.addFunction("SetLookDirectionXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SetLookDirection, float, float, float>::get())
 		.addFunction("SetRotationQuaternion", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::Quaternion, &ThisClass::SetQuaterion, float, float, float, float>::get())
 		//.addProperty("Position", &ThisClass::GetPosition, &ThisClass::SetPosition)
 		.addFunction("UpdateMotionState", &ThisClass::UpdateMotionState)
 		.addFunction("GetPosition", (math::vec3(ThisClass::*)())&Helper::getpos)
-		.addFunction("GetLookDirection", (math::vec3(ThisClass::*)())&Helper::getlookdir)
 	.endClass();
 }
 
@@ -166,11 +151,6 @@ bool Object::LoadPattern(const xml_node node) {
 		else {
 			SetModel(GetDataMgr()->GetModel(name));
 		}
-	}
-
-	xml_node mc = node.child("MoveController");
-	if (mc) {
-		m_MoveController.reset(MoveControllers::iMoveController::CreateFromXML(mc, this));
 	}
 
 	xml_node Collision = node.child("Collision");
@@ -257,11 +237,6 @@ void Object::SetMass(float Mass) {
 void Object::SetPhysicalProperties(const Physics::PhysicalProperties *props) {
 	if (props && m_Body)
 		GetBody()->SetPhysicalProperties(*props);
-}
-
-void Object::SetMoveController(MoveControllers::iMoveController *ptr) {
-	m_MoveController.reset(ptr);
-	m_MoveController->SetOwner(this);
 }
 
 void Object::SetModel(DataClasses::ModelPtr Model) {

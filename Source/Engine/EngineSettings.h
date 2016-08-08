@@ -26,15 +26,6 @@ enum class SettingsGroup {
 
 class Settings_t {
 public:
-	struct KeyMapItem {
-		uint32_t Key;
-		uint64_t Flag;
-		KeyMapItem(uint32_t k = 0, uint64_t f = 0) : Key(k), Flag(f) { }
-		KeyMapItem(Graphic::WindowInput::Key k, uint64_t f = 0) : Key((uint32_t)k), Flag(f) { }
-		bool Save(xml_node node) const;
-		bool Load(const xml_node node);
-	};
-	static void GetStdKeyMap(std::vector<KeyMapItem> &table);
 	static void GetStdModuleList(std::vector<string> &table);
 
 	struct Modules_t {
@@ -59,16 +50,6 @@ public:
 		}
 	} Graphic;
 
-	struct Input {
-		float MouseSensitivity;
-		inline float GetStaticMouseSensivity() const { return 0.005f; }
-		std::vector<::Settings_t::KeyMapItem> KeyMap;
-		template <class T>void Serialize(T & s) {
-			s.Value(MouseSensitivity, "MouseSensitivity", 0.5f);
-			s.ValueContainer(KeyMap, "KeyMap", ::Settings_t::GetStdKeyMap);
-		}
-	} Input;
-
 	struct Localization {
 		string Code;
 		template <class T> void Serialize(T & s) {
@@ -86,7 +67,6 @@ public:
 	template <class T> void Serialize(T & s) {
 		s.Group(Modules, "Modules");
 		s.Group(Graphic , "Graphic");
-		s.Group(Input , "Input");
 		s.Group(Localization , "Localization");
 		s.Group(Engine , "Engine");
 	}
