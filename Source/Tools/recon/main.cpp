@@ -9,9 +9,8 @@
 
 #pragma warning ( disable: 4966 )
 
-#include <GabiLib/src/GabiLib.h>
-#include <GabiLib/src/utils/ParamParser.h>
-#include <GabiLib/src/include_source.hpp>
+#include <LibSpace/src/Utils/ParamParser.h>
+#include <OrbitLogger/src/OrbitLogger.h>
 
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
@@ -21,7 +20,10 @@
 #include <source/Utils/SetGet.h>
 #include <source/Utils/Memory/nMemory.h>
 #include <source/Utils/Memory.h>
-#include <source/EngineModules/MoonGlareInsider/MoonGlareInisderApi.h>
+
+#include <libSpace/src/Memory/Handle.h>
+#include <Engine/Configuration.h>
+#include <Shared/MoonGlareInsider/Api.h>
 
 using namespace std;
 using namespace MoonGlare::Debug::InsiderApi;
@@ -37,7 +39,7 @@ struct Flags {
 	};
 };
 
-const GabiLib::ProgramParameters::Parameter Parameters[] = {
+const Space::ProgramParameters::Parameter Parameters[] = {
  	{'b', 0, Flags::Buffer, 0, "Buffer whole stdin before send", 0},
 	{'f', 0, Flags::SendFile, _infile, "Send content of file and exit", 0 },
  	{'p', 1, 0, _Port, "Set port", 0},
@@ -45,8 +47,8 @@ const GabiLib::ProgramParameters::Parameter Parameters[] = {
 	{'\0', 0, 0, 0, 0, 0},
 }; 
 
-GabiLib::ProgramParameters Params = {
-	GabiLib::ProgramParameters::disable_helpmsg_on_noparams | GabiLib::ProgramParameters::disable_h_as_help,
+Space::ProgramParameters Params = {
+	Space::ProgramParameters::disable_helpmsg_on_noparams | Space::ProgramParameters::disable_h_as_help,
 	"MoonGlare remote console client",
 	0,
 	0,
