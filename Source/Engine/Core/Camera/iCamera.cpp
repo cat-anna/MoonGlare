@@ -46,11 +46,26 @@ void iCamera::RegisterScriptApi(ApiInitializer &api) {
 
 void iCamera::Update(const MoveConfig& conf) {
 	if (m_TrackedObject) {
-		m_Camera->SetPosition(m_TrackedObject->GetPosition() + m_CameraDelta);
-		auto dir = m_TrackedObject->GetLookDirection();
+	//	m
+
+		auto &tr = m_TrackedObject->GetPositionTransform();
+		auto q = tr.getRotation();
+		auto p = tr.getOrigin();
+
+		auto d = quatRotate(q, Physics::vec3(0, 1, 0));
+
+		m_Camera->SetPosition(convert(p));
+		m_Camera->SetDirection(convert(d));
+
+		//tr.getBasis().getOpenGLSubMatrix(&mat[0][0]);
+		//tr.getOpenGLMatrix(&m_Camera->GetViewMatrix()[0][0]);
+
+		//m_Camera->UpdateWorldMatrix();
+
+		//auto dir = m_TrackedObject->GetLookDirection();
 	//5	AddLog(Hint, "Direction" << convert(dir));
-		m_Camera->SetDirection(dir);
-#pragma message ("CAMERA LOOK DIRECTION IS NOT SET")
+		//m_Camera->SetDirection(dir);
+//#pragma message ("CAMERA LOOK DIRECTION IS NOT SET")
 		m_Camera->UpdateMatrix();
 	}
 	conf.Camera = m_Camera.get();
