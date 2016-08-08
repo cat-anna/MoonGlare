@@ -107,12 +107,12 @@ using pugi::xml_document;
 #include "Serialize.h"
 
 //scripts
-#include <luaJiT/lua.hpp>
+#include <luaJiT-2.0.4/lua.hpp>
 #if defined(_USE_API_GENERATOR_)
 #	include <ApiGen/ApiDefAutoGen.h>
 #elif defined(_DISABLE_SCRIPT_ENGINE_)
 #else
-#	include <LuaBridge/LuaBridge.h>
+#	include <Libs/LuaBridge/LuaBridge.h>
 #endif
 
 using StringVector = std::vector < string > ;
