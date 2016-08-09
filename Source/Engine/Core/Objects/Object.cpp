@@ -72,10 +72,6 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
 		.addFunction("InvokeOnInitialize", &ThisClass::InvokeOnInitialize)
 		.addFunction("InvokeOnFinalize", &ThisClass::InvokeOnFinalize)
-		.addFunction("InvokeEventA", &ThisClass::InvokeOnUserEventA)
-		.addFunction("InvokeEventB", &ThisClass::InvokeOnUserEventB)
-		.addFunction("InvokeEventC", &ThisClass::InvokeOnUserEventC)
-		.addFunction("InvokeEventD", &ThisClass::InvokeOnUserEventD)
 		.addFunction("SetEventFunction", &ThisClass::SetEventFunction)
 		
 		.addFunction("SetTimer", &ThisClass::SetTimer)
@@ -192,10 +188,6 @@ int Object::InvokeOnDropDead(){
 int Object::InvokeOnInitialize() { SCRIPT_INVOKE(OnInitialize); }
 int Object::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 int Object::InvokeOnTimer(int TimerID) { SCRIPT_INVOKE(OnTimer, TimerID); }
-int Object::InvokeOnUserEventA(int param) { SCRIPT_INVOKE(OnUserEventA, param); }
-int Object::InvokeOnUserEventB(int param) { SCRIPT_INVOKE(OnUserEventB, param); }
-int Object::InvokeOnUserEventC(int param) { SCRIPT_INVOKE(OnUserEventC, param); }
-int Object::InvokeOnUserEventD(int param) { SCRIPT_INVOKE(OnUserEventD, param); }
 
 //---------------------------------------------------------------------------------------
 

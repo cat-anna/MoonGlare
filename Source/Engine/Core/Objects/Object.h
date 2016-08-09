@@ -9,7 +9,6 @@ DECLARE_SCRIPT_EVENT_VECTOR(ObjectScriptEvents, iScriptEvents,
 		SCRIPT_EVENT_ADD(
 			(OnDropDead)(OnTimer)
 			(OnInitialize)(OnFinalize)
-			(OnUserEventA)(OnUserEventB)(OnUserEventC)(OnUserEventD)
 		),
 		SCRIPT_EVENT_REMOVE());
 
@@ -64,10 +63,6 @@ public:
 	int InvokeOnInitialize();
 	int InvokeOnFinalize();
 	int InvokeOnTimer(int TimerID);
-	int InvokeOnUserEventA(int param);
-	int InvokeOnUserEventB(int param);
-	int InvokeOnUserEventC(int param);
-	int InvokeOnUserEventD(int param);
 
 	int SetTimer(float secs, int tid, bool cyclic);
 	void KillTimer(int tid);

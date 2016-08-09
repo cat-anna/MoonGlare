@@ -110,7 +110,7 @@ void ComponentManager::Step(const MoveConfig &config) {
 			oss += buf;
 		}
 		 
-		AddLogf(Performance, "ComponentManager:%p  %s Total:%7.5fms", this, oss.c_str(), sum);
+		AddLogf(Performance, "ComponentManager:%p  %sTotal:%7.5fms", this, oss.c_str(), sum);
 	}
 #endif
 }
