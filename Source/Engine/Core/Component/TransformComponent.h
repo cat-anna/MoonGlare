@@ -13,7 +13,9 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class TransformComponent : public AbstractComponent {
+class TransformComponent 
+	: public AbstractComponent
+	, public ComponentIDWrap<ComponentIDs::Transform> {
 public:
 	TransformComponent(ComponentManager *Owner);
 	virtual ~TransformComponent();
@@ -23,9 +25,6 @@ public:
 	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
-
-	constexpr static ComponentID GetComponentID() { return 2; };
-	constexpr static uint16_t GetHandleType() { return 2; };
 
 	union FlagsMap {
 		struct MapBits_t {

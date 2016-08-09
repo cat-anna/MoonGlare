@@ -14,7 +14,8 @@ namespace Core {
 namespace Component {
 
 class ScriptComponent
-	: public AbstractComponent {
+	: public AbstractComponent
+	, public ComponentIDWrap<ComponentIDs::Script> {
 public:
  	ScriptComponent(ComponentManager *Owner);
  	virtual ~ScriptComponent();
@@ -23,9 +24,6 @@ public:
 	virtual void Step(const MoveConfig &conf) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
-
-	constexpr static ComponentID GetComponentID() { return 1; };
-	constexpr static uint16_t GetHandleType() { return 1; };
 
 	using LuaHandle = int;
 

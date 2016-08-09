@@ -9,6 +9,8 @@
 #ifndef AbstractComponent_H
 #define AbstractComponent_H
 
+#include "ComponentIDs.h"
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
