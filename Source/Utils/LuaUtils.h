@@ -14,7 +14,8 @@ struct LuaStackOverflowAssert {
 	}
 	void Test() {
 		m_CheckStack = lua_gettop(m_lua);
-		assert(m_CheckStack == m_InitStack);
+		if (m_CheckStack != m_InitStack)
+			AddLogf(Error, "Lua stack [over/under]flow! Expected:%d Actual:%d", m_CheckStack, m_InitStack);
 	}
 private:
 	lua_State *m_lua;

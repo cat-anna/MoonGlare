@@ -32,6 +32,8 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	m_Scene = scene;
 	m_World = GetEngine()->GetWorld();
 
+	Space::MemZero(m_ComponentInfo);
+
 	if (!InstallComponent<ScriptComponent>()) {
 		AddLog(Error, "Failed to install ScriptComponent");
 		return false;
@@ -77,9 +79,40 @@ bool ComponentManager::InsertComponent(UniqueAbstractComponent cptr, ComponentID
 }
 
 void ComponentManager::Step(const MoveConfig &config) {
+#ifdef PERF_PERIODIC_PRINT
+	auto StepStartTime = std::chrono::steady_clock::now();
+	auto ComponentStartTime = StepStartTime;
+#endif
+
 	for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
 		m_Components[i]->Step(config);
+#ifdef PERF_PERIODIC_PRINT
+		auto StopTime = std::chrono::steady_clock::now();
+		std::chrono::duration<float> delta = StopTime - ComponentStartTime;
+		m_ComponentInfo[i].m_TotalStepDuration += delta.count();
+		++m_ComponentInfo[i].m_PeriodCount;
+		ComponentStartTime = StopTime;
+#endif
 	}
+#ifdef PERF_PERIODIC_PRINT
+	if (config.m_SecondPeriod) {
+		std::string oss;
+		oss.reserve(1024);
+		char buf[256];
+		float sum = 0.0f;
+		for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
+			auto &ci = m_ComponentInfo[i];
+			float ms = (ci.m_TotalStepDuration / (float)ci.m_PeriodCount) * 1000.0f;
+			sum += ms;
+			ci.m_TotalStepDuration = 0.0f;
+			ci.m_PeriodCount = 0;
+			sprintf_s(buf, "%02X:%7.5fms | ", m_ComponentsIDs[i], ms);
+			oss += buf;
+		}
+		 
+		AddLogf(Performance, "ComponentManager:%p  %s Total:%7.5fms", this, oss.c_str(), sum);
+	}
+#endif
 }
 
 AbstractComponent* ComponentManager::GetComponent(ComponentID cid) {
@@ -94,33 +127,6 @@ AbstractComponent* ComponentManager::GetComponent(ComponentID cid) {
 	AddLogf(Error, "There is no component with id %d", cid);
 	return nullptr;
 }
-
-#if 0
-
-//----------------------------------------------------------------
-
-namespace Debug {
-
-static struct ComponentArrayInfo_t : Config::Debug::MemoryInterface {
-	using Array = ComponentArray::Array;
-	virtual Info* GetInfo() const {
-		static Info i = { 0, 0, Array::ElementSize, Array::Size, "ComponentArray" };
-		i.Update(_Impl->m_ComponentArray.GetAllocatedCount());
-		return &i;
-	}
-} ComponentArrayInf;
-
-
-//static struct EntityManagerInfo_t : Debug::MemoryInterface {
-//	virtual Info* GetInfo() const {
-//		static Info i = { 0, sizeof(EntityIndexQueue::Item) + sizeof(EntityGenerationBuffer::Item), EntityIndexQueue::Size, "EntityManager" };
-//		i.Allocated = EntityIndexQueue::Size - EMImpl.m_IndexQueue.count();
-//		return &i;
-//	}
-//} EntityManagerInfo;
-
-} //namespace Debug
-#endif
 
 } //namespace Component 
 } //namespace Core 

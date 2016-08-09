@@ -50,8 +50,6 @@ bool Engine::Initialize() {
 		return false;
 	}
 
-	GetInput()->Initialize();
-
 	m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
 	m_Forward = std::make_unique<Graphic::Forward::ForwardPipeline>();
 
@@ -66,7 +64,6 @@ bool Engine::Initialize() {
 
 bool Engine::Finalize() {
 	if (!IsReady()) return false;
-	GetInput()->Finalize();
 
 	m_Dereferred.reset();
 	m_Forward.reset();

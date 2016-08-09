@@ -27,8 +27,6 @@ class Input : public cRootClass {
 public:
  	Input();
  	virtual ~Input();
-	bool Initialize();
-	bool Finalize();
 
 	void Clear() { ClearMouseDelta(); }
 

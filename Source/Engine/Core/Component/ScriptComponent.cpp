@@ -84,10 +84,6 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 		return;
 	}
 
-#ifdef PERF_PERIODIC_PRINT
-	auto t = std::chrono::steady_clock::now();
-#endif
-
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
@@ -156,14 +152,6 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 		AddLogf(Performance, "ScriptComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		ReleaseComponent(lua, LastInvalidEntry);
 	}
-
-#ifdef PERF_PERIODIC_PRINT
-	if (conf.m_SecondPeriod) {
-		auto now = std::chrono::steady_clock::now();
-		std::chrono::duration<float> delta = now - t;
-		AddLogf(Performance, "ScriptComponent step: %f ms", delta.count() * 1000.0f);
-	}
-#endif
 }
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
@@ -430,7 +418,7 @@ int ScriptComponent::lua_GetComponent(lua_State *lua) {
 
 	Entity OwnerEntity;
 	auto HandleTable = This->GetManager()->GetWorld()->GetHandleTable();
-	if (!HandleTable->GetHandleParentEntity(RequestHandle, OwnerEntity)) {
+	if (!HandleTable->GetHandleParentEntity(This, RequestHandle, OwnerEntity)) {
 		AddLogf(Error, "ScripComponent::GetComponent: Error: Invalid owner handle!");
 		return 0;
 	}

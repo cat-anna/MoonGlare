@@ -22,17 +22,6 @@ Input::~Input() {
 
 //-------------------------------------------------------------------------------------------------
 
-bool Input::Initialize() {
-	return true;
-}
-
-bool Input::Finalize() {
-	Clear();
-	return true;
-}
-
-//-------------------------------------------------------------------------------------------------
-
 void MouseEventDispatcher::Set() {
 	Input::SetMouseDispatcher(this);
 }

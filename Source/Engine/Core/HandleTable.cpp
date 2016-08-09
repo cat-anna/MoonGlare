@@ -54,6 +54,28 @@ bool HandleTable::IsValid(Handle h) {
 	return true;
 }
 
+bool HandleTable::IsValid(HandleType Type, Handle h) {
+	if (!m_Allocator.IsHandleValid(h)) {
+		return false;
+	}
+
+	auto index = h.GetIndex();
+	auto &item = m_Array[index];
+	if (item.m_Type != Type) {
+		return false;
+	}
+	if (!item.m_Flags.m_Map.m_HasEntityOwner) {
+		return true;
+	}
+
+	if (!m_EntityManager->IsValid(item.m_Owner)) {
+		m_Allocator.Free(h);
+		return false;
+	}
+
+	return true;
+}
+
 bool HandleTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
 	Handle h;
 	if (!m_Allocator.Allocate(h)) {
@@ -112,6 +134,13 @@ bool HandleTable::GetHandleIndex(Handle h, HandleIndex & index) {
 	return m_Allocator.GetMapping(h, index);
 }
 
+bool HandleTable::GetHandleIndex(HandleType Type, Handle h, HandleIndex & index) {
+	if (!IsValid(Type, h)) {
+		return false;
+	}
+	return m_Allocator.GetMapping(h, index);
+}
+
 bool HandleTable::SetHandleIndex(Handle h, HandleIndex index) {
 	if (!IsValid(h)) {
 		return false;
@@ -119,12 +148,12 @@ bool HandleTable::SetHandleIndex(Handle h, HandleIndex index) {
 	return m_Allocator.SetMapping(h, index);
 }
 
-bool HandleTable::GetHandleParentEntity(Handle h, Entity &eout) {
-	if (!IsValid(h)) {
+bool HandleTable::GetHandleParentEntity(HandleType Type, Handle h, Entity &eout) {
+	if (!IsValid(Type, h)) {
 		return false;
 	}
-	auto index = h.GetIndex();
-	eout = m_Array[index].m_Owner;
+	auto &item = m_Array[h.GetIndex()];
+	eout = item.m_Owner;
 	return true;
 }
 

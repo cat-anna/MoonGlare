@@ -122,6 +122,16 @@ using StringStringMap = std::unordered_map < string, string > ;
 
 class cRootClass;
 
+#include "Config/Config.h"
+#include <StarVFS/core/nfStarVFS.h>
+#include <OrbitLogger/src/OrbitLogger.h>
+
+#include <libSpace/src/Space.h>
+
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif
+
 #include "Utils/SetGet.h"
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
@@ -157,16 +167,6 @@ namespace Core {
 }
 
 using Core::ApiInitializer;
-
-#include "Config/Config.h"
-#include <StarVFS/core/nfStarVFS.h>
-#include <OrbitLogger/src/OrbitLogger.h>
-
-#include <libSpace/src/Space.h>
-
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
 
 #include "Error.h"
 

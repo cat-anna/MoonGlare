@@ -104,6 +104,7 @@ using Handle = Space::Memory::TripleHandle32<
 		>;
 
 using HandleIndex = Handle::Index_t;
+using HandleType = uint16_t;
 using HandleSet = std::vector<Handle>;
 
 } //namespace MoonGlare

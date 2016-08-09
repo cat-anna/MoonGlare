@@ -39,6 +39,11 @@ public:
 
 	ciScene* GetScene() { return m_Scene; }
 	World* GetWorld() { return m_World; }
+
+	struct ComponentInfo {
+		float m_TotalStepDuration;
+		unsigned m_PeriodCount;
+	};
 private:
 	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
 	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
@@ -46,6 +51,10 @@ private:
 	size_t m_UsedCount;
 	ciScene *m_Scene;
 	World *m_World;
+
+#ifdef PERF_PERIODIC_PRINT
+	std::array<ComponentInfo, Configuration::Storage::MaxComponentCount> m_ComponentInfo;
+#endif
 
 	bool InsertComponent(UniqueAbstractComponent cptr, ComponentID cid);
 };
