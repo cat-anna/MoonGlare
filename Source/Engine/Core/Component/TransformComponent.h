@@ -46,8 +46,7 @@ public:
 		FlagsMap m_Flags;
 		math::mat4 m_LocalMatrix;
 		math::mat4 m_GlobalMatrix;
-//		Physics::vec3 m_LocalScale;
-//		Physics::vec3 m_GlobalScale;
+		Physics::vec3 m_Scale;
 
 		math::Transform m_LocalTransform;
 //		Physics::Transform m_GlobalTransform;
@@ -55,9 +54,10 @@ public:
 
 		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
 		void SetPosition(math::vec3 pos) { m_LocalTransform.setOrigin(convert(pos)); }
-//		void SetPosition(Physics::vec3 pos) {  }
 		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
 		void SetRotation(math::vec4 rot) { m_LocalTransform.setRotation(convert(rot)); }
+		math::vec3 GetScale() const { return convert(m_Scale); }
+		void SetScale(math::vec3 s) { m_Scale = convert(s); }
 	};
 
 //	struct BulletMotionStateProxy : public btMotionState {

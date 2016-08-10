@@ -31,6 +31,7 @@ void TransformComponent::RegisterScriptApi(ApiInitializer &root) {
 	.beginClass<TransformEntry>("cTransformComponentEntry")
 		.addProperty("Position", &TransformEntry::GetPosition, &TransformEntry::SetPosition)
 		.addProperty("Rotation", &TransformEntry::GetRotation, &TransformEntry::SetRotation)
+		.addProperty("Scale", &TransformEntry::GetScale, &TransformEntry::SetScale)
 	.endClass()
 	;
 }
@@ -59,6 +60,7 @@ bool TransformComponent::Initialize() {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
 	RootEntry.m_GlobalMatrix = math::mat4();
+	RootEntry.m_Scale = Physics::vec3(1, 1, 1);
 
 	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	Handle h;
@@ -105,11 +107,17 @@ void TransformComponent::Step(const MoveConfig & conf) {
 		auto &gm = item.m_GlobalMatrix;
 		auto &lm = item.m_LocalMatrix;
 		item.m_LocalTransform.getOpenGLMatrix((float*)&lm);
+//
+	//	auto lm = *gm;
+		lm[0] *= item.m_Scale[0];
+		lm[1] *= item.m_Scale[1];
+		lm[2] *= item.m_Scale[2];
 
 		Entity ParentEntity;
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 			gm = ParentEntry->m_GlobalMatrix * lm;
+		//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
 		} else {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
@@ -146,6 +154,7 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_LocalTransform.setOrigin(pos);
 	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
+	XML::Vector::Read(node, "Scale", entry.m_Scale, Physics::vec3(1, 1, 1));
 	entry.m_SelfHandle = h;
 	entry.m_OwnerEntity = Owner;
 
