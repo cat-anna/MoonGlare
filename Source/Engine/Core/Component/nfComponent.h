@@ -19,8 +19,10 @@ class TransformComponent;
 enum class ComponentIDs : ComponentID {
 	Invalid = 0,
 
-	Script = 0x11,
-	Transform = 0x12,
+	Script = 11,
+	Transform = 12,
+
+	Mesh	= 21,
 };
 
 //template<ComponentIDs ID, HandleType HT>

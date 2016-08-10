@@ -11,6 +11,7 @@
 
 #include "ScriptComponent.h"
 #include "TransformComponent.h"
+#include "MeshComponent.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -43,6 +44,11 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	m_TransformComponent = tc.get();
 	if (!InsertComponent(std::move(tc), TransformComponent::GetComponentID())) {
 		AddLog(Error, "Failed to install TransformComponent");
+		return false;
+	}
+
+	if (!InstallComponent<MeshComponent>()) {
+		AddLog(Error, "Failed to install MeshComponent");
 		return false;
 	}
 
