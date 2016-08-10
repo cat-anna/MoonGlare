@@ -25,32 +25,28 @@ public:
 
 	using HandlePrivateData = uint64_t;
 
-	bool IsValid(Handle h);
-	bool IsValid(HandleType Type, Handle h);
-	bool Allocate(Handle &hout, HandleType Type, HandleIndex index, HandlePrivateData value = 0);
-	bool Allocate(Entity Owner, Handle &hout, HandleType Type, HandleIndex index, HandlePrivateData value = 0);
-	bool Release(Handle h);
-	bool Release(HandleType Type, Handle h);
+	bool IsValid(ComponentID cid, Handle h);
+	bool Release(ComponentID cid, Handle h);
+	bool Allocate(ComponentID cid, Handle &hout, HandleIndex index, HandlePrivateData value = 0);
+	bool Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0);
 
-	bool GetHandleParentEntity(HandleType Type, Handle h, Entity &eout);
+	bool GetHandleParentEntity(ComponentID cid, Handle h, Entity &eout);
 	
 	//below function return false if handle or owner entity is not valid
-	bool GetHandleIndex(Handle h, HandleIndex &index);
-	bool SetHandleIndex(Handle h, HandleIndex index);
-	bool GetHandleIndex(HandleType Type, Handle h, HandleIndex &index);
-	bool SetHandleIndex(HandleType Type, Handle h, HandleIndex index);
+	bool GetHandleIndex(ComponentID cid, Handle h, HandleIndex &index);
+	bool SetHandleIndex(ComponentID cid, Handle h, HandleIndex index);
 
-	bool GetHandleData(Handle h, HandlePrivateData &value);
-	bool SetHandleData(Handle h, HandlePrivateData value);
+	bool GetHandleData(ComponentID cid, Handle h, HandlePrivateData &value);
+	bool SetHandleData(ComponentID cid, Handle h, HandlePrivateData value);
 
-	bool SwapHandleIndexes(Handle ha, Handle hb);
+	bool SwapHandleIndexes(ComponentID cid, Handle ha, Handle hb);
 
 	//template shortcut versions for components
 	template<class COMPONENT> bool GetHandleIndex(COMPONENT *c, Handle h, HandleIndex &index) { return GetHandleIndex(c->GetHandleType(), h, index); }
-	template<class COMPONENT >bool Allocate(COMPONENT *c, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0) { return Allocate(Owner, hout, c->GetHandleType(), index, value); }
+	template<class COMPONENT >bool Allocate(COMPONENT *c, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0) { return Allocate(c->GetHandleType(), Owner, hout, index, value); }
 	template<class COMPONENT> bool IsValid(COMPONENT *c, Handle h) { return IsValid(c->GetHandleType(), h); }
 	template<class COMPONENT> bool Release(COMPONENT *c, Handle h) { return Release(c->GetHandleType(), h); }
-	template<class COMPONENT> bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) { return SwapHandleIndexes(c->GetHandleType(), ha, bh); }
+	template<class COMPONENT> bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) { return SwapHandleIndexes(c->GetHandleType(), ha, hb); }
 	template<class COMPONENT> bool GetHandleParentEntity(COMPONENT *c, Handle h, Entity &eout) { return GetHandleParentEntity(c->GetHandleType(), h, eout); }
 
 	union HandleFlags {
@@ -62,12 +58,13 @@ public:
 
 	struct HandleEntry {
 		Entity m_Owner;
-		HandleType m_Type;
+		ComponentID m_OwnerCID;
 		HandleFlags m_Flags;
+		char padding[7];
 		HandlePrivateData m_Data;
 	};
 
-	static_assert(sizeof(HandleEntry) == 16, "HandleEntry has invalid size!");
+	static_assert(sizeof(HandleEntry) == 24, "HandleEntry has invalid size!");
 protected:
 	template<class ... ARGS>
 	using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Handle::IndexLimit, ARGS...>;

@@ -31,9 +31,9 @@ namespace MoonGlare {
 
 		struct Handle {
 			enum {
-				GenerationBits = 12,
+				GenerationBits = 16,
 				IndexBits = 12,
-				TypeBits = 8,
+				TypeBits = 4,
 				ValueBits = 0,
 
 				GenerationLimit = 1 << GenerationBits,
@@ -46,6 +46,16 @@ namespace MoonGlare {
 					Invalid,
 					Object,
 				};
+			};
+		};
+
+		struct HandleType {
+			enum e : uint8_t {
+				Invalid,
+				Entity,
+				Component,
+				Resource,
+				StaticResource,
 			};
 		};
 

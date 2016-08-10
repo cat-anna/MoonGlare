@@ -36,32 +36,17 @@ bool HandleTable::Finalize() {
 	return true;
 }
 
-bool HandleTable::IsValid(Handle h) {
-	if (!m_Allocator.IsHandleValid(h)) {
+bool HandleTable::IsValid(ComponentID cid, Handle h) {
+	if (h.GetType() != Configuration::HandleType::Component) {
 		return false;
 	}
-
-	auto index = h.GetIndex();
-	if (!m_Array[index].m_Flags.m_Map.m_HasEntityOwner) {
-		return true;
-	}
-
-	if (!m_EntityManager->IsValid(m_Array[index].m_Owner)) {
-		m_Allocator.Free(h);
-		return false;
-	}
-
-	return true;
-}
-
-bool HandleTable::IsValid(HandleType Type, Handle h) {
 	if (!m_Allocator.IsHandleValid(h)) {
 		return false;
 	}
 
 	auto index = h.GetIndex();
 	auto &item = m_Array[index];
-	if (item.m_Type != Type) {
+	if (item.m_OwnerCID != cid) {
 		return false;
 	}
 	if (!item.m_Flags.m_Map.m_HasEntityOwner) {
@@ -76,24 +61,24 @@ bool HandleTable::IsValid(HandleType Type, Handle h) {
 	return true;
 }
 
-bool HandleTable::Allocate(Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(ComponentID cid, Handle &hout, HandleIndex index, HandlePrivateData value) {
 	Handle h;
 	if (!m_Allocator.Allocate(h)) {
 		AddLogf(Error, "Failed to allocate handle!");
 		return false;
 	}
 
-	hout.SetType(Type);
+	hout.SetType(Configuration::HandleType::Component);
 	m_Allocator.SetMapping(hout, index);
 	auto &item = m_Array[hout.GetIndex()];
 	item.m_Data = value;
-	item.m_Type = Type;
+	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
 	item.m_Flags.m_Map.m_HasEntityOwner = false;
 	return true;
 }
 
-bool HandleTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value) {
 	if (!m_EntityManager->IsValid(Owner)) {
 		AddLog(Warning, "Attempt to allocate handle for invalid entity");
 		return false;
@@ -104,19 +89,22 @@ bool HandleTable::Allocate(Entity Owner, Handle &hout, uint16_t Type, HandleInde
 		return false;
 	}
 	
-	hout.SetType(Type);
+	hout.SetType(Configuration::HandleType::Component);
 	m_Allocator.SetMapping(hout, index);
 	auto &item = m_Array[hout.GetIndex()];
 	item.m_Data = value;
 	item.m_Owner = Owner;
-	item.m_Type = Type;
+	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
 	item.m_Flags.m_Map.m_HasEntityOwner = true;
 
 	return true;
 }
 
-bool HandleTable::Release(Handle h) {
+bool HandleTable::Release(ComponentID cid, Handle h) {
+	if (h.GetType() != Configuration::HandleType::Component) {
+		return false;
+	}
 	if (!m_Allocator.IsHandleValid(h)) {
 		//silently ignore;
 		return true;
@@ -127,29 +115,22 @@ bool HandleTable::Release(Handle h) {
 	return false;
 }
 
-bool HandleTable::GetHandleIndex(Handle h, HandleIndex & index) {
-	if (!IsValid(h)) {
+bool HandleTable::GetHandleIndex(ComponentID cid, Handle h, HandleIndex & index) {
+	if (!IsValid(cid, h)) {
 		return false;
 	}
 	return m_Allocator.GetMapping(h, index);
 }
 
-bool HandleTable::GetHandleIndex(HandleType Type, Handle h, HandleIndex & index) {
-	if (!IsValid(Type, h)) {
-		return false;
-	}
-	return m_Allocator.GetMapping(h, index);
-}
-
-bool HandleTable::SetHandleIndex(Handle h, HandleIndex index) {
-	if (!IsValid(h)) {
+bool HandleTable::SetHandleIndex(ComponentID cid, Handle h, HandleIndex index) {
+	if (!IsValid(cid, h)) {
 		return false;
 	}
 	return m_Allocator.SetMapping(h, index);
 }
 
-bool HandleTable::GetHandleParentEntity(HandleType Type, Handle h, Entity &eout) {
-	if (!IsValid(Type, h)) {
+bool HandleTable::GetHandleParentEntity(ComponentID cid, Handle h, Entity &eout) {
+	if (!IsValid(cid, h)) {
 		return false;
 	}
 	auto &item = m_Array[h.GetIndex()];
@@ -157,8 +138,8 @@ bool HandleTable::GetHandleParentEntity(HandleType Type, Handle h, Entity &eout)
 	return true;
 }
 
-bool HandleTable::SwapHandleIndexes(Handle ha, Handle hb) {
-	if (!IsValid(ha) || !IsValid(hb)) {
+bool HandleTable::SwapHandleIndexes(ComponentID cid, Handle ha, Handle hb) {
+	if (!IsValid(cid, ha) || !IsValid(cid, hb)) {
 		return false;
 	}
 	HandleIndex hia, hib;

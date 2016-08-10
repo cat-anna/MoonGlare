@@ -168,7 +168,7 @@ TransformComponent::TransformEntry* TransformComponent::GetEntry(Entity e) {
 
 bool TransformComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
 	auto h = m_EntityMapper.GetHandle(Owner);
-	if (!GetHandleTable()->IsValid(h)) {
+	if (!GetHandleTable()->IsValid(this, h)) {
 		return false;
 	}
 	hout = h;

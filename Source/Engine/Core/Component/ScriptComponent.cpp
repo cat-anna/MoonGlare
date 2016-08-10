@@ -105,7 +105,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		if (!GetHandleTable()->IsValid(item.m_Handle)) {
+		if (!GetHandleTable()->IsValid(this, item.m_Handle)) {
 			AddLogf(Error, "ScriptComponent: invalid entity at index %d", i);
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
@@ -156,7 +156,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	auto last = m_Allocated.load();
-	if (!GetHandleTable()->SwapHandleIndexes(m_Array[Index].m_Handle, m_Array[last - 1].m_Handle)) {
+	if (!GetHandleTable()->SwapHandleIndexes(this, m_Array[Index].m_Handle, m_Array[last - 1].m_Handle)) {
 		AddLogf(Error, "Failed to move last ScriptComponent entry to back!");
 		return;
 	}
@@ -225,7 +225,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	if (!m_ScriptEngine->GetRegisteredScript(name)) {
 		AddLogf(Error, "There is no such script: %s", name);
-		GetHandleTable()->Release(ch);
+		GetHandleTable()->Release(this, ch);
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
@@ -330,7 +330,7 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
 	size_t index;
-	if (!This->GetHandleTable()->GetHandleIndex(h, index)) {
+	if (!This->GetHandleTable()->GetHandleIndex(This, h, index)) {
 		AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Invalid argument #1: invalid handle");
 		lua_pushboolean(lua, 0);
 		return 1;
@@ -354,7 +354,7 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
 	size_t index;
-	if (!This->GetHandleTable()->GetHandleIndex(h, index)) {
+	if (!This->GetHandleTable()->GetHandleIndex(This, h, index)) {
 		AddLogf(Error, "ScriptComponent::DestroyObject: Error: Invalid argument #1: invalid handle");
 		lua_pushboolean(lua, 0);
 		return 1;
