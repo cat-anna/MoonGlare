@@ -9,6 +9,7 @@
 #include "AbstractComponent.h"
 #include "ScriptComponent.h"
 #include "ComponentManager.h"
+#include "ComponentRegister.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -42,6 +43,8 @@ namespace lua {
 		}
 	}
 }
+
+RegisterComponentID<ScriptComponent> ScriptComponent("ScriptComponent", false);
 
 ScriptComponent::ScriptComponent(ComponentManager *Owner)
 	: AbstractComponent(Owner) 

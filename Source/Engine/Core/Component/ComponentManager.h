@@ -59,28 +59,6 @@ private:
 	bool InsertComponent(UniqueAbstractComponent cptr, ComponentID cid);
 };
 
-template<class T>
-struct RegisterComponentID {
-	RegisterComponentID(const char *Name) {
-		THROW_ASSERT(!s_Name, "Attempt to re-register component ID");
-		s_Name = Name;
-		RegisterApiNonClass(local, &RegisterComponentID<T>::RegisterScriptApi, "Component");
-	}
-private:
-	static const char *s_Name;
-	static int get() { 
-		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
-		return static_cast<int>(T::GetComponentID());
-	}
-	static void RegisterScriptApi(ApiInitializer &root) {
-		root
-			.addProperty(s_Name, &get, (void(*)(int))nullptr);
-	}
-};
-
-template<class T>
-const char * RegisterComponentID<T>::s_Name = nullptr;
-
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

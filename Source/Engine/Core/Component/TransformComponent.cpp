@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 #include "ComponentManager.h"
+#include "ComponentRegister.h"
 #include "AbstractComponent.h"
 #include "TransformComponent.h"
 

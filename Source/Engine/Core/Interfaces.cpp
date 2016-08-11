@@ -9,6 +9,7 @@
 #include <Engine/iSoundEngine.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Core/Interfaces.h"
+#include "Core/Component/ComponentRegister.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -49,6 +50,7 @@ void Interfaces::DumpLists(ostream &out) {
 	out << "\nSound types list\n";
 	Sound::SoundClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\n"; 
+	Component::ComponentRegister::Dump(out);
 	out << "\n";
 	out << "\n";
 	auto func = [&out](const Space::ClassListRegisterBase<> *r) {

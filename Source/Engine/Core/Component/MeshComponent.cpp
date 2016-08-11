@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "ComponentManager.h"
+#include "ComponentRegister.h"
 #include "AbstractComponent.h"
 #include "MeshComponent.h"
 #include "TransformComponent.h"
