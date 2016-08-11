@@ -11,6 +11,8 @@
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
 
+#include <Libs/LuaBridge/dump.cpp>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -27,9 +29,12 @@ namespace lua {
 	static const char *Function_OnCreate = "OnCreate";
 	static const char *Function_OnDestroy = "OnDestroy";
 
+	static const char *EntityMemberName = "Entity";
 	static const char *HandleMemberName = "Handle";
 	static const char *ComponentIDMemberName = "ComponentId";
 	static const char *DereferenceHandlerName = "Get";
+
+	static const char *GameObjectName = "GameObject";
 	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
@@ -44,11 +49,10 @@ namespace lua {
 	}
 }
 
-RegisterComponentID<ScriptComponent> ScriptComponent("ScriptComponent", false);
+RegisterComponentID<ScriptComponent> ScriptComponent("Script", false);
 
 ScriptComponent::ScriptComponent(ComponentManager *Owner)
-	: AbstractComponent(Owner) 
-	, m_Allocated(0) {
+	: AbstractComponent(Owner) {
 }
 
 ScriptComponent::~ScriptComponent() {
@@ -58,8 +62,7 @@ bool ScriptComponent::Initialize() {
 	m_ScriptEngine = GetManager()->GetWorld()->GetScriptEngine();
 	THROW_ASSERT(m_ScriptEngine, "No script engine instance!");
 
-	Space::MemZero(m_Array);
-	m_Allocated = 0;
+	m_Array.MemZeroAndClear();
 
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
@@ -83,7 +86,7 @@ bool ScriptComponent::Finalize() {
 }
 
 void ScriptComponent::Step(const MoveConfig & conf) {
-	if (m_Allocated == 0) {
+	if (m_Array.Empty()) {
 		return;
 	}
 
@@ -99,7 +102,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	for (size_t i = 0; i < m_Allocated; ++i) {
+	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &item = m_Array[i];
 		if (!item.m_Flags.m_Map.m_Valid) {
 			//mark and ignore
@@ -121,32 +124,41 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		lua_pushinteger(lua, i + 1);		//stack: self movedata #component
-		lua_gettable(lua, -3);				//stack: self movedata component/nil
+		lua_rawgeti(lua, -2, i + 1);		//stack: self movedata RootObject/nil
 
-		if (lua_isnil(lua, -1)) {
+		if (!lua_istable(lua, -1)) {
 			lua_pop(lua, 1);
-			AddLogf(Error, "ScriptComponent: nil in lua component table at index: %d", i);
+			AddLogf(Error, "ScriptComponent: nil in lua component table at index: %d", i + 1);
 			continue;
 		}
 
-		lua_getfield(lua, -1, lua::Function_Step); //stack: self movedata component Step/nil
+		lua_rawgeti(lua, -1, 1);			//stack: self movedata RootObject script@1/nil
+		if (!lua_istable(lua, -1)) {
+			lua_pop(lua, 2);				//stack: self movedata
+			AddLogf(Error, "ScriptComponent: nil in lua Object script table at index: 1");
+			continue;
+		}
+		//stack: self movedata RootObject script@1
+		lua_getfield(lua, -1, lua::Function_Step); //stack: self movedata RootObject component Step/nil
 		if (lua_isnil(lua, -1)) {
-			lua_pop(lua, 2);
+			lua_pop(lua, 3);
 			item.m_Flags.m_Map.m_StepFunction = false;
 			AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, disabling mapping", i);
 			continue;
 		}
+		//stack: self movedata RootObject script@1 Step
 
-		lua_insert(lua, -2); //stack: self movedata Step component 
-		lua_pushvalue(lua, -3); //stack: self movedata Step component movedata
+		lua_insert(lua, -2);				//stack: self movedata RootObject Step script@1
+		lua_pushvalue(lua, -4);				//stack: self movedata RootObject Step script@1 movedata
 
 		if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step)) {
 			AddLogf(Error, "Failure during OnStep call for component #%lu", i);
-			item.m_Flags.m_Map.m_StepFunction = false;
+	//		item.m_Flags.m_Map.m_StepFunction = false;
 		}
 
-		//stack: self movedata Step 
+		// stack: self movedata RootObject
+
+		lua_pop(lua, 1); 					// stack: self movedata 
 	}
 
 	lua_pop(lua, 2); //stack: -
@@ -158,7 +170,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 }
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
-	auto last = m_Allocated.load();
+	auto last = m_Array.Allocated();
 	if (!GetHandleTable()->SwapHandleIndexes(this, m_Array[Index].m_Handle, m_Array[last - 1].m_Handle)) {
 		AddLogf(Error, "Failed to move last ScriptComponent entry to back!");
 		return;
@@ -181,26 +193,31 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	lua_pushinteger(lua, last);			//stack: self current_table last_id
 	lua_pushnil(lua);					//stack: self current_table last_id nil
 	lua_settable(lua, -4);				//stack: self current_table 
+
 	//current remains on stack, so OnDestroy can be called
 
 	auto &item = m_Array[Index];
 	item.m_Flags.m_Map.m_Valid = false;
-
 	std::swap(m_Array[Index], m_Array[last - 1]);
 
-	lua_getfield(lua, -1, lua::Function_OnDestroy); //stack: self current_table OnDestroy/nil
+	lua_rawgeti(lua, -1, 1);			//stack: self current_table script@1/nil
 	if (lua_isnil(lua, -1)) {
-		lua_pop(lua, 1);
+		AddLogf(Error, "ScriptComponent: nil in lua Object script table at index: 1");
 	} else {
-		lua_pushvalue(lua, -2);			//stack: self current_table OnDestroy current_table
-		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnDestroy)) { //stack: self current_table
-			//nothing there, nothing more to be logged
+		lua_getfield(lua, -1, lua::Function_OnDestroy); //stack: self current_table script@1 OnDestroy/nil
+		if (lua_isnil(lua, -1)) {
+			lua_pop(lua, 1);
+		} else {
+			lua_pushvalue(lua, -2);			//stack: self current_table script@1 OnDestroy script@1
+			if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnDestroy)) { //stack: self current_table script@1
+				//nothing there, nothing more to be logged
+			}
 		}
 	}
-	//stack: self current_table
-	lua_pop(lua, 2); //stack: -
+	//stack: self current_table script@1/nil
+	lua_pop(lua, 3); //stack: -
 
-	--m_Allocated;
+	m_Array.DeallocateLast();
 }
 
 bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
@@ -211,7 +228,11 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	}
 
 	Handle &ch = hout;
-	size_t index = m_Allocated++;
+	size_t index;
+	if (!m_Array.Allocate(index)) {
+		AddLogf(Error, "Failed to allocate index!");
+		return false;
+	}
 
 	auto &entry = m_Array[index];
 	entry.m_Flags.ClearAll();
@@ -226,6 +247,8 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 
+	//stack: -
+
 	if (!m_ScriptEngine->GetRegisteredScript(name)) {
 		AddLogf(Error, "There is no such script: %s", name);
 		GetHandleTable()->Release(this, ch);
@@ -233,55 +256,78 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		return false;
 	}
 
+	//stack: ScriptClass
+
 	entry.m_Owner = Owner;
 	entry.m_Handle = ch;
 	entry.m_Flags.SetAll();
 
-	lua_createtable(lua, 0, 0);
-	lua_insert(lua, -2);
-	lua_setmetatable(lua, -2);
+	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot
 
-	luabridge::Stack<Entity*>::push(lua, &Owner);
-	lua_setfield(lua, -2, "Entity");
-	lua_pushlightuserdata(lua, this);
-	lua_setfield(lua, -2, "Component");
-	lua_pushlightuserdata(lua, ch.GetVoidPtr());
-	lua_setfield(lua, -2, lua::HandleMemberName);
+	lua_pushlightuserdata(lua, (void *)this);		//stack: ScriptClass ObjectRoot this
+	lua_gettable(lua, LUA_REGISTRYINDEX);			//stack: ScriptClass ObjectRoot self
 
-	lua_pushlightuserdata(lua, this);
-	lua_pushlightuserdata(lua, ch.GetVoidPtr());
-	lua_pushcclosure(lua, &lua_DestroyComponent, 2);
-	lua_setfield(lua, -2, "DestroyComponent");
+	lua_pushvalue(lua, -2);							//stack: ScriptClass ObjectRoot self ObjectRoot
+	lua_rawseti(lua, -2, static_cast<int>(index) + 1);	//stack: ScriptClass ObjectRoot self
+	lua_pop(lua, 1);								//stack: ScriptClass ObjectRoot
+	luabridge::dumpLuaState(lua);
 
-	lua_pushlightuserdata(lua, this);
-	lua_pushlightuserdata(lua, ch.GetVoidPtr());
-	lua_pushcclosure(lua, &lua_GetComponent, 2);
-	lua_setfield(lua, -2, "GetComponent");
+	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject
+	lua_pushvalue(lua, -1);									//stack: ScriptClass ObjectRoot GameObject GameObject
+	lua_setfield(lua, -3, lua::GameObjectName);				//stack: ScriptClass ObjectRoot GameObject
+
+	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ScriptClass ObjectRoot GameObject SelfHandle	
+	lua_setfield(lua, -2, lua::HandleMemberName);			//stack: ScriptClass ObjectRoot GameObject
+	lua_pushlightuserdata(lua, Owner.GetVoidPtr());			//stack: ScriptClass ObjectRoot GameObject Entity	
+	lua_setfield(lua, -2, lua::EntityMemberName);			//stack: ScriptClass ObjectRoot GameObject
+
+	//TODO: more api to GameObject
+	//lua_setmetatable(lua, -2); etc
+
+	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject Script
+	lua_insert(lua, -2);									//stack: ScriptClass ObjectRoot Script GameObject
+	lua_setfield(lua, -2, lua::GameObjectName);				//stack: ScriptClass ObjectRoot Script
+	lua_pushvalue(lua, -1);									//stack: ScriptClass ObjectRoot Script Script
+	lua_rawseti(lua, -3, 1);								//stack: ScriptClass ObjectRoot Script
+		
+	lua_insert(lua, -3);									//stack: Script ScriptClass ObjectRoot 
+	lua_insert(lua, -3);									//stack: ObjectRoot Script ScriptClass  
+	lua_setmetatable(lua, -2);								//stack: ObjectRoot Script 
+
+	lua_pushlightuserdata(lua, Owner.GetVoidPtr());			//stack: ObjectRoot Script Entity
+	lua_setfield(lua, -2, lua::EntityMemberName);			//stack: ObjectRoot Script
+	//lua_pushlightuserdata(lua, this);
+	//lua_setfield(lua, -2, "Component");
+	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ObjectRoot Script SelfHandle
+	lua_setfield(lua, -2, lua::HandleMemberName);			//stack: ObjectRoot Script
+
+	lua_pushlightuserdata(lua, this);						//stack: ObjectRoot Script this
+	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ObjectRoot Script this SelfHandle 
+	lua_pushcclosure(lua, &lua_DestroyComponent, 2);		//stack: ObjectRoot Script lua_DestroyComponent
+	lua_setfield(lua, -2, "DestroyComponent");				//stack: ObjectRoot Script
+
+	lua_pushlightuserdata(lua, this);						//stack: ObjectRoot Script this
+	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ObjectRoot Script this SelfHandle 
+	lua_pushcclosure(lua, &lua_GetComponent, 2);			//stack: ObjectRoot Script lua_GetComponent
+	lua_setfield(lua, -2, "GetComponent");					//stack: ObjectRoot Script
 	
 	//TODO: DestroyObject(void/other)
 
-	lua_getfield(lua, -1, lua::Function_OnCreate);
+	lua_getfield(lua, -1, lua::Function_OnCreate);			//stack: ObjectRoot Script OnCreate/nil
 	if (lua_isnil(lua, -1)) {
-		lua_pop(lua, 1);
+		lua_pop(lua, 1);									//stack: ObjectRoot Script
 		m_Array[index].m_Flags.m_Map.m_OnCreateFunction = false;
 	} else {
-		lua_pushvalue(lua, -2);
+		lua_pushvalue(lua, -2);								//stack: ObjectRoot Script OnCreate Script
 		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate)) {
 			//no need for more logging
 			m_Array[index].m_Flags.m_Map.m_OnCreateFunction = false;
 		}
 	}
 
-	lua_pushlightuserdata(lua, (void *)this);
-	lua_gettable(lua, LUA_REGISTRYINDEX);
-	lua_insert(lua, -2);
+	//stack: ObjectRoot Script
 
-	//lua index starts from 1
-	lua_pushinteger(lua, static_cast<int>(index) + 1);
-	lua_insert(lua, -2);
-
-	lua_settable(lua, -3);
-	lua_pop(lua, 1);
+	lua_pop(lua, 2);								//stack: -
 
 	return true;
 }

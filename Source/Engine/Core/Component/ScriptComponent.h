@@ -9,6 +9,8 @@
 #ifndef ScriptComponent_H
 #define ScriptComponent_H
 
+#include <libSpace/src/Container/StaticVector.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -57,10 +59,10 @@ public:
 	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 protected:
 	::Core::cScriptEngine *m_ScriptEngine;
-	std::atomic<size_t> m_Allocated;
 
-	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
+	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 	Array<ScriptEntry> m_Array;
+	//BaseEntityMapper<LuaHandle> m_EntityMapper;
 
 	void ReleaseComponent(lua_State *lua, size_t Index);
 private:
