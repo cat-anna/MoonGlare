@@ -52,23 +52,23 @@ private:
 	Memory m_Memory;
 };
 
-struct EntityMapper {
-	template<class T> using Array = EntityManager::Array<T>;
 
-	Handle GetHandle(Entity e) const {
-		return m_Array[e.GetIndex()].m_Handle;
+template<class T>
+struct BaseEntityMapper {
+	 using Array = EntityManager::Array<T>;
+
+	const T& GetHandle(Entity e) const {
+		return m_Array[e.GetIndex()];
 	}
 
-	void SetHandle(Entity e, Handle h) {
-		m_Array[e.GetIndex()].m_Handle = h;
+	void SetHandle(Entity e, const T &h) {
+		m_Array[e.GetIndex()] = h;
 	}
-
-	struct Entry {
-		Handle m_Handle;
-	};
 protected:
-	Array<Entry> m_Array;
+	Array m_Array;
 };
+
+using EntityMapper = BaseEntityMapper < Handle >;
 
 } //namespace Core 
 } //namespace MoonGlare 
