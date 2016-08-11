@@ -11,6 +11,7 @@
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/AbstractComponent.h>	
 #include <Core/Component/TransformComponent.h>
+#include <Core/Component/ComponentRegister.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -250,13 +251,27 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 
 	auto &cm = OwnerScene->GetComponentManager();
 	for (auto it = MetaXML.child("Component"); it; it = it.next_sibling("Component")) {
-		auto idxml = it.attribute("Id");
-		if (!idxml) {
-			AddLog(Error, "Component definition without id!");
+		ComponentID cid = 0;
+		{
+			auto idxml = it.attribute("Id");
+			if (idxml){
+				cid = idxml.as_uint(0);
+			} else {
+				auto namexml = it.attribute("Name");
+				if (namexml && Component::ComponentRegister::GetComponentID(namexml.as_string(""), cid)){
+					//found
+				} else {
+					AddLog(Error, "Component definition without id or name!");
+					continue;
+				}
+			} 
+		}
+
+		if (cid == 0) {
+			AddLogf(Warning, "Unknown component!", cid);
 			continue;
 		}
 
-		auto cid = idxml.as_uint(0);
 		auto c = cm.GetComponent(cid);
 		if (!c) {
 			AddLogf(Warning, "No such component: %d", cid);

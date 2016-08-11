@@ -14,7 +14,7 @@ namespace Core {
 namespace Component {
 
 struct ComponentRegister {
-	using MapType = std::unordered_map < const char*, ComponentID >;
+	using MapType = std::unordered_map < std::string, ComponentID >;
 	static bool GetComponentID(const char *Name, ComponentID &cidout) {
 		auto it = s_ComponentMap->find(Name);
 		if (it == s_ComponentMap->end())
