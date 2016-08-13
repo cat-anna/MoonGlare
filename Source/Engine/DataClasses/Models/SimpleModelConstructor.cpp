@@ -36,7 +36,27 @@ iSimpleModel* SimpleModelConstructor::GenerateModel(const string& Name, DataPath
 	EditableSimpleModel *esm = new EditableSimpleModel(Name);
 	
 	EditableModelFields req;
-	req.Reader = FileSystem::DirectoryReader(ModelOrigin, Name);
+	req.Reader = std::make_unique<FileSystem::DirectoryReader>(ModelOrigin, Name);
+	req.VAO = &esm->GetVAO();
+	req.Meshes = &esm->GetMeshVector();
+	req.Materials = &esm->GetMaterialVector();
+	req.ShapeConstructor = &esm->GetShapeConstructor();
+	req.OwnerModel = esm;
+
+	if (!GenerateModel(req)) {
+		delete esm;
+		AddLog(Error, "An error has occur during generation of model shape!");
+		return false;
+	}
+
+	esm->Initialize();
+	return esm;
+}
+
+iSimpleModel* SimpleModelConstructor::GenerateModel() const {
+	EditableSimpleModel *esm = new EditableSimpleModel("");
+
+	EditableModelFields req;
 	req.VAO = &esm->GetVAO();
 	req.Meshes = &esm->GetMeshVector();
 	req.Materials = &esm->GetMaterialVector();
@@ -79,7 +99,11 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 		ModelMaterial *mat = 0;
 		if(i->GetMaterialID() != -1){
 			const Material &pmat = *m_Materials[i->GetMaterialID()];
-			mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI, request.Reader);
+			if(request.Reader)
+				mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI, *request.Reader.get());
+			else
+				mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI);
+
 			MaterialVec.push_back(mat);
 			//auto &m = //Model *Owner, const xml_node MaterialDef, DataPath MaterialOrigin, const string &OriginName
 			//matid = esm->AddMaterial(mat.GetMaterialNode(), ModelOrigin, m_Name);

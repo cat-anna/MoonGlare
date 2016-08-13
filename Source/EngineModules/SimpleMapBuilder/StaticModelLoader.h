@@ -74,7 +74,7 @@ struct StaticModelLoader {
 			return Handle();
 		}
 
-		DataClasses::ModelPtr model(GetConstructor()->GenerateModel("MazeMap", DataPath::Maps));
+		DataClasses::ModelPtr model(GetConstructor()->GenerateModel());
 		auto rt = Core::GetEngine()->GetWorld()->GetResourceTable();
 
 		Handle hout;

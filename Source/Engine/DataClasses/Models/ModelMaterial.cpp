@@ -63,6 +63,19 @@ ModelMaterial:: ModelMaterial(iModel *Owner, const std::string &Edges, const std
 	//XML::Vector::Read(MaterialDef, "BackColor", m_Material.BackColor, m_Material.BackColor, XML::Captions::RGBA);
 }
 
+ModelMaterial::ModelMaterial(iModel *Owner, const std::string &Edges, const std::string &TexURI) :
+	m_Owner(Owner), m_Material() {
+
+	FileSystem::MoonGlareFileSystem::Instance()->OpenTexture(m_Material.Texture, TexURI);
+	if (!strcmp(Edges.c_str(), "Repeat"))
+		Graphic::GetRenderDevice()->RequestContextManip([this] {
+		m_Material.Texture.SetRepeatEdges();
+	});
+
+	//	m_Material.AlphaThreshold = TextureNode.attribute("AlphaThreshold").as_float(m_Material.AlphaThreshold);
+	m_Material.BackColor = math::vec3(1);
+	//XML::Vector::Read(MaterialDef, "BackColor", m_Material.BackColor, m_Material.BackColor, XML::Captions::RGBA);
+}
 
 ModelMaterial::~ModelMaterial() {
 }

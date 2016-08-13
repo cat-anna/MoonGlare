@@ -24,6 +24,7 @@ public:
 	void GenerateShape(bool Status) { m_GenerateShape = Status; }
 
 	iSimpleModel* GenerateModel(const string& Name, DataPath ModelOrigin) const;
+	iSimpleModel* GenerateModel() const;
 
 	struct EditableModelFields {
 		Graphic::VAO *VAO;
@@ -31,7 +32,7 @@ public:
 		MaterialVector *Materials;
 		Physics::ShapeConstructorPtr* ShapeConstructor;
 		iModel *OwnerModel;
-		FileSystem::DirectoryReader Reader;
+		std::unique_ptr<FileSystem::DirectoryReader> Reader;
 	};
 	bool GenerateModel(EditableModelFields &request) const;
 

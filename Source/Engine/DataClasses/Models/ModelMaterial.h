@@ -25,6 +25,7 @@ public:
 	ModelMaterial(iModel *Owner, const aiMaterial *Material);
 	ModelMaterial(iModel *Owner, const xml_node MaterialDef, FileSystem::DirectoryReader reader);
 	ModelMaterial(iModel *Owner, const std::string &Edges, const std::string &TexURI, FileSystem::DirectoryReader reader);
+	ModelMaterial(iModel *Owner, const std::string &Edges, const std::string &TexURI);
 	virtual ~ModelMaterial();
 
 	const Graphic::Material& GetMaterial() const { return m_Material; }
