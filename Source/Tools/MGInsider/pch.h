@@ -46,7 +46,7 @@
 #include <cassert>
 
 #include <pugixml-1.6/src/pugixml.hpp>
-#include <luaJiT/lua.hpp>
+#include <luaJiT-2.0.4/lua.hpp>
 
 #include <source/XMLUtils.h>
 #include <source/Utils/SetGet.h>

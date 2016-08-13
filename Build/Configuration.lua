@@ -24,7 +24,6 @@ Features = {
 
 Engine = {
 	Features = {
-		"FolderContainer",
 		"PerfCounters",
 	},
 
@@ -32,7 +31,6 @@ Engine = {
 		Defines = {
 		},
 		Features = {
-			"TextureIntrospector",
 		},
 	},
 	Release = {

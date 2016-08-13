@@ -103,6 +103,9 @@ using pugi::xml_document;
 
 #include <libSpace/src/RTTI.h>
 #include <libSpace/src/Utils.h>
+#include <libSpace/src/Utils/CompileMurmurhash3.h>
+
+using namespace Space::Utils::HashLiterals;
 
 #include "Serialize.h"
 

@@ -6,6 +6,8 @@ group ""
 		
 	project "Engine"
 		kind "ConsoleApp"
+		
+		MoonGlare.X2CRule()
 
 		SetPCH { hdr = "pch.h", src = "../pch.cpp", }	
 
@@ -17,15 +19,16 @@ group ""
 			"_FEATURE_FOLDER_CONTAINER_SUPPORT_",
 		}
 
-		files {
+		files { 
 			"**",
 			"../*", 
 			"../Config/**",
 			"../Utils/**",
-			"../../Libs/InternalFileSystem/**",
+			"../Shared/x2c/Input.x2c",
 		}
 		includedirs {
 			".",
+			"%{cfg.objdir}",
 		}
 		links {
 			"libSpace",
