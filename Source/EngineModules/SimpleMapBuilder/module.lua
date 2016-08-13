@@ -1,7 +1,7 @@
 -- Moonglare module build script
 
 define_module { 
-	name = "SimpleMap",
+	name = "SimpleMapBuilder",
 	group = "Engine",
 	
 	Add = function()
