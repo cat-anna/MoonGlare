@@ -35,6 +35,11 @@ bool World::Initialize(::Core::cScriptEngine *se) {
 		return false;
 	}
 
+	if (!m_ResourceTable.Initialize()) {
+		AddLogf(Error, "Failed to initialize ResourceTable!");
+		return false;
+	}
+
 	m_InputProcessor = std::make_unique<Core::InputProcessor>();
 	if (!m_InputProcessor->Initialize(this)) {
 		AddLogf(Error, "Failed to initialize InputProcessor");
@@ -50,6 +55,10 @@ bool World::Finalize() {
 		AddLogf(Error, "Failed to finalize InputProcessor");
 	}
 	m_InputProcessor.reset();
+
+	if (!m_ResourceTable.Finalize()) {
+		AddLogf(Error, "Failed to finalize ResourceTable!");
+	}
 
 	if (!m_HandleTable.Finalize()) {
 		AddLogf(Error, "Failed to finalize HandleTable!");

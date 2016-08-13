@@ -11,6 +11,7 @@
 
 #include "Core/EntityManager.h"
 #include "Core/HandleTable.h"
+#include "Core/ResourceTable.h"
 
 namespace MoonGlare {
 
@@ -24,6 +25,7 @@ public:
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
 	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
+	Core::ResourceTable* GetResourceTable() { return &m_ResourceTable; }
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
 
 	::Core::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
@@ -33,6 +35,7 @@ private:
 	::Core::cScriptEngine *m_ScriptEngine;
 
 	Core::HandleTable m_HandleTable;
+	Core::ResourceTable m_ResourceTable;
 	Core::EntityManager m_EntityManager;
 };
 
