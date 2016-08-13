@@ -70,27 +70,15 @@ local function _DoSerializePretty(data, output, pretty)
 				end
                 f:write("}")
             end,
-            number = function(value, loc)
-                f:write(value)
-            end,
             string = function(value, loc)
                 f:write("\"", value, "\"")
-            end,
-            boolean = function(value, loc)
-                f:write(tostring(value))
-            end,
-			["function"] = function(value, loc)
-                f:write("function")
-            end,
-            ["nil"] = function(value, loc)
-                f:write("nil")
             end,
         }
         local nodef = action[type(value)]
 		if nodef then
-			nodef(value, loc);
+			nodef(value, loc)
 		else
-			print("Unknown node type: ", type(value))
+			 f:write(tostring(value))
 		end
         if loc > 0 then
             f:write(",")

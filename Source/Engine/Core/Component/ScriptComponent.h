@@ -65,11 +65,26 @@ protected:
 	//BaseEntityMapper<LuaHandle> m_EntityMapper;
 
 	void ReleaseComponent(lua_State *lua, size_t Index);
+
+	void GetInstancesTable(lua_State *lua) {
+		lua_pushlightuserdata(lua, GetInstancesTableIndex());
+		lua_gettable(lua, LUA_REGISTRYINDEX);
+	}
+	void GetGameObjectMetaTable(lua_State *lua) {
+		lua_pushlightuserdata(lua, GetGameObjectMetaTableIndex());
+		lua_gettable(lua, LUA_REGISTRYINDEX);
+	}
+
+	void *GetInstancesTableIndex() { return this; }
+	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<int>(this) + 1); }
 private:
 	static int lua_DestroyComponent(lua_State *lua);
 	static int lua_DestroyObject(lua_State *lua);
 	static int lua_GetComponent(lua_State *lua);
 	static int lua_DereferenceHandle(lua_State *lua);
+	static int lua_CreateComponent(lua_State *lua);
+
+	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 }; 
 
 } //namespace Component 

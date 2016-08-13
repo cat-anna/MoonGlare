@@ -35,6 +35,8 @@ namespace lua {
 	static const char *DereferenceHandlerName = "Get";
 
 	static const char *GameObjectName = "GameObject";
+
+	static const char *CreateComponentName = "CreateComponent";
 	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
@@ -76,10 +78,28 @@ bool ScriptComponent::Initialize() {
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	lua_pushlightuserdata(lua, (void *)this);
-	lua_createtable(lua, m_Array.size(), 0);
-	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptComponent", this, -1);
-	lua_settable(lua, LUA_REGISTRYINDEX);
+
+	lua_pushlightuserdata(lua, GetInstancesTableIndex());									 //stack: InstTblIdx
+	lua_createtable(lua, m_Array.size(), 0);												 //stack: InstTblIdx InstTbl
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptComponent", this, -1);		 //stack: InstTblIdx InstTbl
+	lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
+																							 
+	lua_createtable(lua, 0, 0);																 //stack: GameObjectMT
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptComponent_mt", this, -1);		 //stack: GameObjectMT
+	lua_pushlightuserdata(lua, GetGameObjectMetaTableIndex());								 //stack: GameObjectMT Index
+	lua_pushvalue(lua, -2);																	 //stack: GameObjectMT Index GameObjectMT
+	lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: GameObjectMT
+
+	lua_createtable(lua, 0, 0);																 //stack: GameObjectMT GameObjectMT_index
+	lua_pushvalue(lua, -1);																	 //stack: GameObjectMT GameObjectMT_index GameObjectMT_index
+	lua_setfield(lua, -3, "__index");														 //stack: GameObjectMT GameObjectMT_index
+
+	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
+	lua_pushcclosure(lua, &lua_CreateComponent, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_CreateComponent
+	lua_setfield(lua, -2, lua::CreateComponentName);										 //stack: GameObjectMT GameObjectMT_index 
+
+	lua_pop(lua, 2);																		 //stack: -
+
 	return true;
 }
 
@@ -101,9 +121,8 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	//stack: -
-	lua_pushlightuserdata(lua, (void *)this);		//stack: selfptr
-	lua_gettable(lua, LUA_REGISTRYINDEX);			//stack: self
+	//stack: -		
+	GetInstancesTable(lua);									//stack: self
 
 	luabridge::Stack<const MoveConfig*>::push(lua, &conf); //stack: self movedata
 
@@ -255,6 +274,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 
+	int top = lua_gettop(lua);
 	//stack: -
 
 	if (!m_ScriptEngine->GetRegisteredScript(name)) {
@@ -272,12 +292,11 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot
 
-	lua_pushlightuserdata(lua, (void *)this);		//stack: ScriptClass ObjectRoot this
-	lua_gettable(lua, LUA_REGISTRYINDEX);			//stack: ScriptClass ObjectRoot self
+	GetInstancesTable(lua);									//stack: ScriptClass ObjectRoot self
 
-	lua_pushvalue(lua, -2);							//stack: ScriptClass ObjectRoot self ObjectRoot
-	lua_rawseti(lua, -2, static_cast<int>(index) + 1);	//stack: ScriptClass ObjectRoot self
-	lua_pop(lua, 1);								//stack: ScriptClass ObjectRoot
+	lua_pushvalue(lua, -2);									//stack: ScriptClass ObjectRoot self ObjectRoot
+	lua_rawseti(lua, -2, static_cast<int>(index) + 1);		//stack: ScriptClass ObjectRoot self
+	lua_pop(lua, 1);										//stack: ScriptClass ObjectRoot
 	luabridge::dumpLuaState(lua);
 
 	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject
@@ -289,8 +308,10 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushlightuserdata(lua, Owner.GetVoidPtr());			//stack: ScriptClass ObjectRoot GameObject Entity	
 	lua_setfield(lua, -2, lua::EntityMemberName);			//stack: ScriptClass ObjectRoot GameObject
 
-	//TODO: more api to GameObject
-	//lua_setmetatable(lua, -2); etc
+	GetGameObjectMetaTable(lua);							//stack: ScriptClass ObjectRoot GameObject GameObjectMT
+	lua_pushvalue(lua, -1);									//stack: ScriptClass ObjectRoot GameObject GameObjectMT GameObjectMT
+	lua_setfield(lua, -3, "GameObjectMT");					//stack: ScriptClass ObjectRoot GameObject GameObjectMT
+	lua_setmetatable(lua, -2);								//stack: ScriptClass ObjectRoot GameObject
 
 	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject Script
 	lua_insert(lua, -2);									//stack: ScriptClass ObjectRoot Script GameObject
@@ -313,11 +334,18 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ObjectRoot Script this SelfHandle 
 	lua_pushcclosure(lua, &lua_DestroyComponent, 2);		//stack: ObjectRoot Script lua_DestroyComponent
 	lua_setfield(lua, -2, "DestroyComponent");				//stack: ObjectRoot Script
+	//TODO: DestroyObject(void/other)
 
 	lua_pushlightuserdata(lua, this);						//stack: ObjectRoot Script this
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());			//stack: ObjectRoot Script this SelfHandle 
 	lua_pushcclosure(lua, &lua_GetComponent, 2);			//stack: ObjectRoot Script lua_GetComponent
-	lua_setfield(lua, -2, "GetComponent");					//stack: ObjectRoot Script
+	lua_pushvalue(lua, -1);									//stack: ObjectRoot Script lua_GetComponent lua_GetComponent
+	lua_setfield(lua, -3, "GetComponent");					//stack: ObjectRoot Script lua_GetComponent
+
+	lua_pushvalue(lua, -2);									//stack: ObjectRoot Script lua_GetComponent Script
+	lua_pushnumber(lua, (float)ComponentIDs::Transform);	//stack: ObjectRoot Script lua_GetComponent Script TransformCID
+	lua_call(lua, 2, 1);									//stack: ObjectRoot Script TransformInfo
+	lua_setfield(lua, -2, "Transform");						//stack: ObjectRoot Script 
 	
 	//TODO: DestroyObject(void/other)
 
@@ -335,8 +363,8 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	//stack: ObjectRoot Script
 
-	lua_pop(lua, 2);								//stack: -
-
+	lua_settop(lua, top);
+	//stack: -
 	return true;
 }
 
@@ -474,8 +502,7 @@ int ScriptComponent::lua_GetComponent(lua_State *lua) {
 	}
 
 	Entity OwnerEntity;
-	auto HandleTable = This->GetManager()->GetWorld()->GetHandleTable();
-	if (!HandleTable->GetHandleParentEntity(This, RequestHandle, OwnerEntity)) {
+	if (!This->GetHandleTable()->GetHandleParentEntity(This, RequestHandle, OwnerEntity)) {
 		AddLogf(Error, "ScripComponent::GetComponent: Error: Invalid owner handle!");
 		return 0;
 	}
@@ -487,19 +514,22 @@ int ScriptComponent::lua_GetComponent(lua_State *lua) {
 		return 0;
 	}
 
+	return lua_MakeComponentInfo(lua, cid, ComponentHandle, cptr);
+}
+
+int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr) {
 	lua_createtable(lua, 0, 5);
 
-	lua_pushlightuserdata(lua, ComponentHandle.GetVoidPtr());
+	lua_pushlightuserdata(lua, h.GetVoidPtr());
 	lua_setfield(lua, -2, lua::HandleMemberName);
 
 	lua_pushinteger(lua, static_cast<int>(cid));
 	lua_setfield(lua, -2, lua::ComponentIDMemberName);
 
 	lua_pushlightuserdata(lua, cptr);
-	lua_pushlightuserdata(lua, ComponentHandle.GetVoidPtr());
+	lua_pushlightuserdata(lua, h.GetVoidPtr());
 	lua_pushcclosure(lua, &lua_DereferenceHandle, 2);
 	lua_setfield(lua, -2, lua::DereferenceHandlerName);
-
 	return 1;
 }
 
@@ -516,6 +546,60 @@ int ScriptComponent::lua_DereferenceHandle(lua_State *lua) {
 	}
 
 	return rets;
+}
+
+int ScriptComponent::lua_CreateComponent(lua_State *lua) {
+	ComponentID cid;
+
+	if (!lua_istable(lua, -2)) {
+		AddLogf(Error, "GameObject::CreateComponent: Error: Invalid self argument");
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	switch (lua_type(lua, -1)) {
+	case LUA_TNUMBER:
+		cid = static_cast<ComponentID>(lua_tonumber(lua, -1));
+		break;
+	case LUA_TSTRING:
+		if(ComponentRegister::GetComponentID(lua_tostring(lua, -1), cid))
+			break;
+		AddLogf(Error, "GameObject::CreateComponent: Error: Invalid argument #1: Unknown component: %s", lua_tostring(lua, -1));
+	default:
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
+
+	//stack: self cid
+
+	lua_getfield(lua, -2, lua::EntityMemberName);					//stack: self cid Entity
+	Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);												//stack: self cid
+
+	if (!This->GetManager()->GetWorld()->GetEntityManager()->IsValid(Owner)) {
+		AddLogf(Error, "GameObject::CreateComponent: Error: Attempt to create component for invalid object! cid: %d", cid);
+		lua_pushnil(lua);
+		return 1;
+	}
+	
+	auto *cptr = This->GetManager()->GetComponent(cid);
+	if (!cptr) {
+		AddLogf(Error, "GameObject::CreateComponent: Error: Invalid argument #1: There is no component cid: %d", cid);
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	Handle hout;
+	if (cptr->Create(Owner, hout)) {
+		return lua_MakeComponentInfo(lua, cid, hout, cptr);
+	} else {
+		AddLogf(Error, "GameObject::CreateComponent: Error: Failure during component creation! cid: %d", cid);
+		lua_pushnil(lua);
+		return 1;
+	}
 }
 
 } //namespace Component 

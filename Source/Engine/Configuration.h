@@ -89,6 +89,7 @@ namespace MoonGlare {
 			};
 			static const float StaticMouseSensivity = 0.005f;
 			static const float StaticMouseScrollSensivity = 1.0f;
+			static const char *SettingsFileName = "InputSettings.xml";
 		};
 
 		struct Console {
@@ -130,3 +131,31 @@ inline std::ostream& operator<<(std::ostream &o, MoonGlare::Handle h) {
 	sprintf_s(buf, "(Handle; Index:%d; Type:%d; Generation:%d)", h.GetIndex(), h.GetType(), h.GetGeneration());
 	return o << buf;
 }
+
+#ifdef LUABRIDGE_LUABRIDGE_HEADER
+
+namespace luabridge {
+
+template <>
+struct Stack <MoonGlare::Handle> {
+	static void push(lua_State* L, MoonGlare::Handle h) {
+		lua_pushlightuserdata(L, h.GetVoidPtr());
+	}
+	static MoonGlare::Handle get(lua_State* L, int index) {
+		return MoonGlare::Handle::FromVoidPtr(lua_touserdata(L, index));
+	}
+};
+
+template <>
+struct Stack <MoonGlare::Entity> {
+	static void push(lua_State* L, MoonGlare::Entity h) {
+		lua_pushlightuserdata(L, h.GetVoidPtr());
+	}
+	static MoonGlare::Entity get(lua_State* L, int index) {
+		return MoonGlare::Entity::FromVoidPtr(lua_touserdata(L, index));
+	}
+};
+
+}
+
+#endif

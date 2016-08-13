@@ -49,8 +49,8 @@ bool GameApplication::Initialize() {
 //	_chk_ret(ComponentManager::Initialize(),				"Component manager initialization failed");
 
 	_init_chk(new MoonGlareFileSystem(),					"Unable to initialize internal filesystem!");
-	_init_chk(new cScriptEngine(),							"Unable to initialize script engine!");
 	_init_chk(new ModulesManager(),							"Unable to initialize modules manager!");
+	_init_chk(new cScriptEngine(),							"Unable to initialize script engine!");
 	_init_chk(new MoonGlare::Core::Data::Manager(),			"Unable to initialize data manager!");
 	
 	Graphic::Window::InitializeWindowSystem();
