@@ -115,7 +115,6 @@ bool Manager::Finalize() {
 	DumpResources();
 
 	m_Fonts.clear();
-	m_Maps.clear();
 	m_Models.clear();
 
 	m_Modules.clear();
@@ -205,36 +204,6 @@ DataClasses::FontPtr Manager::GetDefaultFont() {
 }
 
 //------------------------------------------------------------------------------------------
-
-MapPtr Manager::GetMap(const string& Name) {
-	auto it = m_Maps.find(Name);
-	if (it != m_Maps.end()) {
-		auto &ptr = it->second;
-		if (ptr.IsLoaded()) {
-			return ptr.Get();
-		}
-	}
-	AddLogf(Debug, "Map '%s' not found or not loaded. Trying to load.", Name.c_str());
-	
-//	AddLog(TODO, "Move ownership of loaded map xml to map instance");
-	FileSystem::XMLFile xml;
-	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Maps)) {
-		AddLogf(Error, "Unable to open master resource xml for map '%s'", Name.c_str());
-		return nullptr;
-	}
-	string Class = xml->document_element().attribute(xmlAttr_Class).as_string(ERROR_STR);
-	bool Shared = xml->document_element().attribute(xmlAttr_Shared).as_bool(true);
-	auto ptr = DataClasses::Maps::MapClassRegister::CreateShared(Class, Name);
-	if (!ptr) {
-		AddLogf(Error, "Unable to create map class '%s' for object '%s'", Class.c_str(), Name.c_str());
-		return 0;
-	}
-	AddLogf(Debug, "Loading map '%s' of class '%s'", Name.c_str(), Class.c_str());
-
-	m_Maps[Name].Set(Shared ? ptr : nullptr, Class);
-	NotifyResourcesChanged();
-	return ptr;
-}
 
 DataClasses::FontPtr Manager::GetFont(const string &Name) {
 	auto fonts = m_Fonts.Lock();
@@ -408,7 +377,6 @@ struct Dumper {
 };
 
 void Manager::DumpAllResources(std::ostream &out) {
-	Dumper::DumpRes<>(m_Maps, "Maps", out);
 	Dumper::DumpRes<>(*m_Fonts.Lock(), "Fonts", out);
 	Dumper::DumpRes<>(*m_Models.Lock(), "Models", out);
 }

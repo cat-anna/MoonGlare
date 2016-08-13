@@ -20,10 +20,9 @@ SceneClassRegister::Register<GameScene> GameSceneReg;
 GameScene::GameScene():
 		BaseClass(),
 		m_MapName(),
-		m_MapData(),
 		m_Objects(GetEngine()->GetWorld(), this),
 		m_Physics(),
-		m_Environment(nullptr) {
+		m_Environment() {
 	m_Physics = std::make_unique<Physics::PhysicEngine>();
 	m_Camera = std::make_unique<Camera::iCamera>(this);
 }
@@ -56,14 +55,9 @@ void GameScene::RegisterScriptApi(ApiInitializer &api) {
 void GameScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
 
-	if (m_MapData) {
-		m_Environment = m_MapData->GetEnvironment();
-		if (m_Environment) {
-			Graphic::GetRenderDevice()->BindEnvironment(m_Environment);
-			m_Environment->Initialize();
-			m_LightConfiguration.DirectionalLights.push_back(&m_Environment->GetAmbientLight());
-		}
-	}
+	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
+	m_Environment.Initialize();
+	m_LightConfiguration.DirectionalLights.push_back(&m_Environment.GetAmbientLight());
 
 	BaseClass::BeginScene();
 }
@@ -71,10 +65,8 @@ void GameScene::BeginScene() {
 void GameScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
 
-	if (m_Environment) {
-		m_Environment->Finalize();
-		m_LightConfiguration.DirectionalLights.remove(&m_Environment->GetAmbientLight());
-	}
+	m_Environment.Finalize();
+	m_LightConfiguration.DirectionalLights.remove(&m_Environment.GetAmbientLight());
 	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 
 	BaseClass::EndScene();
@@ -87,10 +79,6 @@ bool GameScene::DoInitialize() {
 	m_GUI = std::make_unique<GUI::GUIEngine>();
 	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 
-	if (m_MapData) {
-		m_Objects.Insert(m_MapData->LoadMapObject());
-	}
-
 	m_Objects.LoadObjects(GetRootNode().child("Objects"), this);
 
 	m_Objects.InitializeObjects();
@@ -99,9 +87,6 @@ bool GameScene::DoInitialize() {
 } 
 
 bool GameScene::DoFinalize() {
-	if (m_MapData) {
-		m_MapData->Finalize();
-	}
 	if (m_GUI) m_GUI->Finalize();
 	m_GUI.reset();
 	return BaseClass::DoFinalize();
@@ -111,30 +96,7 @@ bool GameScene::DoFinalize() {
  
 bool GameScene::LoadMeta(const xml_node Node) {
 	BaseClass::LoadMeta(Node);
-
-	const char *MapName = Node.child(xmlRes_SceneMap).text().as_string(0);
-	if (!MapName) {
-		AddLog(Warning, "Game scene xml does not have specified map!");
-	} else {
-		m_MapName = MapName;
-	}
-
-	if (!m_MapData && !m_MapName.empty()) {
-		m_MapData = GetDataMgr()->GetMap(m_MapName);
-		if (m_MapData){
-			m_MapData->SetOwnerScene(this);
-			m_MapData->LoadMeta();
-			m_MapData->LoadMapObjects(m_Objects);
-			if (!m_MapData->Initialize()){
-				AddLogf(Error, "Unable to initialize map '%s' for game scene '%s'", m_MapName.c_str(), GetName().c_str());
-				return false;
-			}
-		} else {
-			AddLogf(Error, "Unable to load map '%s' for game scene '%s'", m_MapName.c_str(), GetName().c_str());
-			return false;
-		}
-	}
-
+	m_Environment.LoadMeta(Node.child("Environment"));
 	return true;
 }
 

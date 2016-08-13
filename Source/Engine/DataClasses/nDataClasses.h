@@ -12,7 +12,6 @@
 #include "DataClass.h"
 #include "Resource.h"
 
-using MapResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::MapPtr>;
 using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
 using ModelResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::ModelPtr>;
 
@@ -20,7 +19,6 @@ using ModelResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::ModelPtr>
 //#include "Paths/PathRegister.h"
 
 #include "Models/nModels.h"
-#include "iMap.h"
 
 #include "Texture.h"
 #include "StringTable.h"

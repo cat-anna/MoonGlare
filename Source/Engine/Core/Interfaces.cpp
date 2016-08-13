@@ -35,8 +35,6 @@ void Interfaces::DumpLists(ostream &out) {
 	DataClasses::Models::ModelClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nFont class list\n";
 	DataClasses::Fonts::FontClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nMap class list\n";
-	DataClasses::Maps::MapClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nScene class list\n";
 	Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nShaders class list\n";

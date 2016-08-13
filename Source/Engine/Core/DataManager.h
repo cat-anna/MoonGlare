@@ -109,7 +109,6 @@ public:
 	DataClasses::FontPtr GetConsoleFont();
 	DataClasses::FontPtr GetDefaultFont();
 
-	DataClasses::MapPtr GetMap(const string& Name);
 	DataClasses::FontPtr GetFont(const string &Name);
 	DataClasses::ModelPtr GetModel(const string& Name);
 
@@ -144,8 +143,6 @@ private:
 	SynchronizedResourceMap<FontResPtr> m_Fonts;
 	SynchronizedResourceMap<ModelResPtr> m_Models;
 	
-	std::unordered_map<string, MapResPtr> m_Maps;
-
 	std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
 //	template <class C> 

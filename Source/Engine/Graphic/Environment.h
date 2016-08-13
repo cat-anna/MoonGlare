@@ -18,7 +18,7 @@ public:
 	~Environment();
 
 	//! Load metedata of environment from xml
-	bool LoadMeta(const xml_node node, FileSystem::DirectoryReader &reader);
+	bool LoadMeta(const xml_node node);
 
 	//! Bind environment settings to shader
 	void Bind(Shader *s) const {

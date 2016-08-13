@@ -28,7 +28,7 @@ bool Environment::Finalize() {
 	return true;
 }
 
-bool Environment::LoadMeta(const xml_node node, FileSystem::DirectoryReader &reader) {
+bool Environment::LoadMeta(const xml_node node) {
 	if (!node) return true;
 	if (!m_StaticFog.LoadMeta(node.child("StaticFog"))) {
 		AddLog(Warning, "An error has occur during loading static fog configuration");
@@ -38,15 +38,16 @@ bool Environment::LoadMeta(const xml_node node, FileSystem::DirectoryReader &rea
 	}
 	m_AmbientLight.DiffuseIntensity = 0.0f;//no diffuse for environment ambient light
 
-	xml_node cube = node.child("SkyCube");
-	if (!cube) m_HaveSkyCube = false;
-	else {
-		if (!m_SkyCube.LoadMeta(cube, reader)) {
-			AddLog(Warning, "An error has occur during loading sky cube");
-			m_HaveSkyCube = false;
-		} else
-		m_HaveSkyCube = true;
-	}
+	//xml_node cube = node.child("SkyCube");
+	//if (!cube) 
+		m_HaveSkyCube = false;
+	//else {
+	//	if (!m_SkyCube.LoadMeta(cube, reader)) {
+	//		AddLog(Warning, "An error has occur during loading sky cube");
+	//		m_HaveSkyCube = false;
+	//	} else
+	//	m_HaveSkyCube = true;
+	//}
 	return true;
 }
 
