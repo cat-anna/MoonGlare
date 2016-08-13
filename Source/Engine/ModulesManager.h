@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace Modules {
 
-#define DEFINE_MODULE(CLASS) static CLASS CLASS##Module
+#define DEFINE_MODULE(CLASS) namespace detail { static CLASS CLASS##Module; }
 
 /** Modules are sorted by this enum */
 enum class ModuleType {
@@ -56,6 +56,7 @@ public:
 	virtual const ModuleDescription* GetDescription() const;
 
 	virtual void RegisterModuleApi(ApiInitializer &api);
+	virtual void RegisterInternalApi(ApiInitializer &api);
 
 	DefineDirectGetter(Name, const char *);
 	DefineDirectGetterConst(Type, ModuleType);

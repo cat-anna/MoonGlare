@@ -38,6 +38,7 @@ void ModuleInfo::Notify(NotifyEvent event) { /* ignore */ }
 void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
 void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
+void ModuleInfo::RegisterInternalApi(ApiInitializer &api) { /* ignore */ }
 
 //----------------------------------------------------------------
 

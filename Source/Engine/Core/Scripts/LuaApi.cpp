@@ -115,7 +115,9 @@ void ApiInit::Initialize(Script *s) {
 
 	for(auto *it : *MoonGlare::GetModulesManager()->GetModuleList()) {
 		it->RegisterModuleApi(s->GetApiInitializer().beginNamespace("Module").beginNamespace(it->GetName()));
-		++ApiInitFunctionsRun;
+		it->RegisterInternalApi(s->GetApiInitializer().beginNamespace("api").beginNamespace(it->GetName()));
+
+		ApiInitFunctionsRun += 2;
 	}
 
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
