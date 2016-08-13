@@ -13,7 +13,8 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class AbstractComponent {
+class AbstractComponent
+	: public Config::Current::DebugMemoryInterface {
 public:
 	AbstractComponent(ComponentManager *Owner);
 	virtual ~AbstractComponent();

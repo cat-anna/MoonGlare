@@ -22,6 +22,13 @@ RegisterComponentID<MeshComponent> MeshComponent("Mesh");
 MeshComponent::MeshComponent(ComponentManager * Owner) 
 	: AbstractComponent(Owner)
 {
+
+	DebugMemorySetClassName("MeshComponent");
+	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = m_Array.Allocated();
+		counter.Capacity = m_Array.Capacity();
+		counter.ElementSize = sizeof(MeshEntry);
+	});
 }
 
 MeshComponent::~MeshComponent() {

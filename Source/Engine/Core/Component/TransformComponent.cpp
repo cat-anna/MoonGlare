@@ -21,6 +21,13 @@ RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
 TransformComponent::TransformComponent(ComponentManager * Owner) 
 		: AbstractComponent(Owner)
 		, m_Allocated(0){
+
+	DebugMemorySetClassName("TransformComponent");
+	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = m_Allocated.load();
+		counter.Capacity = m_Array.size();
+		counter.ElementSize = sizeof(TransformEntry);
+	});
 }
 
 TransformComponent::~TransformComponent() {}

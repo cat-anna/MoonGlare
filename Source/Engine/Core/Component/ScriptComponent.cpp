@@ -47,12 +47,20 @@ namespace lua {
 			return false;
 		}
 	}
+
 }
 
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", false);
 
 ScriptComponent::ScriptComponent(ComponentManager *Owner)
 	: AbstractComponent(Owner) {
+
+	DebugMemorySetClassName("ScriptComponent");
+	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = m_Array.Allocated();
+		counter.Capacity = m_Array.Capacity();
+		counter.ElementSize = sizeof(ScriptEntry);
+	});
 }
 
 ScriptComponent::~ScriptComponent() {
