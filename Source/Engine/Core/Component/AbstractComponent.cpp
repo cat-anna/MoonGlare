@@ -25,6 +25,11 @@ bool AbstractComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
 	return false;
 }
 
+bool AbstractComponent::Create(Entity Owner, Handle &hout) {
+	AddLogf(Error, "Abstract function called! class: %s", typeid(*this).name());
+	return false;
+}
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 
