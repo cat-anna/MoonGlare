@@ -15,11 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <widget class="QTreeView" name="treeView">
-     <property name="rootIsDecorated">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="QTreeView" name="treeView"/>
    </item>
   </layout>
  </widget>

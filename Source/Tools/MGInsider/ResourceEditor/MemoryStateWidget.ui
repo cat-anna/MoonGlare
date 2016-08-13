@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MemoryStateWidget</class>
- <widget class="QWidget" name="AudioListWidget">
+ <widget class="QWidget" name="MemoryStateWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>598</width>
-    <height>492</height>
+    <width>595</width>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,14 +16,8 @@
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
     <widget class="QTreeView" name="treeView">
-     <property name="rootIsDecorated">
-      <bool>true</bool>
-     </property>
-     <property name="itemsExpandable">
-      <bool>true</bool>
-     </property>
-     <property name="expandsOnDoubleClick">
-      <bool>false</bool>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
      </property>
     </widget>
    </item>

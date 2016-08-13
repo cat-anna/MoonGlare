@@ -15,23 +15,37 @@ public:
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override { 
 		auto hdr = message.GetAndPull<InsiderApi::PayLoad_ListBase>();
 
+		std::unordered_map<uint32_t, QStandardItem*> m_Owners;
 		auto *root = m_ItemParent;
 		for (unsigned i = 0; i < hdr->Count; ++i) {
 			auto *item = message.GetAndPull<InsiderApi::PayLoad_MemoryStatus>();
 			
 			const char *Name = message.PullString();
+			const char *OwnerName = message.PullString();
+			char buffer[128];
+
+			auto Owner = m_Owners[item->OwnerID];
+			if (!Owner) {
+				QList<QStandardItem*> xcols;
+				xcols << (Owner = new QStandardItem(OwnerName));
+				m_Owners[item->OwnerID] = Owner;
+				root->appendRow(xcols);
+			}
+
 			QList<QStandardItem*> cols;
 			cols << new QStandardItem(Name);
-			char buffer[64];
 			sprintf_s(buffer, "%d [%.2f%%]", item->Allocated, ((float)item->Allocated / (float)item->Capacity) * 100.0f);
 			cols << new QStandardItem(buffer);
 			cols << new QStandardItem(itoa(item->Capacity, buffer, 10));
 			cols << new QStandardItem("?"); //itoa(item->MaxAllocated, buffer, 10));
 			cols << new QStandardItem(itoa(item->ElementSize, buffer, 10));
-			root->appendRow(cols);
+
+			Owner->appendRow(cols);
 		}
 		if(hdr->Count > 0)
 			root->sortChildren(0);
+	//	root->expand();
+	//	m_Owner->m_ViewModel->
 		return HanderStatus::Remove; 
 	};
 private:
@@ -50,9 +64,9 @@ MemoryStateWidget::MemoryStateWidget(QWidget *parent) : ResourceEditorBaseTab(pa
 	ui->setupUi(this);
 	
 	ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
-	ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	ui->treeView->setExpandsOnDoubleClick(false);
-	ui->treeView->setRootIsDecorated(false);
+	//ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	//ui->treeView->setExpandsOnDoubleClick(false);
+	//ui->treeView->setRootIsDecorated(false);
 
 	ResetTreeView();
 }
@@ -95,4 +109,3 @@ void MemoryStateWidget::Refresh() {
 }
 
 //-----------------------------------------
-

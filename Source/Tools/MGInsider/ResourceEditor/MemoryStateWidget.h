@@ -19,7 +19,6 @@ private:
 public slots:
 	void Refresh() override;
 protected slots:
-;
 };
 
 #endif // LUAGLOBALSTATEWIDGET_H

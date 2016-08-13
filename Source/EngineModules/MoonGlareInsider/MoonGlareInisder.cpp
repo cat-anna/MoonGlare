@@ -396,6 +396,7 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 				item->ElementSize = static_cast<u16>(counter.ElementSize);
 				item->NameLen = static_cast<u16>(counterinfo.m_Name.length());
 				item->OwnerNameLen = static_cast<u16>(it->DebugMemoryGetClassName().length());
+				item->OwnerID = reinterpret_cast<u32>(it);
 				buffer.PushString(counterinfo.m_Name);
 				buffer.PushString(it->DebugMemoryGetClassName());
 			}

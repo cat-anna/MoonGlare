@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Libs/libSpace/src/Memory/DynamicMessageBuffer.h>
+
 namespace MoonGlare {
 namespace Debug {
 namespace InsiderApi {
@@ -103,7 +105,7 @@ struct MessageHeader {
 	u8 PayLoad[0];
 };
 
-using InsiderMessageBuffer = Utils::Memory::DynamicMessageBuffer < Configuration::MaxMessageSize, MessageHeader> ;
+using InsiderMessageBuffer = Space::Memory::DynamicMessageBuffer < Configuration::MaxMessageSize, MessageHeader> ;
 
 //----------------------------------------------------------------------------------
 
@@ -230,7 +232,8 @@ struct PayLoad_MemoryStatus {
 	u32 Allocated;
 	u16 ElementSize;
 	u16 unused_16_0;
-	u32 unused_32_0, unused_32_1;
+	u32 unused_32_0;
+	u32 OwnerID;
 	u16 NameLen;
 	u16 OwnerNameLen;
 	u8 Name_OwnerName[0];
