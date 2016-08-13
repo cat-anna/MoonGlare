@@ -40,6 +40,8 @@ void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
 	root
 	.beginClass<MeshEntry>("cMeshEntry")
 		.addProperty("Visible", &MeshEntry::IsVisible, &MeshEntry::SetVisible)
+		.addProperty("MeshHandle", &MeshEntry::GetMeshHandle, &MeshEntry::SetMeshHandle)
+		.addFunction("SetModel", &MeshEntry::SetModel)
 	.endClass()
 	;
 }
@@ -108,7 +110,24 @@ void MeshComponent::Step(const MoveConfig &conf) {
 			continue;
 		}
 
-		conf.RenderList.push_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
+		if (item.m_Flags.m_Map.m_MeshHandleChanged) {
+			item.m_Flags.m_Map.m_MeshHandleChanged = false;
+			auto rt = GetManager()->GetWorld()->GetResourceTable();
+			item.m_Model = rt->GetModel(item.m_MeshHandle);
+
+			if (!item.m_Model) {
+				item.m_Model = GetDataMgr()->GetModel(item.m_ModelName);
+			}
+
+			item.m_Flags.m_Map.m_MeshValid = item.m_Model && item.m_Model->Initialize();
+			if (!item.m_Flags.m_Map.m_MeshValid) {
+				AddLogf(Error, "Failed to get mesh!");
+			}
+		}
+
+		if (item.m_Flags.m_Map.m_MeshValid) {
+			conf.RenderList.push_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
+		}
 	}
 
 	if (InvalidEntryCount > 0) {
@@ -133,12 +152,11 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Flags.ClearAll();
 
 	entry.m_Model = GetDataMgr()->GetModel(name);
-	if (!entry.m_Model)
-		return false;
-
-	if (!entry.m_Model->Initialize()) {
-		AddLogf(Error, "Failed to initialize model!");
-		return false;
+	if (entry.m_Model) {
+		if (!entry.m_Model->Initialize()) {
+			AddLogf(Error, "Failed to initialize model!");
+		} else 
+			entry.m_Flags.m_Map.m_MeshValid = true;
 	}
 
 	Handle &ch = hout;
@@ -152,6 +170,7 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Handle = ch;
 
 	entry.m_Flags.m_Map.m_Valid = true;
+	entry.m_Flags.m_Map.m_MeshHandleChanged = false;
 	entry.m_Flags.m_Map.m_Visible = node.child("Visible").text().as_bool(true);
 
 	m_EntityMapper.SetHandle(entry.m_Owner, ch);
@@ -167,6 +186,35 @@ bool MeshComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
 		return false;
 	}
 	hout = h;
+	return true;
+}
+
+bool MeshComponent::Create(Entity Owner, Handle &hout) {
+	size_t index;
+	if (!m_Array.Allocate(index)) {
+		AddLogf(Error, "Failed to allocate index!");
+		return false;
+	}
+
+	auto &entry = m_Array[index];
+	entry.m_Flags.ClearAll();
+
+	Handle &ch = hout;
+	if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
+		AddLogf(Error, "Failed to allocate handle!");
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+		return false;
+	}
+
+	entry.m_Owner = Owner;
+	entry.m_Handle = ch;
+
+	entry.m_Flags.m_Map.m_Valid = true;
+	entry.m_Flags.m_Map.m_MeshHandleChanged = false;
+	entry.m_Flags.m_Map.m_Visible = true;
+
+	m_EntityMapper.SetHandle(entry.m_Owner, ch);
+
 	return true;
 }
 

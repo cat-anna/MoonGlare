@@ -35,6 +35,54 @@ bool ResourceTable::Finalize() {
 	return true;
 }
 
+bool ResourceTable::Allocate(DataClasses::ModelPtr model, Handle &hout) {
+	Handle h;
+	if (!m_Allocator.Allocate(h)) {
+		AddLogf(Error, "Failed to allocate handle!");
+		return false;
+	}
+
+	h.SetType(Configuration::HandleType::Resource);
+	auto &item = m_Array[h.GetIndex()];
+	item.m_Model = std::move(model);
+	item.m_Flags.m_Map.m_Valid = true;
+	hout = h;
+	return true;
+}
+
+bool ResourceTable::IsValid(Handle h) {
+	if (h.GetType() != Configuration::HandleType::Resource) {
+		return false;
+	}
+	if (!m_Allocator.IsHandleValid(h)) {
+		return false;
+	}
+
+	//auto index = h.GetIndex();
+	//auto &item = m_Array[index];
+	
+	//if (!item.m_Flags.m_Map.m_vHasEntityOwner) {
+	//	return true;
+	//}
+	//
+	//if (!m_EntityManager->IsValid(item.m_Owner)) {
+	//	m_Allocator.Free(h);
+	//	return false;
+	//}
+
+	return true;
+}
+
+DataClasses::ModelPtr ResourceTable::GetModel(Handle h) {
+	if (!IsValid(h)) {
+		AddLogf(Warning, "Attempt to get resource by invalid handle!");
+		return nullptr;
+	}
+	auto index = h.GetIndex();
+	auto &item = m_Array[index];
+	return item.m_Model;
+}
+
 #if 0
 bool ResourceTable::IsValid(ComponentID cid, Handle h) {
 	if (h.GetType() != Configuration::HandleType::Component) {

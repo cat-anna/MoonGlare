@@ -13,7 +13,7 @@
 namespace MoonGlare {
 namespace Core {
 
-RegisterApiNonClass(InputProcessor, &InputProcessor::RegisterScriptApi, "Input");
+//RegisterApiNonClass(InputProcessor, &InputProcessor::RegisterScriptApi, "Input");
 
 InputProcessor::InputProcessor() {
 	m_World = nullptr;

@@ -29,8 +29,8 @@ public:
 
 //	using HandlePrivateData = uint64_t;
 //
-//	bool IsValid(ComponentID cid, Handle h);
-//	bool Release(ComponentID cid, Handle h);
+	bool IsValid(Handle h);
+	bool Release(Handle h);
 	bool Allocate(DataClasses::ModelPtr model, Handle &hout);
 //	bool Allocate(ComponentID cid, Handle &hout, HandleIndex index, HandlePrivateData value = 0);
 //	bool Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0);

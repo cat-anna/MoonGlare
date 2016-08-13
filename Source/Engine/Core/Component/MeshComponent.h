@@ -27,10 +27,13 @@ public:
 	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+	virtual bool Create(Entity Owner, Handle &hout) override;
 
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
+			bool m_MeshValid : 1;
+			bool m_MeshHandleChanged : 1;
 			bool m_Visible : 1;
 		};
 		MapBits_t m_Map;
@@ -46,10 +49,23 @@ public:
 		FlagsMap m_Flags;
 		Entity m_Owner;
 		Handle m_Handle;
+		Handle m_MeshHandle;
 		DataClasses::ModelPtr m_Model;
+		std::string m_ModelName;
 
 		bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
 		void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
+
+		void SetMeshHandle(Handle h) {
+			m_MeshHandle = h;
+			m_Model.reset();
+			m_Flags.m_Map.m_MeshHandleChanged = true;
+		}
+		Handle GetMeshHandle() const { return m_MeshHandle; }
+		void SetModel(const char *name) {
+			m_ModelName = name;
+			m_Flags.m_Map.m_MeshHandleChanged = true;
+		}
 	};
 //	static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
 //	static_assert(std::is_pod<MeshEntry>::value, "ScriptEntry must be pod!");

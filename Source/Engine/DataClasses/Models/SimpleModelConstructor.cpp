@@ -79,7 +79,8 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 		ModelMaterial *mat = 0;
 		if(i->GetMaterialID() != -1){
 			const Material &pmat = *m_Materials[i->GetMaterialID()];
-			MaterialVec.push_back(mat = new ModelMaterial(request.OwnerModel, pmat.GetMaterialNode(), request.Reader));
+			mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI, request.Reader);
+			MaterialVec.push_back(mat);
 			//auto &m = //Model *Owner, const xml_node MaterialDef, DataPath MaterialOrigin, const string &OriginName
 			//matid = esm->AddMaterial(mat.GetMaterialNode(), ModelOrigin, m_Name);
 		}

@@ -60,12 +60,12 @@ public:
 	class Material {
 	protected:
 		MaterialID m_id;
-		/** m_MaterialNode must be valid until mesh is generated  */
-		xml_node m_MaterialNode;
 	public:
 		Material(MaterialID id): m_id(id) {};
 		MaterialID GetID() const { return m_id; };
-		DefineFULLAcces(MaterialNode, xml_node);
+
+		std::string m_TextureURI;
+		std::string m_Edges;
 	};
 
 	cMesh* NewMesh();

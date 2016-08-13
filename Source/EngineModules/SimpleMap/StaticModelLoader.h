@@ -28,28 +28,64 @@ struct Corridor {
 	float SubDivs;
 };
 
+struct Material {
+	std::string Name;
+	std::string Edges;
+	std::string TextureURI;
+};
+
 struct StaticModelLoader {
 	using QuadArray3 = std::array<math::vec3, 4>;
 	using QuadArray2 = std::array<math::vec2, 4>;
 
-	StaticModelLoader(const math::vec3 UnitSize): m_PositionFactor(1) {
+	StaticModelLoader(const StaticModelLoader& oth) {
+		m_UnitSize = oth.m_UnitSize;
+		m_HalfUnitSize = oth.m_HalfUnitSize;
+		m_PositionFactor = oth.m_PositionFactor;
+		m_FloorNormal = oth.m_FloorNormal;
+		m_CeilingNormal = oth.m_CeilingNormal;
+		m_TextureBase = oth.m_TextureBase;
+		m_JunctionMap = oth.m_JunctionMap;
+		m_StyleConfig = oth.m_StyleConfig;
+		m_Materials = oth.m_Materials;
+		m_MeshMap = oth.m_MeshMap;
+		m_CorridorList = oth.m_CorridorList;
+		//m_Constructor = oth.m_Constructor;
+	}
+	StaticModelLoader()
+			: m_PositionFactor(1) 
+			, m_UnitSize(1)
+			, m_HalfUnitSize(0.5f)
+	{
 		for (unsigned i = 0; i < m_FloorNormal.size(); ++i) {
 			m_FloorNormal[i] = math::vec3(0, 1, 0);
 			m_CeilingNormal[i] = math::vec3(0, -1, 0);
 		}
 
-		m_TextureBase[0] = math::vec2(1, 0),
-		m_TextureBase[1] = math::vec2(1, 1),
-		m_TextureBase[2] = math::vec2(0, 1),
-		m_TextureBase[3] = math::vec2(0, 0),
+		m_TextureBase[0] = math::vec2(1, 0);
+		m_TextureBase[1] = math::vec2(1, 1);
+		m_TextureBase[2] = math::vec2(0, 1);
+		m_TextureBase[3] = math::vec2(0, 0);
+	}
 
-		m_UnitSize = UnitSize;
-		m_HalfUnitSize = m_UnitSize / 2.0f;
+	Handle GenerateResource() {
+		if (!Validate() || !Generate()) {
+			AddLogf(Error, "Failed to generate mode!");
+			return Handle();
+		}
+
+		DataClasses::ModelPtr model(GetConstructor()->GenerateModel("MazeMap", DataPath::Maps));
+		auto rt = Core::GetEngine()->GetWorld()->GetResourceTable();
+
+		Handle hout;
+		rt->Allocate(std::move(model), hout);
+		return hout;
 	}
 
 	std::unique_ptr<SimpleModelConstructor>& GetConstructor() { return m_Constructor; }
 	
 	bool Load(xml_node node) {
+		LoadMaterials(node);
 		LoadStyles(node);
 		LoadJunctions(node);
 		LoadCorridors(node);
@@ -105,13 +141,21 @@ struct StaticModelLoader {
 		sc.Materials.Wall = Wall;
 		sc.Materials.Ceiling = Ceiling;
 		sc.Materials.Floor = Floor;
+		m_StyleConfig[sc.Name] = sc;
+	}
+	void AddMaterial(const char *Name, const char *texuri, const char *Edges) {
+		Material m;
+		m.Name = Name;
+		m.Edges = Edges;
+		m.TextureURI = texuri;
+		m_Materials[m.Name] = m;
 	}
 
-	math::vec3 VectorPointToCoords(float x, float y, float z) {
-		math::vec3 v(x, y, z);
+	math::vec3 VectorPointToCoords(const math::vec2 &pos) {
+		math::vec3 v(pos.x, 0, pos.y);
 		v *= m_PositionFactor;
 		v *= m_UnitSize;
-		AddLog(Debug, "Calculated cords from " << math::vec3(x, y, z) << " to " << v);
+		AddLog(Debug, "Calculated cords from " << pos << " to " << v);
 		return v;
 	}
 
@@ -120,10 +164,17 @@ struct StaticModelLoader {
 	}
 
 	bool Validate() {
+		if (m_Materials.empty()) return false;
 		if (m_JunctionMap.empty()) return false;
 		if (m_StyleConfig.empty()) return false;
 		if (m_CorridorList.empty()) return false;
 		return true;
+	}
+
+	math::vec3 GetUnitSize() const { return m_UnitSize; }
+	void SetUnitSize(const math::vec3 &n) {
+		m_UnitSize = n;
+		m_HalfUnitSize = m_UnitSize / 2.0f;
 	}
 private:
 	math::vec3 m_UnitSize;
@@ -134,10 +185,10 @@ private:
 
 	std::unordered_map<string, Junction> m_JunctionMap;
 	std::unordered_map<string, StyleConfig> m_StyleConfig;
+	std::unordered_map<string, Material> m_Materials;
 	std::unordered_map<string, SimpleModelConstructor::cMesh*> m_MeshMap;
 	std::list<Corridor> m_CorridorList;
 	std::unique_ptr<SimpleModelConstructor> m_Constructor;
-	xml_node m_MaterialListNode;
 
 	void GenerateJunction(Junction &it, float dY, float XZmult) {
 		QuadArray3 Vertex;
@@ -150,7 +201,7 @@ private:
 		Vertex[3] += math::vec3( 1, 0,  1) * m_HalfUnitSize * m;
 
 		for (auto &it : Vertex) 
-			it[1] = dY;
+			it[1] += dY;
 		GetMesh(it.Style->Materials.Floor)->PushQuad(&Vertex[0], &m_FloorNormal[0], &m_TextureBase[0]);
 
 		for (int i = 0; i < 4; ++i)
@@ -299,8 +350,19 @@ private:
 		mesh->PushQuad(&VertexWalla[0], &WallNormal[0], &TextureWall[0]);
 	}
 
+	void LoadMaterials(xml_node node) {
+		XML::ForEachChild(node.child("Materials"), "Material", [this](xml_node node) -> int {
+			Material m;
+			m.Name = node.attribute("Name").as_string();
+			xml_node Texture = node.child("Texture");
+			m.Edges = Texture.attribute("Edges").as_string();
+			m.TextureURI = Texture.child("File").text().as_string();
+			m_Materials[m.Name] = m;
+			return 0;
+		});
+	}
+
 	void LoadStyles(xml_node node) {
-		m_MaterialListNode = node.child(xmlSimpleMap_MaterialList);
 		XML::ForEachChild(node.child("StyleConfig"), "Style", [this](xml_node node) -> int {
 			StyleConfig s;
 			s.Name = node.attribute("Name").as_string();
@@ -349,8 +411,8 @@ private:
 		if (it != m_MeshMap.end())
 			return it->second;
 
-		xml_node MaterialNode = m_MaterialListNode.find_child_by_attribute(xmlSimpleMap_Material, "Name", Name.c_str());
-		if (!MaterialNode) {
+		auto matinfo = GetMaterial(Name);
+		if (!matinfo) {
 			AddLog(Error, "There is no material " << Name);
 			throw false;
 		}
@@ -358,7 +420,8 @@ private:
 		auto mesh = m_Constructor->NewMesh();
 		auto mat = m_Constructor->NewMaterial();
 		mesh->SelectMaterial(mat->GetID());
-		mat->SetMaterialNode(MaterialNode);
+		mat->m_Edges = matinfo->Edges;
+		mat->m_TextureURI = matinfo->TextureURI;
 		m_MeshMap[Name] = mesh;
 		return mesh; 	
 	}
@@ -383,6 +446,20 @@ private:
 				return &it->second;
 			} else
 				AddLog(Error, "There is no style config " << Name);
+			throw false;
+		}
+	}
+
+	Material* GetMaterial(const string &Name) {
+		auto it = m_Materials.find(Name);
+		if (it != m_Materials.end())
+			return &it->second;
+		else {
+			it = m_Materials.find("Default");
+			if (it != m_Materials.end()) {
+				return &it->second;
+			} else
+				AddLog(Error, "There is no material config " << Name);
 			throw false;
 		}
 	}
