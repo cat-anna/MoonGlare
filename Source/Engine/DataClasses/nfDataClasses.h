@@ -95,14 +95,13 @@ namespace DataClasses {
 	}
 	using Maps::iMap;
 	using Maps::MapPtr;
-
-	namespace Paths {
-		class iPath;
-		class PathRegister;
-
-		using iPathSharedPtr = std::shared_ptr < iPath > ;
-		using iPathWeakPtr = std::weak_ptr < iPath > ;
-	}
+	//namespace Paths {
+	//	class iPath;
+	//	class PathRegister;
+	//
+	//	using iPathSharedPtr = std::shared_ptr < iPath > ;
+	//	using iPathWeakPtr = std::weak_ptr < iPath > ;
+	//}
 
 	class DataClass;
 	class StringTable;
@@ -110,8 +109,7 @@ namespace DataClasses {
 }
 } //namespace MoonGlare 
 
-using MoonGlare::DataClasses::Maps::MapPtr;
-using MoonGlare::DataClasses::Paths::iPathSharedPtr;
+//using MoonGlare::DataClasses::Paths::iPathSharedPtr;
 
 #include "Models\nfModels.h"
 

@@ -7,7 +7,7 @@
 #pragma once
 #ifndef PlaneModel_H
 #define PlaneModel_H
-
+#if 0
 namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
@@ -27,4 +27,5 @@ protected:
 } //namespace DataClasses 
 } //namespace MoonGlare 
 
+#endif
 #endif

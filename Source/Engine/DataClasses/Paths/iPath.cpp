@@ -5,6 +5,7 @@
  *      Author: Paweu
  */
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 
 namespace MoonGlare {
@@ -46,3 +47,4 @@ void iPath::SetOwner(PathRegister *Owner) {
 } // namespace Paths 
 } // namespace DataClasses 
 } //namespace MoonGlare 
+#endif

@@ -7,11 +7,11 @@
 
 #ifndef CPATH_H_
 #define CPATH_H_
+#if 0
 
 namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
-
 struct PathCalcState {
 	/** Current Location at Position */
 	Physics::vec3 Location = Physics::vec3(0, 0, 0);
@@ -71,3 +71,4 @@ using PathClassRegister = Space::DynamicClassRegister < iPath >;
 } //namespace MoonGlare 
 
 #endif // CPATH_H_ 
+#endif

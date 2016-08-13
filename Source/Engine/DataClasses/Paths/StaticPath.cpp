@@ -5,6 +5,7 @@
 */
 
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 #include "StaticPath.h"
 
@@ -143,3 +144,4 @@ bool StaticPath::LoadMeta(const xml_node Node) {
 } //namespace Paths 
 } //namespace DataClasses 
 } //namespace MoonGlare 
+#endif

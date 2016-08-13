@@ -4,6 +4,7 @@
 	by Paweu
 */
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 #include "PlaneModel.h"
 #include "SimpleModelConstructor.h"
@@ -123,3 +124,4 @@ bool PlaneModel::LoadFromXML(const xml_node Node) {
 } //namespace Models 
 } //namespace DataClasses 
 } //namespace MoonGlare 
+#endif

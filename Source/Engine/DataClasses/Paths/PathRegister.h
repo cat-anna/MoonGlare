@@ -7,11 +7,11 @@
 
 #ifndef PATHREGISTER_H_
 #define PATHREGISTER_H_
+#if 0
 
 namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
-
 class PathRegister : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(PathRegister, cRootClass);
 public:
@@ -31,13 +31,12 @@ private:
 		xml_node MetaNode;
 	};
 	using PathMap = std::unordered_map<string, PathEntry>;
-	iMap *m_Owner;
 	PathMap m_PathMap;
 	FileSystem::XMLFile m_PathMetaDocument;
 };
-
 } // namespace Paths 
 } // namespace DataClasses 
 } //namespace MoonGlare 
 
 #endif  PATHREGISTER_H_ 
+#endif

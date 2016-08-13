@@ -7,7 +7,7 @@
 #pragma once
 #ifndef StaticPath_H
 #define StaticPath_H
-
+#if 0
 namespace MoonGlare {
 namespace DataClasses {
 namespace Paths {
@@ -38,4 +38,5 @@ private:
 } //namespace DataClasses 
 } //namespace MoonGlare 
 
+#endif
 #endif
