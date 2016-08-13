@@ -37,24 +37,24 @@ public:
 	/** Read raw file data */
 	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 	/** Open an xml document */
-	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin);
+	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin = DataPath::URI);
 	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
-	bool OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin);
+	bool OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin = DataPath::URI);
 	/** Open texture */
-	bool OpenTexture(TextureFile &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true);
+	bool OpenTexture(TextureFile &tex, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true);
 	/** Open texture */
-	bool OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true);
+	bool OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true);
 	
-	bool OpenXML(XMLFile &doc, string ResName, const string& FileName, DataPath origin) {
+	bool OpenXML(XMLFile &doc, string ResName, const string& FileName, DataPath origin = DataPath::URI) {
 		return OpenXML(doc, (ResName += '/') += FileName, origin);
 	}
 	bool OpenFile(string ResName, const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
 		return OpenFile((ResName += '/') += FileName, origin, FileData);
 	}
-	bool OpenTexture(TextureFile &tex, string ResName, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true) {
+	bool OpenTexture(TextureFile &tex, string ResName, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true) {
 		return OpenTexture(tex, (ResName += '/') += FileName, origin, ApplyDefaultSettings);
 	}
-	bool OpenTexture(Graphic::Texture &tex, string ResName, const string& FileName, DataPath origin, bool ApplyDefaultSettings = true) {
+	bool OpenTexture(Graphic::Texture &tex, string ResName, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true) {
 		return OpenTexture(tex, (ResName += '/') += FileName, origin, ApplyDefaultSettings);
 	}
 	bool Initialize();

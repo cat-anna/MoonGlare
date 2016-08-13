@@ -183,7 +183,27 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 	ASSERT(m_StarVFS);
 
 	std::string path;
-	DataSubPaths.Translate(path, FileName, origin);
+
+	auto pos = FileName.find("://");
+	if (pos != std::string::npos) { 
+		auto hash = Space::Utils::MakeHash32(FileName.c_str(), pos);
+		pos += 3; //compensate '://'
+		switch (hash) {
+		case "file"_Hash32:
+			path = FileName.substr(pos);
+			break;
+
+		default:
+			AddLogf(Error, "Unknown uri protocol: %s", FileName.c_str());
+			DataSubPaths.Translate(path, FileName, origin);
+		}
+	} else {
+		if (origin == DataPath::URI) {
+			AddLogf(Error, "Invalid uri: %s", FileName.c_str());
+			return false;
+		}
+		DataSubPaths.Translate(path, FileName, origin);
+	}
 	
 	FileData.reset();
 	auto fid = m_StarVFS->FindFile(path.c_str());

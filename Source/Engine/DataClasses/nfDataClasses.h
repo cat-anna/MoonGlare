@@ -24,6 +24,8 @@ enum class DataPath {
 	Tables,
 	Objects,
 
+	URI,
+
 	MaxValue,
 };
 
