@@ -16,6 +16,11 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
+//Other
+
+template<int multiplier = 1,int divider = 1>
+float getPi() { return 3.14159f * (static_cast<float>(multiplier) / static_cast<float>(divider)); }
+
 //Templates
 
 template<class T> inline T VecNormalized(const T * vec) { return glm::normalize(*vec); }
@@ -30,7 +35,6 @@ template<class T> inline std::string ToString(T *vec) {
 }
 template<class T, class A, int ... ints> inline T StaticVec() { return T(static_cast<A>(ints)...); }
 
-//-------------------------------------------------------------------------------------------------
 //Quaternions
 
 inline math::vec4 QuaternionCrossProduct(math::vec4 *a, math::vec4* b) {
@@ -127,7 +131,6 @@ inline int lua_NewQuaternion(lua_State *lua) {
 	return 1;
 }
 
-//-------------------------------------------------------------------------------------------------
 //Vec3
 
 inline math::vec3 Vec3CrossProduct(math::vec3 *a, math::vec3* b) { return glm::cross(*a, *b); }
@@ -165,7 +168,6 @@ inline int lua_NewVec3(lua_State *lua) {
 	return 1;
 }
 
-//-------------------------------------------------------------------------------------------------
 //Vec2
 
 inline std::string Vec2ToString(math::vec2 *vec) {
@@ -201,22 +203,15 @@ inline int lua_NewVec2(lua_State *lua) {
 	return 1;
 }
 
-//-------------------------------------------------------------------------------------------------
 //Linear
 
-float Clamp(float v, float min, float max) {
+inline float Clamp(float v, float min, float max) {
 	if (v < min) return min;
 	if (v > max) return max;
 	return v;
 }
+inline float Clamp01(float v) { return Clamp(v, 0.0f, 1.0f); }
 
-float Clamp01(float v) {
-	if (v < 0.0f) return 0.0f;
-	if (v > 1.0f) return 1.0f;
-	return v;
-}
-
-//-------------------------------------------------------------------------------------------------
 //Registration
 
 void ScriptMathClasses(ApiInitializer &root){
@@ -224,6 +219,8 @@ void ScriptMathClasses(ApiInitializer &root){
 	root
 	.addFunction("Clamp", &Clamp)
 	.addFunction("Clamp01", &Clamp01)
+//	.addProperty("pi", &getPi)
+//	.addProperty("pi_half", &getPi<1, 2>)
 
 	.beginClass<math::vec4>("cQuaternion")
 	//	.addConstructor<void(*)(float, float, float, float)>()

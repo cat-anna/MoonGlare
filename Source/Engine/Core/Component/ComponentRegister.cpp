@@ -23,7 +23,7 @@ void ComponentRegister::Dump(std::ostream &out) {
 
 	for (auto &it : *s_ComponentMap) {
 		char buffer[128];
-		sprintf_s(buffer, "\t%20s 0x%04X\n", it.first, it.second);
+		sprintf_s(buffer, "\t%20s 0x%04X\n", it.first.c_str(), it.second);
 		out << buffer;
 	}
 }

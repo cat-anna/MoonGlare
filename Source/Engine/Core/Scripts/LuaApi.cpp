@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <cmath>
+#include <ModulesManager.h>
 
 namespace Core {
 namespace Scripts {
@@ -97,8 +98,6 @@ void ApiInit::Initialize(Script *s) {
 
 	for (auto &it : *_InitFuncs) {
 		const char *where = it.where;
-
-
 #if 0
 		if (it.Class)
 			AddLog(Debug, "Registering api of class '" << it.Class << "' in namespace " << where);
@@ -113,6 +112,12 @@ void ApiInit::Initialize(Script *s) {
 		++ApiInitFunctionsRun;
 #endif
 	}
+
+	for(auto *it : *MoonGlare::GetModulesManager()->GetModuleList()) {
+		it->RegisterModuleApi(s->GetApiInitializer().beginNamespace("Module").beginNamespace(it->GetName()));
+		++ApiInitFunctionsRun;
+	}
+
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	AddLogf(Performance, "Executed %d api init functions.", ApiInitFunctionsRun);
 #endif

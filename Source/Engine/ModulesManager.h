@@ -55,11 +55,14 @@ public:
 
 	virtual const ModuleDescription* GetDescription() const;
 
+	virtual void RegisterModuleApi(ApiInitializer &api);
+
 	DefineDirectGetter(Name, const char *);
 	DefineDirectGetterConst(Type, ModuleType);
 protected:
 	using ModuleType = ModuleType;
 	using BaseClass = ModuleInfo;
+
 private:
 	const char *m_Name;
 	const ModuleType m_Type;
@@ -71,6 +74,8 @@ public:
  	ModulesManager();
  	virtual ~ModulesManager();
 
+	using ModuleInfoList = std::vector < ModuleInfo* >;
+
 	bool Initialize();
 	bool Finalize();
 
@@ -78,6 +83,8 @@ public:
 	void BroadcastNotification(SettingsGroup what);
 
 	void DumpModuleList(std::ostream &out);
+
+	const ModuleInfoList* GetModuleList();
 
 	enum class Flags {
 		Initialized,

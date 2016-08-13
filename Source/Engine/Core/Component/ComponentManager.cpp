@@ -112,7 +112,7 @@ void ComponentManager::Step(const MoveConfig &config) {
 			sum += ms;
 			ci.m_TotalStepDuration = 0.0f;
 			ci.m_PeriodCount = 0;
-			sprintf_s(buf, "%02X:%7.5fms | ", m_ComponentsIDs[i], ms);
+			sprintf_s(buf, "%3d:%7.5fms | ", m_ComponentsIDs[i], ms);
 			oss += buf;
 		}
 		 

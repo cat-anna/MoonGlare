@@ -13,11 +13,11 @@ namespace Modules {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
 
-using ModuleInfoList = std::vector < ModuleInfo* > ;
+using ModuleInfoList =  ModulesManager::ModuleInfoList;
 
 static ModuleInfoList *_ModuleList = 0;
 
-static ModuleInfoList* GetModuleList() {
+static ModuleInfoList* ModuleList() {
 	if (!_ModuleList) {
 		_ModuleList = new ModuleInfoList();
 		_ModuleList->reserve(StaticSettings::ModulesManager::ModuleReservedSpace);
@@ -29,16 +29,15 @@ static ModuleInfoList* GetModuleList() {
 
 ModuleInfo::ModuleInfo(const char *Name, ModuleType Type):
 		m_Name(Name), m_Type(Type) {
-	GetModuleList()->push_back(this);
+	ModuleList()->push_back(this);
 }
-
 ModuleInfo::~ModuleInfo() { }
-
 bool ModuleInfo::Initialize() { return true; }
 bool ModuleInfo::Finalize() { return true; }
 void ModuleInfo::Notify(NotifyEvent event) { /* ignore */ }
 void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
+void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
 
 //----------------------------------------------------------------
 
@@ -52,7 +51,7 @@ ModulesManager::~ModulesManager() {
 //----------------------------------------------------------------
 
 bool ModulesManager::Initialize() {
-	auto list = GetModuleList();
+	auto list = ModuleList();
 	std::sort(list->begin(), list->end(), [](const ModuleInfo* l, const ModuleInfo *r) -> bool {
 		return (unsigned)l->GetType() < (unsigned)r->GetType();
 	});
@@ -107,6 +106,10 @@ void ModulesManager::BroadcastNotification(SettingsGroup what) {
 }
 
 //----------------------------------------------------------------
+
+const ModuleInfoList * ModulesManager::GetModuleList() {
+	return _ModuleList;
+}
 
 #ifdef DEBUG_DUMP
 void ModulesManager::DumpModuleList(std::ostream &out) {
