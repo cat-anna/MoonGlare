@@ -50,12 +50,14 @@ struct StaticModelLoader {
 		m_Materials = oth.m_Materials;
 		m_MeshMap = oth.m_MeshMap;
 		m_CorridorList = oth.m_CorridorList;
+		m_DoubleWalls = oth.m_DoubleWalls;
 		//m_Constructor = oth.m_Constructor;
 	}
 	StaticModelLoader()
 			: m_PositionFactor(1) 
 			, m_UnitSize(1)
 			, m_HalfUnitSize(0.5f)
+			, m_DoubleWalls(true)
 	{
 		for (unsigned i = 0; i < m_FloorNormal.size(); ++i) {
 			m_FloorNormal[i] = math::vec3(0, 1, 0);
@@ -101,12 +103,15 @@ struct StaticModelLoader {
 			
 			for (auto &it : m_CorridorList) {
 				GenerateCorridor(it, m_UnitSize, 0, false);
-				auto us = m_UnitSize + ws * 2.0f;
-				GenerateCorridor(it, us, ws, true);
+				if (m_DoubleWalls) {
+					auto us = m_UnitSize + ws * 2.0f;
+					GenerateCorridor(it, us, ws, true);
+				}
 			}
 			for (auto &it : m_JunctionMap) {
 				GenerateJunction(it.second, 0, 0);
-				GenerateJunction(it.second, -ws, 2 * ws);
+				if(m_DoubleWalls)
+					GenerateJunction(it.second, -ws, 2 * ws);
 			}
 
 		}
@@ -176,6 +181,9 @@ struct StaticModelLoader {
 		m_UnitSize = n;
 		m_HalfUnitSize = m_UnitSize / 2.0f;
 	}
+
+	bool GetDoubleWalls() const { return m_DoubleWalls; }
+	void SetDoubleWalls(bool v) { m_DoubleWalls = v; }
 private:
 	math::vec3 m_UnitSize;
 	math::vec3 m_HalfUnitSize;
@@ -189,6 +197,7 @@ private:
 	std::unordered_map<string, SimpleModelConstructor::cMesh*> m_MeshMap;
 	std::list<Corridor> m_CorridorList;
 	std::unique_ptr<SimpleModelConstructor> m_Constructor;
+	bool m_DoubleWalls;
 
 	void GenerateJunction(Junction &it, float dY, float XZmult) {
 		QuadArray3 Vertex;
