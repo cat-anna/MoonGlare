@@ -41,6 +41,7 @@ public:
 
 	Entity Allocate();
 	Entity Allocate(Entity parent);
+	bool Allocate(Entity parent, Entity &eout);
 	void Release(Entity entity);
 
 	bool GetParent(Entity entity, Entity &ParentOut) const;

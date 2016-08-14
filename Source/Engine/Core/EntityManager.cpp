@@ -71,23 +71,28 @@ Entity EntityManager::Allocate() {
 	return Allocate(GetRootEntity());
 }
 
-Entity EntityManager::Allocate(Entity parent) {
-
+bool EntityManager::Allocate(Entity parent, Entity &eout) {
 	if (!m_Memory.m_Allocator.IsHandleValid(parent)) {
 		AddLog(Error, "Parent entity is not valid!");
-		return Entity();
+		return false;
 	}
 
 	auto h = m_Memory.m_Allocator.Allocate();
 	if (!m_Memory.m_Allocator.IsHandleValid(h)) {
 		AddLog(Error, "No more space!");
-		return Entity();
+		return false;
 	}
 	auto index = h.GetIndex();
 
 	m_Memory.m_Parent[index] = parent;
+	eout = h;
+	return true;
+}
 
-	return h;
+Entity EntityManager::Allocate(Entity parent) {
+	Entity e;
+	Allocate(parent, e);
+	return e;
 }
 
 void EntityManager::Release(Entity entity) {
@@ -112,65 +117,6 @@ bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 	ParentOut = m_Memory.m_Parent[index];
 	return true;
 }
-
-#if 0
-
-using EntityIndex = unsigned short;
-using EntityGeneration = unsigned short;
-using EntityIndexQueue = Utils::Memory::StaticIndexQueue<EntityIndex, StaticSettings::StaticStorage::EntityBuffer, Utils::Memory::NoLockPolicy>;
-using EntityGenerationBuffer = Utils::Memory::GenerationBuffer<EntityGeneration, StaticSettings::StaticStorage::EntityBuffer>;
-
-struct EntityManagerImpl {
-	std::mutex m_Lock;
-	EntityIndexQueue m_IndexQueue;
-	EntityGenerationBuffer m_Generations;
-};
-
-static EntityManagerImpl EMImpl;
-
-bool EntityManager::Initialize() {
-	EntityIndex e;
-	EMImpl.m_IndexQueue.get(e); //reserve index 0 for invalid entry;
-	EMImpl.m_Generations.NewGeneration(e); //increment generation for invalid index;
-	return true;
-}
-
-bool EntityManager::Finalize() {
-	return true;
-}
-
-Entity EntityManager::Allocate() {
-	LOCK_MUTEX(EMImpl.m_Lock);
-	EntityIndex index;
-	if (!EMImpl.m_IndexQueue.get(index)) {
-		AddLogf(Error, "No more free entity indexes!");
-		Entity e;
-		e.m_IntegerValue = 0;
-		return e;
-	}
-	Entity e;
-	e.m_Index = index;
-	e.m_Generation = EMImpl.m_Generations.Generation(index);
-	return e;
-}
-
-void EntityManager::Release(Entity e) {
-	LOCK_MUTEX(EMImpl.m_Lock);
-	EMImpl.m_Generations.NewGeneration(e.m_Index);
-	EMImpl.m_IndexQueue.push(e.m_Index);
-}
-
-#ifdef DEBUG_MEMORY
-static struct EntityManagerInfo_t : Config::Debug::MemoryInterface {
-	virtual Info* GetInfo() const {
-		static Info i = { 0, 0, sizeof(EntityIndexQueue::Item) + sizeof(EntityGenerationBuffer::Item), EntityIndexQueue::Size, "EntityManager" };
-		i.Update(EntityIndexQueue::Size - EMImpl.m_IndexQueue.count());
-		return &i;
-	}
-} EntityManagerInfo;
-#endif
-
-#endif
 
 } //namespace Core 
 } //namespace MoonGlare 

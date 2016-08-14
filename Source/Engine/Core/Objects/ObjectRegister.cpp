@@ -13,6 +13,8 @@
 #include <Core/Component/TransformComponent.h>
 #include <Core/Component/ComponentRegister.h>
 
+#include <Core/EntityBuilder.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Objects {
@@ -249,40 +251,8 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 		return Handle();
 	}
 
-	auto &cm = OwnerScene->GetComponentManager();
-	for (auto it = MetaXML.child("Component"); it; it = it.next_sibling("Component")) {
-		ComponentID cid = 0;
-		{
-			auto idxml = it.attribute("Id");
-			if (idxml){
-				cid = idxml.as_uint(0);
-			} else {
-				auto namexml = it.attribute("Name");
-				if (namexml && Component::ComponentRegister::GetComponentID(namexml.as_string(""), cid)){
-					//found
-				} else {
-					AddLog(Error, "Component definition without id or name!");
-					continue;
-				}
-			} 
-		}
-
-		if (cid == 0) {
-			AddLogf(Warning, "Unknown component!", cid);
-			continue;
-		}
-
-		auto c = cm.GetComponent(cid);
-		if (!c) {
-			AddLogf(Warning, "No such component: %d", cid);
-			continue;
-		}
-
-		Handle h;
-		if (!c->Load(it, objE, h)) {
-			AddLog(Error, "Failure during loading component!");
-		}
-	}
+	EntityBuilder eb(&OwnerScene->GetComponentManager());
+	eb.LoadComponents(objE, MetaXML);
 
 	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
 		auto h = LoadObject(objH, it, OwnerScene);

@@ -10,8 +10,7 @@
 #include "ScriptComponent.h"
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
-
-#include <Libs/LuaBridge/dump.cpp>
+#include <Core/EntityBuilder.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -37,6 +36,7 @@ namespace lua {
 	static const char *GameObjectName = "GameObject";
 
 	static const char *CreateComponentName = "CreateComponent";
+	static const char *SpawnChildName = "SpawnChild";
 	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
@@ -97,6 +97,11 @@ bool ScriptComponent::Initialize() {
 	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
 	lua_pushcclosure(lua, &lua_CreateComponent, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_CreateComponent
 	lua_setfield(lua, -2, lua::CreateComponentName);										 //stack: GameObjectMT GameObjectMT_index 
+
+	lua_pushlightuserdata(lua, GetManager());												 //stack: GameObjectMT GameObjectMT_index Manager
+	lua_pushcclosure(lua, &lua_SpawnChild, 1);												 //stack: GameObjectMT GameObjectMT_index Manager lua_SpawnChild
+	lua_setfield(lua, -2, lua::SpawnChildName);												 //stack: GameObjectMT GameObjectMT_index 
+
 
 	lua_pop(lua, 2);																		 //stack: -
 
@@ -297,7 +302,6 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushvalue(lua, -2);									//stack: ScriptClass ObjectRoot self ObjectRoot
 	lua_rawseti(lua, -2, static_cast<int>(index) + 1);		//stack: ScriptClass ObjectRoot self
 	lua_pop(lua, 1);										//stack: ScriptClass ObjectRoot
-	luabridge::dumpLuaState(lua);
 
 	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject
 	lua_pushvalue(lua, -1);									//stack: ScriptClass ObjectRoot GameObject GameObject
@@ -599,6 +603,58 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 		AddLogf(Error, "GameObject::CreateComponent: Error: Failure during component creation! cid: %d", cid);
 		lua_pushnil(lua);
 		return 1;
+	}
+}
+
+int ScriptComponent::lua_SpawnChild(lua_State *lua) {
+	//GameObject:SpawnChild(prefabname, position)
+	//GameObject.SpawnChild(GameObject, prefabname[, position])
+	int argc = lua_gettop(lua);
+
+	int posidx = 0, nameidx = 0, selfidx = 0;
+	bool haspos = false;
+
+	switch (argc) {
+	case 2:
+		selfidx = -2;
+		nameidx = -1;
+		break;
+	//case 3: //TODO:
+	//	selfidx = -3;
+	//	nameidx = -2;
+	//	posidx = -1;
+	//	break;
+	default:
+		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid argument count: %s", argc);
+		break;
+	}
+
+	const char *pattername = lua_tostring(lua, nameidx);
+	if (!pattername) {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid pattern name! (not a string!)", argc);
+		return 0;
+	}
+
+	//TODO: is type<math::vec3>
+
+	//stack: self patname 
+
+	lua_getfield(lua, selfidx, lua::EntityMemberName);					//stack: self patname Entity
+	Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);													//stack: self patname
+
+	void *voidManager = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ComponentManager *cm = reinterpret_cast<ComponentManager*>(voidManager);
+
+	Entity Child;
+	EntityBuilder eb(cm);
+	if (eb.Build(Owner, pattername, Child)) {
+		//TODO: -->
+		AddLogf(Error, "GameObject::SpawnChild: Done");
+		return 0;
+	} else {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Failed to build child: %s", pattername);
+		return 0;
 	}
 }
 
