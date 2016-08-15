@@ -6,29 +6,22 @@ namespace Core {
 namespace Objects {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(Object);
-IMPLEMENT_SCRIPT_EVENT_VECTOR(ObjectScriptEvents);
 RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 
 Object::Object():
 		BaseClass(),
 		m_Flags(),
-		m_Visible(true),
 		m_Scene(nullptr),
 		m_EventProxy(),
 		m_LightSource(),
-		m_ScriptHandlers(),
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
-		m_Scale(1.0f),
-		m_EffectiveScale(1.0f),
 		m_OwnerRegister(nullptr),
 		m_BodyAngularFactor(1, 1, 1),
 		m_PositionTransform(Physics::Quaternion(0,0,0)) {
-	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::InvokeOnTimer>(this));
 }
 
 Object::~Object() {
-	SetScriptHandlers(new ScriptEventClass());
 	m_CollisionMask.Set(Physics::BodyClass::Object);
 	m_LightSource.reset();
 	m_Body.reset();
@@ -39,16 +32,10 @@ Object::~Object() {
 bool Object::Initialize(){
 	if (m_LightSource) 
 		m_LightSource->Initialize();
-	if (m_Model) {
-		SetShape(m_Model->ConstructShape(GetScale()));
-		SetPhysicalProperties(m_Model->GetPhysicalProperties());
-	}
-	InvokeOnInitialize();
 	return true;
 }
 
 bool Object::Finalize() {
-	InvokeOnFinalize();
 	if (m_LightSource) 
 		m_LightSource->Finalize();
 	return true;
@@ -63,19 +50,7 @@ void Object::RegisterScriptApi(ApiInitializer &api) {
 
 	api
 	.deriveClass<ThisClass, BaseClass>("cObject")
-		.addFunction("DropDead", &ThisClass::DropDead)
-		.addFunction("IsDead", &ThisClass::IsDead)
-
 		.addFunction("GetHandle", &ThisClass::GetSelfHandle)
-
-		.addFunction("InvokeOnDropDead", &ThisClass::InvokeOnDropDead)
-		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
-		.addFunction("InvokeOnInitialize", &ThisClass::InvokeOnInitialize)
-		.addFunction("InvokeOnFinalize", &ThisClass::InvokeOnFinalize)
-		.addFunction("SetEventFunction", &ThisClass::SetEventFunction)
-		
-		.addFunction("SetTimer", &ThisClass::SetTimer)
-		.addFunction("KillTimer", &ThisClass::KillTimer)
 
 		.addFunction("GetLightSource", &ThisClass::GetLightSource)
 		//.addFunction("GetMotion", Utils::Template::PointerFromRef<ThisClass, Scene::ModelState>::get<&ThisClass::GetMotionState>())
@@ -107,16 +82,6 @@ void Object::InternalInfo(std::ostringstream &buff) const {
 
 //---------------------------------------------------------------------------------------
 
-void Object::DropDead(){
-	if(IsDead()) return;
-	if (InvokeOnDropDead() == 0) {
-		m_Flags |= Flags::Dead;
-		GetScene()->ObjectDied(GetSelfHandle());
-	}
-}
-
-//---------------------------------------------------------------------------------------
-
 bool Object::LoadPattern(const xml_node node) {
 	auto *pname = node.attribute(xmlAttr_Name).as_string(0);
 	if (pname){
@@ -127,27 +92,8 @@ bool Object::LoadPattern(const xml_node node) {
 	if (light) {
 		m_LightSource = iLightSource::LoadLightSource(this, light);
 	}
-	m_ScriptHandlers->LoadFromXML(node);
 
-	m_Scale = m_EffectiveScale = node.child("Scale").attribute("Value").as_float(1);
 	m_Mass = node.child("Mass").attribute("Value").as_float(0);
-
-	if (m_OwnerRegister) {
-		auto ParentH = m_OwnerRegister->GetParentHandle(GetSelfHandle());
-		auto Parent = m_OwnerRegister->Get(ParentH);
-		if (Parent)
-			m_EffectiveScale *= Parent->GetEffectiveScale();
-	}
-
-	xml_node Model = node.child("Model");
-	if (Model) {
-		const char *name = Model.attribute(xmlAttr_Name).as_string(0);
-		if (!name)
-			AddLogf(Error, "Predef object '%s' has defined model without name!", GetName().c_str());
-		else {
-			SetModel(GetDataMgr()->GetModel(name));
-		}
-	}
 
 	xml_node Collision = node.child("Collision");
 	if (Collision) {
@@ -175,19 +121,6 @@ bool Object::LoadDynamicState(const xml_node node) {
 	SetPosition(convert(pos), Physics::Quaternion(rot[0], rot[1], rot[2], rot[3]));
 	return true;
 }
-
-//---------------------------------------------------------------------------------------
-
-int Object::InvokeOnDropDead(){
-	if (IsDead()) 
-		return 0;
-	SCRIPT_INVOKE(OnDropDead);
-	return 0;
-}
-
-int Object::InvokeOnInitialize() { SCRIPT_INVOKE(OnInitialize); }
-int Object::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
-int Object::InvokeOnTimer(int TimerID) { SCRIPT_INVOKE(OnTimer, TimerID); }
 
 //---------------------------------------------------------------------------------------
 
@@ -230,15 +163,6 @@ void Object::SetPhysicalProperties(const Physics::PhysicalProperties *props) {
 	if (props && m_Body)
 		GetBody()->SetPhysicalProperties(*props);
 }
-
-void Object::SetModel(DataClasses::ModelPtr Model) {
-	m_Model.swap(Model);
-	if (m_Model)
-		m_Model->Initialize();
-}
-
-int Object::SetTimer(float secs, int tid, bool cyclic) { return GetScene()->SetProxyTimer(GetEventProxy(), secs, tid, cyclic); }
-void Object::KillTimer(int tid) { return GetScene()->KillProxyTimer(GetEventProxy(), tid); }
 
 } //namespace Objects
 } //namespace Core

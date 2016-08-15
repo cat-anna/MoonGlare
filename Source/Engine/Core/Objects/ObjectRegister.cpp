@@ -350,15 +350,6 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 			auto *l = obj->GetLightSource();
 			l->Update();
 		}
-
-		if (obj->GetVisible() && obj->GetModel()) {
-			float scale = obj->GetEffectiveScale();
-			auto sgm = *gm;
-			sgm[0] *= scale;
-			sgm[1] *= scale;
-			sgm[2] *= scale;
-			conf.RenderList.push_back(std::make_pair(sgm, obj->GetModel()));
-		}
 	}
 }
 

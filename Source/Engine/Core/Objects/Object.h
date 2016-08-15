@@ -5,16 +5,8 @@ namespace MoonGlare {
 namespace Core {
 namespace Objects {
 
-DECLARE_SCRIPT_EVENT_VECTOR(ObjectScriptEvents, iScriptEvents,
-		SCRIPT_EVENT_ADD(
-			(OnDropDead)(OnTimer)
-			(OnInitialize)(OnFinalize)
-		),
-		SCRIPT_EVENT_REMOVE());
-
 class Object /*final*/ : public NamedObject {
 	SPACERTTI_DECLARE_STATIC_CLASS(Object, NamedObject);
-	DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 	DECLARE_EVENT_HOLDER();
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DISABLE_COPY();
@@ -24,19 +16,14 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	void DropDead();
-
 	bool LoadPattern(const xml_node node);
 	bool LoadDynamicState(const xml_node node);
 	
 	struct Flags {
 		enum {
-			Dead				= 0x0001,
 			Initialized			= 0x1000,
-			ModelStateChanged	= 0x1000,
 		};
 	};
-	DefineFlagGetter(m_Flags, Flags::Dead, Dead);
 	DefineFlagGetter(m_Flags, Flags::Initialized, Initialized);
 
 	bool HaveBody() const { return static_cast<bool>(m_Body); }
@@ -59,30 +46,15 @@ public:
 	float GetMass() const { return m_Mass; }
 	void SetPhysicalProperties(const Physics::PhysicalProperties *prop);
 
-	int InvokeOnDropDead();
-	int InvokeOnInitialize();
-	int InvokeOnFinalize();
-	int InvokeOnTimer(int TimerID);
-
-	int SetTimer(float secs, int tid, bool cyclic);
-	void KillTimer(int tid);
-
 	DefineREADAccesPTR(Scene, Core::GameScene);
 	virtual void SetOwnerScene(GameScene *Scene);
 	DefineREADAcces(PatternName, string);
 	iLightSource* GetLightSource() { return m_LightSource.get(); }
-	float GetScale() const { return m_Scale; }
-	float GetEffectiveScale() const { return m_EffectiveScale; }
 	using BaseClass::SetName;
-
-	DefineDirectSetGet(Visible, bool);
 
 	DefineDirectSetGet(SelfHandle, Handle);
 	DefineDirectSetGet(OwnerRegister, ObjectRegister*);
 	DefineRefSetGet(PositionTransform, Physics::Transform);
-
-	void SetModel(DataClasses::ModelPtr Model);
-	DataClasses::ModelPtr& GetModel() { return m_Model; }
 
 	void Describe() const;
 	static void RegisterScriptApi(ApiInitializer &api);
@@ -92,12 +64,10 @@ protected:
 	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
 	unsigned m_Flags;
-	bool m_Visible;
-	DataClasses::ModelPtr m_Model;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;
-	float m_Mass, m_Scale, m_EffectiveScale;
+	float m_Mass;
 	Physics::vec3 m_BodyAngularFactor;// temporary solution
 
 	virtual void InternalInfo(std::ostringstream &buff) const;
