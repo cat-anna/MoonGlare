@@ -9,6 +9,8 @@
 #include "../GUI.h"
 #include "Panel.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 namespace Widgets {

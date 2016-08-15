@@ -9,6 +9,8 @@
 #include "MoonGlareInisder.h"
 #include "ResourceEnumerator.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace Debug {
 namespace Insider {

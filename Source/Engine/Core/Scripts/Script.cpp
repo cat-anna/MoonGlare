@@ -9,6 +9,8 @@
 #include <Engine/Core/Console.h>
 #include "GlobalContext.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace Core {
 namespace Scripts {
 

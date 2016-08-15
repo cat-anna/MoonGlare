@@ -10,6 +10,8 @@
 #include "Panel.h"
 #include "SplitPanel.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 namespace Widgets {

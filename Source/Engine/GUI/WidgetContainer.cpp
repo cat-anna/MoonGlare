@@ -7,6 +7,8 @@
 #include <pch.h>
 #include "GUI.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 

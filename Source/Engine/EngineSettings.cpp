@@ -3,6 +3,8 @@
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
 
+#include <Utils/LuaUtils.h>
+
 Settings_t Settings;
 
 template <class T, class I>

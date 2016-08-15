@@ -10,6 +10,8 @@
 #include "../GUI.h"
 #include "Label.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 namespace Widgets {

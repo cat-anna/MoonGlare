@@ -10,6 +10,8 @@
 #include <Core/InputMap.h>
 //#include <Engine/Graphic/nGraphic.h>
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 

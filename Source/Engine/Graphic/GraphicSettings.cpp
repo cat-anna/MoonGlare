@@ -9,6 +9,8 @@
 #include <MoonGlare.h>
 #include "GraphicSettings.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace Graphic {
 
 struct GraphicSettingsInitializer {

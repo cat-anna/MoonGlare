@@ -9,6 +9,8 @@
 #include <Engine/ModulesManager.h>
 #include <Shared/MoonGlareInsider/Api.h>
 
+#include <Utils/LuaUtils.h>
+
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 

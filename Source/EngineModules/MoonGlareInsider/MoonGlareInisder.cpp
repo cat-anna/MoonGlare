@@ -19,6 +19,8 @@
 #include <Engine/iSoundEngine.h>
 #include <Config/DebugInterface.h>
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace Debug {
 namespace Insider {

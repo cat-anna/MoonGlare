@@ -8,6 +8,8 @@
 #include "GUI.h"
 #include <MoonGlare.h>
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace GUI {
 

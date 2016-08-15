@@ -9,6 +9,8 @@
 #include <Engine/iSoundEngine.h>
 #include "SoundEngine.h"
 
+#include <Utils/LuaUtils.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace ThreadedSoundEngine {

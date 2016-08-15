@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "InputProcessor.h"
+#include <Utils/LuaUtils.h>
 
 //#include <Input.x2c.h>
 
