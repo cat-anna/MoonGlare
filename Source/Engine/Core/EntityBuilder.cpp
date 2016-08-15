@@ -91,7 +91,6 @@ unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
 			AddLogf(Warning, "Unknown node: %s", nodename);
 			continue;
 		}
-		
 	}
 	return count;
 }

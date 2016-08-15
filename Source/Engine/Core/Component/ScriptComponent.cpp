@@ -8,9 +8,12 @@
 #include <MoonGlare.h>
 #include "AbstractComponent.h"
 #include "ScriptComponent.h"
+#include "TransformComponent.h"
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
 #include <Core/EntityBuilder.h>
+
+#include <Utils/LuaUtils.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -607,55 +610,96 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 }
 
 int ScriptComponent::lua_SpawnChild(lua_State *lua) {
-	//GameObject:SpawnChild(prefabname, position)
-	//GameObject.SpawnChild(GameObject, prefabname[, position])
-	int argc = lua_gettop(lua);
+/*
+GameObject:SpawnChild {
+	Pattern = "URI",
+	[Position = Vec3(5, 5, 5),] --local pos
+	[Rotation = Quaternion(5, 5, 5, 5),] --local rotation
+	
+--TODO:
+	[Data = { --[[ sth ]] },] -- data passed to script OnCreate function
+	[Owner = someone, ] -- create as child of someone
+	[Clone = someone, ] -- create clone of someone
+}
 
-	int posidx = 0, nameidx = 0, selfidx = 0;
-	bool haspos = false;
+returns:
+	TODO
+*/
+	int argc = lua_gettop(lua);		//stack: self spawnarg
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
 
-	switch (argc) {
-	case 2:
-		selfidx = -2;
-		nameidx = -1;
-		break;
-	//case 3: //TODO:
-	//	selfidx = -3;
-	//	nameidx = -2;
-	//	posidx = -1;
-	//	break;
-	default:
+
+	if (argc != 2) {
 		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid argument count: %s", argc);
-		break;
-	}
-
-	const char *pattername = lua_tostring(lua, nameidx);
-	if (!pattername) {
-		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid pattern name! (not a string!)", argc);
 		return 0;
 	}
 
-	//TODO: is type<math::vec3>
+	lua_getfield(lua, 2, "Pattern");									//stack: self spawnarg spawnarg.Pattern		
+	const char *pattername = lua_tostring(lua, -1);
+	if (!pattername) {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid pattern name! (not a string!)", argc);
+		lua_settop(lua, argc);
+		return 0;
+	}
 
-	//stack: self patname 
+	//stack: self spawnarg spawnarg.Pattern
 
-	lua_getfield(lua, selfidx, lua::EntityMemberName);					//stack: self patname Entity
+	lua_getfield(lua, 1, lua::EntityMemberName);						//stack: self spawnarg spawnarg.Pattern Entity
 	Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
-	lua_pop(lua, 1);													//stack: self patname
+	lua_pop(lua, 1);													//stack: self spawnarg spawnarg.Pattern
 
 	void *voidManager = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
 	ComponentManager *cm = reinterpret_cast<ComponentManager*>(voidManager);
 
 	Entity Child;
 	EntityBuilder eb(cm);
-	if (eb.Build(Owner, pattername, Child)) {
-		//TODO: -->
-		AddLogf(Error, "GameObject::SpawnChild: Done");
-		return 0;
-	} else {
+	if (!eb.Build(Owner, pattername, Child)) {
 		AddLogf(Error, "GameObject::SpawnChild: Error: Failed to build child: %s", pattername);
+		lua_settop(lua, argc);
 		return 0;
 	}
+
+	bool HasPos = false;
+	math::vec3 Position;
+	bool HasRot = false;
+	math::vec4 Rotation;
+
+	lua_getfield(lua, 2, "Position");									//stack: self spawnarg spawnarg.Pattern spawnarg.Position	
+	if (lua_isnil(lua, -1)) {
+		HasPos = false;
+	} else {
+		HasPos = true;
+		Position = luabridge::Stack<math::vec3>::get(lua, 4);
+	}
+	lua_pop(lua, 1);
+
+	lua_getfield(lua, 2, "Rotation");									//stack: self spawnarg spawnarg.Pattern spawnarg.Rotation		
+	if (lua_isnil(lua, -1)) {
+		HasRot = false;
+	} else {
+		HasRot = true;
+		Rotation = luabridge::Stack<math::vec4>::get(lua, 4);
+	}
+	lua_pop(lua, 1);
+
+	if (HasRot || HasPos) {
+		auto *tc = cm->GetTransformComponent();
+		auto entry = tc->GetEntry(Child);
+		if (!entry) {
+			AddLogf(Error, "GameObject::SpawnChild: Child does not have transfrom component!");
+		} else {
+			if (HasPos)
+				entry->m_LocalTransform.setOrigin(convert(Position));
+			if(HasRot)
+				entry->m_LocalTransform.setRotation(convert(Rotation));
+		}
+	}
+
+	AddLogf(Hint, "GameObject::SpawnChild: Done");
+	//TODO:
+	lua_pushnil(lua);
+	lua_settop(lua, argc + 1);
+	return check.ReturnArgs(1);
 }
 
 } //namespace Component 
