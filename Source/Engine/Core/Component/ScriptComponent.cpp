@@ -8,10 +8,12 @@
 #include <MoonGlare.h>
 #include "AbstractComponent.h"
 #include "ScriptComponent.h"
+#include "TransformComponent.h"
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
+#include <Core/EntityBuilder.h>
 
-#include <Libs/LuaBridge/dump.cpp>
+#include <Utils/LuaUtils.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -37,6 +39,7 @@ namespace lua {
 	static const char *GameObjectName = "GameObject";
 
 	static const char *CreateComponentName = "CreateComponent";
+	static const char *SpawnChildName = "SpawnChild";
 	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
@@ -97,6 +100,11 @@ bool ScriptComponent::Initialize() {
 	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
 	lua_pushcclosure(lua, &lua_CreateComponent, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_CreateComponent
 	lua_setfield(lua, -2, lua::CreateComponentName);										 //stack: GameObjectMT GameObjectMT_index 
+
+	lua_pushlightuserdata(lua, GetManager());												 //stack: GameObjectMT GameObjectMT_index Manager
+	lua_pushcclosure(lua, &lua_SpawnChild, 1);												 //stack: GameObjectMT GameObjectMT_index Manager lua_SpawnChild
+	lua_setfield(lua, -2, lua::SpawnChildName);												 //stack: GameObjectMT GameObjectMT_index 
+
 
 	lua_pop(lua, 2);																		 //stack: -
 
@@ -297,7 +305,6 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushvalue(lua, -2);									//stack: ScriptClass ObjectRoot self ObjectRoot
 	lua_rawseti(lua, -2, static_cast<int>(index) + 1);		//stack: ScriptClass ObjectRoot self
 	lua_pop(lua, 1);										//stack: ScriptClass ObjectRoot
-	luabridge::dumpLuaState(lua);
 
 	lua_createtable(lua, 0, 0);								//stack: ScriptClass ObjectRoot GameObject
 	lua_pushvalue(lua, -1);									//stack: ScriptClass ObjectRoot GameObject GameObject
@@ -600,6 +607,99 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 		lua_pushnil(lua);
 		return 1;
 	}
+}
+
+int ScriptComponent::lua_SpawnChild(lua_State *lua) {
+/*
+GameObject:SpawnChild {
+	Pattern = "URI",
+	[Position = Vec3(5, 5, 5),] --local pos
+	[Rotation = Quaternion(5, 5, 5, 5),] --local rotation
+	
+--TODO:
+	[Data = { --[[ sth ]] },] -- data passed to script OnCreate function
+	[Owner = someone, ] -- create as child of someone
+	[Clone = someone, ] -- create clone of someone
+}
+
+returns:
+	TODO
+*/
+	int argc = lua_gettop(lua);		//stack: self spawnarg
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+
+
+	if (argc != 2) {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid argument count: %s", argc);
+		return 0;
+	}
+
+	lua_getfield(lua, 2, "Pattern");									//stack: self spawnarg spawnarg.Pattern		
+	const char *pattername = lua_tostring(lua, -1);
+	if (!pattername) {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Invalid pattern name! (not a string!)", argc);
+		lua_settop(lua, argc);
+		return 0;
+	}
+
+	//stack: self spawnarg spawnarg.Pattern
+
+	lua_getfield(lua, 1, lua::EntityMemberName);						//stack: self spawnarg spawnarg.Pattern Entity
+	Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);													//stack: self spawnarg spawnarg.Pattern
+
+	void *voidManager = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ComponentManager *cm = reinterpret_cast<ComponentManager*>(voidManager);
+
+	Entity Child;
+	EntityBuilder eb(cm);
+	if (!eb.Build(Owner, pattername, Child)) {
+		AddLogf(Error, "GameObject::SpawnChild: Error: Failed to build child: %s", pattername);
+		lua_settop(lua, argc);
+		return 0;
+	}
+
+	bool HasPos = false;
+	math::vec3 Position;
+	bool HasRot = false;
+	math::vec4 Rotation;
+
+	lua_getfield(lua, 2, "Position");									//stack: self spawnarg spawnarg.Pattern spawnarg.Position	
+	if (lua_isnil(lua, -1)) {
+		HasPos = false;
+	} else {
+		HasPos = true;
+		Position = luabridge::Stack<math::vec3>::get(lua, 4);
+	}
+	lua_pop(lua, 1);
+
+	lua_getfield(lua, 2, "Rotation");									//stack: self spawnarg spawnarg.Pattern spawnarg.Rotation		
+	if (lua_isnil(lua, -1)) {
+		HasRot = false;
+	} else {
+		HasRot = true;
+		Rotation = luabridge::Stack<math::vec4>::get(lua, 4);
+	}
+	lua_pop(lua, 1);
+
+	if (HasRot || HasPos) {
+		auto *tc = cm->GetTransformComponent();
+		auto entry = tc->GetEntry(Child);
+		if (!entry) {
+			AddLogf(Error, "GameObject::SpawnChild: Child does not have transfrom component!");
+		} else {
+			if (HasPos)
+				entry->m_LocalTransform.setOrigin(convert(Position));
+			if(HasRot)
+				entry->m_LocalTransform.setRotation(convert(Rotation));
+		}
+	}
+
+	AddLogf(Hint, "GameObject::SpawnChild: Done");
+	//TODO:
+	lua_pushnil(lua);
+	lua_settop(lua, argc + 1);
+	return check.ReturnArgs(1);
 }
 
 } //namespace Component 

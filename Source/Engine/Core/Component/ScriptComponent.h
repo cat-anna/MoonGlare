@@ -83,6 +83,7 @@ private:
 	static int lua_GetComponent(lua_State *lua);
 	static int lua_DereferenceHandle(lua_State *lua);
 	static int lua_CreateComponent(lua_State *lua);
+	static int lua_SpawnChild(lua_State *lua);
 
 	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 }; 

@@ -119,7 +119,7 @@ inline int lua_NewQuaternion(lua_State *lua) {
 	case 4:
 		break;
 	case 5:
-		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2) && lua_isnumber(lua, -3) && lua_isnumber(lua, -4)) {
+		if (lua_isnumber(lua, -4) && lua_isnumber(lua, -3) && lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec4>::push(lua, math::vec4(lua_tonumber(lua, -1), lua_tonumber(lua, -2), lua_tonumber(lua, -3), lua_tonumber(lua, -4)));
 			return 1;
 		}
@@ -156,7 +156,7 @@ inline int lua_NewVec3(lua_State *lua) {
 	case 3:
 		break;
 	case 4:
-		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2) && lua_isnumber(lua, -3)) {
+		if (lua_isnumber(lua, -3) && lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec3>::push(lua, math::vec3(lua_tonumber(lua, -1), lua_tonumber(lua, -2), lua_tonumber(lua, -3)));
 			return 1;
 		}
@@ -191,7 +191,7 @@ inline int lua_NewVec2(lua_State *lua) {
 		}
 
 	case 3:
-		if (lua_isnumber(lua, -1) && lua_isnumber(lua, -2)) {
+		if (lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
 			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1), lua_tonumber(lua, -2)));
 			return 1;
 		}

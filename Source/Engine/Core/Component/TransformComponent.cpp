@@ -151,14 +151,19 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	HandleIndex index = m_Allocated++;
 	auto &entry = m_Array[index];
 	entry.m_Flags.ClearAll();
-	if (!ht->Allocate(this, Owner, h, index)) {
+	if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
 		AddLog(Error, "Failed to allocate handle");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
 
-	m_EntityMapper.SetHandle(Owner, h);
+	//Entity Parent;
+	//if (!GetManager()->GetWorld()->GetEntityManager()->GetParent(Owner, Parent)) {
+	//	AddLog(Error, "Failed to get Parent!");
+	//}
+	//AddLog(Hint, "New transform: selfE:" << Owner << "  selfH:" << h << "  Parent:" << Parent);
 
+	m_EntityMapper.SetHandle(Owner, h);
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_LocalTransform.setOrigin(pos);
 	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
