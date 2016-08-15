@@ -18,7 +18,6 @@ const DataPathsTable DataSubPaths;
 DataPathsTable::DataPathsTable() {
 #define _at(X) m_table[(unsigned)DataPath::X] 
 	_at(Root)		= "";
-	_at(Maps)		= xmlModuleNode_Maps;
 	_at(Models)		= xmlModuleNode_Models;
 	_at(Fonts)		= xmlModuleNode_Fonts;
 	_at(Scenes)		= xmlModuleNode_Scenes;
@@ -192,7 +191,8 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 		case "file"_Hash32:
 			path = FileName.substr(pos);
 			break;
-
+			//TODO: fid://value
+			//TODO: hash://hex
 		default:
 			AddLogf(Error, "Unknown uri protocol: %s", FileName.c_str());
 			DataSubPaths.Translate(path, FileName, origin);
@@ -232,10 +232,6 @@ bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, Data
 	case DataPath::Models:
 		buffer += Name;
 		buffer += "/Model.xml";
-		break;
-	case DataPath::Maps:
-		buffer += Name;
-		buffer += "/Map.xml";
 		break;
 	case DataPath::Scenes:
 	case DataPath::Shaders:

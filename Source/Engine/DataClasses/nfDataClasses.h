@@ -11,7 +11,6 @@
 enum class DataPath {
 	Root,   
 
-	Maps,
 	Models,
 	Fonts,
 	Scenes,
