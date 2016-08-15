@@ -21,6 +21,8 @@ public:
 	bool Initialize(ciScene *scene);
 	bool Finalize();
 
+	bool LoadComponents(pugi::xml_node node);
+
 	template<class T, class ... ARGS>
 	bool InstallComponent(ARGS ... args) {
 		return InsertComponent(std::make_unique<T>(this, std::forward<ARGS>(args)...), T::GetComponentID());

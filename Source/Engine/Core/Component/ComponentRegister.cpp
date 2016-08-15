@@ -23,9 +23,26 @@ void ComponentRegister::Dump(std::ostream &out) {
 
 	for (auto &it : *s_ComponentMap) {
 		char buffer[128];
-		sprintf_s(buffer, "\t%20s 0x%04X\n", it.first.c_str(), it.second);
+		sprintf_s(buffer, "\t%20s 0x%04u\n", it.first.c_str(), (unsigned)it.second.m_CID);
 		out << buffer;
 	}
+}
+
+bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentID & out) {
+	auto idxml = node.attribute("Id");
+	if (idxml) {
+		out = idxml.as_uint(0);
+		return out != (ComponentID)ComponentIDs::Invalid;
+	} else {
+		auto namexml = node.attribute("Name");
+		if (namexml && GetComponentID(namexml.as_string(""), out)) {
+			return out != (ComponentID)ComponentIDs::Invalid;
+		} else {
+			AddLog(Error, "Component definition without id or name!");
+			return false;
+		}
+	}
+	return false;
 }
 
 } //namespace Component 

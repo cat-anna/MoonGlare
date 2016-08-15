@@ -29,6 +29,8 @@ public:
 
 	virtual bool Create(Entity Owner, Handle &hout);
 
+	virtual bool LoadComponentConfiguration(pugi::xml_node node);
+
 	/** 
 		Push component entry to lua for manipulation by scripts. May not be reimplemented.
 		@return false if not supported otherwise true (even if handle is not valid)
@@ -49,7 +51,8 @@ protected:
 private:
 	ComponentManager *m_Owner;
 	HandleTable *m_HandleTable;
-	void *m_padding;
+	void *m_padding1;
+	void *m_padding2;
 };
 
 } //namespace Component 

@@ -107,23 +107,9 @@ unsigned EntityBuilder::LoadComponents(Entity Owner, pugi::xml_node node) {
 
 bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & hout) {
 	ComponentID cid = 0;
-	{
-		auto idxml = node.attribute("Id");
-		if (idxml) {
-			cid = idxml.as_uint(0);
-		} else {
-			auto namexml = node.attribute("Name");
-			if (namexml && Component::ComponentRegister::GetComponentID(namexml.as_string(""), cid)) {
-				//found
-			} else {
-				AddLog(Error, "Component definition without id or name!");
-				return false;
-			}
-		}
-	}
-
-	if (cid == 0) {
-		AddLogf(Warning, "Unknown component!", cid);
+	
+	if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
+		AddLogf(Warning, "Unknown component!");
 		return false;
 	}
 
