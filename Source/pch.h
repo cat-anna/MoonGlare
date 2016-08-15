@@ -140,13 +140,19 @@ class cRootClass;
 #include "Utils/Memory.h"
 #include "Utils/StringUtils.h"
 #include "Version.h"
-#include "TemplateUtils.h"
+#include "Utils/TemplateUtils.h"
 #include "MathConstants.h"
 #include "xMath.h"
 #include "d2math.h"
-#include "XMLUtils.h"
-#include "StreamUtils.h"
-#include "Utils/LuaUtils.h"
+#include "Utils/XMLUtils.h"
+#include "Utils/StreamUtils.h"
+
+
+namespace Utils {
+namespace Scripts {
+	struct TableDispatcher;
+}
+}
 
 namespace Core {
 	class Console;
