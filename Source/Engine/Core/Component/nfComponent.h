@@ -22,7 +22,9 @@ enum class ComponentIDs : ComponentID {
 	Script = 11,
 	Transform = 12,
 
-	Mesh	= 21,
+	Mesh = 21,
+
+	Body = 50,
 };
 
 //template<ComponentIDs ID, HandleType HT>
