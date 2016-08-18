@@ -5,23 +5,28 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <nfMoonGlare.h>
+#include <MoonGlare.h>
 
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
-
 #include <Core/Component/AbstractComponent.h>
+#include <Core/Component/TransformComponent.h>
+
+#include "Collision.h"
 #include "BodyComponent.h"
+
+#include "DebugDrawer.h"
+
+#include <Math.x2c.h>
+#include <BodyComponent.x2c.h>
 
 namespace MoonGlare {
 namespace Physics {
 
 Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false);
 
-
 BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner) 
-		: AbstractComponent(Owner)
-		, m_Gravity(0, -math::Constants::Earth::g, 0) {
+		: AbstractComponent(Owner) {
 	DebugMemorySetClassName("BodyComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Array.Allocated();
@@ -35,15 +40,14 @@ BodyComponent::~BodyComponent() {}
 //---------------------------------------------------------------------------------------
 
 bool BodyComponent::Initialize() {
-	m_Array.MemZeroAndClear();
+//	m_Array.MemZeroAndClear();
 
 	m_CollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
 	m_Dispatcher = std::make_unique<btCollisionDispatcher>(m_CollisionConfiguration.get());
 	m_Broadphase = std::make_unique<btDbvtBroadphase>();
 	m_Solver = std::make_unique<btSequentialImpulseConstraintSolver>();
 	m_DynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_Dispatcher.get(), m_Broadphase.get(), m_Solver.get(), m_CollisionConfiguration.get());
-
-	m_DynamicsWorld->setGravity(m_Gravity);
+	m_DynamicsWorld->setGravity(vec3(0, 0, 0));
 
 	return true;
 }
@@ -61,10 +65,125 @@ bool BodyComponent::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-void BodyComponent::Step(const Core::MoveConfig & conf) {}
+void BodyComponent::Step(const Core::MoveConfig & conf) {
+	if (m_Array.Empty())
+		return;
 
-bool BodyComponent::Load(xml_node node, Entity Owner, Handle & hout) {
-	return false;
+//	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
+		conf.CustomDraw.push_back(this);
+//	}
+	
+	//|| !Config::Current::EnableFlags::Physics)
+//		return;
+
+
+	auto *tc = GetManager()->GetTransformComponent();
+
+	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
+		auto &item = m_Array[i];
+
+		if (!item.m_Flags.m_Map.m_Valid) {
+			//mark and continue
+			//LastInvalidEntry = i;
+			//++InvalidEntryCount;
+			continue;
+		}
+
+		auto *entry = tc->GetEntry(item.m_TransformHandle);
+		auto &body = m_BulletRigidBody[i];
+
+		if (item.m_Revision == 0) {
+			body.setMotionState(&m_MotionStateProxy[i]);
+			item.m_Revision = tc->GetCurrentRevision();
+		} else {
+			if (item.m_Revision != entry->m_Revision) {
+				((btRigidBody&)body).setWorldTransform(entry->m_LocalTransform);
+				body.activate(true);
+				item.m_Revision = entry->m_Revision;
+			}
+		}
+	}
+
+	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 5, 1.0f / (60.0f * 5.0f));
+}
+
+bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
+//	auto *ht = GetManager()->GetWorld()->GetHandleTable();
+//	Handle &h = hout;
+//	HandleIndex index = m_Allocated++;
+
+	auto *tc = GetManager()->GetTransformComponent();
+
+	Handle TCHandle;
+	if (!tc->GetInstanceHandle(Owner, TCHandle)) {
+		AddLogf(Error, "Failed get transform handle!");
+		return false;
+	}
+
+	size_t index;
+	if (!m_Array.Allocate(index)) {
+		AddLogf(Error, "Failed to allocate index!");
+		return false;
+	}
+	
+	auto &entry = m_Array[index];
+	entry.m_Flags.ClearAll();
+	if (!GetHandleTable()->Allocate(this, Owner, hout, index)) {
+		AddLog(Error, "Failed to allocate handle");
+		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+		return false;
+	}
+
+
+	entry.m_Revision = 0;
+	entry.m_TransformHandle = TCHandle;
+
+	auto &body = m_BulletRigidBody[index];
+	auto &motionstste = m_MotionStateProxy[index];
+
+	body.Reset(this, hout);
+	body.SetTrnsform(tc, TCHandle);
+	motionstste.Reset(this, hout);
+	motionstste.SetTrnsform(tc, TCHandle);
+
+	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
+	body.setCollisionShape(cs);
+	vec3 internia;
+
+	x2c::Component::BodyComponent::BodyEntry_t bodyentry;
+	bodyentry.ResetToDefault();
+	if (!bodyentry.Read(node)) {	
+		AddLog(Error, "Failed to read BodyEntry!");
+		return false;
+	}
+	 
+	cs->calculateLocalInertia(bodyentry.m_Mass, internia);
+	body.setMassProps(bodyentry.m_Mass, internia);
+	body.setAngularFactor(convert(bodyentry.m_AngularFactor));
+	body.setLinearFactor(convert(bodyentry.m_LinearFactor));
+	body.setLinearVelocity(convert(bodyentry.m_LinearVelocity));
+	body.setAngularVelocity(convert(bodyentry.m_AngularVelocity));
+
+	//body.setDamping(phprop.Damping.Linear, phprop.Damping.Angular);
+	//body.setRestitution(phprop.Restitution);
+	//body.setFriction(phprop.Friction);
+	body.setSleepingThresholds(0.01f, 0.01f);
+	entry.m_CollisionMask = CollisionMask();		//TODO:
+
+	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
+
+//	m_EntityMapper.SetHandle(Owner, h);
+//	entry.m_Flags.m_Map.m_Valid = true;
+//	Physics::vec3 pos;
+//	XML::Vector::Read(node, "Position", pos);
+//	entry.m_LocalTransform.setOrigin(pos);
+//	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
+//	XML::Vector::Read(node, "Scale", entry.m_Scale, Physics::vec3(1, 1, 1));
+//	entry.m_SelfHandle = h;
+//	entry.m_OwnerEntity = Owner;
+//
+	entry.m_Flags.m_Map.m_Valid = true;
+	return true;
 }
 
 //---------------------------------------------------------------------------------------
@@ -73,6 +192,47 @@ bool BodyComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
 	return false;
 }
 
+//-------------------------------------------------------------------------------------------------
+
+bool BodyComponent::LoadComponentConfiguration(pugi::xml_node node) {
+	//TODO:
+
+	//void SetGravity(const btVector3& vector) { m_DynamicsWorld->setGravity(vector); }
+	//m_DynamicsWorld->setGravity(vec3(0,0,0));
+	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+void BodyComponent::DefferedDraw(Graphic::cRenderDevice & dev) {
+	glEnable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
+	if (!m_DebugDrawer) {
+		m_DebugDrawer = std::make_unique<BulletDebugDrawer>();
+		m_DynamicsWorld->setDebugDrawer(m_DebugDrawer.get());
+	}
+	m_DebugDrawer->PrepareDebugDraw(dev);
+	m_DynamicsWorld->debugDrawWorld();
+	m_DebugDrawer->Submit(dev);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+//	glEnable(GL_CULL_FACE);
+}
+
+BodyComponent::BodyEntry * BodyComponent::GetEntry(Handle h) {
+	auto *ht = GetManager()->GetWorld()->GetHandleTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		//AddLog(Debug, "Attempt to get TransformEntry for invalid Entity!");
+		return nullptr;
+	}
+	return &m_Array[hi];
+}
+
+//-------------------------------------------------------------------------------------------------
+
 } //namespace Physics 
 } //namespace MoonGlare 
-
