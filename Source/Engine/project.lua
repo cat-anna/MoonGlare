@@ -24,7 +24,7 @@ group ""
 			"../*", 
 			"../Config/**",
 			"../Utils/**",
-			"../Shared/x2c/Input.x2c",
+			"../Shared/x2c/**",
 		}
 		includedirs {
 			".",
