@@ -1,0 +1,39 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.BodyComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec3)
+
+Structure.new {
+	name = "BodyEntry",
+	fields = {
+		{
+			name = "Mass",
+			type = Types.float,
+			require = false,
+			default = 0,
+		},	
+		{
+			name = "LinearVelocity",
+			type = Local.Vec3,
+			require = false,
+		},
+		{
+			name = "AngularVelocity",
+			type = Local.Vec3,
+			require = false,
+		},
+		{
+			name = "AngularFactor",
+			type = Local.Vec3,
+			require = false,
+			default = { x = 1, y = 1, z = 1, },
+		},
+		{
+			name = "LinearFactor",
+			type = Local.Vec3,
+			require = false,
+			default = { x = 1, y = 1, z = 1, },
+		},
+	},
+}
