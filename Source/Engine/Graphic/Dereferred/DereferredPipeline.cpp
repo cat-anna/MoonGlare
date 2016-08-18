@@ -73,19 +73,10 @@ bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRende
 	RenderGeometry(conf, dev);
 	RenderLights(conf, dev);
 
-	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
-		glEnable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
-
-		auto *sc = dynamic_cast<MoonGlare::Core::Scene::GameScene*>(conf.Scene);
-		if (sc) {
-			sc->GetPhysicsEngine().DoDebugDraw(dev);
-		}
-
-		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
+	for (auto *it : conf.CustomDraw) {
+		it->DefferedDraw(dev);
 	}
+	conf.CustomDraw.clear();
 
 	FinalPass(dev.GetContext()->Size());
 	EndFrame();
