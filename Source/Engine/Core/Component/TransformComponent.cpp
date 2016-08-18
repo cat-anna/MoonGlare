@@ -95,10 +95,6 @@ void TransformComponent::Step(const MoveConfig & conf) {
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
-	++m_CurrentRevision;
-	if (m_CurrentRevision < 1) {
-		m_CurrentRevision = 1;
-	}
 
 	for (size_t i = 1; i < m_Allocated; ++i) {//ignore root entry
 		auto &item = m_Array[i];
@@ -122,7 +118,7 @@ void TransformComponent::Step(const MoveConfig & conf) {
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 
-			if (ParentEntry->m_Revision <= item.m_Revision) {
+			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
 				//nothing to do, nothing changed;
 			} else {
 				auto &gm = item.m_GlobalMatrix;
@@ -149,6 +145,11 @@ void TransformComponent::Step(const MoveConfig & conf) {
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		ReleaseElement(LastInvalidEntry);
+	}
+
+	++m_CurrentRevision;
+	if (m_CurrentRevision < 1) {
+		m_CurrentRevision = 1;
 	}
 }
 
