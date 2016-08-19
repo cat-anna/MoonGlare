@@ -19,12 +19,11 @@ RegisterApiNonClass(TransformComponent, &TransformComponent::RegisterScriptApi);
 RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
 
 TransformComponent::TransformComponent(ComponentManager * Owner) 
-		: AbstractComponent(Owner)
-		, m_Allocated(0){
+		: AbstractComponent(Owner) {
 
 	DebugMemorySetClassName("TransformComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
-		counter.Allocated = m_Allocated.load();
+		counter.Allocated = m_Array.Allocated();
 		counter.Capacity = m_Array.size();
 		counter.ElementSize = sizeof(TransformEntry);
 	});
@@ -61,7 +60,13 @@ bool TransformComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) 
 bool TransformComponent::Initialize() {
 	memset(&m_Array, 0, m_Array.size() * sizeof(m_Array[0]));
 
-	HandleIndex index = m_Allocated++;
+	m_Array.ClearAllocation();
+
+	size_t index;
+	if (!m_Array.Allocate(index)) {
+		AddLogf(Error, "Failed to allocate index!");
+		return false;
+	}
 	auto &RootEntry = m_Array[index];
 	RootEntry.m_Flags.ClearAll();
 	RootEntry.m_Flags.m_Map.m_Valid = true;
@@ -94,7 +99,7 @@ void TransformComponent::Step(const MoveConfig & conf) {
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	for (size_t i = 1; i < m_Allocated; ++i) {//ignore root entry
+	for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
 		auto &item = m_Array[i];
 
 		if (!item.m_Flags.m_Map.m_Valid) {
@@ -148,7 +153,11 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	Handle &h = hout;
-	HandleIndex index = m_Allocated++;
+	size_t index;
+	if (!m_Array.Allocate(index)) {
+		AddLogf(Error, "Failed to allocate index!");
+		return false;
+	}
 	auto &entry = m_Array[index];
 	entry.m_Flags.ClearAll();
 	if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
@@ -198,7 +207,25 @@ bool TransformComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
 }
 
 void TransformComponent::ReleaseElement(size_t Index) {
-	LOG_NOT_IMPLEMENTED();
+	auto lastidx = m_Array.Allocated() - 1;
+
+	if (lastidx == Index) {
+		auto &last = m_Array[lastidx];
+		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+		last.Reset();
+	} else {
+		auto &last = m_Array[lastidx];
+		auto &item = m_Array[Index];
+
+		std::swap(last, item);
+
+		if (!GetHandleTable()->SetHandleIndex(this, item.m_SelfHandle, Index)) {
+			AddLogf(Error, "Failed to move TransformComponent handle index!");
+		}
+		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+		last.Reset();
+	}
+	m_Array.DeallocateLast();
 }
 
 //-------------------------------------------------------------------------------------------------
