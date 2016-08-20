@@ -60,44 +60,10 @@ public:
 	Entity GetParentEntity(Handle h);
 	Entity GetEntity(Handle h);
 
-	math::mat4* GetLocalMatrix(Handle h) {
-		ASSERT_HANDLE_TYPE(Object, h);
-		size_t idx;
-		if (!m_Memory->m_HandleAllocator.GetMapping(h, idx))
-			return nullptr;
-		return &m_Memory->m_LocalMatrix[idx];
-	}
-
-	math::mat4* GetGlobalMatrix(Handle h) {
-		ASSERT_HANDLE_TYPE(Object, h);
-		size_t idx;
-		if (!m_Memory->m_HandleAllocator.GetMapping(h, idx))
-			return nullptr;
-		return &m_Memory->m_GlobalMatrix[idx];
-	}
-
 	void Process(const MoveConfig &conf);
-
 	Object* GetFirstObjectByName(const std::string &Name);
 
-	//Handle FindByName(const string& Name) {
-		//auto &list = m_NameMap[Name];
-		//if (list.empty()) return 0;
-		//return list.front();
-	//}
-
-	//HandleSet FindAllByName(const string& Name) {
-		//auto &list = m_NameMap[Name];
-		//if (list.empty()) return 0;
-		//return list.front();
-	//}
-
-	//const ObjectList& GetObjectsByType(const string& Type) {
-	//	return m_TypeMap[Type];
-	//}
-
 	void Clear();
-	static void RegisterScriptApi(ApiInitializer &api);
 
 	bool LoadObjects(const xml_node SrcNode, GameScene *OwnerScene);
 	Handle LoadObject(const std::string &Name, GameScene *OwnerScene, Handle Parent = Handle());

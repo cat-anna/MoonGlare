@@ -37,18 +37,10 @@ public:
 
 	void AddLightSource(Core::Objects::iLightSource *ptr);
 	void RemoveLightSource(Core::Objects::iLightSource *ptr);
-	Object* CreateObject(const string& TypeName, Handle Parent, const string& Name = "");
-
-	Object* SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position);
-	Object* SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos);
-	Object* SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent);
-	Object* SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent);
 
 	Object* GetObjectByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByType(const string& Type);
-
-	void ObjectDied(Handle h);
 
 	Objects::ObjectRegister* GetObjectRegister() { return &m_Objects; }
 

@@ -111,7 +111,7 @@ inline int lua_NewQuaternion(lua_State *lua) {
 		return 1;
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec4>::push(lua, math::vec4(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec4>::push(lua, math::vec4(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 		break;
@@ -150,7 +150,7 @@ inline int lua_NewVec3(lua_State *lua) {
 		return 1;
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec3>::push(lua, math::vec3(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec3>::push(lua, math::vec3(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 
@@ -187,13 +187,13 @@ inline int lua_NewVec2(lua_State *lua) {
 
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec2>::push(lua, math::vec2(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 
 	case 3:
 		if (lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1), lua_tonumber(lua, -2)));
+			luabridge::Stack<math::vec2>::push(lua, math::vec2(static_cast<float>(lua_tonumber(lua, -1)), static_cast<float>(lua_tonumber(lua, -2))));
 			return 1;
 		}
 	default:

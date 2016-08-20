@@ -19,13 +19,6 @@ public:
 	bool LoadPattern(const xml_node node);
 	bool LoadDynamicState(const xml_node node);
 	
-	struct Flags {
-		enum {
-			Initialized			= 0x1000,
-		};
-	};
-	DefineFlagGetter(m_Flags, Flags::Initialized, Initialized);
-
 	bool HaveBody() const { return static_cast<bool>(m_Body); }
 	Physics::Body* GetBody() const { assert(m_Body); return m_Body.get(); }
 
@@ -63,7 +56,6 @@ protected:
 	ObjectRegister *m_OwnerRegister;
 	Handle m_SelfHandle;
 	iLightSourcePtr m_LightSource;
-	unsigned m_Flags;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;

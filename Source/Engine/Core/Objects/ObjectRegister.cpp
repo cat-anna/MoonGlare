@@ -20,7 +20,6 @@ namespace Core {
 namespace Objects {
 
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ObjectRegister)
-RegisterApiDerivedClass(ObjectRegister, &ObjectRegister::RegisterScriptApi);
 
 ObjectRegister::ObjectRegister(World* world, GameScene *OwnerScene) :
 		BaseClass(),
@@ -34,20 +33,6 @@ ObjectRegister::~ObjectRegister() {
 	for (auto& it : m_Memory->m_ObjectPtr)
 		it.reset();
 	m_Memory.reset();
-}
-
-void ObjectRegister::RegisterScriptApi(ApiInitializer &api) {
-//	api
-//	.beginClass<ObjectList::ListTypeIterator>("cObjectSubListCIterator")
-//		.addFunction("Next", &ObjectList::ListTypeIterator::Next)
-//		.addFunction("Ended", &ObjectList::ListTypeIterator::Ended)
-//		.addFunction("Index", &ObjectList::ListTypeIterator::Index)
-//		.addFunction("Get", &ObjectList::ListTypeIterator::Get)
-//	.endClass()
-//	.beginClass<ObjectList>("cObjectSubList")
-//		.addFunction("size", &ObjectList::isize)
-//		.addFunction("GetIterator", &ObjectList::GetIterator)
-//	.endClass();
 }
 
 void ObjectRegister::Clear() {
@@ -70,7 +55,7 @@ void ObjectRegister::Clear() {
 }
 
 Handle ObjectRegister::GetRootHandle() {
-	auto h = m_Memory->m_HandleAllocator.GetHandleForIndex(0);
+	auto h = m_Memory->m_HandleAllocator.GetHandleFromIndex(0);
 	h.SetType(Configuration::Handle::Types::Object);
 	return h;
 }
@@ -112,7 +97,8 @@ Handle ObjectRegister::Insert(std::unique_ptr<Object> obj, Handle Parent) {
 	m_Memory->m_HandleIndex[index] = h.GetIndex();
 	auto eparent = GetEntity(Parent);
 	auto em = GetWorld()->GetEntityManager();
-	auto e = em->Allocate(eparent);
+	Entity e;
+	em->Allocate(eparent, e);
 
 //	AddLog(Error, "Allocated " << e << " Parent:" << eparent);
 
@@ -156,38 +142,7 @@ void ObjectRegister::Remove(Handle h) {
 }
 
 void ObjectRegister::Reorder(size_t start) {
-
-	size_t spread = 1;
-	for (size_t i = start; i < m_Memory->m_HandleAllocator.Allocated(); ) {
-
-		size_t other = i + spread;
-		__debugbreak();
-		auto OtherParentHandle = m_Memory->m_Parent[other];
-
-		if (m_Memory->m_HandleAllocator.IsHandleValid(OtherParentHandle)) {
-//			m_Memory->m_GlobalMatrix[i] = m_Memory->m_GlobalMatrix[other];
-//			m_Memory->m_LocalMatrix[i] = m_Memory->m_LocalMatrix[other];
-			m_Memory->m_Parent[i] = m_Memory->m_Parent[other];
-			m_Memory->m_Entity[i] = m_Memory->m_Entity[other];
-			m_Memory->m_ObjectPtr[i] = std::move(m_Memory->m_ObjectPtr[other]);
-			 
-			size_t OtherHandleIdx = m_Memory->m_HandleIndex[other];
-			m_Memory->m_HandleIndex[i] = OtherHandleIdx;
-			m_Memory->m_HandleAllocator.SetMapping(OtherHandleIdx, i);
-
-			i += spread;
-			continue;
-		} 
-		else
-		{
-			m_Memory->m_ObjectPtr[i].reset();
-			auto SelfHandleIdx = m_Memory->m_HandleIndex[i];
-			auto h = m_Memory->m_HandleAllocator.GetHandleForIndex(SelfHandleIdx);
-			m_Memory->m_HandleAllocator.Free(h);
-			++spread;
-			continue;
-		}
-	}
+	throw "ObjectRegister - attempt to reorder!";
 }
 
 Handle ObjectRegister::GetParentHandle(Handle h) {

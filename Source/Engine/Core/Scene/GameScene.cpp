@@ -37,13 +37,6 @@ GameScene::~GameScene() {
 void GameScene::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("cGameScene")
-		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
-
-		.addFunction("CreateObject", &ThisClass::CreateObject)
-		.addFunction("SpawnObject", &ThisClass::SpawnObject_api)
-		.addFunction("SpawnObjectChild", &ThisClass::SpawnObjectChild_api)
-		//.addFunction("SpawnObjectXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SpawnObject_api, float, float, float>::get())
-
 		.addFunction("GetObjectByName", &ThisClass::GetObjectByName)
 //		.addFunction("GetObjectsByName", &ThisClass::GetObjectsByName)
 //		.addFunction("GetObjectsByType", &ThisClass::GetObjectsByType)
@@ -80,7 +73,6 @@ bool GameScene::DoInitialize() {
 	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 
 	m_Objects.LoadObjects(GetRootNode().child("Objects"), this);
-
 	m_Objects.InitializeObjects();
 
 	return true;
@@ -157,57 +149,6 @@ void GameScene::RemoveLightSource(iLightSource *ptr) {
 	}
 }
 
-void GameScene::ObjectDied(Handle h) { 
-	ASSERT_HANDLE_TYPE(Object, h);
-	m_DeadList.push_back(h); 
-}
-
-Object* GameScene::CreateObject(const string& TypeName, Handle Parent, const string& Name) {
-	auto ObjH = GetObjectRegister()->LoadObject(TypeName, this, Parent);
-	auto obj = GetObjectRegister()->Get(ObjH);
-	if (!obj) {
-		AddLogf(Error, "Unable to create object of name '%s'", TypeName.c_str());
-		return 0;
-	}
-	obj->SetOwnerScene(this);
-	obj->Initialize();
-	obj->SetName(Name);
-	return obj;
-}
-
-Object* GameScene::SpawnObject(const string& TypeName, const string& Name, const Physics::vec3& Position) {
-	auto *o = CreateObject(TypeName, m_Objects.GetRootHandle(), Name);
-	if (!o)
-		return nullptr;
-	o->SetPosition(Position);
-	o->UpdateMotionState();
-	AddLog(Debug, "Created object '" << TypeName << "' of name '" << Name << "' at " << Position);
-	return o;
-}
-
-Object* GameScene::SpawnObject_api(const string& TypeName, const string& Name, const math::vec3 &pos) {
-	return SpawnObject(TypeName, Name, convert(pos));
-}
-
-Object* GameScene::SpawnObjectChild(const string& TypeName, const string& Name, const Physics::vec3& Position, Handle Parent) {
-	auto *o = CreateObject(TypeName, Parent, Name);
-	if (!o)
-		return nullptr;
-
-	//auto pptr = m_Objects.Get(Parent);
-
-	o->SetPosition(Position/* + pptr->GetPosition()*/);
-	o->UpdateMotionState();
-	AddLog(Debug, "Created object child '" << TypeName << "' of name '" << Name << "' at " << Position);
-	return o;
-}
-
-Object* GameScene::SpawnObjectChild_api(const string& TypeName, const string& Name, const math::vec3 &pos, Handle Parent) {
-	return SpawnObjectChild(TypeName, Name, convert(pos), Parent);
-}
-
-//----------------------------------------------------------------
-
 void GameScene::DoMove(const MoveConfig &conf) {
 	BaseClass::DoMove(conf);
 
@@ -235,21 +176,14 @@ void GameScene::DoMove(const MoveConfig &conf) {
 	//gContactDestroyedCallback = &T::destroy;
 
 	//AddLog(Hint, "Step begin");
-	auto t = std::chrono::steady_clock::now();
-	m_Physics->Step(conf.TimeDelta);
-	if (conf.m_SecondPeriod) {
-		std::chrono::duration<double> sec = std::chrono::steady_clock::now() - t;
-		AddLogf(Performance, "ph step: %f ms", (float)(sec.count() * 1000));
-	}
+	//auto t = std::chrono::steady_clock::now();
+	//m_Physics->Step(conf.TimeDelta);
+	//if (conf.m_SecondPeriod) {
+	//	std::chrono::duration<double> sec = std::chrono::steady_clock::now() - t;
+	//	AddLogf(Performance, "ph step: %f ms", (float)(sec.count() * 1000));
+	//}
 
 	//AddLog(Hint, "Step end");
-
-	if (!m_DeadList.empty()) {
-		for (auto i : m_DeadList) {
-			m_Objects.Remove(i);
-		}
-		m_DeadList.clear();
-	}
 
 	if (m_Camera)
 		m_Camera->Update(conf);

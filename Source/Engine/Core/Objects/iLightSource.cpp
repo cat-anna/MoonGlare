@@ -20,8 +20,8 @@ public:
 	~PointLightSource() { }
 
 	void Update() override {
-		auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
-		m_light.Position = math::vec3(mat[3]);
+		//auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
+		//m_light.Position = math::vec3(mat[3]);
 	}
 	bool LoadMeta(const xml_node node) override { 
 		return m_light.LoadMeta(node); 
@@ -95,12 +95,12 @@ public:
 	~SpotLightSource() {}
 
 	void Update() override {
-		auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
-
-		m_light.Position = math::vec3(mat[3]);
-		
-		m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * mat) * -1.0f;
-		m_light.RecalculateMatrices();
+		//auto &mat = *GetOwner()->GetOwnerRegister()->GetGlobalMatrix(GetOwner()->GetSelfHandle());
+		//
+		//m_light.Position = math::vec3(mat[3]);
+		//
+		//m_light.Direction = math::vec3(math::vec4(m_DirectionDelta, 0.0) * mat) * -1.0f;
+		//m_light.RecalculateMatrices();
 	}
 
 	bool LoadMeta(const xml_node node) override { 
