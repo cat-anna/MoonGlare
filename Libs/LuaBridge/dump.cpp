@@ -1,14 +1,11 @@
 #include <sstream>
 #include <string>
-
-#include <lua-5.2.1/lua.hpp>
-
 #include "LuaBridge.h"
 
 namespace luabridge
 {
 
-std::string dumpLuaState(lua_State *L) {
+static inline std::string dumpLuaState(lua_State *L) {
 	std::stringstream ostr;
 	int i;
 	int top = lua_gettop(L);
