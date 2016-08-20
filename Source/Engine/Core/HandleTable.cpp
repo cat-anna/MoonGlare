@@ -80,7 +80,7 @@ bool HandleTable::IsValid(ComponentID cid, Handle h) {
 	return true;
 }
 
-bool HandleTable::Allocate(ComponentID cid, Handle &hout, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(ComponentID cid, Handle &hout, HandleIndex hindex, HandlePrivateData value) {
 	Handle h;
 	if (!m_Allocator.Allocate(h)) {
 		AddLogf(Error, "Failed to allocate handle!");
@@ -88,17 +88,19 @@ bool HandleTable::Allocate(ComponentID cid, Handle &hout, HandleIndex index, Han
 	}
 
 	hout.SetType(Configuration::HandleType::Component);
-	m_Allocator.SetMapping(hout, index);
-	auto &item = m_Array[hout.GetIndex()];
+	m_Allocator.SetMapping(hout, hindex);
+	auto index = hout.GetIndex();
+	auto &item = m_Array[index];
 	item.m_Data = value;
 	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
 	item.m_Flags.m_Map.m_Valid = true;
 	item.m_Flags.m_Map.m_HasEntityOwner = false;
+	m_HandleValueArray[index] = h;
 	return true;
 }
 
-bool HandleTable::Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value) {
+bool HandleTable::Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex hindex, HandlePrivateData value) {
 	if (!m_EntityManager->IsValid(Owner)) {
 		AddLog(Warning, "Attempt to allocate handle for invalid entity");
 		return false;
@@ -110,14 +112,16 @@ bool HandleTable::Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIn
 	}
 	
 	hout.SetType(Configuration::HandleType::Component);
-	m_Allocator.SetMapping(hout, index);
-	auto &item = m_Array[hout.GetIndex()];
+	m_Allocator.SetMapping(hout, hindex);
+	auto index = hout.GetIndex();
+	auto &item = m_Array[index];
 	item.m_Data = value;
 	item.m_Owner = Owner;
 	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
 	item.m_Flags.m_Map.m_Valid = true;
 	item.m_Flags.m_Map.m_HasEntityOwner = true;
+	m_HandleValueArray[index] = hout;
 	return true;
 }
 
@@ -203,7 +207,7 @@ bool HandleTable::GetOwnerCID(Handle h, ComponentID & cidout) {
 }
 
 bool HandleTable::Step(const Core::MoveConfig & config) {
-	auto limit = m_GCIndex + Configuration::Handle::EntryCheckPerStep
+	auto limit = m_GCIndex + Configuration::Handle::EntryCheckPerStep;
 
 	for (auto it = m_GCIndex; it < limit; ++it) {
 		if (!m_Array[it].m_Flags.m_Map.m_Valid)
@@ -213,7 +217,7 @@ bool HandleTable::Step(const Core::MoveConfig & config) {
 			continue;
 
 		item.m_Flags.m_Map.m_Valid = false;
-		m_Allocator.ReleaseIndex(it);
+		m_Allocator.Free(m_HandleValueArray[it]);
 	}
 
 	m_GCIndex = limit >= m_Array.size() ? 0 : limit;

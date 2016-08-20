@@ -50,6 +50,7 @@ public:
 private: 
 	Array<Entity> m_Parent;
 	Array<EntityFlags> m_Flags;
+	Array<Entity> m_EntityValues;
 	Generations_t m_Allocator;
 	Entity m_Root;
 	size_t m_GCIndex;

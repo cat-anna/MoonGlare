@@ -88,6 +88,7 @@ bool EntityManager::Allocate(Entity parent, Entity &eout) {
 
 	m_Parent[index] = parent;
 	m_Flags[index].m_Map.m_Valid = true;
+	m_EntityValues[index] = eout;
 	eout = h;
 	return true;
 }
@@ -123,7 +124,7 @@ bool EntityManager::Step(const Core::MoveConfig & config) {
 		}
 
 		m_Flags[it].m_Map.m_Valid = false;
-		m_Allocator.ReleaseIndex(it);
+		m_Allocator.Free(m_EntityValues[it]);
 	}
 
 	m_GCIndex = limit >= m_Parent.size() ? 0 : limit;

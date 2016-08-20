@@ -79,6 +79,7 @@ protected:
 	template<class T> using Array = std::array<T, Configuration::Handle::IndexLimit>;
 
 	Array<HandleEntry> m_Array;
+	Array<Handle> m_HandleValueArray;
 	Generations_t m_Allocator;
 	EntityManager *m_EntityManager;
 	size_t m_GCIndex;
