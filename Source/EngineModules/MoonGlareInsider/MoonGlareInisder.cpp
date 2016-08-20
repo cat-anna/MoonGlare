@@ -282,7 +282,7 @@ bool Insider::ExecuteCode(InsiderMessageBuffer& buffer) {
 }
 
 bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
-	auto *request = buffer.GetAndPull<PayLoad_SetScriptCode>();
+//	auto *request = buffer.GetAndPull<PayLoad_SetScriptCode>();
 	std::string name = buffer.PullString();
 	std::string data = buffer.PullString();
 
@@ -437,7 +437,7 @@ bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 		*((::math::fvec3*)info->Position) = convert(obj->GetPosition());
 		auto q = obj->GetQuaternion();
 		*((::math::fvec4*)info->Quaternion) = math::fvec4(q[0], q[1], q[2], q[3]);
-		info->NameLen = obj->GetName().length();
+		info->NameLen = static_cast<u16>(obj->GetName().length());
 	}
 
 	hdr->MessageType = MessageTypes::ObjectList;

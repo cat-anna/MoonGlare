@@ -34,8 +34,6 @@ public:
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 
 			bool m_StepFunction : 1;
-			bool m_OnCreateFunction : 1;
-			bool m_OnDestroyFunction : 1;
 
 			//bool m_OnStart : 1;
 			//bool m_OnStop : 1;
@@ -52,8 +50,12 @@ public:
 	struct ScriptEntry {
 		FlagsMap m_Flags;
 		Entity m_Owner;	
-		Handle m_Handle;
+		Handle m_SelfHandle;
 		uint32_t padding;
+
+		void Reset() {
+			m_Flags.m_Map.m_Valid = false;
+		}
 	};
 	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
@@ -78,15 +80,20 @@ protected:
 	void *GetInstancesTableIndex() { return this; }
 	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<int>(this) + 1); }
 private:
-	static int lua_DestroyComponent(lua_State *lua);
-	static int lua_DestroyObject(lua_State *lua);
-	static int lua_GetComponent(lua_State *lua);
+	//utils
+	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
+
+//ScriptComponent api
+	static int lua_DestroyComponent(lua_State *lua);
+	static int lua_GetComponent(lua_State *lua);
+
+//GameObject api
 	static int lua_CreateComponent(lua_State *lua);
 	static int lua_SpawnChild(lua_State *lua);
-
-	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
-}; 
+	static int lua_DestroyObject(lua_State *lua);
+	static int lua_Destroy(lua_State *lua);
+};
 
 } //namespace Component 
 } //namespace Core 

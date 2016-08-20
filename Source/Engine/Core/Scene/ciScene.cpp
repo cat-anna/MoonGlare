@@ -164,7 +164,7 @@ bool ciScene::LoadMeta(const xml_node Node) {
 	SetName(Node.attribute(xmlAttr_Name).as_string("??"));
 	m_ScriptHandlers->LoadFromXML(Node);
 	m_Settings.LoadMeta(Node.child("Settings"));
-	return true;
+	return m_ComponentManager.LoadComponents(Node.child("Components"));
 }
 
 const xml_node ciScene::GetRootNode() const { 

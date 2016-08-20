@@ -325,6 +325,7 @@ void Engine::DoMove(MoveConfig &conf) {
 
 	m_TimeEvents.CheckEvents(conf);
 	GetScriptEngine()->Step(conf);
+	GetWorld()->Step(conf);
 	if (m_CurrentScene)
 		m_CurrentScene->DoMove(conf);
 }

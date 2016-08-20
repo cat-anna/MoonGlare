@@ -49,12 +49,19 @@ template<> inline double Lua_to<double>(lua_State *lua, int idx) { return static
 template<> inline const char* Lua_to<const char*>(lua_State *lua, int idx) { return lua_tostring(lua, idx); }
 template<> inline int Lua_to<int>(lua_State *lua, int idx) { return lua_tointeger(lua, idx); }
 
-template<class T> inline void Lua_push(lua_State *lua, T t);
-template<> inline void Lua_push<bool>(lua_State *lua, bool t) { lua_pushboolean(lua, t); }
-template<> inline void Lua_push<float>(lua_State *lua, float t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
-template<> inline void Lua_push<double>(lua_State *lua, double t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
-template<> inline void Lua_push<const char*>(lua_State *lua, const char* t) { lua_pushstring(lua, t); }
-template<> inline void Lua_push<int>(lua_State *lua, int t) { lua_pushinteger(lua, t); }
+inline void Lua_push(lua_State *lua, bool t) { lua_pushboolean(lua, t); }
+inline void Lua_push(lua_State *lua, float t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
+inline void Lua_push(lua_State *lua, double t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
+inline void Lua_push(lua_State *lua, const char* t) { lua_pushstring(lua, t); }
+inline void Lua_push(lua_State *lua, int t) { lua_pushinteger(lua, t); }
+inline void Lua_push(lua_State *lua, unsigned t) { Lua_push(lua, static_cast<int>(t)); }
+inline void Lua_push(lua_State *lua, void* t) { lua_pushlightuserdata(lua, t); }
+
+template <typename T, typename ... ARGS>
+inline void Lua_push(lua_State *lua, T&& t, ARGS&& ... args) {
+	Lua_push(lua, std::forward<T>(t));
+	Lua_push(lua, std::forward<ARGS>(args)...);
+}
 
 template<class T> bool inline Lua_is(lua_State *lua, int idx);
 template<> inline bool Lua_is<bool>(lua_State *lua, int idx) { return lua_isboolean(lua, idx); }
@@ -64,9 +71,13 @@ template<> inline bool Lua_is<const char*>(lua_State *lua, int idx) { return lua
 template<> inline bool Lua_is<int>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
 template<> inline unsigned Lua_to<unsigned>(lua_State *lua, int idx) { return static_cast<int>(Lua_to<int>(lua, idx)); }
-template<> inline void Lua_push<unsigned>(lua_State *lua, unsigned t) { Lua_push<int>(lua, static_cast<int>(t)); }
 template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_isnumber(lua, idx) != 0; }
 
+template<class ... ARGS>
+void lua_PushCClosure(lua_State *lua, lua_CFunction cfunc, ARGS&& ...args) {
+	Lua_push(lua, std::forward<ARGS>(args)...);
+	lua_pushcclosure(lua, cfunc, sizeof...(ARGS));
+}
 //----------------------------------------------------
 
 /** INDEXES ARE INCREMENTED BY ONE AUTOMATICALLY!!! */

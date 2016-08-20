@@ -9,7 +9,7 @@
 
 #include <QStandardItemModel>
 
-#include <Streamutils.h>
+#include <Utils/Streamutils.h>
 
 //-----------------------------------------
 

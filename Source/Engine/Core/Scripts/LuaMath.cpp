@@ -25,6 +25,7 @@ float getPi() { return 3.14159f * (static_cast<float>(multiplier) / static_cast<
 
 template<class T> inline T VecNormalized(const T * vec) { return glm::normalize(*vec); }
 template<class T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
+template<class T> inline float VecLength(const T *vec) { return glm::length(*vec); }
 template<class T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
 template<class T> inline T VecAdd(T *a, T* b) { return *a + *b; }
 template<class T> inline T VecSub(T *a, T* b) { return *a - *b; }
@@ -110,7 +111,7 @@ inline int lua_NewQuaternion(lua_State *lua) {
 		return 1;
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec4>::push(lua, math::vec4(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec4>::push(lua, math::vec4(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 		break;
@@ -149,7 +150,7 @@ inline int lua_NewVec3(lua_State *lua) {
 		return 1;
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec3>::push(lua, math::vec3(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec3>::push(lua, math::vec3(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 
@@ -186,13 +187,13 @@ inline int lua_NewVec2(lua_State *lua) {
 
 	case 2:
 		if (lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1)));
+			luabridge::Stack<math::vec2>::push(lua, math::vec2(static_cast<float>(lua_tonumber(lua, -1))));
 			return 1;
 		}
 
 	case 3:
 		if (lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
-			luabridge::Stack<math::vec2>::push(lua, math::vec2(lua_tonumber(lua, -1), lua_tonumber(lua, -2)));
+			luabridge::Stack<math::vec2>::push(lua, math::vec2(static_cast<float>(lua_tonumber(lua, -1)), static_cast<float>(lua_tonumber(lua, -2))));
 			return 1;
 		}
 	default:
@@ -228,9 +229,8 @@ void ScriptMathClasses(ApiInitializer &root){
 		.addData("y", &math::vec4::y)
 		.addData("z", &math::vec4::z)
 		.addData("w", &math::vec4::w)
-		.addProperty<math::vec4, math::vec4>("Normalized", &VecNormalized<math::vec4>)
-	//	.addFunction("length", &math::vec4::length)
-	//	.addFunction("lengthSquare", &math::vec4::length)
+		.addProperty<math::vec4>("Normalized", &VecNormalized<math::vec4>)
+		.addProperty<float>("Length", &VecLength<math::vec4>)
 		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec4, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec4, std::string>::callee<QuaternionToString>())
 		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec4, float, math::vec4*>::callee<VecDotProduct>())
@@ -244,8 +244,9 @@ void ScriptMathClasses(ApiInitializer &root){
 		.addData("x", &math::vec3::x)
 		.addData("y", &math::vec3::y)
 		.addData("z", &math::vec3::z)
-		.addProperty<math::vec3, math::vec3>("Normalized", &VecNormalized<math::vec3>)
-	//	.addFunction("length", &math::vec3::length)
+		.addProperty<math::vec3>("Normalized", &VecNormalized<math::vec3>)
+		.addProperty<float>("Length", &VecLength<math::vec3>)
+
 		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec3, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec3, std::string>::callee<Vec3ToString>())
 		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec3, float, math::vec3*>::callee<VecDotProduct>())
@@ -256,10 +257,11 @@ void ScriptMathClasses(ApiInitializer &root){
 
 	.beginClass<math::vec2>("cVec2")
 		.addConstructor<void(*)(float, float)>()
-	//	.addData("x", &math::vec2::x)
+		.addData("x", &math::vec2::x)
 		.addData("y", &math::vec2::y)
-		.addProperty<math::vec2, math::vec2>("normalized", &VecNormalized<math::vec2>)
-	//	.addFunction("length", &math::vec2::length)
+		.addProperty<math::vec2>("Normalized", &VecNormalized<math::vec2>)
+		.addProperty<float>("Length", &VecLength<math::vec2>)
+
 		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec2, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec2, std::string>::callee<Vec2ToString>())
 		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec2, float, math::vec2*>::callee<VecDotProduct>())

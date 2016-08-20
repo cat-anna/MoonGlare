@@ -30,6 +30,10 @@ bool AbstractComponent::Create(Entity Owner, Handle &hout) {
 	return false;
 }
 
+bool AbstractComponent::LoadComponentConfiguration(pugi::xml_node node) {
+	return true;
+}
+
 } //namespace Component 
 } //namespace Core 
 } //namespace MoonGlare 

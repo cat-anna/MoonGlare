@@ -17,7 +17,7 @@ public:
 
 	void ShowData(const InsiderApi::PayLoad_OrbitLoggerStateResponse &data);
 protected slots:
-	void RefreshView();
+	void Refresh() override;
 private:
 	std::unique_ptr<Ui::OrbitLoggerStatus> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;

@@ -5,6 +5,8 @@
 #include "ui_MainForm.h"
 #include "DockWindow.h"
 
+#include <Notifications.h>
+
 #include "LuaEditor/LuaWindow.h"
 #include "ResourceEditor/ResourceBrowser.h"
 #include "LogWindow/LogWindow.h"
@@ -154,6 +156,7 @@ void MainForm::LogWindowClosed() {
 	m_LogWindow.reset();
 }
 
+
 void MainForm::EngineStateValueChanged(EngineStateValue type, const QString &Value, const QString& icon) {
 	auto *item = m_StateValues[type];
 	
@@ -233,3 +236,5 @@ void MainForm::OpenEngineScript(const QString &file) {
 	m_LuaEditor->OpenEngineScirpt(file);
 	m_LuaEditor->activateWindow();
 }
+
+//-----------------------------------------

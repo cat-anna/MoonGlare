@@ -10,7 +10,6 @@ RegisterApiDerivedClass(Object, &Object::RegisterScriptApi);
 
 Object::Object():
 		BaseClass(),
-		m_Flags(),
 		m_Scene(nullptr),
 		m_EventProxy(),
 		m_LightSource(),
@@ -42,25 +41,8 @@ bool Object::Finalize() {
 }
 
 void Object::RegisterScriptApi(ApiInitializer &api) {
-	struct Helper {
-		math::vec3 getpos() {
-			return convert(((Object*)this)->GetPosition());
-		}
-	};
-
 	api
 	.deriveClass<ThisClass, BaseClass>("cObject")
-		.addFunction("GetHandle", &ThisClass::GetSelfHandle)
-
-		.addFunction("GetLightSource", &ThisClass::GetLightSource)
-		//.addFunction("GetMotion", Utils::Template::PointerFromRef<ThisClass, Scene::ModelState>::get<&ThisClass::GetMotionState>())
-		
-		.addFunction("SetLinearVelocityXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SetLinearVelocity, float, float, float>::get())
-		.addFunction("SetPositionXYZ", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::vec3, &ThisClass::SetPosition, float, float, float>::get())
-		.addFunction("SetRotationQuaternion", Utils::Template::DynamicArgumentConvert<ThisClass, Physics::Quaternion, &ThisClass::SetQuaterion, float, float, float, float>::get())
-		//.addProperty("Position", &ThisClass::GetPosition, &ThisClass::SetPosition)
-		.addFunction("UpdateMotionState", &ThisClass::UpdateMotionState)
-		.addFunction("GetPosition", (math::vec3(ThisClass::*)())&Helper::getpos)
 	.endClass();
 }
 
@@ -87,10 +69,6 @@ bool Object::LoadPattern(const xml_node node) {
 	if (pname){
 		SetPatternName(pname);
 		SetName(GetPatternName());
-	}
-	xml_node light = node.child("LightSource");
-	if (light) {
-		m_LightSource = iLightSource::LoadLightSource(this, light);
 	}
 
 	m_Mass = node.child("Mass").attribute("Value").as_float(0);

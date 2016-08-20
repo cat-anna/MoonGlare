@@ -71,4 +71,17 @@ bool World::Finalize() {
 	return true;
 }
 
+bool World::Step(const Core::MoveConfig & config) {
+	if (!m_EntityManager.Step(config)) {
+		AddLog(Error, "Faield to Step EntityManager");
+	}
+	if (!m_HandleTable.Step(config)) {
+		AddLog(Error, "Faield to Step HandleTable");
+	}
+	if (!m_ResourceTable.Step(config)) {
+		AddLog(Error, "Faield to Step ResourceTable");
+	}
+	return true;
+}
+
 } //namespace MoonGlare 

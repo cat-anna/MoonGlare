@@ -48,7 +48,7 @@ public:
 	struct MeshEntry {
 		FlagsMap m_Flags;
 		Entity m_Owner;
-		Handle m_Handle;
+		Handle m_SelfHandle;
 		Handle m_MeshHandle;
 		DataClasses::ModelPtr m_Model;
 		std::string m_ModelName;
@@ -65,6 +65,12 @@ public:
 		void SetModel(const char *name) {
 			m_ModelName = name;
 			m_Flags.m_Map.m_MeshHandleChanged = true;
+		}
+
+		void Reset() {
+			m_Flags.m_Map.m_Valid = false;
+			m_Model.reset();
+			m_ModelName.clear();
 		}
 	};
 //	static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");

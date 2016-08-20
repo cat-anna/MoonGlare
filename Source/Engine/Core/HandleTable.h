@@ -25,8 +25,10 @@ public:
 
 	using HandlePrivateData = uint64_t;
 
+	bool IsValid(Handle h);
 	bool IsValid(ComponentID cid, Handle h);
 	bool Release(ComponentID cid, Handle h);
+	bool Release(Handle h);
 	bool Allocate(ComponentID cid, Handle &hout, HandleIndex index, HandlePrivateData value = 0);
 	bool Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIndex index, HandlePrivateData value = 0);
 
@@ -40,6 +42,9 @@ public:
 	bool SetHandleData(ComponentID cid, Handle h, HandlePrivateData value);
 
 	bool SwapHandleIndexes(ComponentID cid, Handle ha, Handle hb);
+	bool GetOwnerCID(Handle h, ComponentID &cidout);
+
+	bool Step(const Core::MoveConfig &config);
 
 	//template shortcut versions for components
 	template<class COMPONENT> bool GetHandleIndex(COMPONENT *c, Handle h, HandleIndex &index) { return GetHandleIndex(c->GetHandleType(), h, index); }
@@ -48,9 +53,11 @@ public:
 	template<class COMPONENT> bool Release(COMPONENT *c, Handle h) { return Release(c->GetHandleType(), h); }
 	template<class COMPONENT> bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) { return SwapHandleIndexes(c->GetHandleType(), ha, hb); }
 	template<class COMPONENT> bool GetHandleParentEntity(COMPONENT *c, Handle h, Entity &eout) { return GetHandleParentEntity(c->GetHandleType(), h, eout); }
+	template<class COMPONENT> bool SetHandleIndex(COMPONENT *c, Handle h, HandleIndex index) { return SetHandleIndex(c->GetHandleType(), h, index); }
 
 	union HandleFlags {
 		struct {
+			bool m_Valid : 1;
 			bool m_HasEntityOwner : 1;
 		} m_Map;
 		uint8_t m_UIntValue;
@@ -72,8 +79,10 @@ protected:
 	template<class T> using Array = std::array<T, Configuration::Handle::IndexLimit>;
 
 	Array<HandleEntry> m_Array;
+	Array<Handle> m_HandleValueArray;
 	Generations_t m_Allocator;
 	EntityManager *m_EntityManager;
+	size_t m_GCIndex;
 };
 
 } //namespace Core 

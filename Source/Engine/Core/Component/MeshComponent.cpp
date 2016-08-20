@@ -71,7 +71,6 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const MoveConfig &conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 	auto *tc = GetManager()->GetTransformComponent();
 
@@ -88,7 +87,7 @@ void MeshComponent::Step(const MoveConfig &conf) {
 			continue;
 		}
 
-		if (!HandleTable->IsValid(this, item.m_Handle)) {
+		if (!HandleTable->IsValid(this, item.m_SelfHandle)) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
@@ -131,7 +130,7 @@ void MeshComponent::Step(const MoveConfig &conf) {
 	}
 
 	if (InvalidEntryCount > 0) {
-		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+		AddLogf(Performance, "MeshComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		ReleaseElement(LastInvalidEntry);
 	}
 }
@@ -167,7 +166,7 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	}
 
 	entry.m_Owner = Owner;
-	entry.m_Handle = ch;
+	entry.m_SelfHandle = ch;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_MeshHandleChanged = false;
@@ -178,7 +177,27 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	return true;
 }
 
-void MeshComponent::ReleaseElement(size_t Index) {}
+void MeshComponent::ReleaseElement(size_t Index) {
+	auto lastidx = m_Array.Allocated() - 1;
+
+	if (lastidx == Index) {
+		auto &last = m_Array[lastidx];
+		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+		last.Reset();
+	} else {
+		auto &last = m_Array[lastidx];
+		auto &item = m_Array[Index];
+
+		std::swap(last, item);
+
+		if (!GetHandleTable()->SetHandleIndex(this, item.m_SelfHandle, Index)) {
+			AddLogf(Error, "Failed to move MeshComponent handle index!");
+		}
+		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+		last.Reset();
+	}
+	m_Array.DeallocateLast();
+}
 
 bool MeshComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
 	auto h = m_EntityMapper.GetHandle(Owner);
@@ -207,7 +226,7 @@ bool MeshComponent::Create(Entity Owner, Handle &hout) {
 	}
 
 	entry.m_Owner = Owner;
-	entry.m_Handle = ch;
+	entry.m_SelfHandle = ch;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_MeshHandleChanged = false;

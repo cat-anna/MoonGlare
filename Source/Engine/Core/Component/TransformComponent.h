@@ -9,6 +9,8 @@
 #ifndef TransformComponent_H
 #define TransformComponent_H
 
+#include <libSpace/src/Container/StaticVector.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -58,6 +60,9 @@ public:
 		void SetRotation(math::vec4 rot) { m_LocalTransform.setRotation(convert(rot)); }
 		math::vec3 GetScale() const { return convert(m_Scale); }
 		void SetScale(math::vec3 s) { m_Scale = convert(s); }
+
+		void Reset() {
+		}
 	};
 
 //	struct BulletMotionStateProxy : public btMotionState {
@@ -71,25 +76,11 @@ public:
 	TransformEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
 	TransformEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
 
-/*
-	btTransform
-	
-	d3		position`
-	d4		quaternion
-	mat3x3	matrix
-	?scale
-
-	//process (position & quaternion) -> matrix  [done by physics engine]
-	//static & dynamic <- future optimization
-	indirect 
-*/
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
-	template<class T> using Array = std::array<T, Configuration::Storage::ComponentBuffer>;
+	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 	Array<TransformEntry> m_Array;
 	EntityMapper m_EntityMapper;
-	std::atomic<size_t> m_Allocated;
-//	Array<BulletMotionStateProxy> m_Proxies;
 	void ReleaseElement(size_t Index);
 };
 
