@@ -14,21 +14,44 @@ namespace Core {
 namespace Component {
 
 struct ComponentRegister {
-	using MapType = std::unordered_map < std::string, ComponentID >;
-	static bool GetComponentID(const char *Name, ComponentID &cidout) {
+
+	using ComponentCreateFunc = std::unique_ptr<AbstractComponent>(*)(ComponentManager*);
+	struct ComponentInfo {
+		ComponentID m_CID;
+		ComponentCreateFunc m_CreateFunc;
+	};
+
+	using MapType = std::unordered_map < std::string, ComponentInfo >;
+	static ComponentInfo* GetComponentInfo(const char *Name) {
 		auto it = s_ComponentMap->find(Name);
 		if (it == s_ComponentMap->end())
+			return nullptr;
+		return &it->second;
+	}
+	static ComponentInfo* GetComponentInfo(ComponentID cid) {
+		for (auto &it : *s_ComponentMap)
+			if (it.second.m_CID == cid)
+				return &it.second;
+		return nullptr;
+	}
+	static bool GetComponentID(const char *Name, ComponentID &cidout) {
+		auto *ci = GetComponentInfo(Name);
+		if (!ci)
 			return false;
-		cidout = it->second;
+		cidout = ci->m_CID;
 		return true;
 	}
 	static const MapType& GetComponentMap() { return *s_ComponentMap; }
 	static void Dump(std::ostream &out);
+
+	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentID &out);
 protected:
-	static void SetComponentName(ComponentID cid, const char *Name) {
+	static void SetComponent(ComponentID cid, const char *Name, ComponentCreateFunc func) {
 		if (!s_ComponentMap)
 			s_ComponentMap = new MapType();
-		(*s_ComponentMap)[Name] = cid;
+		auto &entry = (*s_ComponentMap)[Name];
+		entry.m_CID = cid;
+		entry.m_CreateFunc = func;
 	}
 private:
 	static MapType *s_ComponentMap;
@@ -37,7 +60,7 @@ private:
 template<class T>
 struct RegisterComponentID : public ComponentRegister {
 	RegisterComponentID(const char *Name, bool PublishToLua = true) {
-		SetComponentName(T::GetComponentID(), Name);
+		SetComponent(T::GetComponentID(), Name, &RegisterComponentID<T>::Construct);
 		THROW_ASSERT(!s_Name, "Attempt to re-register component ID");
 		s_Name = Name;
 		if (PublishToLua) {
@@ -45,14 +68,15 @@ struct RegisterComponentID : public ComponentRegister {
 		}
 	}
 private:
+	static std::unique_ptr<AbstractComponent> Construct(ComponentManager* cm) { return std::make_unique<T>(cm); }
+
 	static const char *s_Name;
 	static int get() { 
 		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
 		return static_cast<int>(T::GetComponentID());
 	}
 	static void RegisterScriptApi(ApiInitializer &root) {
-		root
-			.addProperty(s_Name, &get, (void(*)(int))nullptr);
+		root.addProperty(s_Name, &get, (void(*)(int))nullptr);
 	}
 };
 

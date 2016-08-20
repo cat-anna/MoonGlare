@@ -6,12 +6,11 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include "AbstractComponent.h"
 #include "ComponentManager.h"
+#include "ComponentRegister.h"
 
-#include "ScriptComponent.h"
+#include "AbstractComponent.h"
 #include "TransformComponent.h"
-#include "MeshComponent.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -19,11 +18,16 @@ namespace Component {
 
 ComponentManager::ComponentManager() 
 	: m_UsedCount(0)
+	, m_TransformComponent(nullptr)
 	, m_Scene(nullptr) {
+
+	m_World = GetEngine()->GetWorld();//TODO
 }
 
 ComponentManager::~ComponentManager() {
 }
+
+//---------------------------------------------------------------------------------------
 
 bool ComponentManager::Initialize(ciScene *scene) {
 	if (!scene) {
@@ -31,27 +35,9 @@ bool ComponentManager::Initialize(ciScene *scene) {
 		return false;
 	}
 	m_Scene = scene;
-	m_World = GetEngine()->GetWorld();
 
 	Space::MemZero(m_ComponentInfo);
-
-	if (!InstallComponent<ScriptComponent>()) {
-		AddLog(Error, "Failed to install ScriptComponent");
-		return false;
-	}
-
-	auto tc = std::make_unique<TransformComponent>(this);
-	m_TransformComponent = tc.get();
-	if (!InsertComponent(std::move(tc), TransformComponent::GetComponentID())) {
-		AddLog(Error, "Failed to install TransformComponent");
-		return false;
-	}
-
-	if (!InstallComponent<MeshComponent>()) {
-		AddLog(Error, "Failed to install MeshComponent");
-		return false;
-	}
-
+	
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Initialize()) {
 			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()));
@@ -71,6 +57,69 @@ bool ComponentManager::Finalize() {
 	return true;
 }
 
+//---------------------------------------------------------------------------------------
+
+bool ComponentManager::LoadComponents(pugi::xml_node node) {
+	Space::MemZero(m_ComponentInfo);
+	m_UsedCount = 0;	
+	if (!node) {
+		AddLog(Warning, "Attempt to load components from invalid node!");
+		return true;
+	}
+
+	//const std::array<ComponentID, 4> CTable = {
+	//	(ComponentID)ComponentIDs::Script,
+	//	(ComponentID)ComponentIDs::Transform,
+	//	(ComponentID)ComponentIDs::Body,
+	//	(ComponentID)ComponentIDs::Mesh,
+	//};
+
+	for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
+		ComponentID cid = 0;
+
+		if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
+			AddLogf(Warning, "Unknown component!");
+			continue;
+		}
+
+		auto *info = ComponentRegister::GetComponentInfo(cid);
+		if (!info) {
+			AddLogf(Error, "Unknown CID: %d", cid);
+			continue;
+		}
+
+		auto cptr = info->m_CreateFunc(this);
+		if (!cptr) {
+			AddLogf(Error, "Failed to create CID: %d", cid);
+			continue;
+		}
+
+		auto *tc = dynamic_cast<TransformComponent*>(cptr.get());
+		if (tc) {
+			if (m_TransformComponent) {
+				AddLogf(Error, "Attempt to create second Transform component!");
+				return false;
+			}
+			m_TransformComponent = tc;
+		}
+
+		if (!cptr->LoadComponentConfiguration(it)) {
+			AddLogf(Error, "Failed to load component configuration CID: %d", cid);;
+			continue;
+		}
+
+		AddLogf(Hint, "Installing component cid:%d (%s)", cid, typeid(*cptr.get()).name());
+		if (!InsertComponent(std::move(cptr), cid)) {
+			AddLog(Error, "Failed to install TransformComponent");
+			continue;
+		}
+	}
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
 bool ComponentManager::InsertComponent(UniqueAbstractComponent cptr, ComponentID cid) {
 	if (m_UsedCount >= m_Components.size()) {
 		AddLogf(Error, "Not enough space to install component: %s", typeid(*cptr.get()).name());
@@ -85,6 +134,10 @@ bool ComponentManager::InsertComponent(UniqueAbstractComponent cptr, ComponentID
 }
 
 void ComponentManager::Step(const MoveConfig &config) {
+	if (m_UsedCount == 0) {
+		// nothing to do
+		return;
+	}
 #ifdef PERF_PERIODIC_PRINT
 	auto StepStartTime = std::chrono::steady_clock::now();
 	auto ComponentStartTime = StepStartTime;
