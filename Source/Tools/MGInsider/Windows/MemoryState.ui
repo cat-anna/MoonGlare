@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OrbitLoggerStatus</class>
- <widget class="QDockWidget" name="OrbitLoggerStatus">
+ <class>MemoryState</class>
+ <widget class="QDockWidget" name="MemoryState">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>399</width>
-    <height>284</height>
+    <width>475</width>
+    <height>526</height>
    </rect>
   </property>
   <property name="floating">
@@ -17,7 +17,7 @@
    <set>Qt::AllDockWidgetAreas</set>
   </property>
   <property name="windowTitle">
-   <string>OrbitLogger status</string>
+   <string>Memory state</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">

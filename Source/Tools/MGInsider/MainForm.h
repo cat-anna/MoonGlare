@@ -66,7 +66,6 @@ protected:
 	void showEvent(QShowEvent * event);
 private:
 	Ui::MainForm *ui;
-
 	std::vector<SharedDockWindowInfo> m_DockWindows;
 
 	std::unique_ptr<LuaWindow> m_LuaEditor;

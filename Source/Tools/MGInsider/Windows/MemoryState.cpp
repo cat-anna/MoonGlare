@@ -1,15 +1,16 @@
 #include PCH_HEADER
-#include "MemoryStateWidget.h"
-#include "ui_MemoryStateWidget.h"
+#include "MemoryState.h"
+#include "ui_MemoryState.h"
 #include "mgdtSettings.h"
 #include "RemoteConsole.h"
 #include "MainForm.h"
 
-class MemoryStateWidget::MemoryRequest : public RemoteConsoleEnumerationObserver {
+class MemoryState::MemoryRequest : public RemoteConsoleEnumerationObserver {
 public:
-	MemoryRequest(QStandardItem *parent, MemoryStateWidget *Owner):
+	MemoryRequest(QStandardItem *parent, QTreeView *TreeView, MemoryState *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
 		m_ItemParent = parent;
+		m_TreeView = TreeView;
 	}
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override { 
@@ -36,9 +37,9 @@ public:
 			cols << new QStandardItem(Name);
 			sprintf_s(buffer, "%d [%.2f%%]", item->Allocated, ((float)item->Allocated / (float)item->Capacity) * 100.0f);
 			cols << new QStandardItem(buffer);
-			cols << new QStandardItem(itoa(item->Capacity, buffer, 10));
+			cols << new QStandardItem(std::to_string(item->Capacity).c_str());
 			cols << new QStandardItem("?"); //itoa(item->MaxAllocated, buffer, 10));
-			cols << new QStandardItem(itoa(item->ElementSize, buffer, 10));
+			cols << new QStandardItem(std::to_string(item->ElementSize).c_str());
 
 			Owner->appendRow(cols);
 		}
@@ -46,41 +47,70 @@ public:
 			root->sortChildren(0);
 	//	root->expand();
 	//	m_Owner->m_ViewModel->
+		m_TreeView->expandToDepth(2);
 		return HanderStatus::Remove; 
 	};
 private:
 	QStandardItem *m_ItemParent;
-	MemoryStateWidget *m_Owner;
+	QTreeView *m_TreeView;
+	MemoryState *m_Owner;
 };
 
 //-----------------------------------------
 //-----------------------------------------
 
-static ResourceEditorTabRegister::Register<MemoryStateWidget> _Register("MemoryStateWidget");
+struct MemoryStateInfo : public DockWindowInfo {
+	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+		return std::make_shared<MemoryState>(parent);
+	}
 
-MemoryStateWidget::MemoryStateWidget(QWidget *parent) : ResourceEditorBaseTab(parent) {
-	SetName("Memory");
-	ui = new Ui::MemoryStateWidget();
-	ui->setupUi(this);
-	
-	ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
+	MemoryStateInfo() {
+		SetSettingID("MemoryStateInfo");
+		SetDisplayName(tr("Memory state"));
+		SetShortcut("F10");
+	}
+};
+DockWindowClassRgister::Register<MemoryStateInfo> MemoryStateInfoReg("MemoryState");
+
+MemoryState::MemoryState(QWidget *parent) 
+		: DockWindow(parent) {
+
+	SetSettingID("MemoryState");
+	SetQueueName("MemoryState");
+	m_Ui = std::make_unique<Ui::MemoryState>();
+	m_Ui->setupUi(this);
+
+	m_Ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
 	//ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	//ui->treeView->setExpandsOnDoubleClick(false);
 	//ui->treeView->setRootIsDecorated(false);
 
 	ResetTreeView();
+	SetAutoRefresh(true);
 }
 
-MemoryStateWidget::~MemoryStateWidget() {
+MemoryState::~MemoryState() {
 	ResetTreeView();
-	delete ui;
+	m_Ui.reset();
 }
 
 //-----------------------------------------
 
-void MemoryStateWidget::ResetTreeView() {
+bool MemoryState::DoSaveSettings(pugi::xml_node node) const {
+	DockWindow::DoSaveSettings(node);
+	//	SaveState(node, m_Ui->splitter, "Splitter:State");
+	return true;
+}
+
+bool MemoryState::DoLoadSettings(const pugi::xml_node node) {
+	DockWindow::DoLoadSettings(node);
+	//	LoadState(node, m_Ui->splitter, "Splitter:State");
+	return true;
+}
+
+void MemoryState::ResetTreeView() {
 //	auto &settings = mgdtSettings::get();
-    ui->treeView->setModel(nullptr);
+	m_Ui->treeView->setModel(nullptr);
 	m_ViewModel = std::make_unique<QStandardItemModel>();
 
 	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Name"));
@@ -89,23 +119,23 @@ void MemoryStateWidget::ResetTreeView() {
 	m_ViewModel->setHorizontalHeaderItem(3, new QStandardItem("Peek"));
 	m_ViewModel->setHorizontalHeaderItem(4, new QStandardItem("Element size"));
 
-    ui->treeView->setModel(m_ViewModel.get());
-	ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
-	  
-	ui->treeView->setColumnWidth(0, 200);
-	ui->treeView->setColumnWidth(1, 70);
-	ui->treeView->setColumnWidth(2, 70);
-	ui->treeView->setColumnWidth(3, 70);
-	ui->treeView->setColumnWidth(4, 70);
+    m_Ui->treeView->setModel(m_ViewModel.get());
+	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+	
+	m_Ui->treeView->setColumnWidth(0, 200);
+	m_Ui->treeView->setColumnWidth(1, 70);
+	m_Ui->treeView->setColumnWidth(2, 70);
+	m_Ui->treeView->setColumnWidth(3, 70);
+	m_Ui->treeView->setColumnWidth(4, 70);
 }
 
 //-----------------------------------------
 
-void MemoryStateWidget::Refresh() {
+void MemoryState::Refresh() {
 	CancelRequests();
 	ResetTreeView();
 
-	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel->invisibleRootItem(), this));
+	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel->invisibleRootItem(), m_Ui->treeView, this));
 }
 
 //-----------------------------------------

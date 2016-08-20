@@ -44,10 +44,9 @@ OrbitLoggerStatus::OrbitLoggerStatus(QWidget *parent)
 	: DockWindow(parent)
 {
 	SetSettingID("OrbitLoggerStatus");
+	SetQueueName("OrbitLoggerStatus");
 	m_Ui = std::make_unique<Ui::OrbitLoggerStatus>();
 	m_Ui->setupUi(this);
-
-	connect(Notifications::Get(), SIGNAL(OnEngineConnected()), SLOT(RefreshView()));
 
 	m_ViewModel = std::make_unique<QStandardItemModel>();
 	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Index"));
@@ -63,7 +62,7 @@ OrbitLoggerStatus::OrbitLoggerStatus(QWidget *parent)
 	m_Ui->treeView->setColumnWidth(3, 50);
 	
 	SetQueueName("Engine status");
-	RefreshView();
+	SetAutoRefresh(true);
 }
 
 OrbitLoggerStatus::~OrbitLoggerStatus() {
@@ -83,7 +82,7 @@ bool OrbitLoggerStatus::DoLoadSettings(const pugi::xml_node node) {
 
 //-----------------------------------------
 
-void OrbitLoggerStatus::RefreshView() {
+void OrbitLoggerStatus::Refresh() {
 	QueueRequest(std::make_shared<OrbitLoggerStatusRequest>(this));
 }
 
@@ -101,10 +100,6 @@ void OrbitLoggerStatus::ShowData(const InsiderApi::PayLoad_OrbitLoggerStateRespo
 
 		m_ViewModel->invisibleRootItem()->appendRow(cols);
 	}
-
-	QTimer::singleShot(1000, [this]() {
-		RefreshView();
-	});
 }
 
 //-----------------------------------------
