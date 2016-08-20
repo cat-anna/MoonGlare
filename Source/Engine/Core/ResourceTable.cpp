@@ -73,6 +73,10 @@ bool ResourceTable::IsValid(Handle h) {
 	return true;
 }
 
+bool ResourceTable::Step(const Core::MoveConfig & config) {
+	return true;
+}
+
 DataClasses::ModelPtr ResourceTable::GetModel(Handle h) {
 	if (!IsValid(h)) {
 		AddLogf(Warning, "Attempt to get resource by invalid handle!");

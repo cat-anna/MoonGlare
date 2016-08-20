@@ -18,6 +18,8 @@ namespace MoonGlare {
 				GenerationLimit = 1 << GenerationBits,
 				IndexLimit = 1 << IndexBits,
 				TypeLimit = 1 << TypeBits,
+
+				EntryCheckPerStep = 8,
 			};
 
 			struct Types {
@@ -39,6 +41,8 @@ namespace MoonGlare {
 				GenerationLimit = 1 << GenerationBits,
 				IndexLimit = 1 << IndexBits,
 				TypeLimit = 1 << TypeBits,
+
+				EntryCheckPerStep = 8,
 			};
 
 			struct Types {

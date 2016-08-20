@@ -23,6 +23,8 @@ public:
 	bool Initialize(::Core::cScriptEngine *se);
 	bool Finalize();
 
+	bool Step(const Core::MoveConfig &config);
+
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
 	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
 	Core::ResourceTable* GetResourceTable() { return &m_ResourceTable; }

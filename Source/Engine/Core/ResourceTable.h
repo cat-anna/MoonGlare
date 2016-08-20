@@ -54,6 +54,8 @@ public:
 //	template<class COMPONENT> bool SwapHandleIndexes(COMPONENT *c, Handle ha, Handle hb) { return SwapHandleIndexes(c->GetHandleType(), ha, hb); }
 //	template<class COMPONENT> bool GetHandleParentEntity(COMPONENT *c, Handle h, Entity &eout) { return GetHandleParentEntity(c->GetHandleType(), h, eout); }
 
+	bool Step(const Core::MoveConfig &config);
+
 	DataClasses::ModelPtr GetModel(Handle h);
 
 	union ResourceFlags {

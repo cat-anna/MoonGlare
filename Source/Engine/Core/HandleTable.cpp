@@ -12,7 +12,9 @@ namespace MoonGlare {
 namespace Core {
 
 HandleTable::HandleTable()
-		: m_Allocator(Space::NoConstruct) {
+		: m_Allocator(Space::NoConstruct)
+		, m_GCIndex(0) {
+
 	DebugMemorySetClassName("HandleTable");
 	DebugMemoryRegisterCounter("HandleUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Allocator.Allocated();
@@ -26,6 +28,7 @@ HandleTable::~HandleTable() {
 
 bool HandleTable::Initialize(EntityManager *EntityManager) {
 	m_EntityManager = EntityManager;
+	m_GCIndex = 0;
 	THROW_ASSERT(m_EntityManager, "!m_EntityManager");
 	Space::MemZero(m_Array);
 	m_Allocator.Rebuild();
@@ -36,28 +39,44 @@ bool HandleTable::Finalize() {
 	return true;
 }
 
+bool HandleTable::IsValid(Handle h) {
+	if (h.GetType() != Configuration::HandleType::Component) {
+		return false;
+	}
+	auto index = h.GetIndex();
+	auto &item = m_Array[index];
+	if (!item.m_Flags.m_Map.m_Valid || !m_Allocator.IsHandleValid(h)) {
+		return false;
+	}
+	if (!item.m_Flags.m_Map.m_HasEntityOwner) {
+		return true;
+	}
+	if (!m_EntityManager->IsValid(item.m_Owner)) {
+		m_Allocator.Free(h);
+		return false;
+	}
+	return true;
+}
+
 bool HandleTable::IsValid(ComponentID cid, Handle h) {
 	if (h.GetType() != Configuration::HandleType::Component) {
 		return false;
 	}
-	if (!m_Allocator.IsHandleValid(h)) {
-		return false;
-	}
-
 	auto index = h.GetIndex();
 	auto &item = m_Array[index];
+	if (!item.m_Flags.m_Map.m_Valid || !m_Allocator.IsHandleValid(h)) {
+		return false;
+	}
 	if (item.m_OwnerCID != cid) {
 		return false;
 	}
 	if (!item.m_Flags.m_Map.m_HasEntityOwner) {
 		return true;
 	}
-
 	if (!m_EntityManager->IsValid(item.m_Owner)) {
 		m_Allocator.Free(h);
 		return false;
 	}
-
 	return true;
 }
 
@@ -74,6 +93,7 @@ bool HandleTable::Allocate(ComponentID cid, Handle &hout, HandleIndex index, Han
 	item.m_Data = value;
 	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
+	item.m_Flags.m_Map.m_Valid = true;
 	item.m_Flags.m_Map.m_HasEntityOwner = false;
 	return true;
 }
@@ -96,8 +116,8 @@ bool HandleTable::Allocate(ComponentID cid, Entity Owner, Handle &hout, HandleIn
 	item.m_Owner = Owner;
 	item.m_OwnerCID = cid;
 	item.m_Flags.m_UIntValue = 0;
+	item.m_Flags.m_Map.m_Valid = true;
 	item.m_Flags.m_Map.m_HasEntityOwner = true;
-
 	return true;
 }
 
@@ -109,10 +129,29 @@ bool HandleTable::Release(ComponentID cid, Handle h) {
 		//silently ignore;
 		return true;
 	}
+
+	if (m_Array[h.GetIndex()].m_OwnerCID != cid) {
+		return false;
+	}
 	
+	m_Array[h.GetIndex()].m_Flags.m_Map.m_Valid = false;
 	m_Allocator.Free(h);
 
-	return false;
+	return true;
+}
+
+bool HandleTable::Release(Handle h) {
+	if (h.GetType() != Configuration::HandleType::Component) {
+		return false;
+	}
+	if (!m_Allocator.IsHandleValid(h)) {
+		//silently ignore;
+		return true;
+	}
+	m_Array[h.GetIndex()].m_Flags.m_Map.m_Valid = false;
+	m_Allocator.Free(h);
+
+	return true;
 }
 
 bool HandleTable::GetHandleIndex(ComponentID cid, Handle h, HandleIndex & index) {
@@ -148,6 +187,36 @@ bool HandleTable::SwapHandleIndexes(ComponentID cid, Handle ha, Handle hb) {
 	}
 	m_Allocator.SetMapping(ha.GetIndex(), hib);
 	m_Allocator.SetMapping(hb.GetIndex(), hia);
+	return true;
+}
+
+bool HandleTable::GetOwnerCID(Handle h, ComponentID & cidout) {
+	if (!IsValid(h)) {
+		return false;
+	}
+
+	auto index = h.GetIndex();
+	auto &item = m_Array[index];
+	cidout = item.m_OwnerCID;
+
+	return true;
+}
+
+bool HandleTable::Step(const Core::MoveConfig & config) {
+	auto limit = m_GCIndex + Configuration::Handle::EntryCheckPerStep
+
+	for (auto it = m_GCIndex; it < limit; ++it) {
+		if (!m_Array[it].m_Flags.m_Map.m_Valid)
+			continue;
+		auto &item = m_Array[it];
+		if (m_EntityManager->IsValid(item.m_Owner))
+			continue;
+
+		item.m_Flags.m_Map.m_Valid = false;
+		m_Allocator.ReleaseIndex(it);
+	}
+
+	m_GCIndex = limit >= m_Array.size() ? 0 : limit;
 	return true;
 }
 

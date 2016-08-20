@@ -15,13 +15,13 @@ SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
 //RegisterApiInstance(EntityManager, &cScriptEngine::Instance, "EntityManager");
 RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
 
-EntityManager::EntityManager():
-		m_Memory(Space::NoConstruct) {
+EntityManager::EntityManager()
+		: m_GCIndex(0) {
 
 	DebugMemorySetClassName("EntityManager");
 	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
-		counter.Allocated = m_Memory.m_Allocator.Allocated();
-		counter.Capacity = m_Memory.m_Allocator.Capacity();
+		counter.Allocated = m_Allocator.Allocated();
+		counter.Capacity = m_Allocator.Capacity();
 		counter.ElementSize = 0;
 	});
 }
@@ -32,30 +32,32 @@ EntityManager::~EntityManager() {
 //---------------------------------------------------------------------------------------
 
 void EntityManager::RegisterScriptApi(ApiInitializer &root) {
-
-	struct T {
-		int GetIndex() {
-			return ((Entity*)this)->GetIndex();
-		}
-	};
-
-	root
-	.beginClass<Entity>("cEntity")
-	.endClass()
-
-	.beginClass<EntityManager>("cEntityManager")
-		.addFunction("IsValid", &EntityManager::IsValid)
-	.endClass();
+	//struct T {
+	//	int GetIndex() {
+	//		return ((Entity*)this)->GetIndex();
+	//	}
+	//};
+	//
+	//root
+	//.beginClass<Entity>("cEntity")
+	//.endClass()
+	//
+	//.beginClass<EntityManager>("cEntityManager")
+	//	.addFunction("IsValid", &EntityManager::IsValid)
+	//.endClass();
 }
 
 //------------------------------------------------------------------------------------------
 
 bool EntityManager::Initialize() {
-	m_Memory.m_Allocator.Clear();
-	Space::MemZero(m_Memory.m_Parent);
+	m_Allocator.Clear();
+	Space::MemZero(m_Parent);
+	Space::MemZero(m_Flags);
+	m_GCIndex = 0;
 
-	m_Root = m_Memory.m_Allocator.Allocate();
-	m_Memory.m_Parent[m_Root.GetIndex()] = m_Root;
+	m_Root = m_Allocator.Allocate();
+	m_Parent[m_Root.GetIndex()] = m_Root;
+	m_Flags[m_Root.GetIndex()].m_Map.m_Valid = true;
 
 	return true;
 }
@@ -67,54 +69,73 @@ bool EntityManager::Finalize() {
 
 //------------------------------------------------------------------------------------------
 
-Entity EntityManager::Allocate() {
-	return Allocate(GetRootEntity());
+bool EntityManager::Allocate(Entity & eout) {
+	return Allocate(GetRootEntity(), eout);
 }
 
 bool EntityManager::Allocate(Entity parent, Entity &eout) {
-	if (!m_Memory.m_Allocator.IsHandleValid(parent)) {
+	if (!m_Allocator.IsHandleValid(parent)) {
 		AddLog(Error, "Parent entity is not valid!");
 		return false;
 	}
 
-	auto h = m_Memory.m_Allocator.Allocate();
-	if (!m_Memory.m_Allocator.IsHandleValid(h)) {
+	auto h = m_Allocator.Allocate();
+	if (!m_Allocator.IsHandleValid(h)) {
 		AddLog(Error, "No more space!");
 		return false;
 	}
 	auto index = h.GetIndex();
 
-	m_Memory.m_Parent[index] = parent;
+	m_Parent[index] = parent;
+	m_Flags[index].m_Map.m_Valid = true;
 	eout = h;
 	return true;
 }
 
-Entity EntityManager::Allocate(Entity parent) {
-	Entity e;
-	Allocate(parent, e);
-	return e;
-}
-
-void EntityManager::Release(Entity entity) {
-	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
-		AddLog(Error, "entity is not valid!");
-		return;
+bool EntityManager::Release(Entity entity) {
+	auto index = entity.GetIndex();
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+		return false;
 	}
-
-	m_Memory.m_Allocator.Free(entity);
+	m_Flags[index].m_Map.m_Valid = false;
+	m_Allocator.Free(entity);
+	return true;
 }
 
 bool EntityManager::IsValid(Entity entity) const {
-	return m_Memory.m_Allocator.IsHandleValid(entity);
+	auto index = entity.GetIndex();
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+		return false;
+	}
+	auto parent = m_Parent[entity.GetIndex()];
+	return parent == entity || IsValid(parent);
+}
+
+bool EntityManager::Step(const Core::MoveConfig & config) {
+	auto limit = m_GCIndex + Configuration::Entity::EntryCheckPerStep;
+
+	for (auto it = m_GCIndex; it < limit; ++it) {
+		if (!m_Flags[it].m_Map.m_Valid)
+			continue;
+		auto parent = m_Parent[it];
+		if (m_Flags[parent.GetIndex()].m_Map.m_Valid && m_Allocator.IsHandleValid(parent)) {
+			continue;
+		}
+
+		m_Flags[it].m_Map.m_Valid = false;
+		m_Allocator.ReleaseIndex(it);
+	}
+
+	m_GCIndex = limit >= m_Parent.size() ? 0 : limit;
+	return true;
 }
 
 bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
-	if (!m_Memory.m_Allocator.IsHandleValid(entity)) {
-		AddLog(Error, "entity is not valid!");
+	auto index = entity.GetIndex();
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
 		return false;
 	}
-	auto index = entity.GetIndex();
-	ParentOut = m_Memory.m_Parent[index];
+	ParentOut = m_Parent[index];
 	return true;
 }
 

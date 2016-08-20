@@ -18,18 +18,9 @@ class EntityManager final
 SPACERTTI_DECLARE_STATIC_CLASS(EntityManager, Space::RTTI::RTTIObject);
 public:
 	template<class T> using Array = std::array<T, Configuration::Entity::IndexLimit>;
-	struct Memory {
-
-		template<class ... ARGS>
-		using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Entity::IndexLimit, ARGS...>;
-		using Generations_t = Space::Memory::GenerationRandomAllocator<GenerationsAllocator_t, Entity>;
-
-		Array<Entity> m_Parent;
-		Generations_t m_Allocator;
-
-		template<class T>
-		Memory(T t): m_Allocator(t){ }
-	};
+	template<class ... ARGS>
+	using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Entity::IndexLimit, ARGS...>;
+	using Generations_t = Space::Memory::GenerationRandomAllocator<GenerationsAllocator_t, Entity>;
 
 	EntityManager();
 	~EntityManager();
@@ -39,20 +30,30 @@ public:
 
 	Entity GetRootEntity() { return m_Root; }
 
-	Entity Allocate();
-	Entity Allocate(Entity parent);
+	bool Allocate(Entity &eout);
 	bool Allocate(Entity parent, Entity &eout);
-	void Release(Entity entity);
+	bool Release(Entity entity);
 
 	bool GetParent(Entity entity, Entity &ParentOut) const;
 	bool IsValid(Entity entity) const;
 
+	bool Step(const Core::MoveConfig &config);
+
+	union EntityFlags {
+		struct {
+			bool m_Valid : 1;
+		} m_Map;
+		uint8_t m_UIntValue;
+	};
+
 	static void RegisterScriptApi(ApiInitializer &root);
 private: 
+	Array<Entity> m_Parent;
+	Array<EntityFlags> m_Flags;
+	Generations_t m_Allocator;
 	Entity m_Root;
-	Memory m_Memory;
+	size_t m_GCIndex;
 };
-
 
 template<class T>
 struct BaseEntityMapper {
