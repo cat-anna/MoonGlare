@@ -7,15 +7,16 @@
 
 class MemoryState::MemoryRequest : public RemoteConsoleEnumerationObserver {
 public:
-	MemoryRequest(QStandardItem *parent, QTreeView *TreeView, MemoryState *Owner):
+	MemoryRequest(QStandardItemModel *Model, QTreeView *TreeView, MemoryState *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
-		m_ItemParent = parent;
+		m_Model = Model;
+		m_ItemParent = m_Model->invisibleRootItem();
 		m_TreeView = TreeView;
 	}
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override { 
 		auto hdr = message.GetAndPull<InsiderApi::PayLoad_ListBase>();
-
+		m_Model->clear();
 		std::unordered_map<uint32_t, QStandardItem*> m_Owners;
 		auto *root = m_ItemParent;
 		for (unsigned i = 0; i < hdr->Count; ++i) {
@@ -51,6 +52,7 @@ public:
 		return HanderStatus::Remove; 
 	};
 private:
+	QStandardItemModel *m_Model;
 	QStandardItem *m_ItemParent;
 	QTreeView *m_TreeView;
 	MemoryState *m_Owner;
@@ -133,9 +135,8 @@ void MemoryState::ResetTreeView() {
 
 void MemoryState::Refresh() {
 	CancelRequests();
-	ResetTreeView();
 
-	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel->invisibleRootItem(), m_Ui->treeView, this));
+	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel, m_Ui->treeView, this));
 }
 
 //-----------------------------------------
