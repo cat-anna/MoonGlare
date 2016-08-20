@@ -71,7 +71,6 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const MoveConfig &conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 	auto *tc = GetManager()->GetTransformComponent();
 

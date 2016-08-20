@@ -151,7 +151,6 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		return false;
 	}
 
-	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	Handle &h = hout;
 	size_t index;
 	if (!m_Array.Allocate(index)) {
