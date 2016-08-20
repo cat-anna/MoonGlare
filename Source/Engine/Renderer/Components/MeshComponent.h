@@ -11,9 +11,13 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
+#include <Core/Component/AbstractComponent.h>
+
 namespace MoonGlare {
-namespace Core {
+namespace Renderer {
 namespace Component {
+
+using namespace Core::Component;
 
 class MeshComponent
 	: public AbstractComponent
@@ -23,7 +27,7 @@ public:
 	virtual ~MeshComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
-	virtual void Step(const MoveConfig &conf) override;
+	virtual void Step(const Core::MoveConfig &conf) override;
 	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
@@ -84,13 +88,13 @@ private:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 
 	Array<MeshEntry> m_Array;
-	EntityMapper m_EntityMapper;
+	Core::EntityMapper m_EntityMapper;
 
 	void ReleaseElement(size_t Index);
 };
 
 } //namespace Component 
-} //namespace Core 
+} //namespace Renderer 
 } //namespace MoonGlare 
 
 #endif

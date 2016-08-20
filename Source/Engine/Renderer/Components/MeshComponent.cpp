@@ -6,14 +6,15 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include "ComponentManager.h"
-#include "ComponentRegister.h"
-#include "AbstractComponent.h"
+
+#include <Core/Component/ComponentManager.h>
+#include <Core/Component/ComponentRegister.h>
+#include <Core/Component/TransformComponent.h>
+
 #include "MeshComponent.h"
-#include "TransformComponent.h"
 
 namespace MoonGlare {
-namespace Core {
+namespace Renderer {
 namespace Component {
 
 RegisterApiNonClass(MeshComponent, &MeshComponent::RegisterScriptApi);
@@ -70,7 +71,7 @@ bool MeshComponent::Finalize() {
 	return true;
 }
 
-void MeshComponent::Step(const MoveConfig &conf) {
+void MeshComponent::Step(const Core::MoveConfig &conf) {
 	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 	auto *tc = GetManager()->GetTransformComponent();
 
@@ -252,5 +253,5 @@ MeshComponent::MeshEntry *MeshComponent::GetEntry(Entity e) {
 }
 
 } //namespace Component 
-} //namespace Core 
+} //namespace Renderer
 } //namespace MoonGlare 
