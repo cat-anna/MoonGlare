@@ -17,15 +17,16 @@ public:
  	SpotLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~SpotLightShader();
 
-	void Bind(const Light::SpotLight &light) const {
+	void Bind(const Light::LightBase &light) const {
 		BaseClass::Bind(light);
-		glUniform3fv(m_PositionLocation, 1, &light.Position[0]); 
-		glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
+		glUniform3fv(m_PositionLocation, 1, &convert(light.m_Position)[0]);
+		auto dir = quatRotate(light.m_Quaternion, Physics::vec3(0, 0, 1));
+		glUniform3fv(m_DirectionLocation, 1, &convert(dir)[0]);
 		glUniform1f(m_CutOffLocation, light.CutOff);
-		glUniform1f(m_AttenuationLinearLocation, light.Attenuation.Linear);
-		glUniform1f(m_AttenuationExpLocation, light.Attenuation.Exp);
-		glUniform1f(m_AttenuationConstantLocation, light.Attenuation.Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.Attenuation.MinThreshold);
+		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
+		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
+		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
+		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_MinThreshold);
 	}
 protected:
 	GLuint m_DirectionLocation;

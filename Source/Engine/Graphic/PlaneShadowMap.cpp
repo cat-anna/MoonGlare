@@ -6,6 +6,8 @@
 #include <pch.h>
 #include "Graphic.h"
 
+#include "PlaneShadowMap.h"
+
 namespace Graphic {
 
 PlaneShadowMap::PlaneShadowMap() {
@@ -28,7 +30,7 @@ bool PlaneShadowMap::New() {
 	Free();
 	NewFrameBuffer();
 
-	GetRenderDevice()->RequestContextManip([this] {
+	//GetRenderDevice()->RequestContextManip([this] {
 		m_Size = math::vec2((float)Settings::GetShadowMapSize(::Settings->Graphic.Shadows));
 	 
 		glGenTextures(1, &m_ShadowTexture); 
@@ -40,8 +42,10 @@ bool PlaneShadowMap::New() {
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 		//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)m_Size[0], (GLsizei)m_Size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, (GLsizei)m_Size[0], (GLsizei)m_Size[1], 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 	  
+	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowTexture, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowTexture, 0);
 	  
 //		AddLogf(Error, "shmapid: %d", m_ShadowTexture);
@@ -49,7 +53,7 @@ bool PlaneShadowMap::New() {
 		//bool res =
 		FrameBuffer::FinishFrameBuffer();
 		FrameBuffer::UnBind();
-	});
+//	});
 
 	return true;
 }

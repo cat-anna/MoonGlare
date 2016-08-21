@@ -21,10 +21,10 @@ public:
  	virtual ~LightingPassShader();
 
 	void Bind(const Light::LightBase &light) const {
-		glUniform3fv(m_ColorLocation, 1, &light.Color[0]); 
-		glUniform1f(m_AmbientIntensityLocation, light.AmbientIntensity);
-		glUniform1f(m_DiffuseIntensityLocation, light.DiffuseIntensity);
-		glUniform1i(m_EnableShadowsLocation, light.CastShadows);
+		glUniform3fv(m_ColorLocation, 1, &light.m_Color[0]); 
+		glUniform1f(m_AmbientIntensityLocation, light.m_AmbientIntensity);
+		glUniform1f(m_DiffuseIntensityLocation, light.m_DiffuseIntensity);
+		glUniform1i(m_EnableShadowsLocation, light.m_Flags.m_CastShadows);
 	}
 
 	void SetShadowMapSize(const math::vec3 &size) {

@@ -26,7 +26,7 @@ PointLightShader::PointLightShader(GLuint ShaderProgram, const string &ProgramNa
 	m_AmbientIntensityLocation			= Location("PointLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation			= Location("PointLight.Base.DiffuseIntensity");
 //bind default light parameters
-	Light::PointLight pl;
+	Light::LightBase pl;
 	Bind(pl);
 }  
    

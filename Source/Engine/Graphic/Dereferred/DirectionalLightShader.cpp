@@ -22,7 +22,7 @@ DirectionalLightShader::DirectionalLightShader(GLuint ShaderProgram, const strin
 	m_AmbientIntensityLocation	= Location("DirectionalLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation	= Location("DirectionalLight.Base.DiffuseIntensity");
 //bind default light parameters
-	Light::DirectionalLight pl;
+	Light::LightBase pl;
 	Bind(pl);
 }  
    

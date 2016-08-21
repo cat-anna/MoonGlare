@@ -1,6 +1,12 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "GeometryShader.h"
+#include "LightingShader.h"
+#include "PointLightShader.h"
+#include "DirectionalLightShader.h"
+#include "SpotLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -101,7 +107,7 @@ void DereferredPipeline::BeginFrame(cRenderDevice& dev) {
 } 
  
 bool DereferredPipeline::RenderShadows(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
-	auto *lconf = conf.Scene->GetLightConfig();
+	auto *lconf = conf.m_LightConfig.get();
 	if (!lconf) return true;
 	  
 	glDepthMask(GL_TRUE);
@@ -118,22 +124,59 @@ bool DereferredPipeline::RenderShadows(const MoonGlare::Core::MoveConfig &conf, 
 	return true;
 }
 
+std::vector<PlaneShadowMap> PlaneShadowMaps;
+
 bool DereferredPipeline::RenderSpotLightsShadows(const MoonGlare::Core::MoveConfig &conf, Light::SpotLightList &lights, cRenderDevice& dev) {
 	if (lights.empty()) return true;
 	//glEnable(GL_CULL_FACE); 
 	//glCullFace(GL_FRONT);
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	//glDepthMask(GL_FALSE);
+	//glDisable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_BLEND);
+
+	if (PlaneShadowMaps.capacity() < 1024)
+		PlaneShadowMaps.reserve(2048);
+
+	int index = 0;
 	for (auto &light : lights) {
-		if (!light->CastShadows)
+		if (!light.m_Flags.m_CastShadows)
 			continue;
-		dev.SetCameraMatrix(light->LightMatrix); 
-		light->ShadowMap.BindAndClear();
+
+		if (PlaneShadowMaps.size() <= index) {
+			PlaneShadowMaps.emplace_back();
+			PlaneShadowMaps.back().New();
+		}
+		
+		light.ShadowMap = &PlaneShadowMaps[index];
+		++index;
+
+		math::mat4 mat;
+		math::Transform tr(light.m_Quaternion, light.m_Position);
+		tr.getOpenGLMatrix(&mat[0][0]);
+
+		auto dir = convert(quatRotate(light.m_Quaternion, Physics::vec3(0, 0, 1)));
+		math::mat4 ViewMatrix = glm::lookAt(convert(light.m_Position), convert(light.m_Position) - dir, vec3(0, 1, 0));
+		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
+		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
+
+//		mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
+		
+		dev.SetCameraMatrix(LightMatrix); 
+		if (light.ShadowMap)
+			light.ShadowMap->BindAndClear();
 		dev.Bind(m_ShadowMapShader); 
-		m_ShadowMapShader->SetLightPosition(light->Position);
+		m_ShadowMapShader->SetLightPosition(convert(light.m_Position));
 		for (auto it : conf.RenderList) {
 			dev.SetModelMatrix(it.first);
-			it.second->DoRenderMesh(dev);
+			it.second->DoRender(dev);
 		}
+
 	}           
+	glPopAttrib();
 	//glDisable(GL_CULL_FACE); 
 	return true;     
 }
@@ -157,13 +200,16 @@ bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf,
 }
 
 bool DereferredPipeline::RenderLights(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
-	auto *lconf = conf.Scene->GetLightConfig();
+	auto *lconf = conf.m_LightConfig.get();
 	if (!lconf) return true;
 	glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 	RenderPointLights(lconf->PointLights, dev);
 	RenderDirectionalLights(lconf->DirectionalLights, dev);
 	RenderSpotLights(lconf->SpotLights, dev);
+	lconf->PointLights.clear();
+	lconf->DirectionalLights.clear();
+	lconf->SpotLights.clear();
 	return true;
 }
 
@@ -174,8 +220,9 @@ bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRende
 
 	for (auto &light : lights) {
 		math::mat4 mat; 
-		mat = glm::translate(mat, light->Position);
-		mat = glm::scale(mat, math::vec3(light->InfluenceRadius));
+		math::Transform tr(light.m_Quaternion, light.m_Position);
+		tr.getOpenGLMatrix(&mat[0][0]);
+		mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
 //shadow pass
 
 //stencil pass
@@ -193,7 +240,7 @@ bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRende
 //light pass	  
 		dev.Bind(m_PointLightShader); 
 		m_Buffer.BeginLightingPass(); 
-		m_PointLightShader->Bind(*light); 
+		m_PointLightShader->Bind(light); 
 
 		glEnable(GL_BLEND);    
 		glBlendEquation(GL_FUNC_ADD); 
@@ -229,7 +276,7 @@ bool DereferredPipeline::RenderDirectionalLights(Light::DirectionalLightList &li
 
 	m_DirectionalQuad.Bind();
 	for (auto &light : lights) {
-		m_DirectionalLightShader->Bind(*light);
+		m_DirectionalLightShader->Bind(light);
 		m_DirectionalQuad.DrawElements(4, 0, 0, GL_QUADS);
 	}
 	m_DirectionalQuad.UnBind();
@@ -243,15 +290,31 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 	StencilTestEnabler Stencil;
 
 	for (auto &light : lights) {
+#if 0
 		//math::mat4 mat = glm::lookAt(light->Position, light->Position - light->Direction, glm::vec3(0, -1, 0));
-		math::mat4 mat = glm::lookAt(math::vec3(), -light->Direction, glm::vec3(0, -1, 0));//TODO: calculate up vector!
-		mat = glm::translate(math::mat4(), light->Position) * mat;
+		math::mat4 mat = glm::lookAt(math::vec3(), -light.Direction, glm::vec3(0, -1, 0));//TODO: calculate up vector!
+		mat = glm::translate(math::mat4(), light.Position) * mat;
 
 		//auto scale = math::vec3(light->InfluenceDistance);
 		//auto mat = light->ViewMatrix;
-		auto scale = math::vec3(light->DistanceRadius);// , light->DistanceRadius, light->InfluenceDistance);
+		auto scale = math::vec3(light.CalcPointLightInfluenceRadius());// , light->DistanceRadius, light->InfluenceDistance);
 		for (int i = 0; i < 3; ++i) 
 			mat[i] *= scale[i];  
+
+		math::mat4 ViewMatrix = glm::lookAt(light.Position, light.Position - light.Direction, vec3(0, 1, 0));
+		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
+		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
+#endif
+		math::mat4 mat;
+		math::Transform tr(light.m_Quaternion, light.m_Position);
+		tr.getOpenGLMatrix(&mat[0][0]);
+
+		auto dir = convert(quatRotate(light.m_Quaternion, Physics::vec3(0, 0, 1)));
+		math::mat4 ViewMatrix = glm::lookAt(convert(light.m_Position), convert(light.m_Position) - dir, vec3(0, 1, 0));
+		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
+		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
+
+		mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
 //stencil pass
 		m_Buffer.BeginStencilPass(); 
 		dev.Bind(m_StencilShader); 
@@ -265,14 +328,16 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 
 		dev.SetModelMatrix(mat);
 		m_Cone->DoRender(dev); 
-	
+		//m_Sphere->DoRender(dev);
+
 //light pass
 		dev.Bind(m_SpotLightShader);
 		m_Buffer.BeginLightingPass();   
-		m_SpotLightShader->Bind(*light); 
 
-		m_SpotLightShader->BindShadowMap(light->ShadowMap);
-		m_SpotLightShader->SetLightMatrix(light->LightMatrix);
+		if(light.ShadowMap)
+			m_SpotLightShader->BindShadowMap(*light.ShadowMap);
+		m_SpotLightShader->SetLightMatrix(LightMatrix);
+		m_SpotLightShader->Bind(light);
 
 		glEnable(GL_BLEND);      
 		glBlendEquation(GL_FUNC_ADD);    
@@ -286,7 +351,8 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		dev.SetModelMatrix(mat);   
-		m_Cone->DoRender(dev);  
+		m_Cone->DoRender(dev);
+		//m_Sphere->DoRender(dev);
 
 		//glActiveTexture(GL_TEXTURE0 + 5); 
 		//GLint whichID;
@@ -297,7 +363,7 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		glDisable(GL_BLEND); 
 		glDisable(GL_CULL_FACE);   
 	}  
-  
+
 	return true;  
 }
 

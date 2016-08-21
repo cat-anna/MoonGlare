@@ -4,6 +4,8 @@
 #include "Console.h"
 #include <Core/InputMap.h>
 
+#include <Graphic/Light.h>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -157,6 +159,10 @@ void Engine::EngineMain() {
 	float LastMoveTime = CurrentTime;
 
 	MoveConfig conf;
+	conf.m_LightConfig = std::make_unique<Graphic::Light::LightConfigurationVector>();
+	conf.m_LightConfig->DirectionalLights.reserve(128);
+	conf.m_LightConfig->PointLights.reserve(128);
+	conf.m_LightConfig->SpotLights.reserve(128);
 	conf.RenderList.reserve(2048);
 
 	while (m_Running) {
@@ -310,7 +316,7 @@ void Engine::DoRender(MoveConfig &conf) {
 		m_CurrentScene->GetGUI()->Draw(dev);
 	glDisable(GL_BLEND);
 #ifdef DEBUG   
-	//Config::Debug::ProcessTextureIntrospector(dev);
+	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, 1);

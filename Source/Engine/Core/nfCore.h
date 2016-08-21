@@ -19,6 +19,12 @@ namespace Core {
 	using ::MoonGlare::Core::MoveConfig;
 }
 
+namespace Graphic {
+namespace Light {
+	struct LightConfigurationVector;
+}
+}
+
 #include "EntityManager.h"
 
 #include "Scripts/nfScripts.h"
@@ -39,6 +45,7 @@ struct MoveConfig {
 	
 //	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
 	mutable std::vector<std::pair<math::mat4, DataClasses::ModelPtr>> RenderList;
+	mutable std::unique_ptr<Graphic::Light::LightConfigurationVector> m_LightConfig;
 
 	bool m_SecondPeriod;
 };

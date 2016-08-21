@@ -8,140 +8,56 @@
 #ifndef Light_H
 #define Light_H
 
+#include <Renderer/Light.h>
+
+#include "PlaneShadowMap.h"
+
 namespace Graphic {
 namespace Light {
 
-enum class LightType {
-	Unknown,
-	Point,
-	Directional,
-	Spot,
-};
-
-//----------------------------------------------------------------------------------
-
 struct LightBase;
-struct PointLight;
-struct DirectionalLight;
-struct SpotLight;
-
-using LightBaseList = std::list < LightBase* >;
-using PointLightList = std::list < PointLight* >;
-using DirectionalLightList = std::list < DirectionalLight* >;
-using SpotLightList = std::list < SpotLight* >;
-
-struct LightConfiguration {
-	PointLightList PointLights;
-	DirectionalLightList DirectionalLights;
-	SpotLightList SpotLights;
-};
 
 //----------------------------------------------------------------------------------
 
-struct LightAttenuation {
-	float Constant = 0.0f;
-    float Linear = 0.9f;
-    float Exp = 0.2f;
-	float MinThreshold = 0.5f;
+struct LightBase : public MoonGlare::Renderer::Light::LightBase {
+	Physics::vec3 m_Position;
+	math::Quaternion m_Quaternion;
 
-	bool LoadMeta(const xml_node node);
-	float Threshold(float ColorFactor) const;
-};
-
-struct LightBase {
-	vec3 Color = vec3(1, 1, 1);
-	float AmbientIntensity = 0.5f;
-    float DiffuseIntensity = 0.5f;
-	bool CastShadows = true;
-	bool IgnoreOwnerGeometry = false;
-
-	LightBase() { }
-	virtual ~LightBase() {}
-
-	virtual bool Initialize();
-
-	virtual void Precalculate() { }
-	virtual bool LoadMeta(const xml_node node);
-
-	virtual LightType GetType() const = 0;
-};
-
-//----------------------------------------------------------------------------------
-
-struct PointLight : public LightBase {
-	LightAttenuation Attenuation;
-	vec3 Position = vec3(0, 0, 0);
-
-	float InfluenceRadius = 3.0f;
-
-	//bool Initialize();
-
-	PointLight();
-	virtual ~PointLight();
-
-	virtual void Precalculate();
-	bool LoadMeta(const xml_node node);
-
-	virtual LightType GetType() const { return LightType::Point; }
-};
-
-//----------------------------------------------------------------------------------
-
-struct DirectionalLight : public LightBase {
-	vec3 Direction = vec3(1, 0, 0);
-
-	void SetDirection(const vec3 &direction) {
-		this->Direction = glm::normalize(direction);
-	}
-
-	//bool Initialize();
-
-	DirectionalLight(): LightBase() { }
-	virtual ~DirectionalLight() {}
-
-	virtual void Precalculate() { }
-	bool LoadMeta(const xml_node node);
-
-	virtual LightType GetType() const { return LightType::Directional; }
-};
-
-//----------------------------------------------------------------------------------
-
-struct SpotLight : public LightBase {
-	vec3 Direction = vec3(1, 0, 0);
-	vec3 Position = vec3(0, 0, 0);
-	LightAttenuation Attenuation;
+//	bool IgnoreOwnerGeometry = false;
 	float CutOff = 0.92f;
 
-	float InfluenceDistance = 3.0f;
-	float DistanceRadius = 1.0f;
+	PlaneShadowMap *ShadowMap = nullptr;
 
-	PlaneShadowMap ShadowMap;
-	math::mat4 LightMatrix;
-	math::mat4 ViewMatrix;
-
-	bool Initialize();
-
-	void RecalculateMatrices();
+	LightBase() {
+		m_Attenuation.m_Constant = 0.0f;	   //m_Constant = 0.0f;
+		m_Attenuation.m_Exp = 0.01f;		   //m_Linear = 0.9f;
+		m_Attenuation.m_Linear = 0.02f;		   //m_Exp = 0.2f;
+		m_Attenuation.m_MinThreshold = 10.0f;  //m_MinThreshold = 0.5f;
+		m_AmbientIntensity = 0.5f;
+		m_DiffuseIntensity = 0.1f;
+		m_Color = vec3(1);
+	}
 
 	void SetCutOff(float f) {
 		f = 0.8f * glm::clamp(f, 0.0f, 1.0f);
 		CutOff = 0.92f + f;
 	}
 
-	void SetDirection(const vec3 &direction) {
-		this->Direction = glm::normalize(direction);
+	float CalcPointLightInfluenceRadius() const {
+		float MaxChannel = fmax(fmax(m_Color.x, m_Color.y), m_Color.z);
+		return m_Attenuation.Threshold(MaxChannel * m_DiffuseIntensity);
 	}
 
-	SpotLight(): LightBase() { }
-	virtual ~SpotLight() {}
-
-	virtual void Precalculate();
 	bool LoadMeta(const xml_node node);
-	virtual LightType GetType() const { return LightType::Spot; }
 };
 
 //----------------------------------------------------------------------------------
+
+struct LightConfigurationVector {
+	std::vector < LightBase > PointLights;
+	std::vector < LightBase > DirectionalLights;
+	std::vector < LightBase > SpotLights;
+};
 
 } //namespace Light 
 } //namespace Graphic 

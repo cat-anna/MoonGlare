@@ -6,113 +6,36 @@
 #include <pch.h>
 #include "Graphic.h"
 
+#include "Light.h"
+
 namespace Graphic {
 namespace Light {
 	 
 bool LightBase::LoadMeta(const xml_node node) { 
-	XML::Vector::Read(node, "Color", Color, Color, XML::Captions::RGBA);
+	XML::Vector::Read(node, "Color", m_Color, m_Color, XML::Captions::RGBA);
 	xml_node Intensity = node.child("Intensity");
-	AmbientIntensity = Intensity.attribute("Ambient").as_float(AmbientIntensity);
-	DiffuseIntensity = Intensity.attribute("Diffuse").as_float(DiffuseIntensity);
-	CastShadows = node.attribute("CastShadows").as_bool(CastShadows);
-	IgnoreOwnerGeometry = node.attribute("IgnoreOwnerGeometry").as_bool(IgnoreOwnerGeometry);
+	m_AmbientIntensity = Intensity.attribute("Ambient").as_float(m_AmbientIntensity);
+	m_DiffuseIntensity = Intensity.attribute("Diffuse").as_float(m_DiffuseIntensity);
+	m_Flags.m_CastShadows = node.attribute("CastShadows").as_bool(m_Flags.m_CastShadows);
+	//IgnoreOwnerGeometry = node.attribute("IgnoreOwnerGeometry").as_bool(IgnoreOwnerGeometry);
+//	XML::Vector::Read(node, "Position", Position, Position);
+	{
+		xml_node att = node.child("Attenuation");
+		m_Attenuation.m_Linear = node.attribute("Linear").as_float(m_Attenuation.m_Linear);
+		m_Attenuation.m_Exp = node.attribute("Exp").as_float(m_Attenuation.m_Exp);
+		m_Attenuation.m_Constant = node.attribute("Constant").as_float(m_Attenuation.m_Constant);
+		m_Attenuation.m_MinThreshold = node.attribute("MinThreshold").as_float(m_Attenuation.m_MinThreshold);
+	}
+
+	//XML::Vector::Read(node, "Direction", Direction, Direction);
+//	Direction = glm::normalize(Direction);
+	CutOff = node.attribute("CutOff").as_float(CutOff);
 	return true;
 }  
- 
-bool LightBase::Initialize() {
-	return false;
-}
 
 //----------------------------------------------------------------
 
-float LightAttenuation::Threshold(float ColorFactor) const {
-	//float delta = Linear * Linear + 4 * Exp * Constant;
-	//float sqrtdelta = sqrtf(delta);
-	//
-	//float ret = (Linear + sqrtdelta);
-	////if(Exp != 0)
-	//	//ret /= 2 * Exp;
-	//return ret;
-
-	float ret = (-Linear + sqrtf(Linear * Linear - 4 * Exp * (Exp - 256 * ColorFactor)));// - 256 * ColorFactor
-	if (Exp != 0)
-			ret /= 2 * Exp;
-	return ret;
-}
-
-bool LightAttenuation::LoadMeta(const xml_node node) {
-	Linear = node.attribute("Linear").as_float(Linear);
-	Exp = node.attribute("Exp").as_float(Exp);
-	Constant = node.attribute("Constant").as_float(Constant);
-	MinThreshold = node.attribute("MinThreshold").as_float(MinThreshold);
-	return true;
-}
-
 //----------------------------------------------------------------
-
-PointLight::PointLight() :
-	LightBase(),
-	Attenuation() {
-
-	Attenuation.Exp = 0.01f;
-	Attenuation.Linear = 0.02f;
-	Attenuation.MinThreshold = 10.0f;
-	AmbientIntensity = 0.5f;
-	DiffuseIntensity = 0.1f;
-}
-
-PointLight::~PointLight() {}
-
-void PointLight::Precalculate() { 
-	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);
-	InfluenceRadius = Attenuation.Threshold(MaxChannel * DiffuseIntensity);
-    return;
-}
-
-bool PointLight::LoadMeta(const xml_node node) { 
-	LightBase::LoadMeta(node);
-	XML::Vector::Read(node, "Position", Position, Position);
-	xml_node att = node.child("Attenuation");
-	Attenuation.LoadMeta(att);
-	return true;
-}
-
-//----------------------------------------------------------------
-
-bool DirectionalLight::LoadMeta(const xml_node node) { 
-	LightBase::LoadMeta(node);
-	XML::Vector::Read(node, "Direction", Direction, Direction);
-	Direction = glm::normalize(Direction);
-	return true;
-}
-//----------------------------------------------------------------
-
-void SpotLight::Precalculate() {
-	float MaxChannel = fmax(fmax(Color.x, Color.y), Color.z);
-	InfluenceDistance = Attenuation.Threshold(MaxChannel * DiffuseIntensity);
-	DistanceRadius = (InfluenceDistance);
-}
-
-bool SpotLight::LoadMeta(const xml_node node) {
-	LightBase::LoadMeta(node);
-	CutOff = node.attribute("CutOff").as_float(CutOff);
-	XML::Vector::Read(node, "Direction", Direction, Direction);
-	Direction = glm::normalize(Direction);
-	XML::Vector::Read(node, "Position", Position, Position);
-	xml_node att = node.child("Attenuation");
-	Attenuation.LoadMeta(att);
-	return true;
-}
-
-bool SpotLight::Initialize() {
-	return ShadowMap.New();
-}
-
-void SpotLight::RecalculateMatrices() {
-	ViewMatrix = glm::lookAt(Position, Position - Direction, vec3(0, 1, 0));
-	math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
-	LightMatrix = ProjectionMatrix * ViewMatrix;
-}
 
 } //namespace Light 
 } //namespace Graphic 

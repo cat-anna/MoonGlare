@@ -17,9 +17,9 @@ public:
  	DirectionalLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~DirectionalLightShader();
 
-	void Bind(const Light::DirectionalLight &light) const {
+	void Bind(const Light::LightBase &light) const {
 		BaseClass::Bind(light);
-		glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
+		//glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
 	}
 protected:
 	GLuint m_DirectionLocation;

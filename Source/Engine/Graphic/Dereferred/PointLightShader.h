@@ -17,13 +17,13 @@ public:
  	PointLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~PointLightShader();
 
-	void Bind(const Light::PointLight &light) const {
+	void Bind(const Light::LightBase &light) const {
 		BaseClass::Bind(light);
-		glUniform3fv(m_PositionLocation, 1, &light.Position[0]); 
-		glUniform1f(m_AttenuationLinearLocation, light.Attenuation.Linear);
-		glUniform1f(m_AttenuationExpLocation, light.Attenuation.Exp);
-		glUniform1f(m_AttenuationConstantLocation, light.Attenuation.Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.Attenuation.MinThreshold);
+		glUniform3fv(m_PositionLocation, 1, &convert(light.m_Position)[0]); 
+		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
+		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
+		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
+		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_MinThreshold);
 	}
 protected:
 	GLuint m_PositionLocation;
