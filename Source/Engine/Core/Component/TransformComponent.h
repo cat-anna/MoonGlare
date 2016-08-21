@@ -56,33 +56,46 @@ public:
 //		Physics::Transform m_GlobalTransform;
 //		Physics::Transform m_CenterOfMass;
 
-		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
-		void SetPosition(math::vec3 pos) { m_LocalTransform.setOrigin(convert(pos)); }
-		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
-		void SetRotation(math::vec4 rot) { m_LocalTransform.setRotation(convert(rot)); }
-		math::vec3 GetScale() const { return convert(m_Scale); }
-		void SetScale(math::vec3 s) { m_Scale = convert(s); }
+		Configuration::RuntimeRevision m_Revision;
 
+		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
+		void SetPosition(math::vec3 pos) { 
+			m_LocalTransform.setOrigin(convert(pos)); 
+			m_Revision = 0;
+		}
+		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
+		void SetRotation(math::vec4 rot) { 
+			m_LocalTransform.setRotation(convert(rot));
+			m_Revision = 0;
+		}
+		math::vec3 GetScale() const { return convert(m_Scale); }
+		void SetScale(math::vec3 s) { 
+			m_Scale = convert(s); 
+			m_Revision = 0;
+		}
+		
 		void Reset() {
+		}
+
+		math::Transform GetTransform() const { return m_LocalTransform; }
+		void SetTransform(const math::Transform &s) {
+			m_LocalTransform = s;
+			m_Revision = 0;
 		}
 	};
 
-//	struct BulletMotionStateProxy : public btMotionState {
-//		///synchronizes world transform from user to physics
-//		virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const override;
-//		///synchronizes world transform from physics to user
-//		///Bullet only calls the update of worldtransform for active objects
-//		virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override;
-//	};
+	static_assert((sizeof(TransformEntry) % 16) == 0, "TransformEntry has invalid size");
 
 	TransformEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
 	TransformEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
 
+	Configuration::RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 	Array<TransformEntry> m_Array;
 	EntityMapper m_EntityMapper;
+	Configuration::RuntimeRevision m_CurrentRevision;
 	void ReleaseElement(size_t Index);
 };
 

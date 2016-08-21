@@ -59,6 +59,7 @@ bool TransformComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) 
 
 bool TransformComponent::Initialize() {
 	memset(&m_Array, 0, m_Array.size() * sizeof(m_Array[0]));
+	m_CurrentRevision = 1;
 
 	m_Array.ClearAllocation();
 
@@ -74,6 +75,7 @@ bool TransformComponent::Initialize() {
 	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
 	RootEntry.m_GlobalMatrix = math::mat4();
 	RootEntry.m_Scale = Physics::vec3(1, 1, 1);
+	RootEntry.m_Revision = m_CurrentRevision;
 
 	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 	Handle h;
@@ -117,24 +119,30 @@ void TransformComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		auto &gm = item.m_GlobalMatrix;
-		auto &lm = item.m_LocalMatrix;
-		item.m_LocalTransform.getOpenGLMatrix((float*)&lm);
-//
-	//	auto lm = *gm;
-		lm[0] *= item.m_Scale[0];
-		lm[1] *= item.m_Scale[1];
-		lm[2] *= item.m_Scale[2];
-
 		Entity ParentEntity;
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
-			gm = ParentEntry->m_GlobalMatrix * lm;
+
+			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
+				//nothing to do, nothing changed;
+			} else {
+				auto &gm = item.m_GlobalMatrix;
+				auto &lm = item.m_LocalMatrix;
+				item.m_LocalTransform.getOpenGLMatrix((float*)&lm);
+				
+				lm[0] *= item.m_Scale[0];
+				lm[1] *= item.m_Scale[1];
+				lm[2] *= item.m_Scale[2];
+
+				gm = ParentEntry->m_GlobalMatrix * lm;
+				item.m_Revision = m_CurrentRevision;
+			}
 		//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
 		} else {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
+			continue;
 			//mark and continue but set valid to false to avoid further processing
 		}
 	}
@@ -143,14 +151,14 @@ void TransformComponent::Step(const MoveConfig & conf) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		ReleaseElement(LastInvalidEntry);
 	}
+
+	++m_CurrentRevision;
+	if (m_CurrentRevision < 1) {
+		m_CurrentRevision = 1;
+	}
 }
 
 bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
-	Physics::vec3 pos;
-	if (!XML::Vector::Read(node, "Position", pos)) {
-		return false;
-	}
-
 	Handle &h = hout;
 	size_t index;
 	if (!m_Array.Allocate(index)) {
@@ -173,11 +181,14 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	m_EntityMapper.SetHandle(Owner, h);
 	entry.m_Flags.m_Map.m_Valid = true;
+	Physics::vec3 pos;
+	XML::Vector::Read(node, "Position", pos);
 	entry.m_LocalTransform.setOrigin(pos);
 	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
 	XML::Vector::Read(node, "Scale", entry.m_Scale, Physics::vec3(1, 1, 1));
 	entry.m_SelfHandle = h;
 	entry.m_OwnerEntity = Owner;
+	entry.m_Revision = 0;
 
 	return true;
 }
@@ -226,16 +237,6 @@ void TransformComponent::ReleaseElement(size_t Index) {
 	}
 	m_Array.DeallocateLast();
 }
-
-//-------------------------------------------------------------------------------------------------
-
-//void TransformComponent::BulletMotionStateProxy::getWorldTransform(btTransform & centerOfMassWorldTrans) const {
-//	//	centerOfMassWorldTrans = m_Transform * m_CenterOfMass.inverse();
-//}
-//
-//void TransformComponent::BulletMotionStateProxy::setWorldTransform(const btTransform & centerOfMassWorldTrans) {
-//	//	m_Transform = centerOfMassWorldTrans * m_CenterOfMass;
-//}
 
 //-------------------------------------------------------------------------------------------------
 

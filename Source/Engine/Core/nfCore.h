@@ -37,6 +37,12 @@ namespace Light {
 namespace MoonGlare {
 namespace Core {
 
+struct iCustomDraw {
+	virtual void DefferedDraw(Graphic::cRenderDevice& dev) = 0;
+protected:
+	virtual ~iCustomDraw() { }
+};
+
 struct MoveConfig { 
 	float TimeDelta;
 
@@ -46,6 +52,8 @@ struct MoveConfig {
 //	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
 	mutable std::vector<std::pair<math::mat4, DataClasses::ModelPtr>> RenderList;
 	mutable std::unique_ptr<Graphic::Light::LightConfigurationVector> m_LightConfig;
+
+	mutable std::vector<iCustomDraw*> CustomDraw;
 
 	bool m_SecondPeriod;
 };
