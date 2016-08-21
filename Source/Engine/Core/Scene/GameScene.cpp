@@ -50,7 +50,6 @@ void GameScene::BeginScene() {
 
 	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
 	m_Environment.Initialize();
-	m_LightConfiguration.DirectionalLights.push_back(&m_Environment.GetAmbientLight());
 
 	BaseClass::BeginScene();
 }
@@ -59,7 +58,6 @@ void GameScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
 
 	m_Environment.Finalize();
-	m_LightConfiguration.DirectionalLights.remove(&m_Environment.GetAmbientLight());
 	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 
 	BaseClass::EndScene();
@@ -93,85 +91,29 @@ bool GameScene::LoadMeta(const xml_node Node) {
 }
 
 //----------------------------------------------------------------
- 
-void GameScene::AddLightSource(iLightSource *ptr) {
-	using Graphic::Light::LightType;
-	switch (ptr->GetType()) {
-		case LightType::Point:{
-			auto lptr = dynamic_cast<Graphic::Light::PointLight*>(ptr->GetRawPointer());
-			if (!lptr) {
-				AddLog(Error, "Light type and pointer does not match!");
-				return;
-			}
-			m_LightConfiguration.PointLights.push_back(lptr);
-			break;
-		}
-		case LightType::Spot:{
-			auto lptr = dynamic_cast<Graphic::Light::SpotLight*>(ptr->GetRawPointer());
-			if (!lptr) {
-				AddLog(Error, "Light type and pointer does not match!");
-				return;
-			}
-			m_LightConfiguration.SpotLights.push_back(lptr);
-			break;
-		}		
-		case LightType::Directional:{
-			auto lptr = dynamic_cast<Graphic::Light::DirectionalLight*>(ptr->GetRawPointer());
-			if (!lptr) {
-				AddLog(Error, "Light type and pointer does not match!");
-				return;
-			}
-			m_LightConfiguration.DirectionalLights.push_back(lptr);
-			break;
-		}
-		default:
-			AddLog(Error, "Unknown light type!");
-			return;
-	}
-}
-
-void GameScene::RemoveLightSource(iLightSource *ptr) {
-	using Graphic::Light::LightType;
-	auto lptr = ptr->GetRawPointer();
-	switch (ptr->GetType()) {
-		case LightType::Point:
-			m_LightConfiguration.PointLights.remove((Graphic::Light::PointLight*)lptr);
-			break;
-		case LightType::Spot:
-			m_LightConfiguration.SpotLights.remove((Graphic::Light::SpotLight*)lptr);
-			break;
-		case LightType::Directional:
-			m_LightConfiguration.DirectionalLights.remove((Graphic::Light::DirectionalLight*)lptr);
-			break;
-		default:
-			AddLog(Error, "Unknown light type!");
-			return;
-	}
-}
 
 void GameScene::DoMove(const MoveConfig &conf) {
 	BaseClass::DoMove(conf);
-
 	m_Objects.Process(conf);
 
-	struct T {
-		static bool t(btManifoldPoint& cp, void* body0,void* body1) {
-			if (cp.m_userPersistentData)
-				return false;
-
-			cp.m_userPersistentData = body0;
-			btCollisionObject *b0 = (btCollisionObject*)body0;
-			btCollisionObject *b1 = (btCollisionObject*)body1;
-			Object *o0 = (Object*)b0->getUserPointer();
-			Object *o1 = (Object*)b1->getUserPointer();
-
-			AddLog(Hint, "contact " << b0 << "@" << o0->GetName() << "   " << b1 << "@" << o1->GetName());
-			return false;
-		}
-		static bool destroy(void* userPersistentData) {
-			return true;
-		}
-	};
+	//struct T {
+	//	static bool t(btManifoldPoint& cp, void* body0,void* body1) {
+	//		if (cp.m_userPersistentData)
+	//			return false;
+	//
+	//		cp.m_userPersistentData = body0;
+	//		btCollisionObject *b0 = (btCollisionObject*)body0;
+	//		btCollisionObject *b1 = (btCollisionObject*)body1;
+	//		Object *o0 = (Object*)b0->getUserPointer();
+	//		Object *o1 = (Object*)b1->getUserPointer();
+	//
+	//		AddLog(Hint, "contact " << b0 << "@" << o0->GetName() << "   " << b1 << "@" << o1->GetName());
+	//		return false;
+	//	}
+	//	static bool destroy(void* userPersistentData) {
+	//		return true;
+	//	}
+	//};
 	//gContactProcessedCallback = &T::t;
 	//gContactDestroyedCallback = &T::destroy;
 
@@ -185,12 +127,14 @@ void GameScene::DoMove(const MoveConfig &conf) {
 
 	//AddLog(Hint, "Step end");
 
+//	conf.m_LightConfig->DirectionalLights.push_back(m_Environment.GetAmbientLight());
+
 	if (m_Camera)
 		m_Camera->Update(conf);
 }
 
-Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
 #if 0
+Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
 	static Graphic::Light::SpotLight sl;
 	if (m_LightConfiguration.SpotLights.empty()) {
 		sl.Direction = glm::normalize(math::vec3(1, 0, 1));
@@ -202,9 +146,9 @@ Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
 		sl.Precalculate();
 		m_LightConfiguration.SpotLights.push_back(&sl);
 	}
-#endif // 0
 	return &m_LightConfiguration;
 }
+#endif // 0
 
 //----------------------------------------------------------------
 
@@ -223,4 +167,4 @@ int GameScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
 
 } // namespace Scene
 } // namespace Core
-} //namespace MoonGlare 
+} // namespace MoonGlare 
