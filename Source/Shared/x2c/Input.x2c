@@ -1,0 +1,85 @@
+Import "Common.x2c"
+
+namespace "MoonGlare.x2c.Core.Input"
+
+Alias(Types.u16, "KeyCode")
+Alias(Container.table(Local.KeyCode), "KeyCodes")
+
+Structure.new {
+	name = "KeyboardSwitch",
+	fields = {
+		{ 
+			name = "Name",
+			type = Types.string,
+		}, 
+		{
+			name = "Keys",
+			type = Local.KeyCodes,
+		},
+	},
+}
+
+Structure.new {
+	name = "KeyboardAxis",
+	fields = {
+		{ 
+			name = "Name",
+			type = Types.string,
+		}, 
+		{
+			name = "PositiveKeys",
+			type = Local.KeyCodes,
+		},
+		{
+			name = "NegativeKeys",
+			type = Local.KeyCodes,
+		}
+	},
+}
+
+Enum.import {
+	name = "MouseAxisId",
+	location = "::MoonGlare::Core::MouseAxisId",
+	default = "Unknown",
+	values = {
+		"X", "Y", 
+		"ScrollX", "ScrollY",
+		"Unknown",
+	}
+}
+
+Structure.new {
+	name = "MouseAxis",
+	fields = {
+		{ 
+			name = "Name",
+			type = Types.string,
+		}, 
+		{
+			name = "AxisId",
+			type = Local.MouseAxisId,
+		},
+		{
+			name = "Sensitivity",
+			type = Types.float,
+		}
+	},
+}
+
+Structure.new {
+	name = "InputConfiguration",
+	fields = {
+		{
+			name = "KeyboardSwitches",
+			type = Container.table(Local.KeyboardSwitch),
+		},
+		{
+			name = "KeyboardAxes",
+			type = Container.table(Local.KeyboardAxis),
+		},		
+		{
+			name = "MouseAxes",
+			type = Container.table(Local.MouseAxis),
+		},	
+	},
+}

@@ -14,6 +14,7 @@
 namespace MoonGlare {
 namespace Core {
 
+using KeyId = uint16_t;
 using InputStateId = uint8_t;
 static_assert(1 << (sizeof(InputStateId) * 8) >= Configuration::Input::MaxInputStates, "To small InputStateId base type");
 
@@ -25,7 +26,7 @@ union InputStateValue {
 struct InputState {
 	enum class Type {
 		Invalid,
-		BoolSwitch,
+		Switch,
 		FloatAxis,
 	};
 
@@ -40,6 +41,7 @@ struct InputState {
 struct KeyAction {
 	struct {
 		bool m_Valid : 1;
+		bool m_Positive : 1;
 	} m_Flags;
 	InputStateId m_Id;
 	InputStateValue m_Value;
@@ -60,7 +62,7 @@ struct AxisAction {
 		bool m_Valid : 1;
 	} m_Flags;
 	InputStateId m_Id;
-	float m_Sensivity;
+	float m_Sensitivity;
 };
 
 struct InputKeyOffsets {
@@ -70,7 +72,7 @@ struct InputKeyOffsets {
 	};
 };
 
-//-----
+//---------------------------------------------------------------------------------------
 
 class InputProcessor final {
 public:
@@ -102,9 +104,9 @@ public:
 	void Clear();
 	void ResetToInternalDefault();
 
-	bool AddKeyboardAxis(const char *Name, unsigned ForwardKey, unsigned BackwardKey);
-	bool AddKeyboardSwitch(const char *Name, unsigned Key);
-	bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensivity);
+	bool AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey);
+	bool AddKeyboardSwitch(const char *Name, KeyId Key);
+	bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensitivity);
 
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
@@ -121,6 +123,11 @@ protected:
 
 	void ProcessKeyState(unsigned Id, bool Pressed);
 	void ProcessMouseAxis(MouseAxisId Id, float Delta);
+	bool GetInputStateName(InputStateId isid, std::string &out) const;
+
+	InputState* AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex);
+	KeyAction* AllocKeyAction(KeyId kid, InputStateId isid, bool Positive);
+	AxisAction* AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity);
 private:
 	static int luaIndexInput(lua_State *lua);
 };

@@ -51,10 +51,18 @@ bool World::Initialize(::Core::cScriptEngine *se) {
 }
 
 bool World::Finalize() {
-	if (m_InputProcessor && !m_InputProcessor->Finalize()) {
-		AddLogf(Error, "Failed to finalize InputProcessor");
+	if (m_InputProcessor) {
+
+#ifdef DEBUG_DUMP
+		pugi::xml_document xdoc;
+		m_InputProcessor->Save(xdoc.append_child("KeyConfDump"));
+		xdoc.save_file("logs/KeyConfDump.xml");
+#endif
+		if (!m_InputProcessor->Finalize()) {
+			AddLogf(Error, "Failed to finalize InputProcessor");
+		}
+		m_InputProcessor.reset();
 	}
-	m_InputProcessor.reset();
 
 	if (!m_ResourceTable.Finalize()) {
 		AddLogf(Error, "Failed to finalize ResourceTable!");

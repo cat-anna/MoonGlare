@@ -9,7 +9,7 @@
 #include "InputProcessor.h"
 #include <Utils/LuaUtils.h>
 
-//#include <Input.x2c.h>
+#include <Input.x2c.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -59,6 +59,16 @@ bool InputProcessor::Initialize(World *world) {
 		lua_setmetatable(lua, -2);					// stack: InputTable
 		lua_setglobal(lua, "Input");				// stack:
 	}
+
+	pugi::xml_document doc;
+	if (doc.load_file(Configuration::Input::SettingsFileName)) {
+		if (!Load(doc.document_element())) {
+			AddLog(Error, "Failed to load input configuration");
+			return false;
+		}
+		AddLog(Info, "Loaded InputConfiguration from: %s", Configuration::Input::SettingsFileName);
+	}
+
 	return true;
 }
 
@@ -98,7 +108,7 @@ void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
 	if (Pressed || state.m_ActiveKeyId == Id || state.m_ActiveKeyId == Configuration::Input::MaxKeyCode) { 
 		//while handling key release do not update state if it is changed by other key
 		switch (state.m_Type) {
-		case InputState::Type::BoolSwitch:
+		case InputState::Type::Switch:
 			state.m_Value.m_Boolean = Pressed;
 			break;
 		case InputState::Type::FloatAxis:
@@ -125,7 +135,7 @@ void InputProcessor::ProcessMouseAxis(MouseAxisId Id, float Delta) {
 		return;
 	}
 	
-	state.m_Value.m_Float = Delta * axis.m_Sensivity;
+	state.m_Value.m_Float = Delta * axis.m_Sensitivity;
 }
 
 void InputProcessor::ClearStates() {
@@ -139,11 +149,120 @@ void InputProcessor::ClearStates() {
 //---------------------------------------------------------------------------------------
 
 bool InputProcessor::Save(pugi::xml_node node) const {
-	return false;
+	x2c::Core::Input::InputConfiguration_t conf;
+	for (auto &it : m_MouseAxes) {
+		if (!it.m_Flags.m_Valid)
+			continue;
+
+		x2c::Core::Input::MouseAxis_t ma;
+		ma.m_AxisId = static_cast<MouseAxisId>(&it - &m_MouseAxes[0]);
+		ma.m_Sensitivity = it.m_Sensitivity;
+		switch (ma.m_AxisId) {
+		case MouseAxisId::X:
+		case MouseAxisId::Y:
+			ma.m_Sensitivity /= Configuration::Input::StaticMouseSensivity;
+			break;
+		case MouseAxisId::ScrollX:
+		case MouseAxisId::ScrollY:
+			ma.m_Sensitivity /= Configuration::Input::StaticMouseScrollSensivity;
+			break;
+		default:
+			LogInvalidEnum(ma.m_AxisId);
+			break;
+		}
+		GetInputStateName(it.m_Id, ma.m_Name);
+		conf.m_MouseAxes.push_back(std::move(ma));
+	}
+
+	std::unordered_map<InputStateId, std::list<const KeyAction*>> KeyActionsMap;
+
+	for (auto &it : m_Keys) {
+		if (!it.m_Flags.m_Valid)
+			continue;
+		KeyActionsMap[it.m_Id].push_back(&it);
+	}
+
+	for (auto &it : KeyActionsMap) {
+		auto &list = it.second;
+		auto &state = m_InputStates[it.first];
+
+		if (!state.m_Flags.m_Valid) {
+			//just to be sure
+			continue;
+		}
+
+		switch (state.m_Type) {
+		case InputState::Type::Switch: {
+			x2c::Core::Input::KeyboardSwitch_t sw;
+			GetInputStateName(it.first, sw.m_Name);
+			for (auto key : list) {
+				auto index = key - &m_Keys[0];
+				sw.m_Keys.push_back(index);
+			}
+			conf.m_KeyboardSwitches.push_back(std::move(sw));
+			break;
+		}
+		case InputState::Type::FloatAxis:{
+			x2c::Core::Input::KeyboardAxis_t ka;
+			GetInputStateName(it.first, ka.m_Name);
+			for (auto key : list) {
+				auto index = key - &m_Keys[0];
+				if (key->m_Flags.m_Positive)
+					ka.m_NegativeKeys.push_back(index);
+				else
+					ka.m_PositiveKeys.push_back(index);
+			}
+			conf.m_KeyboardAxes.push_back(std::move(ka));
+			break;
+		}
+		default:
+			LogInvalidEnum(state.m_Type);
+			continue;
+		}
+	}
+
+	return conf.Write(node);
 }
 
 bool InputProcessor::Load(const pugi::xml_node node) {
-	return false;
+	Clear();
+	x2c::Core::Input::InputConfiguration_t conf;
+	if (!conf.Read(node)) {
+		AddLog(Error, "Failed to read input configuration!");
+		return false;
+	}
+
+	for (auto &it : conf.m_KeyboardSwitches) {
+		InputStateId InputIndex;
+		if (!AllocInputState(InputState::Type::Switch, it.m_Name, InputIndex)) {
+			//no need for more logging
+			return false;
+		}
+		for (auto key : it.m_Keys) {
+			AllocKeyAction(key, InputIndex, true);
+		}
+	}
+
+	for (auto &it : conf.m_KeyboardAxes) {
+		InputStateId InputIndex;
+		if (!AllocInputState(InputState::Type::FloatAxis, it.m_Name, InputIndex)) {
+			//no need for more logging
+			return false;
+		}
+		for (auto key : it.m_PositiveKeys) {
+			AllocKeyAction(key, InputIndex, true);
+		}
+		for (auto key : it.m_NegativeKeys) {
+			AllocKeyAction(key, InputIndex, false);
+		}
+	}
+
+	for (auto &it : conf.m_MouseAxes) {
+		AddMouseAxis(it.m_Name.c_str(), it.m_AxisId, it.m_Sensitivity);
+	}
+
+	AddLog(Info, "Loaded input configuration");
+	return true;
 }
 
 void InputProcessor::Clear() {
@@ -168,96 +287,129 @@ void InputProcessor::ResetToInternalDefault() {
 	AddMouseAxis("LookAngle", MouseAxisId::Y, 0.5f);
 }
 
+bool InputProcessor::GetInputStateName(InputStateId isid, std::string &out) const {
+	for(auto &it: m_InputNames)
+		if (it.second == isid) {
+			out = it.first;
+			return true;
+		}
+	out = "?";
+	return false;
+}
+
 //---------------------------------------------------------------------------------------
 
-bool InputProcessor::AddKeyboardAxis(const char *Name, unsigned ForwardKey, unsigned BackwardKey) {
-	THROW_ASSERT(ForwardKey < Configuration::Input::MaxKeyCode, "ForwardKey id overflow!");
-	THROW_ASSERT(BackwardKey < Configuration::Input::MaxKeyCode, "BackwardKey id overflow!");
-
-	size_t InputIndex;
-	if (!m_InputStates.Allocate(InputIndex)) {
+InputState* InputProcessor::AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex) {
+	size_t idx;
+	if (!m_InputStates.Allocate(idx)) {
 		AddLog(Error, "No more space to add keyboard axis");
-		return false;
+		return nullptr;
 	}
 
-	auto &state = m_InputStates[InputIndex];
+	outindex = static_cast<InputStateId>(idx);
+
+	auto &state = m_InputStates[outindex];
 	state.m_Flags.m_Valid = true;
-	state.m_Type = InputState::Type::FloatAxis;
-	state.m_Value.m_Float = 0.0f;
+	state.m_Type = type;
 
-	auto &Fkey = m_Keys[ForwardKey];
-	Fkey.m_Flags.m_Valid = true;
-	Fkey.m_Id = static_cast<InputStateId>(InputIndex);
-	Fkey.m_Value.m_Float = 1.0f;
+	switch (state.m_Type) {
+	case InputState::Type::Switch:
+		state.m_Value.m_Boolean = false;
+		break;
+	case InputState::Type::FloatAxis:
+		state.m_Value.m_Float = 0.0f;
+		break;
+	default:
+		LogInvalidEnum(state.m_Type);
+		break;
+	}
 
-	auto &Bkey = m_Keys[BackwardKey];
-	Bkey.m_Flags.m_Valid = true;
-	Bkey.m_Id = static_cast<InputStateId>(InputIndex);
-	Bkey.m_Value.m_Float = -1.0f;
-
-	m_InputNames[Name] = static_cast<InputStateId>(InputIndex);
-
-	return true;
+	m_InputNames[Name] = static_cast<InputStateId>(outindex);
 }
 
-bool InputProcessor::AddKeyboardSwitch(const char *Name, unsigned Key) {
-	THROW_ASSERT(Key < Configuration::Input::MaxKeyCode, "Key id overflow!");
+KeyAction* InputProcessor::AllocKeyAction(KeyId kid, InputStateId isid, bool Positive) {
+	THROW_ASSERT(kid < Configuration::Input::MaxKeyCode, "KeyId overflow!");
+	auto &key = m_Keys[kid];
+	key.m_Flags.m_Valid = true;
+	key.m_Flags.m_Positive = Positive;
+	key.m_Id = isid;
 
-	size_t InputIndex;
-	if (!m_InputStates.Allocate(InputIndex)) {
-		AddLog(Error, "No more space to add keyboard axis");
-		return false;
+	auto &state = m_InputStates[isid];
+
+	switch (state.m_Type) {
+	case InputState::Type::Switch:
+		key.m_Value.m_Boolean = Positive;
+		break;
+	case InputState::Type::FloatAxis:
+		key.m_Value.m_Float = Positive ? 1.0f : -1.0f;
+		break;
+	default:
+		LogInvalidEnum(state.m_Type);
+		break;
 	}
-
-	auto &state = m_InputStates[InputIndex];
-	state.m_Flags.m_Valid = true;
-	state.m_Type = InputState::Type::BoolSwitch;
-	state.m_Value.m_Boolean = false;
-
-	auto &Fkey = m_Keys[Key];
-	Fkey.m_Flags.m_Valid = true;
-	Fkey.m_Id = static_cast<InputStateId>(InputIndex);
-	Fkey.m_Value.m_Boolean = true;
-
-	m_InputNames[Name] = static_cast<InputStateId>(InputIndex);
-
-	return true;
+	return &key;
 }
 
-bool InputProcessor::AddMouseAxis(const char *Name, MouseAxisId axisid, float Sensivity) {
-	THROW_ASSERT(axisid < MouseAxisId::Unknown, "MouseAxisId overflow!");
-
-	size_t InputIndex;
-	if (!m_InputStates.Allocate(InputIndex)) {
-		AddLog(Error, "No more space to add keyboard axis");
-		return false;
-	}
-
-	auto &state = m_InputStates[InputIndex];
-	state.m_Flags.m_Valid = true;
-	state.m_Type = InputState::Type::FloatAxis;
-	state.m_Value.m_Float = 0.0f;
-
-	auto &axis = m_MouseAxes[static_cast<size_t>(axisid)];
+AxisAction* InputProcessor::AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity) {
+	auto &axis = m_MouseAxes[static_cast<size_t>(maid)];
 	axis.m_Flags.m_Valid = true;
-	axis.m_Sensivity = Sensivity;
-	axis.m_Id = static_cast<InputStateId>(InputIndex);
+	axis.m_Sensitivity = Sensitivity;
+	axis.m_Id = isid;
 
-	switch (axisid) {
+	switch (maid) {
 	case MouseAxisId::X:
 	case MouseAxisId::Y:
-		axis.m_Sensivity *= Configuration::Input::StaticMouseSensivity;
+		axis.m_Sensitivity *= Configuration::Input::StaticMouseSensivity;
 		break;
 	case MouseAxisId::ScrollX:
 	case MouseAxisId::ScrollY:
-		axis.m_Sensivity *= Configuration::Input::StaticMouseScrollSensivity;
+		axis.m_Sensitivity *= Configuration::Input::StaticMouseScrollSensivity;
 		break;
 	default:
-		//wont happen
+		LogInvalidEnum(maid);
 		break;
 	}
-	
-	m_InputNames[Name] = static_cast<InputStateId>(InputIndex);
+	return &axis;
+}
+
+bool InputProcessor::AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey) {
+	THROW_ASSERT(PositiveKey < Configuration::Input::MaxKeyCode, "PositiveKey id overflow!");
+	THROW_ASSERT(NegativeKey < Configuration::Input::MaxKeyCode, "NegativeKey id overflow!");
+
+	InputStateId InputIndex;
+	if (!AllocInputState(InputState::Type::FloatAxis, Name, InputIndex)) {
+		//no need for more logging
+		return false;
+	}
+
+	AllocKeyAction(PositiveKey, InputIndex, true);
+	AllocKeyAction(NegativeKey, InputIndex, false);
+
+	return true;
+}
+
+bool InputProcessor::AddKeyboardSwitch(const char *Name, KeyId Key) {
+	THROW_ASSERT(Key < Configuration::Input::MaxKeyCode, "Key id overflow!");
+
+	InputStateId InputIndex;
+	if (!AllocInputState(InputState::Type::Switch, Name, InputIndex)) {
+		//no need for more logging
+		return false;
+	}
+	AllocKeyAction(Key, InputIndex, true);
+
+	return true;
+}
+
+bool InputProcessor::AddMouseAxis(const char *Name, MouseAxisId axisid, float Sensitivity) {
+	THROW_ASSERT(axisid < MouseAxisId::Unknown, "MouseAxisId overflow!");
+
+	InputStateId InputIndex;
+	if (!AllocInputState(InputState::Type::FloatAxis, Name, InputIndex)) {
+		//no need for more logging
+		return false;
+	}
+	AllocMouseAxis(axisid, InputIndex, Sensitivity);
 
 	return true;
 }
@@ -282,7 +434,7 @@ int InputProcessor::luaIndexInput(lua_State *lua) {
 	}
 
 	switch (state.m_Type) {
-	case InputState::Type::BoolSwitch:
+	case InputState::Type::Switch:
 		lua_pushboolean(lua, state.m_Value.m_Boolean);
 		return 1;
 	case InputState::Type::FloatAxis:

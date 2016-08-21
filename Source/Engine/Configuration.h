@@ -87,7 +87,7 @@ namespace MoonGlare {
 		namespace Input {
 			enum {
 				MaxKeyCode = 512,
-				MaxInputStates = 32,
+				MaxInputStates = 64,
 				MaxMouseButton = 8,
 				MaxMouseAxes = 4,
 			};
