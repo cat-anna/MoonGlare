@@ -4,6 +4,7 @@
 	by Paweu
 */
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 
 namespace MoonGlare {
@@ -206,12 +207,12 @@ iLightSourcePtr iLightSource::LoadLightSource(Object *Owner, xml_node node) {
 //---------------------------------------------------------------------------------------
 
 bool iLightSource::Initialize() {
-	GetOwner()->GetScene()->AddLightSource(this);
+//	GetOwner()->GetScene()->AddLightSource(this);
 	return true; 
 }
 
 bool iLightSource::Finalize() { 
-	GetOwner()->GetScene()->RemoveLightSource(this);
+//	GetOwner()->GetScene()->RemoveLightSource(this);
 	return true; 
 }
 
@@ -224,3 +225,4 @@ void iLightSource::Update() {
 } //namespace Objects 
 } //namespace Core 
 } //namespace MoonGlare 
+#endif

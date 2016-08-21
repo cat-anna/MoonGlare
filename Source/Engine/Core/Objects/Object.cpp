@@ -12,7 +12,6 @@ Object::Object():
 		BaseClass(),
 		m_Scene(nullptr),
 		m_EventProxy(),
-		m_LightSource(),
 		m_PatternName("{?}"),
 		m_Mass(1.0f),
 		m_OwnerRegister(nullptr),
@@ -22,21 +21,16 @@ Object::Object():
 
 Object::~Object() {
 	m_CollisionMask.Set(Physics::BodyClass::Object);
-	m_LightSource.reset();
 	m_Body.reset();
 }
 
 //---------------------------------------------------------------------------------------
 
 bool Object::Initialize(){
-	if (m_LightSource) 
-		m_LightSource->Initialize();
 	return true;
 }
 
 bool Object::Finalize() {
-	if (m_LightSource) 
-		m_LightSource->Finalize();
 	return true;
 }
 

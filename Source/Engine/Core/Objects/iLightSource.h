@@ -7,7 +7,7 @@
 #pragma once
 #ifndef LightSource_H
 #define LightSource_H
-
+#if 0
 namespace MoonGlare {
 namespace Core {
 namespace Objects {
@@ -15,7 +15,6 @@ namespace Objects {
 class iLightSource : public cRootClass {
 	SPACERTTI_DECLARE_ABSTRACT_CLASS(iLightSource, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
-	//DECLARE_SCRIPT_HANDLERS_ROOT(ObjectScriptEvents);
 public:
  	iLightSource(Object *Owner, Graphic::Light::LightBase *Base);
  	virtual ~iLightSource();
@@ -31,7 +30,6 @@ public:
 
 	using LightType = Graphic::Light::LightType;
 	using LightBase = Graphic::Light::LightBase;
-	LightType GetType() const { return m_Base->GetType(); }
 	LightBase* GetRawPointer() { return m_Base; }
 
 	DefineREADAccesPTR(Owner, Object);
@@ -45,8 +43,6 @@ public:
 	void SetCastShadows(bool v) { m_Base->CastShadows = v; }
 	bool GetCastShadows() const { return m_Base->CastShadows; }
 
-	void Precalculate() { m_Base->Precalculate(); }
-
 	static void RegisterScriptApi(ApiInitializer &api);
 private:
 	Object *m_Owner = 0;
@@ -57,4 +53,5 @@ private:
 } //namespace Core 
 } //namespace MoonGlare 
 
+#endif
 #endif

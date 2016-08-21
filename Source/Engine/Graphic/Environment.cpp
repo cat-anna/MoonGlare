@@ -33,10 +33,10 @@ bool Environment::LoadMeta(const xml_node node) {
 	if (!m_StaticFog.LoadMeta(node.child("StaticFog"))) {
 		AddLog(Warning, "An error has occur during loading static fog configuration");
 	}
-	if (!m_AmbientLight.LoadMeta(node.child("AmbientLight"))) {
-		AddLog(Warning, "An error has occur during loading ambient light configuration");
-	}
-	m_AmbientLight.DiffuseIntensity = 0.0f;//no diffuse for environment ambient light
+	//if (!m_AmbientLight.LoadMeta(node.child("AmbientLight"))) {
+	//	AddLog(Warning, "An error has occur during loading ambient light configuration");
+	//}
+	//m_AmbientLight.m_DiffuseIntensity = 0.0f;//no diffuse for environment ambient light
 
 	//xml_node cube = node.child("SkyCube");
 	//if (!cube) 

@@ -274,7 +274,6 @@ bool ObjectRegister::LoadObjects(const xml_node SrcNode, GameScene *OwnerScene) 
 }
 
 void ObjectRegister::Process(const MoveConfig &conf) {
-
 	auto *cm = &m_OwnerScene->GetComponentManager();
 	auto *tc = cm->GetTransformComponent();
 
@@ -287,23 +286,16 @@ void ObjectRegister::Process(const MoveConfig &conf) {
 
 		auto obj = m_Memory->m_ObjectPtr[i].get();
 		math::mat4 *gm = nullptr;
-
 		auto *tcentry = tc->GetEntry(m_Memory->m_Entity[i]);
 
 		if (!tcentry) {
 			gm = &m_Memory->m_GlobalMatrix[i];
 			auto &lm = m_Memory->m_LocalMatrix[i];
-
 			obj->GetPositionTransform().getOpenGLMatrix((float*)&lm);
 			*gm = m_Memory->m_GlobalMatrix[pid] * lm;
 		} else {
 			gm = &tcentry->m_GlobalMatrix;
 			obj->SetPositionTransform(tcentry->m_LocalTransform);
-		}
-
-		if (obj->GetLightSource()) {
-			auto *l = obj->GetLightSource();
-			l->Update();
 		}
 	}
 }
