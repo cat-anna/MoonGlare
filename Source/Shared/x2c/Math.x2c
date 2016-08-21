@@ -82,3 +82,30 @@ Structure.import {
 	},
 	pugi = { useattribute = true, },
 }
+
+Structure.import {
+	location = "::math::vec3",
+	name = "RGB",
+	fields = {
+		{
+			name = "x",
+			type = Types.float,
+			pugi = { alias = "R", },
+			require = false,
+		},
+		{
+			name = "y",
+			type = Types.float,
+			pugi = { alias = "G", },
+			require = false,
+		},
+		{
+			name = "z",
+			type = Types.float,
+			pugi = { alias = "B", },
+			require = false,
+		},
+	},
+	require = "all",
+	pugi = { useattribute = true, },
+}
