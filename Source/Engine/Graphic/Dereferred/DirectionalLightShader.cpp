@@ -6,6 +6,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "LightingShader.h"
+#include "DirectionalLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 

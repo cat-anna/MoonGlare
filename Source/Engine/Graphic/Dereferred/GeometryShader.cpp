@@ -1,6 +1,8 @@
 #include <pch.h>
 #include "../Graphic.h"
 
+#include "GeometryShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 

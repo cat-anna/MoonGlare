@@ -8,6 +8,9 @@
 #ifndef LightingPassShader_H
 #define LightingPassShader_H
 
+#include "../Light.h"
+#include "../PlaneShadowMap.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -16,17 +19,6 @@ class LightingPassShader : public Shader {
 public:
  	LightingPassShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~LightingPassShader();
-
-	struct SamplerIndex {
-		enum {
-			Empty = 0,
-			Position,
-			Diffuse,
-			Normal,
-
-			PlaneShadow = 5,
-		};
-	};
 
 	void Bind(const Light::LightBase &light) const {
 		glUniform3fv(m_ColorLocation, 1, &light.Color[0]); 

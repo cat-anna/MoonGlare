@@ -6,6 +6,9 @@
 #include <pch.h>
 #include "../Graphic.h"
 
+#include "LightingShader.h"
+#include "SpotLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 

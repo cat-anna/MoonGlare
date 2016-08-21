@@ -18,9 +18,9 @@ public:
 
 	struct Buffers {
 		enum {
-			Position	= LightingPassShader::SamplerIndex::Position,
-			Diffuse		= LightingPassShader::SamplerIndex::Diffuse,
-			Normal		= LightingPassShader::SamplerIndex::Normal,
+			Position	= SamplerIndex::Position,
+			Diffuse		= SamplerIndex::Diffuse,
+			Normal		= SamplerIndex::Normal,
 			MaxValue,
 		};
 	};
