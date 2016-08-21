@@ -120,7 +120,7 @@ bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & ho
 	}
 
 	if (!c->Load(node, Owner, hout)) {
-		AddLog(Error, "Failure during loading component!");
+		AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
 		return false;
 	}
 

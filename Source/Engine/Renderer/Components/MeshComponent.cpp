@@ -7,18 +7,18 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "MeshComponent.h"
+
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
-
-#include "MeshComponent.h"
 
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
 RegisterApiNonClass(MeshComponent, &MeshComponent::RegisterScriptApi);
-RegisterComponentID<MeshComponent> MeshComponent("Mesh");
+RegisterComponentID<MeshComponent> MeshComponentReg("Mesh");
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 
 	: AbstractComponent(Owner)
@@ -72,7 +72,6 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
-	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 	auto *tc = GetManager()->GetTransformComponent();
 
 	size_t LastInvalidEntry = 0;
@@ -88,17 +87,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 			continue;
 		}
 
-		if (!HandleTable->IsValid(this, item.m_SelfHandle)) {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			//mark and continue but set valid to false to avoid further checks
-			continue;
-		}
-
-		auto *tcentry = tc->GetEntry(item.m_Owner);
-
-		if (!tcentry) {
+		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
@@ -107,6 +96,15 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 		}
 
 		if (!item.m_Flags.m_Map.m_Visible) {
+			continue;
+		}
+
+		auto *tcentry = tc->GetEntry(item.m_Owner);
+		if (!tcentry) {
+			item.m_Flags.m_Map.m_Valid = false;
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			//mark and continue but set valid to false to avoid further checks
 			continue;
 		}
 

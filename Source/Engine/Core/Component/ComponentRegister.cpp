@@ -35,10 +35,14 @@ bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentID & out
 		return out != (ComponentID)ComponentIDs::Invalid;
 	} else {
 		auto namexml = node.attribute("Name");
-		if (namexml && GetComponentID(namexml.as_string(""), out)) {
+		if (!namexml) {
+			AddLogf(Error, "Component definition without id or name!");
+			return false;
+		}
+		if (GetComponentID(namexml.as_string(""), out)) {
 			return out != (ComponentID)ComponentIDs::Invalid;
 		} else {
-			AddLog(Error, "Component definition without id or name!");
+			AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
 			return false;
 		}
 	}

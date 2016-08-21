@@ -280,7 +280,7 @@ void ScriptMathGlobal(ApiInitializer &root) {
 		.addCFunction("__call", &lua_NewQuaternion)
 
 		.addFunction("FromAxisAngle", &QuaternionFromAxisAngle)
-		.addFunction("FromVec3Angle", &QuaternionFromAxisAngle)
+		.addFunction("FromVec3Angle", &QuaternionFromVec3Angle)
 		.addFunction("FromEulerXYZ", &QuaternionFromEulerXYZ)
 		.addFunction("RotationTo", &QuaternionRotationTo)
 

@@ -25,6 +25,8 @@
 #include <Engine/Configuration.h>
 #include <Shared/MoonGlareInsider/Api.h>
 
+#include <libSpace/src/Utils/ParamParser.cpp>
+
 using namespace std;
 using namespace MoonGlare::Debug::InsiderApi;
 
@@ -63,6 +65,7 @@ struct ReconData {
 	ReconData(const std::string &Host, const std::string &Port) : io_service(), s(io_service) {
 		udp::resolver resolver(io_service);
 		endpoint = *resolver.resolve({ udp::v4(), Host, Port });
+		s.open(udp::v4());
 	}
 
 	bool Send(MessageHeader *header) {
