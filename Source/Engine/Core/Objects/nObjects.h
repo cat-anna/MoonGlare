@@ -12,6 +12,4 @@ namespace Objects {
 #include "Object.h"
 #include "ObjectRegister.h"
 
-#include "iLightSource.h"
-
 #endif
