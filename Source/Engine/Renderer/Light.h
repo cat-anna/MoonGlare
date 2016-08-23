@@ -26,9 +26,9 @@ struct LightAttenuation {
 	float m_Constant;
 	float m_Linear;
 	float m_Exp;
-	float m_MinThreshold;
+	float m_Threshold;
 
-	float Threshold(float ColorFactor) const {
+	float InfluenceRadius(float ColorFactor) const {
 		//float delta = Linear * Linear + 4 * Exp * Constant;
 		//float sqrtdelta = sqrtf(delta);
 		//
@@ -42,14 +42,18 @@ struct LightAttenuation {
 			ret /= 2 * m_Exp;
 		return ret;
 	}
+
+	float LightInfluenceRadius(const math::RGB &Color, float DiffuseIntensity) const {
+		return InfluenceRadius(Color.Max() * DiffuseIntensity);
+	}
 };
 static_assert(std::is_pod<LightAttenuation>::value, "LightAttenuation shall be POD!");
 
 struct LightBase {
-	math::vec3 m_Color;
+	math::RGB m_Color;
 	float m_AmbientIntensity;
 	float m_DiffuseIntensity;
-	LightAttenuation m_Attenuation;
+
 	union {
 		struct {
 			bool m_CastShadows : 1;
@@ -57,8 +61,41 @@ struct LightBase {
 		uint8_t m_UInt8value;
 	} m_Flags;
 };
+static_assert(std::is_pod<LightBase>::value, "LightBase shall be POD!");
 
-//static_assert(std::is_pod<LightBase>::value, "LightBase shall be POD!");
+struct PointLight {
+	LightBase m_Base;
+	LightAttenuation m_Attenuation;
+
+	math::RawVec3 m_Position;
+	math::RawMat4 m_PositionMatrix;
+
+	float GetLightInfluenceRadius() const {
+		return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+	}
+};
+static_assert(std::is_pod<PointLight>::value, "PointLight shall be POD!");
+
+struct SpotLight {
+	LightBase m_Base;
+	LightAttenuation m_Attenuation;
+	float m_CutOff;
+
+	math::RawVec3 m_Position;
+	math::RawVec3 m_Direction;
+	math::RawMat4 m_PositionMatrix;
+	math::RawMat4 m_ViewMatrix;
+
+	float GetLightInfluenceRadius() const {
+		return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+	}
+};
+static_assert(std::is_pod<SpotLight>::value, "SpotLight shall be POD!");
+
+struct DirectionalLight {
+	LightBase m_Base;
+};
+static_assert(std::is_pod<DirectionalLight>::value, "DirectionalLight shall be POD!");
 
 } //namespace Light 
 } //namespace Renderer 

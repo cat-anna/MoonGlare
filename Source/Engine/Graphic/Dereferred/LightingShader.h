@@ -20,7 +20,7 @@ public:
  	LightingPassShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~LightingPassShader();
 
-	void Bind(const Light::LightBase &light) const {
+	void BindLightBase(const ::MoonGlare::Renderer::Light::LightBase &light) const {
 		glUniform3fv(m_ColorLocation, 1, &light.m_Color[0]); 
 		glUniform1f(m_AmbientIntensityLocation, light.m_AmbientIntensity);
 		glUniform1f(m_DiffuseIntensityLocation, light.m_DiffuseIntensity);

@@ -27,10 +27,6 @@ SpotLightShader::SpotLightShader(GLuint ShaderProgram, const string &ProgramName
 	m_ColorLocation						= Location("SpotLight.Base.Color");
 	m_AmbientIntensityLocation			= Location("SpotLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation			= Location("SpotLight.Base.DiffuseIntensity");
-	  
-//bind default light parameters 
-	Light::LightBase pl;
-	Bind(pl);  
 }       
       
 SpotLightShader::~SpotLightShader() {

@@ -68,6 +68,8 @@ bool DereferredPipeline::Initialize() {
 }     
        
 bool DereferredPipeline::Finalize() { 
+	for (auto &it : m_PlaneShadowMapBuffer)
+		it.Free();
 	//if (m_Sphere) m_Sphere->Finalize();
 	return true;  
 }
@@ -127,38 +129,20 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
 		if (!light.m_Base.m_Flags.m_CastShadows)
 			continue;
 
-		if (PlaneShadowMaps.size() <= index) {
-			PlaneShadowMaps.emplace_back();
-			PlaneShadowMaps.back().New();
-		}
-		
-		light.ShadowMap = &PlaneShadowMaps[index];
+		auto &sm = m_PlaneShadowMapBuffer[index];
+		if (!sm)
+			sm.New();
 		++index;
 
-		math::mat4 mat;
-		math::Transform tr(light.m_Quaternion, light.m_Position);
-		tr.getOpenGLMatrix(&mat[0][0]);
-
-		auto dir = convert(quatRotate(light.m_Quaternion, Physics::vec3(0, 0, 1)));
-		math::mat4 ViewMatrix = glm::lookAt(convert(light.m_Position), convert(light.m_Position) - dir, vec3(0, 1, 0));
-		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
-		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
-
-//		mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
-		
-		dev.SetCameraMatrix(LightMatrix); 
-		if (light.ShadowMap)
-			light.ShadowMap->BindAndClear();
+		dev.SetCameraMatrix(light.m_ViewMatrix); 
+		sm.BindAndClear();
 		dev.Bind(m_ShadowMapShader); 
-		m_ShadowMapShader->SetLightPosition(convert(light.m_Position));
-		for (auto it : conf.RenderList) {
+		m_ShadowMapShader->SetLightPosition(light.m_Position);
+		for (auto it : ri->m_RenderList) {
 			dev.SetModelMatrix(it.first);
 			it.second->DoRender(dev);
 		}
-
 	}           
-	glPopAttrib();
-	//glDisable(GL_CULL_FACE); 
 	return true;     
 }
  
@@ -210,7 +194,7 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-		dev.SetModelMatrix(mat);
+		dev.SetModelMatrix(light.m_PositionMatrix);
 		m_Sphere->DoRender(dev);
 //light pass	  
 		dev.Bind(m_PointLightShader); 
@@ -225,7 +209,7 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 		glEnable(GL_CULL_FACE);  
 		glCullFace(GL_FRONT);  
 		           
-		dev.SetModelMatrix(mat); 
+		dev.SetModelMatrix(light.m_PositionMatrix);
 		m_Sphere->DoRender(dev);  
 
 		glCullFace(GL_BACK);
@@ -264,32 +248,8 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 
 	StencilTestEnabler Stencil;
 
-	for (auto &light : lights) {
-#if 0
-		//math::mat4 mat = glm::lookAt(light->Position, light->Position - light->Direction, glm::vec3(0, -1, 0));
-		math::mat4 mat = glm::lookAt(math::vec3(), -light.Direction, glm::vec3(0, -1, 0));//TODO: calculate up vector!
-		mat = glm::translate(math::mat4(), light.Position) * mat;
-
-		//auto scale = math::vec3(light->InfluenceDistance);
-		//auto mat = light->ViewMatrix;
-		auto scale = math::vec3(light.CalcPointLightInfluenceRadius());// , light->DistanceRadius, light->InfluenceDistance);
-		for (int i = 0; i < 3; ++i) 
-			mat[i] *= scale[i];  
-
-		math::mat4 ViewMatrix = glm::lookAt(light.Position, light.Position - light.Direction, vec3(0, 1, 0));
-		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
-		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
-#endif
-		math::mat4 mat;
-		math::Transform tr(light.m_Quaternion, light.m_Position);
-		tr.getOpenGLMatrix(&mat[0][0]);
-
-		auto dir = convert(quatRotate(light.m_Quaternion, Physics::vec3(0, 0, 1)));
-		math::mat4 ViewMatrix = glm::lookAt(convert(light.m_Position), convert(light.m_Position) - dir, vec3(0, 1, 0));
-		math::mat4 ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.02f, 100.0f);
-		math::mat4 LightMatrix = ProjectionMatrix * ViewMatrix;
-
-		mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
+	int index = 0;
+	for (auto &light : ri->m_SpotLights) {
 //stencil pass
 		m_Buffer.BeginStencilPass(); 
 		dev.Bind(m_StencilShader); 
@@ -301,17 +261,19 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-		dev.SetModelMatrix(mat);
-		m_Cone->DoRender(dev); 
-		//m_Sphere->DoRender(dev);
+		dev.SetModelMatrix(light.m_PositionMatrix);
+		//m_Cone->DoRender(dev); 
+		m_Sphere->DoRender(dev);
+
+		auto &sm = m_PlaneShadowMapBuffer[index];
+		++index;
 
 //light pass
 		dev.Bind(m_SpotLightShader);
 		m_Buffer.BeginLightingPass();   
 
-		if(light.ShadowMap)
-			m_SpotLightShader->BindShadowMap(*light.ShadowMap);
-		m_SpotLightShader->SetLightMatrix(LightMatrix);
+		m_SpotLightShader->BindShadowMap(sm);
+		m_SpotLightShader->SetLightMatrix(light.m_ViewMatrix);
 		m_SpotLightShader->Bind(light);
 
 		glEnable(GL_BLEND);      
@@ -325,15 +287,10 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		glActiveTexture(GL_TEXTURE0);   
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		dev.SetModelMatrix(mat);   
-		m_Cone->DoRender(dev);
-		//m_Sphere->DoRender(dev);
+		dev.SetModelMatrix(light.m_PositionMatrix);
+		//m_Cone->DoRender(dev);
+		m_Sphere->DoRender(dev);
 
-		//glActiveTexture(GL_TEXTURE0 + 5); 
-		//GLint whichID;
-		//glGetIntegerv(GL_TEXTURE_BINDING_2D, &whichID);
-		//glGetUniformiv(m_SpotLightShader->Handle(), m_SpotLightShader->Location("PlaneShadowMap"), &whichID);
-		 
 		glCullFace(GL_BACK);
 		glDisable(GL_BLEND); 
 		glDisable(GL_CULL_FACE);   

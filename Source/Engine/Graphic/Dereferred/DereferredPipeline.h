@@ -59,8 +59,10 @@ private:
 	DirectionalLightShader *m_DirectionalLightShader;
 	SpotLightShader *m_SpotLightShader;
 	
-	::DataClasses::ModelPtr m_Sphere, m_Cone;
+	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
+
+	Space::Container::StaticVector<PlaneShadowMap, 1024> m_PlaneShadowMapBuffer;
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 

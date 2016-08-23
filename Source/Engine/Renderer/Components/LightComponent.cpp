@@ -29,7 +29,7 @@ RegisterApiNonClass(LightComponent, &LightComponent::RegisterScriptApi);
 RegisterComponentID<LightComponent> LightComponentReg("Light");
 
 LightComponent::LightComponent(ComponentManager * Owner) 
-		: AbstractComponent(Owner) {
+		: TemplateStandardComponent(Owner) {
 }
 
 LightComponent::~LightComponent() {
@@ -38,6 +38,24 @@ LightComponent::~LightComponent() {
 //------------------------------------------------------------------------------------------
 
 void LightComponent::RegisterScriptApi(ApiInitializer & root) {
+	using LightAttenuation = Renderer::Light::LightAttenuation;
+	root
+		.beginClass<LightAttenuation>("cLightAttenuation")
+			.addData("Constant", &LightAttenuation::m_Constant)
+			.addData("Linear", &LightAttenuation::m_Linear)
+			.addData("Exp", &LightAttenuation::m_Exp)
+			.addData("Threshold", &LightAttenuation::m_Threshold)
+		.endClass()
+		.beginClass<LightEntry>("cLightEntry")
+			.addData("CutOff", &LightEntry::m_CutOff)
+			.addData("Attenuation", &LightEntry::m_Attenuation)
+			//.addData("Color", &LightEntry::m_Color)
+			//.addData("AmbientIntensity", &LightEntry::m_AmbientIntensity)
+			//.addData("DiffuseIntensity", &LightEntry::m_DiffuseIntensity)
+			.addProperty("Active", &LightEntry::GetActive, &LightEntry::SetActive)
+			.addProperty("CastShadows", &LightEntry::GetCastShadows, &LightEntry::SetCastShadows)
+		.endClass()
+	;
 }
 
 //------------------------------------------------------------------------------------------
@@ -55,6 +73,7 @@ bool LightComponent::Finalize() {
 
 void LightComponent::Step(const Core::MoveConfig & conf) {
 	auto *tc = GetManager()->GetTransformComponent();
+	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -90,27 +109,61 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		Graphic::Light::LightBase *light;
+		auto &tr = tcentry->m_GlobalTransform;
+
+		Renderer::Light::LightBase *light;
 		switch (item.m_Type) {
-		case Light::LightType::Spot:
-			conf.m_LightConfig->SpotLights.emplace_back();
-			light = &conf.m_LightConfig->SpotLights.back();
+		case Light::LightType::Spot: {
+			auto lptr = RInput->m_SpotLights.Allocate();
+			if (!lptr) {
+				AddLog(Warning, "Cannot allocate SpotLights!");
+				continue;
+			}
+			light = &lptr->m_Base;
+			lptr->m_Attenuation = item.m_Attenuation;
+			lptr->m_CutOff = item.m_CutOff;
 
-			light->m_Attenuation = item.m_LightBase.m_Attenuation;
+			//TODO: SpotLigt calculations can be optimized later
+			auto dir = convert(quatRotate(tr.getRotation(), Physics::vec3(0, 0, 1)));
+			auto pos = convert(tr.getOrigin());
+			float infl = lptr->GetLightInfluenceRadius();
+			math::mat4 ViewMatrix = glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
+			math::mat4 ProjectionMatrix = glm::perspective(glm::radians(90.0f), 1.0f, 0.01f, infl + 0.1f);
+
+			lptr->m_ViewMatrix = ProjectionMatrix * ViewMatrix;
+			lptr->m_Position = pos;
+			lptr->m_Direction = dir;
+			math::mat4 mat;
+			tr.getOpenGLMatrix(&mat[0][0]);
+			lptr->m_PositionMatrix = glm::scale(mat, math::vec3(infl));
+
 			break;
+		}
+		case Light::LightType::Point:{
+			auto lptr = RInput->m_PointLights.Allocate();
+			if (!lptr) {
+				AddLog(Warning, "Cannot allocate PointLight!");
+				continue;
+			}
+			light = &lptr->m_Base;
+			lptr->m_Attenuation = item.m_Attenuation;
 
-		case Light::LightType::Point:
-			conf.m_LightConfig->PointLights.emplace_back();
-			light = &conf.m_LightConfig->PointLights.back();
+			auto pos = convert(tr.getOrigin());
 
-			light->m_Attenuation = item.m_LightBase.m_Attenuation;
+			lptr->m_Position = pos;
+			tr.getOpenGLMatrix(&lptr->m_PositionMatrix[0][0]);
+
 			break;
-
-		case Light::LightType::Directional:
-			conf.m_LightConfig->DirectionalLights.emplace_back();
-			light = &conf.m_LightConfig->DirectionalLights.back();
-
+		}
+		case Light::LightType::Directional:	{
+			auto lptr = RInput->m_DirectionalLights.Allocate();
+			if (!lptr) {
+				AddLog(Warning, "Cannot allocate DirectionalLight!");
+				continue;
+			}
+			light = &lptr->m_Base;
 			break;
+		}
 		default:
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
@@ -118,23 +171,14 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
 			//entry is not valid and shall be removed
 			continue;
 		}
-	//	light->CutOff
-		light->m_Position = tcentry->m_LocalTransform.getOrigin();
-		light->m_Quaternion = tcentry->m_LocalTransform.getRotation();
-		light->m_Flags.m_UInt8value = item.m_LightBase.m_Flags.m_UInt8value;
-		light->m_Color = item.m_LightBase.m_Color;
-		light->m_AmbientIntensity = item.m_LightBase.m_AmbientIntensity;
-		light->m_DiffuseIntensity = item.m_LightBase.m_DiffuseIntensity;
+
+		*light = item.m_Base;
 	}
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "MeshComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		ReleaseElement(LastInvalidEntry);
+		TrivialReleaseElement(LastInvalidEntry);
 	}
-}
-
-bool LightComponent::PushEntryToLua(Handle h, lua_State * lua, int & luarets) {
-	return false;
 }
 
 bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
@@ -175,48 +219,23 @@ bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Owner = Owner;
 	entry.m_SelfHandle = ch;
 
-	entry.m_LightBase.m_AmbientIntensity = le.m_AmbientIntensity;
-	entry.m_LightBase.m_DiffuseIntensity = le.m_DiffuseIntensity;
-	entry.m_LightBase.m_Color = le.m_Color;
-	entry.m_LightBase.m_Attenuation = le.m_Attenuation;
+	entry.m_Base.m_AmbientIntensity = le.m_AmbientIntensity;
+	entry.m_Base.m_DiffuseIntensity = le.m_DiffuseIntensity;
+	entry.m_Base.m_Color = le.m_Color;
+	entry.m_Attenuation = le.m_Attenuation;
 	entry.m_Type = le.m_Type;
+	entry.m_CutOff = le.m_CutOff;
 
 	entry.m_Flags.m_Map.m_Active = le.m_Active;
-	entry.m_LightBase.m_Flags.m_CastShadows = le.m_CastShadows;
+	entry.m_Base.m_Flags.m_CastShadows = le.m_CastShadows;
 
 	m_EntityMapper.SetHandle(entry.m_Owner, ch);
 	entry.m_Flags.m_Map.m_Valid = true;
 	return true;
 }
 
-bool LightComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
-	return false;
-}
-
 bool LightComponent::Create(Entity Owner, Handle & hout) {
 	return false;
-}
-
-void LightComponent::ReleaseElement(size_t Index) {
-	auto lastidx = m_Array.Allocated() - 1;
-
-	if (lastidx == Index) {
-		auto &last = m_Array[lastidx];
-		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
-		last.Reset();
-	} else {
-		auto &last = m_Array[lastidx];
-		auto &item = m_Array[Index];
-
-		std::swap(last, item);
-
-		if (!GetHandleTable()->SetHandleIndex(this, item.m_SelfHandle, Index)) {
-			AddLogf(Error, "Failed to move MeshComponent handle index!");
-		}
-		GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
-		last.Reset();
-	}
-	m_Array.DeallocateLast();
 }
 
 } //namespace Component 

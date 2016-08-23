@@ -17,13 +17,13 @@ public:
  	PointLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~PointLightShader();
 
-	void Bind(const Light::LightBase &light) const {
-		BaseClass::Bind(light);
-		glUniform3fv(m_PositionLocation, 1, &convert(light.m_Position)[0]); 
+	void Bind(const ::MoonGlare::Renderer::Light::PointLight &light) const {
+		BaseClass::BindLightBase(light.m_Base);
+		glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]); 
 		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
 		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
 		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_MinThreshold);
+		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
 	}
 protected:
 	GLuint m_PositionLocation;

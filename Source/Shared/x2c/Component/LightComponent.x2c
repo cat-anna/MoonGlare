@@ -33,7 +33,7 @@ Structure.import {
 			default = 0.2,
 		},	
 		{
-			name = "MinThreshold",
+			name = "Threshold",
 			type = Types.float,
 			require = true,
 			default = 0.5,
@@ -86,7 +86,13 @@ Structure.new {
 			type = Local.LightAttenuation,
 			require = false,
 		},
-
+		{
+			name = "CutOff",
+			type = Types.float,
+			require = false,
+			default = 0.5,
+		},
+		
 		--{
 		--	name = "Mass",
 		--	type = Types.float,
