@@ -19,8 +19,7 @@ namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
-RegisterApiNonClass(MeshComponent, &MeshComponent::RegisterScriptApi);
-RegisterComponentID<MeshComponent> MeshComponentReg("Mesh");
+RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 
 	: AbstractComponent(Owner)

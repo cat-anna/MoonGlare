@@ -23,8 +23,7 @@ namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
-RegisterApiNonClass(LightComponent, &LightComponent::RegisterScriptApi);
-RegisterComponentID<LightComponent> LightComponentReg("Light");
+RegisterComponentID<LightComponent> LightComponentReg("Light", true, &LightComponent::RegisterScriptApi);
 
 LightComponent::LightComponent(ComponentManager * Owner) 
 		: TemplateStandardComponent(Owner) {

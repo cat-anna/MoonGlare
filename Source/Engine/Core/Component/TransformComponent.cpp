@@ -15,8 +15,7 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-RegisterApiNonClass(TransformComponent, &TransformComponent::RegisterScriptApi);
-RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
+RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", true, &TransformComponent::RegisterScriptApi);
 
 TransformComponent::TransformComponent(ComponentManager * Owner) 
 		: AbstractComponent(Owner) {

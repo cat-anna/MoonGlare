@@ -19,19 +19,25 @@ struct ComponentRegister {
 	struct ComponentInfo {
 		ComponentID m_CID;
 		ComponentCreateFunc m_CreateFunc;
+		const char *m_Name;
+		struct {
+			bool m_RegisterID : 1;
+		} m_Flags;
+		void(*m_ApiRegFunc)(ApiInitializer &api); 
+		int(*m_GetCID)();
 	};
 
-	using MapType = std::unordered_map < std::string, ComponentInfo >;
-	static ComponentInfo* GetComponentInfo(const char *Name) {
+	using MapType = std::unordered_map < std::string, const ComponentInfo* >;
+	static const ComponentInfo* GetComponentInfo(const char *Name) {
 		auto it = s_ComponentMap->find(Name);
 		if (it == s_ComponentMap->end())
 			return nullptr;
-		return &it->second;
+		return it->second;
 	}
-	static ComponentInfo* GetComponentInfo(ComponentID cid) {
+	static const ComponentInfo* GetComponentInfo(ComponentID cid) {
 		for (auto &it : *s_ComponentMap)
-			if (it.second.m_CID == cid)
-				return &it.second;
+			if (it.second->m_CID == cid)
+				return it.second;
 		return nullptr;
 	}
 	static bool GetComponentID(const char *Name, ComponentID &cidout) {
@@ -45,13 +51,13 @@ struct ComponentRegister {
 	static void Dump(std::ostream &out);
 
 	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentID &out);
+
+	static int RegisterComponentApi(ApiInitializer &api);
 protected:
-	static void SetComponent(ComponentID cid, const char *Name, ComponentCreateFunc func) {
+	static void SetComponent(const ComponentInfo *ci) {
 		if (!s_ComponentMap)
 			s_ComponentMap = new MapType();
-		auto &entry = (*s_ComponentMap)[Name];
-		entry.m_CID = cid;
-		entry.m_CreateFunc = func;
+		(*s_ComponentMap)[ci->m_Name] = ci;
 	}
 private:
 	static MapType *s_ComponentMap;
@@ -59,29 +65,26 @@ private:
 
 template<class T>
 struct RegisterComponentID : public ComponentRegister {
-	RegisterComponentID(const char *Name, bool PublishToLua = true) {
-		SetComponent(T::GetComponentID(), Name, &RegisterComponentID<T>::Construct);
-		THROW_ASSERT(!s_Name, "Attempt to re-register component ID");
-		s_Name = Name;
-		if (PublishToLua) {
-			RegisterApiNonClass(local, &RegisterComponentID<T>::RegisterScriptApi, "Component");
-		}
+	RegisterComponentID(const char *Name, bool PublishToLua = true, void(*ApiRegFunc)(ApiInitializer &api) = nullptr) {
+		m_ComponentInfo.m_Name = Name;
+		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
+		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc;
+		m_ComponentInfo.m_CID = T::GetComponentID();
+		m_ComponentInfo.m_CreateFunc = &Construct;
+		m_ComponentInfo.m_GetCID = &GetCID;
+		SetComponent(&m_ComponentInfo);
 	}
 private:
 	static std::unique_ptr<AbstractComponent> Construct(ComponentManager* cm) { return std::make_unique<T>(cm); }
-
-	static const char *s_Name;
-	static int get() { 
+	static int GetCID() { 
 		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
 		return static_cast<int>(T::GetComponentID());
 	}
-	static void RegisterScriptApi(ApiInitializer &root) {
-		root.addProperty(s_Name, &get, (void(*)(int))nullptr);
-	}
+	static ComponentInfo m_ComponentInfo;
 };
 
 template<class T>
-const char * RegisterComponentID<T>::s_Name = nullptr;
+ComponentRegister::ComponentInfo RegisterComponentID<T>::m_ComponentInfo;
 
 } //namespace Component 
 } //namespace Core 

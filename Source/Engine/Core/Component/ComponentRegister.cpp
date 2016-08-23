@@ -23,7 +23,7 @@ void ComponentRegister::Dump(std::ostream &out) {
 
 	for (auto &it : *s_ComponentMap) {
 		char buffer[128];
-		sprintf_s(buffer, "\t%20s 0x%04u\n", it.first.c_str(), (unsigned)it.second.m_CID);
+		sprintf_s(buffer, "\t%20s 0x%04u\n", it.first.c_str(), (unsigned)it.second->m_CID);
 		out << buffer;
 	}
 }
@@ -47,6 +47,29 @@ bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentID & out
 		}
 	}
 	return false;
+}
+
+int ComponentRegister::RegisterComponentApi(ApiInitializer & api) {
+	int count = 0;
+	{
+		auto nComponent = api.beginNamespace("Component");
+		for (auto &it : *s_ComponentMap) {
+			auto &ci = *it.second;
+			if (!ci.m_Flags.m_RegisterID)
+				continue;
+			nComponent.addProperty(ci.m_Name, ci.m_GetCID, (void(*)(int))nullptr);
+		}
+		nComponent.endNamespace();
+		count = 1;
+	}
+	for (auto &it : *s_ComponentMap) {
+		auto &ci = *it.second;
+		if (!ci.m_ApiRegFunc)
+			continue;
+		ci.m_ApiRegFunc(api.beginNamespace("api").beginNamespace("Component"));
+		++count;
+	}
+	return count;
 }
 
 } //namespace Component 

@@ -7,7 +7,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <cmath>
+
 #include <ModulesManager.h>
+#include <Core/Component/ComponentRegister.h>
 
 namespace Core {
 namespace Scripts {
@@ -119,6 +121,8 @@ void ApiInit::Initialize(Script *s) {
 
 		ApiInitFunctionsRun += 2;
 	}
+
+	ApiInitFunctionsRun += MoonGlare::Core::Component::ComponentRegister::RegisterComponentApi(s->GetApiInitializer());
 
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	AddLogf(Performance, "Executed %d api init functions.", ApiInitFunctionsRun);
