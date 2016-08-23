@@ -84,7 +84,7 @@ bool ScriptComponent::Initialize() {
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 
 	lua_pushlightuserdata(lua, GetInstancesTableIndex());									 //stack: InstTblIdx
-	lua_createtable(lua, m_Array.size(), 0);												 //stack: InstTblIdx InstTbl
+	lua_createtable(lua, m_Array.Capacity(), 0);											 //stack: InstTblIdx InstTbl
 	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptComponent", this, -1);		 //stack: InstTblIdx InstTbl
 	lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 																							 

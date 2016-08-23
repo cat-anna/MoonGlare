@@ -24,7 +24,7 @@ TransformComponent::TransformComponent(ComponentManager * Owner)
 	DebugMemorySetClassName("TransformComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Array.Allocated();
-		counter.Capacity = m_Array.size();
+		counter.Capacity = m_Array.Capacity();
 		counter.ElementSize = sizeof(TransformEntry);
 	});
 }
@@ -58,7 +58,7 @@ bool TransformComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) 
 //------------------------------------------------------------------------------------------
 
 bool TransformComponent::Initialize() {
-	memset(&m_Array, 0, m_Array.size() * sizeof(m_Array[0]));
+	memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
 	m_CurrentRevision = 1;
 
 	m_Array.ClearAllocation();
