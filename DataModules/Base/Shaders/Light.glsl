@@ -45,9 +45,9 @@ float CalcAttenuation(Attenuation_t att, float Distance) {
     float Attv = att.Constant + 
 				 att.Linear * Distance +
 				 att.Exp * (Distance * Distance);
-	if(Attv < 0)
-		Attv = -Attv;
-	return 1.0 / Attv;//min(1.0 / Attv, att.MinThreshold);
+	if(Attv <= 0)
+		return 0;
+	return min(1.0 / Attv, att.MinThreshold);
 }
 
 //-----------LIGHT-POINT-----------
@@ -66,7 +66,7 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 
     vec4 Color = CalcLightInternal(PointLight.Base, LightDirection, WorldPos, Normal);
     Color.xyz *= CalcAttenuation(PointLight.Atten, Distance);
-//	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
 
@@ -79,7 +79,9 @@ struct DirectionalLight_t {
 uniform DirectionalLight_t DirectionalLight;
 
 vec4 CalcDirectionalLight(vec3 WorldPos, vec3 Normal) {
-    return CalcLightInternal(DirectionalLight.Base, DirectionalLight.Direction, WorldPos, Normal);
+    vec4 Color = CalcLightInternal(DirectionalLight.Base, DirectionalLight.Direction, WorldPos, Normal);
+	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
+	return Color;
 };
 
 //-----------LIGHT-SPOT-----------
@@ -106,9 +108,10 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
 		
-	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
+		Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 		
 		Color.a = 1.0f;
+		//Color.g = 1.0f;
 		//	Color.b = SpotFactor;
 		return Color;
 	}
