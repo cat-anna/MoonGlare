@@ -74,6 +74,57 @@ namespace math {
 			while (r < in) r *= static_cast<T>(2.0);
 		return r;
 	}
+
+	struct RawVec3 {
+		union {
+			struct { float r, g, b; };
+			struct { float x, y, z; };
+			float m_Raw[3];
+		};
+
+		operator const math::fvec3&() const { return reinterpret_cast<const math::fvec3&>(*this); }
+		void operator = (const math::fvec3& other) { reinterpret_cast<math::fvec3&>(*this) = other; }
+
+		float& operator[](size_t idx) { return m_Raw[idx]; };
+		const float& operator[](size_t idx) const { return m_Raw[idx]; };
+
+		float Max() const { return fmax(fmax(r, g), b); }
+	};
+	static_assert(std::is_pod<RawVec3>::value, "RawVec3 shall be POD!");
+	static_assert(sizeof(RawVec3) == sizeof(math::fvec3), "RawVec3 and fvec3 size mismatch!");
+
+	struct RawVec4 {
+		union {
+			struct { float r, g, b, a; };
+			struct { float x, y, z, w; };
+			float m_Raw[4];
+		};
+
+		operator const math::fvec4&() const { return reinterpret_cast<const math::fvec4&>(*this); }
+		void operator = (const math::fvec4& other) { reinterpret_cast<math::fvec4&>(*this) = other; }
+
+		float& operator[](size_t idx) { return m_Raw[idx]; };
+		const float& operator[](size_t idx) const { return m_Raw[idx]; };
+
+		float Max() const { return fmax(fmax(r, g), fmax(b, a)); }
+	};
+	static_assert(std::is_pod<RawVec4>::value, "RawVec4 shall be POD!");
+	static_assert(sizeof(RawVec4) == sizeof(math::fvec4), "RawVec4 and fvec3 size mismatch!");
+
+	struct RawMat4 {
+		RawVec4 m_Mat[4];
+
+		operator const math::mat4&() const { return reinterpret_cast<const math::mat4&>(*this); }
+		void operator = (const math::mat4& other) { reinterpret_cast<math::mat4&>(*this) = other; }
+
+		RawVec4& operator[](size_t idx) { return m_Mat[idx]; };
+		const RawVec4& operator[](size_t idx) const { return m_Mat[idx]; };
+	};
+	static_assert(std::is_pod<RawMat4>::value, "RawMat4 shall be POD!");
+	static_assert(sizeof(RawMat4) == sizeof(math::mat4), "RawMat4 and mat4 size mismatch!");
+
+	using RGB = RawVec3;
+	using RGBS = RawVec4;
 }
 
 inline Physics::vec3 convert(const math::vec3& src) { return Physics::vec3(src[0], src[1], src[2]); }
