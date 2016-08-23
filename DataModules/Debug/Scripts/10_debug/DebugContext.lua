@@ -6,7 +6,7 @@ function Debug_OnInit()
 	--	return;
 	end
 	local w = Inst.Window
-	w:ReleaseMouse()
+	--w:ReleaseMouse()
 	w:SetPosition(5, 20)
 end
 
