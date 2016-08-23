@@ -207,16 +207,16 @@ Handle ObjectRegister::LoadObject(Handle Parent, xml_node MetaXML, GameScene *Ow
 	}
 
 	EntityBuilder eb(&OwnerScene->GetComponentManager());
-	eb.LoadComponents(objE, MetaXML);
+	eb.ProcessXML(objE, MetaXML);
 
-	for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
-		auto h = LoadObject(objH, it, OwnerScene);
-		Object *childobj = Get(objH);
-		if (!childobj) {
-			AddLogf(Error, "Loading predef object child failed (%s)", it.attribute("Name").as_string(ERROR_STR));
-			continue;
-		}
-	}
+	//for (xml_node it = MetaXML.child("Child"); it; it = it.next_sibling("Child")) {
+	//	auto h = LoadObject(objH, it, OwnerScene);
+	//	Object *childobj = Get(objH);
+	//	if (!childobj) {
+	//		AddLogf(Error, "Loading predef object child failed (%s)", it.attribute("Name").as_string(ERROR_STR));
+	//		continue;
+	//	}
+	//}
 
 	return objH;
 }
