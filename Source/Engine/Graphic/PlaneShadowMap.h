@@ -12,11 +12,28 @@ namespace Graphic {
 
 class PlaneShadowMap : public FrameBuffer {
 public:
- 	PlaneShadowMap();
- 	~PlaneShadowMap();
+	PlaneShadowMap() {
+		m_ShadowTexture = 0;
+	}
+	~PlaneShadowMap() { 
+		Free();
+	}
 
 	bool New();
-	bool Free();
+	bool Free() {
+		FreeFrameBuffer();
+		if (m_ShadowTexture != 0)
+			GetRenderDevice()->RequestContextManip([this] {
+				glDeleteTextures(1, &m_ShadowTexture);
+				m_ShadowTexture = 0;
+			});
+		return true;
+	}
+
+	bool Valid() const {
+		return m_ShadowTexture != 0;
+	}
+	operator bool() const { return Valid(); }
 
 	void BindAndClear() {
 		glViewport(0, 0, static_cast<int>(m_Size[0]), static_cast<int>(m_Size[1]));
@@ -31,7 +48,7 @@ public:
 
 	const math::vec2& GetSize() const { return m_Size; }
 protected:
-	GLuint m_ShadowTexture = 0;
+	GLuint m_ShadowTexture;
 	math::vec2 m_Size;
 };
 

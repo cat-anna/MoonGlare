@@ -10,22 +10,6 @@
 
 namespace Graphic {
 
-PlaneShadowMap::PlaneShadowMap() {
-}
-
-PlaneShadowMap::~PlaneShadowMap() {
-	Free();
-}
-
-bool PlaneShadowMap::Free() {
-	FreeFrameBuffer();
-	GetRenderDevice()->RequestContextManip([this] {
-		glDeleteTextures(1, &m_ShadowTexture);
-		m_ShadowTexture = 0;
-	});
-	return true;
-}
-
 bool PlaneShadowMap::New() {
 	Free();
 	NewFrameBuffer();

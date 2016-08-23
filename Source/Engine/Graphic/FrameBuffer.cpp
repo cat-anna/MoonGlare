@@ -18,11 +18,12 @@ FrameBuffer::~FrameBuffer() {
 }
 
 bool FrameBuffer::FreeFrameBuffer() {
-	GetRenderDevice()->RequestContextManip([this] {
-		glDeleteFramebuffers(1, &m_FrameBuffer);
-		m_FrameBuffer = 0;
-	});
-	return false;
+	if(m_FrameBuffer != 0)
+		GetRenderDevice()->RequestContextManip([this] {
+			glDeleteFramebuffers(1, &m_FrameBuffer);
+			m_FrameBuffer = 0;
+		});
+	return true;
 }
 
 bool FrameBuffer::NewFrameBuffer() {
