@@ -7,6 +7,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Renderer/RenderInput.h>
+
 namespace Graphic {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
@@ -39,6 +41,12 @@ cRenderDevice::cRenderDevice(WindowPtr Context, unsigned Flags) :
  
 cRenderDevice::~cRenderDevice() {
 	ShaderManager::DeleteInstance();
+}
+
+std::unique_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
+	auto ptr = std::make_unique<RenderInput>();
+	ptr->Initialize();
+	return std::move(ptr);
 }
 
 bool cRenderDevice::Initialize() {

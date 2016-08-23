@@ -7,6 +7,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Renderer/RenderInput.h>
+
 #include "MeshComponent.h"
 
 #include <Core/Component/ComponentManager.h>
@@ -73,6 +75,7 @@ bool MeshComponent::Finalize() {
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
 	auto *tc = GetManager()->GetTransformComponent();
+	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -124,7 +127,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 		}
 
 		if (item.m_Flags.m_Map.m_MeshValid) {
-			conf.RenderList.push_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
+			RInput->m_RenderList.emplace_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
 		}
 	}
 
@@ -234,20 +237,6 @@ bool MeshComponent::Create(Entity Owner, Handle &hout) {
 	m_EntityMapper.SetHandle(entry.m_Owner, ch);
 
 	return true;
-}
-
-MeshComponent::MeshEntry *MeshComponent::GetEntry(Handle h) {
-	auto *ht = GetManager()->GetWorld()->GetHandleTable();
-	HandleIndex hi;
-	if (!ht->GetHandleIndex(this, h, hi)) {
-		//AddLog(Debug, "Attempt to get MeshEntry for invalid Entity!");
-		return nullptr;
-	}
-	return &m_Array[hi];
-}
-
-MeshComponent::MeshEntry *MeshComponent::GetEntry(Entity e) {
-	return GetEntry(m_EntityMapper.GetHandle(e));
 }
 
 } //namespace Component 

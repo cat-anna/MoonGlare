@@ -80,8 +80,8 @@ public:
 //	static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
 //	static_assert(std::is_pod<MeshEntry>::value, "ScriptEntry must be pod!");
 
-	MeshEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
-	MeshEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
+	MeshEntry* GetEntry(Handle h) { return TemplateGetEntry(this, m_Array, h); }
+	MeshEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
 
 	static void RegisterScriptApi(ApiInitializer &root);
 private:

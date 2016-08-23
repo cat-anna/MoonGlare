@@ -25,6 +25,14 @@ namespace Light {
 }
 }
 
+namespace MoonGlare {
+namespace Renderer {
+
+struct RenderInput;
+
+}
+}
+
 #include "EntityManager.h"
 
 #include "Scripts/nfScripts.h"
@@ -50,10 +58,9 @@ struct MoveConfig {
 	mutable Graphic::VirtualCamera *Camera = nullptr;
 	
 //	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
-	mutable std::vector<std::pair<math::mat4, DataClasses::ModelPtr>> RenderList;
-	mutable std::unique_ptr<Graphic::Light::LightConfigurationVector> m_LightConfig;
-
 	mutable std::vector<iCustomDraw*> CustomDraw;
+
+	mutable std::unique_ptr<Renderer::RenderInput> m_RenderInput;
 
 	bool m_SecondPeriod;
 };

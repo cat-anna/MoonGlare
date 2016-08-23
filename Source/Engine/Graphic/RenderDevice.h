@@ -19,6 +19,8 @@ public:
 	cRenderDevice(WindowPtr Context, unsigned Flags = 0);
 	virtual ~cRenderDevice();
 
+	std::unique_ptr<RenderInput> CreateRenderInput();
+
 	bool Initialize(); 
 	bool Finalize();
 	void CheckError() const;

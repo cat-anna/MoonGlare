@@ -4,7 +4,9 @@
 #include "Console.h"
 #include <Core/InputMap.h>
 
-#include <Graphic/Light.h>
+#include <Graphic/Dereferred/DereferredPipeline.h>
+
+#include <Renderer/RenderInput.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -159,11 +161,7 @@ void Engine::EngineMain() {
 	float LastMoveTime = CurrentTime;
 
 	MoveConfig conf;
-	conf.m_LightConfig = std::make_unique<Graphic::Light::LightConfigurationVector>();
-	conf.m_LightConfig->DirectionalLights.reserve(128);
-	conf.m_LightConfig->PointLights.reserve(128);
-	conf.m_LightConfig->SpotLights.reserve(128);
-	conf.RenderList.reserve(2048);
+	conf.m_RenderInput = dev.CreateRenderInput();
 
 	while (m_Running) {
 		CurrentTime = static_cast<float>(glfwGetTime());
@@ -290,6 +288,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	auto &dev = *Graphic::GetRenderDevice();
 	auto devsize = dev.GetContext()->Size();
 
+	conf.m_RenderInput->OnBeginFrame();
 	dev.DispatchContextManipRequests();
 	
 	dev.BeginFrame();
@@ -321,12 +320,12 @@ void Engine::DoRender(MoveConfig &conf) {
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, 1);
 	m_Forward->EndFrame();
+	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();
 } 
 
 void Engine::DoMove(MoveConfig &conf) {
-	conf.RenderList.clear();
 	conf.Scene = nullptr;
 
 	m_TimeEvents.CheckEvents(conf);

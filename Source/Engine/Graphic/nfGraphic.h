@@ -1,7 +1,18 @@
 #ifndef NFGRAPHIC_H_
 #define NFGRAPHIC_H_
 
+namespace MoonGlare {
+namespace Renderer {
+
+struct RenderInput;
+
+}
+}
+
 namespace Graphic {
+
+	using ::MoonGlare::Renderer::RenderInput;
+
 	class cRenderDevice;
 	class LoadQueue;
 	struct MatrixStack;
@@ -13,14 +24,6 @@ namespace Graphic {
 
 	struct StaticFog;
 	class Environment;
-
-	namespace Light {
-		struct LightBase;
-		using PointLightList = std::vector < LightBase >;
-		using DirectionalLightList = std::vector < LightBase >;
-		using SpotLightList = std::vector < LightBase >;
-	}
-
 
 	struct Material;
 
