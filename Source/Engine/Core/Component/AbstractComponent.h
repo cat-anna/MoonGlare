@@ -9,6 +9,8 @@
 #ifndef AbstractComponent_H
 #define AbstractComponent_H
 
+#include <libSpace/src/Container/StaticVector.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -48,11 +50,80 @@ public:
 
 protected:
 	HandleTable* GetHandleTable() { return m_HandleTable; }
+
+	template<typename ARRAY, class THIS>
+	typename ARRAY::value_type* TemplateGetEntry(THIS *This, ARRAY & arr, Handle h) {
+		HandleIndex hi;
+		if (!GetHandleTable()->GetHandleIndex(This, h, hi)) {
+			return nullptr;
+		}
+		return &arr[hi];
+	}
 private:
 	ComponentManager *m_Owner;
 	HandleTable *m_HandleTable;
 	void *m_padding1;
 	void *m_padding2;
+};
+
+template<typename ELEMENT, ComponentIDs CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
+class TemplateStandardComponent 
+	: public AbstractComponent
+	, public ComponentIDWrap<CID> {
+public:
+	using ComponentEntry = ELEMENT;
+
+	TemplateStandardComponent(ComponentManager * Owner) :AbstractComponent(Owner) {}
+
+	ComponentEntry* GetEntry(Handle h) { return TemplateGetEntry(this, m_Array, h); }
+	ComponentEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
+
+	bool GetInstanceHandle(Entity Owner, Handle & hout) override {
+		auto h = m_EntityMapper.GetHandle(Owner);
+		if (!GetHandleTable()->IsValid(this, h)) {
+			return false;
+		}
+		hout = h;
+		return true;
+	}
+
+	bool PushEntryToLua(Handle h, lua_State * lua, int & luarets) override {
+		auto entry = GetEntry(h);
+		if (!entry) {
+			return true;
+		}
+
+		luarets = 1;
+		luabridge::Stack<ComponentEntry*>::push(lua, entry);
+
+		return true;
+	}
+protected:
+	template<class T> using Array = Space::Container::StaticVector<ELEMENT, BUFFER>;
+	Array<ComponentEntry> m_Array;
+	Core::EntityMapper m_EntityMapper;
+
+	void TrivialReleaseElement(size_t Index) {
+		auto lastidx = m_Array.Allocated() - 1;
+
+		if (lastidx == Index) {
+			auto &last = m_Array[lastidx];
+			GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+			last.Reset();
+		} else {
+			auto &last = m_Array[lastidx];
+			auto &item = m_Array[Index];
+
+			std::swap(last, item);
+
+			if (!GetHandleTable()->SetHandleIndex(this, item.m_SelfHandle, Index)) {
+				AddLogf(Error, "Failed to move component handle index!");
+			}
+			GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
+			last.Reset();
+		}
+		m_Array.DeallocateLast();
+	}
 };
 
 } //namespace Component 
