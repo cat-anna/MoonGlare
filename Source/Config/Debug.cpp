@@ -16,7 +16,7 @@ namespace Config {
 namespace Debug {
 
 bool EnableFlags::Physics = true;
-bool EnableFlags::PhysicsDebugDraw = false;
+bool EnableFlags::PhysicsDebugDraw = true;
 
 bool EnableFlags::ShowTitleBarDebugInfo = true;
 
@@ -118,7 +118,7 @@ void eAsserationError::DescribeSender(std::stringstream &ss, const cRootClass *s
 
 //---------------------------------------------------------------------------------------
 
-#ifdef _FEATURE_TEXTURE_INTROSCPECTOR_
+#ifndef _FEATURE_TEXTURE_INTROSCPECTOR_
 struct TextureInstrospectorData {
 	int TexIndex = -1;
 	bool Initialized = false;
@@ -127,35 +127,38 @@ struct TextureInstrospectorData {
 
 TextureInstrospectorData TextureInstrospector;
 
-void TextureInstrospectorControll(Utils::Scripts::TableDispatcher &table) {
-	int next = table.getInt("next", 0);
-	if (next != 0)
-		TextureInstrospector.TexIndex += next;
-	else
-		TextureInstrospector.TexIndex = table.getInt("id", -1);
-
-	AddLogf(Hint, "TextureInstrospector id:%d", TextureInstrospector.TexIndex);
-}
-
+//void TextureInstrospectorControll(Utils::Scripts::TableDispatcher &table) {
+//	int next = table.getInt("next", 0);
+//	if (next != 0)
+//		TextureInstrospector.TexIndex += next;
+//	else
+//		TextureInstrospector.TexIndex = table.getInt("id", -1);
+//
+//	AddLogf(Hint, "TextureInstrospector id:%d", TextureInstrospector.TexIndex);
+//}
+//
 void TextureInstrospectorApi(ApiInitializer &root) {
 	root
-		.addFunction("TextureInstrospector", Utils::Scripts::TableStaticCallDispatcher::get<&TextureInstrospectorControll>())
+		//.addFunction("TextureInstrospector", Utils::Scripts::TableStaticCallDispatcher::get<&TextureInstrospectorControll>())
+		.addVariable("Index", &TextureInstrospector.TexIndex)
 	;
 }
 
-RegisterDebugApi(TextureDebug, &TextureInstrospectorApi);
+RegisterApiNonClass(TextureDebug, &TextureInstrospectorApi);
 
 void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 //#if 0
 	if (TextureInstrospector.TexIndex >= 0) {
 		dev.SetModelMatrix(math::mat4());
 		dev.CurrentShader()->SetBackColor(math::vec3(1));
+
+		auto size = math::fvec2(dev.GetContextSize());
+		glViewport(0, 0, size[0], size[1]);
 		 
 		if (!TextureInstrospector.Initialized) {
 			TextureInstrospector.Initialized = true;
-			auto size = math::fvec2(dev.GetContextSize());
-			float h = size[0];
-			float w = size[1];
+			float h = size[1];
+			float w = size[0];
 			float hh = h / 2.0f;
 			float hw = w / 2.0f; 
 			Graphic::VertexVector coords =  {
@@ -179,7 +182,7 @@ void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		//TextureInstrospector.vao.DrawElements(4, 0, 0, GL_QUADS);
 		glBindTexture(GL_TEXTURE_2D, TextureInstrospector.TexIndex);
-		//TextureInstrospector.vao.DrawElements(4, 0, 0, GL_QUADS);
+		TextureInstrospector.vao.DrawElements(4, 0, 0, GL_QUADS);
 	}
 //#endif
 }
