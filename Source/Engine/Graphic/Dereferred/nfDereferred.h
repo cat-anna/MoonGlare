@@ -4,6 +4,9 @@
 namespace Graphic {
 namespace Dereferred {
 
+class DereferredFrameBuffer;
+class DereferredPipeline;
+
 class SpotLightShader;
 class PointLightShader;
 class DirectionalLightShader;
@@ -20,7 +23,6 @@ struct SamplerIndex {
 		PlaneShadow = 5,
 	};
 };
-
 
 } // namespace Dereferred
 } // namespace Graphic

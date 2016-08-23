@@ -9,7 +9,6 @@
 #ifndef LightComponent_H
 #define LightComponent_H
 
-#include <libSpace/src/Container/StaticVector.h>
 
 #include <Core/Component/AbstractComponent.h>
 

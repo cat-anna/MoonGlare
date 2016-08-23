@@ -5,6 +5,7 @@
 */
 #include <pch.h>
 #include "../Graphic.h"
+#include "DereferredFrameBuffer.h"
 
 namespace Graphic {
 namespace Dereferred {

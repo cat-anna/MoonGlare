@@ -7,6 +7,8 @@
 #include "DirectionalLightShader.h"
 #include "SpotLightShader.h"
 
+#include "DereferredPipeline.h"
+
 #include <Renderer/RenderInput.h>
 
 namespace Graphic {

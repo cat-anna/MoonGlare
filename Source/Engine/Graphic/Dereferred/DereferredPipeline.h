@@ -8,6 +8,11 @@
 #ifndef DerefferedPipeline_H
 #define DerefferedPipeline_H
 
+#include "DereferredFrameBuffer.h"
+#include "../PlaneShadowMap.h"
+
+#include <libSpace/src/Container/StaticVector.h>
+
 namespace Graphic {
 namespace Dereferred {
 

@@ -7,7 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Renderer/Light.h>
+#include <Renderer/RenderInput.h>
 #include <Graphic/Light.h>
 
 #include "LightComponent.h"

@@ -8,7 +8,7 @@
 #ifndef LightingPassShader_H
 #define LightingPassShader_H
 
-#include "../Light.h"
+#include <Renderer/Light.h>
 #include "../PlaneShadowMap.h"
 
 namespace Graphic {
