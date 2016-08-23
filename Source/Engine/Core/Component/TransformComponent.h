@@ -53,7 +53,7 @@ public:
 		Physics::vec3 m_Scale;
 
 		math::Transform m_LocalTransform;
-//		Physics::Transform m_GlobalTransform;
+		math::Transform m_GlobalTransform;
 //		Physics::Transform m_CenterOfMass;
 
 		Configuration::RuntimeRevision m_Revision;
