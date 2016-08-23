@@ -30,7 +30,7 @@ BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner)
 	DebugMemorySetClassName("BodyComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Array.Allocated();
-		counter.Capacity = m_Array.size();
+		counter.Capacity = m_Array.Capacity();
 		counter.ElementSize = sizeof(BodyEntry);
 	});
 }
