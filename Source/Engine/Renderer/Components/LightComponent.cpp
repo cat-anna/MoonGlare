@@ -8,10 +8,8 @@
 #include <MoonGlare.h>
 
 #include <Renderer/RenderInput.h>
-#include <Graphic/Light.h>
 
 #include "LightComponent.h"
-
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
