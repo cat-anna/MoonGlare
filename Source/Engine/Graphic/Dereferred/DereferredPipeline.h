@@ -8,6 +8,11 @@
 #ifndef DerefferedPipeline_H
 #define DerefferedPipeline_H
 
+#include "DereferredFrameBuffer.h"
+#include "../PlaneShadowMap.h"
+
+#include <libSpace/src/Container/StaticVector.h>
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -23,16 +28,16 @@ public:
 	bool Execute(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
 
 	void BeginFrame(cRenderDevice& dev);
-	bool RenderShadows(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
-	bool RenderGeometry(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
-	bool RenderLights(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
+	bool RenderShadows(RenderInput *ri, cRenderDevice& dev);
+	bool RenderGeometry(RenderInput *ri, cRenderDevice& dev);
+	bool RenderLights(RenderInput *ri, cRenderDevice& dev);
 
 	//bool RenderPointLightsShadows(Core::ciScene *scene, Light::PointLightList &lights, cRenderDevice& dev);
-	bool RenderSpotLightsShadows(const MoonGlare::Core::MoveConfig &conf, Light::SpotLightList &lights, cRenderDevice& dev);
+	bool RenderSpotLightsShadows(RenderInput *ri, cRenderDevice& dev);
 
-	bool RenderPointLights(Light::PointLightList &lights, cRenderDevice& dev);
-	bool RenderDirectionalLights(Light::DirectionalLightList &lights, cRenderDevice& dev);
-	bool RenderSpotLights(Light::SpotLightList &lights, cRenderDevice& dev);
+	bool RenderPointLights(RenderInput *ri, cRenderDevice& dev);
+	bool RenderDirectionalLights(RenderInput *ri, cRenderDevice& dev);
+	bool RenderSpotLights(RenderInput *ri, cRenderDevice& dev);
 
 	void FinalPass(const uvec2 &size);
 	void EndFrame();
@@ -54,8 +59,10 @@ private:
 	DirectionalLightShader *m_DirectionalLightShader;
 	SpotLightShader *m_SpotLightShader;
 	
-	::DataClasses::ModelPtr m_Sphere, m_Cone;
+	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
+
+	Space::Container::StaticVector<PlaneShadowMap, 1024> m_PlaneShadowMapBuffer;
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 

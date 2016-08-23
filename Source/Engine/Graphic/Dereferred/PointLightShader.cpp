@@ -6,6 +6,9 @@
 #include <pch.h>
 #include "../Graphic.h"
 
+#include "LightingShader.h"
+#include "PointLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -22,9 +25,6 @@ PointLightShader::PointLightShader(GLuint ShaderProgram, const string &ProgramNa
 	m_ColorLocation						= Location("PointLight.Base.Color");
 	m_AmbientIntensityLocation			= Location("PointLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation			= Location("PointLight.Base.DiffuseIntensity");
-//bind default light parameters
-	Light::PointLight pl;
-	Bind(pl);
 }  
    
 PointLightShader::~PointLightShader() {

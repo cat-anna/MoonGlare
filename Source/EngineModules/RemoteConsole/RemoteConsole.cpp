@@ -97,8 +97,9 @@ void RemoteConsole::ThreadEntry() {
 			switch (header->MessageType) {
 			case MessageTypes::ExecuteCode: {
 				AddLogf(Info, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-			//	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
-				THROW_ASSERT(false, "Remote console does not use new lua api!");
+				MoonGlare::Core::GetScriptEngine()->ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+			//	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode
+				//THROW_ASSERT(false, "Remote console does not use new lua api!");
 				//auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
 				//payload->ReturnCode = ret;
 				//header->MessageType = MessageTypes::ExecutionResult;

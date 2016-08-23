@@ -17,8 +17,6 @@
 #include "VAO.h"
 #include "SkyCube.h"
 #include "FrameBuffer.h"
-#include "PlaneShadowMap.h"
-#include "Light.h"
 
 #include "Shaders/nShaders.h"
 

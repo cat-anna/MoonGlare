@@ -4,6 +4,10 @@
 #include "Console.h"
 #include <Core/InputMap.h>
 
+#include <Graphic/Dereferred/DereferredPipeline.h>
+
+#include <Renderer/RenderInput.h>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -157,7 +161,7 @@ void Engine::EngineMain() {
 	float LastMoveTime = CurrentTime;
 
 	MoveConfig conf;
-	conf.RenderList.reserve(2048);
+	conf.m_RenderInput = dev.CreateRenderInput();
 
 	while (m_Running) {
 		CurrentTime = static_cast<float>(glfwGetTime());
@@ -284,6 +288,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	auto &dev = *Graphic::GetRenderDevice();
 	auto devsize = dev.GetContext()->Size();
 
+	conf.m_RenderInput->OnBeginFrame();
 	dev.DispatchContextManipRequests();
 	
 	dev.BeginFrame();
@@ -310,17 +315,17 @@ void Engine::DoRender(MoveConfig &conf) {
 		m_CurrentScene->GetGUI()->Draw(dev);
 	glDisable(GL_BLEND);
 #ifdef DEBUG   
-	//Config::Debug::ProcessTextureIntrospector(dev);
+	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, 1);
 	m_Forward->EndFrame();
+	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();
 } 
 
 void Engine::DoMove(MoveConfig &conf) {
-	conf.RenderList.clear();
 	conf.Scene = nullptr;
 
 	m_TimeEvents.CheckEvents(conf);

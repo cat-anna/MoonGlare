@@ -1,0 +1,120 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.LightComponent"
+
+Use(Global.MoonGlare.x2c.Math.RGB)
+
+Enum.import {
+	name = "LightType",
+	location = "::MoonGlare::Renderer::Light::LightType",
+	default = "Unknown",
+}
+
+Structure.import {
+	name = "LightAttenuation",
+	location = "::MoonGlare::Renderer::Light::LightAttenuation",
+	fields = {
+		{
+			name = "Constant",
+			type = Types.float,
+			require = true,
+			default = 0,
+		},	
+		{
+			name = "Linear",
+			type = Types.float,
+			require = true,
+			default = 0.9,
+		},	
+		{
+			name = "Exp",
+			type = Types.float,
+			require = true,
+			default = 0.2,
+		},	
+		{
+			name = "Threshold",
+			type = Types.float,
+			require = true,
+			default = 0.5,
+		},			
+	},
+	pugi = { useattribute = true, },
+}
+
+Structure.new {
+	name = "LightEntry",
+	fields = {
+		{
+			name = "Type",
+			type = Local.LightType,
+			require = true,
+		},	
+		{
+			name = "Active",
+			type = Types.bool,
+			require = false,
+			default = true,
+		},			
+		{
+			name = "CastShadows",
+			type = Types.bool,
+			require = false,
+			default = true,
+		},	
+		
+		{
+			name = "Color",
+			type = Local.RGB,
+			require = false,
+			default = { x = 1, y = 1, z = 1, },
+		},
+		{
+			name = "AmbientIntensity",
+			type = Types.float,
+			require = false,
+			default = 0.5,
+		},
+		{
+			name = "DiffuseIntensity",
+			type = Types.float,
+			require = false,
+			default = 0.5,
+		},
+		{
+			name = "Attenuation",
+			type = Local.LightAttenuation,
+			require = false,
+		},
+		{
+			name = "CutOff",
+			type = Types.float,
+			require = false,
+			default = 0.5,
+		},
+		
+		--{
+		--	name = "Mass",
+		--	type = Types.float,
+		--	require = false,
+		--	default = 0,
+		--},
+		--{
+		--	name = "AngularVelocity",
+		--	type = Local.Vec3,
+		--	require = false,
+		--},
+		--{
+		--	name = "AngularFactor",
+		--	type = Local.Vec3,
+		--	require = false,
+		--	default = { x = 1, y = 1, z = 1, },
+		--},
+		--{
+		--	name = "LinearFactor",
+		--	type = Local.Vec3,
+		--	require = false,
+		--	default = { x = 1, y = 1, z = 1, },
+		--},
+	},
+}

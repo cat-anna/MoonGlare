@@ -6,6 +6,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "LightingShader.h"
+#include "DirectionalLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -18,9 +21,6 @@ DirectionalLightShader::DirectionalLightShader(GLuint ShaderProgram, const strin
 	m_ColorLocation				= Location("DirectionalLight.Base.Color");
 	m_AmbientIntensityLocation	= Location("DirectionalLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation	= Location("DirectionalLight.Base.DiffuseIntensity");
-//bind default light parameters
-	Light::DirectionalLight pl;
-	Bind(pl);
 }  
    
 DirectionalLightShader::~DirectionalLightShader() {

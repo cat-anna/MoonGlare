@@ -1,7 +1,18 @@
 #ifndef NFGRAPHIC_H_
 #define NFGRAPHIC_H_
 
+namespace MoonGlare {
+namespace Renderer {
+
+struct RenderInput;
+
+}
+}
+
 namespace Graphic {
+
+	using ::MoonGlare::Renderer::RenderInput;
+
 	class cRenderDevice;
 	class LoadQueue;
 	struct MatrixStack;

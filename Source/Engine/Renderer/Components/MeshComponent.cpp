@@ -7,18 +7,19 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Renderer/RenderInput.h>
+
+#include "MeshComponent.h"
+
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
-
-#include "MeshComponent.h"
 
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
-RegisterApiNonClass(MeshComponent, &MeshComponent::RegisterScriptApi);
-RegisterComponentID<MeshComponent> MeshComponent("Mesh");
+RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 
 	: AbstractComponent(Owner)
@@ -72,8 +73,8 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
-	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 	auto *tc = GetManager()->GetTransformComponent();
+	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -88,17 +89,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 			continue;
 		}
 
-		if (!HandleTable->IsValid(this, item.m_SelfHandle)) {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			//mark and continue but set valid to false to avoid further checks
-			continue;
-		}
-
-		auto *tcentry = tc->GetEntry(item.m_Owner);
-
-		if (!tcentry) {
+		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
@@ -107,6 +98,15 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 		}
 
 		if (!item.m_Flags.m_Map.m_Visible) {
+			continue;
+		}
+
+		auto *tcentry = tc->GetEntry(item.m_Owner);
+		if (!tcentry) {
+			item.m_Flags.m_Map.m_Valid = false;
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			//mark and continue but set valid to false to avoid further checks
 			continue;
 		}
 
@@ -126,7 +126,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 		}
 
 		if (item.m_Flags.m_Map.m_MeshValid) {
-			conf.RenderList.push_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
+			RInput->m_RenderList.emplace_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
 		}
 	}
 
@@ -236,20 +236,6 @@ bool MeshComponent::Create(Entity Owner, Handle &hout) {
 	m_EntityMapper.SetHandle(entry.m_Owner, ch);
 
 	return true;
-}
-
-MeshComponent::MeshEntry *MeshComponent::GetEntry(Handle h) {
-	auto *ht = GetManager()->GetWorld()->GetHandleTable();
-	HandleIndex hi;
-	if (!ht->GetHandleIndex(this, h, hi)) {
-		//AddLog(Debug, "Attempt to get MeshEntry for invalid Entity!");
-		return nullptr;
-	}
-	return &m_Array[hi];
-}
-
-MeshComponent::MeshEntry *MeshComponent::GetEntry(Entity e) {
-	return GetEntry(m_EntityMapper.GetHandle(e));
 }
 
 } //namespace Component 

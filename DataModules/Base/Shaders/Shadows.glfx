@@ -21,15 +21,16 @@ shader Shadow_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out 
 }; 
 
 shader Shadow_fs(in VSOutput FSin) {
-	vec4 color = texture2D(Texture0, FSin.VertexUV0);
-	if(color.a < Material.AlphaThreshold) {
-	//	discard;
-		color.a = 0.0;
-		return;
-	}
-//	DiffuseOut	= color.xyz * Material.BackColor;
-//	WorldPosOut	= FSin.VertexWorldPos;					 out vec3 WorldPosOut : 0, out vec3 DiffuseOut : 1, out vec3 NormalOut : 2
-//	NormalOut	=  vec3(distance(LightPosition, WorldPosOut) / 20.0);
+	//vec4 color = texture2D(Texture0, FSin.VertexUV0);
+	//FragColor = color;
+	//if(color.a < Material.AlphaThreshold) {
+	////	discard;
+	//	color.a = 0.0;
+	//	return;
+	//}
+	//DiffuseOut	= color.xyz * Material.BackColor;
+	//WorldPosOut	= FSin.VertexWorldPos;					 out vec3 WorldPosOut : 0, out vec3 DiffuseOut : 1, out vec3 NormalOut : 2
+	//NormalOut	=  vec3(distance(LightPosition, WorldPosOut) / 20.0);
 };
 
 //--------------- 

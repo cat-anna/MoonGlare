@@ -17,9 +17,9 @@ public:
  	DirectionalLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~DirectionalLightShader();
 
-	void Bind(const Light::DirectionalLight &light) const {
-		BaseClass::Bind(light);
-		glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
+	void Bind(const ::MoonGlare::Renderer::Light::DirectionalLight &light) const {
+		BaseClass::BindLightBase(light.m_Base);
+		//glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
 	}
 protected:
 	GLuint m_DirectionLocation;

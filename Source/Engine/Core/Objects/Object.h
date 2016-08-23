@@ -42,7 +42,6 @@ public:
 	DefineREADAccesPTR(Scene, Core::GameScene);
 	virtual void SetOwnerScene(GameScene *Scene);
 	DefineREADAcces(PatternName, string);
-	iLightSource* GetLightSource() { return m_LightSource.get(); }
 	using BaseClass::SetName;
 
 	DefineDirectSetGet(SelfHandle, Handle);
@@ -55,7 +54,6 @@ protected:
 	Physics::Transform m_PositionTransform;
 	ObjectRegister *m_OwnerRegister;
 	Handle m_SelfHandle;
-	iLightSourcePtr m_LightSource;
 
 	Physics::CollisionMask m_CollisionMask;
 	Physics::BodyPtr m_Body;

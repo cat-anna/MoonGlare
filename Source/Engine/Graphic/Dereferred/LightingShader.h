@@ -8,6 +8,9 @@
 #ifndef LightingPassShader_H
 #define LightingPassShader_H
 
+#include <Renderer/Light.h>
+#include "../PlaneShadowMap.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -17,22 +20,11 @@ public:
  	LightingPassShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~LightingPassShader();
 
-	struct SamplerIndex {
-		enum {
-			Empty = 0,
-			Position,
-			Diffuse,
-			Normal,
-
-			PlaneShadow = 5,
-		};
-	};
-
-	void Bind(const Light::LightBase &light) const {
-		glUniform3fv(m_ColorLocation, 1, &light.Color[0]); 
-		glUniform1f(m_AmbientIntensityLocation, light.AmbientIntensity);
-		glUniform1f(m_DiffuseIntensityLocation, light.DiffuseIntensity);
-		glUniform1i(m_EnableShadowsLocation, light.CastShadows);
+	void BindLightBase(const ::MoonGlare::Renderer::Light::LightBase &light) const {
+		glUniform3fv(m_ColorLocation, 1, &light.m_Color[0]); 
+		glUniform1f(m_AmbientIntensityLocation, light.m_AmbientIntensity);
+		glUniform1f(m_DiffuseIntensityLocation, light.m_DiffuseIntensity);
+		glUniform1i(m_EnableShadowsLocation, light.m_Flags.m_CastShadows);
 	}
 
 	void SetShadowMapSize(const math::vec3 &size) {

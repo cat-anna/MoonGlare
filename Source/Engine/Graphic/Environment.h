@@ -31,7 +31,6 @@ public:
 			m_SkyCube.Render(dev);
 	}
 
-	Light::DirectionalLight& GetAmbientLight() { return m_AmbientLight; }
 	
 	/** Initialize environment.*/
 	bool Initialize();
@@ -39,7 +38,6 @@ public:
 	bool Finalize();
 protected:
 	StaticFog m_StaticFog;
-	Light::DirectionalLight m_AmbientLight;
 
 	bool m_HaveSkyCube;
 	SkyCube m_SkyCube;

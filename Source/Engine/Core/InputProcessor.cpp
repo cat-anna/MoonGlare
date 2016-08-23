@@ -66,7 +66,7 @@ bool InputProcessor::Initialize(World *world) {
 			AddLog(Error, "Failed to load input configuration");
 			return false;
 		}
-		AddLog(Info, "Loaded InputConfiguration from: %s", Configuration::Input::SettingsFileName);
+		AddLogf(Info, "Loaded InputConfiguration from: %s", Configuration::Input::SettingsFileName);
 	}
 
 	return true;
@@ -196,7 +196,7 @@ bool InputProcessor::Save(pugi::xml_node node) const {
 			x2c::Core::Input::KeyboardSwitch_t sw;
 			GetInputStateName(it.first, sw.m_Name);
 			for (auto key : list) {
-				auto index = key - &m_Keys[0];
+				auto index = static_cast<KeyId>(key - &m_Keys[0]);
 				sw.m_Keys.push_back(index);
 			}
 			conf.m_KeyboardSwitches.push_back(std::move(sw));
@@ -206,7 +206,7 @@ bool InputProcessor::Save(pugi::xml_node node) const {
 			x2c::Core::Input::KeyboardAxis_t ka;
 			GetInputStateName(it.first, ka.m_Name);
 			for (auto key : list) {
-				auto index = key - &m_Keys[0];
+				auto index = static_cast<KeyId>(key - &m_Keys[0]);
 				if (key->m_Flags.m_Positive)
 					ka.m_NegativeKeys.push_back(index);
 				else
@@ -325,6 +325,7 @@ InputState* InputProcessor::AllocInputState(InputState::Type type, const std::st
 	}
 
 	m_InputNames[Name] = static_cast<InputStateId>(outindex);
+	return &state;
 }
 
 KeyAction* InputProcessor::AllocKeyAction(KeyId kid, InputStateId isid, bool Positive) {

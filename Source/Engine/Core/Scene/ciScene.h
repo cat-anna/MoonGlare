@@ -85,8 +85,6 @@ public:
 
 	virtual void DoMove(const MoveConfig &conf);
 
-	virtual Graphic::Light::LightConfiguration* GetLightConfig();
-
 	int SetTimer(float secs, int TimerID, bool cyclic) { return SetProxyTimer(GetEventProxy(), secs, TimerID, cyclic); }
 	void KillTimer(int TimerID) { return KillProxyTimer(GetEventProxy(), TimerID); }
 	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }

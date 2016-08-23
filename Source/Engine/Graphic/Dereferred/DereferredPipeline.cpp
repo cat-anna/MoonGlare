@@ -1,6 +1,16 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "GeometryShader.h"
+#include "LightingShader.h"
+#include "PointLightShader.h"
+#include "DirectionalLightShader.h"
+#include "SpotLightShader.h"
+
+#include "DereferredPipeline.h"
+
+#include <Renderer/RenderInput.h>
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -58,6 +68,8 @@ bool DereferredPipeline::Initialize() {
 }     
        
 bool DereferredPipeline::Finalize() { 
+	for (auto &it : m_PlaneShadowMapBuffer)
+		it.Free();
 	//if (m_Sphere) m_Sphere->Finalize();
 	return true;  
 }
@@ -68,24 +80,17 @@ bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRende
 	if (!IsReady())
 		return false;
 
-	RenderShadows(conf, dev);
+	auto ri = conf.m_RenderInput.get();
+
+	RenderShadows(ri, dev);
 	BeginFrame(dev);
-	RenderGeometry(conf, dev);
-	RenderLights(conf, dev);
+	RenderGeometry(ri, dev);
+	RenderLights(ri, dev);
 
-	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
-		glEnable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
-
-		auto *sc = dynamic_cast<MoonGlare::Core::Scene::GameScene*>(conf.Scene);
-		if (sc) {
-			sc->GetPhysicsEngine().DoDebugDraw(dev);
-		}
-
-		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
+	for (auto *it : conf.CustomDraw) {
+		it->DefferedDraw(dev);
 	}
+	conf.CustomDraw.clear();
 
 	FinalPass(dev.GetContext()->Size());
 	EndFrame();
@@ -100,15 +105,13 @@ void DereferredPipeline::BeginFrame(cRenderDevice& dev) {
 	m_Buffer.BeginFrame(); 
 } 
  
-bool DereferredPipeline::RenderShadows(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
-	auto *lconf = conf.Scene->GetLightConfig();
-	if (!lconf) return true;
+bool DereferredPipeline::RenderShadows(RenderInput *ri, cRenderDevice& dev) {
 	  
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);  
 
-	RenderSpotLightsShadows(conf, lconf->SpotLights, dev);
+	RenderSpotLightsShadows(ri, dev);
 
 	//float Width = (float)::Settings->Window.Width;
 	//float Height = (float)::Settings->Window.Height;
@@ -118,27 +121,32 @@ bool DereferredPipeline::RenderShadows(const MoonGlare::Core::MoveConfig &conf, 
 	return true;
 }
 
-bool DereferredPipeline::RenderSpotLightsShadows(const MoonGlare::Core::MoveConfig &conf, Light::SpotLightList &lights, cRenderDevice& dev) {
-	if (lights.empty()) return true;
-	//glEnable(GL_CULL_FACE); 
-	//glCullFace(GL_FRONT);
-	for (auto &light : lights) {
-		if (!light->CastShadows)
+bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice& dev) {
+	if (ri->m_SpotLights.empty()) return true;
+
+	int index = 0;
+	for (auto &light : ri->m_SpotLights) {
+		if (!light.m_Base.m_Flags.m_CastShadows)
 			continue;
-		dev.SetCameraMatrix(light->LightMatrix); 
-		light->ShadowMap.BindAndClear();
+
+		auto &sm = m_PlaneShadowMapBuffer[index];
+		if (!sm)
+			sm.New();
+		++index;
+
+		dev.SetCameraMatrix(light.m_ViewMatrix); 
+		sm.BindAndClear();
 		dev.Bind(m_ShadowMapShader); 
-		m_ShadowMapShader->SetLightPosition(light->Position);
-		for (auto it : conf.RenderList) {
+		m_ShadowMapShader->SetLightPosition(light.m_Position);
+		for (auto it : ri->m_RenderList) {
 			dev.SetModelMatrix(it.first);
-			it.second->DoRenderMesh(dev);
+			it.second->DoRender(dev);
 		}
 	}           
-	//glDisable(GL_CULL_FACE); 
 	return true;     
 }
  
-bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
+bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 	dev.Bind(m_GeometryShader);
 	m_Buffer.BeginGeometryPass(); 
 	glDepthMask(GL_TRUE);
@@ -148,7 +156,7 @@ bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf,
 
 	//dev.Bind(conf.Camera);
 	dev.SetModelMatrix(math::mat4());
-	for (auto it : conf.RenderList) {
+	for (auto it : ri->m_RenderList) {
 		dev.SetModelMatrix(it.first);
 		it.second->DoRender(dev);
 	}
@@ -156,26 +164,24 @@ bool DereferredPipeline::RenderGeometry(const MoonGlare::Core::MoveConfig &conf,
 	return true;
 }
 
-bool DereferredPipeline::RenderLights(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev) {
-	auto *lconf = conf.Scene->GetLightConfig();
-	if (!lconf) return true;
+bool DereferredPipeline::RenderLights(RenderInput *ri, cRenderDevice& dev) {
 	glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
-	RenderPointLights(lconf->PointLights, dev);
-	RenderDirectionalLights(lconf->DirectionalLights, dev);
-	RenderSpotLights(lconf->SpotLights, dev);
+	RenderPointLights(ri, dev);
+	RenderDirectionalLights(ri, dev);
+	RenderSpotLights(ri, dev);
 	return true;
 }
 
-bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRenderDevice& dev) {
-	if (lights.empty()) return true;
+bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) {
+	if (ri->m_PointLights.empty()) return true;
 
 	StencilTestEnabler Stencil;
 
-	for (auto &light : lights) {
-		math::mat4 mat; 
-		mat = glm::translate(mat, light->Position);
-		mat = glm::scale(mat, math::vec3(light->InfluenceRadius));
+	for (auto &light : ri->m_PointLights) {
+		//math::mat4 mat; 
+		//light.m_SourceTransform.getOpenGLMatrix(&mat[0][0]);
+		//mat = glm::scale(mat, math::vec3(light.CalcPointLightInfluenceRadius()));
 //shadow pass
 
 //stencil pass
@@ -188,12 +194,12 @@ bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRende
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-		dev.SetModelMatrix(mat);
+		dev.SetModelMatrix(light.m_PositionMatrix);
 		m_Sphere->DoRender(dev);
 //light pass	  
 		dev.Bind(m_PointLightShader); 
 		m_Buffer.BeginLightingPass(); 
-		m_PointLightShader->Bind(*light); 
+		m_PointLightShader->Bind(light); 
 
 		glEnable(GL_BLEND);    
 		glBlendEquation(GL_FUNC_ADD); 
@@ -203,7 +209,7 @@ bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRende
 		glEnable(GL_CULL_FACE);  
 		glCullFace(GL_FRONT);  
 		           
-		dev.SetModelMatrix(mat); 
+		dev.SetModelMatrix(light.m_PositionMatrix);
 		m_Sphere->DoRender(dev);  
 
 		glCullFace(GL_BACK);
@@ -214,8 +220,8 @@ bool DereferredPipeline::RenderPointLights(Light::PointLightList &lights, cRende
 	return true;
 }
 
-bool DereferredPipeline::RenderDirectionalLights(Light::DirectionalLightList &lights, cRenderDevice& dev) {
-	if (lights.empty()) return true;
+bool DereferredPipeline::RenderDirectionalLights(RenderInput *ri, cRenderDevice& dev) {
+	if (ri->m_DirectionalLights.empty()) return true;
 
 	dev.Bind(m_DirectionalLightShader);
 	//((Shader*)m_DirectionalLightShader)->Bind();
@@ -228,8 +234,8 @@ bool DereferredPipeline::RenderDirectionalLights(Light::DirectionalLightList &li
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	m_DirectionalQuad.Bind();
-	for (auto &light : lights) {
-		m_DirectionalLightShader->Bind(*light);
+	for (auto &light : ri->m_DirectionalLights) {
+		m_DirectionalLightShader->Bind(light);
 		m_DirectionalQuad.DrawElements(4, 0, 0, GL_QUADS);
 	}
 	m_DirectionalQuad.UnBind();
@@ -237,21 +243,13 @@ bool DereferredPipeline::RenderDirectionalLights(Light::DirectionalLightList &li
 	return true;
 }
  
-bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderDevice& dev) {
-	if (lights.empty()) return true;
+bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
+	if (ri->m_SpotLights.empty()) return true;
 
 	StencilTestEnabler Stencil;
 
-	for (auto &light : lights) {
-		//math::mat4 mat = glm::lookAt(light->Position, light->Position - light->Direction, glm::vec3(0, -1, 0));
-		math::mat4 mat = glm::lookAt(math::vec3(), -light->Direction, glm::vec3(0, -1, 0));//TODO: calculate up vector!
-		mat = glm::translate(math::mat4(), light->Position) * mat;
-
-		//auto scale = math::vec3(light->InfluenceDistance);
-		//auto mat = light->ViewMatrix;
-		auto scale = math::vec3(light->DistanceRadius);// , light->DistanceRadius, light->InfluenceDistance);
-		for (int i = 0; i < 3; ++i) 
-			mat[i] *= scale[i];  
+	int index = 0;
+	for (auto &light : ri->m_SpotLights) {
 //stencil pass
 		m_Buffer.BeginStencilPass(); 
 		dev.Bind(m_StencilShader); 
@@ -263,16 +261,20 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-		dev.SetModelMatrix(mat);
-		m_Cone->DoRender(dev); 
-	
+		dev.SetModelMatrix(light.m_PositionMatrix);
+		//m_Cone->DoRender(dev); 
+		m_Sphere->DoRender(dev);
+
+		auto &sm = m_PlaneShadowMapBuffer[index];
+		++index;
+
 //light pass
 		dev.Bind(m_SpotLightShader);
 		m_Buffer.BeginLightingPass();   
-		m_SpotLightShader->Bind(*light); 
 
-		m_SpotLightShader->BindShadowMap(light->ShadowMap);
-		m_SpotLightShader->SetLightMatrix(light->LightMatrix);
+		m_SpotLightShader->BindShadowMap(sm);
+		m_SpotLightShader->SetLightMatrix(light.m_ViewMatrix);
+		m_SpotLightShader->Bind(light);
 
 		glEnable(GL_BLEND);      
 		glBlendEquation(GL_FUNC_ADD);    
@@ -285,19 +287,15 @@ bool DereferredPipeline::RenderSpotLights(Light::SpotLightList &lights, cRenderD
 		glActiveTexture(GL_TEXTURE0);   
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		dev.SetModelMatrix(mat);   
-		m_Cone->DoRender(dev);  
+		dev.SetModelMatrix(light.m_PositionMatrix);
+		//m_Cone->DoRender(dev);
+		m_Sphere->DoRender(dev);
 
-		//glActiveTexture(GL_TEXTURE0 + 5); 
-		//GLint whichID;
-		//glGetIntegerv(GL_TEXTURE_BINDING_2D, &whichID);
-		//glGetUniformiv(m_SpotLightShader->Handle(), m_SpotLightShader->Location("PlaneShadowMap"), &whichID);
-		 
 		glCullFace(GL_BACK);
 		glDisable(GL_BLEND); 
 		glDisable(GL_CULL_FACE);   
 	}  
-  
+
 	return true;  
 }
 

@@ -17,15 +17,15 @@ public:
  	SpotLightShader(GLuint ShaderProgram, const string &ProgramName);
  	virtual ~SpotLightShader();
 
-	void Bind(const Light::SpotLight &light) const {
-		BaseClass::Bind(light);
-		glUniform3fv(m_PositionLocation, 1, &light.Position[0]); 
-		glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
-		glUniform1f(m_CutOffLocation, light.CutOff);
-		glUniform1f(m_AttenuationLinearLocation, light.Attenuation.Linear);
-		glUniform1f(m_AttenuationExpLocation, light.Attenuation.Exp);
-		glUniform1f(m_AttenuationConstantLocation, light.Attenuation.Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.Attenuation.MinThreshold);
+	void Bind(const ::MoonGlare::Renderer::Light::SpotLight &light) const {
+		BaseClass::BindLightBase(light.m_Base);
+		glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]);
+		glUniform3fv(m_DirectionLocation, 1, &light.m_Direction[0]);
+		glUniform1f(m_CutOffLocation, light.m_CutOff);
+		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
+		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
+		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
+		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
 	}
 protected:
 	GLuint m_DirectionLocation;

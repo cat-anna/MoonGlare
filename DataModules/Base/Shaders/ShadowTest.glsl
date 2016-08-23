@@ -35,7 +35,8 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 
 	m = 1.0 - m / pow(delta*2+1, 2);
 
-	//if (m <= 0)
+	if (m < 0) 
+		m = 0;
 		//discard;
 	return m;
 }

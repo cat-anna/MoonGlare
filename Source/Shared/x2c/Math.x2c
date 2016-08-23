@@ -1,0 +1,111 @@
+Import "Common.x2c"
+
+namespace "MoonGlare.x2c.Math"
+
+Structure.field.prefix ""
+
+Structure.import {
+	location = "::math::vec2",
+	name = "Vec2",
+	fields = {
+		{
+			name = "x",
+			type = Types.float,
+			pugi = { alias = "X", },
+			require = false,
+		},
+		{
+			name = "y",
+			type = Types.float,
+			pugi = { alias = "Y", },
+			require = false,
+		},
+	},
+	pugi = { useattribute = true, },
+}
+
+Structure.import {
+	location = "::math::vec3",
+	name = "Vec3",
+	fields = {
+		{
+			name = "x",
+			type = Types.float,
+			pugi = { alias = "X", },
+			require = false,
+		},
+		{
+			name = "y",
+			type = Types.float,
+			pugi = { alias = "Y", },
+			require = false,
+		},
+		{
+			name = "z",
+			type = Types.float,
+			pugi = { alias = "Z", },
+			require = false,
+		},
+	},
+	require = "all",
+	pugi = { useattribute = true, },
+}
+
+Structure.import {
+	location = "::math::vec4",
+	name = "Vec4",
+	fields = {
+		{
+			name = "x",
+			type = Types.float,
+			pugi = { alias = "X", },
+			require = false,
+		},
+		{
+			name = "y",
+			type = Types.float,
+			pugi = { alias = "Y", },
+			require = false,
+		},
+		{
+			name = "z",
+			type = Types.float,
+			pugi = { alias = "Z", },
+			require = false,
+		},
+		{
+			name = "w",
+			type = Types.float,
+			pugi = { alias = "W", },
+			require = false,
+		},
+	},
+	pugi = { useattribute = true, },
+}
+
+Structure.import {
+	location = "::math::vec3",
+	name = "RGB",
+	fields = {
+		{
+			name = "x",
+			type = Types.float,
+			pugi = { alias = "R", },
+			require = false,
+		},
+		{
+			name = "y",
+			type = Types.float,
+			pugi = { alias = "G", },
+			require = false,
+		},
+		{
+			name = "z",
+			type = Types.float,
+			pugi = { alias = "B", },
+			require = false,
+		},
+	},
+	require = "all",
+	pugi = { useattribute = true, },
+}

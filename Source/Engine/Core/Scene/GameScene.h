@@ -31,12 +31,8 @@ public:
 	virtual void EndScene() override;
 
 	virtual void DoMove(const MoveConfig &conf) override;
-	virtual Graphic::Light::LightConfiguration* GetLightConfig();
 
 	Physics::PhysicEngine& GetPhysicsEngine() { return *m_Physics; }
-
-	void AddLightSource(Core::Objects::iLightSource *ptr);
-	void RemoveLightSource(Core::Objects::iLightSource *ptr);
 
 	Object* GetObjectByName(const string& Name);
 //	const Objects::ObjectList& GetObjectsByName(const string& Name);
@@ -53,7 +49,6 @@ protected:
 
 	Physics::PhysicEnginePtr m_Physics;
 	Graphic::Environment m_Environment;
-	Graphic::Light::LightConfiguration m_LightConfiguration;
 	Handle m_PlayerHandle;
 
 	virtual bool DoInitialize() override;

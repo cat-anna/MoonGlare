@@ -6,6 +6,9 @@
 #include <pch.h>
 #include "../Graphic.h"
 
+#include "LightingShader.h"
+#include "SpotLightShader.h"
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -24,10 +27,6 @@ SpotLightShader::SpotLightShader(GLuint ShaderProgram, const string &ProgramName
 	m_ColorLocation						= Location("SpotLight.Base.Color");
 	m_AmbientIntensityLocation			= Location("SpotLight.Base.AmbientIntensity");
 	m_DiffuseIntensityLocation			= Location("SpotLight.Base.DiffuseIntensity");
-	  
-//bind default light parameters 
-	Light::SpotLight pl; 
-	Bind(pl);  
 }       
       
 SpotLightShader::~SpotLightShader() {

@@ -138,11 +138,6 @@ void ciScene::DoMove(const MoveConfig &conf) {
 	m_ComponentManager.Step(conf);
 }
 
-Graphic::Light::LightConfiguration* ciScene::GetLightConfig() {
-	//nothing here
-	return 0;
-}
-
 //----------------------------------------------------------------
 
 int ciScene::InvokeOnTimer(int TimerID) { SCRIPT_INVOKE(OnTimer, TimerID); }

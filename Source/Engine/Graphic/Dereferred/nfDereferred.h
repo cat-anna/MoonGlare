@@ -4,7 +4,27 @@
 namespace Graphic {
 namespace Dereferred {
 
+class DereferredFrameBuffer;
+class DereferredPipeline;
+
+class SpotLightShader;
+class PointLightShader;
+class DirectionalLightShader;
+class LightingPassShader;
+class GeometryPassShader;
+
+struct SamplerIndex {
+	enum {
+		Empty = 0,
+		Position,
+		Diffuse,
+		Normal,
+
+		PlaneShadow = 5,
+	};
+};
 
 } // namespace Dereferred
 } // namespace Graphic
+
 #endif // GRAPHICMATERIAL_H
