@@ -105,7 +105,7 @@ void Debug::CheckInstances() {
 			AddLog(Error, "Remain instances:");
 			hdr = true;
 		}
-		AddLogf(Error, "remain: %3d Class: '%s' ", (*it)->InstancesCount, (*it)->GetFullName());
+		AddLogf(Error, "remain: %3d Class: '%s' ", (*it)->InstancesCount, (*it)->GetName());
 	}
 }
 #endif 
