@@ -19,20 +19,7 @@ namespace Component {
 
 using namespace Core::Component;
 
-class MeshComponent
-	: public AbstractComponent
-	, public ComponentIDWrap<ComponentIDs::Mesh> {
-public:
-	MeshComponent(ComponentManager *Owner);
-	virtual ~MeshComponent();
-	virtual bool Initialize() override;
-	virtual bool Finalize() override;
-	virtual void Step(const Core::MoveConfig &conf) override;
-	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) override;
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
-	virtual bool Create(Entity Owner, Handle &hout) override;
-
+struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponentEntry> {
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
@@ -49,39 +36,50 @@ public:
 		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 	};
 
-	struct MeshEntry {
-		FlagsMap m_Flags;
-		Entity m_Owner;
-		Handle m_SelfHandle;
-		Handle m_MeshHandle;
-		DataClasses::ModelPtr m_Model;
-		std::string m_ModelName;
+	FlagsMap m_Flags;
+	Entity m_Owner;
+	Handle m_SelfHandle;
+	Handle m_MeshHandle;
+	DataClasses::ModelPtr m_Model;
+	std::string m_ModelName;
 
-		bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
-		void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
+	bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
+	void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
 
-		void SetMeshHandle(Handle h) {
-			m_MeshHandle = h;
-			m_Model.reset();
-			m_Flags.m_Map.m_MeshHandleChanged = true;
-		}
-		Handle GetMeshHandle() const { return m_MeshHandle; }
-		void SetModel(const char *name) {
-			m_ModelName = name;
-			m_Flags.m_Map.m_MeshHandleChanged = true;
-		}
+	void SetMeshHandle(Handle h) {
+		m_MeshHandle = h;
+		m_Model.reset();
+		m_Flags.m_Map.m_MeshHandleChanged = true;
+	}
+	Handle GetMeshHandle() const { return m_MeshHandle; }
+	void SetModel(const char *name) {
+		m_ModelName = name;
+		m_Flags.m_Map.m_MeshHandleChanged = true;
+	}
 
-		void Reset() {
-			m_Flags.m_Map.m_Valid = false;
-			m_Model.reset();
-			m_ModelName.clear();
-		}
-	};
+	void Reset() {
+		m_Flags.m_Map.m_Valid = false;
+		m_Model.reset();
+		m_ModelName.clear();
+	}
+};
+
+class MeshComponent
+	: public TemplateStandardComponent<MeshComponentEntry, ComponentIDs::Mesh>
+	, public ::Space::RTTI::TemplateTypeInfo<MeshComponent> {
+public:
+	MeshComponent(ComponentManager *Owner);
+	virtual ~MeshComponent();
+	virtual bool Initialize() override;
+	virtual bool Finalize() override;
+	virtual void Step(const Core::MoveConfig &conf) override;
+	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+	virtual bool Create(Entity Owner, Handle &hout) override;
+
 //	static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
 //	static_assert(std::is_pod<MeshEntry>::value, "ScriptEntry must be pod!");
 
-	MeshEntry* GetEntry(Handle h) { return TemplateGetEntry(this, m_Array, h); }
-	MeshEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
+	using MeshEntry = MeshComponentEntry;
 
 	static void RegisterScriptApi(ApiInitializer &root);
 private:
@@ -89,7 +87,6 @@ private:
 
 	Array<MeshEntry> m_Array;
 	Core::EntityMapper m_EntityMapper;
-
 	void ReleaseElement(size_t Index);
 };
 

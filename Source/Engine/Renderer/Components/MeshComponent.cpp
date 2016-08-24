@@ -22,7 +22,7 @@ namespace Component {
 RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 
-	: AbstractComponent(Owner)
+	: TemplateStandardComponent(Owner)
 {
 
 	DebugMemorySetClassName("MeshComponent");
@@ -46,18 +46,6 @@ void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
 		.addFunction("SetModel", &MeshEntry::SetModel)
 	.endClass()
 	;
-}
-
-bool MeshComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
-	auto entry = GetEntry(h);
-	if (!entry) {
-		return true;
-	}
-
-	luarets = 1;
-	luabridge::Stack<MeshEntry*>::push(lua, entry);
-
-	return true;
 }
 
 //------------------------------------------------------------------------------------------
@@ -198,15 +186,6 @@ void MeshComponent::ReleaseElement(size_t Index) {
 		last.Reset();
 	}
 	m_Array.DeallocateLast();
-}
-
-bool MeshComponent::GetInstanceHandle(Entity Owner, Handle &hout) {
-	auto h = m_EntityMapper.GetHandle(Owner);
-	if (!GetHandleTable()->IsValid(this, h)) {
-		return false;
-	}
-	hout = h;
-	return true;
 }
 
 bool MeshComponent::Create(Entity Owner, Handle &hout) {
