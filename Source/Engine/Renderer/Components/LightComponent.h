@@ -9,7 +9,6 @@
 #ifndef LightComponent_H
 #define LightComponent_H
 
-
 #include <Core/Component/AbstractComponent.h>
 
 namespace MoonGlare {

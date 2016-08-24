@@ -28,7 +28,7 @@ void Interfaces::RegisterScriptApi(ApiInitializer &api) {
 void Interfaces::DumpLists(ostream &out) {
 	auto regdump = [&out](const Space::TemplateClassListBase::ClassInfoBase &type) {
 		char buffer[256];
-		sprintf(buffer, "%30s  [class %s]\n", type.Alias.c_str(), (type.TypeInfo ? type.TypeInfo->GetFullName() : "?"));
+		sprintf(buffer, "%30s  [class %s]\n", type.Alias.c_str(), (type.TypeInfo ? type.TypeInfo->GetName() : "?"));
 		out << buffer;
 	};
 	out << "\nModel class list\n";

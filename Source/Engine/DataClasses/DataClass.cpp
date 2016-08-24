@@ -113,7 +113,7 @@ void DataClass::InternalInfo(std::ostringstream& buff) const {
 }
 
 void DataClass::WriteNameToXML(xml_node Node) const {
-	Node.append_attribute("Class") = GetDynamicTypeInfo()->Name;
+	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
 	Node.append_attribute("Name") = GetName().c_str();
 }
 

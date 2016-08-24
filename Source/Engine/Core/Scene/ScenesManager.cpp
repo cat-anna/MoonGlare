@@ -48,7 +48,7 @@ bool ScenesManager::Initialize() {
 //register backstage scene
 		ciScene *ptr = new BackstageScene();
 		auto &sd = AllocDescriptor(ptr->GetName(), SceneType::Backstage);
-		sd.Class = BackstageScene::GetStaticTypeInfo()->Name;
+		sd.Class = BackstageScene::GetStaticTypeInfo()->GetName();
 		sd.ptr.reset(ptr);
 		sd.ptr->Initialize();
 		m_SceneStack.push_back(&sd);
@@ -57,7 +57,7 @@ bool ScenesManager::Initialize() {
 //register engine loading scene
 		ciScene *ptr = new EngineLoadScene();
 		auto &sd = AllocDescriptor(ptr->GetName(), SceneType::Internal);
-		sd.Class = EngineLoadScene::GetStaticTypeInfo()->Name;
+		sd.Class = EngineLoadScene::GetStaticTypeInfo()->GetName();
 		sd.ptr.reset(ptr);
 		sd.ptr->Initialize();
 		m_SceneStack.push_back(&sd);
@@ -66,7 +66,7 @@ bool ScenesManager::Initialize() {
 //register default loading scene
 		//ciScene *ptr = new EngineLoadScene();
 		auto &sd = AllocDescriptor(LoadingSceneName, SceneType::External);
-		sd.Class = DefaultLoadingScene::GetStaticTypeInfo()->Name;
+		sd.Class = DefaultLoadingScene::GetStaticTypeInfo()->GetName();
 		//sd.ptr.reset(ptr);
 		//sd.ptr->Initialize();
 		//m_SceneStack.push_back(&sd);

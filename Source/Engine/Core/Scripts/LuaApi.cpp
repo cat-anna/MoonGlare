@@ -65,7 +65,7 @@ void ApiInit::Initialize(Script *s) {
 					if (it->Class)
 						registered.insert(std::make_pair(it->Class, (Space::RTTI::TypeInfo*)0));
 
-					_InitFuncs->emplace_back(CallInfo{ it->func, it->Where, it->Class ? it->Class->Name : 0 });
+					_InitFuncs->emplace_back(CallInfo{ it->func, it->Where, it->Class ? it->Class->GetName() : 0 });
 					// push_back(std::make_pair(it->func, it->Where));
 					_GatherList->erase(it);
 					done = true;
@@ -77,7 +77,7 @@ void ApiInit::Initialize(Script *s) {
 					continue;
 
 				registered.insert(std::make_pair(it->Class, it->Base));
-				_InitFuncs->emplace_back(CallInfo{ it->func, it->Where, it->Class->Name });
+				_InitFuncs->emplace_back(CallInfo{ it->func, it->Where, it->Class->GetName() });
 				_GatherList->erase(it);
 				done = true;
 				break;
@@ -86,7 +86,7 @@ void ApiInit::Initialize(Script *s) {
 			if (!done) {
 				AddLog(Error, "Unable to register api init functions:");
 				for (auto& it : *_GatherList) {
-					AddLogf(Error, "%30s of base %s", it.Class->Name, it.Base->Name);
+					AddLogf(Error, "%30s of base %s", it.Class->GetName(), it.Base->GetName());
 				}
 				AddLog(Error, "Reason: broken inheritance tree");
 				break;

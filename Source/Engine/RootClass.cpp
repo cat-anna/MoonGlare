@@ -22,17 +22,17 @@ void cRootClass::RegisterScriptApi(ApiInitializer &api) {
 
 void cRootClass::Describe() const {
 	char buff[1024] = {};
-	sprintf(buff, "%s@0x%08x", GetDynamicTypeInfo()->Name, (unsigned)this);
+	sprintf(buff, "%s@0x%08x", GetDynamicTypeInfo()->GetName(), (unsigned)this);
 	AddLog(Hint, buff << " [" << Info() << "]");
 }
 
 void cRootClass::InternalInfo(std::ostringstream &buff) const {
 	if(buff.tellp() > 0) buff << " ";
-	buff << "Class:'" << GetDynamicTypeInfo()->Name << "'";
+	buff << "Class:'" << GetDynamicTypeInfo()->GetName() << "'";
 }
 
 void cRootClass::WriteNameToXML(xml_node Node) const {
-	Node.append_attribute("Class") = GetDynamicTypeInfo()->Name;
+	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
 }
 
 string cRootClass::Info() const {

@@ -14,7 +14,7 @@ namespace Scene {
 SPACERTTI_IMPLEMENT_CLASS(BackstageScene)
 
 BackstageScene::BackstageScene() {
-	SetName(string("_") + this->GetDynamicTypeInfo()->Name);
+	SetName(string("_") + this->GetDynamicTypeInfo()->GetName());
 }
 
 BackstageScene::~BackstageScene() {

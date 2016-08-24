@@ -6,6 +6,7 @@
 #include "MainForm.h"
 
 class MemoryState::MemoryRequest : public RemoteConsoleEnumerationObserver {
+	SPACERTTI_CLASSINFO(MemoryRequest);
 public:
 	MemoryRequest(QStandardItemModel *Model, QTreeView *TreeView, MemoryState *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
@@ -136,7 +137,7 @@ void MemoryState::ResetTreeView() {
 void MemoryState::Refresh() {
 	CancelRequests();
 
-	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel, m_Ui->treeView, this));
+	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel.get(), m_Ui->treeView, this));
 }
 
 //-----------------------------------------

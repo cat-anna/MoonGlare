@@ -25,7 +25,7 @@ SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(EngineLoadScene)
 EngineLoadScene::EngineLoadScene():
 		BaseClass(),
 		m_Aborted(false) {
-	SetName(string("_") + this->GetDynamicTypeInfo()->Name);
+	SetName(string("_") + this->GetDynamicTypeInfo()->GetName());
 }
 
 EngineLoadScene::~EngineLoadScene() {

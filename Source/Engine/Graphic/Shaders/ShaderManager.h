@@ -34,12 +34,12 @@ public:
 
 	template<class T>
 	T* GetSpecialShader(const string &Name) {
-		return GetShader(Name, T::GetStaticTypeInfo()->Name);
+		return GetShader(Name, T::GetStaticTypeInfo()->GetName());
 	}
 
 	template<class T>
 	bool GetSpecialShader(const string &Name, T *&t) {
-		t = static_cast<T*>(GetShader(Name, T::GetStaticTypeInfo()->Name));
+		t = static_cast<T*>(GetShader(Name, T::GetStaticTypeInfo()->GetName()));
 		return t != nullptr;
 	}
 
