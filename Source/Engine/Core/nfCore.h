@@ -38,7 +38,6 @@ struct RenderInput;
 #include "Scripts/nfScripts.h"
 #include "Scene/nfScene.h"
 #include "Objects/nfObjects.h"
-#include "Camera/nfCamera.h"
 
 #include "Component/nfComponent.h"
 

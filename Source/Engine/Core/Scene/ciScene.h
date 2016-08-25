@@ -62,7 +62,6 @@ public:
 	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);
-	Core::Camera::iCameraPtr& GetCamera() { return m_Camera; }
 
 	/** Script code invokers  */
 	virtual int InvokeOnTimer(int TimerID);
@@ -107,7 +106,6 @@ protected:
 //old
 
 	TimeEvents m_TimeEvents;
-	Core::Camera::iCameraPtr m_Camera;
 	GUI::GUIEnginePtr m_GUI;
 	XMLFile m_MetaData;
 
