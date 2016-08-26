@@ -65,8 +65,7 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 };
 
 class MeshComponent
-	: public TemplateStandardComponent<MeshComponentEntry, ComponentIDs::Mesh>
-	, public ::Space::RTTI::TemplateTypeInfo<MeshComponent> {
+	: public TemplateStandardComponent<MeshComponentEntry, ComponentIDs::Mesh> {
 public:
 	MeshComponent(ComponentManager *Owner);
 	virtual ~MeshComponent();
@@ -85,8 +84,6 @@ public:
 private:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 
-	Array<MeshEntry> m_Array;
-	Core::EntityMapper m_EntityMapper;
 	void ReleaseElement(size_t Index);
 };
 

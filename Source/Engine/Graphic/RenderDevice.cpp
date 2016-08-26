@@ -45,7 +45,7 @@ cRenderDevice::~cRenderDevice() {
 
 std::unique_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
 	auto ptr = std::make_unique<RenderInput>();
-	ptr->Initialize();
+	ptr->Initialize(math::fvec2(GetContextSize()));
 	return std::move(ptr);
 }
 

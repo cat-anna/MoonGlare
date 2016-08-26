@@ -23,6 +23,7 @@ namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
+::Space::RTTI::TypeInfoInitializer<LightComponent, LightComponentEntry, Light::LightBase, Light::PointLight, Light::SpotLight, Light::DirectionalLight, Light::LightAttenuation> LightComponentTypeInfo;
 RegisterComponentID<LightComponent> LightComponentReg("Light", true, &LightComponent::RegisterScriptApi);
 
 LightComponent::LightComponent(ComponentManager * Owner) 

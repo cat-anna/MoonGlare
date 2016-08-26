@@ -20,7 +20,7 @@ Screen::Screen(GUIEngine *Owner, Graphic::Window *Window):
 	m_Screen = this;
 	m_GUIEngine = Owner;
 
-	m_Camera = Graphic::VirtualCamera::Orthogonal();
+	m_Camera.SetDefaultOrthogonal(math::fvec2(Window->Size()));
 
 	m_AlignMode = AlignMode::Parent; //hue hue :)
 	SetName("Screen");
@@ -43,7 +43,7 @@ void Screen::Process(const Core::MoveConfig &conf) {
 }
 
 void Screen::Draw(Graphic::MatrixStack &dev){
-	dev.Device.Bind(m_Camera);
+	dev.Device.Bind(&m_Camera);
 	for (auto &it : m_Children)
 		it->Draw(dev);
 }

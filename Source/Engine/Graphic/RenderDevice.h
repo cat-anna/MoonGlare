@@ -41,8 +41,7 @@ public:
 			SetCameraMatrix(c->GetCameraMatrix());
 		}
 	}
-	void Bind(VirtualCameraPtr &c) { Bind(c.get()); }
-
+	
 	void BindEnvironment(const Environment *e) { m_CurrentEnvironment = e; if (e) e->Bind(m_CurrentShader); }
 
 	void Bind(Shader *Shader) { 
@@ -56,7 +55,7 @@ public:
 		Shader->SetWorldMatrix(m_WorldMatrix);
 		Shader->SetWorldMatrix(m_WorldMatrix);
 		if (m_CurrentCamera)
-			Shader->SetCameraPos(m_CurrentCamera->GetPosition());
+			Shader->SetCameraPos(m_CurrentCamera->m_Position);
 	}
 
 	static float m_gamma;

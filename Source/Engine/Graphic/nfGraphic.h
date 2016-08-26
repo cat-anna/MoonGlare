@@ -5,6 +5,7 @@ namespace MoonGlare {
 namespace Renderer {
 
 struct RenderInput;
+struct VirtualCamera;
 
 }
 }
@@ -12,15 +13,13 @@ struct RenderInput;
 namespace Graphic {
 
 	using ::MoonGlare::Renderer::RenderInput;
+	using ::MoonGlare::Renderer::VirtualCamera;
 
 	class cRenderDevice;
 	class LoadQueue;
 	struct MatrixStack;
 
 	class VAO;
-
-	class VirtualCamera;
-	using VirtualCameraPtr = std::unique_ptr < VirtualCamera > ;
 
 	struct StaticFog;
 	class Environment;

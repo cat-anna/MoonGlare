@@ -19,6 +19,7 @@ namespace MoonGlare {
 namespace Renderer {
 namespace Component {
 
+::Space::RTTI::TypeInfoInitializer<MeshComponent, MeshComponentEntry> MeshComponentTypeInfo;
 RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 

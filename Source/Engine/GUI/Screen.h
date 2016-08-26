@@ -9,6 +9,8 @@
 #ifndef Screen_H
 #define Screen_H
 
+#include <Renderer/VirtualCamera.h>
+
 namespace MoonGlare {
 namespace GUI {
 
@@ -51,7 +53,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	Graphic::Window *m_Window;
-	Graphic::VirtualCameraPtr m_Camera;
+	Graphic::VirtualCamera m_Camera;
 	WidgetContainer m_Children;
 };
 

@@ -15,6 +15,7 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+::Space::RTTI::TypeInfoInitializer<TransformComponent, TransformComponent::TransformEntry> TransformComponentTypeInfo;
 RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", true, &TransformComponent::RegisterScriptApi);
 
 TransformComponent::TransformComponent(ComponentManager * Owner) 
@@ -125,9 +126,9 @@ void TransformComponent::Step(const MoveConfig & conf) {
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 
-			//if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
-			//	//nothing to do, nothing changed;
-			//} else 
+			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
+				//nothing to do, nothing changed;
+			} else 
 			{
 				auto &gm = item.m_GlobalMatrix;
 				auto &lm = item.m_LocalMatrix;

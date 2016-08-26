@@ -13,6 +13,7 @@ namespace Component {
 
 class MeshComponent;
 class LightComponent;
+class CameraComponent;
 
 } //namespace Component 
 } //namespace Renderer 

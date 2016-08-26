@@ -119,7 +119,7 @@ bool Console::Initialize() {
 		return true;
 	if (!m_Font)
 		SetFont(GetDataMgr()->GetConsoleFont());
-	m_Camera = Graphic::VirtualCamera::Orthogonal();
+	m_Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
 	SetInitialized(true);
 	return true;
 }
@@ -128,7 +128,6 @@ bool Console::Finalize() {
 	if (!IsInitialized())
 		return true;
 	Clear();
-	m_Camera.reset();
 	m_Font.reset();
 	SetInitialized(false);
 	return true;
@@ -167,7 +166,7 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 	if (!IsCanRender() || !m_Font)
 		return false;
 
-	dev.Bind(m_Camera);
+	dev.Bind(&m_Camera);
 
 	if (!m_Lines.empty()) {
 		if (IsHideOldLines())

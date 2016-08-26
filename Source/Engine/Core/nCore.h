@@ -8,7 +8,6 @@
 #include "Scripts/nScripts.h"
 #include "Objects/nObjects.h"
 #include "Scene/nScene.h"
-#include "Camera/nCamera.h"
 
 #include "Component/nfComponent.h"
 

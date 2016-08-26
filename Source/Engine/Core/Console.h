@@ -49,7 +49,7 @@ protected:
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
-	Graphic::VirtualCameraPtr m_Camera;
+	Graphic::VirtualCamera m_Camera;
 	DefineFlagSetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
 };
 

@@ -25,8 +25,7 @@ ciScene::ciScene() :
 		m_SceneState(SceneState::Waiting),
 		m_ScriptHandlers(),
 		m_Flags(0),
-		m_TimeEvents(),
-		m_Camera() {
+		m_TimeEvents() {
 	m_EventProxy.set(new EventProxy<ThisClass, 
 					 &ThisClass::InvokeOnTimer,
 					 &ThisClass::InternalEventNotification>(this));
@@ -132,8 +131,6 @@ void ciScene::DoMove(const MoveConfig &conf) {
 	m_TimeEvents.CheckEvents(conf);
 	if (m_GUI)
 		m_GUI->Process(conf);
-	if (m_Camera)
-		m_Camera->Update(conf);
 
 	m_ComponentManager.Step(conf);
 }
