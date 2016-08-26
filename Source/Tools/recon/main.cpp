@@ -43,7 +43,7 @@ struct Flags {
 
 const Space::ProgramParameters::Parameter Parameters[] = {
  	{'b', 0, Flags::Buffer, 0, "Buffer whole stdin before send", 0},
-	{'f', 0, Flags::SendFile, _infile, "Send content of file and exit", 0 },
+	{'f', 1, Flags::SendFile, _infile, "Send content of file and exit", 0 },
  	{'p', 1, 0, _Port, "Set port", 0},
  	{'h', 1, 0, _Host, "Set host", 0},
 	{'\0', 0, 0, 0, 0, 0},
@@ -92,7 +92,14 @@ int main(int argc, char** argv) {
 		char *strbase = (char*)header->PayLoad;
 
 		if (Params.Flags & Flags::SendFile) {
-			printf("not implemented!\n");
+			std::ifstream inp(_infile, std::ios::in | std::ios::binary);
+			inp.seekg(0, std::ios::end);
+			size_t len = (size_t)inp.tellg();
+			inp.seekg(0);
+			inp.read(strbase, len);
+			strbase[len] = 0;
+			header->PayloadSize = strlen(strbase) + 1;
+			recon.Send(header);
 			return 0;
 		}
 

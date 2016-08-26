@@ -6,7 +6,7 @@
 #include "MainForm.h"
 
 class MemoryState::MemoryRequest : public RemoteConsoleEnumerationObserver {
-	SPACERTTI_CLASSINFO(MemoryRequest);
+//	SPACERTTI_CLASSINFO(MemoryRequest);
 public:
 	MemoryRequest(QStandardItemModel *Model, QTreeView *TreeView, MemoryState *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
