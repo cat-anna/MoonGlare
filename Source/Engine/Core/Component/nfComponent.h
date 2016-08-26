@@ -20,12 +20,16 @@ class CameraComponent;
 enum class ComponentIDs : ComponentID {
 	Invalid = 0,
 
+//Core - 1X
 	Script = 11,
 	Transform = 12,
 
+//Renderer - 2X
 	Mesh = 21,
-	Light	= 22,
+	Light = 22,
+	Camera = 23,
 
+//Renderer - 5X
 	Body = 50,
 };
 
