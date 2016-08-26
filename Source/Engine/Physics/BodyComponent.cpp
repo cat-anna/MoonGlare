@@ -23,6 +23,7 @@
 namespace MoonGlare {
 namespace Physics {
 
+::Space::RTTI::TypeInfoInitializer<BodyComponent, BodyComponent::BodyEntry, BodyComponent::BulletMotionStateProxy, BodyComponent::BulletProxyCommon, BodyComponent::BulletRigidBody> BodyComponentTypeInfo;
 Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false);
 
 BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner) 

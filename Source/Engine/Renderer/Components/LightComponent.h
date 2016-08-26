@@ -17,7 +17,7 @@ namespace Component {
 
 using namespace Core::Component;
 
-struct LightComponentEntry  {
+struct LightComponentEntry {
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
@@ -42,7 +42,7 @@ struct LightComponentEntry  {
 	Light::LightAttenuation m_Attenuation;
 	float m_CutOff;
 
-	void Reset() {}
+	void Reset() { }
 
 	void SetActive(bool v) { m_Flags.m_Map.m_Active = v; }
 	bool GetActive() const { return m_Flags.m_Map.m_Active; }
