@@ -56,6 +56,7 @@ namespace lua {
 	}
 }
 
+::Space::RTTI::TypeInfoInitializer<ScriptComponent, ScriptComponent::ScriptEntry> ScriptComponentTypeInfo;
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", false);
 
 ScriptComponent::ScriptComponent(ComponentManager *Owner)
@@ -732,7 +733,7 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
 }
 
 int ScriptComponent::lua_Destroy(lua_State * lua) {
-	int argc = lua_gettop(lua);		//stack: self
+//	int argc = lua_gettop(lua);		//stack: self
 
 	void *voidWorld = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
 	World *world = reinterpret_cast<World*>(voidWorld);

@@ -63,28 +63,28 @@ private:
 	static MapType *s_ComponentMap;
 };
 
-template<class T>
+template<class COMPONENT>
 struct RegisterComponentID : public ComponentRegister {
 	RegisterComponentID(const char *Name, bool PublishToLua = true, void(*ApiRegFunc)(ApiInitializer &api) = nullptr) {
 		m_ComponentInfo.m_Name = Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
 		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc;
-		m_ComponentInfo.m_CID = T::GetComponentID();
+		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
 		m_ComponentInfo.m_CreateFunc = &Construct;
 		m_ComponentInfo.m_GetCID = &GetCID;
 		SetComponent(&m_ComponentInfo);
 	}
 private:
-	static std::unique_ptr<AbstractComponent> Construct(ComponentManager* cm) { return std::make_unique<T>(cm); }
+	static std::unique_ptr<AbstractComponent> Construct(ComponentManager* cm) { return std::make_unique<COMPONENT>(cm); }
 	static int GetCID() { 
 		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
-		return static_cast<int>(T::GetComponentID());
+		return static_cast<int>(COMPONENT::GetComponentID());
 	}
 	static ComponentInfo m_ComponentInfo;
 };
 
-template<class T>
-ComponentRegister::ComponentInfo RegisterComponentID<T>::m_ComponentInfo;
+template<class COMPONENT>
+ComponentRegister::ComponentInfo RegisterComponentID<COMPONENT>::m_ComponentInfo;
 
 } //namespace Component 
 } //namespace Core 
