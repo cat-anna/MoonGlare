@@ -24,7 +24,6 @@ GameScene::GameScene():
 		m_Physics(),
 		m_Environment() {
 	m_Physics = std::make_unique<Physics::PhysicEngine>();
-	m_Camera = std::make_unique<Camera::iCamera>(this);
 }
 
 GameScene::~GameScene() {
@@ -128,27 +127,7 @@ void GameScene::DoMove(const MoveConfig &conf) {
 	//AddLog(Hint, "Step end");
 
 //	conf.m_LightConfig->DirectionalLights.push_back(m_Environment.GetAmbientLight());
-
-	if (m_Camera)
-		m_Camera->Update(conf);
 }
-
-#if 0
-Graphic::Light::LightConfiguration* GameScene::GetLightConfig() {
-	static Graphic::Light::SpotLight sl;
-	if (m_LightConfiguration.SpotLights.empty()) {
-		sl.Direction = glm::normalize(math::vec3(1, 0, 1));
-		sl.CutOff = 0.7f;
-		sl.Position = math::vec3(5, 0, 5);
-		sl.Attenuation.Exp = 0.3f;
-		sl.Attenuation.Linear = 0.7f;
-		sl.AmbientIntensity = 1.0f;
-		sl.Precalculate();
-		m_LightConfiguration.SpotLights.push_back(&sl);
-	}
-	return &m_LightConfiguration;
-}
-#endif // 0
 
 //----------------------------------------------------------------
 

@@ -47,7 +47,7 @@ Engine::~Engine() {
 bool Engine::Initialize() {
 	if (IsReady()) return false;
 
-	m_World = std::make_unique < World>();
+	m_World = std::make_unique < World >();
 
 	if (!m_World->Initialize(GetScriptEngine())) {
 		AddLogf(Error, "Failed to initialize world!");
@@ -288,13 +288,14 @@ void Engine::DoRender(MoveConfig &conf) {
 	auto &dev = *Graphic::GetRenderDevice();
 	auto devsize = dev.GetContext()->Size();
 
-	conf.m_RenderInput->OnBeginFrame();
+	conf.m_RenderInput->OnBeginFrame(dev);
 	dev.DispatchContextManipRequests();
 	
 	dev.BeginFrame();
 	dev.ClearBuffer();
 
-	dev.Bind(conf.Camera);
+	if(conf.Camera)
+		dev.Bind(conf.Camera);
 	 
 	if (conf.Scene)
 		m_Dereferred->Execute(conf, dev);
@@ -305,8 +306,6 @@ void Engine::DoRender(MoveConfig &conf) {
 		dev.CurrentEnvironment()->Render(dev);
 	  
 	m_Forward->BeginD2Render(dev);
-
-//	AddLog(FixMe, "GL functions are forbidden here!");
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
