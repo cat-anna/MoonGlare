@@ -26,7 +26,8 @@
 
 #include "LoadQueue.h"
 
-#include "VirtualCamera.h"
+#include <Renderer/VirtualCamera.h>
+
 #include "RenderDevice.h"
 
 #include "Dereferred/nDereferred.h"
