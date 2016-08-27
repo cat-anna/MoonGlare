@@ -71,21 +71,47 @@ unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
 		auto hash = Space::Utils::MakeHash32(nodename);
 		
 		switch (hash) {
+
 		case "Component"_Hash32: {
 			Handle h;
 			if (LoadComponent(Owner, it, h))
 				++count;
 			break;
 		}
+
+		case "Entity"_Hash32:
+		{
+			auto pattern = it.attribute("Pattern").as_string(nullptr);
+			if (pattern) {
+				FileSystem::XMLFile xdoc;
+				Entity child;
+				std::string paturi = pattern;
+				if (!GetFileSystem()->OpenXML(xdoc, paturi, DataPath::URI)) {
+					AddLogf(Error, "Failed to open pattern: %s", pattern);
+					continue;
+				}
+
+				auto c = BuildChild(Owner, xdoc->document_element(), child);
+				if (c == 0) {
+					AddLogf(Error, "Failed to load child!");
+					continue;
+				}
+				count += c;
+				continue;
+			}
+		}
+		//no break;
+		//[[fallthrough]]
 		case "Child"_Hash32: {
 			Entity child;
+
 			auto c = BuildChild(Owner, it, child);
 			if (c == 0) {
 				AddLogf(Error, "Failed to load child!");
-				return 0;
+				continue;
 			}
 			count += c;
-			break;
+			continue;
 		}
 		default:
 			AddLogf(Warning, "Unknown node: %s", nodename);
