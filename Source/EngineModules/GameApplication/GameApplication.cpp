@@ -26,6 +26,12 @@ GameApplication::GameApplication(int argc, char** argv) {
 GameApplication::~GameApplication() {
 }
 
+bool GameApplication::PostSystemInit() {
+	GetDataMgr()->LoadGlobalData();
+	Core::GetScenesManager()->SetNextScene(GetDataMgr()->GetConfiguration().m_FirstScene);
+	return true;
+}
+
 const char* GameApplication::ExeName() const {
 	return m_argv[0];
 }

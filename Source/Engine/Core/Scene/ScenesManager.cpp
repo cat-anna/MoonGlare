@@ -10,7 +10,6 @@
 #include "BackstageScene.h"
 #include "LoadingBaseScene.h"
 #include "DefaultLoadingScene.h"
-#include "EngineLoadScene.h"
 
 #include <Engine/Core/Engine.h>
 
@@ -51,15 +50,6 @@ bool ScenesManager::Initialize() {
 		ciScene *ptr = new BackstageScene();
 		auto &sd = AllocDescriptor(ptr->GetName(), SceneType::Backstage);
 		sd.Class = BackstageScene::GetStaticTypeInfo()->GetName();
-		sd.ptr.reset(ptr);
-		sd.ptr->Initialize();
-		m_SceneStack.push_back(&sd);
-	}
-	{
-//register engine loading scene
-		ciScene *ptr = new EngineLoadScene();
-		auto &sd = AllocDescriptor(ptr->GetName(), SceneType::Internal);
-		sd.Class = EngineLoadScene::GetStaticTypeInfo()->GetName();
 		sd.ptr.reset(ptr);
 		sd.ptr->Initialize();
 		m_SceneStack.push_back(&sd);
