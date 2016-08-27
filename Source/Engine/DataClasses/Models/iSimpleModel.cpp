@@ -17,8 +17,7 @@ iSimpleModel::iSimpleModel(const string& Name) :
 		BaseClass(Name),
 		m_Materials(),
 		m_Meshes(),
-		m_VAO(),
-		m_ShapeConstructor()  {
+		m_VAO() {
 }
 
 iSimpleModel::~iSimpleModel() {
@@ -64,23 +63,25 @@ void iSimpleModel::DoRenderMesh(cRenderDevice &dev) const {
 
 //----------------------------------------------------------------
 
-Physics::SharedShape iSimpleModel::ConstructShape(float ShapeScale) const {
-	if (!m_ShapeConstructor) return 0;//silently ignore
-	return m_ShapeConstructor->ConstructShape(ShapeScale);
-}
+//Physics::SharedShape iSimpleModel::ConstructShape(float ShapeScale) const {
+//	if (!m_ShapeConstructor) return 0;//silently ignore
+//	return m_ShapeConstructor->ConstructShape(ShapeScale);
+//	return nullptr;
+//}
 
-const Physics::PhysicalProperties* iSimpleModel::GetPhysicalProperties() const {
-	return &this->m_PhysicalProperties;
-}
+//const Physics::PhysicalProperties* iSimpleModel::GetPhysicalProperties() const {
+//	return &this->m_PhysicalProperties;
+//	return nullptr;
+//}
 
 //----------------------------------------------------------------
 
 bool iSimpleModel::LoadFromXML(const xml_node Node) {
 	if (!Node) return true;
 
-	if (!m_PhysicalProperties.LoadMeta(Node.child("Physics"))) {
-		AddLog(Warning, "Unable to load model physical properties! Ignored.");
-	}
+//	if (!m_PhysicalProperties.LoadMeta(Node.child("Physics"))) {
+//		AddLog(Warning, "Unable to load model physical properties! Ignored.");
+//	}
 
 	if (!LoadBodyShape(Node.child("Body"))){
 		AddLog(Warning, "Unable to load model body shape!");
@@ -91,8 +92,9 @@ bool iSimpleModel::LoadFromXML(const xml_node Node) {
 
 bool iSimpleModel::LoadBodyShape(xml_node node) {
 	if (!node) return false;
-	m_ShapeConstructor = Physics::ShapeConstructor::LoadConstructor(node);
-	return m_ShapeConstructor != 0;
+	//m_ShapeConstructor = Physics::ShapeConstructor::LoadConstructor(node);
+	//return m_ShapeConstructor != 0;
+	return false;
 }
 
 } // namespace Models

@@ -23,13 +23,14 @@ iModel::~iModel() {
 
 //------------------------------------------------------------------------------------------------
 
-Physics::SharedShape iModel::ConstructShape(float ShapeScale) const {
-	return Physics::SharedShape();
-}
+//Physics::SharedShape iModel::ConstructShape(float ShapeScale) const {
+//	return Physics::SharedShape();
+//}
 
-const Physics::PhysicalProperties* iModel::GetPhysicalProperties() const {
-	return &m_PhysicalProperties;
-}
+//const Physics::PhysicalProperties* iModel::GetPhysicalProperties() const {
+//	return &m_PhysicalProperties;
+//	return nullptr;
+//}
 
 //------------------------------------------------------------------------------------------------
 

@@ -12,11 +12,10 @@ namespace DataClasses {
 namespace Models {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(EmptyModel)
-ModelClassRegister::Register<EmptyModel> EmptyModelReg("EmptyModel");
+//ModelClassRegister::Register<EmptyModel> EmptyModelReg("EmptyModel");
 
 EmptyModel::EmptyModel(const string &Name):
-		BaseClass(Name),
-		m_ShapeConstructor() {
+		BaseClass(Name) {
 
 }
 
@@ -34,10 +33,11 @@ void EmptyModel::DoRenderMesh(cRenderDevice &dev) const {
 
 //----------------------------------------------------------------
 
-Physics::SharedShape EmptyModel::ConstructShape(float ShapeScale) const {
-	if (!m_ShapeConstructor) return 0;
-	return m_ShapeConstructor->ConstructShape(ShapeScale);
-}
+//Physics::SharedShape EmptyModel::ConstructShape(float ShapeScale) const {
+	//if (!m_ShapeConstructor) return 0;
+	//return m_ShapeConstructor->ConstructShape(ShapeScale);
+//	return nullptr;
+//}
 
 //----------------------------------------------------------------
 
@@ -54,9 +54,9 @@ bool EmptyModel::LoadFromXML(const xml_node Node) {
 	}
 	SetName(Name);
 
-	if (!m_PhysicalProperties.LoadMeta(Node.child("Physics"))) {
-		AddLog(Warning, "Unable to load model physical properties! Ignored.");
-	}
+//	if (!m_PhysicalProperties.LoadMeta(Node.child("Physics"))) {
+//		AddLog(Warning, "Unable to load model physical properties! Ignored.");
+//}
 
 	if (!LoadBodyShape(Node.child("Body"))){
 		AddLog(Warning, "Unable to load model body shape!");
@@ -68,9 +68,10 @@ bool EmptyModel::LoadFromXML(const xml_node Node) {
 //----------------------------------------------------------------
 
 bool EmptyModel::LoadBodyShape(xml_node node) {
-	if (!node) return false;
-	m_ShapeConstructor = Physics::ShapeConstructor::LoadConstructor(node);
-	return m_ShapeConstructor != 0;
+	//if (!node) return false;
+	//m_ShapeConstructor = Physics::ShapeConstructor::LoadConstructor(node);
+	//return m_ShapeConstructor != 0;
+	return false;
 }
 
 } //namespace Models 

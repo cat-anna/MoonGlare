@@ -146,9 +146,9 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 		}
 	}
 
-	if (m_ShapeConstructor) {
-		m_ShapeConstructor->AddTriangles(verticles, indices);
-	}
+//	if (m_ShapeConstructor) {
+//		m_ShapeConstructor->AddTriangles(verticles, indices);
+//	}
 
 	m_VAO.DelayInit(verticles, texCords, normals, indices);
 /*

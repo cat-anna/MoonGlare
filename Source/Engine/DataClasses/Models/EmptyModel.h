@@ -21,11 +21,11 @@ public:
 	virtual void DoRender(cRenderDevice &Dev) const;
 	virtual void DoRenderMesh(cRenderDevice &Dev) const;
 	
-	virtual Physics::SharedShape ConstructShape(float ShapeScale) const;
+//	virtual Physics::SharedShape ConstructShape(float ShapeScale) const;
 	
 	virtual bool LoadFromXML(const xml_node Node);
 private: 
-	Physics::ShapeConstructorPtr m_ShapeConstructor;
+//	Physics::ShapeConstructorPtr m_ShapeConstructor;
 	bool LoadBodyShape(xml_node node);
 };
 

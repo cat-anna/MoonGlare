@@ -18,12 +18,10 @@ SPACERTTI_IMPLEMENT_STATIC_CLASS(FollowModel)
 FollowModel::FollowModel(const string &Name) :
 		BaseClass(Name),
 		m_VAO(),
-		m_Shape(0),
 		m_Material(0) {
 }
 
 FollowModel::~FollowModel() {
-	delete m_Shape;
 	delete m_Material;
 }
 
@@ -63,14 +61,16 @@ void FollowModel::DoRenderMesh(cRenderDevice &dev) const {
 
 //----------------------------------------------------------------
 
-Physics::SharedShape FollowModel::ConstructShape(float ShapeScale) const {
-	if (!m_Shape) return 0;
-	return m_Shape->ConstructShape(ShapeScale);
-}
+//Physics::SharedShape FollowModel::ConstructShape(float ShapeScale) const {
+	//if (!m_Shape) return 0;
+	//return m_Shape->ConstructShape(ShapeScale);
+//	return nullptr;
+//}
 
-const Physics::PhysicalProperties* FollowModel::GetPhysicalProperties() const {
-	return &this->m_PhysicalProperties;
-}
+//const Physics::PhysicalProperties* FollowModel::GetPhysicalProperties() const {
+	//return &this->m_PhysicalProperties;
+//	return nullptr;
+//}
 
 //----------------------------------------------------------------
 
@@ -114,7 +114,7 @@ bool FollowModel::LoadFromXML(const xml_node Node) {
 	//m_VAO.WriteIndexes<unsigned>(Index, 4);
 	//m_VAO.UnBind();
 
-	m_Shape = new Physics::CylinderShapeConstructor(5, 10);
+//	m_Shape = new Physics::CylinderShapeConstructor(5, 10);
 
 	return true;
 }
