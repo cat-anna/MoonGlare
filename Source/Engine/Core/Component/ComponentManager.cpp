@@ -67,13 +67,6 @@ bool ComponentManager::LoadComponents(pugi::xml_node node) {
 		return true;
 	}
 
-	//const std::array<ComponentID, 4> CTable = {
-	//	(ComponentID)ComponentIDs::Script,
-	//	(ComponentID)ComponentIDs::Transform,
-	//	(ComponentID)ComponentIDs::Body,
-	//	(ComponentID)ComponentIDs::Mesh,
-	//};
-
 	for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
 		ComponentID cid = 0;
 

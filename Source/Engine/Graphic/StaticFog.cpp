@@ -27,7 +27,7 @@ void StaticFog::Bind(Shader* shader, const StaticFog *instance) {
 bool StaticFog::LoadMeta(const xml_node node) {
 	XML::Vector::Read(node, "Color", m_Color, math::vec3(0), XML::Captions::RGBA);
 
-	m_Enabled = XML::Value::Read(node.attribute("Enabled"), true);
+	m_Enabled = XML::Value::Read(node.attribute("Enabled"), false);
 
 	auto Range = node.child("Range");
 	m_Start = XML::Value::Read(Range.attribute("Start"), 0.0f);
