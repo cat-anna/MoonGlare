@@ -48,8 +48,6 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 bool Engine::Initialize() {
-	if (IsReady()) return false;
-
 	m_World = std::make_unique < World >();
 
 	if (!m_World->Initialize(GetScriptEngine())) {
@@ -65,13 +63,10 @@ bool Engine::Initialize() {
 
 	SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
 
-	SetReady(true);
 	return true;
 }
 
 bool Engine::Finalize() {
-	if (!IsReady()) return false;
-
 	m_Dereferred.reset();
 	m_Forward.reset();
 
@@ -88,14 +83,6 @@ bool Engine::Finalize() {
 //----------------------------------------------------------------------------------
 
 void Engine::ScriptApi(ApiInitializer &root){
-
-	struct Helper {
-		void HandleInfo() {
-			Handle &h = *((Handle*)this);
-			AddLogf(Info, "Handle Index:%d Generation:%d Type:%d", h.GetIndex(), h.GetGeneration(), h.GetType());
-		}
-	};
-
 	root
 	.deriveClass<ThisClass, BaseClass>("cEngine")
 		.addFunction("GetFrameRate", &ThisClass::GetFrameRate)
@@ -106,14 +93,11 @@ void Engine::ScriptApi(ApiInitializer &root){
 		.addFunction("PopScenes", &ThisClass::PopScenes)
 		.addFunction("ClearScenesUntil", &ThisClass::ClearScenesUntil)
 
-		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
+//		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
 		
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("SetFrameRate", &ThisClass::SetFrameRate)
 #endif
-	.endClass()
-	.beginClass<Handle>("cHandle")
-		.addFunction("Info", (void(Handle::*)())&Helper::HandleInfo)
 	.endClass()
 	;
 }
@@ -123,22 +107,6 @@ void Engine::ScriptApi(ApiInitializer &root){
 void Engine::RegisterDebugScriptApi(ApiInitializer &root){ }
 
 #endif
-
-//----------------------------------------------------------------------------------
-
-bool Engine::BeginGame() {
-	m_CurrentScene = GetScenesManager()->GetNextScene();
-	if (m_CurrentScene)
-		m_CurrentScene->BeginScene();
-	Graphic::GetRenderDevice()->GetContext()->GrabMouse();
-	return true;
-}
-
-bool Engine::EndGame() {
-	if (m_CurrentScene)
-		m_CurrentScene->EndScene();
-	return true;
-}
 
 //----------------------------------------------------------------------------------
 
@@ -153,7 +121,11 @@ void Engine::Abort() {
 }
 
 void Engine::EngineMain() {
-	BeginGame();
+	m_CurrentScene = GetScenesManager()->GetNextScene();
+	if (m_CurrentScene)
+		m_CurrentScene->BeginScene();
+	Graphic::GetRenderDevice()->GetContext()->GrabMouse();
+
 	m_Running = true;
 	char Buffer[256];
 
@@ -170,8 +142,8 @@ void Engine::EngineMain() {
 		CurrentTime = static_cast<float>(glfwGetTime());
 		float FrameTimeDelta = CurrentTime - LastFrame;
 		if (FrameTimeDelta < m_FrameTimeSlice) {
-			std::this_thread::sleep_for(std::chrono::microseconds(500));
-			//std::this_thread::yield();
+	//		std::this_thread::sleep_for(std::chrono::microseconds(100));
+			std::this_thread::yield();
 			continue;
 		}
 
@@ -205,7 +177,7 @@ void Engine::EngineMain() {
 
 		float RenderTime = static_cast<float>(glfwGetTime());
 
-		Graphic::GetRenderDevice()->EndFrame();
+		dev.EndFrame();
 
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
@@ -227,7 +199,9 @@ void Engine::EngineMain() {
 			//}
 		}
 	}
-	EndGame();
+
+	if (m_CurrentScene)
+		m_CurrentScene->EndScene();
 }         
 
 void Engine::HandleEscapeKeyImpl() {

@@ -13,12 +13,6 @@ public:
     Engine();
     ~Engine();
 
-	struct Flags {
-		enum {
-			Ready		= 0x0001,
-		};
-	};
-
 	bool Initialize();
 	void EngineMain();
 	bool Finalize();
@@ -53,7 +47,6 @@ public:
 	void Exit();				
 
 	void HandleEscapeKey() { m_ActionQueue.Add([this]() { HandleEscapeKeyImpl(); }); }
-	void CaptureScreenShot();
 
 	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
 	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
@@ -71,7 +64,6 @@ public:
 
 	World* GetWorld() { return m_World.get(); }
 
-	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 protected:
 	unsigned m_Flags;
 	ciScene* m_CurrentScene;
@@ -88,11 +80,6 @@ protected:
 	unsigned m_LastFPS;				//!< FPS in previous second.
 	unsigned m_FrameCounter;		//!< Counter of fps in current second. Updated per cycle.
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
-
-	bool BeginGame();
-	bool EndGame();
-
-	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 
 	virtual void HandleEscapeKeyImpl();
 
