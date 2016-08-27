@@ -11,8 +11,8 @@ public:
 	GameApplication(int argc, char** argv);
 	~GameApplication();
 
-	virtual bool Initialize() override;
-	virtual bool Finalize() override;
+	virtual bool PostSystemInit() override;
+
 	virtual const char* ExeName() const override;
 
 	static void RegisterScriptApi(::ApiInitializer &api);

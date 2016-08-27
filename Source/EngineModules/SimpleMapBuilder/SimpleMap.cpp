@@ -1,6 +1,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
+#include <Engine/Core/Engine.h>
 #include <Engine/DataClasses/Models/SimpleModelConstructor.h>
 
 #include "SimpleMap.h"

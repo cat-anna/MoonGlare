@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
+#include <Engine/Core/Engine.h>
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
 

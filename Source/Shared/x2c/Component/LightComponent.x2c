@@ -92,29 +92,5 @@ Structure.new {
 			require = false,
 			default = 0.5,
 		},
-		
-		--{
-		--	name = "Mass",
-		--	type = Types.float,
-		--	require = false,
-		--	default = 0,
-		--},
-		--{
-		--	name = "AngularVelocity",
-		--	type = Local.Vec3,
-		--	require = false,
-		--},
-		--{
-		--	name = "AngularFactor",
-		--	type = Local.Vec3,
-		--	require = false,
-		--	default = { x = 1, y = 1, z = 1, },
-		--},
-		--{
-		--	name = "LinearFactor",
-		--	type = Local.Vec3,
-		--	require = false,
-		--	default = { x = 1, y = 1, z = 1, },
-		--},
 	},
 }

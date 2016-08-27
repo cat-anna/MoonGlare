@@ -1,5 +1,8 @@
 ﻿#include <pch.h>
 #include <MoonGlare.h>
+
+#include "Engine.h"
+
 #include <GUI/GUI.h>
 #include "Console.h"
 #include <Core/InputMap.h>
@@ -45,8 +48,6 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 bool Engine::Initialize() {
-	if (IsReady()) return false;
-
 	m_World = std::make_unique < World >();
 
 	if (!m_World->Initialize(GetScriptEngine())) {
@@ -62,13 +63,10 @@ bool Engine::Initialize() {
 
 	SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
 
-	SetReady(true);
 	return true;
 }
 
 bool Engine::Finalize() {
-	if (!IsReady()) return false;
-
 	m_Dereferred.reset();
 	m_Forward.reset();
 
@@ -85,14 +83,6 @@ bool Engine::Finalize() {
 //----------------------------------------------------------------------------------
 
 void Engine::ScriptApi(ApiInitializer &root){
-
-	struct Helper {
-		void HandleInfo() {
-			Handle &h = *((Handle*)this);
-			AddLogf(Info, "Handle Index:%d Generation:%d Type:%d", h.GetIndex(), h.GetGeneration(), h.GetType());
-		}
-	};
-
 	root
 	.deriveClass<ThisClass, BaseClass>("cEngine")
 		.addFunction("GetFrameRate", &ThisClass::GetFrameRate)
@@ -103,14 +93,11 @@ void Engine::ScriptApi(ApiInitializer &root){
 		.addFunction("PopScenes", &ThisClass::PopScenes)
 		.addFunction("ClearScenesUntil", &ThisClass::ClearScenesUntil)
 
-		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
+//		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
 		
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("SetFrameRate", &ThisClass::SetFrameRate)
 #endif
-	.endClass()
-	.beginClass<Handle>("cHandle")
-		.addFunction("Info", (void(Handle::*)())&Helper::HandleInfo)
 	.endClass()
 	;
 }
@@ -120,22 +107,6 @@ void Engine::ScriptApi(ApiInitializer &root){
 void Engine::RegisterDebugScriptApi(ApiInitializer &root){ }
 
 #endif
-
-//----------------------------------------------------------------------------------
-
-bool Engine::BeginGame() {
-	m_CurrentScene = GetScenesManager()->GetNextScene();
-	if (m_CurrentScene)
-		m_CurrentScene->BeginScene();
-	Graphic::GetRenderDevice()->GetContext()->GrabMouse();
-	return true;
-}
-
-bool Engine::EndGame() {
-	if (m_CurrentScene)
-		m_CurrentScene->EndScene();
-	return true;
-}
 
 //----------------------------------------------------------------------------------
 
@@ -150,7 +121,11 @@ void Engine::Abort() {
 }
 
 void Engine::EngineMain() {
-	BeginGame();
+	m_CurrentScene = GetScenesManager()->GetNextScene();
+	if (m_CurrentScene)
+		m_CurrentScene->BeginScene();
+	Graphic::GetRenderDevice()->GetContext()->GrabMouse();
+
 	m_Running = true;
 	char Buffer[256];
 
@@ -167,8 +142,8 @@ void Engine::EngineMain() {
 		CurrentTime = static_cast<float>(glfwGetTime());
 		float FrameTimeDelta = CurrentTime - LastFrame;
 		if (FrameTimeDelta < m_FrameTimeSlice) {
-			std::this_thread::sleep_for(std::chrono::microseconds(500));
-			//std::this_thread::yield();
+	//		std::this_thread::sleep_for(std::chrono::microseconds(100));
+			std::this_thread::yield();
 			continue;
 		}
 
@@ -202,7 +177,7 @@ void Engine::EngineMain() {
 
 		float RenderTime = static_cast<float>(glfwGetTime());
 
-		Graphic::GetRenderDevice()->EndFrame();
+		dev.EndFrame();
 
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
@@ -212,19 +187,24 @@ void Engine::EngineMain() {
 			TitleRefresh = CurrentTime;
 			m_LastFPS = m_FrameCounter;
 			m_FrameCounter = 0;
+			float sum = EndTime - StartTime;
 			//if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
-				sprintf(Buffer, "time:%.2fs  fps:%d  frame:%d  skipped:%d  mt:%.1f rti:%.1f swp:%.1f", 
+				sprintf(Buffer, "time:%.2fs  fps:%d  frame:%d  skipped:%d  mt:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f", 
 						CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames, 
 						(MoveTime - StartTime) * 1000.0f,
 						(RenderTime - MoveTime) * 1000.0f,
-						(EndTime - RenderTime) * 1000.0f
+						(EndTime - RenderTime) * 1000.0f,
+						(sum) * 1000.0f,
+						(sum / m_FrameTimeSlice) * 100.0f
 						);
 				AddLogf(Performance, Buffer);
 				dev.GetContext()->SetTitle(Buffer);
 			//}
 		}
 	}
-	EndGame();
+
+	if (m_CurrentScene)
+		m_CurrentScene->EndScene();
 }         
 
 void Engine::HandleEscapeKeyImpl() {
@@ -242,14 +222,6 @@ void Engine::HandleEscapeKeyImpl() {
 
 //----------------------------------------------------------------------------------
 
-#if 0
-void Engine::SetNextScene(const string& Name) {
-	m_ActionQueue.Add([this, Name]() {
-		GetScenesManager()->PushScene(Name);
-	});
-}
-#endif // 0
-
 void Engine::ChangeSceneImpl() {
 	if (m_CurrentScene)
 		m_CurrentScene->EndScene();
@@ -263,24 +235,6 @@ void Engine::ChangeSceneImpl() {
 	if (prevScene)
 		GetScenesManager()->PushScene(prevScene);
 }
-
-#if 0
-void Engine::HandleSceneStateChangeImpl() {
-	if (!m_CurrentScene)
-		return; //this an critical error, but currently lets ignore it
-
-	using Scene::SceneState;
-	switch (m_CurrentScene->GetSceneState()) {
-	case SceneState::Finished:
-		GotoPreviousSceneImpl();
-		return;
-	case SceneState::Active:
-	case SceneState::Waiting:
-	default:
-		break;
-	}
-}
-#endif // 0
 
 //----------------------------------------------------------------------------------
 
@@ -386,22 +340,6 @@ string Engine::GetVersionString() {
 }
 
 //----------------------------------------------------------------------------------
-
-void Engine::CaptureScreenShot() { 
-	Graphic::GetRenderDevice()->DelayedContextManip([] {
-		auto size = Graphic::uvec2(Graphic::GetRenderDevice()->GetContext()->Size());
-		auto img = DataClasses::Texture::AllocateImage(size, DataClasses::Texture::BPP::RGB);
-		Graphic::GetRenderDevice()->ReadScreenPixels(img->image, size, img->value_type);
-
-		char buf[128];
-
-		std::time_t t = std::time(NULL);
-		auto tm = *std::localtime(&t);
-		sprintf(buf, "ScreenShot_%d-%d-%d_%d-%d-%d.png", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-		
-		DataClasses::Texture::AsyncStoreImage(img, buf);
-	});		
-}
 
 void Engine::SetNextScene(const string& Name) const { 
 	GetScenesManager()->SetNextScene(Name); 

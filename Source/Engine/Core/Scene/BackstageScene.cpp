@@ -7,6 +7,8 @@
 #include <MoonGlare.h>
 #include "BackstageScene.h"
 
+#include <Engine/Core/Engine.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scene {

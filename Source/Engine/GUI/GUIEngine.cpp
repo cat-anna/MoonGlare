@@ -8,6 +8,7 @@
 #include <MoonGlare.h>
 #include "GUI.h"
 #include <Core/InputMap.h>
+#include <Engine/Core/Engine.h>
 //#include <Engine/Graphic/nGraphic.h>
 
 #include <Utils/LuaUtils.h>

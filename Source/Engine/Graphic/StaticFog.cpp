@@ -11,8 +11,8 @@
 namespace Graphic {
 
 void StaticFog::Bind(Shader* shader, const StaticFog *instance) {
-	THROW_ASSERTs(instance);
-	THROW_ASSERTs(shader);
+	if (!shader || !instance)
+		return;
 
 	glUniform1i(shader->Location("gStaticFog.Enabled"), instance->m_Enabled ? 1 : 0);
 	if (!instance->m_Enabled)

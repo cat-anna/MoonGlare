@@ -35,18 +35,18 @@ const Space::ProgramParameters::Parameter Parameters[] = {
 
 	//{'m', 0, 0, flag_disableMouseUnhook, "Disable mouse unhook", 0},
  	//{'v', 0, 0, flag_HideConsole, "Hide console", 0},
- 	{'d', 0, 0, flag_DisableConsole, "Disable console", 0},
+ //	{'d', 0, 0, flag_DisableConsole, "Disable console", 0},
 
  	//{'f', 1, 0, option_setFPS, "Set desired FPS", 0},
- 	{'x', 1, 0, option_setWidth, "Set window width", 0},
- 	{'y', 1, 0, option_setHeight, "Set window height", 0},
+// 	{'x', 1, 0, option_setWidth, "Set window width", 0},
+// 	{'y', 1, 0, option_setHeight, "Set window height", 0},
 
 	{'\0', 0, 0, 0, 0, 0},
 }; 
 
 Space::ProgramParameters Params = {
 	Space::ProgramParameters::disable_helpmsg_on_noparams,
-	"FPS Engine",
+	"MoonGlare Engine",
 	0,//	Settings->Modules.List,
 	"MainModule OtherModules",
 	Parameters,
@@ -55,8 +55,9 @@ Space::ProgramParameters Params = {
 }; 
 
 #ifndef _BUILDING_TOOLS_
+
 int main(int argc, char** argv) {
-	int Result = 0;
+	bool Result = false;
 #pragma warning ( suppress: 4244 )
 	srand(time(NULL));
 
@@ -81,20 +82,12 @@ int main(int argc, char** argv) {
 		bool doRestart = false;
 		try {
 			Params.Parse(argc, argv);
-			new GameApplication(argc, argv);
-			if (!GetApplication()->Initialize()) {
-				AddLog(Error, "Unable to initialize application!");
-				Result = 1;
-			} 
-		
-			if (Result == 0) //when there are no errors so far
-				MoonGlare::Core::GetEngine()->EngineMain();
+			auto app = new GameApplication(argc, argv);
 
-			if (!GetApplication()->Finalize()) {
-				AddLog(Error, "Unable to finalize application!");
-				Result = 2;
-			}
-			doRestart = GetApplication()->IsDoRestart();
+			Result = false;
+			Result = app->Execute();
+
+			doRestart = app->DoRestart();
 		}
 		catch (const char * Msg) {
 			AddLogf(Error, "FATAL ERROR! '%s'", Msg);
@@ -111,7 +104,7 @@ int main(int argc, char** argv) {
 		iApplication::DeleteInstance();
 #ifdef DEBUG
 		Config::Current::DumpAll("exit");
-		if (Result == 0)
+		if (Result)
 			Config::Current::CheckInstances();
 #endif
 		if (!doRestart)
@@ -122,6 +115,7 @@ int main(int argc, char** argv) {
 	Settings->Save();
 	Config::Current::Finalize();
 	OrbitLogger::LogCollector::Stop();
-	return Result;
+	return Result ? 0 : 1;
 }
+
 #endif // _BUILDING_TOOLS_
