@@ -89,6 +89,9 @@ bool World::Step(const Core::MoveConfig & config) {
 	if (!m_ResourceTable.Step(config)) {
 		AddLog(Error, "Faield to Step ResourceTable");
 	}
+	if (!m_InputProcessor->Step(config)) {
+		AddLog(Error, "Faield to Step InputProcessor");
+	}
 	return true;
 }
 

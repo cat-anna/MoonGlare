@@ -16,7 +16,13 @@ namespace Core {
 
 //RegisterApiNonClass(InputProcessor, &InputProcessor::RegisterScriptApi, "Input");
 
+Space::RTTI::TypeInfoInitializer<InputProcessor, InputStateValue, InputState, KeyAction, AxisAction> InputStructures;
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
 InputProcessor::InputProcessor() {
+	m_CurrentRevision = 1;
 	m_World = nullptr;
 	ResetToInternalDefault();
 }
@@ -93,6 +99,13 @@ bool InputProcessor::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+bool InputProcessor::Step(const Core::MoveConfig & config) {
+	++m_CurrentRevision;
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
 void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
 	THROW_ASSERT(Id < Configuration::Input::MaxKeyCode, "Key code id overflow!");
 	//AddLogf(Debug, "Processing key: %u:%d", Id, Pressed ? 1 : 0);
@@ -119,6 +132,7 @@ void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
 			return;
 		}
 	}
+	state.m_Revision = m_CurrentRevision + 1;
 	state.m_ActiveKeyId = Pressed ? Id : Configuration::Input::MaxKeyCode;
 }
 
@@ -436,7 +450,19 @@ int InputProcessor::luaIndexInput(lua_State *lua) {
 
 	switch (state.m_Type) {
 	case InputState::Type::Switch:
-		lua_pushboolean(lua, state.m_Value.m_Boolean);
+		if (!state.m_Value.m_Boolean) {
+			if (state.m_Revision == This->m_CurrentRevision) {
+				lua_pushinteger(lua, (int)InputSwitchState::Released);
+			} else {
+				lua_pushinteger(lua, (int)InputSwitchState::Off);
+			}
+		} else {
+			if (state.m_Revision == This->m_CurrentRevision) {
+				lua_pushinteger(lua, (int)InputSwitchState::Pressed);
+			} else {
+				lua_pushinteger(lua, (int)InputSwitchState::On);
+			}
+		}
 		return 1;
 	case InputState::Type::FloatAxis:
 		lua_pushnumber(lua, state.m_Value.m_Float);

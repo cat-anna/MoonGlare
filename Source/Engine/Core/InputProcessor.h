@@ -36,6 +36,7 @@ struct InputState {
 	InputStateValue m_Value;
 	Type m_Type;
 	unsigned m_ActiveKeyId;
+	Configuration::RuntimeRevision m_Revision;
 };
 
 struct KeyAction {
@@ -72,6 +73,13 @@ struct InputKeyOffsets {
 	};
 };
 
+enum class InputSwitchState {
+	Off,
+	Pressed,
+	On,
+	Released,
+};
+
 //---------------------------------------------------------------------------------------
 
 class InputProcessor final {
@@ -81,6 +89,8 @@ public:
 
 	bool Initialize(World *world);
 	bool Finalize();
+
+	bool Step(const Core::MoveConfig &config);
 
 	void SetKeyState(unsigned KeyCode, bool Pressed) {
 		ProcessKeyState(KeyCode + InputKeyOffsets::Keyboard, Pressed);
@@ -117,6 +127,7 @@ protected:
 	InputStateArray m_InputStates;
 	MouseAxesArray m_MouseAxes;
 	KeyMapArray m_Keys;
+	Configuration::RuntimeRevision m_CurrentRevision;
 
 	std::unordered_map<std::string, InputStateId> m_InputNames;
 	World *m_World;
