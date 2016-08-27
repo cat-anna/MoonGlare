@@ -348,35 +348,11 @@ void SoundEngine::PlaySoundScript(const string &Name, const string &OnEndFunc, i
 	m_Lock.notify_all();
 }
 
-void SoundEngine::PlaySoundTimer(const string &Name, Object *sender, int tid) {
-	if (!SoundEngineSettings::Enabled::get()) return;
-	LOCK_MUTEX(m_ActionListMutex);
-	auto proxy = sender->GetEventProxy();
-	m_ActionPlayList.push_back({ Name, SoundType::Sound, [proxy, tid](iSound *s){
-		if (proxy.expired())
-			return;
-		proxy.lock()->TimerEvent(tid);
-	} });
-	m_Lock.notify_all();
-}
-
 void SoundEngine::PlayMusicScript(const string &Name, const string &OnEndFunc, int param) {
 	if (!SoundEngineSettings::Enabled::get()) return;
 	LOCK_MUTEX(m_ActionListMutex);
 	m_ActionPlayList.push_back({ Name, SoundType::Music, [OnEndFunc, param](iSound *s) {
 		SCRIPT_INVOKE_STATIC_NORETURN(OnEndFunc, s, param);
-	} });
-	m_Lock.notify_all();
-}
-
-void SoundEngine::PlayMusicTimer(const string &Name, Object *sender, int tid) {
-	if (!SoundEngineSettings::Enabled::get()) return;
-	LOCK_MUTEX(m_ActionListMutex);
-	auto proxy = sender->GetEventProxy();
-	m_ActionPlayList.push_back({ Name, SoundType::Music, [proxy, tid](iSound *s){
-		if (proxy.expired())
-			return;
-		proxy.lock()->TimerEvent(tid);
 	} });
 	m_Lock.notify_all();
 }

@@ -43,8 +43,6 @@ public:
 
 	virtual void PlaySoundScript(const string &Name, const string &Func, int param) = 0;
 	virtual void PlayMusicScript(const string &Name, const string &Func, int param) = 0;
-	virtual void PlaySoundTimer(const string &Name, Object *sender, int tid) = 0;
-	virtual void PlayMusicTimer(const string &Name, Object *sender, int tid) = 0;
 
 	virtual void StopMusic() = 0;
 
