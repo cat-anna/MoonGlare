@@ -16,7 +16,7 @@ namespace Graphic {
 class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice(WindowPtr Context, unsigned Flags = 0);
+	cRenderDevice(WindowPtr Context);
 	virtual ~cRenderDevice();
 
 	std::unique_ptr<RenderInput> CreateRenderInput();
@@ -45,6 +45,8 @@ public:
 	void BindEnvironment(const Environment *e) { m_CurrentEnvironment = e; if (e) e->Bind(m_CurrentShader); }
 
 	void Bind(Shader *Shader) { 
+		if (!Shader)
+			return;
 		if (m_CurrentShader == Shader) return;
 		m_CurrentShader = Shader;
 		Shader->Bind();
@@ -89,7 +91,7 @@ public:
 
 	static void RegisterDebugScriptApi(ApiInitializer &api);
 protected:
-	volatile unsigned m_FrameIndex = 0;
+	volatile uint64_t m_FrameIndex = 0;
 	math::mat4 m_CameraMatrix;
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;

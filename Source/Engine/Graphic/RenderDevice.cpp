@@ -18,7 +18,7 @@ RegisterApiDynamicInstance(Window, &WindowInstance, "Window");
 
 //float cRenderDevice::m_gamma = 0;
   
-cRenderDevice::cRenderDevice(WindowPtr Context, unsigned Flags) :
+cRenderDevice::cRenderDevice(WindowPtr Context) :
 		cRootClass(),
 		m_InitThreadId(),
 		m_Context(),
@@ -201,13 +201,13 @@ void cRenderDevice::RegisterDebugCallback() {
 		glDebugMessageCallbackARB(&DebugCallback, nullptr);
 
 //disable:
-//OpenGL Warning: Source:OpenGL Type:Other ID:131185 Severity:Unknown Message:Buffer detailed info: Buffer object 34 (bound to GL_ARRAY_BUFFER_ARB, usage hint is GL_STATIC_DRAW) will use VIDEO memory as the source for buffer object operations.
+//OpenGL Warning: Source:OpenGL Type:Other ID:131185 Severity:Unknown Message:Buffer detailed info: Buffer object X (bound to GL_ARRAY_BUFFER_ARB, usage hint is GL_STATIC_DRAW) will use VIDEO memory as the source for buffer object operations.
 		GLuint skip1[] ={ 131185 };
 		glDebugMessageControlARB(GL_DEBUG_SOURCE_API_ARB, GL_DEBUG_TYPE_OTHER_ARB, GL_DONT_CARE, 1, skip1, GL_FALSE);
 
 		AddLog(Debug, "Debug callback registerd");
 	} else
-		AddLog(Error, "Debug callback registration failed!");
+		AddLog(Error, "Debug callback is not supported!");
 }
 
 //----------------------------------------------------------------------------------

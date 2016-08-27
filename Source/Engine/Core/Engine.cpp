@@ -187,12 +187,15 @@ void Engine::EngineMain() {
 			TitleRefresh = CurrentTime;
 			m_LastFPS = m_FrameCounter;
 			m_FrameCounter = 0;
+			float sum = EndTime - StartTime;
 			//if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
-				sprintf(Buffer, "time:%.2fs  fps:%d  frame:%d  skipped:%d  mt:%.1f rti:%.1f swp:%.1f", 
+				sprintf(Buffer, "time:%.2fs  fps:%d  frame:%d  skipped:%d  mt:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f", 
 						CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames, 
 						(MoveTime - StartTime) * 1000.0f,
 						(RenderTime - MoveTime) * 1000.0f,
-						(EndTime - RenderTime) * 1000.0f
+						(EndTime - RenderTime) * 1000.0f,
+						(sum) * 1000.0f,
+						(sum / m_FrameTimeSlice) * 100.0f
 						);
 				AddLogf(Performance, Buffer);
 				dev.GetContext()->SetTitle(Buffer);
