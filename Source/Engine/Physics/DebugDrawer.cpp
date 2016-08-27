@@ -6,6 +6,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "DebugDrawer.h"
+
 namespace Physics {
 
 BulletDebugDrawer::BulletDebugDrawer() {
@@ -25,7 +27,7 @@ void BulletDebugDrawer::PrepareDebugDraw(cRenderDevice& dev) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}
-//		m_VAO.New();
+		//		m_VAO.New();
 	}
 	dev.Bind(m_Shader);
 	dev.SetModelMatrix(math::mat4());
@@ -34,32 +36,32 @@ void BulletDebugDrawer::PrepareDebugDraw(cRenderDevice& dev) {
 }
 
 void BulletDebugDrawer::Submit(cRenderDevice& dev) {
-//	if (!m_Shader || m_LinePoints.empty()) {
-	//	return;
-//	}
+	//	if (!m_Shader || m_LinePoints.empty()) {
+		//	return;
+	//	}
 
-//	dev.Bind(m_Shader);
+	//	dev.Bind(m_Shader);
 
-	//m_VAO.Bind();
-	
-//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::CoordChannel, (float*)&m_LinePoints[0], m_LinePoints.size()/*, true*/);
-//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::ColorChannel, (float*)&m_LinePointsColors[0], m_LinePointsColors.size()/*, true*/);
+		//m_VAO.Bind();
 
-	//glDrawElements(GL_LINES, )
+	//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::CoordChannel, (float*)&m_LinePoints[0], m_LinePoints.size()/*, true*/);
+	//		m_VAO.SetDataChannel<3, float>(Graphic::VAO::ColorChannel, (float*)&m_LinePointsColors[0], m_LinePointsColors.size()/*, true*/);
 
-//	m_VAO.DrawElements(m_LinePoints.size(), 0)
-	//glDrawArrays(GL_LINES, 0, m_LinePoints.size());
+		//glDrawElements(GL_LINES, )
 
-	//m_VAO.UnBind();
+	//	m_VAO.DrawElements(m_LinePoints.size(), 0)
+		//glDrawArrays(GL_LINES, 0, m_LinePoints.size());
+
+		//m_VAO.UnBind();
 
 	glPopAttrib();
 }
 
-void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color){
-//	m_LinePoints.push_back(convert(from));
-//	m_LinePoints.push_back(convert(to));
-//	m_LinePointsColors.push_back(convert(color));
-//	m_LinePointsColors.push_back(convert(color));
+void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
+	//	m_LinePoints.push_back(convert(from));
+	//	m_LinePoints.push_back(convert(to));
+	//	m_LinePointsColors.push_back(convert(color));
+	//	m_LinePointsColors.push_back(convert(color));
 	m_dev->CurrentShader()->SetBackColor(convert(color));
 	glBegin(GL_LINES);
 	glVertex3fv((float*)&from);
@@ -67,7 +69,7 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 	glEnd();
 }
 
-void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color){
+void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) {
 	m_dev->CurrentShader()->SetBackColor(convert(color));
 	glBegin(GL_POINTS);
 	glVertex3fv((float*)&PointOnB);
@@ -79,20 +81,18 @@ void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVect
 	glEnd();
 }
 
-void BulletDebugDrawer::reportErrorWarning(const char *c){
+void BulletDebugDrawer::reportErrorWarning(const char *c) {
 	AddLog(Warning, "Message from bullet: '" << c << "'");
 }
 
-void BulletDebugDrawer::draw3dText(const btVector3 &, const char *){
-}
+void BulletDebugDrawer::draw3dText(const btVector3 &, const char *) {}
 
-void BulletDebugDrawer::setDebugMode(int p){
+void BulletDebugDrawer::setDebugMode(int p) {
 	m = p;
 }
 
-int BulletDebugDrawer::getDebugMode(void) const { 
-	return 3; 
+int BulletDebugDrawer::getDebugMode(void) const {
+	return 3;
 }
 
 } //namespace Physics 
-

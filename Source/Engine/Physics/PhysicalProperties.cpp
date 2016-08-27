@@ -4,6 +4,7 @@
 	by Paweu
 */
 #include <pch.h>
+#if 0
 #include "PhysicalProperties.h"
 //#include <EngineHeader.h>
 
@@ -28,3 +29,5 @@ bool PhysicalProperties::LoadMeta(const xml_node node) {
 }
 
 } //namespace Physics 
+
+#endif // 0

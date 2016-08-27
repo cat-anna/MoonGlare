@@ -7,7 +7,7 @@
 #pragma once
 #ifndef Body_H
 #define Body_H
-
+#if 0
 namespace Physics {
 
 class Body : public cRootClass, public btMotionState {
@@ -68,4 +68,5 @@ private:
 
 } //namespace Physics 
 
+#endif
 #endif

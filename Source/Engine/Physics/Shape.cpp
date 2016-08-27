@@ -4,6 +4,7 @@
 	by Paweu
 */
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 
 namespace Physics {
@@ -299,3 +300,5 @@ bool TriangleMeshShapeConstructor::AddTriangles(const Graphic::VertexVector &ver
 }
 
 } //namespace Physics 
+
+#endif // 0
