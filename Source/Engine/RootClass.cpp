@@ -4,13 +4,6 @@
 SPACERTTI_IMPLEMENT_CLASS(cRootClass);
 RegisterApiBaseClass(cRootClass, &cRootClass::RegisterScriptApi);
 
-cRootClass::cRootClass(): 
-		BaseClass() {
-}
-
-cRootClass::~cRootClass() {
-}
-
 void cRootClass::RegisterScriptApi(ApiInitializer &api) {
 	api.beginClass<ThisClass>("cRootClass")
 #ifndef _DISABLE_SCRIPT_ENGINE_
@@ -66,7 +59,6 @@ RegisterApiDerivedClass(NamedObject, &NamedObject::RegisterScriptApi);
 
 NamedObject::NamedObject(): cRootClass(), m_Name("?") { }
 NamedObject::NamedObject(const string& Name): cRootClass(), m_Name(Name) { }
-NamedObject::~NamedObject() { }
 
 void NamedObject::RegisterScriptApi(ApiInitializer &api) {
 	api.deriveClass<ThisClass, BaseClass>("cNamedObject")

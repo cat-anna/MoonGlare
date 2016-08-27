@@ -11,8 +11,6 @@ class cRootClass : public Space::RTTI::RTTIObject {
 	SPACERTTI_DECLARE_CLASS(cRootClass, Space::RTTI::RTTIObject);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public: 
-	cRootClass();
-	virtual ~cRootClass();
 	virtual void WriteNameToXML(xml_node Node) const;
 	virtual void Describe() const;
 	string Info() const;
@@ -29,7 +27,7 @@ class NamedObject : public cRootClass {
 public:
 	NamedObject();
 	NamedObject(const string& Name);
-	~NamedObject();
+
 	const string& GetName() const { return m_Name; }
 	const char* GetCharName() const { return GetName().c_str(); }
 	static void RegisterScriptApi(ApiInitializer &api);
