@@ -88,8 +88,6 @@ bool Manager::Initialize() {
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
 	//GetFileSystem()->LoadRegisteredContainers();
 
-	SetInitialized(true);
-
 	for (auto &it : Settings->Modules.List) {
 		AddLogf(Debug, "Trying to load module '%s'", it.c_str());
 		
@@ -109,14 +107,11 @@ bool Manager::Initialize() {
 }
 
 bool Manager::Finalize() {
-	DumpResources();
-
 	m_Fonts.clear();
 	m_Models.clear();
 
 	m_Modules.clear();
 
-	SetInitialized(false);
 	return true;
 }
 
@@ -281,7 +276,7 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 
 	if (!model->LoadFromXML(xml->document_element())) {
 		AddLogf(Error, "Unable to load model '%s' of class '%s'", Name.c_str(), Class.c_str());
-		delete ptr;
+	//	delete ptr;
 		return nullptr;
 	}
 

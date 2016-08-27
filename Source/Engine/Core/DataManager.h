@@ -139,8 +139,6 @@ private:
 //	template <class C> 
 //	void ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container);
 
-	DefineFlagSetter(m_Flags, Flags::Initialized, Initialized);
-
 	void DumpResources();
 };
 
