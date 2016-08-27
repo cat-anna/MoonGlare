@@ -102,6 +102,8 @@ protected:
 	void ChangeSceneImpl();
 }; 
 
+inline Engine* GetEngine() { return Engine::Instance(); }
+
 } //namespace Core
 } //namespace MoonGlare 
 

@@ -1,5 +1,8 @@
 ﻿#include <pch.h>
 #include <MoonGlare.h>
+
+#include "Engine.h"
+
 #include <GUI/GUI.h>
 #include "Console.h"
 #include <Core/InputMap.h>
@@ -242,14 +245,6 @@ void Engine::HandleEscapeKeyImpl() {
 
 //----------------------------------------------------------------------------------
 
-#if 0
-void Engine::SetNextScene(const string& Name) {
-	m_ActionQueue.Add([this, Name]() {
-		GetScenesManager()->PushScene(Name);
-	});
-}
-#endif // 0
-
 void Engine::ChangeSceneImpl() {
 	if (m_CurrentScene)
 		m_CurrentScene->EndScene();
@@ -263,24 +258,6 @@ void Engine::ChangeSceneImpl() {
 	if (prevScene)
 		GetScenesManager()->PushScene(prevScene);
 }
-
-#if 0
-void Engine::HandleSceneStateChangeImpl() {
-	if (!m_CurrentScene)
-		return; //this an critical error, but currently lets ignore it
-
-	using Scene::SceneState;
-	switch (m_CurrentScene->GetSceneState()) {
-	case SceneState::Finished:
-		GotoPreviousSceneImpl();
-		return;
-	case SceneState::Active:
-	case SceneState::Waiting:
-	default:
-		break;
-	}
-}
-#endif // 0
 
 //----------------------------------------------------------------------------------
 

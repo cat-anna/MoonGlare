@@ -7,6 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
+#include <Engine/Core/Engine.h>
 #include <Engine/iApplication.h>
 
 #define __LOG_ACTION_Tool(T, A)						ORBITLOGGER_BeginLog(None, A)

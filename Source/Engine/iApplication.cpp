@@ -11,6 +11,7 @@
 #include <Engine/Core/DataManager.h>
 #include <Engine/Core/Console.h>
 #include <Engine/ModulesManager.h>
+#include <Engine/Core/Engine.h>
 
 #include <iApplication.h>
 

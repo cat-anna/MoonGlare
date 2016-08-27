@@ -2,7 +2,7 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
-
+#include <Engine/Core/Engine.h>
 #include <Utils/LuaUtils.h>
 
 Settings_t Settings;

@@ -3,6 +3,7 @@
 #include <Engine/Core/DataManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Console.h"
+#include <Engine/Core/Engine.h>
 
 namespace MoonGlare {
 namespace Core {

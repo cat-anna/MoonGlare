@@ -12,6 +12,8 @@
 #include "DefaultLoadingScene.h"
 #include "EngineLoadScene.h"
 
+#include <Engine/Core/Engine.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scene {

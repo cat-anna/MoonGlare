@@ -1,8 +1,9 @@
 
 #include <pch.h>
-#include <nfMoonGlare.h>
+#include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
+#include <Engine/Core/DataManager.h>
 #include "GameApplication.h"
 
 namespace MoonGlare {

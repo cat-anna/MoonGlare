@@ -6,6 +6,7 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
+#include <Engine/Core/Engine.h>
 #include <Engine/iApplication.h>
 #include <Engine/Core/Console.h>
 #include "GraphicSettings.h"

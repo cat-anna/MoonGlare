@@ -10,15 +10,10 @@
 
 #include "Component/nfComponent.h"
 
-#include "Engine.h"
-
 //core shortcut getters
 namespace MoonGlare {
 namespace Core {
-	inline Engine* GetEngine() { return Engine::Instance(); }
 	inline ::Core::Scripts::cScriptEngine* GetScriptEngine() { return ::Core::Scripts::cScriptEngine::Instance(); }
-	//inline cGameEngine* GetGameEngine() { return cGameEngine::Instance(); }
-
 	inline Scene::ScenesManager* GetScenesManager() { return Scene::ScenesManager::Instance(); }
 } //namespace Core 
 } //namespace MoonGlare 
