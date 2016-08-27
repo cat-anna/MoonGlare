@@ -19,25 +19,32 @@ public:
  	iApplication();
  	virtual ~iApplication();
 
-	virtual bool Initialize() = 0;
-	virtual bool Finalize() = 0;
+	virtual bool Initialize();
+	virtual bool Execute();
+	virtual bool Finalize();
+
+	virtual bool PreSystemInit();
+	virtual bool PostSystemInit();
+
 	virtual void Exit();
 	virtual void OnActivate();
 	virtual void OnDeactivate();
 	virtual const char* ExeName() const;
 
-	enum class Flags {
-		Inactive,
-		DoRestart,
+	union Flags {
+		struct {
+			bool m_Active : 1;
+			bool m_Restart : 1;
+		};
+		uint32_t m_UintValue;
 	};
-
-	DefineFlagGetter(m_Flags, FlagBit(Flags::Inactive), Inactive);
-	DefineFlag(m_Flags, FlagBit(Flags::DoRestart), DoRestart);
+	bool IsActive() const { return m_Flags.m_Active; }
+	bool DoRestart() const { return m_Flags.m_Restart; }
+	void SetRestart(bool v) { m_Flags.m_Restart = v; }
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	unsigned m_Flags;
-	DefineFlagSetter(m_Flags, FlagBit(Flags::Inactive), Inactive);
+	Flags m_Flags;
 };
 
 } //namespace Application 

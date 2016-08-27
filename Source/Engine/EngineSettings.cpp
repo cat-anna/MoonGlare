@@ -287,7 +287,7 @@ struct SettingsImpl {
 			it.second.Manipulator.reset();
 		}
 		if (restart) {
-			GetApplication()->SetDoRestart(true);
+			GetApplication()->SetRestart(true);
 			MoonGlare::Core::GetEngine()->Exit();
 		}
 	}
@@ -303,7 +303,7 @@ struct SettingsImpl {
 			it.second.Manipulator.reset();
 			it.second.SetModiffied(false);
 		}
-		GetApplication()->SetDoRestart(false);
+		GetApplication()->SetRestart(false);
 	}
 
 	static void RegisterScriptApi(ApiInitializer &api);
