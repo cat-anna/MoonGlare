@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <pch.h>
+#if 0
 #include "Collision.h"
 
 namespace Physics {
@@ -31,3 +32,5 @@ void GroupMaskEnum::LoadFromXML(const xml_node parent, CollisionMask& out) {
 }
 
 } //namespace Physics 
+
+#endif // 0

@@ -21,12 +21,12 @@ public:
 	virtual void DoRender(cRenderDevice &dev) const;
 	virtual void DoRenderMesh(cRenderDevice &dev) const;
 	
-	virtual Physics::SharedShape ConstructShape(float ShapeScale) const;
-	virtual const Physics::PhysicalProperties* GetPhysicalProperties() const;
+//	virtual Physics::SharedShape ConstructShape(float ShapeScale) const;
+//	virtual const Physics::PhysicalProperties* GetPhysicalProperties() const;
 
 	virtual bool LoadFromXML(const xml_node Node) override;
 protected:
-	Physics::CylinderShapeConstructor *m_Shape;
+//	Physics::CylinderShapeConstructor *m_Shape;
 	ModelMaterial *m_Material;
 	Graphic::VAO::MeshData m_Mesh;
 	Graphic::VAO m_VAO;

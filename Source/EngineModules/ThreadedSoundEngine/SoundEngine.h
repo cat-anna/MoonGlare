@@ -40,8 +40,6 @@ public:
 
 	virtual void PlaySoundScript(const string &Name, const string &Func, int param) override;
 	virtual void PlayMusicScript(const string &Name, const string &Func, int param) override;
-	virtual void PlaySoundTimer(const string &Name, Object *sender, int tid) override;
-	virtual void PlayMusicTimer(const string &Name, Object *sender, int tid) override;
 
 	virtual void StopMusic() override;
 

@@ -7,15 +7,14 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include "DebugDrawer.h"
+#include "Collision.h"
+
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/AbstractComponent.h>
 #include <Core/Component/TransformComponent.h>
-
-#include "Collision.h"
 #include "BodyComponent.h"
-
-#include "DebugDrawer.h"
 
 #include <Math.x2c.h>
 #include <BodyComponent.x2c.h>
@@ -234,6 +233,48 @@ BodyComponent::BodyEntry * BodyComponent::GetEntry(Handle h) {
 }
 
 //-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+#if 0
+disabled code
+
+void GameScene::DoMove(const MoveConfig &conf) {
+	BaseClass::DoMove(conf);
+	m_Objects.Process(conf);
+
+	struct T {
+		static bool t(btManifoldPoint& cp, void* body0,void* body1) {
+			if (cp.m_userPersistentData)
+				return false;
+
+			cp.m_userPersistentData = body0;
+			btCollisionObject *b0 = (btCollisionObject*)body0;
+			btCollisionObject *b1 = (btCollisionObject*)body1;
+			Object *o0 = (Object*)b0->getUserPointer();
+			Object *o1 = (Object*)b1->getUserPointer();
+
+			AddLog(Hint, "contact " << b0 << "@" << o0->GetName() << "   " << b1 << "@" << o1->GetName());
+			return false;
+		}
+		static bool destroy(void* userPersistentData) {
+			return true;
+		}
+	};
+	gContactProcessedCallback = &T::t;
+	gContactDestroyedCallback = &T::destroy;
+
+	AddLog(Hint, "Step begin");
+	auto t = std::chrono::steady_clock::now();
+	m_Physics->Step(conf.TimeDelta);
+	if (conf.m_SecondPeriod) {
+		std::chrono::duration<double> sec = std::chrono::steady_clock::now() - t;
+		AddLogf(Performance, "ph step: %f ms", (float)(sec.count() * 1000));
+	}
+
+	AddLog(Hint, "Step end");
+}
+
+#endif
 
 } //namespace Physics 
 } //namespace MoonGlare 

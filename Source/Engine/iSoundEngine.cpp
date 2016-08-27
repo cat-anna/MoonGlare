@@ -48,8 +48,6 @@ void iSoundEngine::RegisterScriptApi(ApiInitializer &api) {
 		
 		.addFunction("PlayEffectScript", &ThisClass::PlaySoundScript)
 		.addFunction("PlayMusicScript", &ThisClass::PlayMusicScript)
-		.addFunction("PlayEffectTimer", &ThisClass::PlaySoundTimer)
-		.addFunction("PlayMusicTimer", &ThisClass::PlayMusicTimer)
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("GetEffect", Utils::Template::CastStringParameter<ThisClass, iSound*, &ThisClass::GetSound>::get())
 		.addFunction("GetMusic", Utils::Template::CastStringParameter<ThisClass, iSound*, &ThisClass::GetMusic>::get())

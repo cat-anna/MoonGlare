@@ -85,8 +85,6 @@ bool MenuScene::DoInitialize() {
 	if (!BaseClass::DoInitialize())
 		return false;
 
-	m_GUI = std::make_unique<GUI::GUIEngine>();
-	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
 	GetGUI()->GetRootWidget()->SetStyleByName(m_Config.StyleName);
 	m_GUI->EnableCursor(true);
 
@@ -97,11 +95,8 @@ bool MenuScene::DoInitialize() {
 }
 
 bool MenuScene::DoFinalize() {
-	if (m_GUI) 
-		m_GUI->Finalize();
 	m_MenuStack.clear();
 	m_MenuTreeRoot.reset();
-	m_GUI.reset();
 	return BaseClass::DoFinalize();
 }
 

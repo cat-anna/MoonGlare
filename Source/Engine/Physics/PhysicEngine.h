@@ -7,6 +7,7 @@
 #pragma once
 #ifndef PhysicEngine_H
 #define PhysicEngine_H
+#if 0
 
 namespace Physics {
 
@@ -48,3 +49,5 @@ private:
 } //namespace Physics 
 
 #endif
+
+#endif // 0

@@ -4,6 +4,7 @@
 	by Paweu
 */
 #include <pch.h>
+#if 0
 #include <MoonGlare.h>
 
 namespace Physics {
@@ -96,3 +97,4 @@ void Body::setWorldTransform(const btTransform& centerOfMassWorldTrans) {
 }
 
 } //namespace Physics 
+#endif

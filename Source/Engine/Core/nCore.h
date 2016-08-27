@@ -6,7 +6,6 @@
 
 #include "DataManager.h"
 #include "Scripts/nScripts.h"
-#include "Objects/nObjects.h"
 #include "Scene/nScene.h"
 
 #include "Component/nfComponent.h"

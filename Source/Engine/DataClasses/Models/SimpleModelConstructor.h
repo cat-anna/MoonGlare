@@ -30,7 +30,7 @@ public:
 		Graphic::VAO *VAO;
 		iSimpleModel::MeshDataVector *Meshes;
 		MaterialVector *Materials;
-		Physics::ShapeConstructorPtr* ShapeConstructor;
+//		Physics::ShapeConstructorPtr* ShapeConstructor;
 		iModel *OwnerModel;
 		std::unique_ptr<FileSystem::DirectoryReader> Reader;
 	};

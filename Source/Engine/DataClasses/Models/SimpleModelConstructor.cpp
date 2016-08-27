@@ -40,7 +40,7 @@ iSimpleModel* SimpleModelConstructor::GenerateModel(const string& Name, DataPath
 	req.VAO = &esm->GetVAO();
 	req.Meshes = &esm->GetMeshVector();
 	req.Materials = &esm->GetMaterialVector();
-	req.ShapeConstructor = &esm->GetShapeConstructor();
+//	req.ShapeConstructor = &esm->GetShapeConstructor();
 	req.OwnerModel = esm;
 
 	if (!GenerateModel(req)) {
@@ -60,7 +60,7 @@ iSimpleModel* SimpleModelConstructor::GenerateModel() const {
 	req.VAO = &esm->GetVAO();
 	req.Meshes = &esm->GetMeshVector();
 	req.Materials = &esm->GetMaterialVector();
-	req.ShapeConstructor = &esm->GetShapeConstructor();
+//	req.ShapeConstructor = &esm->GetShapeConstructor();
 	req.OwnerModel = esm;
 
 	if (!GenerateModel(req)) {
@@ -126,11 +126,11 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 		}
 	}
 
-	if (m_GenerateShape) {
-		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
-		c->AddTriangles(Verticles, Index);
-		request.ShapeConstructor->swap(c);
-	}	
+//	if (m_GenerateShape) {
+//		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
+//		c->AddTriangles(Verticles, Index);
+//		request.ShapeConstructor->swap(c);
+//	}	
 
 	auto &vao = *request.VAO;
 	vao.DelayInit(Verticles, TexCoords, Normals, Index);

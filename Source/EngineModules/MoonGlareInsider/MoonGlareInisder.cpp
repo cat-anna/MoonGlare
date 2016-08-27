@@ -413,6 +413,8 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 
 bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
+	return false;
+#if 0
 	auto *hdr = buffer.GetHeader();
 
 	auto rawscene = Core::GetEngine()->GetCurrentScene();
@@ -442,6 +444,7 @@ bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
 
 	hdr->MessageType = MessageTypes::ObjectList;
 	return true;
+#endif
 }
 
 bool Insider::OrbitLoggerState(InsiderMessageBuffer& buffer) {

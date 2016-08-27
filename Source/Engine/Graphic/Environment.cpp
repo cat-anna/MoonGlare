@@ -29,6 +29,8 @@ bool Environment::Finalize() {
 }
 
 bool Environment::LoadMeta(const xml_node node) {
+	m_HaveSkyCube = false;
+
 	if (!node) return true;
 	if (!m_StaticFog.LoadMeta(node.child("StaticFog"))) {
 		AddLog(Warning, "An error has occur during loading static fog configuration");
@@ -40,7 +42,6 @@ bool Environment::LoadMeta(const xml_node node) {
 
 	//xml_node cube = node.child("SkyCube");
 	//if (!cube) 
-		m_HaveSkyCube = false;
 	//else {
 	//	if (!m_SkyCube.LoadMeta(cube, reader)) {
 	//		AddLog(Warning, "An error has occur during loading sky cube");

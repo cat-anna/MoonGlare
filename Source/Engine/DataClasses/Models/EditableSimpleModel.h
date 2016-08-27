@@ -20,7 +20,7 @@ public:
 	Graphic::VAO& GetVAO() { return m_VAO; }
 	MeshDataVector& GetMeshVector() { return m_Meshes; }
 	MaterialVector& GetMaterialVector() { return m_Materials; }
-	Physics::ShapeConstructorPtr& GetShapeConstructor() { return m_ShapeConstructor; }
+//	Physics::ShapeConstructorPtr& GetShapeConstructor() { return m_ShapeConstructor; }
 
 protected:
 	virtual bool DoInitialize() override;

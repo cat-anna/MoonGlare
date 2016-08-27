@@ -39,8 +39,8 @@ void Interfaces::DumpLists(ostream &out) {
 	Core::Scene::SceneClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nShaders class list\n";
 	Graphic::Shaders::ShaderClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nBody shapes class list\n";
-	Physics::BodyShapeClassRegister::GetRegister()->Enumerate(regdump);	
+	//out << "\nBody shapes class list\n";
+	//Physics::BodyShapeClassRegister::GetRegister()->Enumerate(regdump);	
 	out << "\nGUI widgets class list\n";
 	GUI::WidgetClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nSound types list\n";

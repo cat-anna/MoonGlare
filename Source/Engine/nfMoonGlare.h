@@ -13,7 +13,6 @@ using namespace MoonGlare;
 #include "Graphic/nfGraphic.h"
 #include "EngineSettings.h"
 
-#include "Physics/nfPhysics.h"
 #include "DataClasses/nfDataClasses.h"
 #include "Core/nfCore.h"
 #include "GUI/nfGUI.h"
