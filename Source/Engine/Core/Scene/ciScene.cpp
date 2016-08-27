@@ -10,15 +10,18 @@
 #include <Engine/GUI/nGUI.h>
 #include <Engine/iSoundEngine.h>
 
+#include <Core/EntityBuilder.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
-SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(ciScene)
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ciScene)
 IMPLEMENT_SCRIPT_EVENT_VECTOR(SceneScriptEvents);
 RegisterApiDerivedClass(ciScene, &ciScene::RegisterScriptApi);
 inline ciScene* CurrentInstance() { return GetEngine()->GetCurrentScene(); }
 RegisterApiDynamicInstance(ciScene, &CurrentInstance, "Scene");
+SceneClassRegister::Register<ciScene> SceneReg("Scene");
 
 ciScene::ciScene() :
 		BaseClass(),
@@ -59,8 +62,10 @@ void ciScene::BeginScene() {
 	if(Sound::iSoundEngine::InstanceExists())
 		GetSoundEngine()->SetPlayList(GetSettings().PlayList);
 
-	if (m_GUI)
-		m_GUI->Activate();
+	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
+	m_Environment.Initialize();
+
+	m_GUI->Activate();
 
 	SetReady(true);
 	InvokeOnBeginScene();
@@ -71,6 +76,9 @@ void ciScene::EndScene() {
 
 	if (m_GUI)
 		m_GUI->Deactivate();
+
+	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
+	m_Environment.Finalize();
 
 	InvokeOnEndScene();
 	SetReady(false);
@@ -104,10 +112,18 @@ bool ciScene::Finalize() {
 }
 
 bool ciScene::DoInitialize() {
+	m_GUI = std::make_unique<GUI::GUIEngine>();
+	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
+
 	if (!m_ComponentManager.Initialize(this)) {
 		AddLogf(Error, "Failed to initialize component manager");
 		return false;
 	}
+
+	auto node = GetRootNode().child("Entities");
+	EntityBuilder eb(&m_ComponentManager);
+	auto root = GetEngine()->GetWorld()->GetEntityManager()->GetRootEntity();
+	eb.ProcessXML(root, node);
 
 	return true;
 }
@@ -155,6 +171,7 @@ bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
 bool ciScene::LoadMeta(const xml_node Node) {
 	SetName(Node.attribute(xmlAttr_Name).as_string("??"));
 	m_ScriptHandlers->LoadFromXML(Node);
+	m_Environment.LoadMeta(Node.child("Environment"));
 	m_Settings.LoadMeta(Node.child("Settings"));
 	return m_ComponentManager.LoadComponents(Node.child("Components"));
 }

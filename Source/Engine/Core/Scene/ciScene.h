@@ -47,7 +47,7 @@ DECLARE_SCRIPT_EVENT_VECTOR(SceneScriptEvents, iScriptEvents,
 		SCRIPT_EVENT_REMOVE());
 
 class ciScene : public DataClasses::BasicResource {
-	SPACERTTI_DECLARE_ABSTRACT_CLASS(ciScene, DataClasses::BasicResource)
+	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, DataClasses::BasicResource)
 	DECLARE_SCRIPT_HANDLERS_ROOT(SceneScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	DECLARE_EVENT_HOLDER();
@@ -104,6 +104,8 @@ public:
 protected:
 	Component::ComponentManager m_ComponentManager;
 //old
+
+	Graphic::Environment m_Environment;
 
 	TimeEvents m_TimeEvents;
 	GUI::GUIEnginePtr m_GUI;

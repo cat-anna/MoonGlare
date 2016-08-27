@@ -10,6 +10,4 @@
 #include "ciScene.h"
 #include "ScenesManager.h"
 
-#include "GameScene.h"
-
 #endif // NSCENE_H_
