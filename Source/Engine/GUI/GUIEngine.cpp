@@ -69,10 +69,9 @@ struct GuiMouseDispatcher : public ::Core::MouseEventDispatcher {
 //----------------------------------------------------------------------------------
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(GUIEngine)
-//SPACERTTI_IMPLEMENT_CLASS_SINGLETON(GUIEngine)
 RegisterApiDerivedClass(GUIEngine, &GUIEngine::RegisterScriptApi);
 inline GUIEngine* CurrentInstance() { return Core::GetEngine()->GetCurrentScene()->GetGUI().get(); }
-RegisterApiDynamicInstance(GUIEngine, &CurrentInstance, "GetGUI");
+RegisterApiDynamicInstance(GUIEngine, &CurrentInstance, "GUI");
 
 GUIEngine::GUIEngine():
 		BaseClass(),

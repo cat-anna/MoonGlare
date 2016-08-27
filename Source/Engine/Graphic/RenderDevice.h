@@ -27,7 +27,7 @@ public:
 
 	void BeginFrame() { ++m_FrameIndex; }
 	void EndFrame() { GetContext()->SwapBuffers(); }
-	unsigned FrameIndex() const { return m_FrameIndex; }
+	uint64_t FrameIndex() const { return m_FrameIndex; }
 
 	void ResetViewPort() { GetContext()->ResetViewPort(); }
 	void ClearBuffer() { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }

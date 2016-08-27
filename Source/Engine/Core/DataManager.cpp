@@ -34,7 +34,7 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Manager)
 RegisterApiInstance(Manager, &Manager::Instance, "Data");
 RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
 
-Manager::Manager() : cRootClass(), m_Flags(0) {
+Manager::Manager() : cRootClass() {
 	SetThisAsInstance();
 	m_Modules.reserve(StaticSettings::DataManager::MaxLoadableModules);
 	new DataClasses::Texture();
@@ -83,7 +83,6 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 //------------------------------------------------------------------------------------------
 
 bool Manager::Initialize() {
-	ASSERT(!IsInitialized());
 	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 	
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
@@ -110,8 +109,6 @@ bool Manager::Initialize() {
 }
 
 bool Manager::Finalize() {
-	if (!IsInitialized()) return true;
-
 	DumpResources();
 
 	m_Fonts.clear();
@@ -127,7 +124,6 @@ bool Manager::Finalize() {
 
 bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
 	ASSERT(Container);
-	ASSERT(IsInitialized());
 
 	m_Modules.emplace_back();
 	auto &mod = m_Modules.back();
@@ -271,7 +267,6 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	}
 	AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
 
-//	AddLog(TODO, "Move ownership of loaded model xml to map instance");
 	FileSystem::XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
 		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());

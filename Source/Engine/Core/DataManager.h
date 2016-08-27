@@ -118,14 +118,6 @@ public:
 	bool Initialize();
 	bool Finalize();
 
-	struct Flags {
-		enum {
-			Initialized		= 0x0010,
-		};
-	};
-
-	DefineFlagGetter(m_Flags, Flags::Initialized, Initialized);
-
 	void DumpAllResources(std::ostream &out);
 	/** Reprint all resources */
 #ifdef DEBUG_DUMP
@@ -136,7 +128,6 @@ public:
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 private:
-	unsigned m_Flags;
 	std::vector<DataModuleInfo> m_Modules;
 	RuntimeConfiguration m_Configuration;
 
