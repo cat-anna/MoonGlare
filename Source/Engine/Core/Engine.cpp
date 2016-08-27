@@ -364,22 +364,6 @@ string Engine::GetVersionString() {
 
 //----------------------------------------------------------------------------------
 
-void Engine::CaptureScreenShot() { 
-	Graphic::GetRenderDevice()->DelayedContextManip([] {
-		auto size = Graphic::uvec2(Graphic::GetRenderDevice()->GetContext()->Size());
-		auto img = DataClasses::Texture::AllocateImage(size, DataClasses::Texture::BPP::RGB);
-		Graphic::GetRenderDevice()->ReadScreenPixels(img->image, size, img->value_type);
-
-		char buf[128];
-
-		std::time_t t = std::time(NULL);
-		auto tm = *std::localtime(&t);
-		sprintf(buf, "ScreenShot_%d-%d-%d_%d-%d-%d.png", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-		
-		DataClasses::Texture::AsyncStoreImage(img, buf);
-	});		
-}
-
 void Engine::SetNextScene(const string& Name) const { 
 	GetScenesManager()->SetNextScene(Name); 
 }

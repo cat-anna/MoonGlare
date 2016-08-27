@@ -95,7 +95,6 @@ protected:
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 
 	virtual void HandleEscapeKeyImpl();
-	void CaptureScreenShotImpl();
 
 	//void GoToSceneImpl(const string& Name);
 	//void HandleSceneStateChangeImpl();

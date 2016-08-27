@@ -357,7 +357,19 @@ void Window::key_callback(int key, bool Pressed) {
 		return;
 	case GLFW_KEY_PRINT_SCREEN:
 		if (!Pressed) return;
-		MoonGlare::Core::GetEngine()->CaptureScreenShot();
+		Graphic::GetRenderDevice()->DelayedContextManip([] {
+			auto size = Graphic::uvec2(Graphic::GetRenderDevice()->GetContext()->Size());
+			auto img = MoonGlare::DataClasses::Texture::AllocateImage(size, MoonGlare::DataClasses::Texture::BPP::RGB);
+			Graphic::GetRenderDevice()->ReadScreenPixels(img->image, size, img->value_type);
+
+			char buf[128];
+
+			std::time_t t = std::time(NULL);
+			auto tm = *std::localtime(&t);
+			sprintf(buf, "ScreenShot_%d-%d-%d_%d-%d-%d.png", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+			MoonGlare::DataClasses::Texture::AsyncStoreImage(img, buf);
+		});
 		return;
 	default:
 		if (m_InputProcessor)
