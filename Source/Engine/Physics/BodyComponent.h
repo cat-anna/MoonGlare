@@ -43,6 +43,7 @@ public:
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
+			bool m_Kinematic : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -94,8 +95,8 @@ public:
 		void setWorldTransform(const btTransform & centerOfMassWorldTrans) {
 			auto *entry = m_Transform->GetEntry(m_TransformHandle);
 			if (entry) {
-				entry->m_LocalTransform = (centerOfMassWorldTrans);
-			//	entry->SetTransform(centerOfMassWorldTrans);
+			//	entry->m_LocalTransform = centerOfMassWorldTrans;
+				entry->SetTransform(centerOfMassWorldTrans);
 			//	entry->m_Revision = m_Transform->GetCurrentRevision();
 				//auto *be = m_BodyComponent->GetEntry(m_EntryHandle);
 				//if (be)

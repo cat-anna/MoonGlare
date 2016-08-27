@@ -14,6 +14,12 @@ Structure.new {
 			default = 0,
 		},	
 		{
+			name = "Kinematic",
+			type = Types.bool,
+			require = false,
+			default = true,
+		},	
+		{
 			name = "LinearVelocity",
 			type = Local.Vec3,
 			require = false,

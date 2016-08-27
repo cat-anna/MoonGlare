@@ -89,17 +89,19 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		auto *entry = tc->GetEntry(item.m_TransformHandle);
+		auto *tcentry = tc->GetEntry(item.m_TransformHandle);
 		auto &body = m_BulletRigidBody[i];
 
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = tc->GetCurrentRevision();
 		} else {
-			if (item.m_Revision != entry->m_Revision) {
-				((btRigidBody&)body).setWorldTransform(entry->m_LocalTransform);
-				body.activate(true);
-				item.m_Revision = entry->m_Revision;
+			if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
+				if (item.m_Revision != tcentry->m_Revision) {
+					((btRigidBody&)body).setWorldTransform(tcentry->m_LocalTransform);
+					body.activate(true);
+					item.m_Revision = tcentry->m_Revision;
+				}
 			}
 		}
 	}
@@ -133,7 +135,6 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
-
 
 	entry.m_Revision = 0;
 	entry.m_TransformHandle = TCHandle;
@@ -169,6 +170,7 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	//body.setFriction(phprop.Friction);
 	body.setSleepingThresholds(0.01f, 0.01f);
 	entry.m_CollisionMask = CollisionMask();		//TODO:
+	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic;
 
 	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
 
