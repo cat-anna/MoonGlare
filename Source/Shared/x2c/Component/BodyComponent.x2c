@@ -6,26 +6,31 @@ Use(Global.MoonGlare.x2c.Math.Vec3)
 
 Structure.new {
 	name = "BodyEntry",
+	description = "Holds all required data to build BodyComponent",
 	fields = {
 		{
 			name = "Mass",
+			description = "Object mass",
 			type = Types.float,
 			require = false,
 			default = 0,
 		},	
 		{
 			name = "Kinematic",
+			description = "Is physics a source of movement?",
 			type = Types.bool,
 			require = false,
 			default = true,
 		},	
 		{
 			name = "LinearVelocity",
+			description = "Starting object linear velocity",
 			type = Local.Vec3,
 			require = false,
 		},
 		{
 			name = "AngularVelocity",
+			description = "Starting object angular velocity",
 			type = Local.Vec3,
 			require = false,
 		},

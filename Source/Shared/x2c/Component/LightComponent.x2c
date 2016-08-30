@@ -13,27 +13,32 @@ Enum.import {
 Structure.import {
 	name = "LightAttenuation",
 	location = "::MoonGlare::Renderer::Light::LightAttenuation",
+	description = "Describes light attenutation with the distance from the source. Valid for spot and point light types",
 	fields = {
 		{
 			name = "Constant",
+			description = "Constant component",
 			type = Types.float,
 			require = true,
 			default = 0,
 		},	
 		{
 			name = "Linear",
+			description = "Linear component",
 			type = Types.float,
 			require = true,
 			default = 0.9,
 		},	
 		{
 			name = "Exp",
+			description = "Exponential component",
 			type = Types.float,
 			require = true,
 			default = 0.2,
 		},	
 		{
 			name = "Threshold",
+			description = "Max light threshold",
 			type = Types.float,
 			require = true,
 			default = 0.5,
@@ -44,20 +49,24 @@ Structure.import {
 
 Structure.new {
 	name = "LightEntry",
+	description = "Holds all required data to build LightComponent",
 	fields = {
 		{
 			name = "Type",
+			description = "Light source type: Spot, Point or directional",
 			type = Local.LightType,
 			require = true,
 		},	
 		{
 			name = "Active",
+			description = "Is light source active since the begining?",
 			type = Types.bool,
 			require = false,
 			default = true,
 		},			
 		{
 			name = "CastShadows",
+			description = "Does light cast shadows?",
 			type = Types.bool,
 			require = false,
 			default = true,
@@ -65,29 +74,34 @@ Structure.new {
 		
 		{
 			name = "Color",
+			description = "Light color",
 			type = Local.RGB,
 			require = false,
 			default = { x = 1, y = 1, z = 1, },
 		},
 		{
 			name = "AmbientIntensity",
+			description = "Light ambient intensity",
 			type = Types.float,
 			require = false,
 			default = 0.5,
 		},
 		{
 			name = "DiffuseIntensity",
+			description = "Light diffuse intensity",
 			type = Types.float,
 			require = false,
 			default = 0.5,
 		},
 		{
 			name = "Attenuation",
+			description = "Light attenutation",
 			type = Local.LightAttenuation,
 			require = false,
 		},
 		{
 			name = "CutOff",
+			description = "Light cut ogg. Valid only for spot lights",
 			type = Types.float,
 			require = false,
 			default = 0.5,

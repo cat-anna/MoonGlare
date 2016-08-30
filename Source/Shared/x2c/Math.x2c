@@ -27,6 +27,7 @@ Structure.import {
 Structure.import {
 	location = "::math::vec3",
 	name = "Vec3",
+	description = "3d vector structure",
 	fields = {
 		{
 			name = "x",
@@ -54,6 +55,7 @@ Structure.import {
 Structure.import {
 	location = "::math::vec4",
 	name = "Vec4",
+	description = "4d vector structure",
 	fields = {
 		{
 			name = "x",
@@ -86,6 +88,7 @@ Structure.import {
 Structure.import {
 	location = "::math::vec3",
 	name = "RGB",
+	description = "RGB color structure",
 	fields = {
 		{
 			name = "x",

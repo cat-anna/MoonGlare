@@ -4,22 +4,25 @@ namespace "MoonGlare.x2c.Component.CameraComponent"
 
 Structure.new {
 	name = "CameraEntry",
+	description = "Holds all required data to build CameraComponent",
 	fields = {
 		{
 			name = "Active",
+			description = "Is camera active since the begining?",
 			type = Types.bool,
 			require = false,
 			default = false,
 		},	
-		
 		{
 			name = "FoV",
+			description = "Camera field of view. Valid only for perspective camera",
 			type = Types.float,
 			require = false,
 			default = 45,
 		},	
 		{
 			name = "Orthogonal",
+			description = "Set to false to use perspective projection in camera. Makes FoV value valid",
 			type = Types.bool,
 			require = false,
 			default = false,
