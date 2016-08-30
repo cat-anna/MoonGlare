@@ -161,8 +161,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		if (!item.m_Flags.m_Map.m_StepFunction) {
-			//silently ignore
+		if (!item.m_Flags.m_Map.m_Active) {
 			continue;
 		}
 
@@ -184,8 +183,8 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 		lua_getfield(lua, -1, lua::Function_Step); //stack: self movedata RootObject component Step/nil
 		if (lua_isnil(lua, -1)) {
 			lua_pop(lua, 3);
-			item.m_Flags.m_Map.m_StepFunction = false;
-			AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, disabling mapping", i);
+			item.m_Flags.m_Map.m_Active = false;
+			AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, deactivating component", i);
 			continue;
 		}
 		//stack: self movedata RootObject script@1 Step

@@ -32,8 +32,7 @@ public:
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-
-			bool m_StepFunction : 1;
+			bool m_Active : 1; //Script has step function and it shall be called
 
 			//bool m_OnStart : 1;
 			//bool m_OnStop : 1;
