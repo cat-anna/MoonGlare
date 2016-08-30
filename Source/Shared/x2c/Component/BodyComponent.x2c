@@ -11,40 +11,52 @@ Structure.new {
 		{
 			name = "Mass",
 			description = "Object mass",
-			type = Types.float,
+			type = float,
 			require = false,
 			default = 0,
 		},	
 		{
 			name = "Kinematic",
 			description = "Is physics a source of movement?",
-			type = Types.bool,
+			type = bool,
 			require = false,
 			default = true,
 		},	
 		{
 			name = "LinearVelocity",
 			description = "Starting object linear velocity",
-			type = Local.Vec3,
+			type = Vec3,
 			require = false,
 		},
 		{
 			name = "AngularVelocity",
 			description = "Starting object angular velocity",
-			type = Local.Vec3,
+			type = Vec3,
 			require = false,
 		},
 		{
 			name = "AngularFactor",
-			type = Local.Vec3,
+			type = Vec3,
 			require = false,
 			default = { x = 1, y = 1, z = 1, },
 		},
 		{
 			name = "LinearFactor",
-			type = Local.Vec3,
+			type = Vec3,
 			require = false,
 			default = { x = 1, y = 1, z = 1, },
+		},
+	},
+}
+
+Structure.new {
+	name = "BodyComponentSettings",
+	description = "Configuration data of BodyComponent",
+	fields = {
+		{
+			name = "Gravity",
+			description = "Gravity field",
+			type = Vec3,
 		},
 	},
 }
