@@ -115,8 +115,8 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 		if (m_Materials.size() > mesh->mMaterialIndex)
 			meshd.Material = &m_Materials[mesh->mMaterialIndex];
 		else {
-			if (!m_Materials.empty())
-				AddLogf(Warning, "Model [%s] has mesh[id:%d] with wrong material id: %d", Info().c_str(), i, mesh->mMaterialIndex);
+			//if (!m_Materials.empty())
+			//	AddLogf(Warning, "Model [%s] has mesh[id:%d] with wrong material id: %d", Info().c_str(), i, mesh->mMaterialIndex);
 			meshd.Material = 0;
 		}
 

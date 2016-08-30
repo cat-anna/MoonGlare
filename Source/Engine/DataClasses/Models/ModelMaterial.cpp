@@ -19,7 +19,7 @@ ModelMaterial::ModelMaterial(iModel *Owner, const aiMaterial *Material) :
 				m_Owner(Owner), m_Material() {
 	aiString Path;
 	if (Material->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-		AddLog(Error, "Unable to load material for model: " << m_Owner->Info());
+//		AddLog(Error, "Unable to load material for model: " << m_Owner->Info());
 	}
 	FileSystem::DirectoryReader reader(DataPath::Models, m_Owner->GetName());
 	reader.OpenTexture(m_Material.Texture, Path.data);

@@ -104,14 +104,6 @@ bool DataClass::DoFinalize() {
 
 //---------------------------------------------------------------------------------------------------
 
-void DataClass::InternalInfo(std::ostringstream& buff) const {
-	BaseClass::InternalInfo(buff);
-	if (buff.tellp() > 0)
-		buff << " ";
-	static const char TruthTable[] = { 'F', 'T' };
-	buff << "Name:'" << GetName() << "' Init:" << TruthTable[IsReady()];
-}
-
 void DataClass::WriteNameToXML(xml_node Node) const {
 	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
 	Node.append_attribute("Name") = GetName().c_str();

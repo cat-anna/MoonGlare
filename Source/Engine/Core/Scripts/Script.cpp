@@ -57,7 +57,7 @@ static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Se
 				cRootClass *obj = dynamic_cast<cRootClass*>((Space::RTTI::RTTIObject*)(void*)*(ptr + 1));
 				if (!obj)
 					throw false;
-				lg << "[" << obj->Info() << "]";
+				lg << "[" << typeid(*obj).name() << "]";
 			}
 			catch (...) {
 				lg << "[err: unknown pointer type!]";

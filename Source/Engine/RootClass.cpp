@@ -9,29 +9,11 @@ void cRootClass::RegisterScriptApi(ApiInitializer &api) {
 #ifndef _DISABLE_SCRIPT_ENGINE_
 		.addCFunction("ExactClass", &ThisClass::PushExactClass)
 #endif
-		.addFunction("Describe", &ThisClass::Describe)
 	.endClass();
-}
-
-void cRootClass::Describe() const {
-	char buff[1024] = {};
-	sprintf(buff, "%s@0x%08x", GetDynamicTypeInfo()->GetName(), (unsigned)this);
-	AddLog(Hint, buff << " [" << Info() << "]");
-}
-
-void cRootClass::InternalInfo(std::ostringstream &buff) const {
-	if(buff.tellp() > 0) buff << " ";
-	buff << "Class:'" << GetDynamicTypeInfo()->GetName() << "'";
 }
 
 void cRootClass::WriteNameToXML(xml_node Node) const {
 	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
-}
-
-string cRootClass::Info() const {
-	std::ostringstream buff;
-	InternalInfo(buff);
-	return buff.str();
 }
 
 void cRootClass::WriteFlagPack(xml_node Node, unsigned Flags, const sFlagStruct *FlagPack) {

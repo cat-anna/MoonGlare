@@ -113,7 +113,7 @@ void Debug::CheckInstances() {
 //---------------------------------------------------------------------------------------
 		
 void eAsserationError::DescribeSender(std::stringstream &ss, const cRootClass *sender) {
-	ss << "Sender: " << sender->Info() << "\n";
+	ss << "Sender: " << typeid(*sender).name() << "\n";
 }
 
 //---------------------------------------------------------------------------------------

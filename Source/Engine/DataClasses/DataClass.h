@@ -51,8 +51,6 @@ protected:
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 	DefineFlagSetter(m_Flags, Flags::Loaded, Loaded);
-
-	virtual void InternalInfo(std::ostringstream &buff) const;
 };
 
 } // namespace DataClasses
