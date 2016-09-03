@@ -181,12 +181,12 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 //		SetOrthogonal(ScreenSize[0], ScreenSize[1]);
 //	}
 
-	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Active = ce.m_Active;
 	m_EntityMapper.SetHandle(Owner, h);
 
 	entry.ResetProjectionMatrix();
 
+	entry.m_Flags.m_Map.m_Valid = true;
 	return true;
 }
 

@@ -689,7 +689,7 @@ returns:
 		} else {
 			if (HasPos)
 				entry->m_LocalTransform.setOrigin(convert(Position));
-			if(HasRot)
+			if (HasRot)
 				entry->m_LocalTransform.setRotation(convert(Rotation));
 		}
 	}
