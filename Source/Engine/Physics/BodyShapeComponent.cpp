@@ -106,7 +106,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		bbs.ResetToDefault();
 		if (!bbs.Read(ShapeNode))
 			break;
-		entry.m_Shape.reset(new btBoxShape(convert(bbs.m_Size) / 2.0f));
+		entry.m_Shape = std::make_unique<btBoxShape>(convert(bbs.m_Size) / 2.0f);
 		break;
 	}
 	case "Sphere"_Hash32: {
@@ -114,9 +114,30 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		sbs.ResetToDefault();
 		if (!sbs.Read(ShapeNode))
 			break;
-		entry.m_Shape.reset(new btSphereShape(sbs.m_Radius));
+		entry.m_Shape = std::make_unique<btSphereShape>(sbs.m_Radius);
 		break;
 	}
+	case "Capsule"_Hash32:
+	case "CapsuleY"_Hash32:
+	{
+		x2c::Component::BodyShapeComponent::CapsuleYBodyShape_t cbs;
+		cbs.ResetToDefault();
+		if (!cbs.Read(ShapeNode))
+			break;
+		entry.m_Shape = std::make_unique<btCapsuleShape>(cbs.m_Radius, cbs.m_Height);
+		break;
+	}
+	case "Cylinder"_Hash32:
+	case "CylinderY"_Hash32:
+	{
+		x2c::Component::BodyShapeComponent::CylinderYBodyShape_t cbs;
+		cbs.ResetToDefault();
+		if (!cbs.Read(ShapeNode))
+			break;
+		entry.m_Shape = std::make_unique<btCylinderShape>(convert(cbs.m_Size) / 2.0f);
+		break;
+	}
+	
 	default:
 		AddLogf(Error, "Attempt to add BodyShape of unknown type!");
 		return false;
@@ -145,7 +166,12 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 }
 
 bool BodyShapeComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
-	return false;
+	auto h = m_EntityMapper.GetHandle(Owner);
+	if (!GetHandleTable()->IsValid(this, h)) {
+		return false;
+	}
+	hout = h;
+	return true;
 }
 
 //---------------------------------------------------------------------------------------

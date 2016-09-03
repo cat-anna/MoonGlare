@@ -4,7 +4,6 @@ namespace "MoonGlare.x2c.Component.BodyShapeComponent"
 
 Use(Global.MoonGlare.x2c.Math.Vec3)
 
-
 Structure.new {
 	name = "BoxBodyShape",
 	description = "tbd",
@@ -29,3 +28,31 @@ Structure.new {
 	},
 }
 
+Structure.new {
+	name = "CapsuleYBodyShape",
+	description = "tbd",
+	fields = {
+		{
+			name = "Radius",
+			description = "tbd",
+			type = float,
+		},
+		{
+			name = "Height",
+			description = "tbd",
+			type = float,
+		},
+	},
+}
+
+Structure.new {
+	name = "CylinderYBodyShape",
+	description = "tbd",
+	fields = {
+		{
+			name = "Size",
+			description = "tbd",
+			type = Vec3,
+		},
+	},
+}

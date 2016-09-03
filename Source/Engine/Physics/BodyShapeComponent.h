@@ -56,12 +56,9 @@ public:
 //	virtual bool LoadComponentConfiguration(pugi::xml_node node);
 //	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
 /*
-btBoxShape
 btCylinderShape
-btCapsuleShape
 btCapsuleShapeX
 btCapsuleShapeZ
-btSphereShape
 btConvexHullShape
 btBvhTriangleMeshShape
 */
