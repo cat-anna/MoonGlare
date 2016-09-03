@@ -32,7 +32,7 @@ public:
 
 	template<class T> 
 	T* GetComponent() {
-		return dynamic_cast<T*>(GetComponent(T::GetComponentID));
+		return dynamic_cast<T*>(GetComponent(T::GetComponentID()));
 	}
 
 	AbstractComponent* GetComponent(ComponentID cid);

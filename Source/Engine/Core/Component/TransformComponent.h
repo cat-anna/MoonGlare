@@ -33,7 +33,7 @@ public:
 	union FlagsMap {
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-
+			bool m_Dirty : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -50,7 +50,8 @@ public:
 		FlagsMap m_Flags;
 		math::mat4 m_LocalMatrix;
 		math::mat4 m_GlobalMatrix;
-		Physics::vec3 m_Scale;
+		Physics::vec3 m_LocalScale;
+		Physics::vec3 m_GlobalScale;
 
 		math::Transform m_LocalTransform;
 		math::Transform m_GlobalTransform;
@@ -58,29 +59,32 @@ public:
 
 		Configuration::RuntimeRevision m_Revision;
 
+		void Reset() {}
+		void Recalculate(const TransformEntry *Parent);
+
 		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
 		void SetPosition(math::vec3 pos) { 
 			m_LocalTransform.setOrigin(convert(pos)); 
 			m_Revision = 0;
+			m_Flags.m_Map.m_Dirty = true;
 		}
 		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
 		void SetRotation(math::vec4 rot) { 
 			m_LocalTransform.setRotation(convert(rot));
 			m_Revision = 0;
 		}
-		math::vec3 GetScale() const { return convert(m_Scale); }
+		math::vec3 GetScale() const { return convert(m_LocalScale); }
 		void SetScale(math::vec3 s) { 
-			m_Scale = convert(s); 
+			m_LocalScale = convert(s);
 			m_Revision = 0;
-		}
-		
-		void Reset() {
+			m_Flags.m_Map.m_Dirty = true;
 		}
 
 		math::Transform GetTransform() const { return m_LocalTransform; }
 		void SetTransform(const math::Transform &s) {
 			m_LocalTransform = s;
 			m_Revision = 0;
+			m_Flags.m_Map.m_Dirty = true;
 		}
 	};
 

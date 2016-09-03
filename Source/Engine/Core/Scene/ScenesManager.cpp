@@ -329,7 +329,6 @@ SceneDescriptor* ScenesManager::GetSceneDescriptor(const string &Name) {
 		}
 	}		
 	FileSystem::XMLFile xml;
-	auto &sd = AllocDescriptor(Name, SceneType::Invalid);
 	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Scenes)) {
 		AddLogf(Error, "Unable to open xml file for scene '%s'", Name.c_str());
 		return nullptr;
@@ -340,6 +339,7 @@ SceneDescriptor* ScenesManager::GetSceneDescriptor(const string &Name) {
 		AddLogf(Error, "No class definition for scene '%s'", Name.c_str());
 		return nullptr;
 	}
+	auto &sd = AllocDescriptor(Name, SceneType::Invalid);
 	sd.Class = xmlclass;
 	sd.Type = SceneType::External;
 	GetDataMgr()->NotifyResourcesChanged();
