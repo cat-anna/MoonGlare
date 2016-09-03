@@ -2,7 +2,18 @@
 #ifndef NFPHYSICSH
 #define NFPHYSICSH
 
+namespace MoonGlare {
 namespace Physics {
+
+} //namespace Physics
+} //namespace MoonGlare
+
+namespace Physics {
+
+	using namespace ::MoonGlare::Physics;
+
+	class BulletDebugDrawer;
+
 	class PhysicEngine;
 	using PhysicEnginePtr = std::unique_ptr < PhysicEngine > ;
 
@@ -33,6 +44,19 @@ namespace Physics {
 
 } //namespace Physics
 
-using Physics::vec3;
+namespace MoonGlare {
+namespace Physics {
+
+class BodyComponent;
+class BodyShapeComponent;
+
+using namespace ::Physics;
+
+} //namespace Physics
+} //namespace MoonGlare
+
+
+
+using ::Physics::vec3;
 
 #endif

@@ -17,6 +17,7 @@
 #include "BodyComponent.h"
 
 #include <Math.x2c.h>
+#include <ComponentCommon.x2c.h>
 #include <BodyComponent.x2c.h>
 
 namespace MoonGlare {
@@ -41,6 +42,12 @@ BodyComponent::~BodyComponent() {}
 
 bool BodyComponent::Initialize() {
 //	m_Array.MemZeroAndClear();
+
+	m_TransformComponent = GetManager()->GetComponent<Core::Component::TransformComponent>();
+	if (!m_TransformComponent) {
+		AddLogf(Error, "Unable to get TransformComponent instance!");
+		return false;
+	}
 
 	m_CollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
 	m_Dispatcher = std::make_unique<btCollisionDispatcher>(m_CollisionConfiguration.get());
@@ -95,10 +102,17 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = tc->GetCurrentRevision();
+			auto *shape = ((btRigidBody&)body).getCollisionShape();
+			if (shape)
+				shape->setLocalScaling(tcentry->m_GlobalScale);
+			body.activate(true);
 		} else {
 			if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
 				if (item.m_Revision != tcentry->m_Revision) {
 					((btRigidBody&)body).setWorldTransform(tcentry->m_LocalTransform);
+					auto *shape = ((btRigidBody&)body).getCollisionShape();
+					if (shape)
+						shape->setLocalScaling(tcentry->m_GlobalScale);
 					body.activate(true);
 					item.m_Revision = tcentry->m_Revision;
 				}
@@ -136,6 +150,9 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		return false;
 	}
 
+	entry.m_OwnerEntity = Owner;
+	entry.m_SelfHandle = hout;
+
 	entry.m_Revision = 0;
 	entry.m_TransformHandle = TCHandle;
 
@@ -147,9 +164,9 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	motionstste.Reset(this, hout);
 	motionstste.SetTrnsform(tc, TCHandle);
 
-	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
-	body.setCollisionShape(cs);
-	vec3 internia;
+//	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
+	//body.setCollisionShape(cs);
+	//vec3 internia;
 
 	x2c::Component::BodyComponent::BodyEntry_t bodyentry;
 	bodyentry.ResetToDefault();
@@ -157,9 +174,11 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		AddLog(Error, "Failed to read BodyEntry!");
 		return false;
 	}
+
+	entry.m_Mass = bodyentry.m_Mass;
 	 
-	cs->calculateLocalInertia(bodyentry.m_Mass, internia);
-	body.setMassProps(bodyentry.m_Mass, internia);
+	//cs->calculateLocalInertia(bodyentry.m_Mass, internia);
+//	body.setMassProps(bodyentry.m_Mass, internia);
 	body.setAngularFactor(convert(bodyentry.m_AngularFactor));
 	body.setLinearFactor(convert(bodyentry.m_LinearFactor));
 	body.setLinearVelocity(convert(bodyentry.m_LinearVelocity));
@@ -169,12 +188,11 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	//body.setRestitution(phprop.Restitution);
 	//body.setFriction(phprop.Friction);
 	body.setSleepingThresholds(0.01f, 0.01f);
-	entry.m_CollisionMask = CollisionMask();		//TODO:
+//	entry.m_CollisionMask = CollisionMask();		//TODO:
 	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic;
 
 	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
 
-//	m_EntityMapper.SetHandle(Owner, h);
 //	entry.m_Flags.m_Map.m_Valid = true;
 //	Physics::vec3 pos;
 //	XML::Vector::Read(node, "Position", pos);
@@ -183,15 +201,51 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 //	XML::Vector::Read(node, "Scale", entry.m_Scale, Physics::vec3(1, 1, 1));
 //	entry.m_SelfHandle = h;
 //	entry.m_OwnerEntity = Owner;
-//
+
+	m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
 	entry.m_Flags.m_Map.m_Valid = true;
+	return true;
+}
+
+bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionShape * ptr) {
+	auto *ht = GetHandleTable();
+	HandleIndex index;
+	if (!ht->GetHandleIndex(this, BodyHandle, index)) {
+		AddLogf(Error, "Cannot set shape to invalid handle!");
+		return false;
+	}
+	if (!ht->IsValid(ShapeHandle) && ptr) {
+		AddLogf(Error, "Cannot set shape using invalid handle!");
+		return false;
+	}
+
+	auto &entry = m_Array[index];
+	auto &body = m_BulletRigidBody[index];
+
+	entry.m_Flags.m_Map.m_HasShape = ptr != nullptr;
+	vec3 internia;
+	body.setCollisionShape(ptr);
+	if (ptr) {
+		ptr->calculateLocalInertia(entry.m_Mass, internia);
+		body.setMassProps(entry.m_Mass, internia);
+		m_DynamicsWorld->addRigidBody(&body);
+	} else {
+		body.setMassProps(0.0f, internia);
+		m_DynamicsWorld->removeRigidBody(&body);
+	}
+
 	return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 bool BodyComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
-	return false;
+	auto h = m_EntityMapper.GetHandle(Owner);
+	if (!GetHandleTable()->IsValid(this, h)) {
+		return false;
+	}
+	hout = h;
+	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -225,13 +279,13 @@ void BodyComponent::DefferedDraw(Graphic::cRenderDevice & dev) {
 }
 
 BodyComponent::BodyEntry * BodyComponent::GetEntry(Handle h) {
-	auto *ht = GetManager()->GetWorld()->GetHandleTable();
+	auto *ht = GetHandleTable();
 	HandleIndex hi;
 	if (!ht->GetHandleIndex(this, h, hi)) {
 		//AddLog(Debug, "Attempt to get TransformEntry for invalid Entity!");
 		return nullptr;
 	}
-	return &m_Array[hi];
+	return  &m_Array[hi];
 }
 
 //-------------------------------------------------------------------------------------------------

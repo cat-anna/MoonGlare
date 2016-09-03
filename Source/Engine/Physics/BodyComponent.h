@@ -44,6 +44,7 @@ public:
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 			bool m_Kinematic : 1;
+			bool m_HasShape : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -60,7 +61,10 @@ public:
 		Entity m_OwnerEntity;
 		FlagsMap m_Flags;
 
-		CollisionMask m_CollisionMask;
+		Handle m_ShapeHandle;
+		float m_Mass;
+
+//		CollisionMask m_CollisionMask;
 
 		Configuration::RuntimeRevision m_Revision;
 
@@ -70,6 +74,8 @@ public:
 
 	BodyEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
 	BodyEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
+
+	bool SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionShape *ptr);
 
 	struct BulletProxyCommon {
 		BodyComponent *m_BodyComponent;
@@ -128,9 +134,12 @@ protected:
 	std::unique_ptr<btDiscreteDynamicsWorld> m_DynamicsWorld;
 	std::unique_ptr<BulletDebugDrawer> m_DebugDrawer;
 
+	Core::Component::TransformComponent *m_TransformComponent;
+
 	Array<BodyEntry> m_Array;
 	Array<BulletMotionStateProxy> m_MotionStateProxy;
 	Array<BulletRigidBody> m_BulletRigidBody;
+	Core::EntityMapper m_EntityMapper;
 };
 
 } //namespace Physics 

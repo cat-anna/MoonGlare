@@ -31,6 +31,7 @@ enum class ComponentIDs : ComponentID {
 
 //Renderer - 5X
 	Body = 50,
+	BodyShape = 51,
 };
 
 //template<ComponentIDs ID, HandleType HT>
