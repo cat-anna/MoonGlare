@@ -55,8 +55,6 @@ using namespace ::Physics;
 } //namespace Physics
 } //namespace MoonGlare
 
-
-
 using ::Physics::vec3;
 
 #endif
