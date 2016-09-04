@@ -22,6 +22,7 @@
 
 namespace MoonGlare {
 namespace Physics {
+namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<BodyComponent, BodyComponent::BodyEntry, BodyComponent::BulletMotionStateProxy, BodyComponent::BulletProxyCommon, BodyComponent::BulletRigidBody> BodyComponentTypeInfo;
 Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false);
@@ -239,7 +240,7 @@ bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionS
 	return true;
 }
 
-//---------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 
 bool BodyComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
 	auto h = m_EntityMapper.GetHandle(Owner);
@@ -334,5 +335,6 @@ void GameScene::DoMove(const MoveConfig &conf) {
 
 #endif
 
+} //namespace Component 
 } //namespace Physics 
 } //namespace MoonGlare 

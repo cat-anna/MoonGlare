@@ -15,6 +15,7 @@
 
 namespace MoonGlare {
 namespace Physics {
+namespace Component {
 
 using namespace ::Physics;
 
@@ -144,6 +145,7 @@ protected:
 	Core::EntityMapper m_EntityMapper;
 };
 
+} //namespace Component 
 } //namespace Physics 
 } //namespace MoonGlare 
 
