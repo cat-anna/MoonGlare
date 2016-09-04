@@ -6,28 +6,29 @@ function Debug_OnInit()
 	--	return;
 	end
 	local w = Inst.Window
-	--w:ReleaseMouse()
+	w:ReleaseMouse()
 	w:SetPosition(5, 20)
 end
 
 function TogglePhysicEnabled()
-	if Physics.Enable(false) == false then
-		Physics.Enable(true);
-		Log.Console("Physics enabled")
+	local val = not Debug.Flags.Physics.Enabled
+	if val then
+		print("Physics enabled")
 	else
-		Log.Console("Physics disabled")
+		print("Physics disabled")
 	end
-	
+	Debug.Flags.Physics.Enabled = val
 	return 0;
 end
 
 function ToggleDebugDraw()
-	if Physics.DebugDraw(false) == false then
-		Physics.DebugDraw(true);
-		Log.Console("DebugDraw enabled")
+	local val = not Debug.Flags.Physics.DebugDraw
+	if val then
+		print("DebugDraw enabled")
 	else
-		Log.Console("DebugDraw disabled")
+		print("DebugDraw disabled")
 	end
+	Debug.Flags.Physics.DebugDraw = val;
 	return 0;
 end
 

@@ -118,6 +118,9 @@ public:
 	bool AddKeyboardSwitch(const char *Name, KeyId Key);
 	bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensitivity);
 
+	bool RegisterKeySwitch(const char* Name, const char* KeyName);
+	bool RegisterKeyboardAxis(const char* Name, const char* PositiveKeyName, const char* NegativeKeyName);
+
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	using InputStateArray = Space::Container::StaticVector<InputState, Configuration::Input::MaxInputStates>;
@@ -142,6 +145,27 @@ protected:
 private:
 	static int luaIndexInput(lua_State *lua);
 };
+
+//---------------------------------------------------------------------------------------
+
+struct KeyNamesTable {
+	KeyNamesTable();
+	const char *Get(KeyId kid) const {
+		if (kid >= m_Array.size())
+			return nullptr;
+		return m_Array[kid];
+	}
+	bool Find(const char *Name, KeyId &out) const {
+		for (KeyId kid = 0; kid < m_Array.size(); ++kid)
+			if (m_Array[kid] && stricmp(Name, m_Array[kid]) == 0)
+				return out = kid, true;
+		return false;
+	}
+private:
+	std::array<const char *, Configuration::Input::MaxKeyCode> m_Array;
+};
+
+extern const KeyNamesTable g_KeyNamesTable;
 
 } //namespace Core 
 } //namespace MoonGlare 
