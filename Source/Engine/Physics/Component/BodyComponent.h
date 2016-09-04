@@ -130,6 +130,7 @@ public:
 		BulletRigidBody() :btRigidBody(0.0f, nullptr, nullptr) {}
 	};
 
+	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 

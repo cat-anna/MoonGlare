@@ -25,7 +25,7 @@ namespace Physics {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<BodyComponent, BodyComponent::BodyEntry, BodyComponent::BulletMotionStateProxy, BodyComponent::BulletProxyCommon, BodyComponent::BulletRigidBody> BodyComponentTypeInfo;
-Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false);
+Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false, &BodyComponent::RegisterScriptApi);
 
 BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner) 
 		: AbstractComponent(Owner) {
@@ -46,6 +46,16 @@ BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner)
 }
 
 BodyComponent::~BodyComponent() {}
+
+//---------------------------------------------------------------------------------------
+
+void BodyComponent::RegisterScriptApi(ApiInitializer &root) {
+//	root
+//		.beginClass<InputProcessor>("cInputProcessor")
+//			.addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
+//		.endClass()
+//		;
+}
 
 //---------------------------------------------------------------------------------------
 
@@ -94,15 +104,12 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	if (m_Array.Empty())
 		return;
 
-//	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
+	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
 		conf.CustomDraw.push_back(this);
-//	}
+	}
 	
-	//|| !Config::Current::EnableFlags::Physics)
-//		return;
-
-
-	auto *tc = GetManager()->GetTransformComponent();
+	if(!Config::Current::EnableFlags::Physics)
+		return;
 
 	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
 		auto &item = m_Array[i];
@@ -114,12 +121,12 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		auto *tcentry = tc->GetEntry(item.m_TransformHandle);
+		auto *tcentry = m_TransformComponent->GetEntry(item.m_TransformHandle);
 		auto &body = m_BulletRigidBody[i];
 
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
-			item.m_Revision = tc->GetCurrentRevision();
+			item.m_Revision = m_TransformComponent->GetCurrentRevision();
 			auto *shape = ((btRigidBody&)body).getCollisionShape();
 			if (shape)
 				shape->setLocalScaling(tcentry->m_GlobalScale);
