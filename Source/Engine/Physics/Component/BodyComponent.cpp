@@ -28,6 +28,8 @@ Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", f
 
 BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner) 
 		: AbstractComponent(Owner) {
+
+	DebugMemorySetParent(GetManager());
 	DebugMemorySetClassName("BodyComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Array.Allocated();

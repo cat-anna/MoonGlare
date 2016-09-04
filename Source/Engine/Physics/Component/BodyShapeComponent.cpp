@@ -28,6 +28,14 @@ Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg
 
 BodyShapeComponent::BodyShapeComponent(Core::Component::ComponentManager *Owner)
 		: AbstractComponent(Owner) {
+
+	DebugMemorySetParent(GetManager());
+	DebugMemorySetClassName("BodyShapeComponent");
+	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = m_Array.Allocated();
+		counter.Capacity = m_Array.Capacity();
+		counter.ElementSize = sizeof(BodyShapeComponentEntry);
+	});
 }
 
 BodyShapeComponent::~BodyShapeComponent() {

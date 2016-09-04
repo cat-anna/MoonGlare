@@ -13,7 +13,8 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class ComponentManager final {
+class ComponentManager final  
+		: public Config::Current::DebugMemoryInterface {
 public:
 	ComponentManager();
 	~ComponentManager();
