@@ -151,6 +151,7 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 //	}
 
 	m_VAO.DelayInit(verticles, texCords, normals, indices);
+
 /*
 	m_VAO.New();
 	m_VAO.AddDataChannel<3, float>(&verticles[0][0], verticles.size());
@@ -168,4 +169,3 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 } //namespace Models 
 } //namespace DataClasses 
 } //namespace MoonGlare 
-

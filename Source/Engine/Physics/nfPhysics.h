@@ -46,9 +46,12 @@ namespace Physics {
 
 namespace MoonGlare {
 namespace Physics {
+namespace Component {
 
 class BodyComponent;
 class BodyShapeComponent;
+
+} //namespace Component
 
 using namespace ::Physics;
 

@@ -21,20 +21,20 @@ public:
 	typedef int MaterialID;
 	typedef int MeshID;
 
-	void GenerateShape(bool Status) { m_GenerateShape = Status; }
-
-	iSimpleModel* GenerateModel(const string& Name, DataPath ModelOrigin) const;
-	iSimpleModel* GenerateModel() const;
-
-	struct EditableModelFields {
-		Graphic::VAO *VAO;
-		iSimpleModel::MeshDataVector *Meshes;
-		MaterialVector *Materials;
-//		Physics::ShapeConstructorPtr* ShapeConstructor;
-		iModel *OwnerModel;
-		std::unique_ptr<FileSystem::DirectoryReader> Reader;
+	struct Result {
+		std::unique_ptr<iSimpleModel> m_Model;
+		std::unique_ptr<btBvhTriangleMeshShape> m_Shape;
 	};
-	bool GenerateModel(EditableModelFields &request) const;
+
+	bool Generate(bool GenerateShape, Result &out) const;
+
+//	struct EditableModelFields {
+//		Graphic::VAO *VAO;
+//		iSimpleModel::MeshDataVector *Meshes;
+//		MaterialVector *Materials;
+//		iModel *OwnerModel;
+//	};
+//	bool GenerateModel(EditableModelFields &request) const;
 
 	class cMesh { //all primitives are triangulated
 	protected:
@@ -74,13 +74,13 @@ public:
 protected:
 	typedef std::vector<std::unique_ptr<cMesh>> cMeshVector;
 	typedef std::vector<std::unique_ptr<Material>> MaterialVector;
+
 	cMeshVector m_Meshes;
 	MaterialVector m_Materials;
-	bool m_GenerateShape = false;
 };
 
 } // namespace Models
 } // namespace DataClasses
-} //namespace MoonGlare 
+} // namespace MoonGlare 
 
 #endif // CMODELCONSTRUCTOR_H_ 

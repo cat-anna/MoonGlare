@@ -21,6 +21,7 @@ RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", tru
 TransformComponent::TransformComponent(ComponentManager * Owner) 
 		: AbstractComponent(Owner) {
 
+	DebugMemorySetParent(GetManager());
 	DebugMemorySetClassName("TransformComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Array.Allocated();

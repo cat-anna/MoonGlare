@@ -15,6 +15,7 @@
 
 namespace MoonGlare {
 namespace Physics {
+namespace Component {
 
 using namespace ::Physics;
 
@@ -74,8 +75,11 @@ public:
 //		vec3 m_BodyAngularFactor;
 	};
 
-	BodyEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
-	BodyEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
+	BodyEntry* GetEntry(Handle h);	
+	BodyEntry* GetEntry(Entity e);	
+
+	struct BulletRigidBody;
+	BulletRigidBody* GetRigidBody(Handle h);	 //return nullptr if h/e is not valid
 
 	bool SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionShape *ptr);
 
@@ -144,6 +148,7 @@ protected:
 	Core::EntityMapper m_EntityMapper;
 };
 
+} //namespace Component 
 } //namespace Physics 
 } //namespace MoonGlare 
 

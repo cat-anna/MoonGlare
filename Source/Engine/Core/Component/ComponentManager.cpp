@@ -23,6 +23,13 @@ ComponentManager::ComponentManager()
 	, m_Scene(nullptr) {
 
 	m_World = GetEngine()->GetWorld();//TODO
+
+	DebugMemorySetClassName("ComponentManager");
+	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
+		counter.Allocated = m_UsedCount;
+		counter.Capacity = m_ComponentsIDs.size();
+		counter.ElementSize = sizeof(UniqueAbstractComponent) + sizeof(ComponentID);
+	});
 }
 
 ComponentManager::~ComponentManager() {
