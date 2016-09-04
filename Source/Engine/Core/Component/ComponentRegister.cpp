@@ -66,7 +66,8 @@ int ComponentRegister::RegisterComponentApi(ApiInitializer & api) {
 		auto &ci = *it.second;
 		if (!ci.m_ApiRegFunc)
 			continue;
-		ci.m_ApiRegFunc(api.beginNamespace("api").beginNamespace("Component"));
+		auto apireg = api.beginNamespace("api").beginNamespace("Component");
+		ci.m_ApiRegFunc(apireg);
 		++count;
 	}
 	return count;

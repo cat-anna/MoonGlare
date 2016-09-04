@@ -23,10 +23,10 @@ public:
 		struct Function { Function(const char* where = "api") { RegisterApi(func, 0, 0, where); } };
 
 		template <class T, void(*func)(ApiInitializer&)>
-		struct Base { Base() { RegisterApi(func, T::GetStaticTypeInfo(), 0); } };
+		struct Base { Base(const char* where = "api") { RegisterApi(func, T::GetStaticTypeInfo(), nullptr, where); } };
 
 		template <class T, class B, void(*func)(ApiInitializer&)>
-		struct Derived { Derived() { RegisterApi(func, T::GetStaticTypeInfo(), B::GetStaticTypeInfo()); } };
+		struct Derived { Derived(const char* where = "api") { RegisterApi(func, T::GetStaticTypeInfo(), B::GetStaticTypeInfo(), where); } };
 	};
 private:
 };
