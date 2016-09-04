@@ -23,7 +23,6 @@ public:
 		return m_Script->LoadCode(code, len, CodeName);
 	}
 
-
 	lua_State *GetLua() { return m_Script->GetLuaState(); }
 	std::recursive_mutex& GetLuaMutex() { return m_Script->GetMutex(); }
 	///script will be on top of lua stack
@@ -36,6 +35,12 @@ public:
 	bool Finalize();
 
 	void Step(const MoveConfig & conf);
+	
+	template<typename T>
+	void RegisterLuaSettings(T *t, const char *Name) {
+		LOCK_MUTEX_NAMED(GetLuaMutex(), lock);
+		m_Script->GetApiInitializer().beginNamespace("Settings").addPtrVariable(Name, t);
+	}
 
 //old
 
