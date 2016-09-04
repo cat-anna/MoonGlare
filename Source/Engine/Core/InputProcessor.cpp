@@ -37,6 +37,7 @@ void InputProcessor::RegisterScriptApi(ApiInitializer &root) {
 	root
 		.beginClass<InputProcessor>("cInputProcessor")
 			.addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
+			.addFunction("RegisterKeyboardAxis", &InputProcessor::RegisterKeyboardAxis)
 		.endClass()
 		;
 }
@@ -455,6 +456,21 @@ bool InputProcessor::RegisterKeySwitch(const char *Name, const char *KeyName) {
 	}
 
 	return AddKeyboardSwitch(Name, kid);
+}
+
+bool InputProcessor::RegisterKeyboardAxis(const char * Name, const char *PositiveKeyName, const char *NegativeKeyName) {
+	KeyId Positivekid;
+	if (!g_KeyNamesTable.Find(PositiveKeyName, Positivekid)) {
+		AddLogf(Warning, "Unknown key: %s", PositiveKeyName);
+		return false;
+	}
+	KeyId Negativekid;
+	if (!g_KeyNamesTable.Find(NegativeKeyName, Negativekid)) {
+		AddLogf(Warning, "Unknown key: %s", NegativeKeyName);
+		return false;
+	}
+
+	return AddKeyboardAxis(Name, Positivekid, Negativekid);
 }
 
 //---------------------------------------------------------------------------------------

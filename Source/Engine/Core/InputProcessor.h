@@ -119,6 +119,7 @@ public:
 	bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensitivity);
 
 	bool RegisterKeySwitch(const char* Name, const char* KeyName);
+	bool RegisterKeyboardAxis(const char* Name, const char* PositiveKeyName, const char* NegativeKeyName);
 
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
