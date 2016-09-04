@@ -5,38 +5,82 @@
 #include "RemoteConsole.h"
 #include "MainForm.h"
 
+#include <queue>
+
 class MemoryState::MemoryRequest : public RemoteConsoleEnumerationObserver {
 //	SPACERTTI_CLASSINFO(MemoryRequest);
 public:
-	MemoryRequest(QStandardItemModel *Model, QTreeView *TreeView, MemoryState *Owner):
+	MemoryRequest(QTreeView *TreeView, MemoryState *Owner):
 			RemoteConsoleEnumerationObserver(InsiderApi::MessageTypes::EnumerateMemory, ""), m_Owner(Owner) {
-		m_Model = Model;
-		m_ItemParent = m_Model->invisibleRootItem();
 		m_TreeView = TreeView;
 	}
 
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override { 
 		auto hdr = message.GetAndPull<InsiderApi::PayLoad_ListBase>();
-		m_Model->clear();
-		std::unordered_map<uint32_t, QStandardItem*> m_Owners;
-		auto *root = m_ItemParent;
+		auto model = m_Owner->GetModel();
+		model->removeRows(0, model->rowCount());
+		std::unordered_map<uint64_t, QStandardItem*> m_Owners;
+		
+		auto GetOwner = [&m_Owners](uint64_t id) -> QStandardItem* {
+			auto it = m_Owners.find(id);
+			if (it == m_Owners.end())
+				return nullptr;
+			return it->second;
+		};
+
+		struct Info {
+			InsiderApi::PayLoad_MemoryStatus *m_Ptr;
+			std::string m_Name, m_OwnerName;
+			bool m_Processed = false;
+		};
+
+		std::queue<Info> Infos;
 		for (unsigned i = 0; i < hdr->Count; ++i) {
 			auto *item = message.GetAndPull<InsiderApi::PayLoad_MemoryStatus>();
-			
 			const char *Name = message.PullString();
 			const char *OwnerName = message.PullString();
-			char buffer[128];
 
-			auto Owner = m_Owners[item->OwnerID];
+			Info info;
+			info.m_Ptr = item;
+			info.m_Name = Name;
+			info.m_OwnerName = OwnerName;
+			Infos.push(std::move(info));
+		}
+
+		auto *root = model->invisibleRootItem();
+		while(!Infos.empty()) {
+			Info info = Infos.front();
+			Infos.pop();
+			auto *item = info.m_Ptr;
+
+			char buffer[128];
+			auto Owner = GetOwner(item->ID);
 			if (!Owner) {
-				QList<QStandardItem*> xcols;
-				xcols << (Owner = new QStandardItem(OwnerName));
-				m_Owners[item->OwnerID] = Owner;
-				root->appendRow(xcols);
+				if (item->ParentID) {
+					auto Parent = GetOwner(item->ParentID);
+					if (!Parent) {
+						if (info.m_Processed) {
+							AddLogf(Error, "Unable to process memory status entry: %s/%s parent: %llx", info.m_OwnerName.c_str(), info.m_Name.c_str(), item->ParentID);
+							continue;
+						}
+						info.m_Processed = true;
+						Infos.push(info);
+						continue;
+					}
+					QList<QStandardItem*> xcols;
+					xcols << (Owner = new QStandardItem("Children"));
+					m_Owners[item->ID] = Owner;
+					Parent->appendRow(xcols);
+				} else {
+					QList<QStandardItem*> xcols;
+					xcols << (Owner = new QStandardItem(info.m_OwnerName.c_str()));
+					m_Owners[item->ID] = Owner;
+					root->appendRow(xcols);
+				}
 			}
 
 			QList<QStandardItem*> cols;
-			cols << new QStandardItem(Name);
+			cols << new QStandardItem(info.m_Name.c_str());
 			sprintf_s(buffer, "%d [%.2f%%]", item->Allocated, ((float)item->Allocated / (float)item->Capacity) * 100.0f);
 			cols << new QStandardItem(buffer);
 			cols << new QStandardItem(std::to_string(item->Capacity).c_str());
@@ -53,7 +97,6 @@ public:
 		return HanderStatus::Remove; 
 	};
 private:
-	QStandardItemModel *m_Model;
 	QStandardItem *m_ItemParent;
 	QTreeView *m_TreeView;
 	MemoryState *m_Owner;
@@ -137,7 +180,7 @@ void MemoryState::ResetTreeView() {
 void MemoryState::Refresh() {
 	CancelRequests();
 
-	QueueRequest(std::make_shared<MemoryRequest>(m_ViewModel.get(), m_Ui->treeView, this));
+	QueueRequest(std::make_shared<MemoryRequest>(m_Ui->treeView, this));
 }
 
 //-----------------------------------------

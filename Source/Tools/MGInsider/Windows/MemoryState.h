@@ -16,6 +16,8 @@ public:
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+	QStandardItemModel *GetModel() const { return m_ViewModel.get(); }
 protected:
 	class MemoryRequest; 
 	void ResetTreeView();

@@ -32,18 +32,19 @@ struct DebugMemoryInterface {
 
 	void DebugMemorySetClassName(std::string ClassName);
 	void DebugMemoryRegisterCounter(std::string CounterName, DebugMemoryInfoFunction func);
-	void DebugMemorySetParent(DebugMemoryInterface *Parent) { m_Parent = Parent; }
+	void DebugMemorySetParent(DebugMemoryInterface *Parent) { m_DebugMemoryParent = Parent; }
 
 	DebugMemoryInterface* GetNext() { return m_Next; }
 	DebugMemoryInterface* GetPrev() { return m_Prev; }
 	const std::vector<DebugMemoryCounterInfo> &DebugMemoryGetCounters() { return m_Counters; }
 	const std::string &DebugMemoryGetClassName() const { return m_ClassName; }
+	DebugMemoryInterface *DebugMemoryGetParent() const { return m_DebugMemoryParent; }
 
 	static std::pair<std::unique_lock<std::mutex>, DebugMemoryInterface*> GetFirstDebugMemoryInterface();
 private:
 	std::vector<DebugMemoryCounterInfo> m_Counters;
 	std::string m_ClassName;
-	DebugMemoryInterface *m_Parent;
+	DebugMemoryInterface *m_DebugMemoryParent;
 	DebugMemoryInterface *m_Next;
 	DebugMemoryInterface *m_Prev;
 

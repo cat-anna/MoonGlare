@@ -19,6 +19,7 @@ std::mutex DebugMemoryInterface::m_DebugMemoryMutex;
 DebugMemoryInterface::DebugMemoryInterface() {
 	m_Next = nullptr;
 	m_Prev = nullptr;
+	m_DebugMemoryParent = nullptr;
 	m_Counters.reserve(8);
 
 	LOCK_MUTEX(m_DebugMemoryMutex);

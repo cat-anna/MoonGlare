@@ -13,9 +13,10 @@ namespace InsiderApi {
 #pragma warning ( disable: 4200 )
 #pragma pack( push, 1 )
 
-using u32 = unsigned __int32;
-using u16 = unsigned __int16;
-using u8 = unsigned __int8;
+using u64 = uint64_t;
+using u32 = uint32_t;
+using u16 = uint16_t;
+using u8 = uint8_t;
 
 struct Configuration {
 	enum {
@@ -231,9 +232,10 @@ struct PayLoad_MemoryStatus {
 	u32 Capacity;
 	u32 Allocated;
 	u16 ElementSize;
+	u64 ID;
+	u64 ParentID;
 	u16 unused_16_0;
 	u32 unused_32_0;
-	u32 OwnerID;
 	u16 NameLen;
 	u16 OwnerNameLen;
 	u8 Name_OwnerName[0];
