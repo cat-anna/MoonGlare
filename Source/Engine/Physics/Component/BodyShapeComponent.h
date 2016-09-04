@@ -38,7 +38,13 @@ struct BodyShapeComponentEntry {
 	Entity m_OwnerEntity;
 	FlagsMap m_Flags;
 	Handle m_BodyHandle;
+	BodyComponent *m_BodyComponent;
 	std::unique_ptr<btCollisionShape> m_Shape;
+
+	bool SetShapeInternal(std::unique_ptr<btCollisionShape> shape);
+	void SetShape(btCollisionShape *shape);
+	void SetSphere(float Radius);
+	void SetBox(const math::vec3 & size);
 };
 
 class BodyShapeComponent
@@ -54,13 +60,16 @@ public:
 	virtual void Step(const Core::MoveConfig &conf) override;
 
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-	bool ImportBodyShape(std::unique_ptr<btCollisionShape> Custom, Entity Owner, Handle &hout);
 
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
 
-//	virtual bool Create(Entity Owner, Handle &hout);
+	virtual bool Create(Entity Owner, Handle &hout);
+	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
+
+	BodyShapeComponentEntry* GetEntry(Handle h);
+	BodyShapeComponentEntry* GetEntry(Entity e);
+
 //	virtual bool LoadComponentConfiguration(pugi::xml_node node);
-//	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
 /*
 btCylinderShape
 btCapsuleShapeX
@@ -68,15 +77,18 @@ btCapsuleShapeZ
 btConvexHullShape
 btBvhTriangleMeshShape
 */
+	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 
-	BodyComponent *m_BodyComponent;
-	TransformComponent *m_TransformComponent;
+	BodyComponent *m_BodyComponent = nullptr;
+	TransformComponent *m_TransformComponent = nullptr;
 
 	Array<BodyShapeComponentEntry> m_Array;
 
 	Core::EntityMapper m_EntityMapper;
+
+	bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
 };
 
 } //namespace Component 

@@ -38,6 +38,8 @@ struct StaticModelLoader {
 	using QuadArray3 = std::array<math::vec3, 4>;
 	using QuadArray2 = std::array<math::vec2, 4>;
 
+	SimpleModelConstructor::Result m_Result;
+
 	StaticModelLoader(const StaticModelLoader& oth) {
 		m_UnitSize = oth.m_UnitSize;
 		m_HalfUnitSize = oth.m_HalfUnitSize;
@@ -70,13 +72,13 @@ struct StaticModelLoader {
 		m_TextureBase[3] = math::vec2(0, 0);
 	}
 
-	Handle GenerateResource() {
-		if (!Validate() || !Generate()) {
-			AddLogf(Error, "Failed to generate mode!");
+	Handle GetMeshHandle() {
+		if(!m_Result.m_Model) {
+			AddLogf(Error, "Model has not been generated!");
 			return Handle();
 		}
 
-		DataClasses::ModelPtr model(GetConstructor()->GenerateModel());
+		DataClasses::ModelPtr model(m_Result.m_Model.release());
 		auto rt = Core::GetEngine()->GetWorld()->GetResourceTable();
 
 		Handle hout;
@@ -84,8 +86,10 @@ struct StaticModelLoader {
 		return hout;
 	}
 
-	std::unique_ptr<SimpleModelConstructor>& GetConstructor() { return m_Constructor; }
-	
+	btCollisionShape* GetBodyShape() {
+		return m_Result.m_Shape.release();
+	}
+
 	bool Load(xml_node node) {
 		LoadMaterials(node);
 		LoadStyles(node);
@@ -95,25 +99,33 @@ struct StaticModelLoader {
 	}
 
 	bool Generate() {
+		if (!Validate()) {
+			AddLogf(Error, "Validation failed!");
+			return false;
+		}
 		try {
-			m_Constructor.reset(new SimpleModelConstructor());
-			m_Constructor->GenerateShape(true);
+			auto Constructor = std::make_unique<SimpleModelConstructor>();
 
 			float ws = 0.05f;
 			
 			for (auto &it : m_CorridorList) {
-				GenerateCorridor(it, m_UnitSize, 0, false);
+				GenerateCorridor(Constructor.get(), it, m_UnitSize, 0, false);
 				if (m_DoubleWalls) {
 					auto us = m_UnitSize + ws * 2.0f;
-					GenerateCorridor(it, us, ws, true);
+					GenerateCorridor(Constructor.get(), it, us, ws, true);
 				}
 			}
 			for (auto &it : m_JunctionMap) {
-				GenerateJunction(it.second, 0, 0);
+				GenerateJunction(Constructor.get(), it.second, 0, 0);
 				if(m_DoubleWalls)
-					GenerateJunction(it.second, -ws, 2 * ws);
+					GenerateJunction(Constructor.get(), it.second, -ws, 2 * ws);
 			}
 
+
+			if (!Constructor->Generate(true, m_Result)) {
+				AddLogf(Error, "Generation failed!");
+				return false;
+			}
 		}
 		catch (...) {
 			return false;
@@ -196,10 +208,9 @@ private:
 	std::unordered_map<string, Material> m_Materials;
 	std::unordered_map<string, SimpleModelConstructor::cMesh*> m_MeshMap;
 	std::list<Corridor> m_CorridorList;
-	std::unique_ptr<SimpleModelConstructor> m_Constructor;
 	bool m_DoubleWalls;
 
-	void GenerateJunction(Junction &it, float dY, float XZmult) {
+	void GenerateJunction(SimpleModelConstructor *constructor, Junction &it, float dY, float XZmult) {
 		QuadArray3 Vertex;
 		QuadArray3 VertexUp;
 		Vertex.fill(it.pos);
@@ -211,11 +222,11 @@ private:
 
 		for (auto &it : Vertex) 
 			it[1] += dY;
-		GetMesh(it.Style->Materials.Floor)->PushQuad(&Vertex[0], &m_FloorNormal[0], &m_TextureBase[0]);
+		GetMesh(constructor, it.Style->Materials.Floor)->PushQuad(&Vertex[0], &m_FloorNormal[0], &m_TextureBase[0]);
 
 		for (int i = 0; i < 4; ++i)
 			VertexUp[i] = Vertex[i] + math::vec3(0, m_UnitSize[1] - 2.0*dY, 0);
-		GetMesh(it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &m_FloorNormal[0], &m_TextureBase[0]);
+		GetMesh(constructor, it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &m_FloorNormal[0], &m_TextureBase[0]);
 
 		bool Left = true, Right = true, Front = true, Back = true;
 		for (auto &c : it.Corridors) {
@@ -230,7 +241,7 @@ private:
 		QuadArray3 VertexWall;
 		QuadArray3 NormallWall;
 		QuadArray2 &TextureWall = m_TextureBase;
-		auto mesh = GetMesh(it.Style->Materials.Wall);
+		auto mesh = GetMesh(constructor, it.Style->Materials.Wall);
 		int outgoing = 0;
 		if (Left) {
 			VertexWall[0] = Vertex[0];
@@ -269,7 +280,7 @@ private:
 		}
 	}
 
-	void GenerateCorridor(Corridor & it, const math::vec3 &UnitSize, float dpos, bool OutNormals) {
+	void GenerateCorridor(SimpleModelConstructor *constructor, Corridor & it, const math::vec3 &UnitSize, float dpos, bool OutNormals) {
 		auto hs = UnitSize / 2.0f;
 		math::vec3 vector = it.Exit->pos - it.Entrance->pos;
 		math::vec3 direction = vector / glm::length(vector); 
@@ -327,13 +338,13 @@ private:
 			}
 		}
 		
-		GetMesh(it.Style->Materials.Floor)->PushQuad(&Vertex[0], &(OutNormals?m_CeilingNormal:m_FloorNormal)[0], &Texture[0]);
+		GetMesh(constructor, it.Style->Materials.Floor)->PushQuad(&Vertex[0], &(OutNormals?m_CeilingNormal:m_FloorNormal)[0], &Texture[0]);
 		std::array<math::vec3, 4> VertexUp = Vertex;
 		for (int i = 0; i < 4; ++i)
 			VertexUp[i].y += UnitSize[1];
-		GetMesh(it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &(OutNormals?m_FloorNormal:m_CeilingNormal)[0], &Texture[0]);
+		GetMesh(constructor, it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &(OutNormals?m_FloorNormal:m_CeilingNormal)[0], &Texture[0]);
 
-		auto mesh = GetMesh(it.Style->Materials.Wall);
+		auto mesh = GetMesh(constructor, it.Style->Materials.Wall);
 
 		std::array<math::vec3, 4> VertexWalla;
 		std::array<math::vec3, 4> WallNormal;
@@ -415,7 +426,7 @@ private:
 		});
 	}
 
-	SimpleModelConstructor::cMesh* GetMesh(const string& Name) {
+	SimpleModelConstructor::cMesh* GetMesh(SimpleModelConstructor *constructor, const string& Name) {
 		auto it = m_MeshMap.find(Name);
 		if (it != m_MeshMap.end())
 			return it->second;
@@ -426,8 +437,8 @@ private:
 			throw false;
 		}
 
-		auto mesh = m_Constructor->NewMesh();
-		auto mat = m_Constructor->NewMaterial();
+		auto mesh = constructor->NewMesh();
+		auto mat = constructor->NewMaterial();
 		mesh->SelectMaterial(mat->GetID());
 		mat->m_Edges = matinfo->Edges;
 		mat->m_TextureURI = matinfo->TextureURI;

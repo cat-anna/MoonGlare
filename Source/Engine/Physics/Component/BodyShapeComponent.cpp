@@ -24,7 +24,7 @@ namespace Physics {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<BodyShapeComponent, BodyShapeComponentEntry> BodyShapeComponentTypeInfo;
-Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", false);
+Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", true, &BodyShapeComponent::RegisterScriptApi);
 
 BodyShapeComponent::BodyShapeComponent(Core::Component::ComponentManager *Owner)
 		: AbstractComponent(Owner) {
@@ -43,6 +43,20 @@ BodyShapeComponent::~BodyShapeComponent() {
 
 //---------------------------------------------------------------------------------------
 
+void BodyShapeComponent::RegisterScriptApi(ApiInitializer &root) {
+	root
+		.beginClass<btCollisionShape>("cbtCollisionShape")
+		.endClass()
+		.beginClass<BodyShapeComponentEntry>("cBodyShapeComponentEntry")
+			.addFunction("SetShape", &BodyShapeComponentEntry::SetShape)
+			.addFunction("SetSphere", &BodyShapeComponentEntry::SetSphere)
+			.addFunction("SetBox", &BodyShapeComponentEntry::SetBox)
+		.endClass()
+		;
+}
+
+//---------------------------------------------------------------------------------------
+
 bool BodyShapeComponent::Initialize() {
 //	m_Array.fill(BodyShapeComponentEntry());
 
@@ -52,7 +66,7 @@ bool BodyShapeComponent::Initialize() {
 		return false;
 	}
 
-	m_TransformComponent = GetManager()->GetComponent<Core::Component::TransformComponent>();
+	m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
 	if (!m_TransformComponent) {
 		AddLogf(Error, "Unable to get TransformComponent instance!");
 		return false;
@@ -71,15 +85,10 @@ void BodyShapeComponent::Step(const Core::MoveConfig & conf) {
 	return;
 }
 
-bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
-	auto ShapeNode = node.child("Shape");
-	auto ShapeName = ShapeNode.attribute("Name").as_string(nullptr);
-	if (!ShapeName) {
-		AddLogf(Error, "Attempt to add BodyShape of unnamed type!");
-		return false;
-	}
+//---------------------------------------------------------------------------------------
 
-	size_t index;
+bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexout) {
+	size_t &index = indexout;
 	if (!m_Array.Allocate(index)) {
 		AddLogf(Error, "Failed to allocate index!");
 		return false;
@@ -98,7 +107,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_SelfHandle = hout;
 
 	if (!m_BodyComponent->GetInstanceHandle(Owner, entry.m_BodyHandle)) {
-		AddLogf(Warning, "Entity does not have body! Cannot attach shape!");
+		AddLogf(Warning, "Entity does not have body!");
 		return false;
 	}
 
@@ -107,71 +116,104 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		AddLogf(Error, "Cannot get BodyComponent entry!");
 		return false;
 	}
-	
-	switch (Space::Utils::MakeHash32(ShapeName)){
-	case "Box"_Hash32: {
-		x2c::Component::BodyShapeComponent::BoxBodyShape_t bbs;
-		bbs.ResetToDefault();
-		if (!bbs.Read(ShapeNode))
-			break;
-		entry.m_Shape = std::make_unique<btBoxShape>(convert(bbs.m_Size) / 2.0f);
-		break;
-	}
-	case "Sphere"_Hash32: {
-		x2c::Component::BodyShapeComponent::SphereBodyShape_t sbs;
-		sbs.ResetToDefault();
-		if (!sbs.Read(ShapeNode))
-			break;
-		entry.m_Shape = std::make_unique<btSphereShape>(sbs.m_Radius);
-		break;
-	}
-	case "Capsule"_Hash32:
-	case "CapsuleY"_Hash32:
-	{
-		x2c::Component::BodyShapeComponent::CapsuleYBodyShape_t cbs;
-		cbs.ResetToDefault();
-		if (!cbs.Read(ShapeNode))
-			break;
-		entry.m_Shape = std::make_unique<btCapsuleShape>(cbs.m_Radius, cbs.m_Height);
-		break;
-	}
-	case "Cylinder"_Hash32:
-	case "CylinderY"_Hash32:
-	{
-		x2c::Component::BodyShapeComponent::CylinderYBodyShape_t cbs;
-		cbs.ResetToDefault();
-		if (!cbs.Read(ShapeNode))
-			break;
-		entry.m_Shape = std::make_unique<btCylinderShape>(convert(cbs.m_Size) / 2.0f);
-		break;
-	}
-	
-	default:
-		AddLogf(Error, "Attempt to add BodyShape of unknown type!");
+
+	entry.m_BodyComponent = m_BodyComponent;
+
+	m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
+
+	return true;
+}
+
+bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+	auto ShapeNode = node.child("Shape");
+	auto ShapeName = ShapeNode.attribute("Name").as_string(nullptr);
+	if (!ShapeName) {
+		AddLogf(Error, "Attempt to add BodyShape of unnamed type!");
 		return false;
 	}
+	
+	size_t index;
+	if (!BuildEntry(Owner, hout, index)) {
+		AddLog(Error, "Failed to build entry!");
+	}
 
-	if (!entry.m_Shape) {
+	auto &entry = m_Array[index];
+	std::unique_ptr<btCollisionShape> shape;
+	
+	switch (Space::Utils::MakeHash32(ShapeName)){
+		case "Box"_Hash32: {
+			x2c::Component::BodyShapeComponent::BoxBodyShape_t bbs;
+			bbs.ResetToDefault();
+			if (!bbs.Read(ShapeNode))
+				break;
+			shape = std::make_unique<btBoxShape>(convert(bbs.m_Size) / 2.0f);
+			break;
+		}
+		case "Sphere"_Hash32: {
+			x2c::Component::BodyShapeComponent::SphereBodyShape_t sbs;
+			sbs.ResetToDefault();
+			if (!sbs.Read(ShapeNode))
+				break;
+			shape = std::make_unique<btSphereShape>(sbs.m_Radius);
+			break;
+		}
+		case "Capsule"_Hash32:
+		case "CapsuleY"_Hash32:
+		{
+			x2c::Component::BodyShapeComponent::CapsuleYBodyShape_t cbs;
+			cbs.ResetToDefault();
+			if (!cbs.Read(ShapeNode))
+				break;
+			shape = std::make_unique<btCapsuleShape>(cbs.m_Radius, cbs.m_Height);
+			break;
+		}
+		case "Cylinder"_Hash32:
+		case "CylinderY"_Hash32:
+		{
+			x2c::Component::BodyShapeComponent::CylinderYBodyShape_t cbs;
+			cbs.ResetToDefault();
+			if (!cbs.Read(ShapeNode))
+				break;
+			shape = std::make_unique<btCylinderShape>(convert(cbs.m_Size) / 2.0f);
+			break;
+		}
+	
+		default:
+			AddLogf(Error, "Attempt to add BodyShape of unknown type!");
+			return false;
+	}
+
+	if (!shape) {
 		AddLogf(Error, "Failed to create BodyShape!");
 		return false;
 	}
 
-	if (!m_BodyComponent->SetShape(entry.m_SelfHandle, entry.m_BodyHandle, entry.m_Shape.get())) {
-		AddLogf(Error, "Failed to set body shape!");
+	entry.m_Flags.m_Map.m_Valid = true;
+	entry.SetShapeInternal(std::move(shape));
+	
+//	auto tcEntry = m_TransformComponent->GetEntry(Owner);
+//	if (!tcEntry) {
+//		AddLog(Warning, "Cannot get TransformComponent");
+//	} else {
+//		entry.m_Shape->setLocalScaling(tcEntry->m_GlobalScale);
+//	}
+
+	return true;
+}
+
+bool BodyShapeComponent::Create(Entity Owner, Handle &hout) {
+	size_t index;
+	if (!BuildEntry(Owner, hout, index)) {
+		AddLog(Error, "Failed to build entry!");
 		return false;
 	}
+	auto &entry = m_Array[index];
 
-	auto tcEntry = m_TransformComponent->GetEntry(Owner);
-	if (!tcEntry) {
-		AddLog(Warning, "Cannot get TransformComponent");
-	} else {
-		entry.m_Shape->setLocalScaling(tcEntry->m_GlobalScale);
-	}
-
-	m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
 	entry.m_Flags.m_Map.m_Valid = true;
 	return true;
 }
+
+//---------------------------------------------------------------------------------------
 
 bool BodyShapeComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
 	auto h = m_EntityMapper.GetHandle(Owner);
@@ -182,7 +224,51 @@ bool BodyShapeComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
 	return true;
 }
 
+bool BodyShapeComponent::PushEntryToLua(Handle h, lua_State * lua, int &luarets) {
+	auto entry = GetEntry(h);
+	if (!entry) {
+		return true;
+	}
+
+	luarets = 1;
+	luabridge::Stack<BodyShapeComponentEntry*>::push(lua, entry);
+
+	return true;
+}
+
+BodyShapeComponentEntry * BodyShapeComponent::GetEntry(Handle h) {
+	auto *ht = GetHandleTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		return nullptr;
+	}
+	return  &m_Array[hi];
+}
+
 //---------------------------------------------------------------------------------------
+
+bool BodyShapeComponentEntry::SetShapeInternal(std::unique_ptr<btCollisionShape> shape) {
+	m_Shape.swap(shape);
+
+	if (!m_BodyComponent->SetShape(m_SelfHandle, m_BodyHandle, m_Shape.get())) {
+		AddLogf(Error, "Failed to set body shape!");
+		return false;
+	}
+
+	return true;
+}
+
+void BodyShapeComponentEntry::SetShape(btCollisionShape *shape) {
+	SetShapeInternal(std::unique_ptr<btCollisionShape>(shape));
+}
+
+void BodyShapeComponentEntry::SetSphere(float Radius) {
+	SetShapeInternal(std::make_unique<btSphereShape>(Radius));
+}
+
+void BodyShapeComponentEntry::SetBox(const math::vec3 & size) {
+	SetShapeInternal(std::make_unique<btBoxShape>(convert(size) / 2.0f));
+}
 
 } //namespace Component 
 } //namespace Physics 

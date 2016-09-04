@@ -7,8 +7,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include "DebugDrawer.h"
-#include "Collision.h"
+#include "../DebugDrawer.h"
+#include "../Collision.h"
 
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
@@ -37,6 +37,12 @@ BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner)
 		counter.Capacity = m_Array.Capacity();
 		counter.ElementSize = sizeof(BodyEntry);
 	});
+
+	m_CollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
+	m_Dispatcher = std::make_unique<btCollisionDispatcher>(m_CollisionConfiguration.get());
+	m_Broadphase = std::make_unique<btDbvtBroadphase>();
+	m_Solver = std::make_unique<btSequentialImpulseConstraintSolver>();
+	m_DynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_Dispatcher.get(), m_Broadphase.get(), m_Solver.get(), m_CollisionConfiguration.get());
 }
 
 BodyComponent::~BodyComponent() {}
@@ -52,12 +58,6 @@ bool BodyComponent::Initialize() {
 		return false;
 	}
 
-	m_CollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
-	m_Dispatcher = std::make_unique<btCollisionDispatcher>(m_CollisionConfiguration.get());
-	m_Broadphase = std::make_unique<btDbvtBroadphase>();
-	m_Solver = std::make_unique<btSequentialImpulseConstraintSolver>();
-	m_DynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_Dispatcher.get(), m_Broadphase.get(), m_Solver.get(), m_CollisionConfiguration.get());
-	m_DynamicsWorld->setGravity(vec3(0, 0, 0));
 
 	return true;
 }
@@ -69,6 +69,21 @@ bool BodyComponent::Finalize() {
 	m_Broadphase.reset();
 	m_Dispatcher.reset();
 	m_CollisionConfiguration.reset();
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
+bool BodyComponent::LoadComponentConfiguration(pugi::xml_node node) {
+	x2c::Component::BodyComponent::BodyComponentSettings_t bcs;
+	bcs.ResetToDefault();
+	if (!bcs.Read(node)) {
+		AddLog(Error, "Failed to read settings!");
+		return false;
+	}
+
+	m_DynamicsWorld->setGravity(convert(bcs.m_Gravity));
 
 	return true;
 }
@@ -125,6 +140,8 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 
 	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 5, 1.0f / (60.0f * 5.0f));
 }
+
+//---------------------------------------------------------------------------------------
 
 bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 //	auto *ht = GetManager()->GetWorld()->GetHandleTable();
@@ -187,12 +204,25 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	body.setLinearVelocity(convert(bodyentry.m_LinearVelocity));
 	body.setAngularVelocity(convert(bodyentry.m_AngularVelocity));
 
+	body.setDamping(0.2f, 0.2f);
+	body.setFriction(0.5f);
+	body.setRestitution(0.3f);
+
+	//Friction = 0.5f;
+	//Restitution = 0.3f;
+	//Damping.Angular = 0.2f;
+	//Damping.Linear = 0.2f;
+
 	//body.setDamping(phprop.Damping.Linear, phprop.Damping.Angular);
 	//body.setRestitution(phprop.Restitution);
 	//body.setFriction(phprop.Friction);
-	body.setSleepingThresholds(0.01f, 0.01f);
+	body.setSleepingThresholds(0.1f, 0.1f);
 //	entry.m_CollisionMask = CollisionMask();		//TODO:
 	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic;
+
+	if (entry.m_Mass == 0.0f) {
+		body.setActivationState(DISABLE_SIMULATION);
+	}
 
 	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
 
@@ -229,7 +259,11 @@ bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionS
 	vec3 internia;
 	body.setCollisionShape(ptr);
 	if (ptr) {
-		ptr->calculateLocalInertia(entry.m_Mass, internia);
+		if (entry.m_Mass > 0.0f) {
+			ptr->calculateLocalInertia(entry.m_Mass, internia);
+		} else {
+			internia = vec3(0, 0, 0);
+		}
 		body.setMassProps(entry.m_Mass, internia);
 		m_DynamicsWorld->addRigidBody(&body);
 	} else {
@@ -251,14 +285,22 @@ bool BodyComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
 	return true;
 }
 
-//-------------------------------------------------------------------------------------------------
+BodyComponent::BodyEntry *BodyComponent::GetEntry(Handle h) {
+	auto *ht = GetHandleTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		return nullptr;
+	}
+	return  &m_Array[hi];
+}
 
-bool BodyComponent::LoadComponentConfiguration(pugi::xml_node node) {
-	//TODO:
-
-	//void SetGravity(const btVector3& vector) { m_DynamicsWorld->setGravity(vector); }
-	//m_DynamicsWorld->setGravity(vec3(0,0,0));
-	return true;
+BodyComponent::BulletRigidBody *BodyComponent::GetRigidBody(Handle h) {
+	auto *ht = GetHandleTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		return nullptr;
+	}
+	return  &m_BulletRigidBody[hi];
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -278,17 +320,7 @@ void BodyComponent::DefferedDraw(Graphic::cRenderDevice & dev) {
 
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
-//	glEnable(GL_CULL_FACE);
-}
-
-BodyComponent::BodyEntry * BodyComponent::GetEntry(Handle h) {
-	auto *ht = GetHandleTable();
-	HandleIndex hi;
-	if (!ht->GetHandleIndex(this, h, hi)) {
-		//AddLog(Debug, "Attempt to get TransformEntry for invalid Entity!");
-		return nullptr;
-	}
-	return  &m_Array[hi];
+	//	glEnable(GL_CULL_FACE);
 }
 
 //-------------------------------------------------------------------------------------------------

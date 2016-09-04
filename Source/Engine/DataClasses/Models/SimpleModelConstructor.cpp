@@ -10,6 +10,9 @@
 #include "EditableSimpleModel.h"
 #include "SimpleModelConstructor.h"
 
+//#include <Core/Component/ComponentManager.h>
+//#include <Physics/Component/BodyShapeComponent.h>
+
 namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
@@ -32,48 +35,10 @@ SimpleModelConstructor::Material* SimpleModelConstructor::NewMaterial() {
 	return m_Materials.back().get();
 }
 
-iSimpleModel* SimpleModelConstructor::GenerateModel(const string& Name, DataPath ModelOrigin) const {
-	EditableSimpleModel *esm = new EditableSimpleModel(Name);
-	
-	EditableModelFields req;
-	req.Reader = std::make_unique<FileSystem::DirectoryReader>(ModelOrigin, Name);
-	req.VAO = &esm->GetVAO();
-	req.Meshes = &esm->GetMeshVector();
-	req.Materials = &esm->GetMaterialVector();
-//	req.ShapeConstructor = &esm->GetShapeConstructor();
-	req.OwnerModel = esm;
+bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor::Result &out) const {
+	out.m_Model.reset();
+	out.m_Shape.reset();
 
-	if (!GenerateModel(req)) {
-		delete esm;
-		AddLog(Error, "An error has occur during generation of model shape!");
-		return false;
-	}
-
-	esm->Initialize();
-	return esm;
-}
-
-iSimpleModel* SimpleModelConstructor::GenerateModel() const {
-	EditableSimpleModel *esm = new EditableSimpleModel("");
-
-	EditableModelFields req;
-	req.VAO = &esm->GetVAO();
-	req.Meshes = &esm->GetMeshVector();
-	req.Materials = &esm->GetMaterialVector();
-//	req.ShapeConstructor = &esm->GetShapeConstructor();
-	req.OwnerModel = esm;
-
-	if (!GenerateModel(req)) {
-		delete esm;
-		AddLog(Error, "An error has occur during generation of model shape!");
-		return false;
-	}
-
-	esm->Initialize();
-	return esm;
-}
-
-bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 	unsigned TotalCount = 0;
 	for(auto &i : m_Meshes)
 		TotalCount += i->GetVerticles().size();
@@ -83,6 +48,8 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 		return false;
 	}
 
+	auto esm = std::make_unique<EditableSimpleModel>("");
+
 	Graphic::VertexVector Verticles;
 	Graphic::NormalVector Normals;
 	Graphic::TexCoordVector TexCoords;
@@ -91,18 +58,15 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 	Normals.reserve(TotalCount);
 	Index.reserve(TotalCount * 3);
 
-	auto &MeshVec = *request.Meshes;
-	auto &MaterialVec = *request.Materials; 
+	auto &MeshVec = esm->GetMeshVector();
+	auto &MaterialVec = esm->GetMaterialVector();
 
 	for(auto &i : m_Meshes) {
 		//int matid = -1;
 		ModelMaterial *mat = 0;
 		if(i->GetMaterialID() != -1){
 			const Material &pmat = *m_Materials[i->GetMaterialID()];
-			if(request.Reader)
-				mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI, *request.Reader.get());
-			else
-				mat = new ModelMaterial(request.OwnerModel, pmat.m_Edges, pmat.m_TextureURI);
+			mat = new ModelMaterial(esm.get(), pmat.m_Edges, pmat.m_TextureURI);
 
 			MaterialVec.push_back(mat);
 			//auto &m = //Model *Owner, const xml_node MaterialDef, DataPath MaterialOrigin, const string &OriginName
@@ -126,14 +90,35 @@ bool SimpleModelConstructor::GenerateModel(EditableModelFields &request) const {
 		}
 	}
 
-//	if (m_GenerateShape) {
-//		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
+	if (GenerateShape) {
+		std::unique_ptr<btTriangleMesh> mesh = std::make_unique<btTriangleMesh>();
+
+		for (size_t i = 0; i < Index.size(); i += 3) {
+			const unsigned *idx = &Index[i];
+
+			Physics::vec3 p1 = convert(Verticles[idx[0]]);
+			Physics::vec3 p2 = convert(Verticles[idx[1]]);
+			Physics::vec3 p3 = convert(Verticles[idx[2]]);
+
+			mesh->addTriangle(p1, p2, p3);
+		}
+		struct TriangleMeshShape : public btBvhTriangleMeshShape {
+			TriangleMeshShape(btTriangleMesh *mesh, bool gen) : btBvhTriangleMeshShape(mesh, gen) { }
+			~TriangleMeshShape() {
+				delete m_meshInterface;
+				m_meshInterface = nullptr;
+			}
+		};
+
+		out.m_Shape = std::make_unique<TriangleMeshShape>(mesh.release(), true);
+		//		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
 //		c->AddTriangles(Verticles, Index);
 //		request.ShapeConstructor->swap(c);
-//	}	
+	}	
 
-	auto &vao = *request.VAO;
-	vao.DelayInit(Verticles, TexCoords, Normals, Index);
+	esm->GetVAO().DelayInit(Verticles, TexCoords, Normals, Index);
+
+	out.m_Model.reset(esm.release()); //TODO: this is ugly method
 
 	return true;
 }
