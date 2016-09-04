@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "nfPhysics.h"
+#include <Physics/nfPhysics.h>
 
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>

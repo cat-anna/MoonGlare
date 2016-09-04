@@ -9,6 +9,10 @@
 #ifndef CollisionComponent_H
 #define CollisionComponent_H
 
+#include <libSpace/src/Container/StaticVector.h>
+
+#include <Core/Component/AbstractComponent.h>
+
 namespace MoonGlare {
 namespace Physics {
 namespace Component {
@@ -50,6 +54,8 @@ public:
 	virtual void Step(const Core::MoveConfig &conf) override;
 
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+	bool ImportBodyShape(std::unique_ptr<btCollisionShape> Custom, Entity Owner, Handle &hout);
+
 	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
 
 //	virtual bool Create(Entity Owner, Handle &hout);

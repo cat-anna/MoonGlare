@@ -11,6 +11,8 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
+#include <Core/Component/AbstractComponent.h>
+
 namespace MoonGlare {
 namespace Physics {
 
