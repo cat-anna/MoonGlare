@@ -45,7 +45,7 @@ void ApiInit::RegisterApi(void(*func)(ApiInitializer&),
 	_GatherList->push_back(reg);
 }
 
-void ApiInit::Initialize(cScriptEngine *s) {
+void ApiInit::Initialize(ScriptEngine *s) {
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	unsigned ApiInitFunctionsRun = 0;
 	AddLog(Performance, "Processing api init functions");

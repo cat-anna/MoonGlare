@@ -10,11 +10,11 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cScriptEngine)
-RegisterApiInstance(cScriptEngine, &cScriptEngine::Instance, "ScriptEngine");
-RegisterApiDerivedClass(cScriptEngine, &cScriptEngine::RegisterScriptApi);
+SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScriptEngine)
+RegisterApiInstance(ScriptEngine, &ScriptEngine::Instance, "ScriptEngine");
+RegisterApiDerivedClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
 
-cScriptEngine::cScriptEngine() :
+ScriptEngine::ScriptEngine() :
 		cRootClass(),
 		m_CurrentGCStep(1),
 		m_CurrentGCRiseCounter(0),
@@ -28,12 +28,12 @@ cScriptEngine::cScriptEngine() :
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
 }
 
-cScriptEngine::~cScriptEngine() {
+ScriptEngine::~ScriptEngine() {
 }
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::Step(const MoveConfig &config) {
+void ScriptEngine::Step(const MoveConfig &config) {
 	LOCK_MUTEX(m_Mutex);
 
 	lua_gc(m_Lua, LUA_GCSTEP, m_CurrentGCStep);
@@ -60,9 +60,9 @@ void cScriptEngine::Step(const MoveConfig &config) {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
+void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 	root
-	.deriveClass<ThisClass, BaseClass>("cScriptEngine")
+	.deriveClass<ThisClass, BaseClass>("ScriptEngine")
 		.addCFunction("New", &ThisClass::RegisterNewScript)
 		.addCFunction("Modify", &ThisClass::RegisterModifyScript)
 #ifdef DEBUG_SCRIPTAPI
@@ -78,7 +78,7 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::CollectGarbage() {
+void ScriptEngine::CollectGarbage() {
 	LOCK_MUTEX(m_Mutex);
 #ifdef DEBUG
 	float prev = GetMemoryUsage();
@@ -90,7 +90,7 @@ void cScriptEngine::CollectGarbage() {
 #endif
 }
 
-void cScriptEngine::PrintMemoryInfo() {
+void ScriptEngine::PrintMemoryInfo() {
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
 #endif
@@ -98,7 +98,7 @@ void cScriptEngine::PrintMemoryInfo() {
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::Initialize() {
+bool ScriptEngine::Initialize() {
 	MoonGlareAssert(!m_Lua);
 
 	new ::Core::Scripts::GlobalContext();
@@ -117,7 +117,7 @@ bool cScriptEngine::Initialize() {
 	}
 
 	auto lua = GetLua();
-	luabridge::Stack<cScriptEngine*>::push(lua, this);
+	luabridge::Stack<ScriptEngine*>::push(lua, this);
 	lua_setglobal(lua, "Script");
 
 	lua_pushlightuserdata(lua, (void *)this);  
@@ -125,7 +125,7 @@ bool cScriptEngine::Initialize() {
 #if DEBUG
 	lua_pushvalue(lua, -1);
 	char name[64];
-	sprintf_s(name, "cScriptEngine_%p", this);
+	sprintf_s(name, "ScriptEngine_%p", this);
 	lua_setglobal(lua, name);
 	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", name, this, typeid(*this).name());
 #endif
@@ -135,7 +135,7 @@ bool cScriptEngine::Initialize() {
 	return true;
 }
 
-bool cScriptEngine::Finalize() {
+bool ScriptEngine::Finalize() {
 	MoonGlareAssert(m_Lua != nullptr);
 
 	LOCK_MUTEX(m_Mutex);
@@ -144,7 +144,7 @@ bool cScriptEngine::Finalize() {
 #if DEBUG
 	lua_pushnil(lua);
 	char name[64];
-	sprintf_s(name, "cScriptEngine_%p", this);
+	sprintf_s(name, "ScriptEngine_%p", this);
 	lua_setglobal(lua, name);
 	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", name, this, typeid(*this).name());
 #endif
@@ -161,7 +161,7 @@ bool cScriptEngine::Finalize() {
 	return true;
 }
 
-bool cScriptEngine::ConstructLuaContext() {
+bool ScriptEngine::ConstructLuaContext() {
 	MoonGlareAssert(m_Lua == nullptr);
 
 	m_Lua = luaL_newstate();
@@ -195,7 +195,7 @@ bool cScriptEngine::ConstructLuaContext() {
 	return true;
 }
 
-bool cScriptEngine::ReleaseLuaContext() {
+bool ScriptEngine::ReleaseLuaContext() {
 	LOCK_MUTEX(m_Mutex);
 	PrintMemoryUsage();
 	lua_close(m_Lua);
@@ -205,7 +205,7 @@ bool cScriptEngine::ReleaseLuaContext() {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::LoadAllScriptsImpl() {
+void ScriptEngine::LoadAllScriptsImpl() {
 	FileSystem::FileInfoTable files;
 	if (!GetFileSystem()->EnumerateFolder(DataPath::Scripts, files, true)) {
 		AddLog(Error, "Unable to look for scripts!");
@@ -229,13 +229,13 @@ void cScriptEngine::LoadAllScriptsImpl() {
 	AddLog(Debug, "Finished looking for scripts");
 }
 
-void cScriptEngine::LoadAllScripts() {
+void ScriptEngine::LoadAllScripts() {
 //	JobQueue::QueueJob([this]() { 
 		LoadAllScriptsImpl(); 
 	//});
 }
 
-void cScriptEngine::RegisterScript(string Name) {
+void ScriptEngine::RegisterScript(string Name) {
 	ScriptCode *last;
 	{
 		ScriptCode sc_value;
@@ -266,7 +266,7 @@ void cScriptEngine::RegisterScript(string Name) {
 	}
 }
 
-void cScriptEngine::SetCode(const string& ChunkName, string Code) {
+void ScriptEngine::SetCode(const string& ChunkName, string Code) {
 	ScriptCode *item = nullptr;
 	LOCK_MUTEX(m_Mutex);
 	{
@@ -294,7 +294,7 @@ void cScriptEngine::SetCode(const string& ChunkName, string Code) {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::LoadCode(string code) {
+void ScriptEngine::LoadCode(string code) {
 	ScriptCode *last;
 	{
 		ScriptCode sc;
@@ -319,7 +319,7 @@ void cScriptEngine::LoadCode(string code) {
 	GetDataMgr()->NotifyResourcesChanged();
 }
 
-int cScriptEngine::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
+int ScriptEngine::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
 	LOCK_MUTEX(m_Mutex);
 
 	Utils::Scripts::LuaCStringReader reader(Code, len);
@@ -347,7 +347,7 @@ int cScriptEngine::LoadCode(const char* Code, unsigned len, const char* ChunkNam
 
 //---------------------------------------------------------------------------------------
 
-bool cScriptEngine::GetRegisteredScript(const char *name) {
+bool ScriptEngine::GetRegisteredScript(const char *name) {
 	if (!name) {
 		return false;
 	}
@@ -369,7 +369,7 @@ bool cScriptEngine::GetRegisteredScript(const char *name) {
 	}
 }
 
-int cScriptEngine::RegisterNewScript(lua_State * lua) {
+int ScriptEngine::RegisterNewScript(lua_State * lua) {
 	const char *name = lua_tostring(lua, -1);
 	if (!name) {
 		AddLog(Error, "Attempt to register nameless script!");
@@ -423,7 +423,7 @@ int cScriptEngine::RegisterNewScript(lua_State * lua) {
 	}
 }
 
-int cScriptEngine::RegisterModifyScript(lua_State * lua) {
+int ScriptEngine::RegisterModifyScript(lua_State * lua) {
 	const char *name = lua_tostring(lua, -1);
 	if (!name) {
 		AddLog(Error, "Attempt to register nameless script!");
@@ -456,20 +456,20 @@ int cScriptEngine::RegisterModifyScript(lua_State * lua) {
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::PrintMemoryUsage() const {
+void ScriptEngine::PrintMemoryUsage() const {
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
 #endif
 }
 
-float cScriptEngine::GetMemoryUsage() const {
+float ScriptEngine::GetMemoryUsage() const {
 	LOCK_MUTEX(m_Mutex);
 	return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
 }
 
 //---------------------------------------------------------------------------------------
 
-void cScriptEngine::EnumerateScripts(EnumerateFunc func) {
+void ScriptEngine::EnumerateScripts(EnumerateFunc func) {
 	LOCK_MUTEX(m_Mutex);
 	for (auto &it : m_ScriptCodeList)
 		func(it);
@@ -478,7 +478,7 @@ void cScriptEngine::EnumerateScripts(EnumerateFunc func) {
 //---------------------------------------------------------------------------------------
 
 #ifdef DEBUG_DUMP
-void cScriptEngine::DumpScripts(std::ostream &out) {
+void ScriptEngine::DumpScripts(std::ostream &out) {
 	out << "Registered scripts:\n";
 	{
 		LOCK_MUTEX(m_Mutex);

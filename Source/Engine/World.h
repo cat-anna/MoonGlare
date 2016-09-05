@@ -20,7 +20,7 @@ public:
  	World();
  	~World();
 
-	bool Initialize(Core::Scripts::cScriptEngine *se);
+	bool Initialize(Core::Scripts::ScriptEngine *se);
 	bool Finalize();
 
 	bool Step(const Core::MoveConfig &config);
@@ -30,11 +30,11 @@ public:
 	Core::ResourceTable* GetResourceTable() { return &m_ResourceTable; }
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
 
-	Core::Scripts::cScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
+	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 private: 
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 
-	Core::Scripts::cScriptEngine *m_ScriptEngine;
+	Core::Scripts::ScriptEngine *m_ScriptEngine;
 
 	Core::HandleTable m_HandleTable;
 	Core::ResourceTable m_ResourceTable;

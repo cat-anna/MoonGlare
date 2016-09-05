@@ -5,11 +5,11 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
-class cScriptEngine final : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(cScriptEngine, cRootClass);
+class ScriptEngine final : public cRootClass {
+	SPACERTTI_DECLARE_CLASS_SINGLETON(ScriptEngine, cRootClass);
 public:
-	cScriptEngine();
-	virtual ~cScriptEngine();
+	ScriptEngine();
+	virtual ~ScriptEngine();
 
 	bool Initialize();
 	bool Finalize();
@@ -178,7 +178,7 @@ protected:
 
 } //namespace Scripts
 
-inline Scripts::cScriptEngine* GetScriptEngine() { return Scripts::cScriptEngine::Instance(); }
+inline Scripts::ScriptEngine* GetScriptEngine() { return Scripts::ScriptEngine::Instance(); }
 
 } //namespace Core
 } //namespace MoonGlare

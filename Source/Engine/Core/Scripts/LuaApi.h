@@ -15,7 +15,7 @@ class Script;
 
 class ApiInit {
 public:
-	static void Initialize(cScriptEngine *s);
+	static void Initialize(ScriptEngine *s);
 
 	static void RegisterApi(void(*func)(ApiInitializer&), const Space::RTTI::TypeInfo *Class, const Space::RTTI::TypeInfo *BaseClass, const char *where = 0);
 

@@ -226,7 +226,7 @@ bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
 	
 	unsigned count = 0;
-	using ScriptCode = MoonGlare::Core::Scripts::cScriptEngine::ScriptCode;
+	using ScriptCode = MoonGlare::Core::Scripts::ScriptEngine::ScriptCode;
 	Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
 		auto *item = buffer.Alloc<PayLoad_ScriptList_Item>();
 		item->DataLen = (u16)code.Data.length();
@@ -317,7 +317,7 @@ bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	bool found = false;
 
-	using ScriptCode = MoonGlare::Core::Scripts::cScriptEngine::ScriptCode;
+	using ScriptCode = MoonGlare::Core::Scripts::ScriptEngine::ScriptCode;
 	Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
 		if (!found && name == code.Name) {
 			auto *response = buffer.Alloc<PayLoad_ScriptCode>();

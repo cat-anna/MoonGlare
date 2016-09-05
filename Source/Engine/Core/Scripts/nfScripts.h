@@ -25,7 +25,7 @@ namespace Scripts {
 		eLuaPanic(const string &msg) : std::runtime_error(msg) {}
 	};
 
-	class cScriptEngine;
+	class ScriptEngine;
 
 } //namespace Scripts
 } //namespace Core

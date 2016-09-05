@@ -44,7 +44,7 @@ using Modules::ModulesManager;
 using MoonGlare::Core::Console;
 using FileSystem::MoonGlareFileSystem;
 using MoonGlare::Core::Scene::ScenesManager;
-using MoonGlare::Core::Scripts::cScriptEngine;
+using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
 #define _chk(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
@@ -59,7 +59,7 @@ bool iApplication::Initialize() {
 
 	_init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 	_init_chk(new ModulesManager(), "Unable to initialize modules manager!");
-	_init_chk(new cScriptEngine(), "Unable to initialize script engine!");
+	_init_chk(new ScriptEngine(), "Unable to initialize script engine!");
 	_init_chk(new DataManager(), "Unable to initialize data manager!");
 
 	Graphic::Window::InitializeWindowSystem();
@@ -125,7 +125,7 @@ bool iApplication::Finalize() {
 
 	Graphic::Window::FinalzeWindowSystem();
 
-	_del_chk(cScriptEngine, "Finalization of script engine failed!");
+	_del_chk(ScriptEngine, "Finalization of script engine failed!");
 	_del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
 
 	AddLog(Debug, "Application finalized");
