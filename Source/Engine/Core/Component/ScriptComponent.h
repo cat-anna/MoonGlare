@@ -59,7 +59,7 @@ public:
 	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 protected:
-	::Core::cScriptEngine *m_ScriptEngine;
+	Scripts::cScriptEngine *m_ScriptEngine;
 
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 	Array<ScriptEntry> m_Array;

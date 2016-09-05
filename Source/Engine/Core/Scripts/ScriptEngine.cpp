@@ -3,6 +3,10 @@
 #include <Engine/Core/DataManager.h>
 #include "GlobalContext.h"
 
+#include "LuaUtils.h"
+#include <Utils/LuaUtils.h>
+
+namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
@@ -14,31 +18,31 @@ cScriptEngine::cScriptEngine() :
 		cRootClass(),
 		m_CurrentGCStep(1),
 		m_CurrentGCRiseCounter(0),
-		m_LastMemUsage(0),
-		m_Flags(0) {
+		m_LastMemUsage(0) {
 	SetThisAsInstance();
+
+	SetPerformanceCounterOwner(ExecutionErrors);
+	SetPerformanceCounterOwner(ExecutionCount);
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
 }
 
 cScriptEngine::~cScriptEngine() {
-	Finalize();
 }
 
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::Step(const MoveConfig &config) {
-	auto &mutex = m_Script->GetMutex();
-	LOCK_MUTEX(mutex);
+	LOCK_MUTEX(m_Mutex);
 
-	lua_gc(m_Script->GetLuaState(), LUA_GCSTEP, m_CurrentGCStep);
+	lua_gc(m_Lua, LUA_GCSTEP, m_CurrentGCStep);
 
 	if (!config.m_SecondPeriod) {
 		return;
 	}
 
-	float memusage = m_Script->GetMemoryUsage();
+	float memusage = GetMemoryUsage();
 	if (memusage > (m_LastMemUsage + 10.0f) ) {
 		m_LastMemUsage = memusage;
 		++m_CurrentGCRiseCounter;
@@ -75,39 +79,44 @@ void cScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::CollectGarbage() {
-	if (m_Script)
-		m_Script->CollectGarbage();
+	LOCK_MUTEX(m_Mutex);
+#ifdef DEBUG
+	float prev = GetMemoryUsage();
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+	float next = GetMemoryUsage();
+	AddLogf(Debug, "Finished lua garbage collection. %.2f -> %.2f kb (released %.2f kb)", prev, next, prev - next);
+#else
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+#endif
 }
 
 void cScriptEngine::PrintMemoryInfo() {
-	if (m_Script)
-		m_Script->PrintMemoryUsage();
+#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
+	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
+#endif
 }
 
 //---------------------------------------------------------------------------------------
 
 bool cScriptEngine::Initialize() {
-	if (IsReady()) return true;
+	MoonGlareAssert(!m_Lua);
 
-	new GlobalContext();
-	GlobalContext::Instance()->Initialize();
+	new ::Core::Scripts::GlobalContext();
+	::Core::Scripts::GlobalContext::Instance()->Initialize();
 
 	LOCK_MUTEX(m_Mutex);
 
 	AddLog(Debug, "Constructing script object");
-	auto s = std::make_shared<Script>();
-	if (!s->Initialize()) {
-		AddLog(Error, "Unable to initialize script instance!");
-		s.reset();
+	if (!ConstructLuaContext()) {
+		AddLog(Error, "Unable to initialize Lua context!");
 		return false;
 	}
 
 	for (auto &it : m_ScriptCodeList) {
-		s->LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
+		LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
 	}
-	m_Script.swap(s);
 
-	auto lua = m_Script->GetLuaState();
+	auto lua = GetLua();
 	luabridge::Stack<cScriptEngine*>::push(lua, this);
 	lua_setglobal(lua, "Script");
 
@@ -123,18 +132,15 @@ bool cScriptEngine::Initialize() {
 	lua_settable(lua, LUA_REGISTRYINDEX);
 
 	AddLog(Debug, "Script construction finished");
-
-	SetReady(true);
 	return true;
 }
 
 bool cScriptEngine::Finalize() {
-	if (!IsReady()) return true;
-	SetReady(false);
+	MoonGlareAssert(m_Lua != nullptr);
 
 	LOCK_MUTEX(m_Mutex);
 
-	auto lua = m_Script->GetLuaState();
+	auto lua = GetLua();
 #if DEBUG
 	lua_pushnil(lua);
 	char name[64];
@@ -144,40 +150,59 @@ bool cScriptEngine::Finalize() {
 #endif
 
 	AddLog(Debug, "Destroying script object");
-	SharedScript s;
-	s.swap(m_Script);
-	if (!s->Finalize()) {
-		AddLog(Warning, "An error has occur during finalization of script instance!");
+	if (!ReleaseLuaContext()) {
+		AddLog(Warning, "An error has occur during finalization of Lua context!");
 	}
 
-	s.reset();
-
-	GlobalContext::Instance()->Finalize();
-	GlobalContext::DeleteInstance();
+	::Core::Scripts::GlobalContext::Instance()->Finalize();
+	::Core::Scripts::GlobalContext::DeleteInstance();
 
 	AddLog(Debug, "Destruction finished");
 	return true;
 }
 
-//---------------------------------------------------------------------------------------
-#if 0
-bool cScriptEngine::CreateScript(const std::string& Class, Entity Owner) {
-	if (!IsScriptsLoaded()) {
-		//TODO: log fatal error!
-		return false;
-	}
+bool cScriptEngine::ConstructLuaContext() {
+	MoonGlareAssert(m_Lua == nullptr);
 
-	{
-		auto &mutex = m_Script->GetMutex();
-		LOCK_MUTEX(mutex);
-		auto sc = luabridge::getGlobal(m_Script->GetLuaState(), "ScriptComponent");
-		auto ret = sc["AllocScript"](&Owner, Class.c_str());
-	//	return ret.cast<int>() > 0;
-	}
+	m_Lua = luaL_newstate();
+	luaopen_base(m_Lua);
+	luaopen_math(m_Lua);
+	luaopen_bit(m_Lua);
+	luaopen_string(m_Lua);
+	luaopen_table(m_Lua);
+#ifdef DEBUG
+	luaopen_debug(m_Lua);
+#endif
+	lua_atpanic(m_Lua, LuaPanic);
+
+	lua_newtable(m_Lua);
+	lua_setglobal(m_Lua, "global");
+
+#ifdef DEBUG
+	luabridge::setHideMetatables(false);
+#else
+	luabridge::setHideMetatables(true);
+#endif
+
+	ApiInit::Initialize(this);
+
+	::Core::Scripts::GlobalContext::Instance()->Install(m_Lua);
+
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+	lua_gc(m_Lua, LUA_GCSTOP, 0);
+	PrintMemoryUsage();
 
 	return true;
 }
-#endif
+
+bool cScriptEngine::ReleaseLuaContext() {
+	LOCK_MUTEX(m_Mutex);
+	PrintMemoryUsage();
+	lua_close(m_Lua);
+	m_Lua = nullptr;
+	return true;
+}
+
 //---------------------------------------------------------------------------------------
 
 void cScriptEngine::LoadAllScriptsImpl() {
@@ -199,8 +224,6 @@ void cScriptEngine::LoadAllScriptsImpl() {
 		FileSystem::DataSubPaths.Translate(path, it.m_RelativeFileName, DataPath::Scripts);
 		RegisterScript(path);
 	}
-
-	SetScriptsLoaded(true);
 
 	GetDataMgr()->NotifyResourcesChanged();
 	AddLog(Debug, "Finished looking for scripts");
@@ -235,13 +258,11 @@ void cScriptEngine::RegisterScript(string Name) {
 		AddLogf(Debug, "Loaded script code: %s", sc.Name.c_str());
 	}
 
-	if (m_Script) {
-		try {
-			m_Script->LoadCode(sc.Data.c_str(), sc.Data.length(), sc.Name.c_str());
-		}
-		catch (...) {
-			AddLog(Error, "Unexpected exception while loading script code!");
-		}
+	try {
+		LoadCode(sc.Data.c_str(), sc.Data.length(), sc.Name.c_str());
+	}
+	catch (...) {
+		AddLog(Error, "Unexpected exception while loading script code!");
 	}
 }
 
@@ -289,14 +310,39 @@ void cScriptEngine::LoadCode(string code) {
 
 	try {
 		LOCK_MUTEX(m_Mutex);
-		if (m_Script)
-			m_Script->LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
+		LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
 	}
 	catch (...) {
 		AddLog(Error, "Unexpected exception while loading script code!");
 	}
 
 	GetDataMgr()->NotifyResourcesChanged();
+}
+
+int cScriptEngine::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
+	LOCK_MUTEX(m_Mutex);
+
+	Utils::Scripts::LuaCStringReader reader(Code, len);
+
+	int result = lua_load(m_Lua, &reader.Reader, &reader, ChunkName);
+
+	switch (result) {
+	case 0:
+		if (lua_pcall(m_Lua, 0, 0, 0) != 0) {
+			AddLog(Error, "Lua error: " << lua_tostring(m_Lua, -1));
+			//throw std::runtime_error();
+			return -1;
+		}
+		break;
+	case LUA_ERRSYNTAX:
+		AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName, lua_tostring(m_Lua, -1), Code);
+		break;
+	case LUA_ERRMEM:
+		AddLog(Error, "Unable to load script: Memory allocation failed!");
+		break;
+	}
+
+	return result;
 }
 
 //---------------------------------------------------------------------------------------
@@ -306,7 +352,7 @@ bool cScriptEngine::GetRegisteredScript(const char *name) {
 		return false;
 	}
 
-	auto lua = m_Script->GetLuaState();
+	auto lua = GetLua();
 	lua_pushlightuserdata(lua, (void *)this);
 	lua_gettable(lua, LUA_REGISTRYINDEX);  
 
@@ -410,7 +456,16 @@ int cScriptEngine::RegisterModifyScript(lua_State * lua) {
 
 //---------------------------------------------------------------------------------------
 
-//empty section 
+void cScriptEngine::PrintMemoryUsage() const {
+#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
+	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
+#endif
+}
+
+float cScriptEngine::GetMemoryUsage() const {
+	LOCK_MUTEX(m_Mutex);
+	return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
+}
 
 //---------------------------------------------------------------------------------------
 
@@ -423,7 +478,6 @@ void cScriptEngine::EnumerateScripts(EnumerateFunc func) {
 //---------------------------------------------------------------------------------------
 
 #ifdef DEBUG_DUMP
-
 void cScriptEngine::DumpScripts(std::ostream &out) {
 	out << "Registered scripts:\n";
 	{
@@ -434,8 +488,8 @@ void cScriptEngine::DumpScripts(std::ostream &out) {
 	}
 	out << "\n";
 }
-
 #endif
 
 } //namespace Scripts
 } //namespace Core
+} //namespace MoonGlare

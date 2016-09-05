@@ -44,7 +44,7 @@ using Modules::ModulesManager;
 using MoonGlare::Core::Console;
 using FileSystem::MoonGlareFileSystem;
 using MoonGlare::Core::Scene::ScenesManager;
-using ::Core::Scripts::cScriptEngine;
+using MoonGlare::Core::Scripts::cScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
 #define _chk(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
