@@ -1,7 +1,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/Core/DataManager.h>
-#include "GlobalContext.h"
 
 #include "LuaUtils.h"
 #include <Utils/LuaUtils.h>
@@ -101,9 +100,6 @@ void ScriptEngine::PrintMemoryInfo() {
 bool ScriptEngine::Initialize() {
 	MoonGlareAssert(!m_Lua);
 
-	new ::Core::Scripts::GlobalContext();
-	::Core::Scripts::GlobalContext::Instance()->Initialize();
-
 	LOCK_MUTEX(m_Mutex);
 
 	AddLog(Debug, "Constructing script object");
@@ -153,10 +149,7 @@ bool ScriptEngine::Finalize() {
 	if (!ReleaseLuaContext()) {
 		AddLog(Warning, "An error has occur during finalization of Lua context!");
 	}
-
-	::Core::Scripts::GlobalContext::Instance()->Finalize();
-	::Core::Scripts::GlobalContext::DeleteInstance();
-
+	
 	AddLog(Debug, "Destruction finished");
 	return true;
 }
@@ -177,6 +170,9 @@ bool ScriptEngine::ConstructLuaContext() {
 
 	lua_newtable(m_Lua);
 	lua_setglobal(m_Lua, "global");
+	lua_newtable(m_Lua);
+	lua_setglobal(m_Lua, "static");
+	//TODO: Load and store static context
 
 #ifdef DEBUG
 	luabridge::setHideMetatables(false);
@@ -185,8 +181,6 @@ bool ScriptEngine::ConstructLuaContext() {
 #endif
 
 	ApiInit::Initialize(this);
-
-	::Core::Scripts::GlobalContext::Instance()->Install(m_Lua);
 
 	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
 	lua_gc(m_Lua, LUA_GCSTOP, 0);

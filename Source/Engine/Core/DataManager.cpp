@@ -4,7 +4,6 @@
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/DataManager.h>
 #include <Engine/DataClasses/iFont.h>
-#include <Engine/Core/Scripts/GlobalContext.h>
 
 #include <StarVFS/core/nStarVFS.h>
 
@@ -387,7 +386,8 @@ void Manager::DumpResources() {
 	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);
-	::Core::GetGlobalContext()->Dump(file);
+//	::Core::GetGlobalContext()->Dump(file);
+	//dump global context
 	file << "\n\n--------------------------------------------------------------------------------------\n" << std::flush;
 #endif
 }
