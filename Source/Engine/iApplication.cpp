@@ -60,7 +60,11 @@ bool iApplication::Initialize() {
 	_init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 	_init_chk(new ModulesManager(), "Unable to initialize modules manager!");
 	_init_chk(new ScriptEngine(), "Unable to initialize script engine!");
-	_init_chk(new DataManager(), "Unable to initialize data manager!");
+
+	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
+		AddLogf(Error, "Unable to initialize data manager!");
+		return false; 
+	}
 
 	Graphic::Window::InitializeWindowSystem();
 	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true));
