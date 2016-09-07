@@ -156,7 +156,7 @@ template <class T>
 inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, int selfLuaIndex) {
 #if DEBUG
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	lua_pushvalue(lua, -1);
+	lua_pushvalue(lua, selfLuaIndex);
 	char buf[64];
 	sprintf_s(buf, "%s_%p", name, OwnerPtr);
 	lua_setglobal(lua, buf);
