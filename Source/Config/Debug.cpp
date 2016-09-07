@@ -16,7 +16,7 @@ namespace Config {
 namespace Debug {
 
 bool EnableFlags::Physics = true;
-bool EnableFlags::PhysicsDebugDraw = true;
+bool EnableFlags::PhysicsDebugDraw = false;
 
 bool EnableFlags::ShowTitleBarDebugInfo = true;
 
