@@ -32,33 +32,6 @@ ScriptEngine::~ScriptEngine() {
 
 //---------------------------------------------------------------------------------------
 
-void ScriptEngine::Step(const MoveConfig &config) {
-	LOCK_MUTEX(m_Mutex);
-
-	lua_gc(m_Lua, LUA_GCSTEP, m_CurrentGCStep);
-
-	if (!config.m_SecondPeriod) {
-		return;
-	}
-
-	float memusage = GetMemoryUsage();
-	if (memusage > (m_LastMemUsage + 10.0f) ) {
-		m_LastMemUsage = memusage;
-		++m_CurrentGCRiseCounter;
-		if (m_CurrentGCRiseCounter == 5) {
-			++m_CurrentGCStep;
-			m_CurrentGCRiseCounter = 0;
-			AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
-		}
-	}
-
-#ifdef PERF_PERIODIC_PRINT
-	AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
-#endif
-}
-
-//---------------------------------------------------------------------------------------
-
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 	root
 	.deriveClass<ThisClass, BaseClass>("ScriptEngine")
@@ -66,33 +39,13 @@ void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 		.addCFunction("Modify", &ThisClass::RegisterModifyScript)
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("CollectGarbage", &ThisClass::CollectGarbage)
-		.addFunction("PrintMemoryInfo", &ThisClass::PrintMemoryInfo)
+		.addFunction("PrintMemoryUsage", &ThisClass::PrintMemoryUsage)
 #endif
 	.endClass()
 	.beginClass<MoveConfig>("cMoveConfig")
 		.addData("TimeDelta", &MoveConfig::TimeDelta, false)
 		.addData("SecondPeriod", &MoveConfig::m_SecondPeriod, false)
 	.endClass();
-}
-
-//---------------------------------------------------------------------------------------
-
-void ScriptEngine::CollectGarbage() {
-	LOCK_MUTEX(m_Mutex);
-#ifdef DEBUG
-	float prev = GetMemoryUsage();
-	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
-	float next = GetMemoryUsage();
-	AddLogf(Debug, "Finished lua garbage collection. %.2f -> %.2f kb (released %.2f kb)", prev, next, prev - next);
-#else
-	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
-#endif
-}
-
-void ScriptEngine::PrintMemoryInfo() {
-#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
-	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
-#endif
 }
 
 //---------------------------------------------------------------------------------------
@@ -108,23 +61,13 @@ bool ScriptEngine::Initialize() {
 		return false;
 	}
 
-	for (auto &it : m_ScriptCodeList) {
-		LoadCode(it.Data.c_str(), it.Data.length(), it.Name.c_str());
-	}
-
 	auto lua = GetLua();
 	luabridge::Stack<ScriptEngine*>::push(lua, this);
 	lua_setglobal(lua, "Script");
 
 	lua_pushlightuserdata(lua, (void *)this);  
 	lua_createtable(lua, 0, 0);
-#if DEBUG
-	lua_pushvalue(lua, -1);
-	char name[64];
-	sprintf_s(name, "ScriptEngine_%p", this);
-	lua_setglobal(lua, name);
-	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", name, this, typeid(*this).name());
-#endif
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptEngine", this, -1);
 	lua_settable(lua, LUA_REGISTRYINDEX);
 
 	AddLog(Debug, "Script construction finished");
@@ -137,13 +80,7 @@ bool ScriptEngine::Finalize() {
 	LOCK_MUTEX(m_Mutex);
 
 	auto lua = GetLua();
-#if DEBUG
-	lua_pushnil(lua);
-	char name[64];
-	sprintf_s(name, "ScriptEngine_%p", this);
-	lua_setglobal(lua, name);
-	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", name, this, typeid(*this).name());
-#endif
+	MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptEngine", this);
 
 	AddLog(Debug, "Destroying script object");
 	if (!ReleaseLuaContext()) {
@@ -199,144 +136,82 @@ bool ScriptEngine::ReleaseLuaContext() {
 
 //---------------------------------------------------------------------------------------
 
-void ScriptEngine::LoadAllScriptsImpl() {
-	FileSystem::FileInfoTable files;
-	if (!GetFileSystem()->EnumerateFolder(DataPath::Scripts, files, true)) {
-		AddLog(Error, "Unable to look for scripts!");
-	}
-
-	using FileInfo = MoonGlare::FileSystem::FileInfo;
-	std::sort(files.begin(), files.end(), [](const FileInfo &a, const FileInfo &b) -> bool{
-		return a.m_RelativeFileName < b.m_RelativeFileName;
-	});
-
-	for (auto &it : files){
-		if (it.m_IsFolder)
-			continue;
-
-		string path;
-		FileSystem::DataSubPaths.Translate(path, it.m_RelativeFileName, DataPath::Scripts);
-		RegisterScript(path);
-	}
-
-	GetDataMgr()->NotifyResourcesChanged();
-	AddLog(Debug, "Finished looking for scripts");
-}
-
-void ScriptEngine::LoadAllScripts() {
-//	JobQueue::QueueJob([this]() { 
-		LoadAllScriptsImpl(); 
-	//});
-}
-
-void ScriptEngine::RegisterScript(string Name) {
-	ScriptCode *last;
-	{
-		ScriptCode sc_value;
-		sc_value.Name.swap(Name);
-		sc_value.Type = ScriptCode::Source::File;
-		LOCK_MUTEX(m_Mutex);
-		m_ScriptCodeList.emplace_back(std::move(sc_value));
-		last = &m_ScriptCodeList.back();
-	}
-
-	ScriptCode &sc = *last;
-	
-	if (sc.Data.empty()) {
-		StarVFS::ByteTable data;
-		if (!GetFileSystem()->OpenFile(sc.Name, DataPath::Root, data)) {
-			AddLog(Warning, "Unable to open script file " << sc.Name);
-			return;
-		}
-		sc.Data = string(data.get(), data.size());
-		AddLogf(Debug, "Loaded script code: %s", sc.Name.c_str());
-	}
-
-	try {
-		LoadCode(sc.Data.c_str(), sc.Data.length(), sc.Name.c_str());
-	}
-	catch (...) {
-		AddLog(Error, "Unexpected exception while loading script code!");
-	}
-}
-
-void ScriptEngine::SetCode(const string& ChunkName, string Code) {
-	ScriptCode *item = nullptr;
+void ScriptEngine::Step(const MoveConfig &config) {
 	LOCK_MUTEX(m_Mutex);
-	{
-		for (auto &it : m_ScriptCodeList) {
-			if (it.Name == ChunkName) {
-				item = &it;
-				break;
-			}
-		}
 
-		if(!item) {
-			AddLogf(Debug, "Chunk '%s' not found. Creating new", ChunkName.c_str());
-			ScriptCode sc;
-			sc.Name = ChunkName;
-			sc.Type = ScriptCode::Source::Code;
-			m_ScriptCodeList.emplace_back(std::move(sc));
-			item = &m_ScriptCodeList.back();
+	lua_gc(m_Lua, LUA_GCSTEP, m_CurrentGCStep);
+
+	if (!config.m_SecondPeriod) {
+		return;
+	}
+
+	float memusage = GetMemoryUsage();
+	if (memusage > (m_LastMemUsage + 10.0f) ) {
+		m_LastMemUsage = memusage;
+		++m_CurrentGCRiseCounter;
+		if (m_CurrentGCRiseCounter == 5) {
+			++m_CurrentGCStep;
+			m_CurrentGCRiseCounter = 0;
+			AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
 		}
 	}
 
-	ScriptCode &sc = *item;
-	sc.Data.swap(Code);
-	AddLogf(Debug, "Exchanged code for chunk '%s'", ChunkName.c_str());
+#ifdef PERF_PERIODIC_PRINT
+	AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
+#endif
 }
 
 //---------------------------------------------------------------------------------------
 
-void ScriptEngine::LoadCode(string code) {
-	ScriptCode *last;
-	{
-		ScriptCode sc;
-		sc.Type = ScriptCode::Source::Code;
-		sc.Data.swap(code);
-		char buffer[64];
-		sprintf(buffer, "Code_%d", m_ScriptCodeList.size());
-		sc.Name = buffer;
-		LOCK_MUTEX(m_Mutex);
-		m_ScriptCodeList.emplace_back(std::move(sc));
-		last = &m_ScriptCodeList.back();
-	}
-
-	try {
-		LOCK_MUTEX(m_Mutex);
-		LoadCode(last->Data.c_str(), last->Data.length(), last->Name.c_str());
-	}
-	catch (...) {
-		AddLog(Error, "Unexpected exception while loading script code!");
-	}
-
-	GetDataMgr()->NotifyResourcesChanged();
+void ScriptEngine::CollectGarbage() {
+	LOCK_MUTEX(m_Mutex);
+#ifdef DEBUG
+	float prev = GetMemoryUsage();
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+	float next = GetMemoryUsage();
+	AddLogf(Debug, "Finished lua garbage collection. %.2f -> %.2f kb (released %.2f kb)", prev, next, prev - next);
+#else
+	lua_gc(m_Lua, LUA_GCCOLLECT, 0);
+#endif
 }
 
-int ScriptEngine::LoadCode(const char* Code, unsigned len, const char* ChunkName) {
+void ScriptEngine::PrintMemoryUsage() const {
+#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
+	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
+#endif
+}
+
+float ScriptEngine::GetMemoryUsage() const {
 	LOCK_MUTEX(m_Mutex);
+	return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
+}
+
+//---------------------------------------------------------------------------------------
+
+bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* ChunkName) {
+	LOCK_MUTEX(m_Mutex);
+	MoonGlareAssert(Code);
 
 	Utils::Scripts::LuaCStringReader reader(Code, len);
-
 	int result = lua_load(m_Lua, &reader.Reader, &reader, ChunkName);
 
 	switch (result) {
 	case 0:
 		if (lua_pcall(m_Lua, 0, 0, 0) != 0) {
 			AddLog(Error, "Lua error: " << lua_tostring(m_Lua, -1));
-			//throw std::runtime_error();
-			return -1;
+			return false;
 		}
+		AddLogf(Debug, "Loaded lua chunk: '%s'", ChunkName ? ChunkName : "?");
 		break;
 	case LUA_ERRSYNTAX:
-		AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName, lua_tostring(m_Lua, -1), Code);
+		AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName ? ChunkName : "?", lua_tostring(m_Lua, -1), Code);
 		break;
 	case LUA_ERRMEM:
 		AddLog(Error, "Unable to load script: Memory allocation failed!");
 		break;
 	}
 
-	return result;
+	return true;
 }
 
 //---------------------------------------------------------------------------------------
@@ -449,40 +324,6 @@ int ScriptEngine::RegisterModifyScript(lua_State * lua) {
 }
 
 //---------------------------------------------------------------------------------------
-
-void ScriptEngine::PrintMemoryUsage() const {
-#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
-	AddLogf(Performance, "Lua memory usage: %.2fkb ", GetMemoryUsage());
-#endif
-}
-
-float ScriptEngine::GetMemoryUsage() const {
-	LOCK_MUTEX(m_Mutex);
-	return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
-}
-
-//---------------------------------------------------------------------------------------
-
-void ScriptEngine::EnumerateScripts(EnumerateFunc func) {
-	LOCK_MUTEX(m_Mutex);
-	for (auto &it : m_ScriptCodeList)
-		func(it);
-}
-
-//---------------------------------------------------------------------------------------
-
-#ifdef DEBUG_DUMP
-void ScriptEngine::DumpScripts(std::ostream &out) {
-	out << "Registered scripts:\n";
-	{
-		LOCK_MUTEX(m_Mutex);
-		for (auto &it : m_ScriptCodeList) {
-			out << "\t" << it.Name << "  length: " << it.Data.length() << " bytes\n";
-		}
-	}
-	out << "\n";
-}
-#endif
 
 } //namespace Scripts
 } //namespace Core

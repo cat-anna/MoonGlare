@@ -14,6 +14,8 @@ public:
 	bool Initialize();
 	bool Finalize();
 
+	void Step(const MoveConfig & conf);
+
 	template<class RET, class ... Types>
 	RET RunFunction(const char *FuncName, Types ... args) {
 		AddLogf(ScriptCall, "Call to: '%s'", FuncName);
@@ -37,25 +39,16 @@ public:
 		}
 	}
 
-	ApiInitializer GetApiInitializer() {
-		return luabridge::getGlobalNamespace(m_Lua);
-	}
+	ApiInitializer GetApiInitializer() { return luabridge::getGlobalNamespace(m_Lua); }
 
-	int ExecuteCode(const string& code, const char *CodeName = nullptr) {
-		return LoadCode(code.c_str(), code.length(), CodeName);
-	}
-  
-	int ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr) {
-		return LoadCode(code, len, CodeName);
-	}
+	bool ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr);
+	bool ExecuteCode(const string& code, const char *CodeName = nullptr) { return ExecuteCode(code.c_str(), code.length(), CodeName); }
 
 	lua_State *GetLua() { return m_Lua; }
 	std::recursive_mutex& GetLuaMutex() { return m_Mutex; }
 
 	///script will be on top of lua stack
 	bool GetRegisteredScript(const char* name);
-
-	void Step(const MoveConfig & conf);
 	
 	template<typename T>
 	void RegisterLuaSettings(T *t, const char *Name) {
@@ -64,9 +57,10 @@ public:
 	}
 
 	void CollectGarbage();
-	void PrintMemoryInfo();
 	void PrintMemoryUsage() const;
 	float GetMemoryUsage() const;
+
+	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	int RegisterModifyScript(lua_State *lua);
 	int RegisterNewScript(lua_State *lua);
@@ -80,32 +74,8 @@ private:
 	lua_State *m_Lua = nullptr;
 	mutable std::recursive_mutex m_Mutex;
 
-//old
-	int LoadCode(const char* Code, unsigned len, const char* ChunkName);
-public:
-	struct ScriptCode {
-		enum class Source {
-			File, Code,
-		};
-		Source Type;
-		string Name;
-		string Data;
-	};
-
-	void LoadAllScripts();
-	void RegisterScript(string Name);
-	void LoadCode(string code);
-	/** Changes code of specified chunk. Does not reload the code. */
-	void SetCode(const string& ChunkName, string Code);
-
-	void DumpScripts(std::ostream &out);
-
-	using EnumerateFunc = std::function<void(const ScriptCode &code)>;
-	void EnumerateScripts(EnumerateFunc func);
-
-	static void RegisterScriptApi(ApiInitializer &api);
+//old:
 protected:
-	std::list<ScriptCode> m_ScriptCodeList;
 	int m_CurrentGCStep;
 	int m_CurrentGCRiseCounter;
 	float m_LastMemUsage;
