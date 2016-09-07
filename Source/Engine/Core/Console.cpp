@@ -115,12 +115,20 @@ Console::~Console() {
 
 //-------------------------------------------------------------------------------------------------
 
+struct Console::Internals {
+	Graphic::VirtualCamera m_Camera;
+
+	Internals() {
+		m_Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+	}
+};
+
 bool Console::Initialize() {
 	if (IsInitialized())
 		return true;
 	if (!m_Font)
 		SetFont(GetDataMgr()->GetConsoleFont());
-	m_Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+	m_Internals = std::make_unique<Internals>();
 	SetInitialized(true);
 	return true;
 }
@@ -167,7 +175,7 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 	if (!IsCanRender() || !m_Font)
 		return false;
 
-	dev.Bind(&m_Camera);
+	dev.Bind(&m_Internals->m_Camera);
 
 	if (!m_Lines.empty()) {
 		if (IsHideOldLines())

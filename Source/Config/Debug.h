@@ -13,7 +13,9 @@
 #define THROW_ASSERT(CHECK, MSG) { ((CHECK)?(void)0:throw Config::Debug::eAsserationError(__LINE__, __FILE__, __FUNCTION__, #CHECK, MSG, this)); }
 #define THROW_ASSERTs(CHECK, ...) { ((CHECK)?(void)0:throw Config::Debug::eAsserationError(__LINE__, __FILE__, __FUNCTION__, #CHECK, __VA_ARGS__)); }
 
-#define ASSERT(CHECK, ...)			THROW_ASSERTs(CHECK, __VA_ARGS__)
+#define ASSERT(CHECK, ...)				THROW_ASSERTs(CHECK, __VA_ARGS__)
+#define MoonGlareAssert(CHECK, ...)		THROW_ASSERTs(CHECK, __VA_ARGS__)
+
 
 #define SPACERTTI_SINGLETON_CHECK		ASSERT(_Instance, "Singleton check failed!")
 #define SPACERTTI_SINGLETON_SET_CHECK	THROW_ASSERT(!_Instance, "Cannot change existing singleton instance!")

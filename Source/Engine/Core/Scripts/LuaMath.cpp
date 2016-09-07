@@ -4,7 +4,6 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-
 #include <pch.h>
 #include <MoonGlare.h>
 #include <cmath>

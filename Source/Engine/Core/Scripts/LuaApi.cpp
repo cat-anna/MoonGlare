@@ -11,6 +11,7 @@
 #include <ModulesManager.h>
 #include <Core/Component/ComponentRegister.h>
 
+namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
@@ -44,7 +45,7 @@ void ApiInit::RegisterApi(void(*func)(ApiInitializer&),
 	_GatherList->push_back(reg);
 }
 
-void ApiInit::Initialize(Script *s) {
+void ApiInit::Initialize(ScriptEngine *s) {
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	unsigned ApiInitFunctionsRun = 0;
 	AddLog(Performance, "Processing api init functions");
@@ -160,3 +161,4 @@ void FlagsScriptApi(ApiInitializer &root) {
 
 } //namespace Scritps
 } //namespace Core
+} //namespace MoonGlare

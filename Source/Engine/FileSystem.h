@@ -25,6 +25,32 @@ using FileInfoTable = std::vector<FileInfo>;
 
 //-------------------------------------------------------------------------------------------------
 
+inline std::string MakeContainerFilePathURI(StarVFS::ContainerID cid, const char *fname) {
+	char buf[128];
+	sprintf_s(buf, "cidfn:/%llu/%s", static_cast<uint64_t>(cid), fname);
+	return buf;
+}
+
+inline std::string MakeContainerFidURI(StarVFS::ContainerID cid, StarVFS::FileID cfid) {
+	char buf[128];
+	sprintf_s(buf, "cfid:/%llu/%llu", static_cast<uint64_t>(cid), static_cast<uint64_t>(cfid));
+	return buf;
+}
+
+inline std::string MakeFidURI(StarVFS::FileID cfid) {
+	char buf[128];
+	sprintf_s(buf, "fid:/%llu", static_cast<uint64_t>(cfid));
+	return buf;
+}
+
+inline std::string MakePathHashURI(StarVFS::FilePathHash hash) {
+	char buf[128];
+	sprintf_s(buf, "hash:/%08x", hash);
+	return buf;
+}
+
+//-------------------------------------------------------------------------------------------------
+
 /** File system is not yes fully thread-safe! */
 class MoonGlareFileSystem : public Space::RTTI::RTTIObject {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, Space::RTTI::RTTIObject)

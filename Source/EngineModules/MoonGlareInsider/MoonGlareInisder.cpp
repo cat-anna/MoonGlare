@@ -219,27 +219,27 @@ bool Insider::EnumerateLua(InsiderMessageBuffer& buffer) {
 bool Insider::EnumerateScripts(InsiderMessageBuffer & buffer) {
 	//auto *request = buffer.GetAndPull<??>();
 	//No payload
-
-	AddLogf(Insider, "Enumerating scripts");
-
-	buffer.Clear();
-	auto *list = buffer.Alloc<PayLoad_ListBase>();
-	
-	unsigned count = 0;
-	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
-		auto *item = buffer.Alloc<PayLoad_ScriptList_Item>();
-		item->DataLen = (u16)code.Data.length();
-		item->Index = (u16)count;
-		++count;
-		item->Type = code.Type == ScriptCode::Source::Code ? PayLoad_ScriptList_Item::ItemType::BroadcastedCode : PayLoad_ScriptList_Item::ItemType::ScriptFile;
-		buffer.PushString(code.Name);
-	});
-
-	list->Count = count;
-	auto *hdr = buffer.GetHeader();
-	hdr->MessageType = MessageTypes::ScriptList;
-	return true;
+	return false;
+//	AddLogf(Insider, "Enumerating scripts");
+//
+//	buffer.Clear();
+//	auto *list = buffer.Alloc<PayLoad_ListBase>();
+//	
+//	unsigned count = 0;
+//	using ScriptCode = MoonGlare::Core::Scripts::ScriptEngine::ScriptCode;
+//	Core::GetScriptEngine()->EnumerateScripts([&count, &buffer](const ScriptCode &code) {
+//		auto *item = buffer.Alloc<PayLoad_ScriptList_Item>();
+//		item->DataLen = (u16)code.Data.length();
+//		item->Index = (u16)count;
+//		++count;
+//		item->Type = code.Type == ScriptCode::Source::Code ? PayLoad_ScriptList_Item::ItemType::BroadcastedCode : PayLoad_ScriptList_Item::ItemType::ScriptFile;
+//		buffer.PushString(code.Name);
+//	});
+//
+//	list->Count = count;
+//	auto *hdr = buffer.GetHeader();
+//	hdr->MessageType = MessageTypes::ScriptList;
+//	return true;
 }
 
 bool Insider::EnumerateAudio(InsiderMessageBuffer& buffer) {
@@ -289,7 +289,7 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 
 //	bool saveFile = request->OverwriteContainerFile > 0;
 
-	Core::GetScriptEngine()->SetCode(name, data);
+	Core::GetScriptEngine()->ExecuteCode(data, name.c_str());
 
 	buffer.Clear();
 	buffer.GetHeader()->MessageType = MessageTypes::Ok;
@@ -311,36 +311,37 @@ bool Insider::SetScriptCode(InsiderMessageBuffer& buffer) {
 }
 
 bool Insider::GetScriptCode(InsiderMessageBuffer& buffer) {
-	auto *request = buffer.GetAndPull<PayLoad_GetScriptCode>();
-	auto name = string(request->Name, request->NameLength);
-
-	buffer.Clear();
-	bool found = false;
-
-	using ScriptCode = ::Core::Scripts::cScriptEngine::ScriptCode;
-	Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
-		if (!found && name == code.Name) {
-			auto *response = buffer.Alloc<PayLoad_ScriptCode>();
-			response->DataLength = (u16)code.Data.length();
-			buffer.PushString(code.Data);
-			found = true;
-		}
-	});
-
-	if (!found) {
-		auto *response = buffer.Alloc<PayLoad_ScriptCode>();
-		response->DataLength = 0;
-		buffer.PushString("");
-	}
-
-	buffer.GetHeader()->MessageType = MessageTypes::ScriptCode;
-
-	if (found)
-		AddLogf(Insider, "Get script '%s' succeed", name.c_str());
-	else
-		AddLogf(Error, "Get script '%s' failed: no such script", name.c_str());
-
-	return true;
+	return false;
+//	auto *request = buffer.GetAndPull<PayLoad_GetScriptCode>();
+//	auto name = string(request->Name, request->NameLength);
+//
+//	buffer.Clear();
+//	bool found = false;
+//
+//	using ScriptCode = MoonGlare::Core::Scripts::ScriptEngine::ScriptCode;
+//	Core::GetScriptEngine()->EnumerateScripts([&name, &buffer, &found](const ScriptCode &code) {
+//		if (!found && name == code.Name) {
+//			auto *response = buffer.Alloc<PayLoad_ScriptCode>();
+//			response->DataLength = (u16)code.Data.length();
+//			buffer.PushString(code.Data);
+//			found = true;
+//		}
+//	});
+//
+//	if (!found) {
+//		auto *response = buffer.Alloc<PayLoad_ScriptCode>();
+//		response->DataLength = 0;
+//		buffer.PushString("");
+//	}
+//
+//	buffer.GetHeader()->MessageType = MessageTypes::ScriptCode;
+//
+//	if (found)
+//		AddLogf(Insider, "Get script '%s' succeed", name.c_str());
+//	else
+//		AddLogf(Error, "Get script '%s' failed: no such script", name.c_str());
+//
+//	return true;
 }
 
 bool Insider::InfoRequest(InsiderMessageBuffer& buffer) {

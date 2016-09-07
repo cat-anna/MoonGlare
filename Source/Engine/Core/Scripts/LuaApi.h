@@ -7,6 +7,7 @@
 #ifndef LUAAPI_H_
 #define LUAAPI_H_
 
+namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
@@ -14,7 +15,7 @@ class Script;
 
 class ApiInit {
 public:
-	static void Initialize(Script *s);
+	static void Initialize(ScriptEngine *s);
 
 	static void RegisterApi(void(*func)(ApiInitializer&), const Space::RTTI::TypeInfo *Class, const Space::RTTI::TypeInfo *BaseClass, const char *where = 0);
 
@@ -51,13 +52,13 @@ private:
 #if defined(PRIV_SCRIPT_API_REGULAR) || defined(PRIV_SCRIPT_API_GEN)
 
 #define RegisterApiBaseClass(CLASS, FUNCTION)\
-	::Core::Scripts::ApiInit::ApiRegister::Base<CLASS, FUNCTION> ApiReg##CLASS
+	::MoonGlare::Core::Scripts::ApiInit::ApiRegister::Base<CLASS, FUNCTION> ApiReg##CLASS
 
 #define RegisterApiDerivedClass(CLASS, FUNCTION)\
-	::Core::Scripts::ApiInit::ApiRegister::Derived<CLASS, CLASS::BaseClass, FUNCTION> ApiReg##CLASS
+	::MoonGlare::Core::Scripts::ApiInit::ApiRegister::Derived<CLASS, CLASS::BaseClass, FUNCTION> ApiReg##CLASS
 
 #define RegisterApiNonClass(NAME, FUNCTION, ...)\
-	::Core::Scripts::ApiInit::ApiRegister::Function<FUNCTION> ApiReg##NAME{__VA_ARGS__}
+	::MoonGlare::Core::Scripts::ApiInit::ApiRegister::Function<FUNCTION> ApiReg##NAME{__VA_ARGS__}
 
 #ifdef DEBUG
 #define RegisterDebugApi(NAME, FUNCTION, ...)		RegisterApiNonClass(NAME, FUNCTION, __VA_ARGS__)	
@@ -69,7 +70,7 @@ private:
 	template <class T, T*(*func)()>\
 	struct CLASS##InstanceReg { \
 		CLASS##InstanceReg() {  \
-			::Core::Scripts::ApiInit::RegisterApi(&DoReg, 0, 0, "Inst"); \
+			::MoonGlare::Core::Scripts::ApiInit::RegisterApi(&DoReg, 0, 0, "Inst"); \
 		} \
 	private:\
 		static void DoReg(::ApiInitializer &api) {\
@@ -151,19 +152,11 @@ private:
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-
-} //namespace Scritps
-} //namespace Core
-
-namespace MoonGlare {
-namespace Core {
-namespace Scripts {
-
 template <class T>
 inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, int selfLuaIndex) {
 #if DEBUG
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	lua_pushvalue(lua, -1);
+	lua_pushvalue(lua, selfLuaIndex);
 	char buf[64];
 	sprintf_s(buf, "%s_%p", name, OwnerPtr);
 	lua_setglobal(lua, buf);

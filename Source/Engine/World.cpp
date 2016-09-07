@@ -21,7 +21,7 @@ World::~World() {
 
 //------------------------------------------------------------------------------------------
 
-bool World::Initialize(::Core::cScriptEngine *se) {
+bool World::Initialize(Core::Scripts::ScriptEngine *se) {
 	m_ScriptEngine = se;
 	THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
 

@@ -49,7 +49,7 @@ namespace lua {
 			lua_call(lua, args, rets);
 			return true;
 		}
-		catch (::Core::Scripts::eLuaPanic &err) {
+		catch (Core::Scripts::eLuaPanic &err) {
 			AddLogf(Error, "Failure during call to %s message: %s", CaleeName, err.what());
 			return false;
 		}

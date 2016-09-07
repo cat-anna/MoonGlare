@@ -49,7 +49,8 @@ protected:
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
-	Graphic::VirtualCamera m_Camera;
+	struct Internals;
+	std::unique_ptr<Internals> m_Internals;
 	DefineFlagSetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
 };
 

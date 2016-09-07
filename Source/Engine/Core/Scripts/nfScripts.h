@@ -9,18 +9,27 @@
 #define NSCRIPTS_H_
 
 namespace Core {
-	namespace Scripts {
-		class iScriptEvents;
-
-		class Script;
-		using SharedScript = std::shared_ptr < Script > ;
-
-		class cScriptEngine;
-	} //namespace Scripts
-	using Scripts::cScriptEngine;
+namespace Scripts {
+	class iScriptEvents;
+} //namespace Scripts
 } //namespace Core
 
 using ::Core::Scripts::iScriptEvents;
+
+namespace MoonGlare {
+namespace Core {
+namespace Scripts {
+
+	class eLuaPanic : public std::runtime_error {
+	public:
+		eLuaPanic(const string &msg) : std::runtime_error(msg) {}
+	};
+
+	class ScriptEngine;
+
+} //namespace Scripts
+} //namespace Core
+} //namespace MoonGlare
 
 #include "LuaApi.h"
 

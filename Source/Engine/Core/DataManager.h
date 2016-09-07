@@ -115,7 +115,7 @@ public:
 	const string& GetString(const string &Id, const string& TableName);
 	Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const;
 
-	bool Initialize();
+	bool Initialize(Scripts::ScriptEngine *ScriptEngine);
 	bool Finalize();
 
 	void DumpAllResources(std::ostream &out);
@@ -128,6 +128,8 @@ public:
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 private:
+	Scripts::ScriptEngine *m_ScriptEngine;
+
 	std::vector<DataModuleInfo> m_Modules;
 	RuntimeConfiguration m_Configuration;
 
@@ -136,10 +138,9 @@ private:
 	
 	std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
-//	template <class C> 
-//	void ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container);
-
 	void DumpResources();
+
+	bool LoadModuleScripts(StarVFS::Containers::iContainer *Container);
 };
 
 } // namespace Data
