@@ -35,6 +35,11 @@ RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
 
 Manager::Manager() : cRootClass() {
 	SetThisAsInstance();
+
+	m_ScriptEngine = nullptr;
+
+	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
+
 	m_Modules.reserve(StaticSettings::DataManager::MaxLoadableModules);
 	new DataClasses::Texture();
 	m_StringTables = std::make_unique<DataClasses::StringTable>();
@@ -81,8 +86,9 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 
 //------------------------------------------------------------------------------------------
 
-bool Manager::Initialize() {
-	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
+bool Manager::Initialize(Scripts::ScriptEngine *ScriptEngine) {
+	m_ScriptEngine = ScriptEngine;
+	MoonGlareAssert(m_ScriptEngine);
 	
 	//GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
 	//GetFileSystem()->LoadRegisteredContainers();
@@ -117,7 +123,8 @@ bool Manager::Finalize() {
 //------------------------------------------------------------------------------------------
 
 bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
-	ASSERT(Container);
+	MoonGlareAssert(Container);
+	MoonGlareAssert(m_ScriptEngine);
 
 	m_Modules.emplace_back();
 	auto &mod = m_Modules.back();
@@ -145,40 +152,53 @@ bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
 
 	AddLogf(Hint, "Loaded module '%s' from container '%s'", mod.m_ModuleName.c_str(), Container->GetContainerURI().c_str());
 
-#if 0
-
-	if (!modptr->IsValid()) {
-		AddLogf(Error, "Unable to import module '%s'", modptr->GetContainer()->GetFileName().c_str());
+	if (!LoadModuleScripts(Container)) {
+		AddLogf(Error, "Failed to load module scripts!");
 		return false;
 	}
-	if (!modptr->Open()) {
-		AddLogf(Error, "Unable to open module '%s'", modptr->GetContainer()->GetFileName().c_str());
-		return false;
-	}
-
-	DataClasses::NameClassList list;
-
-	auto ptr = modptr.get();
-
-	m_Modules.emplace_back(std::move(modptr));
-	//append configuration
-	m_Config.LoadMeta(ptr->GetConfig());
-	//append resources definitions
-	//append resources definitions to external managers
 
 	return true;
-#endif
+}
+
+bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
+	MoonGlareAssert(Container);
+	MoonGlareAssert(m_ScriptEngine);
+
+	auto cid = Container->GetContainerID();
+
+	auto func = [this, cid, Container](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
+		auto dot = strrchr(fname, '.');
+		if (!dot)
+			return true;
+		if (stricmp(dot, ".lua") != 0)
+			return true;
+
+		auto furi = FileSystem::MakeContainerFilePathURI(cid, fname);
+		StarVFS::ByteTable data;
+		if (!Container->GetFileData(CFid, data)) {
+			AddLogf(Error, "Failed to get file data! (%d:%s)", (int)CFid, furi.c_str());
+			return true;
+		}
+
+		AddLogf(Debug, "Loading script: %s (%u bytes)", furi.c_str(), data.size());
+
+		m_ScriptEngine->ExecuteCode(data.get(), data.size(), furi.c_str());
+
+		return true;
+	};
+
+	if (!Container->EnumerateFiles(func)) {
+		AddLogf(Error, "Container %s does not support file enumeration!", Container->GetContainerURI().c_str());
+		return false;
+	}
+
 	return true;
 }
 
 //------------------------------------------------------------------------------------------
 
 void Manager::LoadGlobalData() {
-	Core::GetScriptEngine()->LoadAllScripts();
 	GetSoundEngine()->ScanForSounds();
-
-	//for (auto it = m_Modules.rbegin(), jt = m_Modules.rend(); it != jt; ++it) {
-	//}
 
 	NotifyResourcesChanged();
 }
@@ -312,32 +332,6 @@ Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const
 
 //------------------------------------------------------------------------------------------
 
-#if 0
-template <class C>
-void Manager::ImportResources(DataModule *module, bool(DataModule::*srcfun)(DataClasses::NameClassList&)const, std::unordered_map<string, C> &container) {
-	DataClasses::NameClassList list;
-	(module->*srcfun)(list);
-	for (auto in : list) {
-		auto it = container.find(in.Name);
-		if (it != container.end()) {
-			AddLogf(Debug, "Shadowing resource '%s' from module '%s' by resource from '%s'",
-					in.Name.c_str(),
-					it->second.GetOwner()->GetModuleName().c_str(),
-					module->GetModuleName().c_str());
-			
-			container.erase(it);
-		}
-
-		container.emplace(std::piecewise_construct, 
-						 std::tuple<string>(in.Name), 
-						 std::tuple<DataClasses::DataModule*, DataClasses::NameClassPair&>(module, in));
-	}
-}
-#endif
-
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-
 #ifdef DEBUG_DUMP
 
 struct Dumper {
@@ -381,13 +375,12 @@ void Manager::DumpResources() {
 	file << "Revision index: " << RevisionIndex << "\n\n";
 	++RevisionIndex;
 	GetDataMgr()->DumpAllResources(file);
-	Core::GetScriptEngine()->DumpScripts(file);
 	Core::GetScenesManager()->DumpAllDescriptors(file);
 	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);
 //	::Core::GetGlobalContext()->Dump(file);
-	//dump global context
+	//TODO: dump global context
 	file << "\n\n--------------------------------------------------------------------------------------\n" << std::flush;
 #endif
 }
