@@ -34,7 +34,8 @@ namespace lua {
 	static const char *EntityMemberName = "Entity";
 	static const char *HandleMemberName = "Handle";
 	static const char *ComponentIDMemberName = "ComponentId";
-	static const char *DereferenceHandlerName = "Get";
+	static const char *DereferenceHandleName = "Get";
+	static const char *ComponentSetStateName = "Set";
 
 	static const char *GameObjectName = "GameObject";
 
@@ -439,7 +440,12 @@ int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Hand
 	lua_pushlightuserdata(lua, cptr);
 	lua_pushlightuserdata(lua, h.GetVoidPtr());
 	lua_pushcclosure(lua, &lua_DereferenceHandle, 2);
-	lua_setfield(lua, -2, lua::DereferenceHandlerName);
+	lua_setfield(lua, -2, lua::DereferenceHandleName);
+
+	lua_pushlightuserdata(lua, cptr);
+	lua_pushlightuserdata(lua, h.GetVoidPtr());
+	lua_pushcclosure(lua, &lua_SetComponentState, 2);
+	lua_setfield(lua, -2, lua::ComponentSetStateName);
 	return 1;
 }
 
@@ -456,6 +462,45 @@ int ScriptComponent::lua_DereferenceHandle(lua_State *lua) {
 	}
 
 	return rets;
+}
+
+int ScriptComponent::lua_SetComponentState(lua_State *lua) {
+	int argc = lua_gettop(lua);
+	if (argc != 2) {
+		AddLogf(Error, "ComponentInstanceInfo::Set: Error: Invalid argument count!");
+		return 0;
+	}
+
+	if (lua_type(lua, -1) != LUA_TTABLE) {
+		AddLogf(Error, "ComponentInstanceInfo::Set: Error: Invalid argument type!");
+		return 0;
+	}
+
+	//stack: self valtable
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+
+	void *voidcptr = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	AbstractComponent *cptr = reinterpret_cast<AbstractComponent*>(voidcptr);
+
+	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
+	int rets = 0;
+	if (!cptr->PushEntryToLua(h, lua, rets)) {
+		AddLogf(Error, "ComponentInstanceInfo::Set: Error: Component '%s' does not support lua api", typeid(*cptr).name());
+		return 0;
+	}
+	//stack: self values component
+
+	lua_pushnil(lua);								//stack: self values component nil
+
+	while (lua_next(lua, 2) != 0) {					//stack: self values component key value
+		lua_pushvalue(lua, -2);						//stack: self values component key value key
+		lua_insert(lua, -2);						//stack: self values component key key value 
+		lua_settable(lua, 3);						//stack: self values component key  
+	}
+	//stack: self values component
+	lua_pop(lua, 1);
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------

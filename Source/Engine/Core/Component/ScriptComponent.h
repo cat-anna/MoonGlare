@@ -79,9 +79,10 @@ protected:
 	void *GetInstancesTableIndex() { return this; }
 	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<int>(this) + 1); }
 private:
-	//utils
+//utils
 	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
+	static int lua_SetComponentState(lua_State *lua);
 
 //ScriptComponent api
 	static int lua_DestroyComponent(lua_State *lua);
