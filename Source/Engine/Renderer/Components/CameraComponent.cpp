@@ -126,7 +126,7 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
 
 		//RInput->m_Camera.UpdateMatrix();
 		auto view = glm::lookAt(p, p + d, math::vec3(0, 1, 0));
-		RInput->m_Camera.m_WorldMatrix = (math::mat4&)item.m_ProjectionMatrix * view;
+		RInput->m_Camera.m_ProjectionMatrix = (math::mat4&)item.m_ProjectionMatrix * view;
 	}
 
 	if (InvalidEntryCount > 0) {

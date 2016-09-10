@@ -38,7 +38,7 @@ public:
 	void Bind(VirtualCamera *c) { 
 		m_CurrentCamera = c; 
 		if (c) {
-			SetCameraMatrix(c->GetCameraMatrix());
+			SetCameraMatrix(c->GetProjectionMatrix());
 		}
 	}
 	
@@ -73,7 +73,7 @@ public:
 	}
 
 	void SetCameraMatrix(const math::mat4 &m) { m_CameraMatrix = m; }
-	void ResetCameraMatrix() { if(m_CurrentCamera) SetCameraMatrix(m_CurrentCamera->GetCameraMatrix()); }
+	void ResetCameraMatrix() { if(m_CurrentCamera) SetCameraMatrix(m_CurrentCamera->GetProjectionMatrix()); }
 
 	const Environment *CurrentEnvironment() const { return m_CurrentEnvironment; }
 	VirtualCamera *CurrentCamera() const { return m_CurrentCamera; }
