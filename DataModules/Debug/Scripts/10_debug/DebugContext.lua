@@ -32,4 +32,4 @@ function ToggleDebugDraw()
 	return 0;
 end
 
-Debug_OnInit()
+--Debug_OnInit()
