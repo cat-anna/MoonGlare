@@ -225,7 +225,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 			}
 			// Compile 
 			ShaderCodeVector CodeVec;
-			CodeVec.push_copy(data.get(), data.size());
+			CodeVec.push_copy((char*)data.get(), data.byte_size());
 			PreproccesShaderCode(sd, CodeVec);
 			GLuint shader = glCreateShader(type->value);
 			glShaderSource(shader, CodeVec.len(), (const GLchar**)CodeVec.get(), NULL);
@@ -298,7 +298,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlfx(ShaderDefinition 
 
 	parentsd.Handle = glfxGenEffect();
 	ShaderCodeVector CodeVec;
-	CodeVec.push_copy(data.get(), data.size());
+	CodeVec.push_copy((char*)data.get(), data.byte_size());
 	PreproccesShaderCode(parentsd, CodeVec);
 	if (!glfxParseEffectFromMemory(parentsd.Handle, CodeVec.Linear().c_str())) {
 		AddLogf(Error, "Unable to parse shader file for shader '%s'", Name.c_str());
@@ -373,7 +373,7 @@ void ShaderManager::PreproccesShaderCode(ShaderDefinition &sd, ShaderCodeVector 
 				AddLogf(Error, "Unable to load include file '%s' for shader '%s'", filename.c_str(), sd.Name.c_str());
 				continue;
 			}
-			CodeTable.push_copy_front(data.get(), data.size());
+			CodeTable.push_copy_front((char*)data.get(), data.byte_size());
 			return PreproccesShaderCode(sd, CodeTable);
 		}
 	}

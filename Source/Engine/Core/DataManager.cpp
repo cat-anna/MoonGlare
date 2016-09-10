@@ -140,7 +140,7 @@ bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
 	}
 
 	pugi::xml_document doc;
-	if (!doc.load_string(data.get())) {
+	if (!doc.load_string((char*)data.get())) {
 		AddLogf(Error, "Failed to parse container meta-data xml '%s'", Container->GetContainerURI().c_str());
 		return true;
 	}
@@ -182,7 +182,7 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 
 		AddLogf(Debug, "Loading script: %s (%u bytes)", furi.c_str(), data.size());
 
-		m_ScriptEngine->ExecuteCode(data.get(), data.size(), furi.c_str());
+		m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
 
 		return true;
 	};

@@ -256,7 +256,7 @@ bool MoonGlareFileSystem::OpenXML(XMLFile &doc, const string& FileName, DataPath
 	}
 
 	doc = std::make_unique<pugi::xml_document>();
-	auto result = doc->load_string(data.get());
+	auto result = doc->load_string((char*)data.get());
 
 	return static_cast<bool>(result);
 }
@@ -269,7 +269,7 @@ bool MoonGlareFileSystem::OpenTexture(Graphic::Texture &tex, const string& FileN
 		//already logged, no need for more
 		return false;
 	}
-	if (DataClasses::Texture::LoadTexture(tex, data.get(), data.size(), ApplyDefaultSettings)) {
+	if (DataClasses::Texture::LoadTexture(tex, (char*)data.get(), data.byte_size(), ApplyDefaultSettings)) {
 		return true;
 	}
 	return false;
@@ -283,7 +283,7 @@ bool MoonGlareFileSystem::OpenTexture(TextureFile &tex, const string& FileName, 
 		return false;
 	}
 	tex = std::make_unique<Graphic::Texture>();
-	if (DataClasses::Texture::LoadTexture(*tex.get(), data.get(), data.size(), ApplyDefaultSettings)) {
+	if (DataClasses::Texture::LoadTexture(*tex.get(), (char*)data.get(), data.byte_size(), ApplyDefaultSettings)) {
 		return true;
 	}
 	tex.reset();
