@@ -1,0 +1,30 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.TransfromComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec3)
+Use(Global.MoonGlare.x2c.Math.Vec4)
+
+Structure.new {
+	name = "TransfromEntry",
+	description = "Holds all required data to build TransfromComponent",
+	fields = {
+		{
+			name = "Position",
+			description = "Entity position vector",
+			type = Vec3,
+		},
+		{
+			name = "Rotation",
+			description = "Entity rotation quaternion",
+			type = Vec4,
+			default = { x=0, y=0, z=0, w=1, }
+		},
+		{
+			name = "Scale",
+			description = "Entity scale",
+			type = Vec3,
+			default = { x=1, y=1, z=1, }
+		},
+	},
+}

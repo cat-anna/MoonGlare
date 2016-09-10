@@ -11,6 +11,10 @@
 #include "AbstractComponent.h"
 #include "TransformComponent.h"
 
+#include <Math.x2c.h>
+#include <ComponentCommon.x2c.h>
+#include <TransformComponent.x2c.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -184,11 +188,17 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	entry.m_Flags.m_Map.m_Dirty = true;
 
-	Physics::vec3 pos;
-	XML::Vector::Read(node, "Position", pos);
-	entry.m_LocalTransform.setOrigin(pos);
-	entry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
+	x2c::Component::TransfromComponent::TransfromEntry_t te;
+	te.ResetToDefault();
+	if (!te.Read(node)) {
+		AddLog(Error, "Failed to read BodyEntry!");
+		return false;
+	}
+
+	entry.m_LocalTransform.setOrigin(convert(te.m_Position));
+	entry.m_LocalTransform.setRotation(convert(te.m_Rotation));
 	entry.m_GlobalTransform = entry.m_LocalTransform;
+
 	XML::Vector::Read(node, "Scale", entry.m_LocalScale, Physics::vec3(1, 1, 1));
 
 	entry.m_GlobalScale = entry.m_LocalScale;
