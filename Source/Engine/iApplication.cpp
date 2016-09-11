@@ -58,7 +58,14 @@ bool iApplication::Initialize() {
 #define _init_chk(WHAT, ERRSTR, ...) do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); return false; } } while(false)
 
 	_init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
-	_init_chk(new ModulesManager(), "Unable to initialize modules manager!");
+
+	auto ModManager = new ModulesManager();
+	::Settings->Load();
+	if (!ModManager->Initialize()) {
+		AddLogf(Error, "Unable to initialize modules manager!");
+		return false;
+	}
+
 	_init_chk(new ScriptEngine(), "Unable to initialize script engine!");
 
 	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
@@ -111,6 +118,8 @@ bool iApplication::Execute() {
 bool iApplication::Finalize() {
 #define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::InstanceExists()) break; if(!WHAT::Instance()->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
+
+	Settings->Save();
 
 	_del_chk(Console, "Console finalization failed");
 

@@ -174,6 +174,7 @@ struct SettingsImpl {
 			handler.SetChanged(true);
 		}
 		Settings.Serialize(reader);
+		GetModulesManager()->LoadSettings(root.child("EngineModules"));
 	}
 
 	void Save() {
@@ -195,6 +196,8 @@ struct SettingsImpl {
 			handler.Manipulator->save(node);
 			handler.Manipulator.reset();
 		}
+		GetModulesManager()->SaveSettings(root.append_child("EngineModules"));
+
 		xml.save_file("Settings.xml");
 	}
 

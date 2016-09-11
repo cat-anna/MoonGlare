@@ -76,7 +76,6 @@ int main(int argc, char** argv) {
 
 	Config::Current::Initialize();
 	AddLog(Info, "MainThread");
-	Settings->Load();
 	//Core::Settings->DisableSave();
 	do {
 		bool doRestart = false;
@@ -112,7 +111,6 @@ int main(int argc, char** argv) {
 		AddLog(Debug, "Performing application restart");
 	} while (true);
 
-	Settings->Save();
 	Config::Current::Finalize();
 	OrbitLogger::LogCollector::Stop();
 	return Result ? 0 : 1;

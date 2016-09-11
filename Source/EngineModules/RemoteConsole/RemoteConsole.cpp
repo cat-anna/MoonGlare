@@ -15,37 +15,38 @@
 #include <boost/asio.hpp>
 
 #include "RemoteConsole.h"
+#include <RemoteConsole.x2c.h>
 
 namespace MoonGlare {
 namespace Debug {
 namespace RemoteConsoleModule {
 using namespace InsiderApi;
 
-struct RemoteConsoleSettings {
-	struct Port : public Settings_t::BaseSettingInfo<int, Port> {
-		static Type default() { return Configuration::recon_Port; }
-	};
-	struct Enabled : public Settings_t::BaseSettingInfo<bool, Enabled> {
-		static Type default() { return true; }
-	};
-};
-
 struct RemoteConsoleModule : public MoonGlare::Modules::ModuleInfo {
 	RemoteConsoleModule(): BaseClass("RemoteConsole", ModuleType::Debug) { 
-		Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<RemoteConsoleSettings::Enabled>>("Debug.RemoteConsole.Enabled", true);
-		Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<RemoteConsoleSettings::Port>>("Debug.RemoteConsole.Port", true);
 	}
 
 	virtual bool Initialize() override {
-		if (RemoteConsoleSettings::Enabled::get())
-			m_Instance = std::make_unique<RemoteConsole>();
+		if (m_Settings.m_Enabled)
+			m_Instance = std::make_unique<RemoteConsole>(m_Settings.m_Port);
 		return true;
 	}
 	virtual bool Finalize() override {
 		m_Instance.reset();
 		return true;
 	}
+
+	bool LoadSettings(const pugi::xml_node node) {
+		m_Settings.ResetToDefault();
+		if (!m_Settings.Read(node))
+			return false;
+		return true;
+	}
+	bool SaveSettings(pugi::xml_node node) const {
+		return m_Settings.Write(node);
+	}
 private:
+	x2c::Module::RemoteConsole::RemoteConsoleSettings_t m_Settings;
 	std::unique_ptr<RemoteConsole> m_Instance;
 };
 DEFINE_MODULE(RemoteConsoleModule);
@@ -54,8 +55,9 @@ DEFINE_MODULE(RemoteConsoleModule);
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(RemoteConsole);
 
-RemoteConsole::RemoteConsole(): BaseClass() {
+RemoteConsole::RemoteConsole(uint16_t Port): BaseClass() {
 	m_Running = true;
+	m_Port = Port;
 	m_Thread = std::thread(&RemoteConsole::ThreadEntry, this);
 	SetPerformanceCounterOwner(CodeExecutionCount);
 }
@@ -75,7 +77,7 @@ void RemoteConsole::ThreadEntry() {
 	auto *header = reinterpret_cast<MessageHeader*>(buffer);
 
 	try {
-		udp::socket sock(m_ioservice, udp::endpoint(udp::v4(), (unsigned short)RemoteConsoleSettings::Port::get()));
+		udp::socket sock(m_ioservice, udp::endpoint(udp::v4(), m_Port));
 
 		AddLog(Hint, "Remote console initialized");
 		while (m_Running) {

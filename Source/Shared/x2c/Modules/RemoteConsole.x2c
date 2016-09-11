@@ -1,0 +1,21 @@
+
+Structure.postfix "_t"
+Structure.field.prefix "m_"
+
+namespace "MoonGlare.x2c.Module.RemoteConsole"
+
+Structure.new {
+	name = "RemoteConsoleSettings",
+	fields = {
+		{
+			name = "Enabled",
+			type = bool,
+			default = false,
+		},
+		{
+			name = "Port",
+			type = u16,
+			default = 0xC001,
+		},
+	}
+}

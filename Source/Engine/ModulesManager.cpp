@@ -39,6 +39,8 @@ void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
 void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
 void ModuleInfo::RegisterInternalApi(ApiInitializer &api) { /* ignore */ }
+bool ModuleInfo::LoadSettings(const pugi::xml_node node) { return false; }
+bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 
 //----------------------------------------------------------------
 
@@ -80,6 +82,35 @@ bool ModulesManager::Finalize() {
 
 //----------------------------------------------------------------
 
+bool ModulesManager::LoadSettings(const pugi::xml_node node) {
+	if (!node)
+		return true;
+
+	auto list = GetModuleList();
+	for (auto &it : *list) {
+		auto modnode = node.child(it->GetName());
+		if (!modnode)
+			continue;
+		it->LoadSettings(modnode);
+	}
+
+	return true;
+}
+
+bool ModulesManager::SaveSettings(pugi::xml_node node) const {
+	if (!node)
+		return false;
+
+	auto list = GetModuleList();
+	for (auto &it : *list) {
+		auto modnode = node.append_child(it->GetName());
+		if (!it->SaveSettings(modnode))
+			node.remove_child(modnode);
+	}
+
+	return true;
+}
+
 void ModulesManager::BroadcastNotification(NotifyEvent event) {
 	AddLogf(Debug, "Broadcasting event: %d.", (unsigned)event);
 	if (!IsInitialized()) {
@@ -108,7 +139,7 @@ void ModulesManager::BroadcastNotification(SettingsGroup what) {
 
 //----------------------------------------------------------------
 
-const ModuleInfoList * ModulesManager::GetModuleList() {
+const ModuleInfoList * ModulesManager::GetModuleList() const {
 	return _ModuleList;
 }
 

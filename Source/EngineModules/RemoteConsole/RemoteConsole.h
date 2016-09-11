@@ -16,12 +16,13 @@ namespace RemoteConsoleModule {
 class RemoteConsole : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(RemoteConsole, cRootClass);
 public:
- 	RemoteConsole();
+ 	RemoteConsole(uint16_t Port);
  	virtual ~RemoteConsole();
 private: 
 	using udp = boost::asio::ip::udp;
 
 	DeclarePerformanceCounter(CodeExecutionCount);
+	uint16_t m_Port;
 	std::thread m_Thread;
 	volatile bool m_Running;
 	boost::asio::io_service m_ioservice;

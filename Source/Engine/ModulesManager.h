@@ -58,6 +58,9 @@ public:
 	virtual void RegisterModuleApi(ApiInitializer &api);
 	virtual void RegisterInternalApi(ApiInitializer &api);
 
+	virtual bool LoadSettings(const pugi::xml_node node);
+	virtual bool SaveSettings(pugi::xml_node node) const;
+
 	DefineDirectGetter(Name, const char *);
 	DefineDirectGetterConst(Type, ModuleType);
 protected:
@@ -80,12 +83,15 @@ public:
 	bool Initialize();
 	bool Finalize();
 
+	bool LoadSettings(const pugi::xml_node node);
+	bool SaveSettings(pugi::xml_node node) const;
+
 	void BroadcastNotification(NotifyEvent event);
 	void BroadcastNotification(SettingsGroup what);
 
 	void DumpModuleList(std::ostream &out);
 
-	const ModuleInfoList* GetModuleList();
+	const ModuleInfoList* GetModuleList() const;
 
 	enum class Flags {
 		Initialized,
