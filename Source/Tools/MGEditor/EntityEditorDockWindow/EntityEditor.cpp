@@ -146,6 +146,7 @@ bool EntityEditorWindow::SaveData() {
 
 void EntityEditorWindow::Refresh() {
 	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
+	m_CurrentItem = EditableItemInfo();
 
 	if (!m_RootEntity)
 		return;
@@ -177,7 +178,7 @@ void EntityEditorWindow::Refresh() {
 
 void EntityEditorWindow::RefreshDetails() {
 	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
-
+	m_CurrentComponent = EditableComponentValueInfo();
 	if (!m_CurrentItem)
 		return;
 
