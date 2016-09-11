@@ -226,6 +226,10 @@ bool EditablePattern::OpenPattern(const std::string &filename) {
 		//todo: log sth
 		return false;
 	}
+	if (bt.byte_size() == 0) {
+		GetName() = "Empty";
+		return true;
+	}
 
 	if (!xdoc.load_string((char*)bt.get())) {
 		//TODO: log sth

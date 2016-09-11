@@ -122,7 +122,6 @@ bool EntityEditorWindow::OpenData(const std::string &file) {
 	}
 	m_RootEntity.reset(root.release());
 	m_CurrentPatternFile = file;
-	m_Ui->labelPatternName->setText(m_RootEntity->GetName().c_str());
 	Refresh();
 	return true;
 }
