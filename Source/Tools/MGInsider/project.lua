@@ -21,6 +21,7 @@ group "Tools"
 		}
 		files { 
 			"**", 
+			"../Shared/Resources/*",
 		}	
 		includedirs {
 			"."
