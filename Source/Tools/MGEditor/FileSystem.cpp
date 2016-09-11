@@ -21,6 +21,31 @@ FileSystem::FileSystem() {
 FileSystem::~FileSystem() {
 }
 
+bool FileSystem::GetFileData(const std::string &uri, StarVFS::ByteTable & data) {
+	auto fid = m_VFS->FindFile(uri);
+	return m_VFS->GetFileData(fid, data);
+}
+
+bool FileSystem::SetFileData(const std::string & uri, StarVFS::ByteTable & data) {
+	auto fid = m_VFS->FindFile(uri);
+
+	if (!m_VFS->IsFileValid(fid)) {
+		//TODO: todo
+		return false;
+	}
+
+	auto h = m_VFS->OpenFile(fid, StarVFS::RWMode::W);
+	if(!h) {
+		//TODO: todo
+		return false;
+	}
+
+	auto ret = h.SetFileData(data);
+	h.Close();
+
+	return ret;
+}
+
 //-----------------------------------------------------------------------------
 
 void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {

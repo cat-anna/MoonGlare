@@ -32,6 +32,9 @@ public:
 
 	StarVFS::SharedStarVFS GetVFS() { return m_VFS; }
 
+	bool GetFileData(const std::string &uri, StarVFS::ByteTable &data);
+	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
+
 signals:
 	void Changed();
 protected slots:
