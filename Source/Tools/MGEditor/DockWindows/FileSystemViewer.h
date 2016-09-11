@@ -19,6 +19,14 @@ namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
+struct FileSystemViewerRole {
+	enum {
+		FileURI = Qt::UserRole + 1,
+		FileHash,
+		FileFullName,
+	};
+};
+
 class FileSystemViewer 
 	: public QtShared::DockWindow {
 	Q_OBJECT;
@@ -33,8 +41,10 @@ protected:
 	void RefreshTreeView();
 protected slots:
 	void ShowContextMenu(const QPoint &);
+	void ItemDoubleClicked(const QModelIndex&);
 	void RefreshFilesystem();
 	void ProjectChanged(Module::SharedDataModule datamod);
+	void OpenItem();
 private: 
 	std::unique_ptr<Ui::FilesystemViewer> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;

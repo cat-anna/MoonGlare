@@ -40,6 +40,17 @@ MainWindow::MainWindow(QWidget *parent)
 		m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
 		AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
 
+		auto einfo = dynamic_cast<QtShared::iEditorInfo*>(ptr.get());
+		if (einfo) {
+			auto lst = einfo->GetSupportedFileTypes();
+			auto shd = GetSharedData();
+			for (auto &item : lst) {
+				m_Editors[item.m_Ext] = ptr;
+				shd->m_FileIconMap[item.m_Ext] = item.m_Icon;
+				AddLogf(Info, "Associated editor: %s->%s", item.m_Ext.c_str(), ci.Alias.c_str());
+			}
+		}
+
 		ptr->LoadSettings();
 	});
 	m_DockWindows.shrink_to_fit();
@@ -183,6 +194,40 @@ void MainWindow::showEvent(QShowEvent * event) {
 void MainWindow::closeEvent(QCloseEvent * event) {
 	m_DataModule.reset();
 	event->accept();
+}
+
+//-----------------------------------------
+
+void MainWindow::OpenFileEditor(const std::string& FileURI) {
+	const char *ext = strrchr(FileURI.c_str(), '.');
+	if (!ext) {
+		ErrorMessage("Unknown file type!");
+		return;
+	}
+	++ext;
+
+	auto it = m_Editors.find(ext);
+	if (it == m_Editors.end()) {
+		AddLog(Warning, "No associated editor with selected file type!");
+		ErrorMessage("No associated editor with selected file type!");
+		return;
+	}
+
+	auto dock = it->second;
+	auto inst = dock->GetInstance();
+	auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
+	if (!editor) {
+		AddLog(Error, "Editing in not supported by %s", typeid(*inst).name());
+		ErrorMessage("Editing not supported!");
+		return;
+	}
+
+	if (editor->OpenData(FileURI)) {
+		inst->show();
+	} else {
+		ErrorMessage("Failed to open file!");
+		AddLog(Error, "Failed to open file!");
+	}
 }
 
 } //namespace Editor

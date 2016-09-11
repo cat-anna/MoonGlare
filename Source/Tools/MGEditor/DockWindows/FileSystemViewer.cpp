@@ -40,18 +40,18 @@ FileSystemViewer::FileSystemViewer(QWidget * parent)
 
 	m_FileSystem = MainWindow::Get()->GetFilesystem();
 
-
 	m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+	connect(m_Ui->treeView, SIGNAL(doubleClicked(const QModelIndex&)), SLOT(ItemDoubleClicked(const QModelIndex&)));
 
 	connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
 	connect(m_FileSystem.get(), SIGNAL(Changed()), this, SLOT(RefreshFilesystem()));
 
 	m_ViewModel = std::make_unique<QStandardItemModel>();
-	
 
 	m_Ui->treeView->setModel(m_ViewModel.get());
 	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+	m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	m_Ui->treeView->setColumnWidth(0, 200);
 }
@@ -74,22 +74,31 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 	QMenu menu;
 	QModelIndex index = m_Ui->treeView->indexAt(point);
 
-	bool ItemAdded = false;
-	auto AddSeparator = [&] { 
-		if (ItemAdded) {
-			menu.addSeparator();
-			ItemAdded = false;
-		}
-	};
-
 	if (index.isValid()) {
 
 	}
 
-	AddSeparator();
+	menu.addAction("Open", this, &FileSystemViewer::OpenItem);
+	menu.addSeparator();
 	menu.addAction(ICON_16_REFRESH, "Refresh", this, &FileSystemViewer::RefreshFilesystem);
 
 	menu.exec(m_Ui->treeView->mapToGlobal(point));
+}
+
+void FileSystemViewer::ItemDoubleClicked(const QModelIndex&) {
+	OpenItem();
+}
+
+void FileSystemViewer::OpenItem() {
+	auto selection = m_Ui->treeView->selectionModel()->currentIndex();
+	auto parent = selection.parent();
+
+	auto itemptr = m_ViewModel->itemFromIndex(selection);
+	if (!itemptr)
+		return;
+
+	std::string fullpath = itemptr->data(FileSystemViewerRole::FileFullName).toString().toLocal8Bit().constData();
+	MainWindow::Get()->OpenFileEditor(fullpath);
 }
 
 void FileSystemViewer::RefreshFilesystem() {
@@ -110,6 +119,8 @@ void FileSystemViewer::Clear() {
 void FileSystemViewer::RefreshTreeView() {
 	m_ViewModel->clear();
 	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("File"));
+
+	auto shdata = MainWindow::Get()->GetSharedData();
 
 	decltype(m_VFSItemMap) currmap;
 	auto svfs = m_FileSystem->GetVFS();
@@ -136,9 +147,26 @@ void FileSystemViewer::RefreshTreeView() {
 		if (h.IsDirectory()) {
 			item->setData(ICON_16_FOLDER, Qt::DecorationRole);
 			h.EnumerateChildren(processitem);
-		} else
-			item->setData(QIcon(), Qt::DecorationRole);
+		} else {
+			auto ext = strrchr(h.GetName(), '.');
+			if (ext) {
+				++ext;
+				auto it = shdata->m_FileIconMap.find(ext);
+				if (it != shdata->m_FileIconMap.end()) {
+					item->setData(QIcon(it->second.c_str()), Qt::DecorationRole);
+				} else
+					item->setData(QIcon(), Qt::DecorationRole);
+			} else
+				item->setData(QIcon(), Qt::DecorationRole);
+		}
 
+		auto hash = h.GetHash();
+		char buf[128];
+		sprintf_s(buf, "hash://%08x", hash);
+		auto str = h.GetFullPath();
+		item->setData(buf, FileSystemViewerRole::FileURI);
+		item->setData(hash, FileSystemViewerRole::FileHash);
+		item->setData(str.c_str(), FileSystemViewerRole::FileFullName);
 		h.Close();
 
 		return true;
