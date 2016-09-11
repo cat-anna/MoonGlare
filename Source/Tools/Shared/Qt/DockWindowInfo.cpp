@@ -18,6 +18,8 @@ DockWindowInfo::~DockWindowInfo() {
 }
 
 std::shared_ptr<DockWindow> DockWindowInfo::GetInstance(QWidget *parent) {
+	if (!parent)
+		parent = m_Parent;
 	if (!m_Instance) {
 		m_Instance = CreateInstance(parent);
 		connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow*)), SLOT(WindowClosed(DockWindow*)));

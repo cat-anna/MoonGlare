@@ -3,12 +3,14 @@
 
 #include <qobject.h>
 #include "iSettingsUser.h"
+#include "qtUtils.h"
 
 namespace MoonGlare {
 namespace QtShared {
 
 class DockWindow 
 	: public QDockWidget
+	, public UserQuestions
 	, public iSettingsUser
 	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT;

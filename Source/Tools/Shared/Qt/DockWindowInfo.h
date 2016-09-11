@@ -8,7 +8,6 @@ namespace QtShared {
 
 class DockWindowInfo 
 		: public QObject
-	//	, public Space::RTTI::RTTIObject
 		, public iSettingsUser {
 	Q_OBJECT;
 	//SPACERTTI_DECLARE_STATIC_CLASS(DockWindowInfo, Space::RTTI::RTTIObject);
@@ -23,7 +22,7 @@ public:
 	QIcon GetIcon() const { return QIcon(GetIconResName()); }
 	QKeySequence GetKeySequence() const { return QKeySequence(GetShortcut()); }
 
-	std::shared_ptr<DockWindow> GetInstance(QWidget *parent);
+	std::shared_ptr<DockWindow> GetInstance(QWidget *parent = nullptr);
 	void ReleaseInstance();
 
 public slots:
