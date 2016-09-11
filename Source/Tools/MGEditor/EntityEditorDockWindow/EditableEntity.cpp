@@ -15,8 +15,12 @@
 #include <BodyComponent.x2c.h>
 #include <TransformComponent.x2c.h>
 #include <CameraComponent.x2c.h>
+#include <MeshComponent.x2c.h>
+#include <ScriptComponent.x2c.h>
 
 #include "EditableEntity.h"
+#include <MainWindow.h>
+#include <FileSystem.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -28,16 +32,25 @@ using BodyComponentEditor = X2CEditableStructure<x2c::Component::BodyComponent::
 using LightComponentEditor = X2CEditableStructure<x2c::Component::LightComponent::LightEntry_t>;
 using TransformComponentEditor = X2CEditableStructure<x2c::Component::TransfromComponent::TransfromEntry_t>;
 using CameraComponentEditor = X2CEditableStructure<x2c::Component::CameraComponent::CameraEntry_t>;
+using MeshComponentEditor = X2CEditableStructure<x2c::Component::MeshComponent::MeshEntry_t>;
+using ScriptComponentEditor = X2CEditableStructure<x2c::Component::ScriptComponent::ScriptEntry_t>;
 
 template<class T> UniqueEditableComponent CreteFunction(EditableEntity *Parent, const ComponentInfo *cInfo) { return UniqueEditableComponent(new T(Parent, cInfo)); }
 using Core::Component::ComponentID;
 using Core::Component::ComponentIDs;
 
+template<typename ...ARGS>
+std::pair<ComponentID, ComponentInfo> MakeComponentInfo(ComponentIDs cid, ARGS&& ...args) {
+	return std::make_pair((ComponentID)cid, ComponentInfo{ (ComponentID)cid, std::forward<ARGS>(args)..., });
+}
+
 const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentInfoMap {
-	std::make_pair((ComponentID)ComponentIDs::Transform, ComponentInfo{ &CreteFunction<TransformComponentEditor>, "Transform", (ComponentID)ComponentIDs::Transform }),
-	std::make_pair((ComponentID)ComponentIDs::Light, ComponentInfo{ &CreteFunction<LightComponentEditor>, "Light", (ComponentID)ComponentIDs::Light }),
-	std::make_pair((ComponentID)ComponentIDs::Body, ComponentInfo{ &CreteFunction<BodyComponentEditor>, "Body", (ComponentID)ComponentIDs::Body }),
-	std::make_pair((ComponentID)ComponentIDs::Camera, ComponentInfo{ &CreteFunction<CameraComponentEditor>, "Camera", (ComponentID)ComponentIDs::Camera }),
+	MakeComponentInfo(ComponentIDs::Transform,	&CreteFunction<TransformComponentEditor>,	"Transform"),
+	MakeComponentInfo(ComponentIDs::Light,		&CreteFunction<LightComponentEditor>,		"Light"),
+	MakeComponentInfo(ComponentIDs::Body,		&CreteFunction<BodyComponentEditor>,		"Body"),
+	MakeComponentInfo(ComponentIDs::Camera,		&CreteFunction<CameraComponentEditor>,		"Camera"),
+	MakeComponentInfo(ComponentIDs::Mesh,		&CreteFunction<MeshComponentEditor>,		"Mesh"),
+	MakeComponentInfo(ComponentIDs::Script,		&CreteFunction<ScriptComponentEditor>,		"Script"),
 };
 
 //----------------------------------------------------------------------------------
@@ -89,7 +102,6 @@ bool EditableEntity::Read(pugi::xml_node node) {
 			//	continue;
 			//}
 		//}
-
 		//no break;
 		//[[fallthrough]]
 		case "Entity"_Hash32:
@@ -152,11 +164,9 @@ void EditableEntity::MoveDown(EditableEntity * c) {
 
 void EditableEntity::MoveUp(EditableEntity * c) {
 	auto idx = Find(c);
-	if (idx < 0)
+	if (idx <= 0)
 		return;
-	if (idx + 1 >= m_Children.size())
-		return;
-	m_Children[idx].swap(m_Children[idx + 1]);
+	m_Children[idx].swap(m_Children[idx - 1]);
 }
 
 EditableEntity *EditableEntity::AddChild() {
@@ -209,9 +219,15 @@ EditablePattern::EditablePattern()
 
 bool EditablePattern::OpenPattern(const std::string &filename) {
 	pugi::xml_document xdoc;
-	auto ret = xdoc.load_file(filename.c_str());
 
-	if (!ret) {
+	auto fs = MainWindow::Get()->GetFilesystem();
+	StarVFS::ByteTable bt;
+	if (!fs->GetFileData(filename, bt)) {
+		//todo: log sth
+		return false;
+	}
+
+	if (!xdoc.load_string((char*)bt.get())) {
 		//TODO: log sth
 		return false;
 	}
@@ -222,14 +238,23 @@ bool EditablePattern::OpenPattern(const std::string &filename) {
 bool EditablePattern::SavePattern(const std::string & filename) {
 	pugi::xml_document xdoc;
 
-//	auto root = xdoc.append_child("Entity");
-
 	if (!Write(xdoc)) {
 		//TODO: log sth
 		return false;
 	}
 
-	return xdoc.save_file(filename.c_str());
+	std::stringstream ss;
+	xdoc.save(ss);
+	StarVFS::ByteTable bt;
+	bt.from_string(ss.str());
+
+	auto fs = MainWindow::Get()->GetFilesystem();
+	if (!fs->SetFileData(filename, bt)) {
+		//todo: log sth
+		return false;
+	}
+
+	return true;
 }
 
 //----------------------------------------------------------------------------------

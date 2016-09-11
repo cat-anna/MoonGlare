@@ -87,9 +87,9 @@ protected:
 //----------------------------------------------------------------------------------
 
 struct ComponentInfo {
+	MoonGlare::Core::ComponentID m_CID;
 	UniqueEditableComponent (*m_CreteFunc)(EditableEntity *Parent, const ComponentInfo *cInfo);
 	std::string m_Name;
-	MoonGlare::Core::ComponentID m_CID;
 };
 extern const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentInfoMap;
 

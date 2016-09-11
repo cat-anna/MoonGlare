@@ -11,6 +11,8 @@
 
 #include <DockWindow.h>
 #include "../Notifications.h"
+#include <iEditor.h>
+#include <ChangesManager.h>
 
 namespace Ui { class EntityEditor; }
 
@@ -48,17 +50,26 @@ struct UserRoles {
 };
 
 class EntityEditorWindow
-	: public QtShared::DockWindow {
+		: public QtShared::DockWindow 
+		, public QtShared::iChangeContainer
+		, public QtShared::iEditor {
 	Q_OBJECT;
 public:
 	EntityEditorWindow(QWidget *parent = nullptr);
  	virtual ~EntityEditorWindow();
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+	virtual bool SaveChanges() override { return SaveData(); }
+	virtual bool CanDropChanges() const override  { return false; }
+	virtual bool DropChanges() override { return false; }
+	virtual std::string GetInfoLine() const override { return m_CurrentPatternFile; }
+	virtual std::string GetName() const override { return "EntityEditor"; }
 public slots:
-	void Open(const std::string &file);
-	void Close();
-	void Save();
+	virtual bool OpenData(const std::string &file) override;
+	virtual bool SaveData() override;
+	virtual bool CloseData() override;
+
 	void Refresh();
 	void RefreshDetails();
 protected slots:
@@ -71,7 +82,6 @@ protected slots:
 
 	void ShowAddComponentMenu();
 
-	void RefreshFilesystem();
 	void ProjectChanged(Module::SharedDataModule datamod);
 private: 
 	std::unique_ptr<Ui::EntityEditor> m_Ui;
@@ -81,8 +91,6 @@ private:
 	std::string m_CurrentPatternFile;
 	EditableItemInfo m_CurrentItem;
 	EditableComponentValueInfo m_CurrentComponent;
-
-	bool AskForPermission();
 };
 
 } //namespace EntityEditor 

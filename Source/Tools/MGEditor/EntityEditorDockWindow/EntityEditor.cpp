@@ -18,7 +18,9 @@ namespace MoonGlare {
 namespace Editor {
 namespace EntityEditor {
 
-struct EntityEditorInfo : public QtShared::DockWindowInfo {
+struct EntityEditorInfo 
+		: public QtShared::DockWindowInfo
+		, public QtShared::iEditorInfo {
 	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<EntityEditorWindow>(parent);
 	}
@@ -27,6 +29,11 @@ struct EntityEditorInfo : public QtShared::DockWindowInfo {
 		SetSettingID("EntityEditorInfo");
 		SetDisplayName(tr("EntityEditor"));
 		SetShortcut("F2");
+	}
+	std::vector<QtShared::EditableFielInfo> GetSupportedFileTypes() const override {
+		return std::vector<QtShared::EditableFielInfo>{
+			QtShared::EditableFielInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, },
+		};
 	}
 };
 QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg("EntityEditor");
@@ -40,19 +47,9 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	m_Ui = std::make_unique<Ui::EntityEditor>();
 	m_Ui->setupUi(this);
 
-
-	connect(m_Ui->pushButton, &QPushButton::clicked, [this]() {
-		ShowAddComponentMenu();
-	});
-
-	connect(m_Ui->pushButtonSave, &QPushButton::clicked, [this]() {
-		Save();
-	});
+	connect(m_Ui->pushButton, &QPushButton::clicked, this, &EntityEditorWindow::ShowAddComponentMenu);
 
 	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(RefreshView()));
-
-//	connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
-//	connect(m_FileSystem.get(), SIGNAL(Changed()), this, SLOT(RefreshFilesystem()));
 
 	m_EntityModel = std::make_unique<QStandardItemModel>();
 	m_EntityModel->setHorizontalHeaderItem(0, new QStandardItem("Entity tree"));
@@ -76,9 +73,6 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	m_Ui->treeViewDetails->setColumnWidth(2, 100);
 	connect(m_Ui->treeViewDetails, SIGNAL(clicked(const QModelIndex &)), SLOT(ComponentClicked(const QModelIndex&)));
 	connect(m_Ui->treeViewDetails, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ComponentContextMenu(const QPoint &)));
-	//connect(m_Ui->treeView, SIGNAL(clicked(const QModelIndex &)), SLOT(EntityClicked(const QModelIndex&)));
-
-	Open("d:\\Programowanie\\Projekty\\!gry\\MoonGlare\\MazeGame\\modules\\MazeGame\\Objects\\Player0.xml");
 }
 
 EntityEditorWindow::~EntityEditorWindow() {
@@ -89,55 +83,64 @@ EntityEditorWindow::~EntityEditorWindow() {
 
 bool EntityEditorWindow::DoSaveSettings(pugi::xml_node node) const {
 	QtShared::DockWindow::DoSaveSettings(node);
+	//node.append_child("File").text() = m_CurrentPatternFile.c_str();
 	return true;
 }
 
 bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
 	QtShared::DockWindow::DoLoadSettings(node);
+	//m_CurrentPatternFile = node.child("File").text().as_string("");
 	return true;
 }
 
 //----------------------------------------------------------------------------------
 
-void EntityEditorWindow::Close() {
+bool EntityEditorWindow::CloseData() {
 	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
 	m_ComponentModel->removeRows(0, m_EntityModel->rowCount());
 	m_RootEntity.reset();
 	m_CurrentItem = EditableItemInfo();
 	Refresh();
+	m_CurrentPatternFile.clear();
+	return true;
 }
 
-void EntityEditorWindow::Open(const std::string &file) {
-	Close();
+bool EntityEditorWindow::OpenData(const std::string &file) {
+	if (m_RootEntity) {
+		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
+			return false;
+		if (AskForPermission("Save changes?"))
+			SaveData();
+	}
+	CloseData();
  
 	auto root = std::make_unique<EditablePattern>();
 	if (!root->OpenPattern(file)) {
-		Close();
+		CloseData();
 		//ToDo: log sth
-		return;
+		return false;
 	}
 	m_RootEntity.reset(root.release());
 	m_CurrentPatternFile = file;
 	m_Ui->labelPatternName->setText(m_RootEntity->GetName().c_str());
 	Refresh();
+	return true;
 }
 
-void EntityEditorWindow::Save() {
+bool EntityEditorWindow::SaveData() {
 	if (!m_RootEntity)
-		return;
+		return false;
 	auto pat = dynamic_cast<EditablePattern*>(m_RootEntity.get());
 	
 	if (pat) {
-		if (!pat->SavePattern(m_CurrentPatternFile + "_.xml")) {
+		if (!pat->SavePattern(m_CurrentPatternFile)) {
 			//ToDo: log sth
 		}
-		return;
+		SetModiffiedState(false);
+		return true;
 	}
 	//TODO: log sth
-}
-
-bool EntityEditorWindow::AskForPermission() {
-	return QMessageBox::question(this, "EntityEditor", "Are you sure?") == QMessageBox::Yes;
+	return false;
 }
 
 //----------------------------------------------------------------------------------
@@ -258,8 +261,9 @@ void EntityEditorWindow::ComponentChanged(QStandardItem * item) {
 	if (!info)
 		return;
 
-	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
+	std::string value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
 	info.m_ValueInterface->SetValue(value);
+	SetModiffiedState(true);
 }
 
 void EntityEditorWindow::EntityChanged(QStandardItem * item) {
@@ -272,6 +276,7 @@ void EntityEditorWindow::EntityChanged(QStandardItem * item) {
 
 	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
 	info.m_EditableEntity->GetName() = value;
+	SetModiffiedState(true);
 }
 
 void EntityEditorWindow::ComponentContextMenu(const QPoint & pos) {
@@ -281,21 +286,24 @@ void EntityEditorWindow::ComponentContextMenu(const QPoint & pos) {
 	QMenu menu(this);
 	auto ComponentInfo = m_CurrentComponent;
 
-	if (!ComponentInfo.m_ValueInterface) {
+	if (ComponentInfo.m_ValueInterface) {
 		return;
 	}
 
 	menu.addAction("Move up", [this, ComponentInfo]() {
 		ComponentInfo.m_EditableEntity->MoveUp(ComponentInfo.m_OwnerComponent);
+		SetModiffiedState(true);
 		RefreshDetails();
 	});
 	menu.addAction("Move down", [this, ComponentInfo]() {
 		ComponentInfo.m_EditableEntity->MoveDown(ComponentInfo.m_OwnerComponent);
+		SetModiffiedState(true);
 		RefreshDetails();
 	});
 	menu.addSeparator();
 	menu.addAction("Delete component", [this, ComponentInfo]() {
 		ComponentInfo.m_EditableEntity->DeleteComponent(ComponentInfo.m_OwnerComponent);
+		SetModiffiedState(true);
 		RefreshDetails();
 	});
 
@@ -312,10 +320,12 @@ void EntityEditorWindow::EntityContextMenu(const QPoint &pos) {
 	if (EntityInfo.m_Parent) {
 		menu.addAction("Move up", [this, EntityInfo]() {
 			EntityInfo.m_Parent->MoveUp(EntityInfo.m_EditableEntity);
+			SetModiffiedState(true);
 			Refresh();
 		});
 		menu.addAction("Move Down", [this, EntityInfo]() {
 			EntityInfo.m_Parent->MoveDown(EntityInfo.m_EditableEntity);
+			SetModiffiedState(true);
 			Refresh();
 		});
 		menu.addSeparator();
@@ -326,12 +336,14 @@ void EntityEditorWindow::EntityContextMenu(const QPoint &pos) {
 			if (!AskForPermission())
 				return;
 			EntityInfo.m_Parent->DeleteChild(EntityInfo.m_EditableEntity);
+			SetModiffiedState(true);
 			Refresh();
 		});
 	}
 
 	menu.addAction("Add child", [this, EntityInfo]() {
 		EntityInfo.m_EditableEntity->AddChild();
+		SetModiffiedState(true);
 		Refresh();
 	});
 	menu.addSeparator();
@@ -353,6 +365,7 @@ void EntityEditorWindow::ShowAddComponentMenu() {
 
 		menu.addAction(info.m_Name.c_str(), [this, CurrentItem, &info]() {
 			CurrentItem.m_EditableEntity->AddComponent(info.m_CID);
+			SetModiffiedState(true);
 			RefreshDetails();
 		});
 	}
@@ -361,11 +374,6 @@ void EntityEditorWindow::ShowAddComponentMenu() {
 }
 
 //----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-
-void EntityEditorWindow::RefreshFilesystem() {
-}
 
 void EntityEditorWindow::ProjectChanged(Module::SharedDataModule datamod) {
 //	m_Module = datamod;

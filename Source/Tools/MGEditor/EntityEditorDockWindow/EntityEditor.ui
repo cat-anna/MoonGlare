@@ -137,13 +137,6 @@
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButtonSave">
-                <property name="text">
-                 <string>Save</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QPushButton" name="pushButton">
                 <property name="text">
                  <string>AddComponent</string>
