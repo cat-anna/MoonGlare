@@ -28,6 +28,17 @@ private:
 	Utils();
 };
 
+struct UserQuestions {
+	virtual ~UserQuestions() { }
+
+	bool AskForPermission( const char *msg = nullptr) {
+		return QMessageBox::question(dynamic_cast<QWidget*>(this), "MoonGlare", msg ? msg : "Are you sure?") == QMessageBox::Yes;
+	}
+	void ErrorMessage(const char *message) {
+		QMessageBox::critical(dynamic_cast<QWidget*>(this), "MoonGlare", message);
+	}
+};
+
 } //namespace QtShared 
 } //namespace MoonGlare 
 
