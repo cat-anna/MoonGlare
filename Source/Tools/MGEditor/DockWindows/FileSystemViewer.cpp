@@ -73,13 +73,25 @@ bool FileSystemViewer::DoLoadSettings(const pugi::xml_node node) {
 void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 	QMenu menu;
 	QModelIndex index = m_Ui->treeView->indexAt(point);
-
-	if (index.isValid()) {
-
-	}
+	auto itemptr = m_ViewModel->itemFromIndex(index);
 
 	menu.addAction("Open", this, &FileSystemViewer::OpenItem);
 	menu.addSeparator();
+
+	if (itemptr) {
+		menu.addAction("Copy URI", [itemptr]() {
+			auto qstr = itemptr->data(FileSystemViewerRole::FileURI).toString();
+			QClipboard *clipboard = QApplication::clipboard();
+			clipboard->setText(qstr);
+		});
+		menu.addAction("Copy hash URI", [itemptr]() {
+			auto qstr = itemptr->data(FileSystemViewerRole::FileHash).toString();
+			QClipboard *clipboard = QApplication::clipboard();
+			clipboard->setText(qstr);
+		});
+		menu.addSeparator();
+	}
+
 	menu.addAction(ICON_16_REFRESH, "Refresh", this, &FileSystemViewer::RefreshFilesystem);
 
 	menu.exec(m_Ui->treeView->mapToGlobal(point));
@@ -104,7 +116,6 @@ void FileSystemViewer::OpenItem() {
 void FileSystemViewer::RefreshFilesystem() {
 	Clear();
 	if (!m_Module) {
-
 	}
 	RefreshTreeView();
 }
@@ -160,15 +171,14 @@ void FileSystemViewer::RefreshTreeView() {
 				item->setData(QIcon(), Qt::DecorationRole);
 		}
 
-		auto hash = h.GetHash();
-		char buf[128];
-		sprintf_s(buf, "hash://%08x", hash);
 		auto str = h.GetFullPath();
-		item->setData(buf, FileSystemViewerRole::FileURI);
-		item->setData(hash, FileSystemViewerRole::FileHash);
+		auto hashuri = StarVFS::MakePathHashURI(h.GetHash());
+		auto fileuri = StarVFS::MakeFileURI(str.c_str());
+		item->setData(fileuri.c_str(), FileSystemViewerRole::FileURI);
+		item->setData(hashuri.c_str(), FileSystemViewerRole::FileHash);
 		item->setData(str.c_str(), FileSystemViewerRole::FileFullName);
 		h.Close();
-
+		
 		return true;
 	};
 

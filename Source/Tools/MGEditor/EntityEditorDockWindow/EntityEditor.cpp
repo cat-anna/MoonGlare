@@ -108,8 +108,8 @@ bool EntityEditorWindow::CloseData() {
 bool EntityEditorWindow::OpenData(const std::string &file) {
 	if (m_RootEntity) {
 		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
-			return false;
-		if (AskForPermission("Save changes?"))
+			return true;
+		if (IsChanged() && AskForPermission("Save changes?"))
 			SaveData();
 	}
 	CloseData();

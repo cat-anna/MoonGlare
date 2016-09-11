@@ -37,6 +37,9 @@ struct UserQuestions {
 	void ErrorMessage(const char *message) {
 		QMessageBox::critical(dynamic_cast<QWidget*>(this), "MoonGlare", message);
 	}
+	void ReportNotImplemented() {
+		QMessageBox::information(dynamic_cast<QWidget*>(this), "MoonGlare", "Not implemented");
+	}
 };
 
 } //namespace QtShared 

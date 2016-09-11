@@ -55,11 +55,11 @@ struct iChangeContainer {
 protected:
 	virtual void SetModiffiedState(bool value) {
 		m_Changed = value;
-		assert(ChangesManager::Get() != nullptr);
-		ChangesManager::Get()->SetModiffiedState(this, value);
+		if(ChangesManager::Get())
+			ChangesManager::Get()->SetModiffiedState(this, value);
 	}
 private:
-	bool m_Changed;
+	bool m_Changed = false;
 };
 
 } //namespace QtShared

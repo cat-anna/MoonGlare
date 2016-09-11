@@ -86,7 +86,9 @@ void PendingChanges::Refresh() {
 	}
 }
 
-void PendingChanges::SaveSingle() {}
+void PendingChanges::SaveSingle() {
+	ReportNotImplemented();
+}
 
 void PendingChanges::SaveAll() {
 	auto shd = MainWindow::Get()->GetSharedData();
