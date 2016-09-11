@@ -24,6 +24,7 @@ using namespace InsiderApi;
 
 struct RemoteConsoleModule : public MoonGlare::Modules::ModuleInfo {
 	RemoteConsoleModule(): BaseClass("RemoteConsole", ModuleType::Debug) { 
+		m_Settings.ResetToDefault();
 	}
 
 	virtual bool Initialize() override {
@@ -37,7 +38,6 @@ struct RemoteConsoleModule : public MoonGlare::Modules::ModuleInfo {
 	}
 
 	bool LoadSettings(const pugi::xml_node node) {
-		m_Settings.ResetToDefault();
 		if (!m_Settings.Read(node))
 			return false;
 		return true;
