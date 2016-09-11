@@ -27,6 +27,7 @@ group "Tools"
 			"**", 
 			"../Shared/Qt/**",
 			"../Shared/x2c/**",
+			"../../Shared/x2c/**",
 			"../Shared/Resources/*",
 		}	
 		includedirs {

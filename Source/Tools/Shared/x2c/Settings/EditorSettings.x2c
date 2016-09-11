@@ -4,10 +4,17 @@ Structure.field.prefix "m_"
 
 namespace "MoonGlare.x2c.Settings"
 
-	Structure.new {
-		name = "EditorSettings",
-		fields = {
-			LoadLastModule = Types.bool { default = "false", },
-			LastModule = Types.string,
-		}
+Structure.new {
+	name = "EditorSettings",
+	fields = {
+		{
+			name = "LoadLastModule",
+			type = Types.bool,
+			default = "false"
+		},	
+		{
+			name = "LastModule",
+			type = Types.string,
+		},
 	}
+}

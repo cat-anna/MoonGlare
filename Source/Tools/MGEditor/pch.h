@@ -41,25 +41,34 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>
 
+#include <bullet3-master/src/btBulletDynamicsCommon.h>
+#include <bullet3-master/src/btBulletCollisionCommon.h>
+//#include <bullet-2.82/src/btBulletDynamicsCommon.h>
+//#include <bullet-2.82/src/btBulletCollisionCommon.h>
+
 #pragma warning ( pop )
+
 
 #include <OrbitLogger/src/OrbitLogger.h>
 
 #include <cassert>
 
 #include <pugixml-1.6/src/pugixml.hpp>
-#include <luaJiT/lua.hpp>
+#include <luaJiT-2.0.4/lua.hpp>
 
-#include <source/XMLUtils.h>
+#include <source/Utils/XMLUtils.h>
 #include <source/Utils/SetGet.h>
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
 #include <source/Utils/LuaUtils.h>
+#include <Source/xMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>
 #include <libSpace/src/RTTI/RTTI.h>
 #include <libSpace/src/Utils/DynamicClassRegister.h>
 #include <libSpace/src/Memory/Handle.h>
+#include <libSpace/src/Utils/CompileMurmurhash3.h>
+using namespace Space::Utils::HashLiterals;
 
 #include <Engine/Configuration.h>
 

@@ -4,9 +4,12 @@ Structure.field.prefix "m_"
 
 namespace "MoonGlare.x2c.Data"
 
-	Structure.new {
-		name = "Module",
-		fields = {
-			Name = Types.string,
-		}
+Structure.new {
+	name = "Module",
+	fields = {
+		{
+			name = "Name",
+			type = Types.string,
+		},
 	}
+}

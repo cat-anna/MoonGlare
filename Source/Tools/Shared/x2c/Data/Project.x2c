@@ -4,9 +4,12 @@ Structure.field.prefix "m_"
 
 namespace "MoonGlare.x2c.Project"
 
-	Structure.new {
-		name = "MoonGlareProject",
-		fields = {
-			Name = Types.string { default = "UnnamedModule", },
-		}
+Structure.new {
+	name = "MoonGlareProject",
+	fields = {
+		{
+			name = "Name",
+			type = Types.string,
+		},
 	}
+}
