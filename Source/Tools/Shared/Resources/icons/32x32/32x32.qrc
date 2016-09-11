@@ -1,0 +1,23 @@
+<RCC>
+  <qresource prefix="32x32">
+    <file>Save.png</file>
+    <file>Add.png</file>
+    <file>Apply.png</file>
+    <file>Create.png</file>
+    <file>Decrease time.png</file>
+    <file>Delete.png</file>
+    <file>Edit page.png</file>
+    <file>Equipment.png</file>
+    <file>Erase.png</file>
+    <file>Exit.png</file>
+    <file>Find.png</file>
+    <file>No.png</file>
+    <file>Ok.png</file>
+    <file>Pencil.png</file>
+    <file>Pinion.png</file>
+    <file>Settings.png</file>
+    <file>Tools.png</file>
+    <file>Wrong.png</file>
+    <file>Yes.png</file>
+  </qresource>
+</RCC>

@@ -3,7 +3,11 @@ require "premake-qt/qt"
 local qt = premake.extensions.qt
 
 group "Tools"
-	project "MGInsider"
+	project "MGEditor"	
+	
+		MoonGlare.X2CRule()
+		
+		filter { }
 	
 		qt.enable()
 		qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
@@ -14,20 +18,37 @@ group "Tools"
 		
 		SetPCH { hdr = "pch.h", src = "pch.cpp", }	
 	
-		kind "WindowedApp" --"ConsoleApp"
+		kind "WindowedApp"
 		defines { 
 			"_BUILDING_TOOL_", 
-			"_BUILDING_MGINSIDER_", 
+			"_BUILDING_MGEDITOR_", 
 		}
 		files { 
 			"**", 
+			"../Shared/Qt/**",
+			"../Shared/x2c/**",
+			"../../Shared/x2c/**",
 			"../Shared/Resources/*",
 		}	
 		includedirs {
-			"."
+			".",
+			"../Shared/Qt/",
+			"../Shared/Resources/",
 		}
 		links {
 			"lua51jit",
             "OrbitLogger",
 			"libSpace",
+			"StarVFS",
+			"StaticZlib",
 		}
+		
+		
+		 
+--filter 'files:scripts/**.lua'
+--	buildmessage 'Compiling %{file.relpath} with bin2c'
+--	buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
+--	buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h' 	
+			
+
+			

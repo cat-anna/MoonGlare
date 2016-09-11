@@ -1,0 +1,16 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.ScriptComponent"
+
+Structure.new {
+	name = "ScriptEntry",
+	description = "",
+	fields = {
+		{
+			name = "Script",
+			description = "",
+			type = Types.string,
+			default = "",
+		},			
+	},
+}

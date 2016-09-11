@@ -1,0 +1,15 @@
+
+Structure.postfix "_t"
+Structure.field.prefix "m_"
+
+namespace "MoonGlare.x2c.Data"
+
+Structure.new {
+	name = "Module",
+	fields = {
+		{
+			name = "Name",
+			type = Types.string,
+		},
+	}
+}

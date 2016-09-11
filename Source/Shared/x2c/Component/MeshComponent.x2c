@@ -1,0 +1,22 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.MeshComponent"
+
+Structure.new {
+	name = "MeshEntry",
+	description = "",
+	fields = {
+		{
+			name = "Visible",
+			description = "",
+			type = Types.bool,
+			default = true,
+		},	
+		{
+			name = "Model",
+			description = "",
+			type = Types.string,
+			default = "",
+		},			
+	},
+}

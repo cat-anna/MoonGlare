@@ -1,9 +1,11 @@
 <RCC>
-  <qresource prefix="mgdt">
+  <qresource prefix="icons">
+    <file>icons/blue_circle_left_arrows.png</file>
     <file>icons/blue_tools.png</file>
     <file>icons/blue_Copy.png</file>
     <file>icons/green_ok.png</file>
     <file>icons/blue_music.png</file>
+    <file>icons/blue_gear.png</file>
     <file>icons/blue_play.png</file>
     <file>icons/blue_Play_music.png</file>
     <file>icons/blue_ok.png</file>
@@ -24,5 +26,6 @@
     <file>icons/red_cross.png</file>
     <file>icons/blue_up_arrow.png</file>
     <file>icons/blue_down_save.png</file>
+    <file>icons/yellow_folder.png</file>
   </qresource>
 </RCC>

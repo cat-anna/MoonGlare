@@ -173,7 +173,7 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 		if (stricmp(dot, ".lua") != 0)
 			return true;
 
-		auto furi = FileSystem::MakeContainerFilePathURI(cid, fname);
+		auto furi = StarVFS::MakeContainerFilePathURI(cid, fname);
 		StarVFS::ByteTable data;
 		if (!Container->GetFileData(CFid, data)) {
 			AddLogf(Error, "Failed to get file data! (%d:%s)", (int)CFid, furi.c_str());

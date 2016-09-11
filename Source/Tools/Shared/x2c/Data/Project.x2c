@@ -1,0 +1,15 @@
+
+Structure.postfix "_t"
+Structure.field.prefix "m_"
+
+namespace "MoonGlare.x2c.Project"
+
+Structure.new {
+	name = "MoonGlareProject",
+	fields = {
+		{
+			name = "Name",
+			type = Types.string,
+		},
+	}
+}
