@@ -70,6 +70,7 @@ void FileSystem::Reload() {
 			return;
 		}
 		c->ReloadContainer();
+		c->RegisterContent();
 	}
 	Changed();
 }

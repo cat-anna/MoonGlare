@@ -34,13 +34,13 @@ public:
 
 	bool GetFileData(const std::string &uri, StarVFS::ByteTable &data);
 	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
-
+public slots:
+	void Reload();
 signals:
 	void Changed();
 protected slots:
 	void ProjectChanged(Module::SharedDataModule datamod);
-protected:
-	void Reload();
+
 private:
 	StarVFS::SharedStarVFS m_VFS;
 	std::string m_BasePath;

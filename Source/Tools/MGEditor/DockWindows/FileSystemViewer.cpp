@@ -92,7 +92,10 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 		menu.addSeparator();
 	}
 
-	menu.addAction(ICON_16_REFRESH, "Refresh", this, &FileSystemViewer::RefreshFilesystem);
+	menu.addAction(ICON_16_REFRESH, "Refresh", [this]() {
+		m_FileSystem->Reload();
+		RefreshFilesystem();
+	});
 
 	menu.exec(m_Ui->treeView->mapToGlobal(point));
 }
@@ -114,9 +117,9 @@ void FileSystemViewer::OpenItem() {
 }
 
 void FileSystemViewer::RefreshFilesystem() {
-	Clear();
 	if (!m_Module) {
 	}
+	//m_FileSystem->Reload();
 	RefreshTreeView();
 }
 
@@ -143,6 +146,9 @@ void FileSystemViewer::RefreshTreeView() {
 		std::swap(m_VFSItemMap[fid], item);
 
 		auto h = svfs->OpenFile(fid);
+		if (!h)
+			return true;
+
 		if (!item) {
 			auto pid = h.GetParrentID();
 			parent = currmap[pid];
