@@ -16,13 +16,14 @@ namespace Modules {
 
 /** Modules are sorted by this enum */
 enum class ModuleType {
-	Unknown, Core, Resources, Functional, Application, Debug,
+	Unknown, Core, Component, Resources, Functional, Application, Debug,
 };
 struct ModuleTypeEnumConverter : Space::EnumConverter < ModuleType, ModuleType::Unknown > {
 	ModuleTypeEnumConverter() {
 		Add("Unknown", Enum::Unknown);
 		Add("Default", Enum::Unknown);
 		Add("Application", Enum::Application);
+		Add("Component", Enum::Component);
 		Add("Core", Enum::Core);
 		Add("Resources", Enum::Resources);
 		Add("Functional", Enum::Functional);
