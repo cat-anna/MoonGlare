@@ -130,7 +130,7 @@ bool MenuScene::RebuildMenu() {
 		m_OuterPanel = new GUI::Widgets::Panel(nullptr);
 		GetGUI()->GetRootWidget()->AddWidget(m_OuterPanel);
 		m_OuterPanel->Lock();
-		m_OuterPanel->SetAlignMode(GUI::AlignMode::Parent);
+		m_OuterPanel->SetAlignMode(GUI::AlignMode::FillParent);
 		m_OuterPanel->SetMargin(GUI::Margin(20));
 
 		m_MenuTable = new GUI::Widgets::Table(m_OuterPanel);
@@ -159,7 +159,7 @@ bool MenuScene::RebuildMenu() {
 		os /= 2.0f;
 		m_MenuTable->SetPosition(GUI::Point(os[0] - m_Config.ItemSize[0] / 2.0f, 50));
 	} else {
-		m_MenuTable->SetAlignMode(GUI::AlignMode::Parent);
+		m_MenuTable->SetAlignMode(GUI::AlignMode::FillParent);
 	}
 	m_OuterPanel->Unlock();
 	m_OuterPanel->RecalculateMetrics();
@@ -170,7 +170,7 @@ bool MenuScene::RebuildMenu() {
 	int index = 0; 
 	for (auto &it : *menuitems) {
 		auto *panel = new GUI::Widgets::Panel(m_MenuTable);
-		panel->SetAlignMode(GUI::AlignMode::Parent);
+		panel->SetAlignMode(GUI::AlignMode::FillParent);
 		m_MenuTable->SetWidget(panel, index);
 		++index;
 		it->BuildItemGUI(panel);
