@@ -19,7 +19,7 @@ namespace Component {
 
 class TransformComponent 
 	: public AbstractComponent
-	, public ComponentIDWrap<ComponentIDs::Transform> {
+	, public ComponentIDWrap<ComponentIDs::Transform>{
 public:
 	TransformComponent(ComponentManager *Owner);
 	virtual ~TransformComponent();
@@ -36,7 +36,7 @@ public:
 			bool m_Dirty : 1;
 		};
 		MapBits_t m_Map;
-		uint32_t m_UintValue;
+		uint8_t m_UintValue;
 
 		void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
 		void ClearAll() { m_UintValue = 0; }
@@ -47,6 +47,7 @@ public:
 	struct TransformEntry {
 		Handle m_SelfHandle;
 		Entity m_OwnerEntity;
+		char padding[3];
 		FlagsMap m_Flags;
 		math::mat4 m_LocalMatrix;
 		math::mat4 m_GlobalMatrix;
@@ -59,7 +60,9 @@ public:
 
 		Configuration::RuntimeRevision m_Revision;
 
-		void Reset() {}
+		void Reset() {
+			m_Revision = 0;
+		}
 		void Recalculate(const TransformEntry *Parent);
 
 		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
@@ -79,7 +82,6 @@ public:
 			m_Revision = 0;
 			m_Flags.m_Map.m_Dirty = true;
 		}
-
 		math::Transform GetTransform() const { return m_LocalTransform; }
 		void SetTransform(const math::Transform &s) {
 			m_LocalTransform = s;
