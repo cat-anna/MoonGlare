@@ -36,7 +36,7 @@ struct MatrixStack {
 	}
 
 	void Pop() {
-		assert(m_Top >= &m_Stack.front());
+		assert(m_Top > &m_Stack.front());
 		--m_Top;
 	}
 

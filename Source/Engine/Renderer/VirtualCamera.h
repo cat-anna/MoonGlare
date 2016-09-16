@@ -28,12 +28,21 @@ struct VirtualCamera {
 	void SetOrthogonal(float Width, float Height) {
 		m_ProjectionMatrix = glm::ortho(0.0f, Width, Height, 0.0f);
 	}
-
+	void SetOrthogonalUniform(float Width, float Height) {
+		m_ProjectionMatrix = glm::ortho(-Width, Width, Height, -Height);
+	}
+	void SetOrthogonalRect(float left, float top, float right, float bottom) {
+		m_ProjectionMatrix = glm::ortho(left, right, bottom, top);
+	}
 	void SetDefaultPerspective(const math::fvec2 &ScreenSize) {
 		SetPerspective(ScreenSize[0] / ScreenSize[1]);
 	}
 	void SetDefaultOrthogonal(const math::fvec2 &ScreenSize) {
 		SetOrthogonal(ScreenSize[0], ScreenSize[1]);
+	}
+	void SetDefaultOrthogonalUniform(const math::fvec2 &ScreenSize) {
+		float Aspect = ScreenSize[0] / ScreenSize[1];
+		SetOrthogonalUniform(Aspect, 1.0f);
 	}
 };
 
