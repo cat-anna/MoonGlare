@@ -44,7 +44,8 @@ namespace MoonGlare {
 namespace Core {
 
 struct iCustomDraw {
-	virtual void DefferedDraw(Graphic::cRenderDevice& dev) = 0;
+	virtual void DefferedDraw(Graphic::cRenderDevice& dev) { }
+	virtual void D2Draw(Graphic::cRenderDevice& dev) { }
 protected:
 	virtual ~iCustomDraw() { }
 };

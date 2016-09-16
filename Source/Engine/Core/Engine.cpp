@@ -267,12 +267,18 @@ void Engine::DoRender(MoveConfig &conf) {
 	if (m_CurrentScene && m_CurrentScene->GetGUI())
 		m_CurrentScene->GetGUI()->Draw(dev);
 	glDisable(GL_BLEND);
+
+	for (auto *it : conf.CustomDraw)
+		it->D2Draw(dev);
+
 #ifdef DEBUG   
 	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, 1);
 	m_Forward->EndFrame();
+
+	conf.CustomDraw.clear();
 	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();

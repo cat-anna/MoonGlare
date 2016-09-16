@@ -90,7 +90,6 @@ bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRende
 	for (auto *it : conf.CustomDraw) {
 		it->DefferedDraw(dev);
 	}
-	conf.CustomDraw.clear();
 
 	FinalPass(dev.GetContext()->Size());
 	EndFrame();
