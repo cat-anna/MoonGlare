@@ -3,6 +3,8 @@
 namespace MoonGlare {
 namespace GUI {
 
+using Point = ::glm::fvec2;
+
 struct Rect {
 	Point LeftTop;
 	Point RightBottom;
@@ -27,6 +29,11 @@ struct Rect {
 		if (pos.y > RightBottom.y) return false;
 		return true;
 	}
+
+	Point GetSize() const { return RightBottom - LeftTop; }
+	void SetSize(const Point &size) { RightBottom = LeftTop + size; }
+
+	void SetPositionSize(const Point &pos, const Point &size) { LeftTop = pos; RightBottom = pos + size; }
 };
 
 } //namespace GUI 

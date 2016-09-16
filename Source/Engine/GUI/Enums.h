@@ -6,16 +6,17 @@ namespace GUI {
 	enum class AlignMode {
 		None, 
 		Top, Bottom, Left, Right, 
-		//LeftTop, LeftBottom,   //To be implemented...
-		//RightTop, RightBottom, //To be implemented...
+		LeftTop, LeftBottom,   
+		RightTop, RightBottom, 
 		LeftMiddle, RightMiddle,
 		MiddleTop, MiddleBottom,
-		Parent, Center,
+		FillParent, Center,
 	};
 	struct AlignModeEnumConverter : Space::EnumConverter < AlignMode, AlignMode::None > {
 		AlignModeEnumConverter() {
 			Add("Default", Enum::None);
-			Add("Parent", Enum::Parent);
+			Add("Parent", Enum::FillParent);
+			Add("FillParent", Enum::FillParent);
 
 			Add("Center", Enum::Center);
 			Add("Top", Enum::Top);
@@ -26,6 +27,11 @@ namespace GUI {
 			Add("RightMiddle", Enum::RightMiddle);
 			Add("MiddleTop", Enum::MiddleTop);
 			Add("MiddleBottom", Enum::MiddleBottom);
+
+			Add("LeftTop", Enum::LeftTop);
+			Add("LeftBottom", Enum::LeftBottom);
+			Add("RightTop", Enum::RightTop);
+			Add("RightBottom", Enum::RightBottom);
 		}
 	};
 	using AlignModeEnum = Space::EnumConverterHolder < AlignModeEnumConverter > ;

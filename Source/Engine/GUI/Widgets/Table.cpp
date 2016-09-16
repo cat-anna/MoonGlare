@@ -112,7 +112,7 @@ void Table::SetCellCount(UnsignedPoint point) {
 		auto location = Point(IndexToLocation(i));
 		p->SetSize(CellSize);
 		p->SetPosition(location * CellSize);
-		p->SetAlignMode(AlignMode::Parent);
+		p->SetAlignMode(AlignMode::FillParent);
 
 		p->Unlock();
 		p->RecalculateMetrics();
