@@ -185,7 +185,7 @@ struct SettingsImpl {
 
 		for (auto &it : m_DynamicSettings) {
 			auto &handler = it.second;
-			if (!handler.IsChanged() || handler.IsInternal())
+			if (handler.IsInternal())
 				continue;
 			auto node = find_node(root, handler.Name, true);
 			if (!handler.Manipulator) {
