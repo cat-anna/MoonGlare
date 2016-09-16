@@ -40,6 +40,42 @@ QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg
 
 //----------------------------------------------------------------------------------
 
+class ComponentValueItemDelegate : public QStyledItemDelegate {
+//	Q_OBJECT
+	EntityEditorWindow *m_Owner;
+public:
+	ComponentValueItemDelegate(EntityEditorWindow *parent = 0) : QStyledItemDelegate(parent), m_Owner(parent) { }
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
+		if (vinfo && vinfo.m_ValueInterface) {
+			auto einfoit = TypeInfoMap.find(vinfo.m_ValueInterface->GetTypeName());
+			if (einfoit != TypeInfoMap.end()) {
+				return einfoit->second->CreateEditor(parent)->GetWidget();
+			}
+		}
+		return QStyledItemDelegate::createEditor(parent, option, index);
+	};
+	void setEditorData(QWidget *editor, const QModelIndex &index) const override {
+		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
+		CustomTypeEditor *cte = dynamic_cast<CustomTypeEditor*>(editor);
+		if (vinfo && vinfo.m_ValueInterface && cte) {
+			cte->SetValue(vinfo.m_ValueInterface->GetValue());
+		}
+		return QStyledItemDelegate::setEditorData(editor, index);
+	};
+	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
+		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
+		CustomTypeEditor *cte = dynamic_cast<CustomTypeEditor*>(editor);
+		if (vinfo && vinfo.m_ValueInterface && cte) {
+			vinfo.m_ValueInterface->SetValue(cte->GetValue());
+		}
+		return QStyledItemDelegate::setModelData(editor, model, index);
+	};
+};
+
+//----------------------------------------------------------------------------------
+
+
 EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	:  QtShared::DockWindow(parent) {
 	SetSettingID("EntityEditorWindow");
@@ -68,6 +104,7 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	m_Ui->treeViewDetails->setModel(m_ComponentModel.get());
 	m_Ui->treeViewDetails->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeViewDetails->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_Ui->treeViewDetails->setItemDelegate(new ComponentValueItemDelegate(this));
 	m_Ui->treeViewDetails->setColumnWidth(0, 200);
 	m_Ui->treeViewDetails->setColumnWidth(1, 100);
 	m_Ui->treeViewDetails->setColumnWidth(2, 100);
@@ -97,7 +134,7 @@ bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
 
 bool EntityEditorWindow::CloseData() {
 	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
-	m_ComponentModel->removeRows(0, m_EntityModel->rowCount());
+	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
 	m_RootEntity.reset();
 	m_CurrentItem = EditableItemInfo();
 	Refresh();
@@ -210,7 +247,15 @@ void EntityEditorWindow::RefreshDetails() {
 			ecvi.m_ValueInterface = value.get();
 			ecvi.m_EditableEntity = m_CurrentItem.m_EditableEntity;
 
-			QStandardItem *ValueElem = new QStandardItem(value->GetValue().c_str());
+			QStandardItem *ValueElem = new QStandardItem();
+			ValueElem->setData(value->GetValue().c_str(), Qt::EditRole);
+			auto einfoit = TypeInfoMap.find(ecvi.m_ValueInterface->GetTypeName());
+			if (einfoit != TypeInfoMap.end()) {
+				ValueElem->setData(einfoit->second->ToDisplayText(value->GetValue()).c_str(), Qt::DisplayRole);
+			} else {
+				ValueElem->setData(value->GetValue().c_str(), Qt::DisplayRole);
+			}
+				
 			CaptionElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 			ValueElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 

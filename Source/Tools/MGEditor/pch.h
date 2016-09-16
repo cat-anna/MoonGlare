@@ -37,6 +37,8 @@
 #include <QThread>
 #include <QMenu>
 #include <qmessagebox>
+#include <QStyledItemDelegate>
+#include <QComboBox>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>

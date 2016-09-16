@@ -79,9 +79,7 @@ class EditableChild
 	: public EditableEntity {
 public:
 	EditableChild(EditableEntity *Parent);
-
 protected:
-
 };
 
 //----------------------------------------------------------------------------------
@@ -101,6 +99,7 @@ public:
 	virtual std::string GetValue() = 0;
 	virtual void SetValue(const std::string& v) = 0;
 	virtual const std::string& GetDescription() = 0;
+	virtual const std::string& GetTypeName() = 0;
 };
 
 using UniqueEditableComponentValue = std::unique_ptr<EditableComponentValue>;
@@ -129,21 +128,21 @@ template<typename X2CLASS>
 class X2CEditableStructure : public EditableComponent {
 public:
 	struct EditableValue : public EditableComponentValue {
-		virtual const std::string& GetName() { return m_Name; }
-		virtual std::string GetValue() {
+		virtual const std::string& GetName() override { return m_Name; }
+		virtual std::string GetValue() override {
 			std::string v;
 			m_Read(v);
 			return std::move(v);
 		}
-		virtual void SetValue(const std::string& v) {
-			m_Write(v);
-		}
-		virtual const std::string& GetDescription() { return m_Description; }
+		virtual void SetValue(const std::string& v) override { m_Write(v); }
+		virtual const std::string& GetDescription() override  { return m_Description; }
+		virtual const std::string& GetTypeName() override { return m_Type; }
 
 		std::function<void(std::string &output)> m_Read;
 		std::function<void(const std::string &input)> m_Write;
 		std::string m_Name;
 		std::string m_Description;
+		std::string m_Type;
 	};
 
 	X2CEditableStructure(EditableEntity *Parent, const ComponentInfo *cInfo):
@@ -162,6 +161,7 @@ public:
 			auto ptr = std::make_unique<EditableValue>();
 			ptr->m_Name = member.m_Name;
 			ptr->m_Description = member.m_Description;
+			ptr->m_Type = member.m_TypeName;
 
 			auto read = ReadFuncs[member.m_Name];
 			auto write = WriteFuncs[member.m_Name];
@@ -196,6 +196,91 @@ private:
 	X2CLASS m_Value;
 };
 #endif
+
+//----------------------------------------------------------------------------------
+
+class CustomTypeEditor {
+public:
+	virtual ~CustomTypeEditor() {}
+	virtual void SetValue(const std::string &in) = 0;
+	virtual std::string GetValue() = 0;
+	virtual QWidget *GetWidget() { return dynamic_cast<QWidget*>(this); }
+};
+
+class TypeInfo {
+public:
+	virtual ~TypeInfo() { }
+	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) = 0;
+	virtual std::string ToDisplayText(const std::string &in) = 0;
+};
+
+template<class EDITOR>
+struct TemplateTypeInfo : public TypeInfo {
+	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) override {
+		return new EDITOR(Parent);
+	};
+	virtual std::string ToDisplayText(const std::string &in) override {
+		return EDITOR::ToDisplayText(in);
+	}
+};
+
+extern const std::unordered_map<std::string, std::shared_ptr<TypeInfo>> TypeInfoMap;
+
+#ifdef _X2C_IMPLEMENTATION_
+template<typename X2CENUM>
+class X2CEnumEditor : public CustomTypeEditor, public QComboBox {
+public:
+	X2CEnumEditor(QWidget *Parent) : QComboBox(Parent) {
+		if (X2CENUM::GetValues(m_Values)) {
+			for (auto &it : m_Values) {
+				addItem(it.first.c_str(), it.second);
+			}
+			setInsertPolicy(QComboBox::NoInsert);
+			model()->sort(0);
+		} else {
+			setEditable(true);
+			setInsertPolicy(QComboBox::InsertAtTop);
+		}
+	}
+
+	static std::string ToDisplayText(const std::string &in) {
+		decltype(m_Values) Values;
+		if (X2CENUM::GetValues(Values)) {
+			for (auto &it : Values) {
+				if (std::to_string(it.second) == in) {
+					return it.first;
+				}
+			}
+		}
+		return in;
+	}
+
+	virtual void SetValue(const std::string &in) {
+		for (auto &it : m_Values) {
+			if(std::to_string(it.second) == in) {
+				setCurrentText(it.first.c_str());
+				return;
+			}
+		}
+		setCurrentText(in.c_str());
+	}
+	virtual std::string GetValue() {
+		auto cdata = currentData();
+		if(!cdata.isValid()) {
+			return currentText().toLocal8Bit().constData();
+		}
+		bool succ;
+		auto value = cdata.toULongLong(&succ);
+		if (succ) {
+			return std::to_string(value);
+		}
+		return currentText().toLocal8Bit().constData();
+	}
+private:
+	std::unordered_map<std::string, uint64_t> m_Values;
+};
+#endif
+
 
 } //namespace EntityEditor 
 } //namespace Editor 
