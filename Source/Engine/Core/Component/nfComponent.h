@@ -20,18 +20,21 @@ class CameraComponent;
 enum class ComponentIDs : ComponentID {
 	Invalid = 0,
 
-//Core - 1X
-	Script = 11,
-	Transform = 12,
+//Core - 0x1X
+	Script = 0x11,
+	Transform = 0x12,
 
-//Renderer - 2X
-	Mesh = 21,
-	Light = 22,
-	Camera = 23,
+//Renderer - 0x2X
+	Mesh = 0x21,
+	Light = 0x22,
+	Camera = 0x23,
 
-//Renderer - 5X
-	Body = 50,
-	BodyShape = 51,
+//Physics - 0x5X
+	Body = 0x50,
+	BodyShape = 0x51,
+
+//2d - 0x6x
+	RectTransform = 0x60,
 };
 
 //template<ComponentIDs ID, HandleType HT>
