@@ -34,6 +34,7 @@ struct Margin {
 
 	Point LeftTopMargin() const { return Point(Left, Top); }
 	Point RightBottomMargin() const { return Point(Right, Bottom); }
+	Point TotalMargin() const { return Point(HorizontalMargin(), VerticalMargin()); }
 
 	void Set(float val) { Left = Right = Top = Bottom = val; }
 };

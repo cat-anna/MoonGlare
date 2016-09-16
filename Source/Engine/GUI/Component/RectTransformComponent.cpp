@@ -270,6 +270,8 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 	auto &parentmargin = Parent.m_Margin;
 	auto &parentsize = Parent.m_Size;
 
+	bool doslice = true;
+
 	switch (m_AlignMode) {
 	case AlignMode::None:
 		break;
@@ -328,12 +330,21 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 		m_Position = halfparent - halfsize;
 		break;
 	}
+	case AlignMode::Table: {
+		auto cell = (parentsize - (parentmargin.TotalMargin())) / m_Size;
+		auto cellpos = parentmargin.LeftTopMargin() + cell * m_Position;
+		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, cellpos, cell);
+		doslice = false;
+	}
+
 	default:
 		LogInvalidEnum(m_AlignMode);
 		break;
 	}
 
-	m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
+	if (doslice) {
+		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
+	}
 
 	m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_ScreenRect.LeftTop, 0));
 	m_GlobalMatrix = Parent.m_GlobalMatrix * m_LocalMatrix;

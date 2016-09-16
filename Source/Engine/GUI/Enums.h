@@ -11,6 +11,7 @@ namespace GUI {
 		LeftMiddle, RightMiddle,
 		MiddleTop, MiddleBottom,
 		FillParent, Center,
+		Table,
 	};
 	struct AlignModeEnumConverter : Space::EnumConverter < AlignMode, AlignMode::None > {
 		AlignModeEnumConverter() {
@@ -32,6 +33,8 @@ namespace GUI {
 			Add("LeftBottom", Enum::LeftBottom);
 			Add("RightTop", Enum::RightTop);
 			Add("RightBottom", Enum::RightBottom);
+
+			Add("Table", Enum::Table);
 		}
 	};
 	using AlignModeEnum = Space::EnumConverterHolder < AlignModeEnumConverter > ;
