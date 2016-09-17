@@ -87,6 +87,12 @@ Structure.new {
 			type = Margin,
 			default = { Left=1, Top=1, Right=1, Bottom=1, },
 		},
+		{
+			name = "UniformPosition",
+			description = "",
+			type = bool,
+			default = true,
+		},
 	},
 }
 

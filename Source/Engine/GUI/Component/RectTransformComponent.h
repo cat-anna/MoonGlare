@@ -97,10 +97,13 @@ public:
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
 
+	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
+
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformSettingsFlagsMap m_Flags;
 	Configuration::RuntimeRevision m_CurrentRevision;
+	Point m_ScreenSize;
 
 //debug:
 protected:

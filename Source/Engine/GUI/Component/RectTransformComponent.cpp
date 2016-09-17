@@ -55,15 +55,15 @@ bool RectTransformComponent::Initialize() {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
 
-	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+	m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 
 	if (m_Flags.m_Map.m_UniformPosition) {
-		float Aspect = ScreenSize[0] / ScreenSize[1];
+		float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
 		RootEntry.m_ScreenRect.LeftTop = Point(-Aspect, -1.0f);
 		RootEntry.m_ScreenRect.RightBottom = -RootEntry.m_ScreenRect.LeftTop;
 	} else {
 		RootEntry.m_ScreenRect.LeftTop = Point(0,0);
-		RootEntry.m_ScreenRect.RightBottom = ScreenSize;
+		RootEntry.m_ScreenRect.RightBottom = m_ScreenSize;
 	}
 
 	RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
@@ -182,20 +182,35 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		return false;
 	}
 
+	entry.m_AlignMode = rte.m_AlignMode;
+
 	entry.m_ScreenRect.LeftTop = rte.m_Position;
 	entry.m_ScreenRect.RightBottom = rte.m_Position + rte.m_Size;
-	entry.m_AlignMode = rte.m_AlignMode;
+
 	entry.m_Margin = rte.m_Margin;
 	entry.m_Position = rte.m_Position;
 	entry.m_Size = rte.m_Size;
 
-//	entry.m_LocalTransform.setOrigin(convert(te.m_Position));
-//	entry.m_LocalTransform.setRotation(convert(te.m_Rotation));
-//	entry.m_GlobalTransform = entry.m_LocalTransform;
-//	XML::Vector::Read(node, "Scale", entry.m_LocalScale, Physics::vec3(1, 1, 1));
-//	entry.m_GlobalScale = entry.m_LocalScale;
-//	entry.Recalculate(ParentEntry);
-//	entry.m_Revision = m_CurrentRevision;
+	if (rte.m_UniformPosition != m_Flags.m_Map.m_UniformPosition) {
+		auto &root = GetRootEntry();
+		if (m_Flags.m_Map.m_UniformPosition) {
+			//convert from pixel to uniform
+			auto half = root.m_Size / 2.0f;
+			entry.m_Position = entry.m_Position / m_ScreenSize - half;
+			entry.m_Size = entry.m_Size / m_ScreenSize;
+			entry.m_Margin /= m_ScreenSize;
+		} else {
+			//convert from uniform to pixel
+			float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
+			auto half = Point(Aspect, 1.0f);
+			entry.m_Position = entry.m_Position * m_ScreenSize + half;
+			entry.m_Size = entry.m_Size * m_ScreenSize;
+			entry.m_Margin *= m_ScreenSize;
+		}
+	} 
+
+	entry.Recalculate(*ParentEntry);
+	entry.m_Revision = m_CurrentRevision;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	m_EntityMapper.SetComponentMapping(entry);

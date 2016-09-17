@@ -36,6 +36,11 @@ struct Margin {
 	Point RightBottomMargin() const { return Point(Right, Bottom); }
 	Point TotalMargin() const { return Point(HorizontalMargin(), VerticalMargin()); }
 
+	Margin operator / (const Point &div) const { return Margin(Left / div.x, Right / div.x, Top / div.y, Bottom / div.y); }
+	const Margin& operator /= (const Point &div) { return Left /= div.x, Right /= div.x, Top /= div.y, Bottom /= div.y, *this; }
+	Margin operator * (const Point &div) const { return Margin(Left * div.x, Right * div.x, Top * div.y, Bottom * div.y); }
+	const Margin& operator *= (const Point &div) { return Left *= div.x, Right *= div.x, Top *= div.y, Bottom *= div.y, *this; }
+
 	void Set(float val) { Left = Right = Top = Bottom = val; }
 };
 
