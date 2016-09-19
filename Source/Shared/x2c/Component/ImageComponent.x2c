@@ -1,0 +1,68 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.ImageComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec2)
+Use(Global.MoonGlare.x2c.Math.Vec3)
+
+Structure.new {
+	name = "ImageEntry",
+	description = "",
+	fields = {
+        {
+			name = "Visible",
+			description = "",
+			type = bool,
+            default = true,
+		},
+
+        --old
+		{
+			name = "TextureURI",
+			description = "",
+			type = Local.string,
+		},
+        {
+			name = "Speed",
+			description = "",
+			type = float,
+            default = 1,
+		},
+        {
+			name = "StartFrame",
+			description = "",
+			type = u32,
+            default = 0,
+		},
+        {
+			name = "FrameCount",
+			description = "",
+			type = u32,
+		},
+        {
+			name = "FrameStripCount",
+			description = "",
+			type = Vec2,
+            default = { x=1, y=1, },
+		},
+        {
+			name = "Spacing",
+			description = "",
+			type = Vec2,
+            default = { x=0, y=0, },
+		},
+        {
+			name = "FrameSize",
+			description = "",
+			type = Vec2,
+            default = { x=0, y=0, },
+		},
+	},
+}
+
+Structure.new {
+	name = "RectTransfromSettings",
+	description = "",
+	fields = {
+	},
+}
