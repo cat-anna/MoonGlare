@@ -20,11 +20,13 @@ public:
 	DefineRefGetterConst(Name, string);
 
 	bool LoadMeta(const xml_node node);
+	bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform);
 
 	AnimationInstance CreateInstance();
 	void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
 
 	void Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) const;
+	void Draw(unsigned Frame) const;
 
 	DefineRefGetterConst(FrameSize, math::uvec2);
 protected:
@@ -38,7 +40,7 @@ protected:
 	std::unique_ptr<Graphic::VAO[]> m_FrameTable;
 	bool m_DrawEnabled;
 
-	bool GenerateFrames();
+	bool GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount);
 };
 
 struct AnimationInstance {
