@@ -20,6 +20,7 @@
 #include <MeshComponent.x2c.h>
 #include <ScriptComponent.x2c.h>
 #include <RectTransformComponent.x2c.h>
+#include <ImageComponent.x2c.h>
 
 #include "EditableEntity.h"
 #include <MainWindow.h>
@@ -39,6 +40,7 @@ namespace x2cTypes {
 	using namespace x2c::Component::MeshComponent;
 	using namespace x2c::Component::ScriptComponent;
 	using namespace x2c::Component::RectTransfromComponent;
+	using namespace x2c::Component::ImageComponent;
 }
 
 template<class X2CSTRUCT> UniqueEditableComponent CreateFunction(EditableEntity *Parent, const ComponentInfo *cInfo) {
@@ -60,6 +62,7 @@ const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentI
 	MakeComponentInfo<x2cTypes::MeshEntry_t				>(ComponentIDs::Mesh,			"Mesh"),
 	MakeComponentInfo<x2cTypes::ScriptEntry_t			>(ComponentIDs::Script,			"Script"),
 	MakeComponentInfo<x2cTypes::RectTransfromEntry_t	>(ComponentIDs::RectTransform,	"RectTransform"),
+	MakeComponentInfo<x2cTypes::ImageEntry_t			>(ComponentIDs::Image,			"Image"),
 };
 
 //----------------------------------------------------------------------------------
