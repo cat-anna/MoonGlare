@@ -38,17 +38,18 @@ union RectTransformComponentEntryFlagsMap {
 struct RectTransformComponentEntry {
 	Handle m_SelfHandle;
 	Entity m_OwnerEntity;
+	char padding[3];
 	RectTransformComponentEntryFlagsMap m_Flags;
 
 	AlignMode m_AlignMode;
 	Point m_Position;
 	Point m_Size;
 //	Point m_Scale;
-	Margin m_Margin;				//not a pod
+	Margin m_Margin;				//not pod
 
-	math::mat4 m_GlobalMatrix;		//not a pod
-	math::mat4 m_LocalMatrix;		//not a pod
-	Rect m_ScreenRect;				//not a pod
+	math::mat4 m_GlobalMatrix;		//not pod
+	math::mat4 m_LocalMatrix;		//not pod
+	Rect m_ScreenRect;				//not pod
 
 	Configuration::RuntimeRevision m_Revision;
 
@@ -74,7 +75,7 @@ struct RectTransformComponentEntry {
 
 struct RectTransformSettingsFlagsMap {
 	struct MapBits_t {
-		bool m_UniformPosition : 1;
+		bool m_UniformMode : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -98,6 +99,8 @@ public:
 	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
 
 	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
+
+	bool IsUniformMode() const { return m_Flags.m_Map.m_UniformMode; }
 
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:

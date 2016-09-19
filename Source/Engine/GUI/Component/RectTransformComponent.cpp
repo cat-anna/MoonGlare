@@ -10,7 +10,6 @@
 
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
-
 #include "RectTransformComponent.h"
 
 #include <Math.x2c.h>
@@ -34,6 +33,12 @@ RectTransformComponent::~RectTransformComponent() {
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
+			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
+			.addProperty("Size", &RectTransformComponentEntry:: GetSize, &RectTransformComponentEntry::SetSize)
+		.endClass()
+		;
 }
 
 //---------------------------------------------------------------------------------------
@@ -57,7 +62,7 @@ bool RectTransformComponent::Initialize() {
 
 	m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 
-	if (m_Flags.m_Map.m_UniformPosition) {
+	if (m_Flags.m_Map.m_UniformMode) {
 		float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
 		RootEntry.m_ScreenRect.LeftTop = Point(-Aspect, -1.0f);
 		RootEntry.m_ScreenRect.RightBottom = -RootEntry.m_ScreenRect.LeftTop;
@@ -68,7 +73,8 @@ bool RectTransformComponent::Initialize() {
 
 	RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
 	RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
-	RootEntry.m_GlobalMatrix = math::mat4();
+	RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
+	RootEntry.m_LocalMatrix = math::mat4();
 
 //	RootEntry.m_GlobalMatrix = math::mat4();
 //	RootEntry.m_LocalScale = Physics::vec3(1, 1, 1);
@@ -191,20 +197,25 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Position = rte.m_Position;
 	entry.m_Size = rte.m_Size;
 
-	if (rte.m_UniformPosition != m_Flags.m_Map.m_UniformPosition) {
+	if (rte.m_UniformMode != m_Flags.m_Map.m_UniformMode) {
 		auto &root = GetRootEntry();
-		if (m_Flags.m_Map.m_UniformPosition) {
+		if (m_Flags.m_Map.m_UniformMode) {
 			//convert from pixel to uniform
-			auto half = root.m_Size / 2.0f;
-			entry.m_Position = entry.m_Position / m_ScreenSize - half;
-			entry.m_Size = entry.m_Size / m_ScreenSize;
-			entry.m_Margin /= m_ScreenSize;
+			if (entry.m_AlignMode != AlignMode::Table) {
+				auto half = root.m_Size / 2.0f;
+				entry.m_Position = entry.m_Position / m_ScreenSize - half;
+				entry.m_Size = entry.m_Size / m_ScreenSize * root.m_Size;
+			}
+			entry.m_Margin = entry.m_Margin / m_ScreenSize * root.m_Size;
 		} else {
 			//convert from uniform to pixel
+			//NOT TESTED; MAY NOT WORK
 			float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
 			auto half = Point(Aspect, 1.0f);
-			entry.m_Position = entry.m_Position * m_ScreenSize + half;
-			entry.m_Size = entry.m_Size * m_ScreenSize;
+			if (entry.m_AlignMode != AlignMode::Table) {
+				entry.m_Position = entry.m_Position * m_ScreenSize + half;
+				entry.m_Size = entry.m_Size * m_ScreenSize;
+			}
 			entry.m_Margin *= m_ScreenSize;
 		}
 	} 
@@ -225,7 +236,7 @@ bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
 		return false;
 	}
 
-	m_Flags.m_Map.m_UniformPosition = rts.m_UniformPositionMode;
+	m_Flags.m_Map.m_UniformMode = rts.m_UniformPositionMode;
 	
 	return true;
 }
@@ -246,6 +257,8 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 
 	if (!m_Shader)
 		return;
+
+	auto cs = dev.CurrentShader();
 
 	dev.Bind(m_Shader);
 	dev.Bind(&vcam);
@@ -275,6 +288,8 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 		glEnd();
 	}
 
+	dev.Bind(cs);
+
 	glPopAttrib();
 }
 
@@ -282,8 +297,8 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Parent) {
-	auto &parentmargin = Parent.m_Margin;
-	auto &parentsize = Parent.m_Size;
+	const auto &parentmargin = Parent.m_Margin;
+	const auto parentsize = Parent.m_ScreenRect.GetSize();
 
 	bool doslice = true;
 
@@ -349,7 +364,9 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 		auto cell = (parentsize - (parentmargin.TotalMargin())) / m_Size;
 		auto cellpos = parentmargin.LeftTopMargin() + cell * m_Position;
 		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, cellpos, cell);
+		m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(cellpos, 0));
 		doslice = false;
+		break;
 	}
 
 	default:
@@ -359,9 +376,9 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 
 	if (doslice) {
 		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
+		m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_Position, 0));
 	}
 
-	m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_ScreenRect.LeftTop, 0));
 	m_GlobalMatrix = Parent.m_GlobalMatrix * m_LocalMatrix;
 }
 
