@@ -28,13 +28,13 @@ public:
 	void Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) const;
 	void Draw(unsigned Frame) const;
 
-	DefineRefGetterConst(FrameSize, math::uvec2);
+	DefineRefGetterConst(FrameSize, math::vec2);
 protected:
 	string m_Name;
 	float m_Speed;
 	TextureFile m_Texture;
 	unsigned m_StartFrame, m_EndFrame;
-	math::uvec2 m_FrameSize;
+	math::vec2 m_FrameSize;
 	math::uvec2 m_FrameSpacing;
 	math::uvec2 m_FrameCount;
 	std::unique_ptr<Graphic::VAO[]> m_FrameTable;

@@ -40,6 +40,22 @@ namespace GUI {
 	using AlignModeEnum = Space::EnumConverterHolder < AlignModeEnumConverter > ;
 
 //----------------------------------------------------------------------------------
+
+	enum class ImageScaleMode {
+		None, Center, ScaleToFit, ScaleProportional, ScaleProportionalCenter,
+	};
+	struct ImageAlignModeConverter : Space::EnumConverter < ImageScaleMode, ImageScaleMode::None > {
+		ImageAlignModeConverter() {
+			Add("Default", Enum::None);
+			Add("Center", Enum::Center);
+			Add("ScaleToFit", Enum::ScaleToFit);
+			Add("ScaleProportional", Enum::ScaleProportional);
+			Add("ScaleProportionalCenter", Enum::ScaleProportionalCenter);
+		}
+	};
+	using ImageScaleModeEnum = Space::EnumConverterHolder < ImageAlignModeConverter >;
+
+//----------------------------------------------------------------------------------
 	
 	enum class TextAlignMode {
 		LeftTop,		MiddleTop,		RightTop,

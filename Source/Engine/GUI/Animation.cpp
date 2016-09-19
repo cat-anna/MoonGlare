@@ -75,13 +75,14 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
 		auto screen = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 		float Aspect = screen[0] / screen[1];
 		FrameSize = m_Texture->GetSize();
-		FrameSize /= math::fvec2(FrameStripCount);
+		FrameSize /= math::vec2(FrameStripCount);
 		FrameSize /= screen;
 		FrameSize.x *= Aspect;
 		FrameSize *= 2.0f;
+		m_FrameSize = FrameSize;
 	} else {
 		if (FrameCount == 1 && (FrameSize[0] == 0 || FrameSize[1] == 0)) {
-			FrameSize = m_Texture->GetSize();
+			FrameSize = math::vec2(m_Texture->GetSize());
 		}
 	}
 

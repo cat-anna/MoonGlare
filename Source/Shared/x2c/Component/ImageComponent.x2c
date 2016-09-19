@@ -5,6 +5,15 @@ namespace "MoonGlare.x2c.Component.ImageComponent"
 Use(Global.MoonGlare.x2c.Math.Vec2)
 Use(Global.MoonGlare.x2c.Math.Vec3)
 
+Enum.import {
+	name = "ImageScaleMode",
+	location = "::MoonGlare::GUI::ImageScaleMode",
+	default = "None",
+	values = {
+		"None", "Center", "ScaleToFit", "ScaleProportional", "ScaleProportionalCenter",
+	}
+}
+
 Structure.new {
 	name = "ImageEntry",
 	description = "",
@@ -14,6 +23,12 @@ Structure.new {
 			description = "",
 			type = bool,
             default = true,
+		},
+        {
+			name = "ScaleMode",
+			description = "",
+			type = ImageScaleMode,
+            default = "ScaleToFit",
 		},
 
         --old

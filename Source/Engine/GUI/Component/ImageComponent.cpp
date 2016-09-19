@@ -82,14 +82,14 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		const auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
+		auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
 		if (!rtentry) {
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;
 		}
 
-		item.Update(conf.TimeDelta);
+		item.Update(conf.TimeDelta, *rtentry);
 		
 		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
 			continue;
@@ -97,7 +97,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		conf.m_RenderInput->m_D2AnimRenderList.emplace_back();
 		auto &render = conf.m_RenderInput->m_D2AnimRenderList.back();
 
-		render.m_Matrix = rtentry->m_GlobalMatrix;
+		render.m_Matrix = item.m_ImageMatrix;
 		render.m_Animation = item.m_Animation;
 		render.m_Frame = static_cast<unsigned>(item.m_Position);
 	}
@@ -117,7 +117,7 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		return false;
 	}
 	auto &entry = m_Array[index];
-	entry.m_Flags.ClearAll();
+	entry.Reset();
 	if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
 		AddLog(Error, "Failed to allocate handle");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
@@ -125,7 +125,6 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	}
 	hout = entry.m_SelfHandle;
 	entry.m_OwnerEntity = Owner;
-
 
 	x2c::Component::ImageComponent::ImageEntry_t ie;
 	ie.ResetToDefault();
@@ -139,15 +138,85 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Position = 0.0f;
 	entry.m_FrameCount = ie.m_FrameCount;
 	entry.m_Flags.m_Map.m_Visible = ie.m_Visible;
+	entry.m_ScaleMode = ie.m_ScaleMode;
 
 	entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
 
+	auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
+	if (rtentry) {
+		entry.Update(0.0f, *rtentry);
+	} else {
+		//TODO:??
+	}
+
 	entry.m_Flags.m_Map.m_Valid = true;
+	entry.m_Flags.m_Map.m_Dirty = true;
 	m_EntityMapper.SetComponentMapping(entry);
 	return true;
 }
 
 //---------------------------------------------------------------------------------------
+
+void ImageComponentEntry::Update(float TimeDelta, RectTransformComponentEntry &rectTransform) {
+	if (m_Speed > 0) {
+		m_Position += m_Speed * TimeDelta;
+		if ((unsigned)m_Position >= m_FrameCount) {
+			int mult = static_cast<int>(m_Position / m_FrameCount);
+			m_Position -= static_cast<float>(mult) * m_FrameCount;
+		}
+		//else
+		//if (instance.Position < m_StartFrame) {
+		//auto delta = m_EndFrame - m_StartFrame;
+		//int mult = static_cast<int>(instance.Position / delta);
+		//}
+	}
+
+	if (m_Flags.m_Map.m_Dirty || m_TransformRevision != rectTransform.m_Revision) {
+		m_Flags.m_Map.m_Dirty = false;
+		m_TransformRevision = rectTransform.m_Revision;
+
+		math::vec3 Pos, Scale;
+
+		switch (m_ScaleMode) {
+		case ImageScaleMode::None:
+			m_ImageMatrix = rectTransform.m_GlobalMatrix;
+			return;
+		case ImageScaleMode::Center: {
+			auto halfparent = rectTransform.m_ScreenRect.GetSize() / 2.0f;
+			auto halfsize = m_Animation->GetFrameSize() / 2.0f;
+			Pos = math::vec3(halfparent - halfsize, 0.0f);
+			Scale = math::vec3(1.0f);
+			break;
+		}
+		case ImageScaleMode::ScaleToFit:{
+			Point ratio = rectTransform.m_ScreenRect.GetSize() / m_Animation->GetFrameSize();
+			Scale = math::vec3(ratio, 1.0f);
+			Pos = math::vec3(0);
+			break;
+		}
+		case ImageScaleMode::ScaleProportional: 
+		case ImageScaleMode::ScaleProportionalCenter: {
+			auto parentsize = rectTransform.m_ScreenRect.GetSize();
+			auto &framesize = m_Animation->GetFrameSize();
+			Point ratio = parentsize / framesize;
+			float minration = math::min(ratio.x, ratio.y);
+			Scale = math::vec3(minration, minration, 1.0f);
+			if (m_ScaleMode == ImageScaleMode::ScaleProportionalCenter) {
+				auto halfparent = rectTransform.m_ScreenRect.GetSize() / 2.0f;
+				auto halfsize = (m_Animation->GetFrameSize() * math::vec2(minration)) / 2.0f;
+				Pos = math::vec3(halfparent - halfsize, 0.0f);
+			} else {
+				Pos = math::vec3(0.0f);
+			}
+			break;
+		}
+		default:
+			LogInvalidEnum(m_ScaleMode);
+			return;
+		}
+		m_ImageMatrix = rectTransform.m_GlobalMatrix * glm::scale(glm::translate(math::mat4(), Pos), Scale);
+	}
+}
 
 } //namespace Component 
 } //namespace GUI 

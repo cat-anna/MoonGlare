@@ -85,6 +85,7 @@ struct bool_TypeInfo {
 
 const std::unordered_map<std::string, std::shared_ptr<TypeInfo>> TypeInfoMap{
 	MakeEnum<x2cTypes::AlignMode_TypeInfo>(),
+	MakeEnum<x2cTypes::ImageScaleMode_TypeInfo>(),
 	MakeEnum<bool_TypeInfo>(),
 };
 

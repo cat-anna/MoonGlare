@@ -23,6 +23,7 @@ union ImageComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
 		bool m_Visible : 1;
+		bool m_Dirty : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -42,26 +43,18 @@ struct ImageComponentEntry {
 	float m_Speed;
 	float m_Position;
 	unsigned m_FrameCount;
+	ImageScaleMode m_ScaleMode;
+	math::mat4 m_ImageMatrix;
 	SharedAnimation m_Animation;
+	Configuration::RuntimeRevision m_TransformRevision;
 
 	void Reset() {
+		m_Flags.ClearAll();
 		m_Animation.reset();
+		m_TransformRevision = 0;
 	}
 
-	void Update(float TimeDelta) {
-		if (m_Speed > 0) {
-			m_Position += m_Speed * TimeDelta;
-			if ((unsigned)m_Position >= m_FrameCount) {
-				int mult = static_cast<int>(m_Position / m_FrameCount);
-				m_Position -= static_cast<float>(mult) * m_FrameCount;
-			}
-			//else
-			//if (instance.Position < m_StartFrame) {
-			//auto delta = m_EndFrame - m_StartFrame;
-			//int mult = static_cast<int>(instance.Position / delta);
-			//}
-		}
-	}
+	void Update(float TimeDelta, RectTransformComponentEntry &rectTransform);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
