@@ -12,6 +12,8 @@
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
+#include <Renderer/RenderInput.h>
+
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <RectTransformComponent.x2c.h>
@@ -181,7 +183,7 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	entry.m_Flags.m_Map.m_Dirty = true;
 
-	x2c::Component::RectTransfromComponent::RectTransfromEntry_t rte;
+	x2c::Component::RectTransformComponent::RectTransformEntry_t rte;
 	rte.ResetToDefault();
 	if (!rte.Read(node)) {
 		AddLog(Error, "Failed to read RectTransfromEntry!");
@@ -229,14 +231,14 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 }
 
 bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
-	x2c::Component::RectTransfromComponent::RectTransfromSettings_t rts;
+	x2c::Component::RectTransformComponent::RectTransformEntry_t rts;
 	rts.ResetToDefault();
 	if (!rts.Read(node)) {
 		AddLog(Error, "Failed to read settings!");
 		return false;
 	}
 
-	m_Flags.m_Map.m_UniformMode = rts.m_UniformPositionMode;
+	m_Flags.m_Map.m_UniformMode = rts.m_UniformMode;
 	
 	return true;
 }

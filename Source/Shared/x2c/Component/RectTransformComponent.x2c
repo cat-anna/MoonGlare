@@ -1,6 +1,6 @@
 Import "ComponentCommon.x2c"
 
-namespace "MoonGlare.x2c.Component.RectTransfromComponent"
+namespace "MoonGlare.x2c.Component.RectTransformComponent"
 
 Use(Global.MoonGlare.x2c.Math.Vec2)
 Use(Global.MoonGlare.x2c.Math.Vec3)
@@ -55,7 +55,7 @@ Structure.import {
 }
 
 Structure.new {
-	name = "RectTransfromEntry",
+	name = "RectTransformEntry",
 	description = "",
 	fields = {
 		{
@@ -97,7 +97,7 @@ Structure.new {
 }
 
 Structure.new {
-	name = "RectTransfromSettings",
+	name = "RectTransformSettings",
 	description = "",
 	fields = {
 		{

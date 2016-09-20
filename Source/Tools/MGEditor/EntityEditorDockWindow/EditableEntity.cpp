@@ -40,7 +40,7 @@ namespace x2cTypes {
 	using namespace x2c::Component::CameraComponent;
 	using namespace x2c::Component::MeshComponent;
 	using namespace x2c::Component::ScriptComponent;
-	using namespace x2c::Component::RectTransfromComponent;
+	using namespace x2c::Component::RectTransformComponent;
 	using namespace x2c::Component::ImageComponent;
 	using namespace x2c::Component::PanelComponent;
 }
@@ -63,7 +63,7 @@ const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentI
 	MakeComponentInfo<x2cTypes::CameraEntry_t			>(ComponentIDs::Camera,			"Camera"),
 	MakeComponentInfo<x2cTypes::MeshEntry_t				>(ComponentIDs::Mesh,			"Mesh"),
 	MakeComponentInfo<x2cTypes::ScriptEntry_t			>(ComponentIDs::Script,			"Script"),
-	MakeComponentInfo<x2cTypes::RectTransfromEntry_t	>(ComponentIDs::RectTransform,	"RectTransform"),
+	MakeComponentInfo<x2cTypes::RectTransformEntry_t	>(ComponentIDs::RectTransform,	"RectTransform"),
 	MakeComponentInfo<x2cTypes::ImageEntry_t			>(ComponentIDs::Image,			"Image"),
 	MakeComponentInfo<x2cTypes::PanelEntry_t			>(ComponentIDs::Panel,			"Panel"),
 };
