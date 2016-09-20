@@ -1,0 +1,87 @@
+#include "Common.glsl"
+
+uniform sampler2D Texture0;
+
+uniform vec2 PanelSize;
+uniform float Border;
+uniform vec4 PanelColor;
+
+//---------------
+
+interface VSOutput {
+	vec2 VertexPosition;
+	vec2 VertexUV0;
+};
+
+//---------------
+
+const float TextureDivs = 3.0f;
+const float TextureRatio = 1.0f / TextureDivs;
+
+shader VSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Color : 3, out VSOutput VSout) {
+	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
+
+	gl_Position = vpos;
+	VSout.VertexPosition = Pos.xy / PanelSize;
+	VSout.VertexUV0 = TexCoord;
+};
+
+shader FSmain(in VSOutput FSin, out vec4 FragColor) {
+	//WorldPosOut = FSin.VertexPosition.xyz;
+//	FragColor = vec4( Material.BackColor, 1.0);
+
+	vec2 tex;
+	vec2 tin = FSin.VertexUV0;
+	vec2 posin = FSin.VertexPosition;
+
+	float Aspect = PanelSize[0] / PanelSize[1];
+
+	float xBorder = Border / Aspect;
+
+	float invxBorder = 1.0f / xBorder;
+	float invyBorder = 1.0f / Border;
+
+	float xratio = invxBorder / 3.0f;
+	float yratio = invyBorder / 3.0f;
+
+	if (posin.x < xBorder) {
+		tex.x = posin.x * xratio;
+	} else {
+		if (posin.x >= 1.0f - xBorder){
+			tex.x = (1.0f - posin.x) * xratio;
+		} else {
+			float d = (posin.x - xBorder) / (1.0f - 2 * xBorder);
+			if(invxBorder > TextureDivs)
+				d *= int(invxBorder) - TextureDivs + 1.0f;
+			d -= int(d);
+			d = 1.0f - d;
+			tex.x = TextureRatio * ( 1.0f + d);
+		}
+	}
+
+	if (posin.y < Border) {
+		tex.y = 1.0f - posin.y * yratio;
+	} else {
+		if (posin.y >= 1.0f - Border){
+			tex.y = (1.0f - posin.y) * yratio;
+		} else {
+			float d = (posin.y - Border) / (1.0f - 2 * Border);
+			if(invyBorder > TextureDivs)
+				d *= int(invyBorder) - TextureDivs + 1.0f;
+
+			d -= int(d);
+			tex.y = TextureRatio * ( 1.0f + d);
+		}
+	}
+
+	FragColor = vec4(texture2D(Texture0, tex));
+	FragColor.xyz = FragColor.xyz * PanelColor.xyz * PanelColor.a;
+	FragColor.a = PanelColor.a;
+};
+
+//---------------
+
+program Panel {
+	vs(330) = VSmain();
+	fs(330) = FSmain();
+};
