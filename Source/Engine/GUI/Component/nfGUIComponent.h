@@ -6,6 +6,7 @@ namespace Component {
 
 class RectTransformComponent;
 class ImageComponent;
+class PanelComponent;
 
 }
 }
