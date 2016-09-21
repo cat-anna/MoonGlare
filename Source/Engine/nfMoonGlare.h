@@ -1,8 +1,5 @@
 #pragma once
 
-namespace MoonGlare { 
-	class GameCoords;
-}
 using namespace MoonGlare;
 
 #include "Configuration.h"
