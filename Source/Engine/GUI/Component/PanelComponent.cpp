@@ -211,7 +211,7 @@ void PanelComponent::D2Draw(Graphic::cRenderDevice & dev) {
 
 	if (!m_Shader) {
 		if (!Graphic::GetShaderMgr()->GetSpecialShader("GUI.Panel", m_Shader)) {
-			AddLogf(Error, "Failed to load btDebgDraw shader");
+			AddLogf(Error, "Failed to load GUI.Panel shader");
 			return;
 		}
 	}
