@@ -28,13 +28,17 @@ namespace Component {
 
 struct PanelShader : public ::Graphic::Shader {
 	void SetPanelSize(const Point &Size) {
-		glUniform2fv(Location("PanelSize"), 1, &Size[0]);
+		glUniform1f(Location("gPanelAspect"), Size[0] / Size[1]);
+		glUniform2fv(Location("gPanelSize"), 1, &Size[0]);
 	}
 	void SetBorder(float Border) {
 		glUniform1f(Location("Border"), Border);
 	}	
 	void SetColor(const math::vec4 &color) {
 		glUniform4fv(Location("PanelColor"), 1, &color[0]);
+	}
+	void SetTileMode(const glm::ivec2 &mode) {
+		glUniform2iv(Location("gTileMode"), 1, &mode[0]);
 	}
 };
 
@@ -192,6 +196,7 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	
 	entry.m_Border = pe.m_Border;
 	entry.m_Color = pe.m_Color;
+	entry.m_TileMode = pe.m_TileMode;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;
@@ -238,6 +243,7 @@ void PanelComponent::D2Draw(Graphic::cRenderDevice & dev) {
 		m_Shader->SetPanelSize(r.GetSize());
 		m_Shader->SetBorder(item.m_Border);
 		m_Shader->SetColor(item.m_Color);
+		m_Shader->SetTileMode(item.m_TileMode);
 
 		item.m_Texture->Bind();
 		auto &vao = item.m_VAO;

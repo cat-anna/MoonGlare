@@ -48,6 +48,7 @@ struct PanelComponentEntry {
 	Graphic::VAO m_VAO;
 	float m_Border;
 	math::vec4 m_Color;
+	glm::ivec2 m_TileMode;
 
 	void Reset() {
 		m_TransformRevision = 0;

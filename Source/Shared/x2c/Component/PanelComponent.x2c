@@ -32,52 +32,18 @@ Structure.new {
             default = { x=1, y=1, z=1, a=1, },
 		},
 
-		--[[
-        {
-			name = "Visible",
+		{
+			name = "HorizontalTile",
 			description = "",
 			type = bool,
             default = true,
 		},
-        {
-			name = "ScaleMode",
-			description = "",
-			type = ImageScaleMode,
-            default = "ScaleToFit",
-		},
-
-        --old
-
-
-        {
-			name = "StartFrame",
-			description = "",
-			type = u32,
-            default = 0,
-		},
-        {
-			name = "FrameCount",
-			description = "",
-			type = u32,
-		},
-        {
-			name = "FrameStripCount",
-			description = "",
+		{
+			name = "TileMode",
+			description = "negative means auto, 0 disabled, positive tile X;Y times",
 			type = Vec2,
-            default = { x=1, y=1, },
+            default = { x=-1, y=-1, },
 		},
-        {
-			name = "Spacing",
-			description = "",
-			type = Vec2,
-            default = { x=0, y=0, },
-		},
-        {
-			name = "FrameSize",
-			description = "",
-			type = Vec2,
-            default = { x=0, y=0, },
-		},]]
 	},
 }
 
