@@ -75,8 +75,8 @@ shader FSmain(in VSOutput FSin, out vec4 FragColor) {
 	}
 
 	FragColor = vec4(texture2D(Texture0, tex));
-	FragColor.xyz = FragColor.xyz * PanelColor.xyz * PanelColor.a;
-	FragColor.a = PanelColor.a;
+	FragColor.xyz = FragColor.xyz * PanelColor.xyz;
+	FragColor *= PanelColor.a;
 };
 
 //---------------
