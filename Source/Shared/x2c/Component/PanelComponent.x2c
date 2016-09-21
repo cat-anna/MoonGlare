@@ -1,0 +1,55 @@
+Import "ComponentCommon.x2c"
+Import "RectTransformComponent.x2c"
+
+namespace "MoonGlare.x2c.Component.PanelComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec2)
+Use(Global.MoonGlare.x2c.Math.Vec3)
+Use(Global.MoonGlare.x2c.Math.RGB)
+Use(Global.MoonGlare.x2c.Math.RGBA)
+
+Use(Global.MoonGlare.x2c.Component.RectTransformComponent.Margin)
+
+Structure.new {
+	name = "PanelEntry",
+	description = "",
+	fields = {
+		{
+			name = "TextureURI",
+			description = "",
+			type = Local.string,
+		},
+		{
+			name = "Border",
+			description = "",
+			type = float,
+            default = 0.2,
+		},
+		{
+			name = "Color",
+			description = "",
+			type = RGBA,
+            default = { x=1, y=1, z=1, a=1, },
+		},
+
+		{
+			name = "HorizontalTile",
+			description = "",
+			type = bool,
+            default = true,
+		},
+		{
+			name = "TileMode",
+			description = "negative means auto, 0 disabled, positive tile X;Y times",
+			type = Vec2,
+            default = { x=-1, y=-1, },
+		},
+	},
+}
+
+Structure.new {
+	name = "PanelComponentSettings",
+	description = "",
+	fields = {
+	},
+}

@@ -113,7 +113,8 @@ void iWidget::RecalculateMetrics() {
 		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top);
 		m_Size.y = parentsize.y - parentmargin.VerticalMargin();
 		break;
-	case AlignMode::Parent: 
+
+	case AlignMode::FillParent:
 		m_Position = Point(parentmargin.Left, parentmargin.Top);
 		m_Size = Point(parentsize.x - parentmargin.HorizontalMargin(), parentsize.y - parentmargin.VerticalMargin());
 		break;
@@ -123,6 +124,7 @@ void iWidget::RecalculateMetrics() {
 		m_Position = halfparent - halfsize;
 		break;
 	}
+
 	case AlignMode::LeftMiddle: {
 		m_Position = Point(parentmargin.Left, 
 						   parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);

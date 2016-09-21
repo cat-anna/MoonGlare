@@ -264,15 +264,30 @@ void Engine::DoRender(MoveConfig &conf) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
+
 	if (m_CurrentScene && m_CurrentScene->GetGUI())
 		m_CurrentScene->GetGUI()->Draw(dev);
+
+	glEnable(GL_BLEND);
+
+	for (auto *it : conf.CustomDraw)
+		it->D2Draw(dev);
+
+	for (auto &it : conf.m_RenderInput->m_D2AnimRenderList) {
+	//	dev.SetModelMatrix(glm::scale(it.m_Matrix, math::vec3(0.1, 0.1, 1)));
+		dev.SetModelMatrix(it.m_Matrix);
+		it.m_Animation->Draw(it.m_Frame);
+	}
 	glDisable(GL_BLEND);
+
 #ifdef DEBUG   
 	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, 1);
 	m_Forward->EndFrame();
+
+	conf.CustomDraw.clear();
 	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();

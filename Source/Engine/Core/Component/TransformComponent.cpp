@@ -86,15 +86,12 @@ bool TransformComponent::Initialize() {
 	RootEntry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
 	RootEntry.m_GlobalTransform = RootEntry.m_LocalTransform;
 
-	auto *ht = GetManager()->GetWorld()->GetHandleTable();
-	Handle h;
-	if (!ht->Allocate(this, RootEntry.m_OwnerEntity, h, index)) {
+	if (!GetHandleTable()->Allocate(this, RootEntry.m_OwnerEntity, RootEntry.m_SelfHandle, index)) {
 		AddLog(Error, "Failed to allocate root handle");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
-
-	m_EntityMapper.SetHandle(RootEntry.m_OwnerEntity, h);
+	m_EntityMapper.SetComponentMapping(RootEntry);
 
 	return true;
 }
@@ -105,7 +102,6 @@ bool TransformComponent::Finalize() {
 
 void TransformComponent::Step(const MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-	auto *HandleTable = GetManager()->GetWorld()->GetHandleTable();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -120,7 +116,7 @@ void TransformComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		if (!HandleTable->IsValid(this, item.m_SelfHandle)) {
+		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
@@ -191,7 +187,7 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	x2c::Component::TransfromComponent::TransfromEntry_t te;
 	te.ResetToDefault();
 	if (!te.Read(node)) {
-		AddLog(Error, "Failed to read BodyEntry!");
+		AddLog(Error, "Failed to read TransfromEntry!");
 		return false;
 	}
 
@@ -208,8 +204,8 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.Recalculate(ParentEntry);
 	entry.m_Revision = m_CurrentRevision;
 
-	m_EntityMapper.SetHandle(Owner, h);
 	entry.m_Flags.m_Map.m_Valid = true;
+	m_EntityMapper.SetComponentMapping(entry);
 	return true;
 }
 

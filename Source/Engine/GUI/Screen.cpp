@@ -22,7 +22,7 @@ Screen::Screen(GUIEngine *Owner, Graphic::Window *Window):
 
 	m_Camera.SetDefaultOrthogonal(math::fvec2(Window->Size()));
 
-	m_AlignMode = AlignMode::Parent; //hue hue :)
+	m_AlignMode = AlignMode::FillParent; //hue hue :)
 	SetName("Screen");
 
 	m_Position = Point(0, 0);

@@ -117,7 +117,7 @@ public:
 
 	bool BuildItemGUI(GUI::Widgets::Panel *parent) override {
 		m_SplitPanel = new GUI::Widgets::SplitPanel(parent);
-		m_SplitPanel->SetAlignMode(GUI::AlignMode::Parent);
+		m_SplitPanel->SetAlignMode(GUI::AlignMode::FillParent);
 		parent->AddWidget(m_SplitPanel);
 		m_Widget = m_SplitPanel;
 		m_SplitPanel->SetSplitPosition(0.5f);
@@ -131,7 +131,7 @@ public:
 		//caption->SetEnabled(false);
 		caption->SetUtf8Text(GetCaption());
 		caption->SetTextAlignMode(GUI::TextAlignMode::RightMiddle);
-		caption->SetAlignMode(GUI::AlignMode::Parent);
+		caption->SetAlignMode(GUI::AlignMode::FillParent);
 
 		auto imgleft = new MenuImage(m_OwnerScene, sharedthis, right, (int)SubWidgetID::LeftButton);
 		imgleft->SetAlignMode(GUI::AlignMode::Left);
@@ -155,7 +155,7 @@ public:
 		valcaption->SetUtf8Text("");
 		valcaption->SetName("ValueLabel");
 		valcaption->SetTextAlignMode(GUI::TextAlignMode::Middle);
-		valcaption->SetAlignMode(GUI::AlignMode::Parent);
+		valcaption->SetAlignMode(GUI::AlignMode::FillParent);
 
 
 	//	m_SplitPanel->RecalculateMetrics();
@@ -302,7 +302,7 @@ public:
 		m_Widget = l;
 		l->SetUtf8Text(GetCaption());
 		l->SetTextAlignMode(GUI::TextAlignMode::Middle);
-		l->SetAlignMode(GUI::AlignMode::Parent);
+		l->SetAlignMode(GUI::AlignMode::FillParent);
 		parent->AddWidget(l);
 		return true;
 	}
@@ -371,7 +371,7 @@ public:
 
 	bool BuildItemGUI(GUI::Widgets::Panel *parent) override {
 		m_SplitPanel = new GUI::Widgets::SplitPanel(parent);
-		m_SplitPanel->SetAlignMode(GUI::AlignMode::Parent);
+		m_SplitPanel->SetAlignMode(GUI::AlignMode::FillParent);
 		parent->AddWidget(m_SplitPanel);
 		m_Widget = m_SplitPanel;
 		m_SplitPanel->SetSplitPosition(0.5f);
@@ -383,7 +383,7 @@ public:
 		left->AddWidget(caption);
 		caption->SetUtf8Text(GetCaption());
 		caption->SetTextAlignMode(GUI::TextAlignMode::RightMiddle);
-		caption->SetAlignMode(GUI::AlignMode::Parent);
+		caption->SetAlignMode(GUI::AlignMode::FillParent);
 
 		int val = 0;
 		SCRIPT_INVOKE_RESULT(val, GetValue, m_OwnerScene, m_ItemId, val);
@@ -464,7 +464,7 @@ public:
 
 	bool BuildItemGUI(GUI::Widgets::Panel *parent) override {
 		m_SplitPanel = new GUI::Widgets::SplitPanel(parent);
-		m_SplitPanel->SetAlignMode(GUI::AlignMode::Parent);
+		m_SplitPanel->SetAlignMode(GUI::AlignMode::FillParent);
 		parent->AddWidget(m_SplitPanel);
 		m_Widget = m_SplitPanel;
 		m_SplitPanel->SetSplitPosition(0.5f);
@@ -476,7 +476,7 @@ public:
 		left->AddWidget(m_Label);
 		m_Label->SetUtf8Text(GetCaption());
 		m_Label->SetTextAlignMode(GUI::TextAlignMode::RightMiddle);
-		m_Label->SetAlignMode(GUI::AlignMode::Parent);
+		m_Label->SetAlignMode(GUI::AlignMode::FillParent);
 
 		SCRIPT_INVOKE_RESULT(m_CurrentValue, GetValue, m_OwnerScene, m_ItemId, m_CurrentValue);
 
@@ -557,7 +557,7 @@ public:
 		m_Widget = l;
 		l->SetUtf8Text(GetCaption());
 		l->SetTextAlignMode(GUI::TextAlignMode::Middle);
-		l->SetAlignMode(GUI::AlignMode::Parent);
+		l->SetAlignMode(GUI::AlignMode::FillParent);
 		parent->AddWidget(l);
 		l->SetEnabled(false);
 
@@ -595,7 +595,7 @@ bool SubMenuItem::BuildItemGUI(GUI::Widgets::Panel *parent) {
 	m_Widget = l;
 	l->SetUtf8Text(GetCaption());
 	l->SetTextAlignMode(GUI::TextAlignMode::Middle);
-	l->SetAlignMode(GUI::AlignMode::Parent);
+	l->SetAlignMode(GUI::AlignMode::FillParent);
 	parent->AddWidget(l);
 	return true;
 }

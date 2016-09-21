@@ -67,6 +67,11 @@ struct BaseEntityMapper {
 	void SetHandle(Entity e, const T &h) {
 		m_Array[e.GetIndex()] = h;
 	}
+
+	template<typename T>
+	void SetComponentMapping(const T &entry) {
+		return SetHandle(entry.m_OwnerEntity, entry.m_SelfHandle);
+	}
 protected:
 	Array m_Array;
 };

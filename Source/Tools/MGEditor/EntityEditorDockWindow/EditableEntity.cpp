@@ -9,6 +9,8 @@
 
 #include <Source/Engine/Renderer/Light.h>
 
+#include <Engine/GUI/Types.h>
+
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <LightComponent.x2c.h>
@@ -17,6 +19,9 @@
 #include <CameraComponent.x2c.h>
 #include <MeshComponent.x2c.h>
 #include <ScriptComponent.x2c.h>
+#include <RectTransformComponent.x2c.h>
+#include <ImageComponent.x2c.h>
+#include <PanelComponent.x2c.h>
 
 #include "EditableEntity.h"
 #include <MainWindow.h>
@@ -28,29 +33,63 @@ namespace EntityEditor {
 
 //----------------------------------------------------------------------------------
 
-using BodyComponentEditor = X2CEditableStructure<x2c::Component::BodyComponent::BodyEntry_t>;
-using LightComponentEditor = X2CEditableStructure<x2c::Component::LightComponent::LightEntry_t>;
-using TransformComponentEditor = X2CEditableStructure<x2c::Component::TransfromComponent::TransfromEntry_t>;
-using CameraComponentEditor = X2CEditableStructure<x2c::Component::CameraComponent::CameraEntry_t>;
-using MeshComponentEditor = X2CEditableStructure<x2c::Component::MeshComponent::MeshEntry_t>;
-using ScriptComponentEditor = X2CEditableStructure<x2c::Component::ScriptComponent::ScriptEntry_t>;
+namespace x2cTypes {
+	using namespace x2c::Component::BodyComponent;
+	using namespace x2c::Component::LightComponent;
+	using namespace x2c::Component::TransfromComponent;
+	using namespace x2c::Component::CameraComponent;
+	using namespace x2c::Component::MeshComponent;
+	using namespace x2c::Component::ScriptComponent;
+	using namespace x2c::Component::RectTransformComponent;
+	using namespace x2c::Component::ImageComponent;
+	using namespace x2c::Component::PanelComponent;
+}
 
-template<class T> UniqueEditableComponent CreteFunction(EditableEntity *Parent, const ComponentInfo *cInfo) { return UniqueEditableComponent(new T(Parent, cInfo)); }
+template<class X2CSTRUCT> UniqueEditableComponent CreateFunction(EditableEntity *Parent, const ComponentInfo *cInfo) {
+	return UniqueEditableComponent(new X2CEditableStructure<X2CSTRUCT>(Parent, cInfo));
+}
 using Core::Component::ComponentID;
 using Core::Component::ComponentIDs;
 
-template<typename ...ARGS>
+template<typename X2CSTRUC, typename ...ARGS>
 std::pair<ComponentID, ComponentInfo> MakeComponentInfo(ComponentIDs cid, ARGS&& ...args) {
-	return std::make_pair((ComponentID)cid, ComponentInfo{ (ComponentID)cid, std::forward<ARGS>(args)..., });
+	return std::make_pair((ComponentID)cid, ComponentInfo{ (ComponentID)cid, &CreateFunction<X2CSTRUC>, std::forward<ARGS>(args)..., });
 }
 
 const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentInfoMap {
-	MakeComponentInfo(ComponentIDs::Transform,	&CreteFunction<TransformComponentEditor>,	"Transform"),
-	MakeComponentInfo(ComponentIDs::Light,		&CreteFunction<LightComponentEditor>,		"Light"),
-	MakeComponentInfo(ComponentIDs::Body,		&CreteFunction<BodyComponentEditor>,		"Body"),
-	MakeComponentInfo(ComponentIDs::Camera,		&CreteFunction<CameraComponentEditor>,		"Camera"),
-	MakeComponentInfo(ComponentIDs::Mesh,		&CreteFunction<MeshComponentEditor>,		"Mesh"),
-	MakeComponentInfo(ComponentIDs::Script,		&CreteFunction<ScriptComponentEditor>,		"Script"),
+	MakeComponentInfo<x2cTypes::TransfromEntry_t		>(ComponentIDs::Transform,		"Transform"),
+	MakeComponentInfo<x2cTypes::LightEntry_t			>(ComponentIDs::Light,			"Light"),
+	MakeComponentInfo<x2cTypes::BodyEntry_t				>(ComponentIDs::Body,			"Body"),
+	MakeComponentInfo<x2cTypes::CameraEntry_t			>(ComponentIDs::Camera,			"Camera"),
+	MakeComponentInfo<x2cTypes::MeshEntry_t				>(ComponentIDs::Mesh,			"Mesh"),
+	MakeComponentInfo<x2cTypes::ScriptEntry_t			>(ComponentIDs::Script,			"Script"),
+	MakeComponentInfo<x2cTypes::RectTransformEntry_t	>(ComponentIDs::RectTransform,	"RectTransform"),
+	MakeComponentInfo<x2cTypes::ImageEntry_t			>(ComponentIDs::Image,			"Image"),
+	MakeComponentInfo<x2cTypes::PanelEntry_t			>(ComponentIDs::Panel,			"Panel"),
+};
+
+//----------------------------------------------------------------------------------
+
+template<typename X2CENUM>
+std::pair<std::string, std::shared_ptr<TypeInfo>> MakeEnum() {
+	return std::make_pair(X2CENUM::GetTypeName(), std::make_shared<TemplateTypeInfo<X2CEnumEditor<X2CENUM>>>());
+}
+
+struct bool_TypeInfo {
+	static constexpr char *GetTypeName() {
+		return "bool";
+	}
+	static bool GetValues(std::unordered_map<std::string, uint64_t> &values) {
+		values["Enabled"] = static_cast<uint64_t>(1);
+		values["Disabled"] = static_cast<uint64_t>(0);
+		return true;
+	}
+};
+
+const std::unordered_map<std::string, std::shared_ptr<TypeInfo>> TypeInfoMap{
+	MakeEnum<x2cTypes::AlignMode_TypeInfo>(),
+	MakeEnum<x2cTypes::ImageScaleMode_TypeInfo>(),
+	MakeEnum<bool_TypeInfo>(),
 };
 
 //----------------------------------------------------------------------------------

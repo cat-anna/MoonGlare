@@ -1,0 +1,111 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.RectTransformComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec2)
+Use(Global.MoonGlare.x2c.Math.Vec3)
+
+Enum.import {
+	name = "AlignMode",
+	location = "::MoonGlare::GUI::AlignMode",
+	default = "None",
+	values = {
+		"None",
+		"Top", "Bottom", "Left", "Right",
+		"LeftTop", "LeftBottom",
+		"RightTop", "RightBottom",
+		"LeftMiddle", "RightMiddle",
+		"MiddleTop","MiddleBottom",
+		"FillParent", "Center",
+		"Table",
+	}
+}
+
+Structure.import {
+	name = "Margin",
+	location = "::MoonGlare::GUI::Margin",
+	description = "",
+	fields = {
+		{
+			name = "Left",
+			type = float,
+			require = false,
+			default = 0,
+		},
+		{
+			name = "Top",
+			type = float,
+			require = false,
+			default = 0,
+		},
+		{
+			name = "Right",
+			type = float,
+			require = false,
+			default = 0,
+		},
+		{
+			name = "Bottom",
+			type = float,
+			require = false,
+			default = 0,
+		},
+	},
+	pugi = { useattribute = true, },
+}
+
+Structure.new {
+	name = "RectTransformEntry",
+	description = "",
+	fields = {
+		{
+			name = "Position",
+			description = "",
+			type = Vec2,
+		},
+		{
+			name = "Size",
+			description = "",
+			type = Vec2,
+			default = { x=1, y=1, },
+		},
+--[[		{ not supported
+			name = "Scale",
+			description = "",
+			type = Vec2,
+			default = { x=1, y=1, },
+		},]]
+		{
+			name = "AlignMode",
+			description = "",
+			type = AlignMode,
+			default = "None",
+		},
+		{
+			name = "Margin",
+			description = "",
+			type = Margin,
+			default = { Left=1, Top=1, Right=1, Bottom=1, },
+		},
+		{
+			name = "UniformMode",
+			description = "",
+			type = bool,
+			default = true,
+		},
+	},
+}
+
+Structure.new {
+	name = "RectTransformSettings",
+	description = "",
+	fields = {
+		{
+			name = "UniformPositionMode",
+			description = "",
+			type = bool,
+			default = true,
+			require = false,
+		},
+	},
+}
