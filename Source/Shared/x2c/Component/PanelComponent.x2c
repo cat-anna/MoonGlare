@@ -29,14 +29,7 @@ Structure.new {
 			name = "Color",
 			description = "",
 			type = RGBA,
-            default = { x=1, y=1, z=1, a=1, },
-		},
-
-		{
-			name = "HorizontalTile",
-			description = "",
-			type = bool,
-            default = true,
+            default = { x=1, y=1, z=1, w=1, },
 		},
 		{
 			name = "TileMode",

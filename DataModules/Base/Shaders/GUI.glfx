@@ -13,7 +13,6 @@ uniform ivec2 gTileMode;
 
 interface VSOutput {
 	vec2 VertexPosition;
-	vec2 VertexUV0;
 };
 
 //---------------
@@ -21,12 +20,11 @@ interface VSOutput {
 const float TextureDivs = 3.0f;
 const float TextureRatio = 1.0f / TextureDivs;
 
-shader VSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Color : 3, out VSOutput VSout) {
+shader VSmain(in vec3 Pos : 0, in vec3 Color : 3, out VSOutput VSout) {
 	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
 
 	gl_Position = vpos;
 	VSout.VertexPosition = Pos.xy / gPanelSize;
-	VSout.VertexUV0 = TexCoord;
 };
 
 float ProcessTile(float pos, int TileMode, float Border) {
