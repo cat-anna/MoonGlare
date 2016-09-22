@@ -28,6 +28,9 @@ public:
 	void Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) const;
 	void Draw(unsigned Frame) const;
 
+	const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
+	const TextureFile& GetTexture() const { return m_Texture; }
+
 	DefineRefGetterConst(FrameSize, math::vec2);
 protected:
 	string m_Name;

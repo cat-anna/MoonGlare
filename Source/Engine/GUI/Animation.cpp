@@ -131,7 +131,7 @@ bool Animation::GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount)
 			Graphic::vec2(w1, h2),
 		};
 
-		Graphic::IndexVector Index{ 0, 1, 2, 3 };
+		Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
 		m_FrameTable[frame].DelayInit(Vertexes, TexUV, Normals, Index);
 	}
 
@@ -167,18 +167,21 @@ void Animation::Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) con
 	return Draw(static_cast<unsigned>(instance.Position));
 }
 
-void Animation::Draw(unsigned Frame) const {
-	if (!m_DrawEnabled) return;
+const Graphic::VAO& Animation::GetFrameVAO(unsigned Frame) const {
 	if (Frame > m_EndFrame)
 		Frame = m_EndFrame;
 	else
 		if (Frame < m_StartFrame)
 			Frame = m_StartFrame;
+	return m_FrameTable[Frame];
+}
 
+void Animation::Draw(unsigned Frame) const {
+	if (!m_DrawEnabled) return;
 	m_Texture->Bind();
-	auto &vao = m_FrameTable[Frame];
+	auto &vao = GetFrameVAO(Frame);
 	vao.Bind();
-	vao.DrawElements(4, 0, 0, GL_QUADS);
+	vao.DrawElements(6, 0, 0, GL_TRIANGLES);
 	vao.UnBind();
 }
 
