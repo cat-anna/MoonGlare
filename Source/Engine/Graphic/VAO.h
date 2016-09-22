@@ -105,6 +105,7 @@ public:
 		if (m_VAO) Free();
 		glGenVertexArrays(1, &m_VAO);
 	}
+	GLuint Handle() const { return m_VAO; }
 protected:
 	GLuint GetChannel(GLuint Channel) {
 		ASSERT(Channel < MaxChannel);

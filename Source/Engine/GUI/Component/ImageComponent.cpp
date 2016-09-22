@@ -13,6 +13,10 @@
 #include "RectTransformComponent.h"
 #include "ImageComponent.h"
 
+#include <Renderer/Commands/ControllCommands.h>
+#include <Renderer/Commands/ShaderCommands.h>
+#include <Renderer/Commands/TextureCommands.h>
+#include <Renderer/Commands/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
 #include <Math.x2c.h>
@@ -23,6 +27,57 @@ namespace MoonGlare {
 namespace GUI {
 namespace Component {
 
+//---------------------------------------------------------------------------------------
+
+struct ImageShader : public ::Graphic::Shader {
+	ImageShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
+		m_BaseColorLocation = Location("gBaseColor");
+	}
+
+	GLint m_BaseColorLocation;
+
+	void Bind(Renderer::CommandQueue &Queue) {
+		Queue.PushCommand<Renderer::Commands::ShaderBind>()->m_Shader = Handle();
+	}
+	void SetWorldMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
+		auto loc = Location(ShaderParameters::WorldMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+		arg->m_Location = loc;
+		arg->m_Matrix = CameraMat * ModelMat;
+	}
+	void SetColor(Renderer::CommandQueue &Queue, const math::vec4 &color) {
+		if (!IsValidLocation(m_BaseColorLocation))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>();
+		arg->m_Location = m_BaseColorLocation;
+		arg->m_Vec = color;
+	}
+
+	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
+		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
+	}
+
+	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
+		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
+	}
+	void VAORelease(Renderer::CommandQueue &Queue) {
+		Queue.PushCommand<Renderer::Commands::VAORelease>();
+	}
+
+	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
+		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
+	}
+	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
+		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
+	}
+};
+
+//---------------------------------------------------------------------------------------
+
 ::Space::RTTI::TypeInfoInitializer<ImageComponent, ImageComponentEntry> ImageComponentTypeInfo;
 RegisterComponentID<ImageComponent> ImageComponentIDReg("Image", true, &ImageComponent::RegisterScriptApi);
 
@@ -32,6 +87,7 @@ ImageComponent::ImageComponent(ComponentManager *Owner)
 		: TemplateStandardComponent(Owner)
 {
 	m_RectTransform = nullptr;
+	m_Shader = nullptr;
 }
 
 ImageComponent::~ImageComponent() {
@@ -67,12 +123,32 @@ bool ImageComponent::Finalize() {
 void ImageComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
-//	conf.CustomDraw.push_back(this);
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
+	auto QueueSavePoint = Queue.GetSavePoint();
+	bool QueueDirty = false;
+	bool CanRender = false;
+
+	if (!m_Shader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<ImageShader>("GUI.Image", m_Shader)) {
+			AddLogf(Error, "Failed to load GUI.Panel shader");
+			return;
+		}
+	}
+
+	if (m_Shader) {
+		m_Shader->Bind(Queue);
+
+		m_Shader->Enable(Queue, GL_BLEND);
+		m_Shader->Disable(Queue, GL_DEPTH_TEST);
+		m_Shader->Disable(Queue, GL_CULL_FACE);
+
+		CanRender = true;
+	}
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
+	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &item = m_Array[i];
 
 		if (!item.m_Flags.m_Map.m_Valid) {
@@ -94,12 +170,26 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
 			continue;
 
-		conf.m_RenderInput->m_D2AnimRenderList.emplace_back();
-		auto &render = conf.m_RenderInput->m_D2AnimRenderList.back();
+		if (!CanRender)
+			continue;
 
-		render.m_Matrix = item.m_ImageMatrix;
-		render.m_Animation = item.m_Animation;
-		render.m_Frame = static_cast<unsigned>(item.m_Position);
+		m_Shader->SetWorldMatrix(Queue, item.m_ImageMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetColor(Queue, item.m_Color);
+
+		m_Shader->TextureBind(Queue, item.m_Animation->GetTexture()->Handle());
+		m_Shader->VAOBind(Queue, item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle());
+
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>();
+		arg->m_NumIndices = 6;
+		arg->m_IndexValueType = GL_UNSIGNED_INT;
+
+		QueueDirty = true;
+	}
+
+	if (!QueueDirty)
+		Queue.Rollback(QueueSavePoint);
+	else {
+		//	m_Shader->VAORelease(Queue);
 	}
 
 	if (InvalidEntryCount > 0) {
@@ -139,6 +229,7 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_FrameCount = ie.m_FrameCount;
 	entry.m_Flags.m_Map.m_Visible = ie.m_Visible;
 	entry.m_ScaleMode = ie.m_ScaleMode;
+	entry.m_Color = ie.m_Color;
 
 	entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
 

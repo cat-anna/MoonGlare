@@ -156,11 +156,12 @@ void ScenesManager::LoadSceneJob(const string& Name, int Param, EventProxyPtr pr
 		s = GetSceneInstance(desc);
 	}
 
-	LOCK_MUTEX(m_Lock);
 	while (IsSceneLoadingTimedOut()) {
 		//wait until loding scene has been set
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
+
+	LOCK_MUTEX(m_Lock);
 
 	GetEngine()->KillProxyTimer(GetEventProxy(), ScenesManagerTimers::SceneTimeout);
 	if (!s) {

@@ -13,6 +13,10 @@
 #include "RectTransformComponent.h"
 #include "PanelComponent.h"
 
+#include <Renderer/Commands/ControllCommands.h>
+#include <Renderer/Commands/ShaderCommands.h>
+#include <Renderer/Commands/TextureCommands.h>
+#include <Renderer/Commands/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
 #include <Math.x2c.h>
@@ -27,18 +31,96 @@ namespace Component {
 //---------------------------------------------------------------------------------------
 
 struct PanelShader : public ::Graphic::Shader {
-	void SetPanelSize(const Point &Size) {
-		glUniform1f(Location("gPanelAspect"), Size[0] / Size[1]);
-		glUniform2fv(Location("gPanelSize"), 1, &Size[0]);
+	PanelShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
+		m_BaseColorLocation		= Location("gBaseColor");
+		m_PanelAspectLocation   = Location("gPanelAspect");
+		m_PanelSizeLocation	    = Location("gPanelSize");
+		m_PanelBorderLocation   = Location("gPanelBorder");
+		m_TileModeLocation	    = Location("gTileMode");
 	}
-	void SetBorder(float Border) {
-		glUniform1f(Location("Border"), Border);
-	}	
-	void SetColor(const math::vec4 &color) {
-		glUniform4fv(Location("PanelColor"), 1, &color[0]);
+
+	GLint m_BaseColorLocation;
+	GLint m_PanelAspectLocation;
+	GLint m_PanelSizeLocation;
+	GLint m_PanelBorderLocation;
+	GLint m_TileModeLocation;
+
+	void Bind(Renderer::CommandQueue &Queue) {
+		Queue.PushCommand<Renderer::Commands::ShaderBind>()->m_Shader = Handle();
 	}
-	void SetTileMode(const glm::ivec2 &mode) {
-		glUniform2iv(Location("gTileMode"), 1, &mode[0]);
+	void SetModelMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & mat) {
+		auto loc = Location(ShaderParameters::ModelMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+		arg->m_Location = loc;
+		arg->m_Matrix = mat;
+	}
+
+	void SetWorldMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
+		auto loc = Location(ShaderParameters::WorldMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+		arg->m_Location = loc;
+		arg->m_Matrix = CameraMat * ModelMat;
+	}
+	void SetColor(Renderer::CommandQueue &Queue, const math::vec4 &color) {
+		auto loc = Location("gBaseColor");
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>();
+		arg->m_Location = loc;
+		arg->m_Vec = color;
+	}
+
+	void SetPanelSize(Renderer::CommandQueue &Queue, const Point &Size) {
+		if (IsValidLocation(m_PanelAspectLocation)) {
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
+			arg->m_Location = m_PanelAspectLocation;
+			arg->m_Float = Size[0] / Size[1];
+		}
+
+		if (IsValidLocation(m_PanelSizeLocation)) {
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>();
+			arg->m_Location = m_PanelSizeLocation;
+			*((Point*)(&arg->m_Vec)) = Size;
+		}
+	}
+	void SetBorder(Renderer::CommandQueue &Queue, float Border) {
+		if (IsValidLocation(m_PanelBorderLocation)) {
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
+			arg->m_Location = m_PanelBorderLocation;
+			arg->m_Float = Border;
+		}
+	}
+	void SetTileMode(Renderer::CommandQueue &Queue, const glm::ivec2 &mode) {
+		if (IsValidLocation(m_TileModeLocation)) {
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>();
+			arg->m_Location = m_TileModeLocation;
+			*((glm::ivec2*)(&arg->m_Vec)) = mode;
+		}
+	}
+
+	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
+		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
+	}
+
+	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
+		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
+	}
+	void VAORelease(Renderer::CommandQueue &Queue) {
+		Queue.PushCommand<Renderer::Commands::VAORelease>();
+	}
+
+	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
+		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
+	}
+	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
+		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
 	}
 };
 
@@ -53,6 +135,7 @@ PanelComponent::PanelComponent(ComponentManager *Owner)
 		: TemplateStandardComponent(Owner)
 {
 	m_RectTransform = nullptr;
+	m_Shader = nullptr;
 }
 
 PanelComponent::~PanelComponent() {
@@ -86,14 +169,31 @@ bool PanelComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::Step(const Core::MoveConfig & conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-
-	conf.CustomDraw.push_back(this);
-
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
+	auto QueueSavePoint = Queue.GetSavePoint();
+	bool QueueDirty = false;
+	bool CanRender = false;
+
+	if (!m_Shader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<PanelShader>("GUI.Panel", m_Shader)) {
+			AddLogf(Error, "Failed to load GUI.Panel shader");
+			return;
+		}
+	}
+
+	if (m_Shader) {
+		m_Shader->Bind(Queue);
+		
+		m_Shader->Enable(Queue, GL_BLEND);
+		m_Shader->Disable(Queue, GL_CULL_FACE);
+
+		CanRender = true;
+	}
+
+	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &item = m_Array[i];
 
 		if (!item.m_Flags.m_Map.m_Valid) {
@@ -110,46 +210,56 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty)
+		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
+		} else {
+
+			item.m_Flags.m_Map.m_Dirty = false;
+			item.m_TransformRevision = rtentry->m_Revision;
+
+			auto size = rtentry->m_ScreenRect.GetSize();
+
+			Graphic::VertexVector Vertexes{
+				Graphic::vec3(0, size[1], 0),
+				Graphic::vec3(size[0], size[1], 0),
+				Graphic::vec3(size[0], 0, 0),
+				Graphic::vec3(0, 0, 0),
+			};
+			Graphic::NormalVector Normals;
+			float w1 = 0.0f;
+			float h1 = 0.0f;
+			float w2 = w1 + 1.0f;
+			float h2 = h1 + 1.0f;
+			Graphic::TexCoordVector TexUV;
+
+			Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
+			item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
+		}
+
+		if (!CanRender)
 			continue;
 
-		item.m_Flags.m_Map.m_Dirty = false;
-		item.m_TransformRevision = rtentry->m_Revision;
+		//Graphic::GetRenderDevice()->Bind(m_Shader);
+		m_Shader->SetWorldMatrix(Queue, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		
+		m_Shader->SetPanelSize(Queue, rtentry->m_ScreenRect.GetSize());
+		m_Shader->SetBorder(Queue, item.m_Border);
+		m_Shader->SetColor(Queue, item.m_Color);
+		m_Shader->SetTileMode(Queue, item.m_TileMode);
+		
+		m_Shader->TextureBind(Queue, item.m_Texture->Handle());
+		m_Shader->VAOBind(Queue, item.m_VAO.Handle());
 
-		auto size = rtentry->m_ScreenRect.GetSize();
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>();
+		arg->m_NumIndices = 6;
+		arg->m_IndexValueType = GL_UNSIGNED_INT;
 
-		Graphic::VertexVector Vertexes{
-			Graphic::vec3(0, size[1], 0),
-			Graphic::vec3(size[0], size[1], 0),
-			Graphic::vec3(size[0], 0, 0),
-			Graphic::vec3(0, 0, 0),
-		};
-		Graphic::NormalVector Normals;
-		float w1 = 0.0f;
-		float h1 = 0.0f;
-		float w2 = w1 + 1.0f;
-		float h2 = h1 + 1.0f;
-		Graphic::TexCoordVector TexUV{
-			Graphic::vec2(w1, h1),
-			Graphic::vec2(w2, h1),
-			Graphic::vec2(w2, h2),
-			Graphic::vec2(w1, h2),
-		};
+		QueueDirty = true;
+	}
 
-		Graphic::IndexVector Index{ 0, 1, 2, 3 };
-		item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
-
-		//item.Update(conf.TimeDelta, *rtentry);
-		//
-		//if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
-		//	continue;
-		//
-		//conf.m_RenderInput->m_D2AnimRenderList.emplace_back();
-		//auto &render = conf.m_RenderInput->m_D2AnimRenderList.back();
-		//
-		//render.m_Matrix = item.m_ImageMatrix;
-		//render.m_Animation = item.m_Animation;
-		//render.m_Frame = static_cast<unsigned>(item.m_Position);
+	if (!QueueDirty)
+		Queue.Rollback(QueueSavePoint);
+	else {
+	//	m_Shader->VAORelease(Queue);
 	}
 
 	if (InvalidEntryCount > 0) {
@@ -205,57 +315,6 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 }
 
 //---------------------------------------------------------------------------------------
-
-void PanelComponent::D2Draw(Graphic::cRenderDevice & dev) {
-	auto cs = dev.CurrentShader();
-
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("GUI.Panel", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Panel shader");
-			return;
-		}
-	}
-
-	dev.Bind(m_Shader);
-	dev.SetModelMatrix(math::mat4());
-	dev.BindNullMaterial();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glEnable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
-		auto &item = m_Array[i];
-		if (!item.m_Flags.m_Map.m_Valid) {
-			continue;
-		}
-
-		dev.CurrentShader()->SetBackColor(math::vec3(1, 0, 0));
-
-		const auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
-		if (!rtentry) {
-			continue;
-		}
-
-		auto &r = rtentry->m_ScreenRect;
-		dev.SetModelMatrix(rtentry->m_GlobalMatrix);
-
-		m_Shader->SetPanelSize(r.GetSize());
-		m_Shader->SetBorder(item.m_Border);
-		m_Shader->SetColor(item.m_Color);
-		m_Shader->SetTileMode(item.m_TileMode);
-
-		item.m_Texture->Bind();
-		auto &vao = item.m_VAO;
-		vao.Bind();
-		vao.DrawElements(4, 0, 0, GL_QUADS);
-		vao.UnBind();
-	}
-
-	dev.Bind(cs);
-
-	glPopAttrib();
-}
 
 } //namespace Component 
 } //namespace GUI 

@@ -11,6 +11,8 @@
 namespace Graphic {
 namespace Shaders {
 
+using ShaderCreateFunc = ShaderManager::ShaderCreateFunc;
+
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ShaderManager);
 
 ShaderManager::ShaderManager(): 
@@ -74,7 +76,7 @@ void ShaderManager::DumpShaders(std::ostream &out) {
 
 //-------------------------------------------------------------------
 
-Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName, const string& Class) {
+Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName, ShaderCreateFunc CreateFunc, const string& Class) {
 	if (sd.Type == ShaderType::Invalid) {
 		AddLogf(Error, "Unable to load invalid shader '%s'", ShaderName.c_str());
 		return nullptr;
@@ -184,7 +186,11 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 	}
 
 	Shader *s;
-	s = ShaderClassRegister::CreateClass(Class, ShaderProg, ShaderName);
+	if (CreateFunc) {
+		s = CreateFunc(ShaderProg, ShaderName);
+	} else {
+		s = ShaderClassRegister::CreateClass(Class, ShaderProg, ShaderName);
+	}
 	if (!s) return nullptr;
 	string NewName = Class;
 	NewName += "_";

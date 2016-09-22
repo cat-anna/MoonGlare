@@ -28,6 +28,8 @@ public:
 		std::swap(m_Size, oth.m_Size);
 	}
 
+	unsigned Handle() const { return m_Handle; }
+
 	const math::uvec2& GetSize() const { return m_Size; }
 	void SetSize(const math::uvec2 &size) { m_Size = size; }
 

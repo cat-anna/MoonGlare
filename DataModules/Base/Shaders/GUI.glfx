@@ -2,32 +2,21 @@
 
 uniform sampler2D Texture0;
 
-uniform float Border;
-uniform vec4 PanelColor;
+uniform vec4 gBaseColor;
+
+//---------------------------------------------------------------------------------------
 
 uniform vec2 gPanelSize;
 uniform float gPanelAspect;
 uniform ivec2 gTileMode;
+uniform float gPanelBorder;
 
-//---------------
-
-interface VSOutput {
+interface PanelVSOutput {
 	vec2 VertexPosition;
-	vec2 VertexUV0;
 };
-
-//---------------
 
 const float TextureDivs = 3.0f;
 const float TextureRatio = 1.0f / TextureDivs;
-
-shader VSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Color : 3, out VSOutput VSout) {
-	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
-
-	gl_Position = vpos;
-	VSout.VertexPosition = Pos.xy / gPanelSize;
-	VSout.VertexUV0 = TexCoord;
-};
 
 float ProcessTile(float pos, int TileMode, float Border) {
 	if(TileMode == 0) {
@@ -51,7 +40,6 @@ float ProcessTile(float pos, int TileMode, float Border) {
 				}
 				d -= int(d);
 
-		//		d = 1.0f - d;
 				return TextureRatio * ( 1.0f + d);
 			}
 		}
@@ -60,21 +48,50 @@ float ProcessTile(float pos, int TileMode, float Border) {
 	return pos;//bug catcher, shall not reach here
 }
 
-shader FSmain(in VSOutput FSin, out vec4 FragColor) {
+shader PanelVSmain(in vec3 Pos : 0, out PanelVSOutput VSout) {
+	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
+	gl_Position = vpos;
+	VSout.VertexPosition = Pos.xy / gPanelSize;
+};
+
+shader PanelFSmain(in PanelVSOutput FSin, out vec4 FragColor) {
 	vec2 posin = FSin.VertexPosition;
 
 	vec2 tex;
-	tex.x = ProcessTile(posin.x, gTileMode.x, Border / gPanelAspect);
-	tex.y = ProcessTile(posin.y, gTileMode.y, Border);
+	tex.x = ProcessTile(posin.x, gTileMode.x, gPanelBorder / gPanelAspect);
+	tex.y = ProcessTile(posin.y, gTileMode.y, gPanelBorder);
 
 	FragColor = vec4(texture2D(Texture0, tex));
-	FragColor.xyz = FragColor.xyz * PanelColor.xyz;
-	FragColor *= PanelColor.a;
+	FragColor.xyz = FragColor.xyz * gBaseColor.xyz;
+	FragColor *= gBaseColor.a;
 };
 
-//---------------
-
 program Panel {
-	vs(330) = VSmain();
-	fs(330) = FSmain();
+	vs(330) = PanelVSmain();
+	fs(330) = PanelFSmain();
+};
+
+//---------------------------------------------------------------------------------------
+
+interface ImageVSOutput {
+    vec2 VertexUV0;
+};
+
+shader ImageVSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, out ImageVSOutput VSout) {
+	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
+
+	gl_Position = vpos;
+    VSout.VertexUV0 = TexCoord;
+};
+
+shader ImageFSmain(in ImageVSOutput FSin, out vec4 FragColor) {
+	vec2 tex = FSin.VertexUV0;
+	FragColor = vec4(texture2D(Texture0, tex));
+	FragColor.xyz = FragColor.xyz * gBaseColor.xyz;
+	FragColor *= gBaseColor.a;
+};
+
+program Image {
+	vs(330) = ImageVSmain();
+	fs(330) = ImageFSmain();
 };

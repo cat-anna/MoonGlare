@@ -4,6 +4,7 @@ namespace "MoonGlare.x2c.Component.ImageComponent"
 
 Use(Global.MoonGlare.x2c.Math.Vec2)
 Use(Global.MoonGlare.x2c.Math.Vec3)
+Use(Global.MoonGlare.x2c.Math.RGBA)
 
 Enum.import {
 	name = "ImageScaleMode",
@@ -30,6 +31,13 @@ Structure.new {
 			type = ImageScaleMode,
             default = "ScaleToFit",
 		},
+		{
+			name = "Color",
+			description = "",
+			type = RGBA,
+            default = { r=1, g=1, b=1, a=1, },
+		},
+
 
         --old
 		{

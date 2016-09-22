@@ -30,6 +30,8 @@ public:
 		MaxValue,
 	};
 
+	static bool IsValidLocation(GLint location) { return location >= 0; }
+
 	template<class T>
 	void Bind(T *t) {
 		T::Bind(this, t);

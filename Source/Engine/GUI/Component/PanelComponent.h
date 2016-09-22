@@ -60,8 +60,7 @@ struct PanelComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class PanelComponent
-	: public TemplateStandardComponent<PanelComponentEntry, ComponentIDs::Panel> 
-	, public Core::iCustomDraw {
+	: public TemplateStandardComponent<PanelComponentEntry, ComponentIDs::Panel> {
 public:
 	PanelComponent(ComponentManager *Owner);
  	virtual ~PanelComponent();
@@ -73,11 +72,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	PanelShader *m_Shader = nullptr;
-
-protected:
-	// iCustomDraw
-	virtual void D2Draw(Graphic::cRenderDevice& dev) override;
+	PanelShader *m_Shader;
 };
 
 } //namespace Component 
