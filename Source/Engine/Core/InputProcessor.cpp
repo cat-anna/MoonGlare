@@ -323,6 +323,7 @@ InputState* InputProcessor::AllocInputState(InputState::Type type, const std::st
 	auto it = m_InputNames.find(Name);
 	if (it != m_InputNames.end()) {
 		stateptr = &m_InputStates[it->second];
+		outindex = static_cast<InputStateId>(it->second);
 		if (!stateptr->m_Flags.m_Valid) {
 			AddLogf(Error, "There was a invalid input state: %s", Name.c_str());
 		} else {

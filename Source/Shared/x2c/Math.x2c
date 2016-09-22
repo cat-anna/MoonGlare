@@ -91,19 +91,19 @@ Structure.import {
 	description = "RGB color structure",
 	fields = {
 		{
-			name = "x",
+			name = "r",
 			type = Types.float,
 			pugi = { alias = "R", },
 			require = false,
 		},
 		{
-			name = "y",
+			name = "g",
 			type = Types.float,
 			pugi = { alias = "G", },
 			require = false,
 		},
 		{
-			name = "z",
+			name = "b",
 			type = Types.float,
 			pugi = { alias = "B", },
 			require = false,
@@ -120,25 +120,25 @@ Structure.import {
 	description = "RGBA color structure",
 	fields = {
 		{
-			name = "x",
+			name = "r",
 			type = Types.float,
 			pugi = { alias = "R", },
 			require = false,
 		},
 		{
-			name = "y",
+			name = "g",
 			type = Types.float,
 			pugi = { alias = "G", },
 			require = false,
 		},
 		{
-			name = "z",
+			name = "b",
 			type = Types.float,
 			pugi = { alias = "B", },
 			require = false,
 		},
 		{
-			name = "w",
+			name = "a",
 			type = Types.float,
 			pugi = { alias = "A", },
 			require = false,
