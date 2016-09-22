@@ -268,7 +268,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	if (m_CurrentScene && m_CurrentScene->GetGUI())
 		m_CurrentScene->GetGUI()->Draw(dev);
 
-	glEnable(GL_BLEND);
+	conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Execute();
 
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);
