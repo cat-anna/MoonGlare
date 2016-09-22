@@ -8,8 +8,6 @@ Use(Global.MoonGlare.x2c.Math.Vec3)
 Use(Global.MoonGlare.x2c.Math.RGB)
 Use(Global.MoonGlare.x2c.Math.RGBA)
 
-Use(Global.MoonGlare.x2c.Component.RectTransformComponent.Margin)
-
 Structure.new {
 	name = "PanelEntry",
 	description = "",
@@ -29,7 +27,7 @@ Structure.new {
 			name = "Color",
 			description = "",
 			type = RGBA,
-            default = { x=1, y=1, z=1, w=1, },
+            default = { r=1, g=1, b=1, a=1, },
 		},
 		{
 			name = "TileMode",

@@ -31,7 +31,19 @@ namespace Component {
 //---------------------------------------------------------------------------------------
 
 struct PanelShader : public ::Graphic::Shader {
-	static bool IsValidLocation(GLint location) { return location >= 0; }
+	PanelShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
+		m_BaseColorLocation		= Location("gBaseColor");
+		m_PanelAspectLocation   = Location("gPanelAspect");
+		m_PanelSizeLocation	    = Location("gPanelSize");
+		m_PanelBorderLocation   = Location("gPanelBorder");
+		m_TileModeLocation	    = Location("gTileMode");
+	}
+
+	GLint m_BaseColorLocation;
+	GLint m_PanelAspectLocation;
+	GLint m_PanelSizeLocation;
+	GLint m_PanelBorderLocation;
+	GLint m_TileModeLocation;
 
 	void Bind(Renderer::CommandQueue &Queue) {
 		Queue.PushCommand<Renderer::Commands::ShaderBind>()->m_Shader = Handle();
@@ -56,7 +68,7 @@ struct PanelShader : public ::Graphic::Shader {
 		arg->m_Matrix = CameraMat * ModelMat;
 	}
 	void SetColor(Renderer::CommandQueue &Queue, const math::vec4 &color) {
-		auto loc = Location("PanelColor");
+		auto loc = Location("gBaseColor");
 		if (!IsValidLocation(loc))
 			return;
 
@@ -66,33 +78,29 @@ struct PanelShader : public ::Graphic::Shader {
 	}
 
 	void SetPanelSize(Renderer::CommandQueue &Queue, const Point &Size) {
-		auto loc = Location("gPanelAspect");
-		if (IsValidLocation(loc)) {
+		if (IsValidLocation(m_PanelAspectLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
-			arg->m_Location = loc;
+			arg->m_Location = m_PanelAspectLocation;
 			arg->m_Float = Size[0] / Size[1];
 		}
 
-		loc = Location("gPanelSize");
-		if (IsValidLocation(loc)) {
+		if (IsValidLocation(m_PanelSizeLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>();
-			arg->m_Location = loc;
+			arg->m_Location = m_PanelSizeLocation;
 			*((Point*)(&arg->m_Vec)) = Size;
 		}
 	}
 	void SetBorder(Renderer::CommandQueue &Queue, float Border) {
-		auto loc = Location("Border");
-		if (IsValidLocation(loc)) {
+		if (IsValidLocation(m_PanelBorderLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
-			arg->m_Location = loc;
+			arg->m_Location = m_PanelBorderLocation;
 			arg->m_Float = Border;
 		}
 	}
 	void SetTileMode(Renderer::CommandQueue &Queue, const glm::ivec2 &mode) {
-		auto loc = Location("gTileMode");
-		if (IsValidLocation(loc)) {
+		if (IsValidLocation(m_TileModeLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>();
-			arg->m_Location = loc;
+			arg->m_Location = m_TileModeLocation;
 			*((glm::ivec2*)(&arg->m_Vec)) = mode;
 		}
 	}
@@ -161,20 +169,16 @@ bool PanelComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::Step(const Core::MoveConfig & conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-
-
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
 	auto QueueSavePoint = Queue.GetSavePoint();
-
-	bool PanelRenderGenerated = false;
+	bool QueueDirty = false;
 	bool CanRender = false;
 
 	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("GUI.Panel", m_Shader)) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<PanelShader>("GUI.Panel", m_Shader)) {
 			AddLogf(Error, "Failed to load GUI.Panel shader");
 			return;
 		}
@@ -189,7 +193,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 		CanRender = true;
 	}
 
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
+	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &item = m_Array[i];
 
 		if (!item.m_Flags.m_Map.m_Valid) {
@@ -234,24 +238,25 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 		if (!CanRender)
 			continue;
 
-		Graphic::GetRenderDevice()->Bind(m_Shader);
-		auto &r = rtentry->m_ScreenRect;
+		//Graphic::GetRenderDevice()->Bind(m_Shader);
 		m_Shader->SetWorldMatrix(Queue, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
 		
-		m_Shader->SetPanelSize(Queue, r.GetSize());
+		m_Shader->SetPanelSize(Queue, rtentry->m_ScreenRect.GetSize());
 		m_Shader->SetBorder(Queue, item.m_Border);
 		m_Shader->SetColor(Queue, item.m_Color);
 		m_Shader->SetTileMode(Queue, item.m_TileMode);
 		
 		m_Shader->TextureBind(Queue, item.m_Texture->Handle());
 		m_Shader->VAOBind(Queue, item.m_VAO.Handle());
+
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>();
 		arg->m_NumIndices = 6;
 		arg->m_IndexValueType = GL_UNSIGNED_INT;
-		PanelRenderGenerated = true;
+
+		QueueDirty = true;
 	}
 
-	if (!PanelRenderGenerated)
+	if (!QueueDirty)
 		Queue.Rollback(QueueSavePoint);
 	else {
 	//	m_Shader->VAORelease(Queue);
@@ -310,60 +315,6 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 }
 
 //---------------------------------------------------------------------------------------
-
-//void PanelComponent::D2Draw(Graphic::cRenderDevice & dev) {
-#if 0
-	auto cs = dev.CurrentShader();
-
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("GUI.Panel", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Panel shader");
-			return;
-		}
-	}
-
-	dev.Bind(m_Shader);
-	dev.SetModelMatrix(math::mat4());
-	dev.BindNullMaterial();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glEnable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
-		auto &item = m_Array[i];
-		if (!item.m_Flags.m_Map.m_Valid) {
-			continue;
-		}
-
-		const auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
-		if (!rtentry) {
-			continue;
-		}
-
-		auto &r = rtentry->m_ScreenRect;
-
-		dev.SetModelMatrix(rtentry->m_GlobalMatrix);
-		dev.CurrentShader()->SetBackColor(math::vec3(1, 0, 0));
-
-		m_Shader->SetPanelSize(r.GetSize());
-		m_Shader->SetBorder(item.m_Border);
-		m_Shader->SetColor(item.m_Color);
-		m_Shader->SetTileMode(item.m_TileMode);
-
-		item.m_Texture->Bind();
-		auto &vao = item.m_VAO;
-		vao.Bind();
-		vao.DrawElements(4, 0, 0, GL_QUADS);
-		vao.UnBind();
-	}
-
-	dev.Bind(cs);
-
-	glPopAttrib();
-	
-#endif
-//}
 
 } //namespace Component 
 } //namespace GUI 
