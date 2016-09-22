@@ -44,6 +44,7 @@ struct ImageComponentEntry {
 	float m_Position;
 	unsigned m_FrameCount;
 	ImageScaleMode m_ScaleMode;
+	math::vec4 m_Color;
 	math::mat4 m_ImageMatrix;
 	SharedAnimation m_Animation;
 	Configuration::RuntimeRevision m_TransformRevision;
@@ -59,6 +60,8 @@ struct ImageComponentEntry {
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
+struct ImageShader;
+
 class ImageComponent 
 	: public TemplateStandardComponent<ImageComponentEntry, ComponentIDs::Image> {
 public:
@@ -72,6 +75,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
+	ImageShader *m_Shader;
 };
 
 } //namespace Component 
