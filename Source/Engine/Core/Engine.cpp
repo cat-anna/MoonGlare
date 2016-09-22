@@ -273,11 +273,6 @@ void Engine::DoRender(MoveConfig &conf) {
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);
 
-	for (auto &it : conf.m_RenderInput->m_D2AnimRenderList) {
-	//	dev.SetModelMatrix(glm::scale(it.m_Matrix, math::vec3(0.1, 0.1, 1)));
-		dev.SetModelMatrix(it.m_Matrix);
-		it.m_Animation->Draw(it.m_Frame);
-	}
 	glDisable(GL_BLEND);
 
 #ifdef DEBUG   
