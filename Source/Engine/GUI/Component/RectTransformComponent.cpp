@@ -78,6 +78,9 @@ bool RectTransformComponent::Initialize() {
 	RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
 	RootEntry.m_LocalMatrix = math::mat4();
 
+	auto &rb = RootEntry.m_ScreenRect;
+	m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y);
+
 //	RootEntry.m_GlobalMatrix = math::mat4();
 //	RootEntry.m_LocalScale = Physics::vec3(1, 1, 1);
 //	RootEntry.m_GlobalScale = Physics::vec3(1, 1, 1);
@@ -92,6 +95,8 @@ bool RectTransformComponent::Initialize() {
 		return false;
 	}
 	m_EntityMapper.SetComponentMapping(RootEntry);
+
+
 
 	return true;
 }
@@ -246,24 +251,21 @@ bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
-	static Renderer::VirtualCamera vcam;
 	if (!m_Shader) {
 		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw.default", m_Shader)) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}
-		auto &entry = m_Array[0];
-		auto &rb = entry.m_ScreenRect;
-		vcam.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y);
+
 	}
 
-	if (!m_Shader)
+//	if (!m_Shader)
 		return;
 
 	auto cs = dev.CurrentShader();
 
 	dev.Bind(m_Shader);
-	dev.Bind(&vcam);
+	dev.Bind(&m_Camera);
 	dev.SetModelMatrix(math::mat4());
 	dev.BindNullMaterial();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);

@@ -101,12 +101,14 @@ public:
 	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
 
 	bool IsUniformMode() const { return m_Flags.m_Map.m_UniformMode; }
+	const Renderer::VirtualCamera& GetCamera() const { return m_Camera; }
 
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformSettingsFlagsMap m_Flags;
 	Configuration::RuntimeRevision m_CurrentRevision;
 	Point m_ScreenSize;
+	Renderer::VirtualCamera m_Camera;
 
 //debug:
 protected:
