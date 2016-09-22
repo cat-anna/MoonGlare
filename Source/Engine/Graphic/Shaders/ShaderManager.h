@@ -25,10 +25,12 @@ public:
 		return GetShader(Name, Shader::GetStaticTypeInfo()->GetName());
 	} 
 
-	Shader *GetShader(const string &Name, const char* ClassName) {
+	using ShaderCreateFunc = Shader*(*)(GLuint ShaderProgram, const std::string &ProgramName);
+
+	Shader *GetShader(const string &Name, const char* ClassName, ShaderCreateFunc CreateFunc = nullptr) {
 		auto &shdef = m_Shaders[Name];
 		if (!shdef.ShaderPtr)
-			return LoadShader(shdef, Name, ClassName);
+			return LoadShader(shdef, Name, CreateFunc, ClassName);
 		return shdef.ShaderPtr;
 	} 
 
@@ -40,6 +42,17 @@ public:
 	template<class T>
 	bool GetSpecialShader(const string &Name, T *&t) {
 		t = static_cast<T*>(GetShader(Name, T::GetStaticTypeInfo()->GetName()));
+		return t != nullptr;
+	}
+
+	template<class T>
+	bool GetSpecialShaderType(const string &Name, T *&t) {
+		struct S {
+			static Shader* f(GLuint ShaderProgram, const std::string &ProgramName) {
+				return new T(ShaderProgram, ProgramName);
+			}
+		};
+		t = static_cast<T*>(GetShader(Name, "", &S::f));
 		return t != nullptr;
 	}
 
@@ -75,7 +88,7 @@ private:
 	unsigned m_Flags;
 	std::unordered_map<string, ShaderDefinition> m_Shaders;
 
-	Shader* LoadShader(ShaderDefinition &sd, const string &Name, const string& Class);
+	Shader* LoadShader(ShaderDefinition &sd, const string &Name, ShaderCreateFunc CreateFunc, const string& Class);
 
 	ShaderDefinition* LoadShaderGlsl(ShaderDefinition &sd, const string &Name, const xml_node definition);
 	ShaderDefinition* LoadShaderGlfx(ShaderDefinition &sd, const string &Name, const xml_node definition);
