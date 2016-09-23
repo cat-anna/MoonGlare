@@ -225,10 +225,6 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 				Graphic::vec3(0, 0, 0),
 			};
 			Graphic::NormalVector Normals;
-			float w1 = 0.0f;
-			float h1 = 0.0f;
-			float w2 = w1 + 1.0f;
-			float h2 = h1 + 1.0f;
 			Graphic::TexCoordVector TexUV;
 
 			Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };

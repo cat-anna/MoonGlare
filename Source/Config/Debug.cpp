@@ -153,7 +153,7 @@ void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 		dev.CurrentShader()->SetBackColor(math::vec3(1));
 
 		auto size = math::fvec2(dev.GetContextSize());
-		glViewport(0, 0, size[0], size[1]);
+		glViewport(0, 0, (int)size[0], (int)size[1]);
 		 
 		if (!TextureInstrospector.Initialized) {
 			TextureInstrospector.Initialized = true;

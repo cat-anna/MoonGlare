@@ -107,23 +107,38 @@ void ApiInit::Initialize(ScriptEngine *s) {
 		else
 			AddLog(Debug, "Registering independent api in namespace " << where);
 #endif // 0
-		if (where)
-			it.func(s->GetApiInitializer().beginNamespace(where));
-		else
-			it.func(s->GetApiInitializer());
+		if (where) {
+			auto l = s->GetApiInitializer().beginNamespace(where);
+			it.func(l);
+		} else {
+			auto l = s->GetApiInitializer();
+			it.func(l);
+		}
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 		++ApiInitFunctionsRun;
 #endif
 	}
 
 	for(auto *it : *MoonGlare::GetModulesManager()->GetModuleList()) {
-		it->RegisterModuleApi(s->GetApiInitializer().beginNamespace("Module").beginNamespace(it->GetName()));
-		it->RegisterInternalApi(s->GetApiInitializer().beginNamespace("api").beginNamespace(it->GetName()));
+		{
+			auto l = s->GetApiInitializer();
+			auto l2 = l.beginNamespace("Module");
+			auto l3 = l2.beginNamespace(it->GetName());
+			it->RegisterModuleApi(l3);
+		}
+		{
+			auto l = s->GetApiInitializer();
+			auto l2 = l.beginNamespace("api");
+			auto l3 = l2.beginNamespace(it->GetName());
+			it->RegisterInternalApi(l3);
+		}
 
 		ApiInitFunctionsRun += 2;
 	}
-
-	ApiInitFunctionsRun += MoonGlare::Core::Component::ComponentRegister::RegisterComponentApi(s->GetApiInitializer());
+	{
+		auto l = s->GetApiInitializer();
+		ApiInitFunctionsRun += MoonGlare::Core::Component::ComponentRegister::RegisterComponentApi(l);
+	}
 
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	AddLogf(Performance, "Executed %d api init functions.", ApiInitFunctionsRun);

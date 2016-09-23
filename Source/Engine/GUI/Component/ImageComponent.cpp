@@ -114,8 +114,6 @@ bool ImageComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void ImageComponent::Step(const Core::MoveConfig & conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
 	auto QueueSavePoint = Queue.GetSavePoint();
 	bool QueueDirty = false;
