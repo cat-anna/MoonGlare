@@ -45,83 +45,83 @@ struct PanelShader : public ::Graphic::Shader {
 	GLint m_PanelBorderLocation;
 	GLint m_TileModeLocation;
 
-	void Bind(Renderer::CommandQueue &Queue) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>()->m_Shader = Handle();
+	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
+		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
 	}
-	void SetModelMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & mat) {
-		auto loc = Location(ShaderParameters::ModelMatrix);
-		if (!IsValidLocation(loc))
-			return;
+	//void SetModelMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & mat) {
+	//	auto loc = Location(ShaderParameters::ModelMatrix);
+	//	if (!IsValidLocation(loc))
+	//		return;
+	//
+	//	auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+	//	arg->m_Location = loc;
+	//	arg->m_Matrix = mat;
+	//}
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
-		arg->m_Location = loc;
-		arg->m_Matrix = mat;
-	}
-
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
+	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
 		auto loc = Location(ShaderParameters::WorldMatrix);
 		if (!IsValidLocation(loc))
 			return;
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
 		arg->m_Location = loc;
 		arg->m_Matrix = CameraMat * ModelMat;
 	}
-	void SetColor(Renderer::CommandQueue &Queue, const math::vec4 &color) {
+	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
 		auto loc = Location("gBaseColor");
 		if (!IsValidLocation(loc))
 			return;
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>();
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
 		arg->m_Location = loc;
 		arg->m_Vec = color;
 	}
 
-	void SetPanelSize(Renderer::CommandQueue &Queue, const Point &Size) {
+	void SetPanelSize(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const Point &Size) {
 		if (IsValidLocation(m_PanelAspectLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
 			arg->m_Location = m_PanelAspectLocation;
 			arg->m_Float = Size[0] / Size[1];
 		}
 
 		if (IsValidLocation(m_PanelSizeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>();
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>(key);
 			arg->m_Location = m_PanelSizeLocation;
 			*((Point*)(&arg->m_Vec)) = Size;
 		}
 	}
-	void SetBorder(Renderer::CommandQueue &Queue, float Border) {
+	void SetBorder(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, float Border) {
 		if (IsValidLocation(m_PanelBorderLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>();
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
 			arg->m_Location = m_PanelBorderLocation;
 			arg->m_Float = Border;
 		}
 	}
-	void SetTileMode(Renderer::CommandQueue &Queue, const glm::ivec2 &mode) {
+	void SetTileMode(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::ivec2 &mode) {
 		if (IsValidLocation(m_TileModeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>();
+			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>(key);
 			arg->m_Location = m_TileModeLocation;
 			*((glm::ivec2*)(&arg->m_Vec)) = mode;
 		}
 	}
 
-	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
-		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
-	}
+//	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
+//		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
+//	}
 
-	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
-		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
-	}
-	void VAORelease(Renderer::CommandQueue &Queue) {
-		Queue.PushCommand<Renderer::Commands::VAORelease>();
-	}
+//	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
+//		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
+//	}
+//	void VAORelease(Renderer::CommandQueue &Queue) {
+//		Queue.PushCommand<Renderer::Commands::VAORelease>();
+//	}
 
-	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
-		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
-	}
-	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
-		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
-	}
+//	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
+//		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
+//	}
+//	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
+//		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
+//	}
 };
 
 //---------------------------------------------------------------------------------------
@@ -185,10 +185,10 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	}
 
 	if (m_Shader) {
-		m_Shader->Bind(Queue);
-		
-		m_Shader->Enable(Queue, GL_BLEND);
-		m_Shader->Disable(Queue, GL_CULL_FACE);
+	//	m_Shader->Bind(Queue);
+	//	m_Shader->Enable(Queue, GL_BLEND);
+	//	m_Shader->Enable(Queue, GL_DEPTH_TEST);
+	//	m_Shader->Disable(Queue, GL_CULL_FACE);
 
 		CanRender = true;
 	}
@@ -238,18 +238,21 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 		if (!CanRender)
 			continue;
 
-		//Graphic::GetRenderDevice()->Bind(m_Shader);
-		m_Shader->SetWorldMatrix(Queue, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
-		
-		m_Shader->SetPanelSize(Queue, rtentry->m_ScreenRect.GetSize());
-		m_Shader->SetBorder(Queue, item.m_Border);
-		m_Shader->SetColor(Queue, item.m_Color);
-		m_Shader->SetTileMode(Queue, item.m_TileMode);
-		
-		m_Shader->TextureBind(Queue, item.m_Texture->Handle());
-		m_Shader->VAOBind(Queue, item.m_VAO.Handle());
+		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>();
+		m_Shader->Bind(Queue, key);
+
+		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		
+		m_Shader->SetPanelSize(Queue, key, rtentry->m_ScreenRect.GetSize());
+		m_Shader->SetBorder(Queue, key, item.m_Border);
+		m_Shader->SetColor(Queue, key, item.m_Color);
+		m_Shader->SetTileMode(Queue, key, item.m_TileMode);
+
+		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
+		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
+
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 		arg->m_NumIndices = 6;
 		arg->m_IndexValueType = GL_UNSIGNED_INT;
 
