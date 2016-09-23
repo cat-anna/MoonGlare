@@ -173,6 +173,11 @@ void Engine::EngineMain() {
 		DoMove(conf);
 
 		float MoveTime = static_cast<float>(glfwGetTime());
+
+		conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Sort();
+
+		float SortTime = static_cast<float>(glfwGetTime());
+
 		DoRender(conf);
 
 		float RenderTime = static_cast<float>(glfwGetTime());
@@ -189,10 +194,11 @@ void Engine::EngineMain() {
 			m_FrameCounter = 0;
 			float sum = EndTime - StartTime;
 			//if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
-				sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f", 
+				sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f", 
 						CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames, 
 						(MoveTime - StartTime) * 1000.0f,
-						(RenderTime - MoveTime) * 1000.0f,
+						(SortTime - MoveTime) * 1000.0f,
+						(RenderTime - SortTime) * 1000.0f,
 						(EndTime - RenderTime) * 1000.0f,
 						(sum) * 1000.0f,
 						(sum / m_FrameTimeSlice) * 100.0f

@@ -34,6 +34,9 @@ struct VirtualCamera {
 	void SetOrthogonalRect(float left, float top, float right, float bottom) {
 		m_ProjectionMatrix = glm::ortho(left, right, bottom, top);
 	}
+	void SetOrthogonalRect(float left, float top, float right, float bottom, float Near, float Far) {
+		m_ProjectionMatrix = glm::ortho(left, right, bottom, top, Near, Far);
+	}
 	void SetDefaultPerspective(const math::fvec2 &ScreenSize) {
 		SetPerspective(ScreenSize[0] / ScreenSize[1]);
 	}

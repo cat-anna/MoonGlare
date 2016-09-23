@@ -4,6 +4,13 @@ uniform sampler2D Texture0;
 
 uniform vec4 gBaseColor;
 
+vec4 ProcessBaseColor(vec4 fragment)
+{
+	fragment *= gBaseColor.a;
+	fragment.xyz = fragment.xyz * gBaseColor.xyz;
+	return fragment;
+}
+
 //---------------------------------------------------------------------------------------
 
 uniform vec2 gPanelSize;
@@ -61,9 +68,7 @@ shader PanelFSmain(in PanelVSOutput FSin, out vec4 FragColor) {
 	tex.x = ProcessTile(posin.x, gTileMode.x, gPanelBorder / gPanelAspect);
 	tex.y = ProcessTile(posin.y, gTileMode.y, gPanelBorder);
 
-	FragColor = vec4(texture2D(Texture0, tex));
-	FragColor.xyz = FragColor.xyz * gBaseColor.xyz;
-	FragColor *= gBaseColor.a;
+	FragColor = ProcessBaseColor(vec4(texture2D(Texture0, tex)));
 };
 
 program Panel {
@@ -86,9 +91,7 @@ shader ImageVSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, out ImageVSOutput VSou
 
 shader ImageFSmain(in ImageVSOutput FSin, out vec4 FragColor) {
 	vec2 tex = FSin.VertexUV0;
-	FragColor = vec4(texture2D(Texture0, tex));
-	FragColor.xyz = FragColor.xyz * gBaseColor.xyz;
-	FragColor *= gBaseColor.a;
+	FragColor = ProcessBaseColor(vec4(texture2D(Texture0, tex)));
 };
 
 program Image {

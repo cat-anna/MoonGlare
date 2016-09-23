@@ -361,7 +361,7 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
 UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentID cid) {
 	auto it = ComponentInfoMap.find(cid);
 	if (it == ComponentInfoMap.end()) {
-		AddLog(Error, "Unknown component id: %d", (int)cid);
+		AddLogf(Error, "Unknown component id: %d", (int)cid);
 		return nullptr;
 	}
 

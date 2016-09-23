@@ -36,43 +36,36 @@ struct ImageShader : public ::Graphic::Shader {
 
 	GLint m_BaseColorLocation;
 
-	void Bind(Renderer::CommandQueue &Queue) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>()->m_Shader = Handle();
+	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
+		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
 	}
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
+	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
 		auto loc = Location(ShaderParameters::WorldMatrix);
 		if (!IsValidLocation(loc))
 			return;
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
 		arg->m_Location = loc;
 		arg->m_Matrix = CameraMat * ModelMat;
 	}
-	void SetColor(Renderer::CommandQueue &Queue, const math::vec4 &color) {
+	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
 		if (!IsValidLocation(m_BaseColorLocation))
 			return;
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>();
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
 		arg->m_Location = m_BaseColorLocation;
 		arg->m_Vec = color;
 	}
 
-	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
-		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
-	}
-
-	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
-		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
-	}
-	void VAORelease(Renderer::CommandQueue &Queue) {
-		Queue.PushCommand<Renderer::Commands::VAORelease>();
-	}
+	//void VAORelease(Renderer::CommandQueue &Queue) {
+	//	Queue.PushCommand<Renderer::Commands::VAORelease>();
+	//}
 
 	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
-		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
+		Queue.PushCommand<Renderer::Commands::Enable>(Renderer::RendererConf::CommandKey{ 0 })->m_What = what;
 	}
 	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
-		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
+		Queue.PushCommand<Renderer::Commands::Disable>(Renderer::RendererConf::CommandKey{ 0 })->m_What = what;
 	}
 };
 
@@ -136,10 +129,9 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 	}
 
 	if (m_Shader) {
-		m_Shader->Bind(Queue);
 
 		m_Shader->Enable(Queue, GL_BLEND);
-		m_Shader->Disable(Queue, GL_DEPTH_TEST);
+		m_Shader->Enable(Queue, GL_DEPTH_TEST);
 		m_Shader->Disable(Queue, GL_CULL_FACE);
 
 		CanRender = true;
@@ -172,14 +164,18 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 		if (!CanRender)
 			continue;
+		
+		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		m_Shader->SetWorldMatrix(Queue, item.m_ImageMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
-		m_Shader->SetColor(Queue, item.m_Color);
+		m_Shader->Bind(Queue, key);
 
-		m_Shader->TextureBind(Queue, item.m_Animation->GetTexture()->Handle());
-		m_Shader->VAOBind(Queue, item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle());
+		m_Shader->SetWorldMatrix(Queue, key, item.m_ImageMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetColor(Queue, key, item.m_Color);
 
-		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>();
+		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
+		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
+
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 		arg->m_NumIndices = 6;
 		arg->m_IndexValueType = GL_UNSIGNED_INT;
 
@@ -196,6 +192,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		TrivialReleaseElement(LastInvalidEntry);
 	}
+//	AddLogf(Hint, "done");
 }
 
 //---------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 namespace MoonGlare {
 namespace Renderer {
 
-class CommandQueue;
+struct CommandQueue;
 class RenderDevice;
 
 } //namespace Renderer 
