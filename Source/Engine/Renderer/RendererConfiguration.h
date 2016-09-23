@@ -13,6 +13,16 @@ struct Renderer {
 			BytesPerCommand			= ArgumentMemoryBuffer / CommandLimit,
 		};
 	};
+
+	union CommandKey {
+		uint16_t m_UIntValue;
+		struct {
+		//	uint32_t m_Ptr;
+			uint16_t m_Order;
+		} m_Details;
+	};
+
+	static_assert(sizeof(CommandKey) == sizeof(CommandKey::m_UIntValue), "CommandKey has invalid size!");
 };
 
 } //namespace Configuration 

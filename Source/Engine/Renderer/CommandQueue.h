@@ -24,27 +24,43 @@ struct CommandQueue final {
 	const CommandQueue& operator = (const CommandQueue&&) = delete;
  	~CommandQueue() { }
 
-	size_t CommandsCapacity() const { return RendererConf::CommandQueue::CommandLimit; }
-	size_t CommandsAllocated() const { return m_AllocatedMemory; }
-	size_t MemoryCapacity() const { return RendererConf::CommandQueue::ArgumentMemoryBuffer; }
-	size_t MemoryAllocated() const { return m_AllocatedMemory; }
+	uint32_t CommandsCapacity() const { return RendererConf::CommandQueue::CommandLimit; }
+	uint32_t CommandsAllocated() const { return m_AllocatedMemory; }
+	uint32_t MemoryCapacity() const { return RendererConf::CommandQueue::ArgumentMemoryBuffer; }
+	uint32_t MemoryAllocated() const { return m_AllocatedMemory; }
 
 	bool IsEmpty() const { return CommandsAllocated() == 0; }
 	bool IsFull() const { return CommandsAllocated() >= CommandsCapacity(); }
 
+	void SortExecuteClear() {
+		Sort();
+		Execute();
+	}
 	void Execute(bool Clear = true) {
-		for (size_t it = 0; it < m_AllocatedCommands; ++it) {
-			m_CommandFunctions[it](m_CommandArguments[it]);
+		for (uint32_t it = 0; it < m_AllocatedCommands; ++it) {
+			auto f = m_CommandFunctions[it];
+			auto a = m_CommandArguments[it];
+			f(a);
 		}
 		if (Clear) 
 			ClearAllocation();
 	}
 
 	void MemZero() { memset(this, 0, sizeof(*this)); }
-	void ClearAllocation() { m_AllocatedCommands = m_AllocatedMemory = 0; }
+	void ClearAllocation() { 
+		m_AllocatedCommands = m_CommandsPreamble;
+		m_AllocatedMemory = m_MemoryPreamble; 
+	}
+
+	void Sort() {
+		if (!IsEmpty()) {
+			m_SortKeys[m_AllocatedCommands].m_UIntValue = 0xFFFF;
+			SortBegin(static_cast<int>(m_CommandsPreamble), static_cast<int>(m_AllocatedCommands));
+		}
+	}
 
 	template<typename CMD>
-	typename CMD::Argument* PushCommand() {
+	typename CMD::Argument* PushCommand(RendererConf::CommandKey SortKey) {
 		auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
 		if (IsFull() || !argptr) {
 			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
@@ -56,13 +72,24 @@ struct CommandQueue final {
 
 		m_CommandFunctions[index] = CMD::GetFunction();
 		m_CommandArguments[index] = argptr;
+		//SortKey.m_Details.m_Order = (uint16_t)SortKey.m_Details.m_Ptr;
+		//SortKey.m_Details.m_Ptr = (uint32_t)argptr;
+		m_SortKeys[index] = SortKey;
 
 		return argptr;
 	}
 
+//	template<typename CMD>
+//	typename CMD::Argument* PushCommand() { return PushCommand<CMD>(RendererConf::CommandKey{ 0 }); }
+
+	void SetQueuePreamble() {
+		m_CommandsPreamble = m_AllocatedCommands;
+		m_MemoryPreamble = m_AllocatedMemory;
+	}
+
 	struct RollbackPoint {
-		size_t m_CommandCount;
-		size_t m_MemoryUsed;
+		uint32_t m_CommandCount;
+		uint32_t m_MemoryUsed;
 	};
 
 	//unsafe; Rolling-back has to be used carefully
@@ -73,7 +100,7 @@ private:
 	template<typename T> using Array = std::array<T, RendererConf::CommandQueue::CommandLimit>;
 
 	template<typename T>
-	T* AllocateMemory(size_t size) {
+	T* AllocateMemory(uint32_t size) {
 		if (m_AllocatedMemory + size >= MemoryCapacity())
 			return nullptr;
 
@@ -82,13 +109,17 @@ private:
 		return ptr;
 	}
 	
-	size_t m_AllocatedCommands;
-	size_t m_AllocatedMemory;
+	uint32_t m_AllocatedCommands;
+	uint32_t m_AllocatedMemory;
+	uint32_t m_CommandsPreamble;
+	uint32_t m_MemoryPreamble;
 
 	Array<CommandFunction> m_CommandFunctions;
 	Array<void*> m_CommandArguments;
-
 	std::array<uint8_t, RendererConf::CommandQueue::ArgumentMemoryBuffer> m_Memory;
+	Array<RendererConf::CommandKey> m_SortKeys;
+
+	void SortBegin(int first, int last);
 };
 
 } //namespace Renderer 

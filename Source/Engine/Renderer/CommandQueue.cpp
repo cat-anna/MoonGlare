@@ -15,5 +15,57 @@ namespace Renderer {
 
 ::Space::RTTI::TypeInfoInitializer<CommandQueue> CommandQueueTypeInfo;
 
+void CommandQueue::SortBegin(int first, int last) {
+	if (first == last)
+		return;
+
+	int left = first;
+	int right = last;
+	int pivot = left++;
+
+	auto pivotkey = m_SortKeys[pivot];
+	auto pivotptr = m_CommandArguments[pivot];
+
+	auto Comp = [this, pivotkey, pivotptr](int a, int) -> bool {
+		auto ak = m_SortKeys[a];
+		auto bk = pivotkey;// m_SortKeys[b];
+		if (ak.m_UIntValue == bk.m_UIntValue) {
+			return m_CommandArguments[a] < pivotptr;
+		}
+		return ak.m_UIntValue < bk.m_UIntValue;
+	};
+
+	auto Comp2 = [this, pivotkey, pivotptr](int, int b) -> bool {
+		auto ak = pivotkey;
+		auto bk = m_SortKeys[b];// m_SortKeys[b];
+		if (ak.m_UIntValue == bk.m_UIntValue) {
+			return pivotptr < m_CommandArguments[b];
+		}
+		return ak.m_UIntValue < bk.m_UIntValue;
+	};
+
+	auto swap = [this](int a, int b) {
+		std::swap(m_CommandFunctions[a], m_CommandFunctions[b]);
+		std::swap(m_CommandArguments[a], m_CommandArguments[b]);
+		std::swap(m_SortKeys[a], m_SortKeys[b]);
+	};
+
+	while (left != right) {
+		if (Comp(left, pivot)) {
+			++left;
+		} else {
+			while ((left != right) && Comp2(pivot, right))
+				--right;
+			swap(left, right);
+		}
+	}
+
+	--left;
+	swap(pivot, left);
+
+	SortBegin(first, left);
+	SortBegin(right, last);
+}
+
 } //namespace Renderer 
 } //namespace MoonGlare 
