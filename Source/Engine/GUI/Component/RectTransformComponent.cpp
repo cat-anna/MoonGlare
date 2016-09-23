@@ -79,15 +79,7 @@ bool RectTransformComponent::Initialize() {
 	RootEntry.m_LocalMatrix = math::mat4();
 
 	auto &rb = RootEntry.m_ScreenRect;
-	m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y);
-
-//	RootEntry.m_GlobalMatrix = math::mat4();
-//	RootEntry.m_LocalScale = Physics::vec3(1, 1, 1);
-//	RootEntry.m_GlobalScale = Physics::vec3(1, 1, 1);
-//	RootEntry.m_Revision = m_CurrentRevision;
-//	RootEntry.m_LocalTransform.setOrigin(Physics::vec3(0, 0, 0));
-//	RootEntry.m_LocalTransform.setRotation(Physics::Quaternion(0, 0, 0, 1));
-//	RootEntry.m_GlobalTransform = RootEntry.m_LocalTransform;
+	m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y, -100.0f, 100.0f);
 
 	if (!GetHandleTable()->Allocate(this, RootEntry.m_OwnerEntity, RootEntry.m_SelfHandle, index)) {
 		AddLog(Error, "Failed to allocate root handle");
@@ -95,8 +87,6 @@ bool RectTransformComponent::Initialize() {
 		return false;
 	}
 	m_EntityMapper.SetComponentMapping(RootEntry);
-
-
 
 	return true;
 }
@@ -203,6 +193,10 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Margin = rte.m_Margin;
 	entry.m_Position = rte.m_Position;
 	entry.m_Size = rte.m_Size;
+
+	int32_t rawz = static_cast<uint32_t>(rte.m_Z);
+	rawz += static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2;
+	entry.m_Z = static_cast<uint16_t>( rawz );
 
 	if (rte.m_UniformMode != m_Flags.m_Map.m_UniformMode) {
 		auto &root = GetRootEntry();

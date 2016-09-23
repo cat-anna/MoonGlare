@@ -93,6 +93,12 @@ Structure.new {
 			type = bool,
 			default = true,
 		},
+		{
+			name = "Z",
+			description = "",
+			type = s16,
+			default = 0,
+		},
 	},
 }
 

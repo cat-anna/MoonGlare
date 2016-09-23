@@ -42,8 +42,9 @@ struct RectTransformComponentEntry {
 	RectTransformComponentEntryFlagsMap m_Flags;
 
 	AlignMode m_AlignMode;
-	Point m_Position;
-	Point m_Size;
+	uint16_t m_Z;
+	Point m_Position;				//not pod
+	Point m_Size;					//not pod
 //	Point m_Scale;
 	Margin m_Margin;				//not pod
 
