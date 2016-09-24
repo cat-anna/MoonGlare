@@ -99,6 +99,12 @@ Structure.new {
 			type = s16,
 			default = 0,
 		},
+		{
+			name = "Visible",
+			description = "",
+			type = bool,
+            default = true,
+		},
 	},
 }
 

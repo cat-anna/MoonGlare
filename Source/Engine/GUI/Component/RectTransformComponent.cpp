@@ -194,6 +194,8 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Position = rte.m_Position;
 	entry.m_Size = rte.m_Size;
 
+	entry.m_Flags.m_Map.m_Visible = rte.m_Visible;
+
 	int32_t rawz = static_cast<uint32_t>(rte.m_Z);
 	rawz += static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2;
 	entry.m_Z = static_cast<uint16_t>( rawz );
@@ -253,7 +255,7 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 
 	}
 
-//	if (!m_Shader)
+	if (!m_Shader)
 		return;
 
 	auto cs = dev.CurrentShader();
