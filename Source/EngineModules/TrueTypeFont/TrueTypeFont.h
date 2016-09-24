@@ -21,7 +21,7 @@ public:
  	TrueTypeFont(const string& Name);
  	virtual ~TrueTypeFont();
 
-	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr) const override;
+	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 protected:
 	bool DoInitialize() override;
 	bool DoFinalize() override;

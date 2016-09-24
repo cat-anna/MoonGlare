@@ -10,6 +10,12 @@
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
 
+//#include <Renderer/Commands/ControllCommands.h>
+//#include <Renderer/Commands/ShaderCommands.h>
+#include <Renderer/Commands/TextureCommands.h>
+#include <Renderer/Commands/ArrayCommands.h>
+#include <Renderer/RenderInput.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace BitmapFont {
@@ -74,7 +80,7 @@ bool BitmapFont::DoFinalize(){
 
 //----------------------------------------------------------------
 
-FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor *style) const {
+FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
 	if (text.empty() || !IsReady()) {
 		return FontInstance(new EmptyWrapper());
 	}
@@ -85,9 +91,12 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	std::vector<unsigned> Index;
 	Coords.reserve(textlen * 4);
 	UVs.reserve(textlen * 4);
-	Index.reserve(textlen * 4);
+	Index.reserve(textlen * 6);
 
 	Graphic::VAO::MeshData mesh;
+
+	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+	float Aspect = ScreenSize[0] / ScreenSize[1];
 
 	float y = 0/*, z = Pos.z*/;
 	float h = static_cast<float>(m_BFD.CharWidth), w;
@@ -100,6 +109,8 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	float Cy = m_BFD.Height / static_cast<float>(m_BFD.CharHeight);
 	float dw = 1 / Cx;
 	float dh = 1 / Cy;
+
+	Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
 
 	auto cstr = text.c_str();
 	while (*cstr) {
@@ -132,20 +143,27 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 			math::fvec2(u + dw,	v - dh),
 		};
 
+		size_t basevertex = Coords.size();
 		for (int i = 0; i < 4; ++i){
-			Coords.push_back(vertex[i]);
+			if (UniformPosition) {
+				Coords.push_back(vertex[i] / math::fvec3(ScreenSize, 1.0f) * math::fvec3(Aspect * 2.0f, 2.0f, 0.0f));
+			} else
+				Coords.push_back(vertex[i]);
 			UVs.push_back(uv[i]);
-			Index.push_back(Index.size());
+		//	Index.push_back(Index.size());
 		}
+
+		for(auto idx: BaseIndex) 
+			Index.push_back(idx + basevertex);
 
 		x += (m_BFD.KeyWidths[kid] + 1) * w_mult;
 	}
 
 	auto wr = new BitmapFontWrapper(this);
 	wr->m_size = math::vec2(x, h);
-	mesh.ElementMode = Graphic::Flags::fQuads;
+	mesh.ElementMode = Graphic::Flags::fTriangles;
 	mesh.NumIndices = Index.size();
-	wr->m_Meshes.push_back(mesh);
+	wr->m_Mesh = mesh;
 
 	Graphic::NormalVector Normals;
 	wr->m_VAO.DelayInit(Coords, UVs, Normals, Index);
@@ -171,17 +189,29 @@ BitmapFontWrapper::BitmapFontWrapper(const BitmapFont *font):
 
 BitmapFontWrapper::~BitmapFontWrapper() {
 	m_VAO.Finalize();
-	m_Meshes.clear();
 }
  
 void BitmapFontWrapper::Render(Graphic::cRenderDevice &dev) {
 	dev.CurrentShader()->SetBackColor(m_Color);
 	m_Texture->Bind();
-	m_VAO.RenderMesh(m_Meshes);
+	m_VAO.Bind();
+	m_VAO.DrawElements(m_Mesh);
 }
 
 void BitmapFontWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
-	m_VAO.RenderMesh(m_Meshes);
+	m_VAO.Bind();
+	m_VAO.DrawElements(m_Mesh);
+}
+
+void BitmapFontWrapper::GenerateCommands(Renderer::CommandQueue & Queue, uint16_t key) {
+	Renderer::RendererConf::CommandKey qkey{ key };
+
+	Queue.PushCommand<Renderer::Commands::Texture2DBind>(qkey)->m_Texture = m_Texture->Handle();
+	Queue.PushCommand<Renderer::Commands::VAOBind>(qkey)->m_VAO = m_VAO.Handle();
+
+	auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(qkey);
+	arg->m_NumIndices = m_Mesh.NumIndices;
+	arg->m_IndexValueType = GL_UNSIGNED_INT;
 }
 
 //----------------BitmapFont::cBFDHeader-------------------------------------------------------------
