@@ -1,5 +1,4 @@
 Import "ComponentCommon.x2c"
-Import "RectTransformComponent.x2c"
 
 namespace "MoonGlare.x2c.Component.PanelComponent"
 

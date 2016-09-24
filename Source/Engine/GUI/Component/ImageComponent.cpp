@@ -121,7 +121,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 	if (!m_Shader) {
 		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<ImageShader>("GUI.Image", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Panel shader");
+			AddLogf(Error, "Failed to load GUI.Image shader");
 			return;
 		}
 	}
@@ -190,7 +190,6 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		TrivialReleaseElement(LastInvalidEntry);
 	}
-//	AddLogf(Hint, "done");
 }
 
 //---------------------------------------------------------------------------------------
