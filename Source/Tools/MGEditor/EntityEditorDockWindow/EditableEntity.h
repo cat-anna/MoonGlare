@@ -11,6 +11,10 @@
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
+#include <TypeEditor/x2cDataTree.h>
+#include <TypeEditor/Structure.h>
+#include <TypeEditor/ComponentInfo.h>
+
 namespace MoonGlare {
 namespace Editor {
 namespace EntityEditor {
@@ -78,209 +82,33 @@ public:
 class EditableChild
 	: public EditableEntity {
 public:
-	EditableChild(EditableEntity *Parent);
-protected:
+	EditableChild(EditableEntity *Parent) : EditableEntity(Parent) { }
 };
 
 //----------------------------------------------------------------------------------
 
-struct ComponentInfo {
-	MoonGlare::Core::ComponentID m_CID;
-	UniqueEditableComponent (*m_CreteFunc)(EditableEntity *Parent, const ComponentInfo *cInfo);
-	std::string m_Name;
-};
-extern const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentInfoMap;
-
-class EditableComponentValue {
-public:
-	virtual ~EditableComponentValue() { }
-
-	virtual const std::string& GetName() = 0;
-	virtual std::string GetValue() = 0;
-	virtual void SetValue(const std::string& v) = 0;
-	virtual const std::string& GetDescription() = 0;
-	virtual const std::string& GetTypeName() = 0;
-};
-
-using UniqueEditableComponentValue = std::unique_ptr<EditableComponentValue>;
-using EditableComponentValueList = std::vector<UniqueEditableComponentValue>;
-
 class EditableComponent {
 public:
-	EditableComponent(EditableEntity *Parent, const ComponentInfo *cInfo);
-	virtual ~EditableComponent();
+	EditableComponent::EditableComponent(EditableEntity *Parent, TypeEditor::SharedComponentInfo cInfo, TypeEditor::UniqueStructure x2cs)
+		: m_ComponentInfo(cInfo) {
+		m_Parent = Parent;
+		m_Data.swap(x2cs);
+		m_Data->SetName(m_ComponentInfo->m_Name);
+	}
+	~EditableComponent() { }
 
-	virtual EditableComponentValueList& GetValues() = 0;
-	virtual bool Read(pugi::xml_node node) = 0;
-	virtual bool Write(pugi::xml_node node) = 0;
-
-	virtual const std::string& GetName() = 0;
+	const TypeEditor::StructureValueList& GetValues() { return m_Data->GetValues(); }
+	bool Read(pugi::xml_node node) { return m_Data->Read(node); }
+	bool Write(pugi::xml_node node) {  return m_Data->Write(node); }
+	const std::string& GetName() { return m_Data->GetName(); }
 
 	static UniqueEditableComponent CreateComponent(EditableEntity *Parent, pugi::xml_node node);
 	static UniqueEditableComponent CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentID cid);
 protected:
 	EditableEntity *m_Parent;
-	const ComponentInfo *m_ComponentInfo;
+	TypeEditor::SharedComponentInfo m_ComponentInfo;
+	TypeEditor::UniqueStructure m_Data;
 };
-
-#ifdef _X2C_IMPLEMENTATION_
-template<typename X2CLASS>
-class X2CEditableStructure : public EditableComponent {
-public:
-	struct EditableValue : public EditableComponentValue {
-		virtual const std::string& GetName() override { return m_Name; }
-		virtual std::string GetValue() override {
-			std::string v;
-			m_Read(v);
-			return std::move(v);
-		}
-		virtual void SetValue(const std::string& v) override { m_Write(v); }
-		virtual const std::string& GetDescription() override  { return m_Description; }
-		virtual const std::string& GetTypeName() override { return m_Type; }
-
-		std::function<void(std::string &output)> m_Read;
-		std::function<void(const std::string &input)> m_Write;
-		std::string m_Name;
-		std::string m_Description;
-		std::string m_Type;
-	};
-
-	X2CEditableStructure(EditableEntity *Parent, const ComponentInfo *cInfo):
-			EditableComponent(Parent, cInfo) {
-		m_Value.ResetToDefault();
-
-		::x2c::cxxpugi::StructureMemberInfoTable members;
-		std::unordered_map<std::string, std::function<void(X2CLASS &self, const std::string &input)>> WriteFuncs;
-		std::unordered_map<std::string, std::function<void(const X2CLASS &self, std::string &output)>> ReadFuncs;
-
-		m_Value.GetMemberInfo(members);
-		m_Value.GetWriteFuncs(WriteFuncs);
-		m_Value.GetReadFuncs(ReadFuncs);
-		m_Values.reserve(members.size());
-		for (auto &member : members) {
-			auto ptr = std::make_unique<EditableValue>();
-			ptr->m_Name = member.m_Name;
-			ptr->m_Description = member.m_Description;
-			ptr->m_Type = member.m_TypeName;
-
-			auto read = ReadFuncs[member.m_Name];
-			auto write = WriteFuncs[member.m_Name];
-
-			X2CLASS &value = m_Value;
-			ptr->m_Read = [&value, read](std::string &out) {
-				read(value, out);
-			};
-			ptr->m_Write = [&value, write](const std::string &out) {
-				write(value, out);
-			};
-			m_Values.emplace_back(UniqueEditableComponentValue(ptr.release()));
-		}
-	}
-	~X2CEditableStructure() {
-	}
-
-	virtual EditableComponentValueList& GetValues() { return m_Values; }
-	virtual bool Read(pugi::xml_node node) {
-		return m_Value.Read(node);
-	}
-	virtual bool Write(pugi::xml_node node) {
-		auto selfnode = node.append_child("Component");
-		selfnode.append_attribute("Name") = m_ComponentInfo->m_Name.c_str();
-		return m_Value.Write(selfnode);
-	}
-	virtual const std::string& GetName() {
-		return m_ComponentInfo->m_Name;
-	}
-private:
-	EditableComponentValueList m_Values;
-	X2CLASS m_Value;
-};
-#endif
-
-//----------------------------------------------------------------------------------
-
-class CustomTypeEditor {
-public:
-	virtual ~CustomTypeEditor() {}
-	virtual void SetValue(const std::string &in) = 0;
-	virtual std::string GetValue() = 0;
-	virtual QWidget *GetWidget() { return dynamic_cast<QWidget*>(this); }
-};
-
-class TypeInfo {
-public:
-	virtual ~TypeInfo() { }
-	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) = 0;
-	virtual std::string ToDisplayText(const std::string &in) = 0;
-};
-
-template<class EDITOR>
-struct TemplateTypeInfo : public TypeInfo {
-	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) override {
-		return new EDITOR(Parent);
-	};
-	virtual std::string ToDisplayText(const std::string &in) override {
-		return EDITOR::ToDisplayText(in);
-	}
-};
-
-extern const std::unordered_map<std::string, std::shared_ptr<TypeInfo>> TypeInfoMap;
-
-#ifdef _X2C_IMPLEMENTATION_
-template<typename X2CENUM>
-class X2CEnumEditor : public CustomTypeEditor, public QComboBox {
-public:
-	X2CEnumEditor(QWidget *Parent) : QComboBox(Parent) {
-		if (X2CENUM::GetValues(m_Values)) {
-			for (auto &it : m_Values) {
-				addItem(it.first.c_str(), it.second);
-			}
-			setInsertPolicy(QComboBox::NoInsert);
-			model()->sort(0);
-		} else {
-			setEditable(true);
-			setInsertPolicy(QComboBox::InsertAtTop);
-		}
-	}
-
-	static std::string ToDisplayText(const std::string &in) {
-		decltype(m_Values) Values;
-		if (X2CENUM::GetValues(Values)) {
-			for (auto &it : Values) {
-				if (std::to_string(it.second) == in) {
-					return it.first;
-				}
-			}
-		}
-		return in;
-	}
-
-	virtual void SetValue(const std::string &in) {
-		for (auto &it : m_Values) {
-			if(std::to_string(it.second) == in) {
-				setCurrentText(it.first.c_str());
-				return;
-			}
-		}
-		setCurrentText(in.c_str());
-	}
-	virtual std::string GetValue() {
-		auto cdata = currentData();
-		if(!cdata.isValid()) {
-			return currentText().toLocal8Bit().constData();
-		}
-		bool succ;
-		auto value = cdata.toULongLong(&succ);
-		if (succ) {
-			return std::to_string(value);
-		}
-		return currentText().toLocal8Bit().constData();
-	}
-private:
-	std::unordered_map<std::string, uint64_t> m_Values;
-};
-#endif
-
 
 } //namespace EntityEditor 
 } //namespace Editor 

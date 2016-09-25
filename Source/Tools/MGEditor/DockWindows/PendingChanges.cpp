@@ -54,6 +54,8 @@ PendingChanges::PendingChanges(QWidget * parent)
 
 	connect(m_Ui->actionSave_All, &QAction::triggered, this, &PendingChanges::SaveAll);
 	connect(m_Ui->actionSave_single, &QAction::triggered, this, &PendingChanges::SaveSingle);
+	m_Ui->actionSave_single->setEnabled(false);
+	m_Ui->actionSave_All->setEnabled(false);
 }
 
 PendingChanges::~PendingChanges() {
@@ -78,12 +80,16 @@ void PendingChanges::Refresh() {
 	m_ViewModel->removeRows(0, m_ViewModel->rowCount());
 	auto root = m_ViewModel->invisibleRootItem();
 	auto shd = MainWindow::Get()->GetSharedData();
+	bool state = false;
 	for (auto &item : shd->m_ChangesManager->GetStateMap()) {
 		QList<QStandardItem*> cols;
 		cols << new QStandardItem(item.first->GetName().c_str());
 		cols << new QStandardItem(item.first->GetInfoLine().c_str());
 		root->appendRow(cols);
+		state = true;
 	}
+	m_Ui->actionSave_All->setEnabled(state);
+	//m_Ui->actionSave_single->setEnabled(state);
 }
 
 void PendingChanges::SaveSingle() {
