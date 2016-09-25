@@ -81,7 +81,7 @@ bool TrueTypeFont::DoFinalize() {
 
 //----------------------------------------------------------------
 
-FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descriptor *style) const {
+FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
 	if (text.empty() || !IsReady()) {
 		return FontInstance(new EmptyWrapper());
 	}

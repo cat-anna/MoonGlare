@@ -14,6 +14,8 @@
 #include <iEditor.h>
 #include <ChangesManager.h>
 
+#include <TypeEditor/Structure.h>
+
 namespace Ui { class EntityEditor; }
 
 namespace MoonGlare {
@@ -23,11 +25,10 @@ namespace EntityEditor {
 class EditableEntity;
 class EditableComponent;
 class EditablePattern;
-class EditableComponentValue;
 
 struct EditableComponentValueInfo {
 	EditableComponent *m_OwnerComponent = nullptr;
-	EditableComponentValue *m_ValueInterface = nullptr;
+	TypeEditor::StructureValue *m_ValueInterface = nullptr;
 	EditableEntity *m_EditableEntity = nullptr;
 	QStandardItem *m_Item = nullptr;
 
@@ -88,6 +89,7 @@ private:
 	std::unique_ptr<QStandardItemModel> m_EntityModel;
 	std::unique_ptr<QStandardItemModel> m_ComponentModel;
 	std::unique_ptr<EditableEntity> m_RootEntity;
+	std::unique_ptr<QMenu> m_AddComponentMenu;
 	std::string m_CurrentPatternFile;
 	EditableItemInfo m_CurrentItem;
 	EditableComponentValueInfo m_CurrentComponent;

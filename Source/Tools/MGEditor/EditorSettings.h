@@ -10,6 +10,7 @@
 #define EditorSettings_H
 
 #include <iSettingsUser.h>
+#include <EditorSettings.x2c.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -20,9 +21,13 @@ public:
 	EditorSettings();
 	~EditorSettings();
 
-	static EditorSettings& get();
+	static EditorSettings& getInstance();
+	static x2c::Settings::EditorState_t& getState() { return getInstance().m_State; }
+	static x2c::Settings::EditorConfiguration_t& getConfiguration() { return getInstance().m_Configuration; }
 
 protected:
+	x2c::Settings::EditorState_t m_State;
+	x2c::Settings::EditorConfiguration_t m_Configuration;
 	virtual void SaveStaticSettings(pugi::xml_node node) override;
 	virtual void LoadStaticSettings(pugi::xml_node node) override;
 private:
@@ -30,7 +35,7 @@ private:
 };
 
 using iSettingsUser = EditorSettings::iSettingsUser;
-inline EditorSettings& GetSettings() { return EditorSettings::get(); }
+inline EditorSettings& GetSettings() { return EditorSettings::getInstance(); }
 
 } //namespace Editor
 } //namespace MoonGlare

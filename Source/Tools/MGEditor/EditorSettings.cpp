@@ -7,6 +7,7 @@
 
 #include PCH_HEADER
 #include "EditorSettings.h"
+#include <TypeEditor/Structure.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -16,23 +17,30 @@ EditorSettings* EditorSettings::_Instance = nullptr;
 EditorSettings::EditorSettings() {
 	_Instance = this;
 	m_FileName = "MGEditor.Settings.xml";
+
+	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorConfiguration_t>();
+	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorState_t>();
 }
 
 EditorSettings::~EditorSettings() {
 }
 
-EditorSettings& EditorSettings::get() {
+EditorSettings& EditorSettings::getInstance() {
 	return *_Instance;
 }
 
 //-----------------------------------------
 
 void EditorSettings::SaveStaticSettings(pugi::xml_node node) {
-
+	m_State.Write(node, "State");
+	m_Configuration.Write(node, "Configuration");
 }
 
 void EditorSettings::LoadStaticSettings(pugi::xml_node node) {
-
+	m_State.ResetToDefault();
+	m_State.Read(node, "State");
+	m_Configuration.ResetToDefault();
+	m_Configuration.Read(node, "Configuration");
 }
 
 } //namespace Editor

@@ -1,0 +1,65 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.TextComponent"
+
+Use(Global.MoonGlare.x2c.Math.Vec2)
+Use(Global.MoonGlare.x2c.Math.Vec3)
+Use(Global.MoonGlare.x2c.Math.RGB)
+Use(Global.MoonGlare.x2c.Math.RGBA)
+
+Structure.new {
+	name = "TextEntry",
+	description = "",
+	fields = {
+        {
+    		name = "Text",
+    		description = "",
+    		type = Global.string,
+            default = "There is no text here",
+    	},
+        {
+    		name = "FontSize",
+    		description = "",
+    		type = float,
+            default = 16.0,
+    	},
+
+        {
+    		name = "FontName",
+    		description = "",
+    		type = Global.string,
+            default = "Arial",
+    	},
+
+--        {
+--    		name = "Color",
+--    		description = "",
+--    		type = RGBA,
+--            default = { r=1, g=1, b=1, a=1, },
+--    	},
+--		{
+--			name = "TextureURI",
+--			description = "",
+--			type = Local.string,
+--		},
+--		{
+--			name = "Border",
+--			description = "",
+--			type = float,
+--            default = 0.2,
+--		},
+--		{
+--			name = "TileMode",
+--			description = "negative means auto, 0 disabled, positive tile X;Y times",
+--			type = Vec2,
+--            default = { x=-1, y=-1, },
+--		},
+	},
+}
+
+Structure.new {
+	name = "TextComponentSettings",
+	description = "",
+	fields = {
+	},
+}

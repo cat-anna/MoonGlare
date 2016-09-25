@@ -22,12 +22,14 @@ public:
 	BitmapFontWrapper(const BitmapFont *font);
 	~BitmapFontWrapper();
 
-	void Render(Graphic::cRenderDevice &dev);
-	void RenderMesh(Graphic::cRenderDevice &dev);
+	virtual void Render(Graphic::cRenderDevice &dev) override;
+	virtual void RenderMesh(Graphic::cRenderDevice &dev) override;
+
+	virtual void GenerateCommands(Renderer::CommandQueue &Queue, uint16_t key) override;
 protected:
 	Graphic::vec3 m_Color;
 	Graphic::VAO m_VAO;
-	Graphic::VAO::MeshVector m_Meshes;
+	Graphic::VAO::MeshData m_Mesh;
 	const TextureFile &m_Texture;
 	const BitmapFont *m_font;
 };
@@ -38,7 +40,7 @@ public:
 	BitmapFont(const string& Name);
 	~BitmapFont();
 
-	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr) const override;
+	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 
 	float GetHeight() const { return (float)m_BFD.CharHeight; }
 	const TextureFile& GetTexture() const { return m_Texture; }

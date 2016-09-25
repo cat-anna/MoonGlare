@@ -50,6 +50,30 @@ public:
 		static void LoadState(const pugi::xml_node node, T *widget, const char *Name) {
 			widget->restoreState(QByteArray::fromHex(node.child(Name).text().as_string()));
 		}
+
+		template<class T>
+		static void SaveColumns(pugi::xml_node node, const char *Name, T *widget, unsigned count) {
+			node = XML::UniqeChild(node, Name);
+			for (unsigned it = 0; it < count; ++it) {
+				char buf[16];
+				sprintf_s(buf, "col%02u", it);
+				XML::UniqeAttrib(node, buf) = widget->columnWidth(it);
+			}
+		}
+		template<class T>
+		static void LoadColumns(pugi::xml_node node, const char *Name, T *widget, unsigned count) {
+			node = node.child(Name);
+			if (!node)
+				return;
+			for (unsigned it = 0; it < count; ++it) {
+				char buf[16];
+				sprintf_s(buf, "col%02u", it);
+				auto att = node.attribute(buf);
+				if (!att)
+					continue;
+				widget->setColumnWidth(it, att.as_uint());
+			}
+		}
 	private:
 		std::string m_SettingID;
 	};

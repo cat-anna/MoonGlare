@@ -33,10 +33,11 @@ enum class ComponentIDs : ComponentID {
 	Body = 0x50,
 	BodyShape = 0x51,
 
-//2d - 0x6x
+//GUI				  0x6x
 	RectTransform	= 0x60,
 	Image			= 0x61,
 	Panel			= 0x62,
+	Text			= 0x63,
 };
 
 //template<ComponentIDs ID, HandleType HT>

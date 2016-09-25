@@ -10,9 +10,13 @@
 #include <ui_EntityEditor.h>
 #include <DockWindowInfo.h>
 #include <icons.h>
-#include "../MainWindow.h"
+#include "../Windows/MainWindow.h"
 
 #include "EditableEntity.h"
+
+#include <TypeEditor/x2cDataTree.h>
+#include <TypeEditor/Structure.h>
+#include <TypeEditor/CustomType.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -48,16 +52,16 @@ public:
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
 		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
 		if (vinfo && vinfo.m_ValueInterface) {
-			auto einfoit = TypeInfoMap.find(vinfo.m_ValueInterface->GetTypeName());
-			if (einfoit != TypeInfoMap.end()) {
-				return einfoit->second->CreateEditor(parent)->GetWidget();
+			auto einfoit = TypeEditor::TypeEditorInfo::GetEditor(vinfo.m_ValueInterface->GetTypeName());
+			if (einfoit) {
+				return einfoit->CreateEditor(parent)->GetWidget();
 			}
 		}
 		return QStyledItemDelegate::createEditor(parent, option, index);
 	};
 	void setEditorData(QWidget *editor, const QModelIndex &index) const override {
 		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-		CustomTypeEditor *cte = dynamic_cast<CustomTypeEditor*>(editor);
+		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
 		if (vinfo && vinfo.m_ValueInterface && cte) {
 			cte->SetValue(vinfo.m_ValueInterface->GetValue());
 		}
@@ -65,7 +69,7 @@ public:
 	};
 	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
 		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-		CustomTypeEditor *cte = dynamic_cast<CustomTypeEditor*>(editor);
+		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
 		if (vinfo && vinfo.m_ValueInterface && cte) {
 			vinfo.m_ValueInterface->SetValue(cte->GetValue());
 		}
@@ -74,7 +78,6 @@ public:
 };
 
 //----------------------------------------------------------------------------------
-
 
 EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	:  QtShared::DockWindow(parent) {
@@ -85,7 +88,7 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 
 	connect(m_Ui->pushButton, &QPushButton::clicked, this, &EntityEditorWindow::ShowAddComponentMenu);
 
-	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(RefreshView()));
+	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
 
 	m_EntityModel = std::make_unique<QStandardItemModel>();
 	m_EntityModel->setHorizontalHeaderItem(0, new QStandardItem("Entity tree"));
@@ -110,6 +113,37 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	m_Ui->treeViewDetails->setColumnWidth(2, 100);
 	connect(m_Ui->treeViewDetails, SIGNAL(clicked(const QModelIndex &)), SLOT(ComponentClicked(const QModelIndex&)));
 	connect(m_Ui->treeViewDetails, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ComponentContextMenu(const QPoint &)));
+
+	m_AddComponentMenu = std::make_unique<QMenu>(this);
+	std::unordered_map<std::string, QMenu*> SubMenus;
+	for (auto &it : TypeEditor::ComponentInfo::GetComponents()) {
+		auto info = it.second;
+
+		QMenu *menu;
+
+		std::string name = info->m_DisplayName;
+		auto pos = name.find(".");
+		if (pos != std::string::npos) {
+			std::string menuname = name.substr(0, pos);
+			name = name.substr(pos + 1);
+
+			auto menuit = SubMenus.find(menuname);
+			if (menuit == SubMenus.end()) {
+				menu = m_AddComponentMenu->addMenu(menuname.c_str());
+				SubMenus[menuname] = menu;
+			} else {
+				menu = menuit->second;
+			}
+		} else {
+			menu = m_AddComponentMenu.get();
+		}
+			
+		menu->addAction(info->m_DisplayName.c_str(), [this, info]() {
+			m_CurrentItem.m_EditableEntity->AddComponent(info->m_CID);
+			SetModiffiedState(true);
+			RefreshDetails();
+		});
+	}
 }
 
 EntityEditorWindow::~EntityEditorWindow() {
@@ -120,12 +154,18 @@ EntityEditorWindow::~EntityEditorWindow() {
 
 bool EntityEditorWindow::DoSaveSettings(pugi::xml_node node) const {
 	QtShared::DockWindow::DoSaveSettings(node);
+	SaveState(node, m_Ui->splitter, "Splitter:State");
+//	SaveColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	SaveColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
 	//node.append_child("File").text() = m_CurrentPatternFile.c_str();
 	return true;
 }
 
 bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
 	QtShared::DockWindow::DoLoadSettings(node);
+	LoadState(node, m_Ui->splitter, "Splitter:State");
+//	LoadColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	LoadColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
 	//m_CurrentPatternFile = node.child("File").text().as_string("");
 	return true;
 }
@@ -226,16 +266,19 @@ void EntityEditorWindow::RefreshDetails() {
 		QStandardItem *Elem = new QStandardItem(component->GetName().c_str());
 		Elem->setFlags(Elem->flags() & ~Qt::ItemIsEditable);
 
-		EditableComponentValueInfo ecvi;
-		ecvi.m_OwnerComponent = component.get();
-		ecvi.m_Item = Elem;
-		ecvi.m_ValueInterface = nullptr;
-		ecvi.m_EditableEntity = m_CurrentItem.m_EditableEntity;
-		Elem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
-
-		QList<QStandardItem*> cols;
-		cols << Elem;
-		root->appendRow(cols);
+		{
+			EditableComponentValueInfo ecvi;
+			ecvi.m_OwnerComponent = component.get();
+			ecvi.m_Item = Elem;
+			ecvi.m_ValueInterface = nullptr;
+			ecvi.m_EditableEntity = m_CurrentItem.m_EditableEntity;
+			Elem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
+		}
+		{
+			QList<QStandardItem*> cols;
+			cols << Elem;
+			root->appendRow(cols);
+		}
 
 		for (auto &value : component->GetValues()) {
 			QStandardItem *CaptionElem = new QStandardItem(value->GetName().c_str());
@@ -249,9 +292,9 @@ void EntityEditorWindow::RefreshDetails() {
 
 			QStandardItem *ValueElem = new QStandardItem();
 			ValueElem->setData(value->GetValue().c_str(), Qt::EditRole);
-			auto einfoit = TypeInfoMap.find(ecvi.m_ValueInterface->GetTypeName());
-			if (einfoit != TypeInfoMap.end()) {
-				ValueElem->setData(einfoit->second->ToDisplayText(value->GetValue()).c_str(), Qt::DisplayRole);
+			auto einfoit = TypeEditor::TypeEditorInfo::GetEditor(ecvi.m_ValueInterface->GetTypeName());
+			if (einfoit) {
+				ValueElem->setData(einfoit->ToDisplayText(value->GetValue()).c_str(), Qt::DisplayRole);
 			} else {
 				ValueElem->setData(value->GetValue().c_str(), Qt::DisplayRole);
 			}
@@ -259,10 +302,12 @@ void EntityEditorWindow::RefreshDetails() {
 			CaptionElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 			ValueElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 
-			QList<QStandardItem*> cols;
-			cols << CaptionElem;
-			cols << ValueElem;
-			Elem->appendRow(cols);
+			{
+				QList<QStandardItem*> cols;
+				cols << CaptionElem;
+				cols << ValueElem;
+				Elem->appendRow(cols);
+			}
 		}
 	}
 	m_Ui->treeViewDetails->collapseAll();
@@ -301,13 +346,11 @@ void EntityEditorWindow::ComponentClicked(const QModelIndex & index) {
 void EntityEditorWindow::ComponentChanged(QStandardItem * item) {
 	if (!item)
 		return;
-
-	EditableComponentValueInfo info = item->data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-	if (!info)
-		return;
-
-	std::string value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-	info.m_ValueInterface->SetValue(value);
+	//EditableComponentValueInfo info = item->data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
+	//if (!info)
+	//	return;
+	//std::string value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
+	//info.m_ValueInterface->SetValue(value);
 	SetModiffiedState(true);
 }
 
@@ -402,20 +445,7 @@ void EntityEditorWindow::ShowAddComponentMenu() {
 	if (!m_CurrentItem)
 		return;
 
-	QMenu menu(this);
-	auto CurrentItem = m_CurrentItem;
-
-	for (auto &it : ComponentInfoMap) {
-		auto &info = it.second;
-
-		menu.addAction(info.m_Name.c_str(), [this, CurrentItem, &info]() {
-			CurrentItem.m_EditableEntity->AddComponent(info.m_CID);
-			SetModiffiedState(true);
-			RefreshDetails();
-		});
-	}
-
-	menu.exec(QCursor::pos());
+	m_AddComponentMenu->exec(QCursor::pos());
 }
 
 //----------------------------------------------------------------------------------

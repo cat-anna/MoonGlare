@@ -2,7 +2,6 @@
 #define MAINFORM_H
 
 #include <DockWindowInfo.h>
-#include <EditorSettings.x2c.h>
 #include <Notifications.h>
 #include <qtUtils.h>
 #include <iEditor.h>
@@ -55,7 +54,6 @@ private:
 
 	Module::SharedDataModule m_DataModule;
 	SharedFileSystem m_FileSystem;
-	x2c::Settings::EditorSettings_t m_Settings;
 	void NewModule(const std::string& MasterFile);
 	void OpenModule(const std::string& MasterFile);
 	void CloseModule();

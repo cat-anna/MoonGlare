@@ -60,7 +60,8 @@ namespace DataClasses {
 
 	namespace Fonts {
 		class Wrapper;
-		using FontInstance = std::unique_ptr < Wrapper > ;
+		using FontInstance = std::unique_ptr < Wrapper >;
+		using SharedFontInstance = std::shared_ptr < Wrapper > ;
 		class iFont;
 		using FontPtr = std::shared_ptr < iFont > ;
 
@@ -85,6 +86,7 @@ namespace DataClasses {
 	}
 	using Fonts::FontPtr;
 	using Fonts::FontInstance;
+	using Fonts::SharedFontInstance;
 
 	//namespace Paths {
 	//	class iPath;

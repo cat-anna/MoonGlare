@@ -61,6 +61,8 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionEditorConfiguration"/>
    </widget>
    <widget class="QMenu" name="menuWindows">
     <property name="title">
@@ -115,10 +117,15 @@
     <string>Close</string>
    </property>
   </action>
+  <action name="actionEditorConfiguration">
+   <property name="text">
+    <string>Editor configuration</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../Shared/Resources/icons.qrc"/>
+  <include location="../../Shared/Resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

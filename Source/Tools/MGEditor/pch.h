@@ -39,6 +39,7 @@
 #include <qmessagebox>
 #include <QStyledItemDelegate>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>

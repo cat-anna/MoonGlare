@@ -2,6 +2,11 @@
 #define FONT_H
 
 namespace MoonGlare {
+
+namespace Renderer {
+	struct CommandQueue;
+}
+
 namespace DataClasses {
 namespace Fonts {
 
@@ -15,6 +20,8 @@ public:
 	virtual void Render(Graphic::cRenderDevice &dev) = 0;
 	virtual void RenderMesh(Graphic::cRenderDevice &dev) = 0;
 	const math::vec2& GetSize() const { return m_size; }
+
+	virtual void GenerateCommands(Renderer::CommandQueue &Queue, uint16_t key) { }
 
 	bool AllowSubPixels() const { return m_AllowSubPixels; }
 protected:
@@ -43,7 +50,8 @@ public:
 	iFont(const string& Name);
 	virtual ~iFont();
 
-	virtual FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr) const = 0;
+	virtual FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, 
+										  bool UniformPosition = false) const = 0;
 
 	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
 protected:
