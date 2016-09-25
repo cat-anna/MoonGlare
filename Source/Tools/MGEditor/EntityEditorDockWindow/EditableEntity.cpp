@@ -7,7 +7,7 @@
 #include <pch.h>
 
 #include "EditableEntity.h"
-#include <MainWindow.h>
+#include <Windows/MainWindow.h>
 #include <FileSystem.h>
 
 #include <TypeEditor/Structure.h>

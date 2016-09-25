@@ -10,7 +10,7 @@
 #include <ui_EntityEditor.h>
 #include <DockWindowInfo.h>
 #include <icons.h>
-#include "../MainWindow.h"
+#include "../Windows/MainWindow.h"
 
 #include "EditableEntity.h"
 
@@ -266,16 +266,19 @@ void EntityEditorWindow::RefreshDetails() {
 		QStandardItem *Elem = new QStandardItem(component->GetName().c_str());
 		Elem->setFlags(Elem->flags() & ~Qt::ItemIsEditable);
 
-		EditableComponentValueInfo ecvi;
-		ecvi.m_OwnerComponent = component.get();
-		ecvi.m_Item = Elem;
-		ecvi.m_ValueInterface = nullptr;
-		ecvi.m_EditableEntity = m_CurrentItem.m_EditableEntity;
-		Elem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
-
-		QList<QStandardItem*> cols;
-		cols << Elem;
-		root->appendRow(cols);
+		{
+			EditableComponentValueInfo ecvi;
+			ecvi.m_OwnerComponent = component.get();
+			ecvi.m_Item = Elem;
+			ecvi.m_ValueInterface = nullptr;
+			ecvi.m_EditableEntity = m_CurrentItem.m_EditableEntity;
+			Elem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
+		}
+		{
+			QList<QStandardItem*> cols;
+			cols << Elem;
+			root->appendRow(cols);
+		}
 
 		for (auto &value : component->GetValues()) {
 			QStandardItem *CaptionElem = new QStandardItem(value->GetName().c_str());
@@ -299,10 +302,12 @@ void EntityEditorWindow::RefreshDetails() {
 			CaptionElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 			ValueElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 
-			QList<QStandardItem*> cols;
-			cols << CaptionElem;
-			cols << ValueElem;
-			Elem->appendRow(cols);
+			{
+				QList<QStandardItem*> cols;
+				cols << CaptionElem;
+				cols << ValueElem;
+				Elem->appendRow(cols);
+			}
 		}
 	}
 	m_Ui->treeViewDetails->collapseAll();

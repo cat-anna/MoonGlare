@@ -11,6 +11,8 @@
 #include "Notifications.h"
 #include "FileSystem.h"
 
+#include "SettingsWindow.h"
+
 namespace MoonGlare {
 namespace Editor {
 
@@ -21,7 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	_Instance = this;
 	SetSettingID("MainWindow");
-	m_Settings.ResetToDefault();
 	m_Ui = std::make_unique<Ui::MainWindow>();
 	m_Ui->setupUi(this);
 
@@ -31,6 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_Ui->actionOpen, SIGNAL(triggered()), SLOT(OpenModuleAction()));
 	connect(m_Ui->actionClose, SIGNAL(triggered()), SLOT(CloseModuleAction()));
 	connect(m_Ui->actionExit, SIGNAL(triggered()), SLOT(CloseEditorAction()));
+	connect(m_Ui->actionEditorConfiguration, &QAction::triggered, [this]() {
+		SettingsWindow sw(this);
+		sw.exec();
+	} );
 
 	m_DockWindows.reserve(256);//because why not
 	QtShared::DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
@@ -73,20 +78,21 @@ MainWindow* MainWindow::Get() {
 bool MainWindow::DoSaveSettings(pugi::xml_node node) const {
 	SaveGeometry(node, this, "Qt:Geometry");
 	SaveState(node, this, "Qt:State");
-	m_Settings.Write(node, "Settings");
 	return true;
 }
 
 bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
 	LoadGeometry(node, this, "Qt:Geometry");
 	LoadState(node, this, "Qt:State");
-	m_Settings.Read(node, "Settings");
 
-	QTimer::singleShot(500, [this] {
-		if (m_Settings.m_LoadLastModule && !m_Settings.m_LastModule.empty())
-			OpenModule(m_Settings.m_LastModule);
-	});
-
+	auto conf = GetSettings().getConfiguration();
+	auto state = GetSettings().getState();
+	if (conf.m_LoadLastModule && !state.m_LastModule.empty()) {
+		QTimer::singleShot(500, [this] {
+			auto state = GetSettings().getState();
+			OpenModule(state.m_LastModule);
+		});
+	}
 	return true;
 }
 
@@ -155,7 +161,8 @@ void MainWindow::NewModule(const std::string& MasterFile) {
 	m_DataModule = Module::DataModule::NewModule(MasterFile);
 	if (!m_DataModule)
 		return;
-	m_Settings.m_LastModule = MasterFile;
+
+	GetSettings().getState().m_LastModule = MasterFile;
 	Notifications::SendProjectChanged(m_DataModule);
 	AddLogf(Info, "New module: %s", MasterFile.c_str());
 }
@@ -171,7 +178,7 @@ void MainWindow::OpenModule(const std::string& MasterFile)  {
 	m_DataModule = Module::DataModule::OpenModule(MasterFile);
 	if (!m_DataModule)
 		return;
-	m_Settings.m_LastModule = MasterFile;
+	GetSettings().getState().m_LastModule = MasterFile;
 	Notifications::SendProjectChanged(m_DataModule);
 	AddLogf(Info, "Open module: %s", MasterFile.c_str());
 }

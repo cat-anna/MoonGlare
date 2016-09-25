@@ -1,6 +1,6 @@
 #include PCH_HEADER
 #include "EditorSettings.h"
-#include "MainWindow.h"
+#include "Windows/MainWindow.h"
 
 using OrbitLogger::LogCollector;
 using OrbitLogger::StdFileLoggerSink;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 		r = a.exec();
 	}
 
-	MoonGlare::Editor::EditorSettings::get().Save();
+	MoonGlare::Editor::EditorSettings::getInstance().Save();
 	LogCollector::Stop();
 	return r;
 }

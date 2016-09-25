@@ -114,23 +114,10 @@ struct Register {
 		TypeEditorInfo::RegisterTypeEditor(std::make_shared<TemplateTypeEditorInfo<EnumTemplate<ENUM>>>(), ENUM::GetTypeName());
 	}
 
-	template<class STRUCT>
-	static UniqueStructure X2CSCreateFunc(X2CEditor *Editor, Structure *Parent) {
-		return std::make_unique<StructureTemplate<STRUCT>>(Editor, Parent);
-	}
-
-	template<typename STRUCT>
-	SharedStructureInfo MakeStructureInfo() {
-		StructureInfo si;
-		si.m_DisplayName = si.m_Name = STRUCT::GetTypeName();
-		si.m_CreateFunc = &X2CSCreateFunc<STRUCT>;
-		return std::make_shared<StructureInfo>(std::move(si));
-	}
-
 	template<typename STRUCT>
 	SharedStructureInfo RegStructure() {
 		SharedStructureInfo ssi;
-		Structure::RegisterStructureInfo(ssi = MakeStructureInfo<STRUCT>());
+		Structure::RegisterStructureInfo(ssi = Structure::MakeX2CStructureInfo<STRUCT>());
 		return ssi;
 	}
 

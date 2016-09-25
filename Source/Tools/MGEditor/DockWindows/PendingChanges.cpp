@@ -10,7 +10,7 @@
 #include <ui_PendingChanges.h>
 #include <DockWindowInfo.h>
 #include <icons.h>
-#include "../MainWindow.h"
+#include "../Windows/MainWindow.h"
 
 namespace MoonGlare {
 namespace Editor {

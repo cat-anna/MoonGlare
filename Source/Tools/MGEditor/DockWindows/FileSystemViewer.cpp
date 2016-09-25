@@ -10,7 +10,7 @@
 #include <ui_FileSystemViewer.h>
 #include <DockWindowInfo.h>
 #include <icons.h>
-#include "../MainWindow.h"
+#include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
 
 namespace MoonGlare {

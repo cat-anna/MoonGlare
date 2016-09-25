@@ -9,6 +9,10 @@
 #ifndef CustomType_H
 #define CustomType_H
 
+#include "Structure.h"
+
+Q_DECLARE_METATYPE(MoonGlare::TypeEditor::StructureValue*)
+
 namespace MoonGlare {
 namespace TypeEditor {
 
@@ -38,6 +42,42 @@ struct TemplateTypeEditorInfo : public TypeEditorInfo {
 	virtual std::string ToDisplayText(const std::string &in) const override {
 		return EDITOR::ToDisplayText(in);
 	}
+};
+
+struct CustomEditorItemDelegate : public QStyledItemDelegate {
+	struct QtRoles {
+		enum {
+			StructureValue = Qt::UserRole + 1000,
+		};
+	};
+
+	CustomEditorItemDelegate(QWidget *parent = 0) : QStyledItemDelegate(parent) {}
+	virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
+		if (vinfo) {
+			auto einfoit = TypeEditor::TypeEditorInfo::GetEditor(vinfo->GetTypeName());
+			if (einfoit) {
+				return einfoit->CreateEditor(parent)->GetWidget();
+			}
+		}
+		return QStyledItemDelegate::createEditor(parent, option, index);
+	};
+	virtual void setEditorData(QWidget *editor, const QModelIndex &index) const override {
+		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
+		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
+		if (vinfo && cte) {
+			cte->SetValue(vinfo->GetValue());
+		}
+		return QStyledItemDelegate::setEditorData(editor, index);
+	};
+	virtual void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
+		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
+		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
+		if (vinfo && cte) {
+			vinfo->SetValue(cte->GetValue());
+		}
+		return QStyledItemDelegate::setModelData(editor, model, index);
+	};
 };
 
 #ifdef _X2C_IMPLEMENTATION_
