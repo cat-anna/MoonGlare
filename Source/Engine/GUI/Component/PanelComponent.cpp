@@ -118,6 +118,9 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!rtentry->m_Flags.m_Map.m_Visible)
+			continue;
+
 		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
 		} else {
 

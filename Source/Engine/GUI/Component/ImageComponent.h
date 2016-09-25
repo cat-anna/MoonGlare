@@ -22,7 +22,6 @@ using namespace Core::Component;
 union ImageComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
-		bool m_Visible : 1;
 		bool m_Dirty : 1;
 	};
 	MapBits_t m_Map;

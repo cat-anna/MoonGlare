@@ -116,6 +116,9 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!rtentry->m_Flags.m_Map.m_Visible)
+			continue;
+
 		if (entry.m_Flags.m_Map.m_Dirty) {
 			std::wstring txt = Utils::Strings::towstring(entry.m_Text);
 			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(txt.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
@@ -125,8 +128,6 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 
 		if (!entry.m_FontInstance)
 			continue;
-//		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
-//			continue;
 		if (!CanRender)
 			continue;
 

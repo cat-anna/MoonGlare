@@ -20,12 +20,6 @@ Structure.new {
 	description = "",
 	fields = {
         {
-			name = "Visible",
-			description = "",
-			type = bool,
-            default = true,
-		},
-        {
 			name = "ScaleMode",
 			description = "",
 			type = ImageScaleMode,

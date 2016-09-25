@@ -121,6 +121,9 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!rtentry->m_Flags.m_Map.m_Visible)
+			continue;
+
 		item.Update(conf.TimeDelta, *rtentry);
 		
 		if (!item.m_Animation)
