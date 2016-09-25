@@ -23,7 +23,6 @@ SettingsWindow::SettingsWindow(QWidget *parent)
 	m_Model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
 	m_Model->setHorizontalHeaderItem(1, new QStandardItem("Values"));
 	m_Model->setHorizontalHeaderItem(2, new QStandardItem("Description"));
-	connect(m_Model.get(), SIGNAL(itemChanged(QStandardItem *)), SLOT(ComponentChanged(QStandardItem *)));
 	m_Ui->treeView->setModel(m_Model.get());
 	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);

@@ -88,7 +88,7 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 
 	connect(m_Ui->pushButton, &QPushButton::clicked, this, &EntityEditorWindow::ShowAddComponentMenu);
 
-	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(RefreshView()));
+	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
 
 	m_EntityModel = std::make_unique<QStandardItemModel>();
 	m_EntityModel->setHorizontalHeaderItem(0, new QStandardItem("Entity tree"));
@@ -346,13 +346,11 @@ void EntityEditorWindow::ComponentClicked(const QModelIndex & index) {
 void EntityEditorWindow::ComponentChanged(QStandardItem * item) {
 	if (!item)
 		return;
-
-	EditableComponentValueInfo info = item->data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-	if (!info)
-		return;
-
-	std::string value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-	info.m_ValueInterface->SetValue(value);
+	//EditableComponentValueInfo info = item->data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
+	//if (!info)
+	//	return;
+	//std::string value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
+	//info.m_ValueInterface->SetValue(value);
 	SetModiffiedState(true);
 }
 
