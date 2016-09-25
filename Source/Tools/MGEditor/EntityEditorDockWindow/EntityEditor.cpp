@@ -154,12 +154,18 @@ EntityEditorWindow::~EntityEditorWindow() {
 
 bool EntityEditorWindow::DoSaveSettings(pugi::xml_node node) const {
 	QtShared::DockWindow::DoSaveSettings(node);
+	SaveState(node, m_Ui->splitter, "Splitter:State");
+//	SaveColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	SaveColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
 	//node.append_child("File").text() = m_CurrentPatternFile.c_str();
 	return true;
 }
 
 bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
 	QtShared::DockWindow::DoLoadSettings(node);
+	LoadState(node, m_Ui->splitter, "Splitter:State");
+//	LoadColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	LoadColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
 	//m_CurrentPatternFile = node.child("File").text().as_string("");
 	return true;
 }

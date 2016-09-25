@@ -25,24 +25,10 @@
 namespace MoonGlare {
 namespace TypeEditor {
 
-using namespace x2c::Component;// ::BodyComponent;
-//using namespace x2c::Component::LightComponent;
-//using namespace x2c::Component::TransfromComponent;
-//using namespace x2c::Component::CameraComponent;
-//using namespace x2c::Component::MeshComponent;
-//using namespace x2c::Component::ScriptComponent;
-//using namespace x2c::Component::RectTransformComponent;
-//using namespace x2c::Component::ImageComponent;
-//using namespace x2c::Component::PanelComponent;
-//using namespace x2c::Component::TextComponent;
+using namespace x2c::Component;
 
 using Core::Component::ComponentID;
 using Core::Component::ComponentIDs;
-
-//
-//const std::unordered_map<MoonGlare::Core::ComponentID, ComponentInfo> ComponentInfoMap{
-
-//};
 
 //----------------------------------------------------------------------------------
 
@@ -56,6 +42,8 @@ struct bool_TypeInfo {
 		return true;
 	}
 };
+
+//----------------------------------------------------------------------------------
 
 struct EmptySettings {
 	static constexpr char *GetTypeName() { return "EmptySettings"; }
@@ -108,12 +96,12 @@ struct Register {
 		RegEnum<ImageComponent::ImageScaleMode_TypeInfo>();
 		RegEnum<bool_TypeInfo>();
 
-		RegComponent<TransfromComponent::TransfromEntry_t			, EmptySettings										>("Transform"			, "Transform"		, ComponentIDs::Transform,			{ } );
-		RegComponent<LightComponent::LightEntry_t					, EmptySettings										>("Light"				, "Light"			, ComponentIDs::Light,				{ } );
-		RegComponent<BodyComponent::BodyEntry_t						, BodyComponent::BodyComponentSettings_t			>("Body"				, "Body"			, ComponentIDs::Body,				{ } );
-		RegComponent<CameraComponent::CameraEntry_t					, EmptySettings										>("Camera"				, "Camera"			, ComponentIDs::Camera,				{ } );
-		RegComponent<MeshComponent::MeshEntry_t						, EmptySettings										>("Mesh"				, "Mesh"			, ComponentIDs::Mesh,				{ } );
-		RegComponent<ScriptComponent::ScriptEntry_t					, EmptySettings										>("Script"				, "Script"			, ComponentIDs::Script,				{ } );
+		RegComponent<TransfromComponent::TransfromEntry_t	, EmptySettings								>("Transform"			, "Transform"		, ComponentIDs::Transform,			{ } );
+		RegComponent<LightComponent::LightEntry_t			, EmptySettings								>("Light"				, "Light"			, ComponentIDs::Light,				{ } );
+		RegComponent<BodyComponent::BodyEntry_t				, BodyComponent::BodyComponentSettings_t	>("Body"				, "Body"			, ComponentIDs::Body,				{ } );
+		RegComponent<CameraComponent::CameraEntry_t			, EmptySettings								>("Camera"				, "Camera"			, ComponentIDs::Camera,				{ } );
+		RegComponent<MeshComponent::MeshEntry_t				, EmptySettings								>("Mesh"				, "Mesh"			, ComponentIDs::Mesh,				{ } );
+		RegComponent<ScriptComponent::ScriptEntry_t			, EmptySettings								>("Script"				, "Script"			, ComponentIDs::Script,				{ } );
 	
 		RegComponent<RextTRansformComponentDesc>();
 		RegComponent<ImageComponentDesc>();
@@ -177,7 +165,7 @@ struct Register {
 	}
 };
 
-static const Register reg;
+const Register reg;
 
 } //namespace TypeEditor
 } //namespace MoonGlare
