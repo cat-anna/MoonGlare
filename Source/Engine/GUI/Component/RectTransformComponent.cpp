@@ -38,7 +38,8 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 	root
 		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
 			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
-			.addProperty("Size", &RectTransformComponentEntry:: GetSize, &RectTransformComponentEntry::SetSize)
+			.addProperty("Size", &RectTransformComponentEntry::GetSize, &RectTransformComponentEntry::SetSize)
+			.addProperty("Z", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
 		.endClass()
 		;
 }

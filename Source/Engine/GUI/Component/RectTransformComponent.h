@@ -39,15 +39,19 @@ union RectTransformComponentEntryFlagsMap {
 struct RectTransformComponentEntry {
 	Handle m_SelfHandle;
 	Entity m_OwnerEntity;
-	char padding[3];
 	RectTransformComponentEntryFlagsMap m_Flags;
 
-	AlignMode m_AlignMode;
 	uint16_t m_Z;
 	Point m_Position;				//not pod
 	Point m_Size;					//not pod
-//	Point m_Scale;
+	DEFINE_COMPONENT_PROPERTY(Z);
+	DEFINE_COMPONENT_PROPERTY(Position);
+	DEFINE_COMPONENT_PROPERTY(Size);
+	//TODO: margin property
+	//TODO: AlignMode property
+
 	Margin m_Margin;				//not pod
+	AlignMode m_AlignMode;
 
 	math::mat4 m_GlobalMatrix;		//not pod
 	math::mat4 m_LocalMatrix;		//not pod
@@ -55,18 +59,9 @@ struct RectTransformComponentEntry {
 
 	Configuration::RuntimeRevision m_Revision;
 
-	Point GetPosition() const { return m_Position; }
-	void SetPosition(const Point &pos) {
-		m_Position = pos;
-		m_Revision = 0;
-	}
-	Point GetSize() const { return m_Size; }
-	void SetSize(const Point &s) {
-		m_Size = s;
-		m_Revision = 0;
-	}
-
 	void Recalculate(RectTransformComponentEntry &Parent);
+
+	void SetDirty() { m_Revision = 0; m_Flags.m_Map.m_Dirty = true; }
 
 	void Reset() {
 		m_Revision = 0;

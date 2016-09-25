@@ -48,6 +48,12 @@ TextComponent::~TextComponent() {
 //---------------------------------------------------------------------------------------
 
 void TextComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<TextComponentEntry>("cTextComponentEntry")
+			.addProperty("Color", &TextComponentEntry::GetColor, &TextComponentEntry::SetColor)
+			.addProperty("Text", &TextComponentEntry::GetText, &TextComponentEntry::SetText)
+		.endClass()
+		; 
 }
 
 //---------------------------------------------------------------------------------------
@@ -111,14 +117,14 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		}
 
 		if (entry.m_Flags.m_Map.m_Dirty) {
-			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(entry.m_Text.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
+			std::wstring txt = Utils::Strings::towstring(entry.m_Text);
+			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(txt.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
 		
 			entry.m_Flags.m_Map.m_Dirty = false;
 		}
 
 		if (!entry.m_FontInstance)
 			continue;
-//		item.Update(conf.TimeDelta, *rtentry);
 //		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
 //			continue;
 		if (!CanRender)
@@ -129,6 +135,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
+
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
 //		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
 //		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
@@ -183,22 +190,7 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 	entry.m_FontStyle.Size = te.m_FontSize;
 	entry.m_FontStyle.Color = math::vec3(1, 1, 1);
-	entry.m_Text = Utils::Strings::towstring(te.m_Text);
-
-	//entry.m_Animation = std::make_shared<Animation>();
-	//entry.m_Speed = ie.m_Speed;
-	//entry.m_Position = 0.0f;
-	//entry.m_FrameCount = ie.m_FrameCount;
-	//entry.m_Flags.m_Map.m_Visible = ie.m_Visible;
-	//entry.m_ScaleMode = ie.m_ScaleMode;
-	//entry.m_Color = ie.m_Color;
-	//entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
-	//auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
-	//if (rtentry) {
-	//	entry.Update(0.0f, *rtentry);
-	//} else {
-	//	//TODO:??
-	//}
+	entry.m_Text = te.m_Text;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;

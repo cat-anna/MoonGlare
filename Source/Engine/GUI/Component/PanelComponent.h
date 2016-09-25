@@ -42,17 +42,23 @@ struct PanelComponentEntry {
 
 	Configuration::RuntimeRevision m_TransformRevision;
 
-	TextureFile m_Texture;
-	Graphic::VAO m_VAO;
 	float m_Border;
 	math::vec4 m_Color;
 	glm::ivec2 m_TileMode;
+	DEFINE_COMPONENT_PROPERTY(Border);
+	DEFINE_COMPONENT_PROPERTY(Color);
+	DEFINE_COMPONENT_PROPERTY_CAST(TileMode, math::vec2);
+	//TODO: texture property
+
+	Graphic::VAO m_VAO;
+	TextureFile m_Texture;
 
 	void Reset() {
 		m_TransformRevision = 0;
 		m_Flags.ClearAll();
 	}
 
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");

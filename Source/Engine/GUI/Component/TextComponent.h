@@ -38,9 +38,13 @@ struct TextComponentEntry {
 	char padding[3];
 	TextComponentEntryFlagsMap m_Flags;
 
-//	math::vec4 m_Color;
-	//Configuration::RuntimeRevision m_TransformRevision;
-	std::wstring m_Text;
+	math::vec4 m_Color;
+	std::string m_Text;
+
+	//TODO: fontname property
+	//TODO: fontsize property
+	DEFINE_COMPONENT_PROPERTY(Color);
+	DEFINE_COMPONENT_PROPERTY(Text);
 
 	DataClasses::FontPtr m_Font;
 	DataClasses::SharedFontInstance m_FontInstance;
@@ -48,10 +52,11 @@ struct TextComponentEntry {
 
 	void Reset() {
 		m_Flags.ClearAll();
-//		m_TransformRevision = 0;
+		m_Font.reset();
+		m_FontInstance.reset();
 	}
 
-//	void Update(float TimeDelta, RectTransformComponentEntry &rectTransform);
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");

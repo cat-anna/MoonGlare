@@ -49,6 +49,13 @@ PanelComponent::~PanelComponent() {
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<PanelComponentEntry>("cPanelComponentEntry")
+			.addProperty("Color", &PanelComponentEntry::GetColor, &PanelComponentEntry::SetColor)
+			.addProperty("Border", &PanelComponentEntry::GetBorder, &PanelComponentEntry::SetBorder)
+			.addProperty("TileMode", &PanelComponentEntry::GetTileMode, &PanelComponentEntry::SetTileMode)
+		.endClass()
+		;
 }
 
 //---------------------------------------------------------------------------------------

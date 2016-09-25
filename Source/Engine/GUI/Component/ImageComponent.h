@@ -42,13 +42,22 @@ struct ImageComponentEntry {
 
 	float m_Speed;
 	float m_Position;
+	math::vec4 m_Color;
+	DEFINE_COMPONENT_PROPERTY(Speed);
+	DEFINE_COMPONENT_PROPERTY(Position);
+	DEFINE_COMPONENT_PROPERTY(Color);
+	//TODO: FrameCount property
+	//TODO: ScaleMode
+	//TODO: AnimationTexture
+
 	unsigned m_FrameCount;
 	ImageScaleMode m_ScaleMode;
-	math::vec4 m_Color;
-	math::mat4 m_ImageMatrix;
 	SharedAnimation m_Animation;
+	
+	math::mat4 m_ImageMatrix;
 	Configuration::RuntimeRevision m_TransformRevision;
-
+	
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
 	void Reset() {
 		m_Flags.ClearAll();
 		m_Animation.reset();

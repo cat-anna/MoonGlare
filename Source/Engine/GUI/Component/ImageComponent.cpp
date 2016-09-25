@@ -48,6 +48,13 @@ ImageComponent::~ImageComponent() {
 //---------------------------------------------------------------------------------------
 
 void ImageComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<ImageComponentEntry>("cImageComponentEntry")
+			.addProperty("Color", &ImageComponentEntry::GetColor, &ImageComponentEntry::SetColor)
+			.addProperty("Speed", &ImageComponentEntry::GetSpeed, &ImageComponentEntry::SetSpeed)
+			.addProperty("Position", &ImageComponentEntry::GetPosition, &ImageComponentEntry::SetPosition)
+		.endClass()
+		;
 }
 
 //---------------------------------------------------------------------------------------
@@ -116,7 +123,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 		item.Update(conf.TimeDelta, *rtentry);
 		
-		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
+		if (!item.m_Animation)
 			continue;
 
 		if (!CanRender)
@@ -179,7 +186,6 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Speed = ie.m_Speed;
 	entry.m_Position = 0.0f;
 	entry.m_FrameCount = ie.m_FrameCount;
-	entry.m_Flags.m_Map.m_Visible = ie.m_Visible;
 	entry.m_ScaleMode = ie.m_ScaleMode;
 	entry.m_Color = ie.m_Color;
 
