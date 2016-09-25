@@ -60,8 +60,6 @@ struct ImageComponentEntry {
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
-struct ImageShader;
-
 class ImageComponent 
 	: public TemplateStandardComponent<ImageComponentEntry, ComponentIDs::Image> {
 public:
@@ -75,7 +73,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	ImageShader *m_Shader;
+	GUIShader *m_Shader;
 };
 
 } //namespace Component 

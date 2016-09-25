@@ -6,8 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef GUIShader_H
-#define GUIShader_H
+#ifndef D2Shader_H
+#define D2Shader_H
 
 namespace Graphic {
 namespace Shaders {

@@ -14,11 +14,12 @@
 #include "RectTransformComponent.h"
 #include "TextComponent.h"
 
-//#include <Renderer/Commands/ControllCommands.h>
+#include <Renderer/Commands/ControllCommands.h>
 #include <Renderer/Commands/ShaderCommands.h>
 #include <Renderer/Commands/TextureCommands.h>
 #include <Renderer/Commands/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
+#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -27,41 +28,6 @@
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
-
-//---------------------------------------------------------------------------------------
-
-struct ImageShader : public ::Graphic::Shader {
-	ImageShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
-		m_BaseColorLocation = Location("gBaseColor");
-	}
-
-	GLint m_BaseColorLocation;
-
-	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
-	}
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
-		auto loc = Location(ShaderParameters::WorldMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = CameraMat * ModelMat;
-	}
-	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
-		if (!IsValidLocation(m_BaseColorLocation))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
-		arg->m_Location = m_BaseColorLocation;
-		arg->m_Vec = color;
-	}
-
-	//void VAORelease(Renderer::CommandQueue &Queue) {
-	//	Queue.PushCommand<Renderer::Commands::VAORelease>();
-	//}
-};
 
 //---------------------------------------------------------------------------------------
 
@@ -97,6 +63,14 @@ bool TextComponent::Initialize() {
 		return false;
 	}
 
+	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
+		if (!m_Shader) {
+			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI.Panel", m_Shader)) {
+				AddLogf(Error, "Failed to load GUI.Panel shader");
+			}
+		}
+	});
+
 	return true;
 }
 
@@ -112,17 +86,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 	bool QueueDirty = false;
 	bool CanRender = false;
 
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<ImageShader>("GUI.Image", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Image shader");
-			return;
-		}
-	}
-
 	if (m_Shader) {
-//		m_Shader->Enable(Queue, GL_BLEND);
-//		m_Shader->Enable(Queue, GL_DEPTH_TEST);
-//		m_Shader->Disable(Queue, GL_CULL_FACE);
 		CanRender = true;
 	}
 
@@ -161,9 +125,9 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
-		m_Shader->Bind(Queue, key);
 		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
+		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
 //		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();

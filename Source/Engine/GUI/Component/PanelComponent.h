@@ -20,8 +20,6 @@ namespace Component {
 
 using namespace Core::Component;
 
-struct PanelShader;
-
 union PanelComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
@@ -72,7 +70,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	PanelShader *m_Shader;
+	GUIShader *m_Shader;
 };
 
 } //namespace Component 
