@@ -15,8 +15,7 @@ SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
 //RegisterApiInstance(EntityManager, &ScriptEngine::Instance, "EntityManager");
 RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
 
-EntityManager::EntityManager()
-		: m_GCIndex(0) {
+EntityManager::EntityManager() {
 
 	DebugMemorySetClassName("EntityManager");
 	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
@@ -53,10 +52,16 @@ bool EntityManager::Initialize() {
 	m_Allocator.Clear();
 	Space::MemZero(m_Parent);
 	Space::MemZero(m_Flags);
-	m_GCIndex = 0;
+	Space::MemZero(m_EntityValues);
+	Space::MemZero(m_FirstChild);
+	Space::MemZero(m_NextSibling);
+	Space::MemZero(m_PrevSibling);
+
+	m_ReleaseQueue.reserve(1024);//TODO: make it some configuration value?; 1024 - because why less?
 
 	m_Root = m_Allocator.Allocate();
 	m_Parent[m_Root.GetIndex()] = m_Root;
+	m_Flags[m_Root.GetIndex()].ClearAll();
 	m_Flags[m_Root.GetIndex()].m_Map.m_Valid = true;
 
 	return true;
@@ -74,7 +79,8 @@ bool EntityManager::Allocate(Entity & eout) {
 }
 
 bool EntityManager::Allocate(Entity parent, Entity &eout) {
-	if (!m_Allocator.IsHandleValid(parent)) {
+	auto parentindex = parent.GetIndex();
+	if (!m_Allocator.IsHandleValid(parent) || !m_Flags[parentindex].m_Map.m_Valid) {
 		AddLog(Error, "Parent entity is not valid!");
 		return false;
 	}
@@ -87,9 +93,32 @@ bool EntityManager::Allocate(Entity parent, Entity &eout) {
 	auto index = h.GetIndex();
 
 	m_Parent[index] = parent;
+	m_Flags[index].ClearAll();
 	m_Flags[index].m_Map.m_Valid = true;
+	m_Flags[index].m_Map.m_HasParent = true;
+	m_FirstChild[index] = Entity();
+	m_NextSibling[index] = Entity();
+	m_PrevSibling[index] = Entity();
 	m_EntityValues[index] = eout;
 	eout = h;
+
+	if (m_Flags[parentindex].m_Map.m_HasChildren) {
+		auto PrevFistChild = m_FirstChild[parentindex];
+
+		if (!IsAllocated(PrevFistChild)) {
+			AddLogf(Error, "Entity chain is broken!");
+		} else {
+			auto siblingindex = parent.GetIndex();
+			m_Flags[siblingindex].m_Map.m_HasPrevSibling = true;
+			m_PrevSibling[siblingindex] = h;
+			m_NextSibling[index] = PrevFistChild;
+			m_Flags[index].m_Map.m_HasNextSibling = true;
+		}
+	} else {
+		m_Flags[parentindex].m_Map.m_HasChildren = true;
+	}
+	m_FirstChild[parentindex] = h;
+
 	return true;
 }
 
@@ -98,36 +127,93 @@ bool EntityManager::Release(Entity entity) {
 	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
 		return false;
 	}
-	m_Flags[index].m_Map.m_Valid = false;
-	m_Allocator.Free(entity);
+	if (m_Flags[index].m_Map.m_ReleasePending)
+		return true;
+	m_Flags[index].m_Map.m_ReleasePending = true;
+	m_ReleaseQueue.push_back(entity);
 	return true;
 }
 
-bool EntityManager::IsValid(Entity entity) const {
-	auto index = entity.GetIndex();
-	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
-		return false;
-	}
-	auto parent = m_Parent[entity.GetIndex()];
-	return parent == entity || IsValid(parent);
-}
-
 bool EntityManager::Step(const Core::MoveConfig & config) {
-	auto limit = m_GCIndex + Configuration::Entity::EntryCheckPerStep;
+	if (m_ReleaseQueue.empty())
+		return true;
 
-	for (auto it = m_GCIndex; it < limit; ++it) {
-		if (!m_Flags[it].m_Map.m_Valid)
-			continue;
-		auto parent = m_Parent[it];
-		if (m_Flags[parent.GetIndex()].m_Map.m_Valid && m_Allocator.IsHandleValid(parent)) {
-			continue;
+	size_t ReleaseCount = 0;
+	while (!m_ReleaseQueue.empty()) {
+		Entity e = m_ReleaseQueue.back();
+		m_ReleaseQueue.pop_back();
+
+		if (!IsAllocated(e))
+			continue; //should not happen, but check is necessary
+
+		++ReleaseCount;
+
+		auto index = e.GetIndex();
+
+		auto &indexflags = m_Flags[index].m_Map;
+		if (indexflags.m_HasChildren) {
+			Entity child = m_FirstChild[index];
+			while (IsAllocated(child)) {
+				m_ReleaseQueue.push_back(child);
+				auto cidx = child.GetIndex();
+				child = m_NextSibling[cidx];
+				auto &flags = m_Flags[cidx].m_Map;
+				flags.m_HasParent = false;
+				flags.m_HasNextSibling = false;
+				flags.m_HasPrevSibling = false;
+				flags.m_ReleasePending = true;
+			}
+		}
+		if (indexflags.m_HasNextSibling && indexflags.m_HasPrevSibling) {
+			auto prev = m_PrevSibling[index];
+			auto next = m_NextSibling[index];
+			if (!IsAllocated(prev) || !IsAllocated(next)) {
+				AddLogf(Error, "Entity chain is broken!");
+			} else {
+				m_NextSibling[prev.GetIndex()] = next;
+				m_PrevSibling[next.GetIndex()] = prev;
+			}
+		} else
+		if (indexflags.m_HasNextSibling) {
+			auto next = m_NextSibling[index];
+			auto parent = m_Parent[index];
+			if (!IsAllocated(next) || !!IsAllocated(parent)) {
+				AddLogf(Error, "Entity chain is broken!");
+			} else {
+				m_PrevSibling[next.GetIndex()] = Entity();
+				m_Flags[next.GetIndex()].m_Map.m_HasPrevSibling = false;
+				m_FirstChild[parent.GetIndex()] = next;
+			}
+		} else
+		if (indexflags.m_HasPrevSibling) {
+			auto prev = m_PrevSibling[index];
+			if (!IsAllocated(prev)) {
+				AddLogf(Error, "Entity chain is broken!");
+			} else {
+				m_NextSibling[prev.GetIndex()] = Entity();
+				m_Flags[prev.GetIndex()].m_Map.m_HasNextSibling = false;
+			}
 		}
 
-		m_Flags[it].m_Map.m_Valid = false;
-		m_Allocator.Free(m_EntityValues[it]);
+		m_Flags[index].ClearAll();
+		m_Allocator.Free(e);
 	}
+	
+	AddLogf(Performance, "EntityManager:%p Entities released:%lu", this, ReleaseCount);
 
-	m_GCIndex = limit >= m_Parent.size() ? 0 : limit;
+//	auto limit = m_GCIndex + Configuration::Entity::EntryCheckPerStep;
+//	for (auto it = m_GCIndex; it < limit; ++it) {
+//		if (!m_Flags[it].m_Map.m_Valid)
+//			continue;
+//		auto parent = m_Parent[it];
+//		if (m_Flags[parent.GetIndex()].m_Map.m_Valid && m_Allocator.IsHandleValid(parent)) {
+//			continue;
+//		}
+//
+//		m_Flags[it].m_Map.m_Valid = false;
+//		m_Allocator.Free(m_EntityValues[it]);
+//	}
+//	m_GCIndex = limit >= m_Parent.size() ? 0 : limit;
 	return true;
 }
 
@@ -137,6 +223,24 @@ bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 		return false;
 	}
 	ParentOut = m_Parent[index];
+	return true;
+}
+
+bool EntityManager::GetFistChild(Entity entity, Entity & ParentOut) const {
+	auto index = entity.GetIndex();
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+		return false;
+	}
+	ParentOut = m_FirstChild[index];
+	return true;
+}
+
+bool EntityManager::GetNextSibling(Entity entity, Entity & ParentOut) const {
+	auto index = entity.GetIndex();
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+		return false;
+	}
+	ParentOut = m_NextSibling[index];
 	return true;
 }
 

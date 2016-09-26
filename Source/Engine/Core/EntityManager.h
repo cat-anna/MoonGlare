@@ -35,15 +35,28 @@ public:
 	bool Release(Entity entity);
 
 	bool GetParent(Entity entity, Entity &ParentOut) const;
-	bool IsValid(Entity entity) const;
+	bool GetFistChild(Entity entity, Entity &ParentOut) const;
+	bool GetNextSibling(Entity entity, Entity &ParentOut) const;
+	bool GetPreviousSibling(Entity entity, Entity &ParentOut) const;
+	bool IsValid(Entity entity) const { return IsAllocated(entity); }
 
 	bool Step(const Core::MoveConfig &config);
 
 	union EntityFlags {
-		struct {
+		struct MapBits_t {
 			bool m_Valid : 1;
+			bool m_HasParent : 1;
+			bool m_HasChildren : 1;
+			bool m_HasNextSibling : 1;
+			bool m_HasPrevSibling : 1;
+			bool m_ReleasePending : 1;
+			bool m_unused0 : 1;
+			bool m_unused1 : 1;
 		} m_Map;
 		uint8_t m_UIntValue;
+		void SetAll() { ClearAll(); m_UIntValue = ~m_UIntValue; }
+		void ClearAll() { m_UIntValue = 0; }
+		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UIntValue)), "Invalid Function map elements size!");
 	};
 
 	static void RegisterScriptApi(ApiInitializer &root);
@@ -51,9 +64,17 @@ private:
 	Array<Entity> m_Parent;
 	Array<EntityFlags> m_Flags;
 	Array<Entity> m_EntityValues;
+	Array<Entity> m_FirstChild;
+	Array<Entity> m_NextSibling;
+	Array<Entity> m_PrevSibling;
 	Generations_t m_Allocator;
 	Entity m_Root;
-	size_t m_GCIndex;
+	std::vector<Entity> m_ReleaseQueue;
+
+	bool IsAllocated(Entity entity) const {
+		auto index = entity.GetIndex();
+		return m_Allocator.IsHandleValid(entity) && m_Flags[index].m_Map.m_Valid;
+	}
 };
 
 template<class T>
