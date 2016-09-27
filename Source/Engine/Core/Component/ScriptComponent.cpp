@@ -30,6 +30,7 @@ namespace lua {
 	static const char *Function_Step = "Step";
 	static const char *Function_OnCreate = "OnCreate";
 	static const char *Function_OnDestroy = "OnDestroy";
+	static const char *Function_PerSecond = "PerSecond";
 
 	static const char *EntityMemberName = "Entity";
 	static const char *HandleMemberName = "Handle";
@@ -46,6 +47,10 @@ namespace lua {
 	static const char *GetName = "GetName";
 	static const char *SetName = "SetName";
 	static const char *FindChild = "FindChild";
+
+	static const char *SetPerSecond = "SetPerSecond";
+	static const char *SetStep = "SetStep";
+	static const char *SetActive = "SetActive";
 	
 	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
 		try {
@@ -202,25 +207,41 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		//stack: self movedata script
-		lua_getfield(lua, -1, lua::Function_Step); //stack: self movedata script Step/nil
-		if (lua_isnil(lua, -1)) {
-			lua_settop(lua, luatop);
-			item.m_Flags.m_Map.m_Active = false;
-			AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, deactivating component", i);
-			continue;
+		int luascrtop = lua_gettop(lua);
+			
+		if (item.m_Flags.m_Map.m_Step) {
+			lua_pushvalue(lua, -1);								// stack: self movedata script script
+			lua_getfield(lua, -1, lua::Function_Step);			//stack: self movedata script script Step/nil
+			if (lua_isnil(lua, -1)) {
+				item.m_Flags.m_Map.m_Step = false;
+				AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, disabling", i);
+			} else {
+				//stack: self movedata script script Step
+				lua_insert(lua, -2);							//stack: self movedata script Step script
+				lua_pushvalue(lua, -4);							//stack: self movedata script Step script movedata
+
+				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step)) {
+					AddLogf(Error, "Failure during OnStep call for component #%lu", i);
+				}
+			}
 		}
-		//stack: self movedata script Step
 
-		lua_insert(lua, -2);				//stack: self movedata Step script
-		lua_pushvalue(lua, -3);				//stack: self movedata Step script movedata
-
-		if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step)) {
-			AddLogf(Error, "Failure during OnStep call for component #%lu", i);
-	//		item.m_Flags.m_Map.m_StepFunction = false;
+		if (item.m_Flags.m_Map.m_OnPerSecond && conf.m_SecondPeriod) {
+			lua_settop(lua, luascrtop);							//stack: self movedata script 
+			lua_pushvalue(lua, -1);								//stack: self movedata script script
+			lua_getfield(lua, -1, lua::Function_PerSecond);		//stack: self movedata script script persec/nil
+			if (lua_isnil(lua, -1)) {
+				item.m_Flags.m_Map.m_OnPerSecond = false;
+				AddLogf(Warning, "ScriptComponent: There is no PerSecond function in component at index: %d, disabling", i);
+			} else {
+				//stack: self movedata script script persec
+				lua_insert(lua, -2);						//stack: self movedata script persec script 
+				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step)) {
+					AddLogf(Error, "Failure during PerSecond call for component #%lu", i);
+				}
+			}
 		}
 
-		// stack: self movedata
 		lua_settop(lua, luatop);
 	}
 
@@ -337,7 +358,9 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	entry.m_Owner = Owner;
 	entry.m_SelfHandle = ch;
-	entry.m_Flags.SetAll();
+	entry.m_Flags.m_Map.m_Active = true;
+	entry.m_Flags.m_Map.m_Valid = true;
+	entry.m_Flags.m_Map.m_Step = true;
 
 	if (!GetObjectRootInstance(lua, Owner)) {
 		AddLogf(Error, "CRITICAL INTERNAL ERROR!");
@@ -363,8 +386,6 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	lua_pushlightuserdata(lua, Owner.GetVoidPtr());				//stack: ObjectRoot Script Entity
 	lua_setfield(lua, -2, lua::EntityMemberName);				//stack: ObjectRoot Script
-	//lua_pushlightuserdata(lua, this);
-	//lua_setfield(lua, -2, "Component");
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());				//stack: ObjectRoot Script SelfHandle
 	lua_setfield(lua, -2, lua::HandleMemberName);				//stack: ObjectRoot Script
 
@@ -373,6 +394,19 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushcclosure(lua, &lua_DestroyComponent, 2);			//stack: ObjectRoot Script lua_DestroyComponent
 	lua_setfield(lua, -2, "DestroyComponent");					//stack: ObjectRoot Script
 	//TODO: DestroyObject(void/other)
+
+	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
+	lua_pushcclosure(lua, &lua_SetPerSecond, 1);				//stack: ObjectRoot Script lua_SetPerSecond
+	lua_setfield(lua, -2, lua::SetPerSecond);					//stack: ObjectRoot Script
+
+	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
+	lua_pushcclosure(lua, &lua_SetStep, 1);						//stack: ObjectRoot Script lua_SetStep
+	lua_setfield(lua, -2, lua::SetStep);						//stack: ObjectRoot Script
+
+	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
+	lua_pushcclosure(lua, &lua_SetActive, 1);					//stack: ObjectRoot Script lua_SetActive
+	lua_setfield(lua, -2, lua::SetActive);						//stack: ObjectRoot Script
+
 
 	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());				//stack: ObjectRoot Script this SelfHandle 
@@ -659,6 +693,63 @@ int ScriptComponent::lua_GetComponent(lua_State *lua) {
 	}
 
 	return lua_MakeComponentInfo(lua, cid, ComponentHandle, cptr);
+}
+
+int ScriptComponent::lua_SetPerSecond(lua_State *lua) {
+	void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
+
+	lua_getfield(lua, 1, lua::HandleMemberName);					//stack: self enable handle
+	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);												//stack: self enable
+
+	bool enable = lua_toboolean(lua, 2);
+
+	auto *entry = This->TemplateGetEntry(This, This->m_Array, h);
+	if (!entry) {
+		AddLogf(Error, "ScriptComponent::SetPerSecond: Error: Invalid self.handle!");
+	}
+
+	entry->m_Flags.m_Map.m_OnPerSecond = enable;
+	return 0;
+}
+
+int ScriptComponent::lua_SetStep(lua_State * lua) {
+	void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
+
+	lua_getfield(lua, 1, lua::HandleMemberName);					//stack: self enable handle
+	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);												//stack: self enable
+
+	bool enable = lua_toboolean(lua, 2);
+
+	auto *entry = This->TemplateGetEntry(This, This->m_Array, h);
+	if (!entry) {
+		AddLogf(Error, "ScriptComponent::SetStep: Error: Invalid self.handle!");
+	}
+
+	entry->m_Flags.m_Map.m_Step = enable;
+	return 0;
+}
+
+int ScriptComponent::lua_SetActive(lua_State * lua) {
+	void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
+
+	lua_getfield(lua, 1, lua::HandleMemberName);					//stack: self enable handle
+	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);												//stack: self enable
+
+	bool enable = lua_toboolean(lua, 2);
+
+	auto *entry = This->TemplateGetEntry(This, This->m_Array, h);
+	if (!entry) {
+		AddLogf(Error, "ScriptComponent::SetActive: Error: Invalid self.handle!");
+	}
+
+	entry->m_Flags.m_Map.m_Active = enable;
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------

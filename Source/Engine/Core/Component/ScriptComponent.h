@@ -33,7 +33,8 @@ public:
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 			bool m_Active : 1; //Script has step function and it shall be called
-
+			bool m_OnPerSecond : 1;//called when movedata.secondstep is true, need to be activated
+			bool m_Step : 1;
 			//bool m_OnStart : 1;
 			//bool m_OnStop : 1;
 		};
@@ -94,6 +95,9 @@ private:
 //ScriptComponent api
 	static int lua_DestroyComponent(lua_State *lua);
 	static int lua_GetComponent(lua_State *lua);
+	static int lua_SetPerSecond(lua_State *lua);
+	static int lua_SetStep(lua_State *lua);
+	static int lua_SetActive(lua_State *lua);
 
 //GameObject api
 	static int lua_CreateComponent(lua_State *lua);
