@@ -9,8 +9,20 @@ Structure.new {
 		{
 			name = "Script",
 			description = "",
-			type = Types.string,
+			type = Global.string,
 			default = "",
-		},			
+		},
+		{
+			name = "Active",
+			description = "",
+			type = bool,
+			default = true,
+		},
+		{
+			name = "PerSecond",
+			description = "",
+			type = bool,
+			default = false,
+		},
 	},
 }

@@ -15,6 +15,9 @@
 
 #include <Utils/LuaUtils.h>
 
+#include <ComponentCommon.x2c.h>
+#include <ScriptComponent.x2c.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -318,12 +321,6 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 //-------------------------------------------------------------------------------------------------
 
 bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
-	auto name = node.child("Script").text().as_string(0);
-	if (!name) {
-		AddLogf(Error, "Attempt to load nameless script!");
-		return false;
-	}
-
 	Handle &ch = hout;
 	size_t index;
 	if (!m_Array.Allocate(index)) {
@@ -340,6 +337,13 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		return false;
 	}
 
+	x2c::Component::ScriptComponent::ScriptEntry_t se;
+	se.ResetToDefault();
+	if (!se.Read(node)) {
+		AddLog(Error, "Failed to read ScriptEntry!");
+		return false;
+	}
+
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
@@ -347,8 +351,8 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	int top = lua_gettop(lua);
 	//stack: -
 
-	if (!m_ScriptEngine->GetRegisteredScript(name)) {
-		AddLogf(Error, "There is no such script: %s", name);
+	if (!m_ScriptEngine->GetRegisteredScript(se.m_Script.c_str())) {
+		AddLogf(Error, "There is no such script: '%s'", se.m_Script.c_str());
 		GetHandleTable()->Release(this, ch);
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
@@ -358,9 +362,10 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	entry.m_Owner = Owner;
 	entry.m_SelfHandle = ch;
-	entry.m_Flags.m_Map.m_Active = true;
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Step = true;
+	entry.m_Flags.m_Map.m_Active = se.m_Active;
+	entry.m_Flags.m_Map.m_OnPerSecond = se.m_PerSecond;
 
 	if (!GetObjectRootInstance(lua, Owner)) {
 		AddLogf(Error, "CRITICAL INTERNAL ERROR!");
