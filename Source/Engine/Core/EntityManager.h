@@ -31,7 +31,7 @@ public:
 	Entity GetRootEntity() { return m_Root; }
 
 	bool Allocate(Entity &eout);
-	bool Allocate(Entity parent, Entity &eout);
+	bool Allocate(Entity parent, Entity &eout, std::string Name = std::string());
 	bool Release(Entity entity);
 
 	bool GetParent(Entity entity, Entity &ParentOut) const;
@@ -41,6 +41,15 @@ public:
 	bool IsValid(Entity entity) const { return IsAllocated(entity); }
 
 	bool Step(const Core::MoveConfig &config);
+
+	bool SetEntityName(Entity e, std::string Name);
+	bool GetEntityName(Entity e, std::string &Name);
+	bool GetEntityName(Entity e, EntityNameHash &out);
+	bool GetEntityName(Entity e, const std::string *&Name);
+	bool GetFirstEntityByName(EntityNameHash hashname, Entity &eout);
+	bool GetFirstEntityByName(const char *Name, Entity &eoute);
+	bool GetFirstChildByName(Entity ParentE, EntityNameHash hashname, Entity &eout);
+	bool GetFirstChildByName(Entity ParentE, const char *Name, Entity &eoute);
 
 	union EntityFlags {
 		struct MapBits_t {
@@ -67,9 +76,15 @@ private:
 	Array<Entity> m_FirstChild;
 	Array<Entity> m_NextSibling;
 	Array<Entity> m_PrevSibling;
+	Array<EntityNameHash> m_NameHash;
+	Array<std::string> m_Names;
 	Generations_t m_Allocator;
 	Entity m_Root;
 	std::vector<Entity> m_ReleaseQueue;
+	
+	//using EntitySet = std::set<Entity>;
+	//using EntityNameMap = std::unordered_map<std::string, EntitySet>;
+	//EntityNameMap m_EntityNameMap;
 
 	bool IsAllocated(Entity entity) const {
 		auto index = entity.GetIndex();

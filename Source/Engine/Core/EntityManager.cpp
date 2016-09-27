@@ -56,8 +56,9 @@ bool EntityManager::Initialize() {
 	Space::MemZero(m_FirstChild);
 	Space::MemZero(m_NextSibling);
 	Space::MemZero(m_PrevSibling);
+	Space::MemZero(m_NameHash);
 
-	m_ReleaseQueue.reserve(1024);//TODO: make it some configuration value?; 1024 - because why less?
+	m_ReleaseQueue.reserve(512);//TODO: make it some configuration value?; 512 - because why less?
 
 	m_Root = m_Allocator.Allocate();
 	m_Parent[m_Root.GetIndex()] = m_Root;
@@ -78,7 +79,7 @@ bool EntityManager::Allocate(Entity & eout) {
 	return Allocate(GetRootEntity(), eout);
 }
 
-bool EntityManager::Allocate(Entity parent, Entity &eout) {
+bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
 	auto parentindex = parent.GetIndex();
 	if (!m_Allocator.IsHandleValid(parent) || !m_Flags[parentindex].m_Map.m_Valid) {
 		AddLog(Error, "Parent entity is not valid!");
@@ -101,6 +102,9 @@ bool EntityManager::Allocate(Entity parent, Entity &eout) {
 	m_PrevSibling[index] = Entity();
 	m_EntityValues[index] = eout;
 	eout = h;
+
+	m_NameHash[index] = Space::Utils::MakeHash32(Name.c_str());
+	m_Names[index].swap(Name);
 
 	if (m_Flags[parentindex].m_Map.m_HasChildren) {
 		auto PrevFistChild = m_FirstChild[parentindex];
@@ -133,6 +137,8 @@ bool EntityManager::Release(Entity entity) {
 	m_ReleaseQueue.push_back(entity);
 	return true;
 }
+
+//---------------------------------------------------------------------------------------
 
 bool EntityManager::Step(const Core::MoveConfig & config) {
 	if (m_ReleaseQueue.empty())
@@ -217,9 +223,11 @@ bool EntityManager::Step(const Core::MoveConfig & config) {
 	return true;
 }
 
+//---------------------------------------------------------------------------------------
+
 bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 	auto index = entity.GetIndex();
-	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity) || !m_Flags[index].m_Map.m_HasParent) {
 		return false;
 	}
 	ParentOut = m_Parent[index];
@@ -228,7 +236,7 @@ bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 
 bool EntityManager::GetFistChild(Entity entity, Entity & ParentOut) const {
 	auto index = entity.GetIndex();
-	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity) || !m_Flags[index].m_Map.m_HasChildren) {
 		return false;
 	}
 	ParentOut = m_FirstChild[index];
@@ -237,11 +245,88 @@ bool EntityManager::GetFistChild(Entity entity, Entity & ParentOut) const {
 
 bool EntityManager::GetNextSibling(Entity entity, Entity & ParentOut) const {
 	auto index = entity.GetIndex();
-	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity)) {
+	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity) || !m_Flags[index].m_Map.m_HasNextSibling) {
 		return false;
 	}
 	ParentOut = m_NextSibling[index];
 	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
+bool EntityManager::SetEntityName(Entity e, std::string Name) {
+	if (!IsAllocated(e))
+		return false;
+
+	auto index = e.GetIndex();
+	m_NameHash[index] = Space::Utils::MakeHash32(Name.c_str());
+	m_Names[index].swap(Name);
+
+	return true;
+}
+
+bool EntityManager::GetEntityName(Entity e, std::string &Name) {
+	if (!IsAllocated(e))
+		return false;
+
+	auto index = e.GetIndex();
+	Name = m_Names[index];
+
+	return true;
+}
+
+bool EntityManager::GetEntityName(Entity e, EntityNameHash & out) {
+	if (!IsAllocated(e))
+		return false;
+
+	auto index = e.GetIndex();
+	out = m_NameHash[index];
+
+	return false;
+}
+
+bool EntityManager::GetEntityName(Entity e, const std::string *& Name) {
+	if (!IsAllocated(e))
+		return false;
+
+	auto index = e.GetIndex();
+	Name = &m_Names[index];
+
+	return true;
+}
+
+bool EntityManager::GetFirstChildByName(Entity ParentE, EntityNameHash hashname, Entity & eout) {
+	if (!IsAllocated(ParentE))
+		return false;
+
+	auto index = ParentE.GetIndex();
+	if (!m_Flags[index].m_Map.m_HasChildren)
+		return false;
+
+	struct T {
+		static bool func(EntityManager *This, Entity child, EntityNameHash hashname, Entity & eout) {
+			while (This->IsAllocated(child)) {
+				auto childindex = child.GetIndex();
+				if (This->m_NameHash[childindex] == hashname) {
+					eout = child;
+					return true;
+				}
+				if (This->m_Flags[childindex].m_Map.m_HasChildren) {
+					if (func(This, This->m_FirstChild[childindex], hashname, eout))
+						return true;
+				}
+				if (!This->GetNextSibling(child, child))
+					return false;
+			}
+			return false;
+		}
+	};
+
+	return T::func(this, m_FirstChild[index], hashname, eout);
+}
+
+bool EntityManager::GetFirstChildByName(Entity ParentE, const char *Name, Entity & eout) {
+	return GetFirstChildByName(ParentE, Space::Utils::MakeHash32(Name ? Name : ""), eout);
 }
 
 } //namespace Core 
