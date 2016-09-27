@@ -35,8 +35,6 @@ public:
 			bool m_Active : 1; //Script has step function and it shall be called
 			bool m_OnPerSecond : 1;//called when movedata.secondstep is true, need to be activated
 			bool m_Step : 1;
-			//bool m_OnStart : 1;
-			//bool m_OnStop : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -87,7 +85,10 @@ protected:
 private:
 	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 	bool InvalidateObjectRoot(lua_State *lua, Entity Owner);//returns false on error; Owner shall be not valid;
-//utils
+
+	bool InitGameObjectMetaTable(lua_State *lua);
+//support functions
+	int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
 	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
 	static int lua_SetComponentState(lua_State *lua);
@@ -107,6 +108,7 @@ private:
 	static int lua_SetName(lua_State *lua);
 	static int lua_GetName(lua_State *lua);
 	static int lua_FindChild(lua_State *lua);
+	static int lua_GameObjectGetComponent(lua_State *lua);
 
 };
 
