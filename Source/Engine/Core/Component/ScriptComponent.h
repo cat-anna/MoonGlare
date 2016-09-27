@@ -75,10 +75,17 @@ protected:
 		lua_pushlightuserdata(lua, GetGameObjectMetaTableIndex());
 		lua_gettable(lua, LUA_REGISTRYINDEX);
 	}
+	void GetObjectRootTable(lua_State *lua) {
+		lua_pushlightuserdata(lua, GetObjectRootTableIndex());
+		lua_gettable(lua, LUA_REGISTRYINDEX);
+	}
 
 	void *GetInstancesTableIndex() { return this; }
-	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<int>(this) + 1); }
+	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 1); }
+	void *GetObjectRootTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 2); }
 private:
+	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
+	bool InvalidateObjectRoot(lua_State *lua, Entity Owner);//returns false on error; Owner shall be not valid;
 //utils
 	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
@@ -93,6 +100,10 @@ private:
 	static int lua_SpawnChild(lua_State *lua);
 	static int lua_DestroyObject(lua_State *lua);
 	static int lua_Destroy(lua_State *lua);
+	static int lua_SetName(lua_State *lua);
+	static int lua_GetName(lua_State *lua);
+	static int lua_FindChild(lua_State *lua);
+
 };
 
 } //namespace Component 
