@@ -214,9 +214,11 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			continue;
 		}
 
-		if (!item.m_Flags.m_Map.m_Active) {
-			continue;
-		}
+		if (!item.m_Flags.m_Map.m_Active) 
+			continue; // entry is not active. nothing todo.
+		
+		if (!((item.m_Flags.m_Map.m_OnPerSecond && conf.m_SecondPeriod) || item.m_Flags.m_Map.m_Step))
+			continue; // there is no function which can be called. nothing todo.
 
 		lua_rawgeti(lua, -2, i + 1);		//stack: self movedata Script/nil
 
