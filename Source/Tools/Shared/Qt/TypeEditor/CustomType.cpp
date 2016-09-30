@@ -53,8 +53,7 @@ public:
 		QDoubleSpinBox::setValue(f);
 	}
 	virtual std::string GetValue() {
-		auto txt = textFromValue(value());
-		return txt.toLocal8Bit().constData();
+		return std::to_string(value());
 	}
 private:
 };

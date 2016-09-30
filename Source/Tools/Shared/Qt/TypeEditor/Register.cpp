@@ -6,7 +6,6 @@
 #include <Engine/GUI/Types.h>
 
 #include <Math.x2c.h>
-#include <ComponentCommon.x2c.h>
 #include <LightComponent.x2c.h>
 #include <BodyComponent.x2c.h>
 #include <TransformComponent.x2c.h>
