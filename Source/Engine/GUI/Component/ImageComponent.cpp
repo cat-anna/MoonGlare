@@ -121,7 +121,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		if (!rtentry->m_Flags.m_Map.m_Visible)
+		if (!item.m_Flags.m_Map.m_Active)
 			continue;
 
 		item.Update(conf.TimeDelta, *rtentry);
@@ -191,6 +191,8 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_FrameCount = ie.m_FrameCount;
 	entry.m_ScaleMode = ie.m_ScaleMode;
 	entry.m_Color = ie.m_Color;
+
+	entry.m_Flags.m_Map.m_Active = ie.m_Active;
 
 	entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
 

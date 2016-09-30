@@ -118,7 +118,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		if (!rtentry->m_Flags.m_Map.m_Visible)
+		if (!item.m_Flags.m_Map.m_Active)
 			continue;
 
 		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
@@ -223,6 +223,7 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Border = pe.m_Border;
 	entry.m_Color = pe.m_Color;
 	entry.m_TileMode = pe.m_TileMode;
+	entry.m_Flags.m_Map.m_Active = pe.m_Active;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;

@@ -22,6 +22,7 @@ union TextComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
 		bool m_Dirty : 1;
+		bool m_Active : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;

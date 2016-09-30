@@ -10,6 +10,12 @@ Structure.new {
 	name = "TextEntry",
 	description = "",
 	fields = {
+		{
+			name = "Active",
+			description = "",
+			type = bool,
+			default = true,
+		}, 
         {
     		name = "Text",
     		description = "",

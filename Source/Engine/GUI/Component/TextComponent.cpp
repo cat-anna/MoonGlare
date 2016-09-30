@@ -116,7 +116,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		if (!rtentry->m_Flags.m_Map.m_Visible)
+		if (!entry.m_Flags.m_Map.m_Active)
 			continue;
 
 		if (entry.m_Flags.m_Map.m_Dirty) {
@@ -192,6 +192,7 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_FontStyle.Size = te.m_FontSize;
 	entry.m_FontStyle.Color = math::vec3(1, 1, 1);
 	entry.m_Text = te.m_Text;
+	entry.m_Flags.m_Map.m_Active = te.m_Active;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;
