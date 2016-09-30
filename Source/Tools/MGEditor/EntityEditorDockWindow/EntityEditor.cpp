@@ -37,12 +37,12 @@ struct EntityEditorInfo
 	}
 	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
 		return std::vector<QtShared::EditableFieleInfo>{
-			QtShared::EditableFieleInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, },
+			QtShared::EditableFieleInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, },
 		};
 	}
 	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
 		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, "Create Entity pattern", "xep", },
+			QtShared::FileCreationMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Create Entity pattern", "epx", },
 		};
 	}
 };
@@ -149,12 +149,12 @@ bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::
 		return false;
 
 	std::string name = qname.toLocal8Bit().constData();
-	std::string URI = LocationURI + name + ".xep";
+	std::string URI = LocationURI + name + ".epx";
 
 	auto fs = MainWindow::Get()->GetFilesystem();
 	if (!fs->CreateFile(URI)) {
-		ErrorMessage("Failed during creating xep file");
-		AddLog(Hint, "Failed to create xep: " << m_CurrentPatternFile);
+		ErrorMessage("Failed during creating epx file");
+		AddLog(Hint, "Failed to create epx: " << m_CurrentPatternFile);
 		return false;
 	}
 
@@ -165,11 +165,11 @@ bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::
 	SetModiffiedState(true);
 	Refresh();
 
-	AddLog(Hint, "Created xep file: " << URI);
+	AddLog(Hint, "Created epx file: " << URI);
 
 	if (!SaveData()) {
-		ErrorMessage("Failed during saving xep file");
-		AddLog(Hint, "Failed to save xep: " << m_CurrentPatternFile);
+		ErrorMessage("Failed during saving epx file");
+		AddLog(Hint, "Failed to save epx: " << m_CurrentPatternFile);
 	} else {
 		SetModiffiedState(false);
 	}
@@ -178,7 +178,7 @@ bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::
 }
 
 bool EntityEditorWindow::TryCloseData() {
-	AddLog(Hint, "Trying to close xep: " << m_CurrentPatternFile);
+	AddLog(Hint, "Trying to close epx: " << m_CurrentPatternFile);
 	if (m_RootEntity && IsChanged()) {
 		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
 			return false;
@@ -200,12 +200,12 @@ bool EntityEditorWindow::OpenData(const std::string &file) {
 	auto root = std::make_unique<EditablePattern>();
 	if (!root->OpenPattern(file)) {
 		ErrorMessage("Failure during opening data!");
-		AddLog(Hint, "Failed to open xep: " << file);
+		AddLog(Hint, "Failed to open epx: " << file);
 		return false;
 	}
 	m_RootEntity.reset(root.release());
 	m_CurrentPatternFile = file;
-	AddLog(Hint, "Opened xep: " << m_CurrentPatternFile);
+	AddLog(Hint, "Opened epx: " << m_CurrentPatternFile);
 	Refresh();
 	return true;
 }
@@ -220,12 +220,12 @@ bool EntityEditorWindow::SaveData() {
 			//TODO: sth?
 		} else {
 			SetModiffiedState(false);
-			AddLog(Hint, "Saved xep: " << m_CurrentPatternFile);
+			AddLog(Hint, "Saved epx: " << m_CurrentPatternFile);
 			return true;
 		}
 	}
 	//TODO: log sth
-	AddLog(Hint, "Failed to save xep: " << m_CurrentPatternFile);
+	AddLog(Hint, "Failed to save epx: " << m_CurrentPatternFile);
 	return true;
 }
 
