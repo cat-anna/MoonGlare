@@ -18,6 +18,7 @@
 #include <Renderer/Commands/TextureCommands.h>
 #include <Renderer/Commands/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
+#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -27,102 +28,6 @@
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
-
-//---------------------------------------------------------------------------------------
-
-struct PanelShader : public ::Graphic::Shader {
-	PanelShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
-		m_BaseColorLocation		= Location("gBaseColor");
-		m_PanelAspectLocation   = Location("gPanelAspect");
-		m_PanelSizeLocation	    = Location("gPanelSize");
-		m_PanelBorderLocation   = Location("gPanelBorder");
-		m_TileModeLocation	    = Location("gTileMode");
-	}
-
-	GLint m_BaseColorLocation;
-	GLint m_PanelAspectLocation;
-	GLint m_PanelSizeLocation;
-	GLint m_PanelBorderLocation;
-	GLint m_TileModeLocation;
-
-	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
-	}
-	//void SetModelMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & mat) {
-	//	auto loc = Location(ShaderParameters::ModelMatrix);
-	//	if (!IsValidLocation(loc))
-	//		return;
-	//
-	//	auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
-	//	arg->m_Location = loc;
-	//	arg->m_Matrix = mat;
-	//}
-
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
-		auto loc = Location(ShaderParameters::WorldMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = CameraMat * ModelMat;
-	}
-	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
-		auto loc = Location("gBaseColor");
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
-		arg->m_Location = loc;
-		arg->m_Vec = color;
-	}
-
-	void SetPanelSize(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const Point &Size) {
-		if (IsValidLocation(m_PanelAspectLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
-			arg->m_Location = m_PanelAspectLocation;
-			arg->m_Float = Size[0] / Size[1];
-		}
-
-		if (IsValidLocation(m_PanelSizeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>(key);
-			arg->m_Location = m_PanelSizeLocation;
-			*((Point*)(&arg->m_Vec)) = Size;
-		}
-	}
-	void SetBorder(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, float Border) {
-		if (IsValidLocation(m_PanelBorderLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
-			arg->m_Location = m_PanelBorderLocation;
-			arg->m_Float = Border;
-		}
-	}
-	void SetTileMode(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::ivec2 &mode) {
-		if (IsValidLocation(m_TileModeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>(key);
-			arg->m_Location = m_TileModeLocation;
-			*((glm::ivec2*)(&arg->m_Vec)) = mode;
-		}
-	}
-
-//	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
-//		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
-//	}
-
-//	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
-//		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
-//	}
-//	void VAORelease(Renderer::CommandQueue &Queue) {
-//		Queue.PushCommand<Renderer::Commands::VAORelease>();
-//	}
-
-//	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
-//		Queue.PushCommand<Renderer::Commands::Enable>()->m_What = what;
-//	}
-//	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
-//		Queue.PushCommand<Renderer::Commands::Disable>()->m_What = what;
-//	}
-};
 
 //---------------------------------------------------------------------------------------
 
@@ -144,6 +49,13 @@ PanelComponent::~PanelComponent() {
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<PanelComponentEntry>("cPanelComponentEntry")
+			.addProperty("Color", &PanelComponentEntry::GetColor, &PanelComponentEntry::SetColor)
+			.addProperty("Border", &PanelComponentEntry::GetBorder, &PanelComponentEntry::SetBorder)
+			.addProperty("TileMode", &PanelComponentEntry::GetTileMode, &PanelComponentEntry::SetTileMode)
+		.endClass()
+		;
 }
 
 //---------------------------------------------------------------------------------------
@@ -158,6 +70,14 @@ bool PanelComponent::Initialize() {
 		AddLog(Error, "Failed to get RectTransformComponent instance!");
 		return false;
 	}
+
+	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
+		if (!m_Shader) {
+			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI.Panel", m_Shader)) {
+				AddLogf(Error, "Failed to load GUI.Panel shader");
+			}
+		}
+	});
 
 	return true;
 }
@@ -177,19 +97,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	bool QueueDirty = false;
 	bool CanRender = false;
 
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<PanelShader>("GUI.Panel", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Panel shader");
-			return;
-		}
-	}
-
 	if (m_Shader) {
-	//	m_Shader->Bind(Queue);
-	//	m_Shader->Enable(Queue, GL_BLEND);
-	//	m_Shader->Enable(Queue, GL_DEPTH_TEST);
-	//	m_Shader->Disable(Queue, GL_CULL_FACE);
-
 		CanRender = true;
 	}
 
@@ -210,6 +118,9 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!item.m_Flags.m_Map.m_Active)
+			continue;
+
 		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
 		} else {
 
@@ -225,8 +136,16 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 				Graphic::vec3(0, 0, 0),
 			};
 			Graphic::NormalVector Normals;
-			Graphic::TexCoordVector TexUV;
-
+			float w1 = 0.0f;
+			float h1 = 0.0f;
+			float w2 = 1.0f;
+			float h2 = 1.0f;
+			Graphic::TexCoordVector TexUV{
+				Graphic::vec2(w1, h1),
+				Graphic::vec2(w2, h1),
+				Graphic::vec2(w2, h2),
+				Graphic::vec2(w1, h2),
+			};
 			Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
 			item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
 		}
@@ -235,8 +154,6 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
-
-		m_Shader->Bind(Queue, key);
 
 		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
 		
@@ -306,6 +223,7 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Border = pe.m_Border;
 	entry.m_Color = pe.m_Color;
 	entry.m_TileMode = pe.m_TileMode;
+	entry.m_Flags.m_Map.m_Active = pe.m_Active;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;

@@ -19,11 +19,11 @@ Structure.new {
 	name = "ImageEntry",
 	description = "",
 	fields = {
-        {
-			name = "Visible",
+		{
+			name = "Active",
 			description = "",
 			type = bool,
-            default = true,
+			default = true,
 		},
         {
 			name = "ScaleMode",
@@ -37,14 +37,13 @@ Structure.new {
 			type = RGBA,
             default = { r=1, g=1, b=1, a=1, },
 		},
-
-
-        --old
 		{
 			name = "TextureURI",
 			description = "",
 			type = Local.string,
 		},
+
+        --old
         {
 			name = "Speed",
 			description = "",

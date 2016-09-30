@@ -34,6 +34,8 @@ public:
 
 	bool GetFileData(const std::string &uri, StarVFS::ByteTable &data);
 	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
+	bool CreateFile(const std::string &uri);
+	bool CreateDirectory(const std::string &uri);
 public slots:
 	void Reload();
 signals:
@@ -45,6 +47,7 @@ private:
 	StarVFS::SharedStarVFS m_VFS;
 	std::string m_BasePath;
 	Module::SharedDataModule m_Module;
+	bool TranslateURI(const std::string &uri, std::string &out);
 };
 
 using SharedFileSystem = std::shared_ptr<FileSystem>;

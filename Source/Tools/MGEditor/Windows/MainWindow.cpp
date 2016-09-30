@@ -49,6 +49,13 @@ MainWindow::MainWindow(QWidget *parent)
 		if (einfo) {
 			auto lst = einfo->GetSupportedFileTypes();
 			auto shd = GetSharedData();
+
+			for (auto &it : einfo->GetCreateFileMethods()) {
+				auto item = std::make_shared<SharedData::FileCreatorInfo>();
+				*item = SharedData::FileCreatorInfo{ ptr, it, };
+				shd->m_FileCreators.emplace_back(std::move(item));
+			}
+
 			for (auto &item : lst) {
 				m_Editors[item.m_Ext] = ptr;
 				shd->m_FileIconMap[item.m_Ext] = item.m_Icon;
@@ -224,7 +231,7 @@ void MainWindow::OpenFileEditor(const std::string& FileURI) {
 	auto inst = dock->GetInstance();
 	auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
 	if (!editor) {
-		AddLog(Error, "Editing in not supported by %s", typeid(*inst).name());
+		AddLogf(Error, "Editing in not supported by %s", typeid(*inst).name());
 		ErrorMessage("Editing not supported!");
 		return;
 	}
@@ -234,6 +241,23 @@ void MainWindow::OpenFileEditor(const std::string& FileURI) {
 	} else {
 		ErrorMessage("Failed to open file!");
 		AddLog(Error, "Failed to open file!");
+	}
+}
+
+void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
+	auto inst = info->m_DockEditor->GetInstance();
+	auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
+	if (!editor) {
+		AddLogf(Error, "Fatal Error!");
+		ErrorMessage("Fatal Error!");
+		return;
+	}
+
+	if (editor->Create(URI, info->m_Info)) {
+		inst->show();
+	} else {
+		ErrorMessage("Failed to create file!");
+		AddLog(Error, "Failed to create file!");
 	}
 }
 

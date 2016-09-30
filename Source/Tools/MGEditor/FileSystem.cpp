@@ -22,12 +22,20 @@ FileSystem::~FileSystem() {
 }
 
 bool FileSystem::GetFileData(const std::string &uri, StarVFS::ByteTable & data) {
-	auto fid = m_VFS->FindFile(uri);
+	std::string path;
+	if (!TranslateURI(uri, path)) {
+		return false;
+	}
+	auto fid = m_VFS->FindFile(path);
 	return m_VFS->GetFileData(fid, data);
 }
 
 bool FileSystem::SetFileData(const std::string & uri, StarVFS::ByteTable & data) {
-	auto fid = m_VFS->FindFile(uri);
+	std::string path;
+	if (!TranslateURI(uri, path)) {
+		return false;
+	}
+	auto fid = m_VFS->FindFile(path);
 
 	if (!m_VFS->IsFileValid(fid)) {
 		//TODO: todo
@@ -46,6 +54,66 @@ bool FileSystem::SetFileData(const std::string & uri, StarVFS::ByteTable & data)
 	return ret;
 }
 
+bool FileSystem::CreateFile(const std::string & uri) {
+	if (uri.empty())
+		return false;
+
+	std::string path;
+	if (!TranslateURI(uri, path)) {
+		return false;
+	}
+
+	auto h = m_VFS->OpenFile(path, StarVFS::RWMode::RW, StarVFS::OpenMode::CreateNew);
+
+	if (!h) {
+		AddLog(Error, "Failed to create file " << uri);
+		return false;
+	}
+
+	h.Close();
+
+	emit Changed();
+	return true;
+}
+
+bool FileSystem::CreateDirectory(const std::string & uri) {
+	if (uri.empty())
+		return false;
+
+	std::string path;
+	if (!TranslateURI(uri, path)) {
+		return false;
+	}
+
+	auto h = m_VFS->CreateDirectory(path);
+
+	if (!h) {
+		AddLog(Error, "Failed to create directory " << uri);
+		return false;
+	}
+	h.Close();
+
+	emit Changed();
+	return true;
+}
+
+bool FileSystem::TranslateURI(const std::string & uri, std::string & out) {
+	if (uri.empty()) {
+		AddLog(Error, "Empty URI!");
+		return false;
+	}
+	auto pos = uri.find("://");
+	auto start = pos + 3;
+
+	switch (Space::Utils::MakeHash32(uri.c_str(), pos)) {
+	case "file"_Hash32:
+		out = uri.substr(start);
+		return true;
+	default:
+		AddLog(Error, "Invalid URI: " << uri);
+		return false;
+	}
+}
 //-----------------------------------------------------------------------------
 
 void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {

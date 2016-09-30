@@ -11,6 +11,7 @@
 #include <DockWindowInfo.h>
 #include <icons.h>
 #include "../Windows/MainWindow.h"
+#include <FileSystem.h>
 
 #include "EditableEntity.h"
 
@@ -34,48 +35,18 @@ struct EntityEditorInfo
 		SetDisplayName(tr("EntityEditor"));
 		SetShortcut("F2");
 	}
-	std::vector<QtShared::EditableFielInfo> GetSupportedFileTypes() const override {
-		return std::vector<QtShared::EditableFielInfo>{
-			QtShared::EditableFielInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, },
+	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
+		return std::vector<QtShared::EditableFieleInfo>{
+			QtShared::EditableFieleInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, },
+		};
+	}
+	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
+		return std::vector<QtShared::FileCreationMethodInfo> {
+			QtShared::FileCreationMethodInfo{ "xep", ICON_16_ENTITYPATTERN_RESOURCE, "Create Entity pattern", "xep", },
 		};
 	}
 };
 QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg("EntityEditor");
-
-//----------------------------------------------------------------------------------
-
-class ComponentValueItemDelegate : public QStyledItemDelegate {
-//	Q_OBJECT
-	EntityEditorWindow *m_Owner;
-public:
-	ComponentValueItemDelegate(EntityEditorWindow *parent = 0) : QStyledItemDelegate(parent), m_Owner(parent) { }
-	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-		if (vinfo && vinfo.m_ValueInterface) {
-			auto einfoit = TypeEditor::TypeEditorInfo::GetEditor(vinfo.m_ValueInterface->GetTypeName());
-			if (einfoit) {
-				return einfoit->CreateEditor(parent)->GetWidget();
-			}
-		}
-		return QStyledItemDelegate::createEditor(parent, option, index);
-	};
-	void setEditorData(QWidget *editor, const QModelIndex &index) const override {
-		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
-		if (vinfo && vinfo.m_ValueInterface && cte) {
-			cte->SetValue(vinfo.m_ValueInterface->GetValue());
-		}
-		return QStyledItemDelegate::setEditorData(editor, index);
-	};
-	void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
-		auto vinfo = index.data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
-		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
-		if (vinfo && vinfo.m_ValueInterface && cte) {
-			vinfo.m_ValueInterface->SetValue(cte->GetValue());
-		}
-		return QStyledItemDelegate::setModelData(editor, model, index);
-	};
-};
 
 //----------------------------------------------------------------------------------
 
@@ -107,7 +78,7 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	m_Ui->treeViewDetails->setModel(m_ComponentModel.get());
 	m_Ui->treeViewDetails->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeViewDetails->setContextMenuPolicy(Qt::CustomContextMenu);
-	m_Ui->treeViewDetails->setItemDelegate(new ComponentValueItemDelegate(this));
+	m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(this));
 	m_Ui->treeViewDetails->setColumnWidth(0, 200);
 	m_Ui->treeViewDetails->setColumnWidth(1, 100);
 	m_Ui->treeViewDetails->setColumnWidth(2, 100);
@@ -172,7 +143,48 @@ bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
 
 //----------------------------------------------------------------------------------
 
-bool EntityEditorWindow::CloseData() {
+bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) {
+	QString qname;
+	if (!QuerryStringInput("Enter name:", qname))
+		return false;
+
+	std::string name = qname.toLocal8Bit().constData();
+	std::string URI = LocationURI + name + ".xep";
+
+	auto fs = MainWindow::Get()->GetFilesystem();
+	if (!fs->CreateFile(URI)) {
+		ErrorMessage("Failed during creating xep file");
+		AddLog(Hint, "Failed to create xep: " << m_CurrentPatternFile);
+		return false;
+	}
+
+	auto root = std::make_unique<EditablePattern>();
+	root->GetName() = name;
+	m_RootEntity.reset(root.release());
+	m_CurrentPatternFile = URI;
+	SetModiffiedState(true);
+	Refresh();
+
+	AddLog(Hint, "Created xep file: " << URI);
+
+	if (!SaveData()) {
+		ErrorMessage("Failed during saving xep file");
+		AddLog(Hint, "Failed to save xep: " << m_CurrentPatternFile);
+	} else {
+		SetModiffiedState(false);
+	}
+
+	return true;
+}
+
+bool EntityEditorWindow::TryCloseData() {
+	AddLog(Hint, "Trying to close xep: " << m_CurrentPatternFile);
+	if (m_RootEntity && IsChanged()) {
+		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
+			return false;
+		if (AskForPermission("Save changes?"))
+			SaveData();
+	}
 	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
 	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
 	m_RootEntity.reset();
@@ -183,22 +195,17 @@ bool EntityEditorWindow::CloseData() {
 }
 
 bool EntityEditorWindow::OpenData(const std::string &file) {
-	if (m_RootEntity) {
-		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
-			return true;
-		if (IsChanged() && AskForPermission("Save changes?"))
-			SaveData();
-	}
-	CloseData();
+	TryCloseData();
  
 	auto root = std::make_unique<EditablePattern>();
 	if (!root->OpenPattern(file)) {
-		CloseData();
-		//ToDo: log sth
+		ErrorMessage("Failure during opening data!");
+		AddLog(Hint, "Failed to open xep: " << file);
 		return false;
 	}
 	m_RootEntity.reset(root.release());
 	m_CurrentPatternFile = file;
+	AddLog(Hint, "Opened xep: " << m_CurrentPatternFile);
 	Refresh();
 	return true;
 }
@@ -210,13 +217,16 @@ bool EntityEditorWindow::SaveData() {
 	
 	if (pat) {
 		if (!pat->SavePattern(m_CurrentPatternFile)) {
-			//ToDo: log sth
+			//TODO: sth?
+		} else {
+			SetModiffiedState(false);
+			AddLog(Hint, "Saved xep: " << m_CurrentPatternFile);
+			return true;
 		}
-		SetModiffiedState(false);
-		return true;
 	}
 	//TODO: log sth
-	return false;
+	AddLog(Hint, "Failed to save xep: " << m_CurrentPatternFile);
+	return true;
 }
 
 //----------------------------------------------------------------------------------
@@ -301,6 +311,7 @@ void EntityEditorWindow::RefreshDetails() {
 				
 			CaptionElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
 			ValueElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
+			ValueElem->setData(QVariant::fromValue(ecvi.m_ValueInterface), TypeEditor::CustomEditorItemDelegate::QtRoles::StructureValue);
 
 			{
 				QList<QStandardItem*> cols;

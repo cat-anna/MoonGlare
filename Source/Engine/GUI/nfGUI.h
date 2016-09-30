@@ -5,6 +5,8 @@ namespace GUI {
 	using Point = ::glm::fvec2;
 	using UnsignedPoint = ::glm::uvec2;
 
+	class GUIShader;
+
 	class GUIEngine;
 	using GUIEnginePtr = std::unique_ptr < GUIEngine > ;
 

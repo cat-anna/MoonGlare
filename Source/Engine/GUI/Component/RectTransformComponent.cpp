@@ -38,7 +38,8 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 	root
 		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
 			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
-			.addProperty("Size", &RectTransformComponentEntry:: GetSize, &RectTransformComponentEntry::SetSize)
+			.addProperty("Size", &RectTransformComponentEntry::GetSize, &RectTransformComponentEntry::SetSize)
+			.addProperty("Z", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
 		.endClass()
 		;
 }
@@ -193,8 +194,6 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Margin = rte.m_Margin;
 	entry.m_Position = rte.m_Position;
 	entry.m_Size = rte.m_Size;
-
-	entry.m_Flags.m_Map.m_Visible = rte.m_Visible;
 
 	int32_t rawz = static_cast<uint32_t>(rte.m_Z);
 	rawz += static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2;

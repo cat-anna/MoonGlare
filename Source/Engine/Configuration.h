@@ -117,6 +117,8 @@ using Entity = Space::Memory::TripleHandle32<
 		//	Configuration::Entity::ValueBits
 		>;
 
+using EntityNameHash = uint32_t;
+
 using Handle = Space::Memory::TripleHandle32<
 			Configuration::Handle::GenerationBits,
 			Configuration::Handle::IndexBits,

@@ -80,6 +80,7 @@ bool EditableEntity::Read(pugi::xml_node node) {
 			}
 			m_Children.emplace_back(std::move(child));
 		}
+		continue;
 		default:
 			AddLogf(Warning, "Unknown node: %s", nodename);
 			continue;

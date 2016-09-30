@@ -40,6 +40,7 @@
 #include <QStyledItemDelegate>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QInputDialog>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>

@@ -22,6 +22,7 @@ union TextComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
 		bool m_Dirty : 1;
+		bool m_Active : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -38,9 +39,13 @@ struct TextComponentEntry {
 	char padding[3];
 	TextComponentEntryFlagsMap m_Flags;
 
-//	math::vec4 m_Color;
-	//Configuration::RuntimeRevision m_TransformRevision;
-	std::wstring m_Text;
+	math::vec4 m_Color;
+	std::string m_Text;
+
+	//TODO: fontname property
+	//TODO: fontsize property
+	DEFINE_COMPONENT_PROPERTY(Color);
+	DEFINE_COMPONENT_PROPERTY(Text);
 
 	DataClasses::FontPtr m_Font;
 	DataClasses::SharedFontInstance m_FontInstance;
@@ -48,15 +53,14 @@ struct TextComponentEntry {
 
 	void Reset() {
 		m_Flags.ClearAll();
-//		m_TransformRevision = 0;
+		m_Font.reset();
+		m_FontInstance.reset();
 	}
 
-//	void Update(float TimeDelta, RectTransformComponentEntry &rectTransform);
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
-
-struct ImageShader;
 
 class TextComponent
 	: public TemplateStandardComponent<TextComponentEntry, ComponentIDs::Text> {
@@ -71,7 +75,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	ImageShader *m_Shader;
+	GUIShader *m_Shader;
 };
 
 } //namespace Component 

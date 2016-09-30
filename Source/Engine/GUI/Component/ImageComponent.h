@@ -22,8 +22,8 @@ using namespace Core::Component;
 union ImageComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
-		bool m_Visible : 1;
 		bool m_Dirty : 1;
+		bool m_Active : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -42,13 +42,22 @@ struct ImageComponentEntry {
 
 	float m_Speed;
 	float m_Position;
+	math::vec4 m_Color;
+	DEFINE_COMPONENT_PROPERTY(Speed);
+	DEFINE_COMPONENT_PROPERTY(Position);
+	DEFINE_COMPONENT_PROPERTY(Color);
+	//TODO: FrameCount property
+	//TODO: ScaleMode
+	//TODO: AnimationTexture
+
 	unsigned m_FrameCount;
 	ImageScaleMode m_ScaleMode;
-	math::vec4 m_Color;
-	math::mat4 m_ImageMatrix;
 	SharedAnimation m_Animation;
+	
+	math::mat4 m_ImageMatrix;
 	Configuration::RuntimeRevision m_TransformRevision;
-
+	
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
 	void Reset() {
 		m_Flags.ClearAll();
 		m_Animation.reset();
@@ -59,8 +68,6 @@ struct ImageComponentEntry {
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
-
-struct ImageShader;
 
 class ImageComponent 
 	: public TemplateStandardComponent<ImageComponentEntry, ComponentIDs::Image> {
@@ -75,7 +82,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	ImageShader *m_Shader;
+	GUIShader *m_Shader;
 };
 
 } //namespace Component 

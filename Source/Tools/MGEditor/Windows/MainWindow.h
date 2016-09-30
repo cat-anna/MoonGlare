@@ -22,6 +22,12 @@ struct SharedData {
 	std::unordered_map<std::string, std::string> m_FileIconMap;
 	std::unique_ptr<QtShared::ChangesManager> m_ChangesManager;
 
+	struct FileCreatorInfo {
+		QtShared::SharedDockWindowInfo m_DockEditor;
+		QtShared::FileCreationMethodInfo m_Info;
+	};
+	std::vector<std::shared_ptr<FileCreatorInfo>> m_FileCreators;
+
 	SharedData() {
 		m_ChangesManager = std::make_unique<QtShared::ChangesManager>();
 	}
@@ -59,6 +65,7 @@ private:
 	void CloseModule();
 public slots:
 	void OpenFileEditor(const std::string& FileURI);
+	void CreateFileEditor(const std::string& URI, std::shared_ptr<SharedData::FileCreatorInfo> info);
 protected slots:
 	void NewModuleAction();
 	void OpenModuleAction();

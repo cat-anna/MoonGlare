@@ -33,9 +33,8 @@ public:
 		struct MapBits_t {
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 			bool m_Active : 1; //Script has step function and it shall be called
-
-			//bool m_OnStart : 1;
-			//bool m_OnStop : 1;
+			bool m_OnPerSecond : 1;//called when movedata.secondstep is true, need to be activated
+			bool m_Step : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -75,11 +74,21 @@ protected:
 		lua_pushlightuserdata(lua, GetGameObjectMetaTableIndex());
 		lua_gettable(lua, LUA_REGISTRYINDEX);
 	}
+	void GetObjectRootTable(lua_State *lua) {
+		lua_pushlightuserdata(lua, GetObjectRootTableIndex());
+		lua_gettable(lua, LUA_REGISTRYINDEX);
+	}
 
 	void *GetInstancesTableIndex() { return this; }
-	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<int>(this) + 1); }
+	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 1); }
+	void *GetObjectRootTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 2); }
 private:
-//utils
+	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
+	bool InvalidateObjectRoot(lua_State *lua, Entity Owner);//returns false on error; Owner shall be not valid;
+
+	bool InitGameObjectMetaTable(lua_State *lua);
+//support functions
+	int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
 	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
 	static int lua_SetComponentState(lua_State *lua);
@@ -87,12 +96,20 @@ private:
 //ScriptComponent api
 	static int lua_DestroyComponent(lua_State *lua);
 	static int lua_GetComponent(lua_State *lua);
+	static int lua_SetPerSecond(lua_State *lua);
+	static int lua_SetStep(lua_State *lua);
+	static int lua_SetActive(lua_State *lua);
 
 //GameObject api
 	static int lua_CreateComponent(lua_State *lua);
 	static int lua_SpawnChild(lua_State *lua);
 	static int lua_DestroyObject(lua_State *lua);
 	static int lua_Destroy(lua_State *lua);
+	static int lua_SetName(lua_State *lua);
+	static int lua_GetName(lua_State *lua);
+	static int lua_FindChild(lua_State *lua);
+	static int lua_GameObjectGetComponent(lua_State *lua);
+
 };
 
 } //namespace Component 

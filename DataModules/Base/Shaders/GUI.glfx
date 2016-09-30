@@ -55,10 +55,19 @@ float ProcessTile(float pos, int TileMode, float Border) {
 	return pos;//bug catcher, shall not reach here
 }
 
-shader PanelVSmain(in vec3 Pos : 0, out PanelVSOutput VSout) {
+shader PanelVSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, out PanelVSOutput VSout) {
 	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
 	gl_Position = vpos;
-	VSout.VertexPosition = Pos.xy / gPanelSize;
+	if ( gTileMode.x == 0 ){
+		VSout.VertexPosition.x = TexCoord.x;
+	} else {
+		VSout.VertexPosition.x = Pos.x / gPanelSize.x;
+	}
+	if ( gTileMode.y == 0 ){
+		VSout.VertexPosition.y = TexCoord.y;
+	} else {
+		VSout.VertexPosition.y = Pos.y / gPanelSize.y;
+	}
 };
 
 shader PanelFSmain(in PanelVSOutput FSin, out vec4 FragColor) {
@@ -74,27 +83,4 @@ shader PanelFSmain(in PanelVSOutput FSin, out vec4 FragColor) {
 program Panel {
 	vs(330) = PanelVSmain();
 	fs(330) = PanelFSmain();
-};
-
-//---------------------------------------------------------------------------------------
-
-interface ImageVSOutput {
-    vec2 VertexUV0;
-};
-
-shader ImageVSmain(in vec3 Pos : 0, in vec2 TexCoord : 1, out ImageVSOutput VSout) {
-	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
-
-	gl_Position = vpos;
-    VSout.VertexUV0 = TexCoord;
-};
-
-shader ImageFSmain(in ImageVSOutput FSin, out vec4 FragColor) {
-	vec2 tex = FSin.VertexUV0;
-	FragColor = ProcessBaseColor(vec4(texture2D(Texture0, tex)));
-};
-
-program Image {
-	vs(330) = ImageVSmain();
-	fs(330) = ImageFSmain();
 };

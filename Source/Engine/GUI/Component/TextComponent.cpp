@@ -14,11 +14,12 @@
 #include "RectTransformComponent.h"
 #include "TextComponent.h"
 
-//#include <Renderer/Commands/ControllCommands.h>
+#include <Renderer/Commands/ControllCommands.h>
 #include <Renderer/Commands/ShaderCommands.h>
 #include <Renderer/Commands/TextureCommands.h>
 #include <Renderer/Commands/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
+#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -27,41 +28,6 @@
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
-
-//---------------------------------------------------------------------------------------
-
-struct ImageShader : public ::Graphic::Shader {
-	ImageShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
-		m_BaseColorLocation = Location("gBaseColor");
-	}
-
-	GLint m_BaseColorLocation;
-
-	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
-	}
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
-		auto loc = Location(ShaderParameters::WorldMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = CameraMat * ModelMat;
-	}
-	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
-		if (!IsValidLocation(m_BaseColorLocation))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
-		arg->m_Location = m_BaseColorLocation;
-		arg->m_Vec = color;
-	}
-
-	//void VAORelease(Renderer::CommandQueue &Queue) {
-	//	Queue.PushCommand<Renderer::Commands::VAORelease>();
-	//}
-};
 
 //---------------------------------------------------------------------------------------
 
@@ -82,6 +48,12 @@ TextComponent::~TextComponent() {
 //---------------------------------------------------------------------------------------
 
 void TextComponent::RegisterScriptApi(ApiInitializer & root) {
+	root
+		.beginClass<TextComponentEntry>("cTextComponentEntry")
+			.addProperty("Color", &TextComponentEntry::GetColor, &TextComponentEntry::SetColor)
+			.addProperty("Text", &TextComponentEntry::GetText, &TextComponentEntry::SetText)
+		.endClass()
+		; 
 }
 
 //---------------------------------------------------------------------------------------
@@ -96,6 +68,14 @@ bool TextComponent::Initialize() {
 		AddLog(Error, "Failed to get RectTransformComponent instance!");
 		return false;
 	}
+
+	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
+		if (!m_Shader) {
+			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI.Panel", m_Shader)) {
+				AddLogf(Error, "Failed to load GUI.Panel shader");
+			}
+		}
+	});
 
 	return true;
 }
@@ -112,17 +92,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 	bool QueueDirty = false;
 	bool CanRender = false;
 
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<ImageShader>("GUI.Image", m_Shader)) {
-			AddLogf(Error, "Failed to load GUI.Image shader");
-			return;
-		}
-	}
-
 	if (m_Shader) {
-//		m_Shader->Enable(Queue, GL_BLEND);
-//		m_Shader->Enable(Queue, GL_DEPTH_TEST);
-//		m_Shader->Disable(Queue, GL_CULL_FACE);
 		CanRender = true;
 	}
 
@@ -146,25 +116,27 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!entry.m_Flags.m_Map.m_Active)
+			continue;
+
 		if (entry.m_Flags.m_Map.m_Dirty) {
-			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(entry.m_Text.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
+			std::wstring txt = Utils::Strings::towstring(entry.m_Text);
+			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(txt.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
 		
 			entry.m_Flags.m_Map.m_Dirty = false;
 		}
 
 		if (!entry.m_FontInstance)
 			continue;
-//		item.Update(conf.TimeDelta, *rtentry);
-//		if (!item.m_Animation || !item.m_Flags.m_Map.m_Visible)
-//			continue;
 		if (!CanRender)
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
-		m_Shader->Bind(Queue, key);
 		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
+		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
+
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
 //		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
 //		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
@@ -219,22 +191,8 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 	entry.m_FontStyle.Size = te.m_FontSize;
 	entry.m_FontStyle.Color = math::vec3(1, 1, 1);
-	entry.m_Text = Utils::Strings::towstring(te.m_Text);
-
-	//entry.m_Animation = std::make_shared<Animation>();
-	//entry.m_Speed = ie.m_Speed;
-	//entry.m_Position = 0.0f;
-	//entry.m_FrameCount = ie.m_FrameCount;
-	//entry.m_Flags.m_Map.m_Visible = ie.m_Visible;
-	//entry.m_ScaleMode = ie.m_ScaleMode;
-	//entry.m_Color = ie.m_Color;
-	//entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
-	//auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
-	//if (rtentry) {
-	//	entry.Update(0.0f, *rtentry);
-	//} else {
-	//	//TODO:??
-	//}
+	entry.m_Text = te.m_Text;
+	entry.m_Flags.m_Map.m_Active = te.m_Active;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;

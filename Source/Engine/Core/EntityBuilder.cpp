@@ -21,14 +21,14 @@ EntityBuilder::EntityBuilder(Component::ComponentManager *Manager)
 EntityBuilder::~EntityBuilder() {
 }
 
-bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout) {
+bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
 	XMLFile xml;
 	if (!GetFileSystem()->OpenXML(xml, PatternUri)) {
 		AddLogf(Error, "Failed to open uri: %s", PatternUri);
 		return false;
 	}
 	
-	unsigned count = BuildChild(Owner, xml->document_element(), eout);
+	unsigned count = BuildChild(Owner, xml->document_element(), eout, std::move(Name));
 
 	if (count == 0) {
 		AddLogf(Error, "No elements has been loaded from: %s", PatternUri);
@@ -39,7 +39,7 @@ bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout) {
 
 //-------------------------------------------------------------------------------------------------
 
-unsigned EntityBuilder::BuildChild(Entity Owner, pugi::xml_node node, Entity &eout) {
+unsigned EntityBuilder::BuildChild(Entity Owner, pugi::xml_node node, Entity &eout, std::string Name) {
 	auto world = m_Manager->GetWorld();
 	auto em = world->GetEntityManager();
 	if (!em->IsValid(Owner)) {
@@ -47,8 +47,13 @@ unsigned EntityBuilder::BuildChild(Entity Owner, pugi::xml_node node, Entity &eo
 		return false;
 	}
 
+	if (Name.empty()) {
+		auto attname = node.attribute("Name");
+		Name = attname.as_string("");
+	}
+
 	Entity child;
-	if (!em->Allocate(Owner, child)) {
+	if (!em->Allocate(Owner, child, std::move(Name))) {
 		AddLogf(Error, "Failed to allocate entity!");
 		return false;
 	}
@@ -91,7 +96,12 @@ unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
 					continue;
 				}
 
-				auto c = BuildChild(Owner, xdoc->document_element(), child);
+				std::string Name;
+				auto attname = it.attribute("Name");
+				if (attname)
+					Name = attname.as_string("");
+
+				auto c = BuildChild(Owner, xdoc->document_element(), child, std::move(Name));
 				if (c == 0) {
 					AddLogf(Error, "Failed to load child!");
 					continue;
@@ -104,8 +114,11 @@ unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
 		//[[fallthrough]]
 		case "Child"_Hash32: {
 			Entity child;
-
-			auto c = BuildChild(Owner, it, child);
+			std::string Name;
+			auto attname = it.attribute("Name");
+			if (attname)
+				Name = attname.as_string("");
+			auto c = BuildChild(Owner, it, child, std::move(Name));
 			if (c == 0) {
 				AddLogf(Error, "Failed to load child!");
 				continue;

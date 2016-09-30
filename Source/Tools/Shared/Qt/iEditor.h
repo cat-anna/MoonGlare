@@ -12,26 +12,32 @@
 namespace MoonGlare {
 namespace QtShared {
 
-struct EditableFielInfo {
+struct EditableFieleInfo {
 	std::string m_Ext;
 	std::string m_Icon;
 };
 
+struct FileCreationMethodInfo {
+	std::string m_Ext;
+	std::string m_Icon;
+	std::string m_Caption;
+	std::string m_MethodID;
+};
+
 struct iEditorInfo {
+	virtual std::vector<EditableFieleInfo> GetSupportedFileTypes() const { return{}; }
+	virtual std::vector<FileCreationMethodInfo> GetCreateFileMethods() const { return{}; }
+protected:
 	virtual ~iEditorInfo() {};
-	virtual std::vector<EditableFielInfo> GetSupportedFileTypes() const = 0;
 };
 
 struct iEditor {
-	virtual ~iEditor() { };
+	virtual bool Create(const std::string &LocationURI,const FileCreationMethodInfo& what) { return false; }
 	virtual bool OpenData(const std::string &URI) { return false; }
 	virtual bool SaveData() { return false; }
-	virtual bool CloseData() { return false; }
-
-	virtual bool Ischanged() { return true; }
-	virtual bool CanDropChanges() { return false; }
-	virtual bool DropChanges() { return false; }
+	virtual bool TryCloseData() { return false; }
 protected:
+	virtual ~iEditor() {};
 };
 
 } //namespace QtShared

@@ -17,11 +17,11 @@ public:
  	EntityBuilder(Component::ComponentManager *Manager);
  	~EntityBuilder();
 
-	bool Build(Entity Owner, const char *PatternUri, Entity &eout);
+	bool Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name);
 
 //xml
 	/** Returns count of processed elements */
-	unsigned BuildChild(Entity Owner, pugi::xml_node node, Entity &eout);
+	unsigned BuildChild(Entity Owner, pugi::xml_node node, Entity &eout, std::string Name);
 	/** Returns count of processed elements */
 	unsigned ProcessXML(Entity Owner, pugi::xml_node node);
 	/** Returns count of loaded components */

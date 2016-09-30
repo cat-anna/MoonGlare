@@ -3,7 +3,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-	enum class AlignMode {
+	enum class AlignMode : uint8_t {
 		None, 
 		Top, Bottom, Left, Right, 
 		LeftTop, LeftBottom,   

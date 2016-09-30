@@ -32,14 +32,31 @@ struct UserQuestions {
 	virtual ~UserQuestions() { }
 
 	bool AskForPermission( const char *msg = nullptr) {
-		return QMessageBox::question(dynamic_cast<QWidget*>(this), "MoonGlare", msg ? msg : "Are you sure?") == QMessageBox::Yes;
+		return QMessageBox::question(GetParentWidget(), GetTitle(), msg ? msg : "Are you sure?") == QMessageBox::Yes;
 	}
 	void ErrorMessage(const char *message) {
-		QMessageBox::critical(dynamic_cast<QWidget*>(this), "MoonGlare", message);
+		QMessageBox::critical(GetParentWidget(), GetTitle(), message);
 	}
 	void ReportNotImplemented() {
-		QMessageBox::information(dynamic_cast<QWidget*>(this), "MoonGlare", "Not implemented");
+		QMessageBox::information(GetParentWidget(), GetTitle(), "Not implemented");
 	}
+
+	bool QuerryStringInput(const QString &Prompt, QString &Input, int MinChars = 4) {
+		bool succ = false;
+		auto ret = QInputDialog::getText(GetParentWidget(), GetTitle(), Prompt, QLineEdit::Normal, Input, &succ);
+		if (!succ)
+			return false;
+		if (ret.length() < MinChars) {
+			ErrorMessage("Too short input!");
+			return false;
+		}
+		Input.swap(ret);
+		return succ;
+	}
+
+protected:
+	virtual QWidget* GetParentWidget() { return dynamic_cast<QWidget*>(this); }
+	virtual QString GetTitle() const { return  "MoonGlare"; }
 };
 
 } //namespace QtShared 

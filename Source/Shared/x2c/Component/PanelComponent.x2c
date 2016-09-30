@@ -12,9 +12,16 @@ Structure.new {
 	description = "",
 	fields = {
 		{
+			name = "Active",
+			description = "",
+			type = bool,
+			default = true,
+		},
+		{
 			name = "TextureURI",
 			description = "",
 			type = Local.string,
+			default = "",
 		},
 		{
 			name = "Border",

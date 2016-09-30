@@ -73,8 +73,12 @@ struct CustomEditorItemDelegate : public QStyledItemDelegate {
 	virtual void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
 		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
 		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
-		if (vinfo && cte) {
-			vinfo->SetValue(cte->GetValue());
+		if (vinfo) {
+			if (cte) {
+				vinfo->SetValue(cte->GetValue());
+			} else {
+				vinfo->SetValue(index.data(Qt::DisplayRole).toString().toLocal8Bit().constData());
+			}
 		}
 		return QStyledItemDelegate::setModelData(editor, model, index);
 	};
