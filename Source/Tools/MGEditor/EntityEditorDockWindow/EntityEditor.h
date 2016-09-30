@@ -67,9 +67,10 @@ public:
 	virtual std::string GetInfoLine() const override { return m_CurrentPatternFile; }
 	virtual std::string GetName() const override { return "EntityEditor"; }
 public slots:
+	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) override;
 	virtual bool OpenData(const std::string &file) override;
 	virtual bool SaveData() override;
-	virtual bool CloseData() override;
+	virtual bool TryCloseData() override;
 
 	void Refresh();
 	void RefreshDetails();

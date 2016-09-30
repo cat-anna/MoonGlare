@@ -12,6 +12,7 @@
 #include <DockWindow.h>
 #include "../Notifications.h"
 #include "../FileSystem.h"
+#include <iEditor.h>
 
 namespace Ui { class FilesystemViewer; }
 
@@ -24,11 +25,13 @@ struct FileSystemViewerRole {
 		FileURI = Qt::UserRole + 1,
 		FileHash,
 		FileFullName,
+		IsFile,
 	};
 };
 
 class FileSystemViewer 
-	: public QtShared::DockWindow {
+	: public QtShared::DockWindow
+	, public QtShared::iEditor {
 	Q_OBJECT;
 public:
  	FileSystemViewer(QWidget *parent = nullptr);
@@ -36,6 +39,8 @@ public:
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what);
 protected:
 	void Clear();
 	void RefreshTreeView();

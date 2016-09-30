@@ -17,15 +17,21 @@ namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
-struct FileSystemViewerInfo : public QtShared::DockWindowInfo {
+struct FileSystemViewerInfo 
+		: public QtShared::DockWindowInfo
+		, public QtShared::iEditorInfo {
 	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<FileSystemViewer>(parent);
 	}
-
 	FileSystemViewerInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
 		SetSettingID("FileSystemViewerInfo");
 		SetDisplayName(tr("Filesystem"));
 		SetShortcut("F4");
+	}
+	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
+		return std::vector<QtShared::FileCreationMethodInfo> {
+			QtShared::FileCreationMethodInfo{ "", ICON_16_FOLDER_RESOURCE, "Create folder", "", },
+		};
 	}
 };
 QtShared::DockWindowClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
@@ -70,12 +76,39 @@ bool FileSystemViewer::DoLoadSettings(const pugi::xml_node node) {
 	return true;
 }
 
+bool FileSystemViewer::Create(const std::string & LocationURI, const QtShared::FileCreationMethodInfo & what) {
+	QString qname;
+	if (!QuerryStringInput("Enter name:", qname))
+		return false;
+
+	std::string name = qname.toLocal8Bit().constData();
+	std::string URI = LocationURI + name;
+
+	return m_FileSystem->CreateDirectory(URI);
+}
+
 void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 	QMenu menu;
 	QModelIndex index = m_Ui->treeView->indexAt(point);
 	auto itemptr = m_ViewModel->itemFromIndex(index);
 
-	menu.addAction("Open", this, &FileSystemViewer::OpenItem);
+	bool folder = !index.data(FileSystemViewerRole::IsFile).toBool();
+	if (folder) {
+		auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
+		for (auto ptr : MainWindow::Get()->GetSharedData()->m_FileCreators) {
+			if (!ptr->m_DockEditor || !dynamic_cast<QtShared::iEditor*>(ptr->m_DockEditor->GetInstance().get()))
+				continue;
+			CreateMenu->addAction(QIcon(ptr->m_Info.m_Icon.c_str()), ptr->m_Info.m_Caption.c_str(), [this, ptr, index]() {
+				auto qstr = index.data(FileSystemViewerRole::FileURI).toString();
+				std::string URI = qstr.toLocal8Bit().constData();
+				MainWindow::Get()->CreateFileEditor(URI, ptr);
+			});
+		}
+
+	} else {
+		menu.addAction("Open", this, &FileSystemViewer::OpenItem);
+	}
+
 	menu.addSeparator();
 
 	if (itemptr) {
@@ -112,7 +145,7 @@ void FileSystemViewer::OpenItem() {
 	if (!itemptr)
 		return;
 
-	std::string fullpath = itemptr->data(FileSystemViewerRole::FileFullName).toString().toLocal8Bit().constData();
+	std::string fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
 	MainWindow::Get()->OpenFileEditor(fullpath);
 }
 
@@ -164,7 +197,9 @@ void FileSystemViewer::RefreshTreeView() {
 		if (h.IsDirectory()) {
 			item->setData(ICON_16_FOLDER, Qt::DecorationRole);
 			h.EnumerateChildren(processitem);
+			item->setData(QVariant(false), FileSystemViewerRole::IsFile);
 		} else {
+			item->setData(QVariant(true), FileSystemViewerRole::IsFile);
 			auto ext = strrchr(h.GetName(), '.');
 			if (ext) {
 				++ext;
@@ -178,6 +213,8 @@ void FileSystemViewer::RefreshTreeView() {
 		}
 
 		auto str = h.GetFullPath();
+		if (h.IsDirectory() && str.back() != '/')
+			str.push_back('/');
 		auto hashuri = StarVFS::MakePathHashURI(h.GetHash());
 		auto fileuri = StarVFS::MakeFileURI(str.c_str());
 		item->setData(fileuri.c_str(), FileSystemViewerRole::FileURI);
