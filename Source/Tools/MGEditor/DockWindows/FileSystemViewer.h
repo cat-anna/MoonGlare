@@ -26,6 +26,7 @@ struct FileSystemViewerRole {
 		FileHash,
 		FileFullName,
 		IsFile,
+		SortString,
 	};
 };
 
