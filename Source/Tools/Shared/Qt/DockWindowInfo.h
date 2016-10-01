@@ -18,6 +18,7 @@ public:
 	const QString& GetIconResName() const{ return m_IconResName; }
 	const QString& GetDisplayName() const { return m_DisplayName; }
 	const QString& GetShortcut() const { return m_ShortCut; }
+	bool IsMainMenu() const { return m_DisableMainMenu; }
 
 	QIcon GetIcon() const { return QIcon(GetIconResName()); }
 	QKeySequence GetKeySequence() const { return QKeySequence(GetShortcut()); }
@@ -31,6 +32,7 @@ protected:
 	void SetIconResName(QString v) { m_IconResName.swap(v); }
 	void SetDisplayName(QString v) { m_DisplayName.swap(v); }
 	void SetShortcut(QString v) { m_ShortCut.swap(v); }
+	void SetMainMenu(bool v) { m_DisableMainMenu = v; }
 
 	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) = 0;
 
@@ -44,6 +46,7 @@ private:
 	QString m_DisplayName;
 	QString m_ShortCut;
 	std::shared_ptr<DockWindow> m_Instance;
+	bool m_DisableMainMenu;
 };
 
 using DockWindowClassRgister = Space::DynamicClassRegister<DockWindowInfo, QWidget*>;

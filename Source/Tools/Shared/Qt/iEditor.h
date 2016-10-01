@@ -24,12 +24,18 @@ struct FileCreationMethodInfo {
 	std::string m_MethodID;
 };
 
+struct iEditor;
+using SharediEditor = std::shared_ptr<iEditor>;
+
 struct iEditorInfo {
 	virtual std::vector<EditableFieleInfo> GetSupportedFileTypes() const { return{}; }
 	virtual std::vector<FileCreationMethodInfo> GetCreateFileMethods() const { return{}; }
+	//virtual SharediEditor CreateEditor() { return nullptr; }
 protected:
 	virtual ~iEditorInfo() {};
 };
+
+//using EditorInfoClassRgister = Space::DynamicClassRegister<iEditorInfo>;
 
 struct iEditor {
 	virtual bool Create(const std::string &LocationURI,const FileCreationMethodInfo& what) { return false; }

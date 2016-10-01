@@ -86,11 +86,13 @@ void iSettings::LoadStaticSettings(pugi::xml_node node) {}
 //-----------------------------------------
 
 void iSettings::iSettingsUser::SaveSettings() {
-	iSettings::GetiSettings()->SaveSettings(this);
+	if(m_EnableSettings)
+		iSettings::GetiSettings()->SaveSettings(this);
 }
 
 void iSettings::iSettingsUser::LoadSettings() {
-	iSettings::GetiSettings()->LoadSettings(this);
+	if (m_EnableSettings)
+		iSettings::GetiSettings()->LoadSettings(this);
 }
 
 } //namespace QtShared

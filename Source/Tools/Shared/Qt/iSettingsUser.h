@@ -32,7 +32,7 @@ public:
 		const std::string& GetSettingID() const { return m_SettingID; }
 	protected:
 		void SetSettingID(std::string v) { m_SettingID.swap(v); }
-
+		
 		template<class T>
 		static void SaveGeometry(pugi::xml_node node, T *widget, const char *Name) {
 			XML::UniqeChild(node, Name).text() = widget->saveGeometry().toHex().constData();
@@ -74,8 +74,10 @@ public:
 				widget->setColumnWidth(it, att.as_uint());
 			}
 		}
+		void EnableSettings(bool v) { m_EnableSettings = v; }
 	private:
 		std::string m_SettingID;
+		bool m_EnableSettings = true;
 	};
 
 protected:
