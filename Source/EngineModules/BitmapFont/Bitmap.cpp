@@ -160,7 +160,12 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	}
 
 	auto wr = new BitmapFontWrapper(this);
-	wr->m_size = math::vec2(x, h);
+
+	if (UniformPosition) 
+		wr->m_size = math::vec2(x, h) / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
+	else
+		wr->m_size = math::vec2(x, h);
+
 	mesh.ElementMode = Graphic::Flags::fTriangles;
 	mesh.NumIndices = Index.size();
 	wr->m_Mesh = mesh;

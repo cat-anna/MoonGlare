@@ -12,6 +12,8 @@
 #include "nfGUIComponent.h"
 #include <Core/Component/AbstractComponent.h>
 
+#include "../Enums.h"
+
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
@@ -41,12 +43,14 @@ struct TextComponentEntry {
 
 	math::vec4 m_Color;
 	std::string m_Text;
+	TextAlignMode m_AlignMode;
 
 	//TODO: fontname property
 	//TODO: fontsize property
 	DEFINE_COMPONENT_PROPERTY(Color);
 	DEFINE_COMPONENT_PROPERTY(Text);
 
+	math::mat4 m_Matrix;
 	DataClasses::FontPtr m_Font;
 	DataClasses::SharedFontInstance m_FontInstance;
 	DataClasses::Fonts::Descriptor m_FontStyle;
@@ -58,6 +62,8 @@ struct TextComponentEntry {
 	}
 
 	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
+
+	void Update(RectTransformComponentEntry &Parent, bool Uniform);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");

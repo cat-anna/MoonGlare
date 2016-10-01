@@ -93,6 +93,7 @@ struct Register {
 	Register() {
 		RegEnum<RectTransformComponent::AlignMode_TypeInfo>();
 		RegEnum<ImageComponent::ImageScaleMode_TypeInfo>();
+		RegEnum<TextComponent::TextAlignMode_TypeInfo>();
 		RegEnum<bool_TypeInfo>();
 
 		RegComponent<TransfromComponent::TransfromEntry_t	, EmptySettings								>("Transform"			, "Transform"		, ComponentIDs::Transform,			{ } );

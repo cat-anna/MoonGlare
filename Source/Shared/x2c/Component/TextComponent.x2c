@@ -6,6 +6,19 @@ Use(Global.MoonGlare.x2c.Math.Vec2)
 Use(Global.MoonGlare.x2c.Math.Vec3)
 Use(Global.MoonGlare.x2c.Math.RGBA)
 
+
+Enum.import {
+	name = "TextAlignMode",
+	location = "::MoonGlare::GUI::TextAlignMode",
+	default = "LeftTop",
+	values = {
+		"LeftTop",		"MiddleTop",	"RightTop",
+		"LeftMiddle",	"Middle",		"RightMiddle",
+		"LeftBottom",	"MiddleBottom",	"RightBottom",
+		--"Justified",
+	}
+}
+
 Structure.new {
 	name = "TextEntry",
 	description = "",
@@ -15,12 +28,26 @@ Structure.new {
 			description = "",
 			type = bool,
 			default = true,
-		}, 
+		},
         {
     		name = "Text",
     		description = "",
     		type = Global.string,
             default = "There is no text here",
+    	},
+		{
+			name = "TextAlignMode",
+			description = "",
+			type = TextAlignMode,
+			default = "LeftTop",
+		},
+
+
+		{
+    		name = "Color",
+    		description = "",
+    		type = RGBA,
+          	default = { r=1, g=1, b=1, a=1, },
     	},
         {
     		name = "FontName",
@@ -34,13 +61,6 @@ Structure.new {
     		type = float,
             default = 16.0,
     	},
-        {
-    		name = "Color",
-    		description = "",
-    		type = RGBA,
-          	default = { r=1, g=1, b=1, a=1, },
-    	},
-
 --		{
 --			name = "TextureURI",
 --			description = "",

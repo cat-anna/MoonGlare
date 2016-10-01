@@ -120,10 +120,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 
 		if (entry.m_Flags.m_Map.m_Dirty) {
-			std::wstring txt = Utils::Strings::towstring(entry.m_Text);
-			entry.m_FontInstance = DataClasses::SharedFontInstance(entry.m_Font->GenerateInstance(txt.c_str(), &entry.m_FontStyle, m_RectTransform->IsUniformMode()).release());
-		
-			entry.m_Flags.m_Map.m_Dirty = false;
+			entry.Update(*rtentry, m_RectTransform->IsUniformMode());
 		}
 
 		if (!entry.m_FontInstance)
@@ -132,7 +129,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
-		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetWorldMatrix(Queue, key, entry.m_Matrix, m_RectTransform->GetCamera().GetProjectionMatrix());
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
@@ -189,8 +186,9 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		return false;
 	}
 
-	entry.m_FontStyle.Size = te.m_FontSize;
+	entry.m_AlignMode = te.m_TextAlignMode;
 	entry.m_FontStyle.Color = math::vec3(1, 1, 1);
+	entry.m_FontStyle.Size = te.m_FontSize;
 	entry.m_Text = te.m_Text;
 	entry.m_Flags.m_Map.m_Active = te.m_Active;
 
@@ -201,6 +199,56 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 }
 
 //---------------------------------------------------------------------------------------
+
+void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Uniform) {
+	std::wstring txt = Utils::Strings::towstring(m_Text);
+	m_FontInstance = DataClasses::SharedFontInstance(m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, Uniform).release());
+	auto tsize = m_FontInstance->GetSize();
+	auto psize = Parent.m_ScreenRect.GetSize();
+
+	math::vec3 Pos(0);
+
+	switch (m_AlignMode) {
+	case TextAlignMode::LeftTop:
+		break;
+	case TextAlignMode::MiddleTop:
+		Pos.x = psize.x / 2.0f - tsize.x / 2.0f;
+		break;
+	case TextAlignMode::RightTop:
+		Pos.x = psize.x - tsize.x;
+		break;
+
+	case TextAlignMode::LeftMiddle:
+		Pos.y = psize.y / 2.0f - tsize.y / 2.0f;
+		break;
+	case TextAlignMode::Middle:
+		Pos = math::vec3((psize - tsize) / 2.0f, 0);
+		break;
+	case TextAlignMode::RightMiddle:
+		Pos.x = psize.x - tsize.x;
+		Pos.y = psize.y / 2.0f - tsize.y / 2.0f;
+		break;
+
+	case TextAlignMode::LeftBottom:
+		Pos.y += psize.y - tsize.y;
+		break;
+	case TextAlignMode::MiddleBottom:
+		Pos.y = psize.y - tsize.y;
+		Pos.x = psize.x / 2.0f - tsize.x / 2.0f;
+		break;
+	case TextAlignMode::RightBottom:
+		Pos = math::vec3(psize - tsize, 0);
+		break;
+
+		//case TextAlignMode::Justified: break;
+	default:
+		LogInvalidEnum(m_AlignMode);
+		break;
+	}
+
+	m_Matrix = Parent.m_GlobalMatrix * glm::translate(math::mat4(), Pos);
+	m_Flags.m_Map.m_Dirty = false;
+}
 
 } //namespace Component 
 } //namespace GUI 
