@@ -24,6 +24,13 @@ namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<RectTransformComponent, RectTransformComponentEntry> RectTransformComponentTypeInfo;
 RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg("RectTransform", true, &RectTransformComponent::RegisterScriptApi);
+RegisterDebugApi(RectTransformComponent, &RectTransformComponent::RegisterDebugScriptApi, "Debug");
+
+#ifdef DEBUG
+static bool gRectTransformDebugDraw = false;
+#endif
+
+//---------------------------------------------------------------------------------------
 
 RectTransformComponent::RectTransformComponent(ComponentManager *Owner)
 	: TemplateStandardComponent(Owner) {
@@ -42,6 +49,16 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 			.addProperty("Z", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
 		.endClass()
 		;
+}
+
+void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
+	root
+	.beginNamespace("Flags")
+		.beginNamespace("RectTransformComponent")
+			.addVariable("DebugDraw", &gRectTransformDebugDraw)
+		.endNamespace()
+	.endNamespace();
+	;
 }
 
 //---------------------------------------------------------------------------------------
@@ -101,7 +118,9 @@ bool RectTransformComponent::Finalize() {
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
-	conf.CustomDraw.push_back(this);
+	if (gRectTransformDebugDraw) {
+		conf.CustomDraw.push_back(this);
+	}
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
