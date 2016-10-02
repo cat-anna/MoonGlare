@@ -32,6 +32,19 @@
     This class is not instantiated directly, call `getGlobalNamespace` to start
     the registration process.
 */
+
+struct LuaBridgeApiDump {
+	std::ofstream m_output;
+
+	void beginNamespace(const char *name);
+	void endNamespace();
+	void beginClass(const char *name, const char *cname);
+	void deriveClass(const char *name, const char *cname, const char *bname);
+	void endClass();
+};
+
+extern LuaBridgeApiDump *gLuaBridgeApiDump;
+
 class Namespace
 {
 private:
@@ -538,6 +551,8 @@ private:
     */
     Namespace endClass ()
     {
+		if (gLuaBridgeApiDump)
+			gLuaBridgeApiDump->endClass();
       return Namespace (this);
     }
 
@@ -984,6 +999,8 @@ public:
   */
   Namespace beginNamespace (char const* name)
   {
+	  if (gLuaBridgeApiDump)
+		  gLuaBridgeApiDump->beginNamespace(name);
     return Namespace (name, this);
   }
 
@@ -995,6 +1012,8 @@ public:
   */
   Namespace endNamespace ()
   {
+	  if (gLuaBridgeApiDump)
+		  gLuaBridgeApiDump->endNamespace();
     return Namespace (this);
   }
 
@@ -1137,6 +1156,8 @@ public:
   template <class T>
   Class <T> beginClass (char const* name)
   {
+	  if (gLuaBridgeApiDump)
+		  gLuaBridgeApiDump->beginClass(name, typeid(T).name());
     return Class <T> (name, this);
   }
 
@@ -1150,7 +1171,23 @@ public:
   template <class T, class U>
   Class <T> deriveClass (char const* name)
   {
+	  if (gLuaBridgeApiDump)
+		  gLuaBridgeApiDump->deriveClass(name, typeid(T).name(), typeid(U).name());
     return Class <T> (name, this, ClassInfo <U>::getStaticKey ());
+  }
+
+  //----------------------------------------------------------------------------
+
+  template<typename T, void(T::*PTR)(Namespace&)>
+  Namespace& DefferCalls(T *t) {
+	  (t->*PTR)(*this);
+	  return *this;
+  }
+
+  template<typename T>
+  Namespace& DefferCalls(T t) {
+	  t(*this);
+	  return *this;
   }
 };
 
