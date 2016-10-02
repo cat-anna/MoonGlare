@@ -91,6 +91,7 @@ bool RectTransformComponent::Initialize() {
 		RootEntry.m_ScreenRect.RightBottom = m_ScreenSize;
 	}
 
+	RootEntry.m_Revision = 1;
 	RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
 	RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
 	RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
@@ -139,7 +140,7 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 
-			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
+			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
 				//nothing to do, nothing changed;
 			} else {
 				item.Recalculate(*ParentEntry);
@@ -224,7 +225,7 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 			//convert from pixel to uniform
 			if (entry.m_AlignMode != AlignMode::Table) {
 				auto half = root.m_Size / 2.0f;
-				entry.m_Position = entry.m_Position / m_ScreenSize - half;
+				entry.m_Position = entry.m_Position / m_ScreenSize;// -half;
 				entry.m_Size = entry.m_Size / m_ScreenSize * root.m_Size;
 			}
 			entry.m_Margin = entry.m_Margin / m_ScreenSize * root.m_Size;
@@ -311,7 +312,6 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 	glPopAttrib();
 }
 
-//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Parent) {
