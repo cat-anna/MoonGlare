@@ -39,6 +39,7 @@ struct EditableItemInfo {
 	QStandardItem *m_Item = nullptr;
 	EditableEntity *m_EditableEntity = nullptr;
 	EditableEntity *m_Parent = nullptr;
+	bool m_PatternURIMode = false;
 
 	operator bool() const { return m_Item && m_EditableEntity; }
 };

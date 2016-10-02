@@ -36,6 +36,8 @@ public:
 	virtual bool Write(pugi::xml_node node);
 
 	std::string& GetName() { return m_Name; }
+	const std::string& GetPatternURI() { return m_PatternURI; }
+	void SetPatternURI(std::string v) { m_PatternURI.swap(v); }
 	EditableEntityList& GetChildrenList() { return m_Children; }
 	EditableComponentList& GetComponentList() { return m_Components; }
 
@@ -66,6 +68,7 @@ public:
 protected:
 	EditableEntity *m_Parent;
 	std::string m_Name;
+	std::string m_PatternURI;
 	EditableEntityList m_Children;
 	EditableComponentList m_Components;
 };

@@ -63,10 +63,13 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 
 	m_EntityModel = std::make_unique<QStandardItemModel>();
 	m_EntityModel->setHorizontalHeaderItem(0, new QStandardItem("Entity tree"));
+	m_EntityModel->setHorizontalHeaderItem(1, new QStandardItem("Pattern URI"));
 	connect(m_EntityModel.get(), SIGNAL(itemChanged(QStandardItem *)), SLOT(EntityChanged(QStandardItem *)));
 	m_Ui->treeView->setModel(m_EntityModel.get());
 	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_Ui->treeView->setColumnWidth(0, 200);
+	m_Ui->treeView->setColumnWidth(1, 50);
 	connect(m_Ui->treeView, SIGNAL(clicked(const QModelIndex &)), SLOT(EntityClicked(const QModelIndex&)));
 	connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(EntityContextMenu(const QPoint &)));
 
@@ -249,8 +252,13 @@ void EntityEditorWindow::Refresh() {
 		eii.m_Parent = e->GetParent();
 		Elem->setData(QVariant::fromValue(eii), UserRoles::EditableItemInfo);
 
+		QStandardItem *URIElem = new QStandardItem(e->GetPatternURI().c_str());
+		eii.m_PatternURIMode = true;
+		URIElem->setData(QVariant::fromValue(eii), UserRoles::EditableItemInfo);
+
 		QList<QStandardItem*> cols;
 		cols << Elem;
+		cols << URIElem;
 		item->appendRow(cols);
 
 		for (auto &child : e->GetChildrenList()) {
@@ -374,7 +382,12 @@ void EntityEditorWindow::EntityChanged(QStandardItem * item) {
 		return;
 
 	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-	info.m_EditableEntity->GetName() = value;
+	
+	if(info.m_PatternURIMode)
+		info.m_EditableEntity->SetPatternURI(std::move(value));
+	else
+		info.m_EditableEntity->GetName() = value;
+
 	SetModiffiedState(true);
 }
 

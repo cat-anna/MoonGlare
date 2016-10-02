@@ -30,6 +30,8 @@ EditableEntity::~EditableEntity() {
 
 bool EditableEntity::Read(pugi::xml_node node) {
 	m_Name = node.attribute("Name").as_string("");
+	m_PatternURI = node.attribute("Pattern").as_string("");
+
 	for (auto it = node.first_child(); it; it = it.next_sibling()) {
 		const char *nodename = it.name();
 		auto hash = Space::Utils::MakeHash32(nodename);
@@ -93,6 +95,9 @@ bool EditableEntity::Read(pugi::xml_node node) {
 bool EditableEntity::Write(pugi::xml_node node) {
 	auto selfnode = node.append_child("Entity");
 	selfnode.append_attribute("Name") = m_Name.c_str();
+
+	if(!m_PatternURI.empty())
+		selfnode.append_attribute("Pattern") = m_PatternURI.c_str();
 
 	bool ret = true;
 	for (auto &it : m_Components) {
