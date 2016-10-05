@@ -6,8 +6,7 @@
 #include <qtUtils.h>
 #include <ChangesManager.h>
 
-#include <TypeEditor/CustomType.h>
-#include <TypeEditor/Structure.h>
+#include <DataModels/StructureEditingModel.h>
 
 namespace Ui { class SettingsWindow; }
 
@@ -30,10 +29,6 @@ protected:
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 private:
 	std::unique_ptr<Ui::SettingsWindow> m_Ui;
-	std::unique_ptr<QStandardItemModel> m_Model;
-	TypeEditor::UniqueStructure m_SettingsStructure;
-public slots:
-	void Refresh();	
 protected slots:
 };
 
