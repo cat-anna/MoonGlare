@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 #include "EntityEditor.h"
 
 #include <ui_EntityEditor.h>
@@ -42,7 +42,7 @@ struct EntityEditorInfo
 	}
 	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
 		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Create Entity pattern", "epx", },
+			QtShared::FileCreationMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Entity pattern...", "epx", },
 		};
 	}
 };
@@ -53,6 +53,8 @@ QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg
 EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	:  QtShared::DockWindow(parent) {
 	SetSettingID("EntityEditorWindow");
+
+	SetChangesName("EntityEditor");
 
 	m_Ui = std::make_unique<Ui::EntityEditor>();
 	m_Ui->setupUi(this);

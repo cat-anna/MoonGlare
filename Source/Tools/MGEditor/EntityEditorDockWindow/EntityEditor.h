@@ -66,7 +66,6 @@ public:
 	virtual bool CanDropChanges() const override  { return false; }
 	virtual bool DropChanges() override { return false; }
 	virtual std::string GetInfoLine() const override { return m_CurrentPatternFile; }
-	virtual std::string GetName() const override { return "EntityEditor"; }
 public slots:
 	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) override;
 	virtual bool OpenData(const std::string &file) override;

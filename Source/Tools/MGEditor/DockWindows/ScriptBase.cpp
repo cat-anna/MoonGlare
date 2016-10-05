@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 #include "ScriptBase.h"
 
 #include <DockWindowInfo.h>
@@ -30,8 +30,6 @@ struct ScriptBaseInfo
 		EnableSettings(false);
 	}
 
-	virtual QtShared::SharediEditor CreateEditor() { return nullptr; }
-
 	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
 		return std::vector<QtShared::EditableFieleInfo>{
 			//QtShared::EditableFieleInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, },
@@ -39,10 +37,9 @@ struct ScriptBaseInfo
 	}
 	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
 		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "lua", ICON_16_LUALOGO_RESOURCE, "Create script", "lua", },
+			QtShared::FileCreationMethodInfo{ "lua", ICON_16_LUALOGO_RESOURCE, "Script...", "lua", },
 		};
 	}
-
 };
 QtShared::DockWindowClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
 

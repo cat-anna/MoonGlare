@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 
 #include "EditableEntity.h"
 #include <Windows/MainWindow.h>

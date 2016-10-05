@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 #include "FileSystemViewer.h"
 
 #include <ui_FileSystemViewer.h>
@@ -30,7 +30,7 @@ struct FileSystemViewerInfo
 	}
 	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
 		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Create folder", "{DIR}", },
+			QtShared::FileCreationMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Folder", "{DIR}", },
 		};
 	}
 };
