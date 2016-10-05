@@ -42,8 +42,10 @@ MainWindow::MainWindow(QWidget *parent)
 		auto ptr = ci.SharedCreate(this);
 		m_DockWindows.push_back(ptr);
 
-		m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
-		AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
+		if (ptr->IsMainMenu()) {
+			m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
+			AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
+		}
 
 		auto einfo = dynamic_cast<QtShared::iEditorInfo*>(ptr.get());
 		if (einfo) {
@@ -53,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 			for (auto &it : einfo->GetCreateFileMethods()) {
 				auto item = std::make_shared<SharedData::FileCreatorInfo>();
 				*item = SharedData::FileCreatorInfo{ ptr, it, };
+				AddLogf(Info, "Associated file creator: %s->%s", item->m_Info.m_Ext.c_str(), ci.Alias.c_str());
 				shd->m_FileCreators.emplace_back(std::move(item));
 			}
 

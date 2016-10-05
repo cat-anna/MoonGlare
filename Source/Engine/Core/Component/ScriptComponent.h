@@ -109,7 +109,7 @@ private:
 	static int lua_GetName(lua_State *lua);
 	static int lua_FindChild(lua_State *lua);
 	static int lua_GameObjectGetComponent(lua_State *lua);
-
+	static int lua_GetParent(lua_State *lua);
 };
 
 } //namespace Component 

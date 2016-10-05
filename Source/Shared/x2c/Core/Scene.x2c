@@ -1,0 +1,10 @@
+Import "CoreCommon.x2c"
+
+namespace "MoonGlare.x2c.Core.Scene"
+
+Structure.new {
+	name = "SceneConfiguration",
+    description = "",
+	fields = {
+	},
+}

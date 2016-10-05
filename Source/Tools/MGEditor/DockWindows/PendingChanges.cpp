@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 #include "PendingChanges.h"
 
 #include <ui_PendingChanges.h>
@@ -81,11 +81,32 @@ void PendingChanges::Refresh() {
 	auto root = m_ViewModel->invisibleRootItem();
 	auto shd = MainWindow::Get()->GetSharedData();
 	bool state = false;
+	std::unordered_map<QtShared::iChangeContainer*, QStandardItem*> Items;
+	Items[nullptr] = root;
+
+	auto GetRoot = [root, &Items](QtShared::iChangeContainer* ichg) -> QStandardItem* {
+		auto it = Items.find(ichg);
+		if (it == Items.end()) {
+			return nullptr;
+		}
+		return it->second;
+	};
+
 	for (auto &item : shd->m_ChangesManager->GetStateMap()) {
+
+		QStandardItem *qitm;
 		QList<QStandardItem*> cols;
-		cols << new QStandardItem(item.first->GetName().c_str());
+		cols << (qitm = new QStandardItem(item.first->GetName().c_str()));
 		cols << new QStandardItem(item.first->GetInfoLine().c_str());
-		root->appendRow(cols);
+
+		auto iroot = GetRoot(item.first->GetParent());
+		if (iroot == nullptr) {
+			root->appendRow(cols);
+		} else {
+			Items[item.first] = qitm;
+			iroot->appendRow(cols);
+		}
+
 		state = true;
 	}
 	m_Ui->actionSave_All->setEnabled(state);

@@ -100,6 +100,7 @@ public:
 	const Renderer::VirtualCamera& GetCamera() const { return m_Camera; }
 
 	static void RegisterScriptApi(ApiInitializer &root);
+	static void RegisterDebugScriptApi(ApiInitializer &root);
 protected:
 	RectTransformSettingsFlagsMap m_Flags;
 	Configuration::RuntimeRevision m_CurrentRevision;

@@ -1,0 +1,3 @@
+Import "../Common.x2c"
+
+namespace "MoonGlare.x2c.Core"

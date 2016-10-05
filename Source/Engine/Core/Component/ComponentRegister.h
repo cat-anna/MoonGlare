@@ -51,8 +51,6 @@ struct ComponentRegister {
 	static void Dump(std::ostream &out);
 
 	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentID &out);
-
-	static int RegisterComponentApi(ApiInitializer &api);
 protected:
 	static void SetComponent(const ComponentInfo *ci) {
 		if (!s_ComponentMap)

@@ -16,7 +16,7 @@ group "Tools"
 		qtmodules { "core", "gui", "widgets", "network" }
 		qtlibsuffix ""	
 		
-		SetPCH { hdr = "pch.h", src = "pch.cpp", }	
+		SetPCH { hdr = "Tools/MGEditor/pch.h", src = "pch.cpp", }	
 	
 		kind "WindowedApp"
 		defines { 

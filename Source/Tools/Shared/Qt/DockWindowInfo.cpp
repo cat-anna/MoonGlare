@@ -11,6 +11,7 @@ namespace QtShared {
 DockWindowInfo::DockWindowInfo(QWidget *Parent) {
 	m_DisplayName = "{?}";
 	m_Parent = Parent;
+	m_DisableMainMenu = true;
 }
 
 DockWindowInfo::~DockWindowInfo() {

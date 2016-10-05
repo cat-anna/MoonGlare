@@ -29,7 +29,6 @@ private:
 };
 
 struct UserQuestions {
-	virtual ~UserQuestions() { }
 
 	bool AskForPermission( const char *msg = nullptr) {
 		return QMessageBox::question(GetParentWidget(), GetTitle(), msg ? msg : "Are you sure?") == QMessageBox::Yes;
@@ -54,7 +53,16 @@ struct UserQuestions {
 		return succ;
 	}
 
+	bool QuerryStringInput(const QString &Prompt, std::string &Input, int MinChars = 4) {
+		QString qinput = Input.c_str();
+		if (!QuerryStringInput(Prompt, qinput, MinChars))
+			return false;
+		Input = qinput.toLocal8Bit().constData();
+		return true;
+	}
+
 protected:
+	virtual ~UserQuestions() {}
 	virtual QWidget* GetParentWidget() { return dynamic_cast<QWidget*>(this); }
 	virtual QString GetTitle() const { return  "MoonGlare"; }
 };

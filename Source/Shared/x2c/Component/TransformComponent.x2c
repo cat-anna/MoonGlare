@@ -1,13 +1,13 @@
 Import "ComponentCommon.x2c"
 
-namespace "MoonGlare.x2c.Component.TransfromComponent"
+namespace "MoonGlare.x2c.Component.TransformComponent"
 
 Use(Global.MoonGlare.x2c.Math.Vec3)
 Use(Global.MoonGlare.x2c.Math.Vec4)
 
 Structure.new {
-	name = "TransfromEntry",
-	description = "Holds all required data to build TransfromComponent",
+	name = "TransformEntry",
+	description = "Holds all required data to build TransformComponent",
 	fields = {
 		{
 			name = "Position",

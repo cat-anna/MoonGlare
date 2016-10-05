@@ -39,7 +39,6 @@ public:
 	*/
 	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
 
-
 //	virtual bool IsHandleValid(Handle h) = 0;
 //	virtual bool Allocate(Entity owner, Handle &out) = 0;
 //	virtual bool Release(Handle h) = 0;

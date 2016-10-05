@@ -1,4 +1,4 @@
-Import "Common.x2c"
+Import "CoreCommon.x2c"
 
 namespace "MoonGlare.x2c.Core.Input"
 
@@ -7,11 +7,12 @@ Alias(Container.table(Local.KeyCode), "KeyCodes")
 
 Structure.new {
 	name = "KeyboardSwitch",
+	description = "",
 	fields = {
-		{ 
+		{
 			name = "Name",
 			type = Types.string,
-		}, 
+		},
 		{
 			name = "Keys",
 			type = Local.KeyCodes,
@@ -21,17 +22,21 @@ Structure.new {
 
 Structure.new {
 	name = "KeyboardAxis",
+	description = "",
 	fields = {
-		{ 
+		{
 			name = "Name",
+			description = "",
 			type = Types.string,
-		}, 
+		},
 		{
 			name = "PositiveKeys",
+			description = "",
 			type = Local.KeyCodes,
 		},
 		{
 			name = "NegativeKeys",
+			description = "",
 			type = Local.KeyCodes,
 		}
 	},
@@ -42,7 +47,7 @@ Enum.import {
 	location = "::MoonGlare::Core::MouseAxisId",
 	default = "Unknown",
 	values = {
-		"X", "Y", 
+		"X", "Y",
 		"ScrollX", "ScrollY",
 		"Unknown",
 	}
@@ -50,17 +55,21 @@ Enum.import {
 
 Structure.new {
 	name = "MouseAxis",
+	description = "",
 	fields = {
-		{ 
+		{
 			name = "Name",
+			description = "",
 			type = Types.string,
-		}, 
+		},
 		{
 			name = "AxisId",
+			description = "",
 			type = Local.MouseAxisId,
 		},
 		{
 			name = "Sensitivity",
+			description = "",
 			type = Types.float,
 		}
 	},
@@ -68,18 +77,22 @@ Structure.new {
 
 Structure.new {
 	name = "InputConfiguration",
+	description = "",
 	fields = {
 		{
 			name = "KeyboardSwitches",
+			description = "",
 			type = Container.table(Local.KeyboardSwitch),
 		},
 		{
 			name = "KeyboardAxes",
+			description = "",
 			type = Container.table(Local.KeyboardAxis),
-		},		
+		},
 		{
 			name = "MouseAxes",
+			description = "",
 			type = Container.table(Local.MouseAxis),
-		},	
+		},
 	},
 }

@@ -93,6 +93,8 @@ TODO
 TODO
 #### GameObject:FindChild(TODO)
 TODO
+#### GameObject:GetParent()
+TODO
 #### GameObject:Destroy()
 TODO
 

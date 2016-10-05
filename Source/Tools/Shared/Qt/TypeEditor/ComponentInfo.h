@@ -22,9 +22,10 @@ struct ComponentInfo {
 	MoonGlare::Core::ComponentID m_CID;
 	std::string m_Name;
 	std::string m_DisplayName;
-	std::vector<MoonGlare::Core::ComponentID> m_Requirements;
+	MoonGlare::Core::ComponentID m_Requirement;
 	SharedStructureInfo m_EntryStructure;
 	SharedStructureInfo m_SettingsStructure;
+	unsigned m_DefautltIndex = 0xFFFF;
 
 	using CIDMapType = std::unordered_map < MoonGlare::Core::ComponentID, SharedComponentInfo>;
 	using NameMapType = std::unordered_map < std::string, SharedComponentInfo>;

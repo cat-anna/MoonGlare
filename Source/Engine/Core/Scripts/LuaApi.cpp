@@ -11,6 +11,28 @@
 #include <ModulesManager.h>
 #include <Core/Component/ComponentRegister.h>
 
+namespace luabridge {
+
+LuaBridgeApiDump *gLuaBridgeApiDump = nullptr;
+static LuaBridgeApiDump gLuaBridgeApiDumpInstance;
+
+template<typename ... ARGS>
+static void ApiLine(const char *fmt, ARGS&& ... args) {
+	char buf[4096];
+	sprintf_s(buf, fmt, std::forward<ARGS>(args)...);
+	gLuaBridgeApiDumpInstance.m_output << buf << "\n";// << std::flush;
+}
+
+static void ResetLocation() { ApiLine("ResetLocation()"); }
+
+void LuaBridgeApiDump::beginNamespace(const char *name) { ApiLine("BeginNamespace([[%s]])", name); }
+void LuaBridgeApiDump::endNamespace() { ApiLine("EndNamespace()"); }
+void LuaBridgeApiDump::beginClass(const char *name, const char *cname) { ApiLine("BeginClass([[%s]], [[%s]])", name, cname); }
+void LuaBridgeApiDump::deriveClass(const char *name, const char *cname, const char *bname) { ApiLine("DeriveClass([[%s]], [[%s]], { [[%s]], })", name, cname, bname); }
+void LuaBridgeApiDump::endClass() { ApiLine("EndClass()"); }
+
+}
+
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
@@ -46,6 +68,13 @@ void ApiInit::RegisterApi(void(*func)(ApiInitializer&),
 }
 
 void ApiInit::Initialize(ScriptEngine *s) {
+#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
+	std::chrono::high_resolution_clock::time_point tstart = std::chrono::high_resolution_clock::now();
+#endif
+
+	luabridge::gLuaBridgeApiDump = &luabridge::gLuaBridgeApiDumpInstance;
+	luabridge::gLuaBridgeApiDumpInstance.m_output.open("logs/luaapi.lua", std::ios::out);
+	
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	unsigned ApiInitFunctionsRun = 0;
 	AddLog(Performance, "Processing api init functions");
@@ -108,40 +137,67 @@ void ApiInit::Initialize(ScriptEngine *s) {
 			AddLog(Debug, "Registering independent api in namespace " << where);
 #endif // 0
 		if (where) {
-			auto l = s->GetApiInitializer().beginNamespace(where);
-			it.func(l);
+			s->GetApiInitializer()
+				.beginNamespace(where)
+					.DefferCalls([it](auto &n) {it.func(n); });
 		} else {
-			auto l = s->GetApiInitializer();
-			it.func(l);
+			s->GetApiInitializer()
+				.DefferCalls([it](auto &n) {it.func(n); });
 		}
+		luabridge::ResetLocation();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 		++ApiInitFunctionsRun;
 #endif
 	}
 
 	for(auto *it : *MoonGlare::GetModulesManager()->GetModuleList()) {
-		{
-			auto l = s->GetApiInitializer();
-			auto l2 = l.beginNamespace("Module");
-			auto l3 = l2.beginNamespace(it->GetName());
-			it->RegisterModuleApi(l3);
-		}
-		{
-			auto l = s->GetApiInitializer();
-			auto l2 = l.beginNamespace("api");
-			auto l3 = l2.beginNamespace(it->GetName());
-			it->RegisterInternalApi(l3);
-		}
+		using MoonGlare::Modules::ModuleInfo;
+		s->GetApiInitializer()
+			.beginNamespace("Module")
+				.beginNamespace(it->GetName())
+					.DefferCalls<ModuleInfo, &ModuleInfo::RegisterModuleApi>(it);
+		luabridge::ResetLocation();
+
+		s->GetApiInitializer()
+			.beginNamespace("api")
+				.beginNamespace(it->GetName())
+					.DefferCalls<ModuleInfo, &ModuleInfo::RegisterInternalApi>(it);
+		luabridge::ResetLocation();
 
 		ApiInitFunctionsRun += 2;
 	}
 	{
-		auto l = s->GetApiInitializer();
-		ApiInitFunctionsRun += MoonGlare::Core::Component::ComponentRegister::RegisterComponentApi(l);
+		{
+			auto nComponent = s->GetApiInitializer().beginNamespace("Component");
+			for (auto &it : Component::ComponentRegister::GetComponentMap()) {
+				auto &ci = *it.second;
+				if (!ci.m_Flags.m_RegisterID)
+					continue;
+				nComponent.addProperty(ci.m_Name, ci.m_GetCID, (void(*)(int))nullptr);
+			}
+			nComponent.endNamespace();
+			++ApiInitFunctionsRun;
+		}
+		for (auto &it : Component::ComponentRegister::GetComponentMap()) {
+			auto &ci = *it.second;
+			if (!ci.m_ApiRegFunc)
+				continue;
+
+			s->GetApiInitializer()
+				.beginNamespace("api")
+					.beginNamespace("Component")
+						.DefferCalls([ci](auto &n) { ci.m_ApiRegFunc(n); });
+			luabridge::ResetLocation();
+
+			++ApiInitFunctionsRun;
+		}
 	}
 
+	luabridge::gLuaBridgeApiDumpInstance.m_output.flush();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
-	AddLogf(Performance, "Executed %d api init functions.", ApiInitFunctionsRun);
+	std::chrono::high_resolution_clock::time_point tend = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(tend - tstart).count() / 1000.0f;
+	AddLogf(Performance, "Executed %d api init functions. Took %.3f ms", ApiInitFunctionsRun, duration );
 #endif
 }
 

@@ -1,8 +1,7 @@
 --part of MoonGlare engine debug module
 
 function Debug_OnInit()
-	if not Config.Debug then 
-		
+	if not Config.Debug then
 	--	return;
 	end
 	local w = Inst.Window
@@ -29,6 +28,17 @@ function ToggleDebugDraw()
 		print("DebugDraw disabled")
 	end
 	Debug.Flags.Physics.DebugDraw = val;
+	return 0;
+end
+
+function ToggleRectTransformDebugDraw()
+	local val = not Debug.Flags.RectTransformComponent.DebugDraw
+	if val then
+		print("DebugDraw enabled")
+	else
+		print("DebugDraw disabled")
+	end
+	Debug.Flags.RectTransformComponent.DebugDraw = val;
 	return 0;
 end
 

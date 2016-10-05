@@ -49,17 +49,41 @@ struct iChangeContainer {
 	virtual bool CanDropChanges() const { return false; }
 	virtual bool DropChanges() { return false; }
 	virtual std::string GetInfoLine() const { return ""; }
-	virtual std::string GetName() const = 0;
+	virtual const std::string& GetName() const { return m_Name; }
 
 	bool IsChanged() const { return m_Changed; }
+
+	void SetChangesParent(iChangeContainer *Parent) { m_Parent = Parent; }
+	iChangeContainer* GetParent() const { return m_Parent; }
+
+	void InsertChangesChild(iChangeContainer *child, std::string childName) {
+		child->SetChangesParent(this);
+		child->SetChangesName(std::move(childName));
+		m_Children.push_back(child);
+	}
+	void SetChangesName(std::string Name) { m_Name.swap(Name); }
 protected:
 	virtual void SetModiffiedState(bool value) {
+		if (value == m_Changed)
+			return;
 		m_Changed = value;
+		if (value) {
+			if (m_Parent) {
+				m_Parent->SetModiffiedState(value);
+			}
+		} else {
+			for (auto *it : m_Children) {
+				it->SetModiffiedState(false);
+			}
+		}
 		if(ChangesManager::Get())
 			ChangesManager::Get()->SetModiffiedState(this, value);
 	}
 private:
+	iChangeContainer *m_Parent = nullptr;
 	bool m_Changed = false;
+	std::string m_Name;
+	std::vector<iChangeContainer*> m_Children;
 };
 
 } //namespace QtShared

@@ -40,6 +40,7 @@ namespace lua {
 	static const char *ComponentIDMemberName = "ComponentId";
 	static const char *DereferenceHandleName = "Get";
 	static const char *ComponentSetStateName = "Set";
+	static const char *ComponentName = "Component";
 
 	static const char *GameObjectName = "GameObject";
 
@@ -51,6 +52,7 @@ namespace lua {
 	static const char *GetName = "GetName";
 	static const char *SetName = "SetName";
 	static const char *FindChild = "FindChild";
+	static const char *GetParent = "GetParent";
 
 	static const char *SetPerSecond = "SetPerSecond";
 	static const char *SetStep = "SetStep";
@@ -167,6 +169,10 @@ bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
 	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
 	lua_pushcclosure(lua, &lua_FindChild, 1);												 //stack: GameObjectMT GameObjectMT_index this lua_FindChild
 	lua_setfield(lua, -2, lua::FindChild);													 //stack: GameObjectMT GameObjectMT_index
+
+	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
+	lua_pushcclosure(lua, &lua_GetParent, 1);												 //stack: GameObjectMT GameObjectMT_index this lua_GetParent
+	lua_setfield(lua, -2, lua::GetParent);													 //stack: GameObjectMT GameObjectMT_index
 
 	Utils::Scripts::lua_PushCClosure(lua, &lua_Destroy, (void*)GetManager()->GetWorld());	 //stack: GameObjectMT GameObjectMT_index closure
 	lua_setfield(lua, -2, lua::DestroyName);												 //stack: GameObjectMT GameObjectMT_index 
@@ -583,6 +589,7 @@ int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Hand
 	lua_pushlightuserdata(lua, h.GetVoidPtr());
 	lua_pushcclosure(lua, &lua_SetComponentState, 2);
 	lua_setfield(lua, -2, lua::ComponentSetStateName);
+
 	return 1;
 }
 
@@ -1075,6 +1082,35 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
 	return check.ReturnArgs(This->lua_GetComponentInfo(lua, cid, RequestedOwner));
+}
+
+int ScriptComponent::lua_GetParent(lua_State * lua) {
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
+
+	lua_getfield(lua, 1, lua::EntityMemberName);					//stack: self ChildName Entity
+	Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);												//stack: self ChildName
+
+	Entity Parent;
+	if (!This->GetManager()->GetWorld()->GetEntityManager()->GetParent(Owner, Parent)) {
+		AddLogf(Error, "Unable to get parent!");
+		return 0;
+	}
+
+	//TODO: check Parent
+
+	if (!This->GetObjectRootInstance(lua, Parent)) {
+		AddLogf(Error, "GameObject::FindChild: Error: Failed to get child gameobject");
+		return 0;
+	}
+	//stack: self OR GO
+
+	lua_insert(lua, -2);											//stack: self GO OR
+	lua_pop(lua, 1);												//stack: self GO
+
+	return check.ReturnArgs(1);
 }
 
 } //namespace Component 

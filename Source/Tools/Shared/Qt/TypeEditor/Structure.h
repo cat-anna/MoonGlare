@@ -47,6 +47,7 @@ public:
 	virtual const StructureValueList& GetValues() = 0;
 	virtual bool Read(pugi::xml_node node) = 0;
 	virtual bool Write(pugi::xml_node node) = 0;
+	virtual void ResetToDefault() = 0;
 
 	virtual const std::string& GetName() = 0;
 	virtual void SetName(const std::string& value) = 0;
@@ -147,6 +148,9 @@ public:
 			m_Value = m_LocalValue.get();
 		else
 			m_Value = (X2CLASS*)src;
+	}
+	virtual void ResetToDefault() override {
+		m_Value->ResetToDefault();
 	}
 private:
 	StructureValueList m_Values;

@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
+#include PCH_HEADER
 #include "FileSystemViewer.h"
 
 #include <ui_FileSystemViewer.h>
@@ -30,7 +30,7 @@ struct FileSystemViewerInfo
 	}
 	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
 		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "", ICON_16_FOLDER_RESOURCE, "Create folder", "", },
+			QtShared::FileCreationMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Folder", "{DIR}", },
 		};
 	}
 };
@@ -54,6 +54,7 @@ FileSystemViewer::FileSystemViewer(QWidget * parent)
 	connect(m_FileSystem.get(), SIGNAL(Changed()), this, SLOT(RefreshFilesystem()));
 
 	m_ViewModel = std::make_unique<QStandardItemModel>();
+	m_ViewModel->setSortRole(FileSystemViewerRole::SortString);
 
 	m_Ui->treeView->setModel(m_ViewModel.get());
 	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -220,6 +221,12 @@ void FileSystemViewer::RefreshTreeView() {
 		item->setData(fileuri.c_str(), FileSystemViewerRole::FileURI);
 		item->setData(hashuri.c_str(), FileSystemViewerRole::FileHash);
 		item->setData(str.c_str(), FileSystemViewerRole::FileFullName);
+
+		std::string sortstring;
+		sortstring = h.IsDirectory() ? "D" : "F";
+		sortstring += h.GetName();
+		item->setData(sortstring.c_str(), FileSystemViewerRole::SortString);
+
 		h.Close();
 		
 		return true;

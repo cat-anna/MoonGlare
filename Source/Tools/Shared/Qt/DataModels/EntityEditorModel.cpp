@@ -5,64 +5,36 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
-#include "EntityEditor.h"
 
-#include <ui_EntityEditor.h>
-#include <DockWindowInfo.h>
-#include <icons.h>
-#include "../Windows/MainWindow.h"
-#include <FileSystem.h>
+#include <ui_EntityEditorModel.h>
+//#include <DockWindowInfo.h>
+//#include <icons.h>
+//#include "../Windows/MainWindow.h"
+//#include <FileSystem.h>
 
-#include "EditableEntity.h"
+#include "EntityEditorModel.h"
 
 #include <TypeEditor/x2cDataTree.h>
 #include <TypeEditor/Structure.h>
-#include <TypeEditor/CustomType.h>
 
 namespace MoonGlare {
-namespace Editor {
-namespace EntityEditor {
-
-struct EntityEditorInfo 
-		: public QtShared::DockWindowInfo
-		, public QtShared::iEditorInfo {
-	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<EntityEditorWindow>(parent);
-	}
-
-	EntityEditorInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
-		SetSettingID("EntityEditorInfo");
-		SetDisplayName(tr("EntityEditor"));
-		SetShortcut("F2");
-	}
-	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
-		return std::vector<QtShared::EditableFieleInfo>{
-			QtShared::EditableFieleInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, },
-		};
-	}
-	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
-		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Entity pattern...", "epx", },
-		};
-	}
-};
-QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg("EntityEditor");
+namespace QtShared {
+namespace DataModels {
 
 //----------------------------------------------------------------------------------
 
-EntityEditorWindow::EntityEditorWindow(QWidget * parent)
-	:  QtShared::DockWindow(parent) {
-	SetSettingID("EntityEditorWindow");
-
-	SetChangesName("EntityEditor");
-
-	m_Ui = std::make_unique<Ui::EntityEditor>();
+EntityEditorModel::EntityEditorModel(QWidget * parent)
+		: QWidget(parent) 
+{
+	m_Ui = std::make_unique<Ui::EntityEditorModel>();
 	m_Ui->setupUi(this);
 
-	connect(m_Ui->pushButton, &QPushButton::clicked, this, &EntityEditorWindow::ShowAddComponentMenu);
-
-	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
-
+//	SetSettingID("EntityEditorModel");
+//
+	connect(m_Ui->pushButton, &QPushButton::clicked, this, &EntityEditorModel::ShowAddComponentMenu);
+//
+//	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
+//
 	m_EntityModel = std::make_unique<QStandardItemModel>();
 	m_EntityModel->setHorizontalHeaderItem(0, new QStandardItem("Entity tree"));
 	m_EntityModel->setHorizontalHeaderItem(1, new QStandardItem("Pattern URI"));
@@ -122,121 +94,29 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 	}
 }
 
-EntityEditorWindow::~EntityEditorWindow() {
+EntityEditorModel::~EntityEditorModel() {
 	m_Ui.reset();
 }
 
 //----------------------------------------------------------------------------------
 
-bool EntityEditorWindow::DoSaveSettings(pugi::xml_node node) const {
-	QtShared::DockWindow::DoSaveSettings(node);
+bool EntityEditorModel::DoSaveSettings(pugi::xml_node node) const {
 	SaveState(node, m_Ui->splitter, "Splitter:State");
-//	SaveColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	SaveColumns(node, "treeView:Columns", m_Ui->treeView, 3);
 	SaveColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
-	//node.append_child("File").text() = m_CurrentPatternFile.c_str();
 	return true;
 }
 
-bool EntityEditorWindow::DoLoadSettings(const pugi::xml_node node) {
-	QtShared::DockWindow::DoLoadSettings(node);
+bool EntityEditorModel::DoLoadSettings(const pugi::xml_node node) {
 	LoadState(node, m_Ui->splitter, "Splitter:State");
-//	LoadColumns(node, "treeView:Columns", m_Ui->treeView, 3);
+	LoadColumns(node, "treeView:Columns", m_Ui->treeView, 3);
 	LoadColumns(node, "treeViewDetails:Columns", m_Ui->treeViewDetails, 3);
-	//m_CurrentPatternFile = node.child("File").text().as_string("");
 	return true;
 }
 
 //----------------------------------------------------------------------------------
 
-bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) {
-	QString qname;
-	if (!QuerryStringInput("Enter name:", qname))
-		return false;
-
-	std::string name = qname.toLocal8Bit().constData();
-	std::string URI = LocationURI + name + ".epx";
-
-	auto fs = MainWindow::Get()->GetFilesystem();
-	if (!fs->CreateFile(URI)) {
-		ErrorMessage("Failed during creating epx file");
-		AddLog(Hint, "Failed to create epx: " << m_CurrentPatternFile);
-		return false;
-	}
-
-	auto root = std::make_unique<EditablePattern>();
-	root->GetName() = name;
-	m_RootEntity.reset(root.release());
-	m_CurrentPatternFile = URI;
-	SetModiffiedState(true);
-	Refresh();
-
-	AddLog(Hint, "Created epx file: " << URI);
-
-	if (!SaveData()) {
-		ErrorMessage("Failed during saving epx file");
-		AddLog(Hint, "Failed to save epx: " << m_CurrentPatternFile);
-	} else {
-		SetModiffiedState(false);
-	}
-
-	return true;
-}
-
-bool EntityEditorWindow::TryCloseData() {
-	AddLog(Hint, "Trying to close epx: " << m_CurrentPatternFile);
-	if (m_RootEntity && IsChanged()) {
-		if (!AskForPermission("There is a opened pattern. Do you want to close it?"))
-			return false;
-		if (AskForPermission("Save changes?"))
-			SaveData();
-	}
-	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
-	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
-	m_RootEntity.reset();
-	m_CurrentItem = EditableItemInfo();
-	Refresh();
-	m_CurrentPatternFile.clear();
-	return true;
-}
-
-bool EntityEditorWindow::OpenData(const std::string &file) {
-	TryCloseData();
- 
-	auto root = std::make_unique<EditablePattern>();
-	if (!root->OpenPattern(file)) {
-		ErrorMessage("Failure during opening data!");
-		AddLog(Hint, "Failed to open epx: " << file);
-		return false;
-	}
-	m_RootEntity.reset(root.release());
-	m_CurrentPatternFile = file;
-	AddLog(Hint, "Opened epx: " << m_CurrentPatternFile);
-	Refresh();
-	return true;
-}
-
-bool EntityEditorWindow::SaveData() {
-	if (!m_RootEntity)
-		return false;
-	auto pat = dynamic_cast<EditablePattern*>(m_RootEntity.get());
-	
-	if (pat) {
-		if (!pat->SavePattern(m_CurrentPatternFile)) {
-			//TODO: sth?
-		} else {
-			SetModiffiedState(false);
-			AddLog(Hint, "Saved epx: " << m_CurrentPatternFile);
-			return true;
-		}
-	}
-	//TODO: log sth
-	AddLog(Hint, "Failed to save epx: " << m_CurrentPatternFile);
-	return true;
-}
-
-//----------------------------------------------------------------------------------
-
-void EntityEditorWindow::Refresh() {
+void EntityEditorModel::Refresh() {
 	m_EntityModel->removeRows(0, m_EntityModel->rowCount());
 	m_CurrentItem = EditableItemInfo();
 
@@ -273,7 +153,7 @@ void EntityEditorWindow::Refresh() {
 	m_Ui->treeView->expandAll();
 }
 
-void EntityEditorWindow::RefreshDetails() {
+void EntityEditorModel::RefreshDetails() {
 	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
 	m_CurrentComponent = EditableComponentValueInfo();
 	if (!m_CurrentItem)
@@ -336,7 +216,7 @@ void EntityEditorWindow::RefreshDetails() {
 
 //----------------------------------------------------------------------------------
 
-void EntityEditorWindow::EntityClicked(const QModelIndex& index) {
+void EntityEditorModel::EntityClicked(const QModelIndex& index) {
 	auto row = index.row();
 	auto parent = index.parent();
 	auto selectedindex = parent.isValid() ? parent.child(row, 0) : index.sibling(row, 0);
@@ -348,10 +228,10 @@ void EntityEditorWindow::EntityClicked(const QModelIndex& index) {
 		m_CurrentItem = itemptr->data(UserRoles::EditableItemInfo).value<EditableItemInfo>();
 	}
 
-	RefreshDetails();
+//	RefreshDetails();
 }
 
-void EntityEditorWindow::ComponentClicked(const QModelIndex & index) {
+void EntityEditorModel::ComponentClicked(const QModelIndex & index) {
 	auto row = index.row();
 	auto parent = index.parent();
 	auto selectedindex = parent.isValid() ? parent.child(row, 0) : index.sibling(row, 0);
@@ -364,7 +244,7 @@ void EntityEditorWindow::ComponentClicked(const QModelIndex & index) {
 	}
 }
 
-void EntityEditorWindow::ComponentChanged(QStandardItem * item) {
+void EntityEditorModel::ComponentChanged(QStandardItem * item) {
 	if (!item)
 		return;
 	//EditableComponentValueInfo info = item->data(UserRoles::EditableComponentValueInfo).value<EditableComponentValueInfo>();
@@ -375,7 +255,7 @@ void EntityEditorWindow::ComponentChanged(QStandardItem * item) {
 	SetModiffiedState(true);
 }
 
-void EntityEditorWindow::EntityChanged(QStandardItem * item) {
+void EntityEditorModel::EntityChanged(QStandardItem * item) {
 	if (!item)
 		return;
 
@@ -383,17 +263,16 @@ void EntityEditorWindow::EntityChanged(QStandardItem * item) {
 	if (!info)
 		return;
 
-	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-	
-	if(info.m_PatternURIMode)
-		info.m_EditableEntity->SetPatternURI(std::move(value));
-	else
-		info.m_EditableEntity->GetName() = value;
+//	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
+	//if(info.m_PatternURIMode)
+	//	info.m_EditableEntity->SetPatternURI(std::move(value));
+	//else
+	//	info.m_EditableEntity->GetName() = value;
 
 	SetModiffiedState(true);
 }
 
-void EntityEditorWindow::ComponentContextMenu(const QPoint & pos) {
+void EntityEditorModel::ComponentContextMenu(const QPoint & pos) {
 	if (!m_CurrentComponent)
 		return;
 
@@ -424,7 +303,7 @@ void EntityEditorWindow::ComponentContextMenu(const QPoint & pos) {
 	menu.exec(QCursor::pos());
 }
 
-void EntityEditorWindow::EntityContextMenu(const QPoint &pos) {
+void EntityEditorModel::EntityContextMenu(const QPoint &pos) {
 	if (!m_CurrentItem)
 		return;
 
@@ -467,7 +346,7 @@ void EntityEditorWindow::EntityContextMenu(const QPoint &pos) {
 
 //----------------------------------------------------------------------------------
 
-void EntityEditorWindow::ShowAddComponentMenu() {
+void EntityEditorModel::ShowAddComponentMenu() {
 	if (!m_CurrentItem)
 		return;
 
@@ -475,11 +354,245 @@ void EntityEditorWindow::ShowAddComponentMenu() {
 }
 
 //----------------------------------------------------------------------------------
-
-void EntityEditorWindow::ProjectChanged(Module::SharedDataModule datamod) {
+#if 0
+void EntityEditorModel::ProjectChanged(Module::SharedDataModule datamod) {
 //	m_Module = datamod;
 }
 
-} //namespace EntityEditor 
-} //namespace Editor 
-} //namespace MoonGlare 
+#endif
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+
+using Core::Component::ComponentID;
+using Core::Component::ComponentIDs;
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+
+EditableEntity::EditableEntity(EditableEntity *Parent)
+	: m_Parent(Parent) {}
+
+EditableEntity::~EditableEntity() {}
+
+bool EditableEntity::Read(pugi::xml_node node, const char *NodeName) {
+	if (NodeName)
+		node = node.child(NodeName);
+	m_Name = node.attribute("Name").as_string("");
+	m_PatternURI = node.attribute("Pattern").as_string("");
+
+	for (auto it = node.first_child(); it; it = it.next_sibling()) {
+		const char *nodename = it.name();
+		auto hash = Space::Utils::MakeHash32(nodename);
+
+		switch (hash) {
+
+		case "Component"_Hash32:
+		{
+			auto child = EditableComponent::CreateComponent(this, it);
+			if (!child) {
+				//TODO: log sth
+				continue;
+			}
+			m_Components.emplace_back(std::move(child));
+			break;
+		}
+
+		//case "Entity"_Hash32:
+		//{
+		//auto pattern = it.attribute("Pattern").as_string(nullptr);
+		//if (pattern) {
+		//	FileSystem::XMLFile xdoc;
+		//	Entity child;
+		//	std::string paturi = pattern;
+		//	if (!GetFileSystem()->OpenXML(xdoc, paturi, DataPath::URI)) {
+		//		AddLogf(Error, "Failed to open pattern: %s", pattern);
+		//		continue;
+		//	}
+		//
+		//	auto c = BuildChild(Owner, xdoc->document_element(), child);
+		//	if (c == 0) {
+		//		AddLogf(Error, "Failed to load child!");
+		//		continue;
+		//	}
+		//	count += c;
+		//	continue;
+		//}
+		//}
+		//no break;
+		//[[fallthrough]]
+		case "Entity"_Hash32:
+		case "Child"_Hash32:
+		{
+			UniqueEditableEntity child(new EditableEntity(this));
+			if (!child->Read(it)) {
+				//TODO: log sth
+				continue;
+			}
+			m_Children.emplace_back(std::move(child));
+		}
+		continue;
+		default:
+			AddLogf(Warning, "Unknown node: %s", nodename);
+			continue;
+		}
+	}
+
+	return true;
+}
+
+bool EditableEntity::Write(pugi::xml_node node, const char *NodeName) {
+	auto selfnode = node.append_child(NodeName ? NodeName : "Entity");
+
+	if (!m_Name.empty())
+		selfnode.append_attribute("Name") = m_Name.c_str();
+	if (!m_PatternURI.empty())
+		selfnode.append_attribute("Pattern") = m_PatternURI.c_str();
+
+	bool ret = true;
+	for (auto &it : m_Components) {
+		auto cnode = selfnode.append_child("Component");
+		cnode.append_attribute("Name") = it->GetName().c_str();
+		ret = ret && it->Write(cnode);
+	}
+	for (auto &it : m_Children) {
+		ret = ret && it->Write(selfnode);
+	}
+	return ret;
+}
+
+void EditableEntity::MoveDown(EditableComponent *c) {
+	auto idx = Find(c);
+	if (idx < 0)
+		return;
+	if (idx + 1 >= m_Components.size())
+		return;
+	m_Components[idx].swap(m_Components[idx + 1]);
+}
+
+void EditableEntity::MoveUp(EditableComponent *c) {
+	auto idx = Find(c);
+	if (idx <= 0)
+		return;
+	m_Components[idx].swap(m_Components[idx - 1]);
+}
+
+void EditableEntity::MoveDown(EditableEntity * c) {
+	auto idx = Find(c);
+	if (idx < 0)
+		return;
+	if (idx + 1 >= m_Children.size())
+		return;
+	m_Children[idx].swap(m_Children[idx + 1]);
+}
+
+void EditableEntity::MoveUp(EditableEntity * c) {
+	auto idx = Find(c);
+	if (idx <= 0)
+		return;
+	m_Children[idx].swap(m_Children[idx - 1]);
+}
+
+EditableEntity *EditableEntity::AddChild() {
+	UniqueEditableEntity child(new EditableEntity(this));
+	child->GetName() = "child";
+	auto rawptr = child.get();
+	m_Children.emplace_back(std::move(child));
+	return rawptr;
+}
+
+void EditableEntity::DeleteChild(EditableEntity * c) {
+	auto idx = Find(c);
+	if (idx < 0)
+		return;
+
+	m_Children[idx].reset();
+	for (; idx < (int)m_Children.size() - 1; ++idx)
+		m_Children[idx].swap(m_Children[idx + 1]);;
+
+	m_Children.pop_back();
+}
+
+EditableComponent* EditableEntity::AddComponent(Core::ComponentID cid) {
+	auto child = EditableComponent::CreateComponent(this, cid);
+	if (!child) {
+		//TODO: log sth
+		return nullptr;
+	}
+	auto rawptr = child.get();
+	m_Components.emplace_back(std::move(child));
+	return rawptr;
+}
+
+void EditableEntity::DeleteComponent(EditableComponent * c) {
+	auto idx = Find(c);
+	if (idx < 0)
+		return;
+
+	m_Components[idx].reset();
+	for (; idx < (int)m_Components.size() - 1; ++idx)
+		m_Components[idx].swap(m_Components[idx + 1]);;
+	m_Components.pop_back();
+}
+
+void EditableEntity::Clear() {
+	m_Children.clear();
+	m_Components.clear();
+	m_Name = "Entity";
+	m_PatternURI.clear();
+}
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+
+UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, pugi::xml_node node) {
+	MoonGlare::Core::ComponentID cid = (ComponentID)ComponentIDs::Invalid;
+
+	auto idxml = node.attribute("Id");
+	if (idxml) {
+		cid = idxml.as_uint(0);
+	} else {
+		auto namexml = node.attribute("Name");
+		if (!namexml) {
+			AddLogf(Error, "Component definition without id or name!");
+			return nullptr;
+		}
+		auto ci = TypeEditor::ComponentInfo::GetComponentInfo(namexml.as_string(""));
+		if (ci)
+			cid = ci->m_CID;
+		if (cid == (ComponentID)ComponentIDs::Invalid) {
+			AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
+		}
+	}
+
+	if (cid == (ComponentID)ComponentIDs::Invalid)
+		return nullptr;
+
+	auto ret = CreateComponent(Parent, cid);
+	if (!ret) {
+		//already logged
+		return nullptr;
+	}
+
+	if (!ret->Read(node)) {
+		//TODO: log sth
+		return nullptr;
+	}
+
+	return std::move(ret);
+}
+
+UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentID cid) {
+	auto ci = TypeEditor::ComponentInfo::GetComponentInfo(cid);
+	if (!ci) {
+		AddLogf(Error, "Unknown component id: %d", (int)cid);
+		return nullptr;
+	}
+
+	auto x2cs = ci->m_EntryStructure->m_CreateFunc(nullptr, nullptr);
+	return std::make_unique<EditableComponent>(Parent, ci, std::move(x2cs));
+}
+
+} //namespace DataModels
+} //namespace QtShared
+} //namespace MoonGlare

@@ -41,23 +41,7 @@ namespace GUI {
 
 //----------------------------------------------------------------------------------
 
-	enum class ImageScaleMode {
-		None, Center, ScaleToFit, ScaleProportional, ScaleProportionalCenter,
-	};
-	struct ImageAlignModeConverter : Space::EnumConverter < ImageScaleMode, ImageScaleMode::None > {
-		ImageAlignModeConverter() {
-			Add("Default", Enum::None);
-			Add("Center", Enum::Center);
-			Add("ScaleToFit", Enum::ScaleToFit);
-			Add("ScaleProportional", Enum::ScaleProportional);
-			Add("ScaleProportionalCenter", Enum::ScaleProportionalCenter);
-		}
-	};
-	using ImageScaleModeEnum = Space::EnumConverterHolder < ImageAlignModeConverter >;
-
-//----------------------------------------------------------------------------------
-	
-	enum class TextAlignMode {
+	enum class TextAlignMode : uint8_t {
 		LeftTop,		MiddleTop,		RightTop,
 		LeftMiddle,		Middle,			RightMiddle,
 		LeftBottom,		MiddleBottom,	RightBottom,
@@ -82,6 +66,22 @@ namespace GUI {
 	
 	using InnerAlignMode = TextAlignMode;
 	using InnerAlignModeEnum = TextAlignModeEnum;
+
+//----------------------------------------------------------------------------------
+
+	enum class ImageScaleMode {
+		None, Center, ScaleToFit, ScaleProportional, ScaleProportionalCenter,
+	};
+	struct ImageAlignModeConverter : Space::EnumConverter < ImageScaleMode, ImageScaleMode::None > {
+		ImageAlignModeConverter() {
+			Add("Default", Enum::None);
+			Add("Center", Enum::Center);
+			Add("ScaleToFit", Enum::ScaleToFit);
+			Add("ScaleProportional", Enum::ScaleProportional);
+			Add("ScaleProportionalCenter", Enum::ScaleProportionalCenter);
+		}
+	};
+	using ImageScaleModeEnum = Space::EnumConverterHolder < ImageAlignModeConverter >;
 
 //----------------------------------------------------------------------------------
 

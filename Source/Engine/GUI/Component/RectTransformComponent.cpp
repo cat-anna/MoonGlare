@@ -24,6 +24,13 @@ namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<RectTransformComponent, RectTransformComponentEntry> RectTransformComponentTypeInfo;
 RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg("RectTransform", true, &RectTransformComponent::RegisterScriptApi);
+RegisterDebugApi(RectTransformComponent, &RectTransformComponent::RegisterDebugScriptApi, "Debug");
+
+#ifdef DEBUG
+static bool gRectTransformDebugDraw = false;
+#endif
+
+//---------------------------------------------------------------------------------------
 
 RectTransformComponent::RectTransformComponent(ComponentManager *Owner)
 	: TemplateStandardComponent(Owner) {
@@ -39,9 +46,21 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
 			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
 			.addProperty("Size", &RectTransformComponentEntry::GetSize, &RectTransformComponentEntry::SetSize)
-			.addProperty("Z", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
+			.addProperty("Order", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
 		.endClass()
+		//.beginClass<RectTransformComponent>("cRectTransformComponent") 
+		//.endClass()
 		;
+}
+
+void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
+	root
+	.beginNamespace("Flags")
+		.beginNamespace("RectTransformComponent")
+			.addVariable("DebugDraw", &gRectTransformDebugDraw)
+		.endNamespace()
+	.endNamespace();
+	;
 }
 
 //---------------------------------------------------------------------------------------
@@ -74,6 +93,7 @@ bool RectTransformComponent::Initialize() {
 		RootEntry.m_ScreenRect.RightBottom = m_ScreenSize;
 	}
 
+	RootEntry.m_Revision = 1;
 	RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
 	RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
 	RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
@@ -101,7 +121,9 @@ bool RectTransformComponent::Finalize() {
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
-	conf.CustomDraw.push_back(this);
+	if (gRectTransformDebugDraw) {
+		conf.CustomDraw.push_back(this);
+	}
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -120,7 +142,7 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 
-			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
+			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
 				//nothing to do, nothing changed;
 			} else {
 				item.Recalculate(*ParentEntry);
@@ -205,7 +227,7 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 			//convert from pixel to uniform
 			if (entry.m_AlignMode != AlignMode::Table) {
 				auto half = root.m_Size / 2.0f;
-				entry.m_Position = entry.m_Position / m_ScreenSize - half;
+				entry.m_Position = entry.m_Position / m_ScreenSize;// -half;
 				entry.m_Size = entry.m_Size / m_ScreenSize * root.m_Size;
 			}
 			entry.m_Margin = entry.m_Margin / m_ScreenSize * root.m_Size;
@@ -251,7 +273,6 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}
-
 	}
 
 	if (!m_Shader)
@@ -292,7 +313,6 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 	glPopAttrib();
 }
 
-//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Parent) {
@@ -370,7 +390,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 
 	default:
 		LogInvalidEnum(m_AlignMode);
-		break;
+		return;
 	}
 
 	if (doslice) {
