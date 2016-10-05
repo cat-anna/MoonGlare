@@ -63,8 +63,8 @@ class IntegralEditor : public CustomTypeEditor, public QSpinBox {
 public:
 	IntegralEditor(QWidget *Parent) : QSpinBox(Parent) {
 		setSingleStep(1);
-		setMinimum(std::numeric_limits<T>::min());
-		setMaximum(std::numeric_limits<T>::max());
+		setMinimum(std::numeric_limits<int>::min());
+		setMaximum(std::numeric_limits<int>::max());
 	}
 	static std::string ToDisplayText(const std::string &in) { return in; }
 

@@ -30,8 +30,8 @@ public:
 		virtual bool DoSaveSettings(pugi::xml_node node) const = 0;
 		virtual bool DoLoadSettings(const pugi::xml_node node) = 0;
 		const std::string& GetSettingID() const { return m_SettingID; }
-	protected:
 		void SetSettingID(std::string v) { m_SettingID.swap(v); }
+	protected:
 		
 		template<class T>
 		static void SaveGeometry(pugi::xml_node node, T *widget, const char *Name) {
@@ -74,6 +74,21 @@ public:
 				widget->setColumnWidth(it, att.as_uint());
 			}
 		}
+		static bool SaveChildSettings(pugi::xml_node node, iSettingsUser *child) {
+			auto &group = child->GetSettingID();
+			if (group.empty())
+				return false;
+			node = XML::UniqeChild(node, group.c_str());
+			return child->DoSaveSettings(node);
+		}
+		static bool LoadChildSettings(pugi::xml_node node, iSettingsUser *child) {
+			auto &group = child->GetSettingID();
+			if (group.empty())
+				return false;
+			node = node.child(group.c_str());
+			return child->DoLoadSettings(node);
+		}
+
 		void EnableSettings(bool v) { m_EnableSettings = v; }
 	private:
 		std::string m_SettingID;

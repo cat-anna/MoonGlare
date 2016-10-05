@@ -8,6 +8,7 @@
 #include <Math.x2c.h>
 #include <LightComponent.x2c.h>
 #include <BodyComponent.x2c.h>
+#include <BodyShapeComponent.x2c.h>
 #include <TransformComponent.x2c.h>
 #include <CameraComponent.x2c.h>
 #include <MeshComponent.x2c.h>
@@ -16,6 +17,7 @@
 #include <ImageComponent.x2c.h>
 #include <PanelComponent.x2c.h>
 #include <TextComponent.x2c.h>
+#include <Scene.x2c.h>
 
 #include "CustomType.h"
 #include "Structure.h"
@@ -26,8 +28,8 @@ namespace TypeEditor {
 
 using namespace x2c::Component;
 
-using Core::Component::ComponentID;
-using Core::Component::ComponentIDs;
+using ComponentID = Core::Component::ComponentID;
+using ComponentIDs = Core::Component::ComponentIDs;
 
 //----------------------------------------------------------------------------------
 
@@ -44,25 +46,126 @@ struct bool_TypeInfo {
 
 //----------------------------------------------------------------------------------
 
-struct EmptySettings {
-	static constexpr char *GetTypeName() { return "EmptySettings"; }
-	bool Read(const pugi::xml_node node, const char *name = nullptr) { return true; }
-	bool Write(pugi::xml_node node, const char *name = nullptr) const { return true; }
-	void ResetToDefault() { }
-	bool WriteFile(const std::string& filename) const { return false; }
-	bool ReadFile(const std::string& filename) { return true; }
-	void GetMemberInfo(::x2c::cxxpugi::StructureMemberInfoTable &members) const { }
-	void GetWriteFuncs(std::unordered_map<std::string, std::function<void(EmptySettings &self, const std::string &input)>> &funcs) const { }
-	void GetReadFuncs(std::unordered_map<std::string, std::function<void(const EmptySettings &self, std::string &output)>> &funcs) { }
+enum class ComponentOrder {
+	Unused,
+
+	ScriptComponent,
+
+	BodyComponent,
+	BodyShapeComponent,
+
+	Transform,
+
+	CameraComponent,
+	LightComponent,
+	MeshComponent,
+
+	RectTransform,
+	ImageComponent,
+	PanelComponent,
+	TextComponent,
+
+	Unknown = 0xFFFF,
 };
 
-struct RextTRansformComponentDesc {
+struct EmptyBase {
+	bool Read(const pugi::xml_node node, const char *name = nullptr) { return true; }
+	bool Write(pugi::xml_node node, const char *name = nullptr) const { return true; }
+	void ResetToDefault() {}
+	bool WriteFile(const std::string& filename) const { return false; }
+	bool ReadFile(const std::string& filename) { return true; }
+	void GetMemberInfo(::x2c::cxxpugi::StructureMemberInfoTable &members) const {}
+};
+struct EmptySettings : public EmptyBase {
+	static constexpr char *GetTypeName() { return "EmptySettings"; }
+	void GetWriteFuncs(std::unordered_map<std::string, std::function<void(EmptySettings &self, const std::string &input)>> &funcs) const {}
+	void GetReadFuncs(std::unordered_map<std::string, std::function<void(const EmptySettings &self, std::string &output)>> &funcs) {}
+};
+struct EmptyEntry : public EmptyBase {
+	static constexpr char *GetTypeName() { return "EmptyEntry"; }
+	void GetWriteFuncs(std::unordered_map<std::string, std::function<void(EmptyEntry &self, const std::string &input)>> &funcs) const {}
+	void GetReadFuncs(std::unordered_map<std::string, std::function<void(const EmptyEntry &self, std::string &output)>> &funcs) {}
+};
+
+//-------------------------------------
+struct TransformComponentDesc {
+	using Entry_t = TransformComponent::TransformEntry_t;
+	using Settings_t = EmptySettings;// TransformComponent::RectTransformSettings_t;
+	static constexpr char *DisplayName = "Transform";
+	static constexpr char *Name = "Transform";
+	static constexpr ComponentIDs CID = ComponentIDs::Transform;
+	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentOrder Order = ComponentOrder::Transform;
+};
+//-------------------------------------
+struct LightComponentDesc {
+	using Entry_t = LightComponent::LightEntry_t;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "Light";
+	static constexpr char *Name = "Light";
+	static constexpr ComponentIDs CID = ComponentIDs::Light;
+	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentOrder Order = ComponentOrder::LightComponent;
+};
+struct CameraComponentDesc {
+	using Entry_t = CameraComponent::CameraEntry_t;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "Camera";
+	static constexpr char *Name = "Camera";
+	static constexpr ComponentIDs CID = ComponentIDs::Camera;
+	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentOrder Order = ComponentOrder::CameraComponent;
+};
+struct MeshComponentDesc {
+	using Entry_t = MeshComponent::MeshEntry_t;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "Mesh";
+	static constexpr char *Name = "Mesh";
+	static constexpr ComponentIDs CID = ComponentIDs::Mesh;
+	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentOrder Order = ComponentOrder::MeshComponent;
+//	RegComponent<, EmptySettings >
+//("Mesh", "Mesh", ComponentIDs::Mesh, {});
+};
+struct ScriptComponentDesc {
+	using Entry_t = ScriptComponent::ScriptEntry_t;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "Script";
+	static constexpr char *Name = "Script";
+	static constexpr ComponentIDs CID = ComponentIDs::Script;
+	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentOrder Order = ComponentOrder::ScriptComponent;
+//RegComponent<ScriptComponent::ScriptEntry_t, EmptySettings >
+	//("Script", "Script", ComponentIDs::Script, {});
+};
+//-------------------------------------
+struct BodyComponentDesc {
+	using Entry_t = BodyComponent::BodyEntry_t;
+	using Settings_t = BodyComponent::BodyComponentSettings_t;
+	static constexpr char *DisplayName = "Body";
+	static constexpr char *Name = "Body";
+	static constexpr ComponentIDs CID = ComponentIDs::Body;
+	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentOrder Order = ComponentOrder::BodyComponent;
+};
+struct BodyShapeComponentDesc {
+	using Entry_t = EmptyEntry;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "BodyShape";
+	static constexpr char *Name = "BodyShape";
+	static constexpr ComponentIDs CID = ComponentIDs::BodyShape;
+	static constexpr ComponentIDs Depend = ComponentIDs::Body;
+	static constexpr ComponentOrder Order = ComponentOrder::BodyShapeComponent;
+};
+//-------------------------------------
+struct RectTransformComponentDesc {
 	using Entry_t = RectTransformComponent::RectTransformEntry_t;
 	using Settings_t = RectTransformComponent::RectTransformSettings_t;
 	static constexpr char *DisplayName = "Gui.RectTransform";
 	static constexpr char *Name = "RectTransform";
 	static constexpr ComponentIDs CID = ComponentIDs::RectTransform;
-	static constexpr std::array<ComponentIDs, 1> Deps = { ComponentIDs::Invalid };
+	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentOrder Order = ComponentOrder::RectTransform;
 };
 struct ImageComponentDesc {
 	using Entry_t = ImageComponent::ImageEntry_t;
@@ -70,7 +173,8 @@ struct ImageComponentDesc {
 	static constexpr char *DisplayName = "Gui.Image";
 	static constexpr char *Name = "Image";
 	static constexpr ComponentIDs CID = ComponentIDs::Image;
-	static constexpr std::array<ComponentIDs, 1> Deps = { ComponentIDs::RectTransform };
+	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentOrder Order = ComponentOrder::ImageComponent;
 };
 struct PanelComponentDesc {	
 	using Entry_t = PanelComponent::PanelEntry_t;
@@ -78,7 +182,8 @@ struct PanelComponentDesc {
 	static constexpr char *DisplayName = "Gui.Panel";
 	static constexpr char *Name = "Panel";
 	static constexpr ComponentIDs CID = ComponentIDs::Panel;
-	static constexpr std::array<ComponentIDs, 1> Deps = { ComponentIDs::RectTransform };
+	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentOrder Order = ComponentOrder::PanelComponent;
 };
 struct TextComponentDesc {
 	using Entry_t = TextComponent::TextEntry_t;
@@ -86,8 +191,10 @@ struct TextComponentDesc {
 	static constexpr char *DisplayName = "Gui.Text";
 	static constexpr char *Name = "Text";
 	static constexpr ComponentIDs CID = ComponentIDs::Text;
-	static constexpr std::array<ComponentIDs, 1> Deps = { ComponentIDs::RectTransform };
+	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentOrder Order = ComponentOrder::TextComponent;
 };
+//-------------------------------------
 
 struct Register {
 	Register() {
@@ -96,17 +203,22 @@ struct Register {
 		RegEnum<TextComponent::TextAlignMode_TypeInfo>();
 		RegEnum<bool_TypeInfo>();
 
-		RegComponent<TransfromComponent::TransfromEntry_t	, EmptySettings								>("Transform"			, "Transform"		, ComponentIDs::Transform,			{ } );
-		RegComponent<LightComponent::LightEntry_t			, EmptySettings								>("Light"				, "Light"			, ComponentIDs::Light,				{ } );
-		RegComponent<BodyComponent::BodyEntry_t				, BodyComponent::BodyComponentSettings_t	>("Body"				, "Body"			, ComponentIDs::Body,				{ } );
-		RegComponent<CameraComponent::CameraEntry_t			, EmptySettings								>("Camera"				, "Camera"			, ComponentIDs::Camera,				{ } );
-		RegComponent<MeshComponent::MeshEntry_t				, EmptySettings								>("Mesh"				, "Mesh"			, ComponentIDs::Mesh,				{ } );
-		RegComponent<ScriptComponent::ScriptEntry_t			, EmptySettings								>("Script"				, "Script"			, ComponentIDs::Script,				{ } );
-	
-		RegComponent<RextTRansformComponentDesc>();
+		RegComponent<ScriptComponentDesc>();
+
+		RegComponent<TransformComponentDesc>();
+		RegComponent<LightComponentDesc>();
+		RegComponent<CameraComponentDesc>();
+		RegComponent<MeshComponentDesc>();
+
+		RegComponent<BodyComponentDesc>();
+		RegComponent<BodyShapeComponentDesc>();
+
+		RegComponent<RectTransformComponentDesc>();
 		RegComponent<ImageComponentDesc>();
 		RegComponent<PanelComponentDesc>();
 		RegComponent<TextComponentDesc>();
+
+		RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
 	}
 
 	template<typename ENUM>
@@ -121,21 +233,6 @@ struct Register {
 		return ssi;
 	}
 
-	template<typename STRUCT, typename SETTINGS>
-	void RegComponent(const char *DisplayName, const char *Name, ComponentIDs cid, std::initializer_list<ComponentIDs> deps = {}) {
-		ComponentInfo ci;
-		ci.m_CID = static_cast<ComponentID>(cid);
-		ci.m_Name = Name;
-		ci.m_DisplayName = DisplayName;
-		ci.m_EntryStructure = RegStructure<STRUCT>();
-		ci.m_SettingsStructure = RegStructure<SETTINGS>();
-		ci.m_Requirements.reserve(deps.size());
-		for (auto it : deps)
-			if (it != ComponentIDs::Invalid)
-				ci.m_Requirements.push_back(static_cast<ComponentID>(it));
-		ComponentInfo::RegisterComponentInfo(std::make_shared<ComponentInfo>(std::move(ci)));
-	}
-
 	template<typename CINFO>
 	void RegComponent() {
 		ComponentInfo ci;
@@ -144,10 +241,8 @@ struct Register {
 		ci.m_DisplayName = CINFO::DisplayName;
 		ci.m_EntryStructure = RegStructure<CINFO::Entry_t>();
 		ci.m_SettingsStructure = RegStructure<CINFO::Settings_t>();
-		ci.m_Requirements.reserve(CINFO::Deps.size());
-		for (auto it : CINFO::Deps)
-			if(it != ComponentIDs::Invalid)
-				ci.m_Requirements.push_back(static_cast<ComponentID>(it));
+		ci.m_Requirement = static_cast<ComponentID>(CINFO::Depend);
+		ci.m_DefautltIndex = static_cast<unsigned>(CINFO::Order);
 		ComponentInfo::RegisterComponentInfo(std::make_shared<ComponentInfo>(std::move(ci)));
 	}
 };

@@ -44,6 +44,8 @@ void iSettings::Save() {
 
 void iSettings::SaveSettings(iSettingsUser *user) {
 	auto &group = user->GetSettingID();
+	if (group.empty())
+		return;
 	auto root = DynamicSettingsRoot();
 	auto child = root.child(group.c_str());
 	if (!child) {
@@ -53,7 +55,10 @@ void iSettings::SaveSettings(iSettingsUser *user) {
 }
 
 void iSettings::LoadSettings(iSettingsUser *user) {
-	user->DoLoadSettings(DynamicSettingsRoot().child(user->GetSettingID().c_str()));
+	auto &group = user->GetSettingID();
+	if (group.empty())
+		return;
+	user->DoLoadSettings(DynamicSettingsRoot().child(group.c_str()));
 }
 
 pugi::xml_node iSettings::StaticSettingsRoot() {
