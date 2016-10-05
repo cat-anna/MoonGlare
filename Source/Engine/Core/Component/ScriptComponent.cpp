@@ -40,6 +40,7 @@ namespace lua {
 	static const char *ComponentIDMemberName = "ComponentId";
 	static const char *DereferenceHandleName = "Get";
 	static const char *ComponentSetStateName = "Set";
+	static const char *ComponentName = "Component";
 
 	static const char *GameObjectName = "GameObject";
 
@@ -588,6 +589,7 @@ int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Hand
 	lua_pushlightuserdata(lua, h.GetVoidPtr());
 	lua_pushcclosure(lua, &lua_SetComponentState, 2);
 	lua_setfield(lua, -2, lua::ComponentSetStateName);
+
 	return 1;
 }
 

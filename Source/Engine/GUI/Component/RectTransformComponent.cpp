@@ -46,8 +46,10 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
 			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
 			.addProperty("Size", &RectTransformComponentEntry::GetSize, &RectTransformComponentEntry::SetSize)
-			.addProperty("Z", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
+			.addProperty("Order", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
 		.endClass()
+		//.beginClass<RectTransformComponent>("cRectTransformComponent") 
+		//.endClass()
 		;
 }
 
@@ -271,7 +273,6 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}
-
 	}
 
 	if (!m_Shader)
@@ -389,7 +390,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 
 	default:
 		LogInvalidEnum(m_AlignMode);
-		break;
+		return;
 	}
 
 	if (doslice) {
