@@ -65,7 +65,7 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 };
 
 class MeshComponent
-	: public TemplateStandardComponent<MeshComponentEntry, ComponentIDs::Mesh> {
+	: public TemplateStandardComponent<MeshComponentEntry, ComponentID::Mesh> {
 public:
 	MeshComponent(ComponentManager *Owner);
 	virtual ~MeshComponent();

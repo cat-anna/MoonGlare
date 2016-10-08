@@ -83,7 +83,7 @@ struct RectTransformSettingsFlagsMap {
 };
 
 class RectTransformComponent 
-	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentIDs::RectTransform>
+	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>
 	, public Core::iCustomDraw {
 public:
  	RectTransformComponent(ComponentManager *Owner);

@@ -65,7 +65,7 @@ private:
 	void *m_padding2;
 };
 
-template<typename ELEMENT, ComponentIDs CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
+template<typename ELEMENT, ComponentID CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
 class TemplateStandardComponent 
 	: public AbstractComponent
 	, public ComponentIDWrap<CID> {

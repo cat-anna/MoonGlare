@@ -49,7 +49,7 @@ struct BodyShapeComponentEntry {
 
 class BodyShapeComponent
 	: public AbstractComponent
-	, public ComponentIDWrap<Core::Component::ComponentIDs::BodyShape> {
+	, public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
 public:
 	BodyShapeComponent(Core::Component::ComponentManager *Owner);
  	virtual ~BodyShapeComponent();

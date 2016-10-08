@@ -21,7 +21,7 @@ using namespace ::Physics;
 
 class BodyComponent
 		: public Core::Component::AbstractComponent
-		, public Core::Component::ComponentIDWrap<Core::Component::ComponentIDs::Body>
+		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body>
 		, public Core::iCustomDraw {
 public:
 	BodyComponent(Core::Component::ComponentManager *Owner);

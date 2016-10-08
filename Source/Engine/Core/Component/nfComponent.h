@@ -18,8 +18,6 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-using ComponentID = uint32_t;
-
 class AbstractComponent;
 using UniqueAbstractComponent = std::unique_ptr<AbstractComponent>;
 
@@ -29,7 +27,7 @@ class ScriptComponent;
 class TransformComponent;
 class CameraComponent;
 
-enum class ComponentIDs : ComponentID {
+enum class ComponentID : uint32_t {
 	Invalid = 0,
 
 //Core - 0x1X
@@ -52,16 +50,16 @@ enum class ComponentIDs : ComponentID {
 	Text			= 0x63,
 };
 
-//template<ComponentIDs ID, HandleType HT>
+//template<ComponentID ID, HandleType HT>
 //struct ComponentIDWrap {
 //	constexpr static ComponentID GetComponentID() { return static_cast<ComponentID>(ID); };
 //	constexpr static HandleType GetHandleType() { return static_cast<HandleType>(HT); };
 //};
 
-template<ComponentIDs VALUE>
+template<ComponentID VALUE>
 struct ComponentIDWrap {
-	constexpr static ComponentID GetComponentID() { return static_cast<ComponentID>(VALUE); };
-	constexpr static HandleType GetHandleType() { return static_cast<HandleType>(VALUE); };
+	constexpr static ComponentID GetComponentID() { return VALUE; };
+	constexpr static ComponentID GetHandleType() { return VALUE; };
 };
 
 } //namespace Component 

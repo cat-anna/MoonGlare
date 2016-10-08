@@ -338,12 +338,12 @@ void SceneEditor::RefreshComponentTree() {
 
 	std::map<Core::ComponentID, QStandardItem*> Deps;
 
-	Deps[(Core::ComponentID)Core::Component::ComponentIDs::Invalid] = root;
+	Deps[(Core::ComponentID)Core::Component::ComponentID::Invalid] = root;
 
 	auto GetParent = [&Deps](Core::ComponentID cid) {
 		auto it = Deps.find(cid);
 		if (it == Deps.end())
-			return Deps[(Core::ComponentID)Core::Component::ComponentIDs::Invalid];
+			return Deps[(Core::ComponentID)Core::Component::ComponentID::Invalid];
 		return it->second;
 	};
 

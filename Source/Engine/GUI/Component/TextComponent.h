@@ -69,7 +69,7 @@ struct TextComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class TextComponent
-	: public TemplateStandardComponent<TextComponentEntry, ComponentIDs::Text> {
+	: public TemplateStandardComponent<TextComponentEntry, ComponentID::Text> {
 public:
 	TextComponent(ComponentManager *Owner);
 	virtual ~TextComponent();

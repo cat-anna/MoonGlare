@@ -29,7 +29,7 @@ namespace TypeEditor {
 using namespace x2c::Component;
 
 using ComponentID = Core::Component::ComponentID;
-using ComponentIDs = Core::Component::ComponentIDs;
+using ComponentID = Core::Component::ComponentID;
 
 //----------------------------------------------------------------------------------
 
@@ -93,8 +93,8 @@ struct TransformComponentDesc {
 	using Settings_t = EmptySettings;// TransformComponent::RectTransformSettings_t;
 	static constexpr char *DisplayName = "Transform";
 	static constexpr char *Name = "Transform";
-	static constexpr ComponentIDs CID = ComponentIDs::Transform;
-	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentID CID = ComponentID::Transform;
+	static constexpr ComponentID Depend = ComponentID::Invalid;
 	static constexpr ComponentOrder Order = ComponentOrder::Transform;
 };
 //-------------------------------------
@@ -103,8 +103,8 @@ struct LightComponentDesc {
 	using Settings_t = EmptySettings;
 	static constexpr char *DisplayName = "Light";
 	static constexpr char *Name = "Light";
-	static constexpr ComponentIDs CID = ComponentIDs::Light;
-	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentID CID = ComponentID::Light;
+	static constexpr ComponentID Depend = ComponentID::Transform;
 	static constexpr ComponentOrder Order = ComponentOrder::LightComponent;
 };
 struct CameraComponentDesc {
@@ -112,8 +112,8 @@ struct CameraComponentDesc {
 	using Settings_t = EmptySettings;
 	static constexpr char *DisplayName = "Camera";
 	static constexpr char *Name = "Camera";
-	static constexpr ComponentIDs CID = ComponentIDs::Camera;
-	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentID CID = ComponentID::Camera;
+	static constexpr ComponentID Depend = ComponentID::Transform;
 	static constexpr ComponentOrder Order = ComponentOrder::CameraComponent;
 };
 struct MeshComponentDesc {
@@ -121,22 +121,22 @@ struct MeshComponentDesc {
 	using Settings_t = EmptySettings;
 	static constexpr char *DisplayName = "Mesh";
 	static constexpr char *Name = "Mesh";
-	static constexpr ComponentIDs CID = ComponentIDs::Mesh;
-	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentID CID = ComponentID::Mesh;
+	static constexpr ComponentID Depend = ComponentID::Transform;
 	static constexpr ComponentOrder Order = ComponentOrder::MeshComponent;
 //	RegComponent<, EmptySettings >
-//("Mesh", "Mesh", ComponentIDs::Mesh, {});
+//("Mesh", "Mesh", ComponentID::Mesh, {});
 };
 struct ScriptComponentDesc {
 	using Entry_t = ScriptComponent::ScriptEntry_t;
 	using Settings_t = EmptySettings;
 	static constexpr char *DisplayName = "Script";
 	static constexpr char *Name = "Script";
-	static constexpr ComponentIDs CID = ComponentIDs::Script;
-	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentID CID = ComponentID::Script;
+	static constexpr ComponentID Depend = ComponentID::Invalid;
 	static constexpr ComponentOrder Order = ComponentOrder::ScriptComponent;
 //RegComponent<ScriptComponent::ScriptEntry_t, EmptySettings >
-	//("Script", "Script", ComponentIDs::Script, {});
+	//("Script", "Script", ComponentID::Script, {});
 };
 //-------------------------------------
 struct BodyComponentDesc {
@@ -144,8 +144,8 @@ struct BodyComponentDesc {
 	using Settings_t = BodyComponent::BodyComponentSettings_t;
 	static constexpr char *DisplayName = "Body";
 	static constexpr char *Name = "Body";
-	static constexpr ComponentIDs CID = ComponentIDs::Body;
-	static constexpr ComponentIDs Depend = ComponentIDs::Transform;
+	static constexpr ComponentID CID = ComponentID::Body;
+	static constexpr ComponentID Depend = ComponentID::Transform;
 	static constexpr ComponentOrder Order = ComponentOrder::BodyComponent;
 };
 struct BodyShapeComponentDesc {
@@ -153,8 +153,8 @@ struct BodyShapeComponentDesc {
 	using Settings_t = EmptySettings;
 	static constexpr char *DisplayName = "BodyShape";
 	static constexpr char *Name = "BodyShape";
-	static constexpr ComponentIDs CID = ComponentIDs::BodyShape;
-	static constexpr ComponentIDs Depend = ComponentIDs::Body;
+	static constexpr ComponentID CID = ComponentID::BodyShape;
+	static constexpr ComponentID Depend = ComponentID::Body;
 	static constexpr ComponentOrder Order = ComponentOrder::BodyShapeComponent;
 };
 //-------------------------------------
@@ -163,8 +163,8 @@ struct RectTransformComponentDesc {
 	using Settings_t = RectTransformComponent::RectTransformSettings_t;
 	static constexpr char *DisplayName = "Gui.RectTransform";
 	static constexpr char *Name = "RectTransform";
-	static constexpr ComponentIDs CID = ComponentIDs::RectTransform;
-	static constexpr ComponentIDs Depend = ComponentIDs::Invalid;
+	static constexpr ComponentID CID = ComponentID::RectTransform;
+	static constexpr ComponentID Depend = ComponentID::Invalid;
 	static constexpr ComponentOrder Order = ComponentOrder::RectTransform;
 };
 struct ImageComponentDesc {
@@ -172,8 +172,8 @@ struct ImageComponentDesc {
 	using Settings_t = ImageComponent::ImageComponentSettings_t;
 	static constexpr char *DisplayName = "Gui.Image";
 	static constexpr char *Name = "Image";
-	static constexpr ComponentIDs CID = ComponentIDs::Image;
-	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentID CID = ComponentID::Image;
+	static constexpr ComponentID Depend = ComponentID::RectTransform;
 	static constexpr ComponentOrder Order = ComponentOrder::ImageComponent;
 };
 struct PanelComponentDesc {	
@@ -181,8 +181,8 @@ struct PanelComponentDesc {
 	using Settings_t = PanelComponent::PanelComponentSettings_t;
 	static constexpr char *DisplayName = "Gui.Panel";
 	static constexpr char *Name = "Panel";
-	static constexpr ComponentIDs CID = ComponentIDs::Panel;
-	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentID CID = ComponentID::Panel;
+	static constexpr ComponentID Depend = ComponentID::RectTransform;
 	static constexpr ComponentOrder Order = ComponentOrder::PanelComponent;
 };
 struct TextComponentDesc {
@@ -190,8 +190,8 @@ struct TextComponentDesc {
 	using Settings_t = TextComponent::TextComponentSettings_t;
 	static constexpr char *DisplayName = "Gui.Text";
 	static constexpr char *Name = "Text";
-	static constexpr ComponentIDs CID = ComponentIDs::Text;
-	static constexpr ComponentIDs Depend = ComponentIDs::RectTransform;
+	static constexpr ComponentID CID = ComponentID::Text;
+	static constexpr ComponentID Depend = ComponentID::RectTransform;
 	static constexpr ComponentOrder Order = ComponentOrder::TextComponent;
 };
 //-------------------------------------

@@ -76,7 +76,7 @@ bool ComponentManager::LoadComponents(pugi::xml_node node) {
 	}
 
 	for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
-		ComponentID cid = 0;
+		ComponentID cid = ComponentID::Invalid;
 
 		if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
 			AddLogf(Warning, "Unknown component!");

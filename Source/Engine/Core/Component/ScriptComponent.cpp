@@ -662,8 +662,8 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
 
 	ComponentID cid;
 	if (This->GetHandleTable()->GetOwnerCID(h, cid)) {
-		switch (static_cast<ComponentIDs>(cid)) {
-		case ComponentIDs::Transform:
+		switch (static_cast<ComponentID>(cid)) {
+		case ComponentID::Transform:
 			AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Cannot release component of cid: %d", cid);
 			lua_pushboolean(lua, 0);
 			return 1;
@@ -1036,7 +1036,7 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	int argc = lua_gettop(lua);
 
-	ComponentID cid = 0;
+	ComponentID cid = ComponentID::Invalid;
 	Entity RequestedOwner;
 	bool HaveOwner = false;
 

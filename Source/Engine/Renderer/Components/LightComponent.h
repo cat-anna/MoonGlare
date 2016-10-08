@@ -54,7 +54,7 @@ struct LightComponentEntry {
 static_assert(std::is_pod<LightComponentEntry>::value, "LightComponentEntry must be pod!");
 
 class LightComponent 
-	: public TemplateStandardComponent<LightComponentEntry, ComponentIDs::Light> {
+	: public TemplateStandardComponent<LightComponentEntry, ComponentID::Light> {
 public:
 	LightComponent(ComponentManager *Owner);
 	virtual ~LightComponent();

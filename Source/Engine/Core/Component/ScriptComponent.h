@@ -17,7 +17,7 @@ namespace Component {
 
 class ScriptComponent
 	: public AbstractComponent
-	, public ComponentIDWrap<ComponentIDs::Script> {
+	, public ComponentIDWrap<ComponentID::Script> {
 public:
  	ScriptComponent(ComponentManager *Owner);
  	virtual ~ScriptComponent();
