@@ -10,6 +10,7 @@
 #define AbstractComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
+#include "ComponentRegister.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -47,6 +48,7 @@ public:
 
 	ComponentManager* GetManager() { return m_Owner; }
 
+	static constexpr LuaMetamethods EntryMetamethods = { };
 protected:
 	HandleTable* GetHandleTable() { return m_HandleTable; }
 

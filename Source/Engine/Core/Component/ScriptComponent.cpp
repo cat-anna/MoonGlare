@@ -590,7 +590,11 @@ int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Hand
 	lua_pushcclosure(lua, &lua_SetComponentState, 2);
 	lua_setfield(lua, -2, lua::ComponentSetStateName);
 
-	return 1;
+	if (m_ScriptEngine->GetComponentEntryMT(cid)) {
+		lua_setmetatable(lua, -2);
+	}
+
+	return check.ReturnArgs(1);
 }
 
 int ScriptComponent::lua_DereferenceHandle(lua_State *lua) {

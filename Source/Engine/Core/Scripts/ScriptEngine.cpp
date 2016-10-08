@@ -65,9 +65,9 @@ bool ScriptEngine::Initialize() {
 	luabridge::Stack<ScriptEngine*>::push(lua, this);
 	lua_setglobal(lua, "Script");
 
-	lua_pushlightuserdata(lua, (void *)this);  
+	lua_pushlightuserdata(lua, GetScriptTableIndex());  
 	lua_createtable(lua, 0, 0);
-	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptEngine", this, -1);
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptTable", this, -1);
 	lua_settable(lua, LUA_REGISTRYINDEX);
 
 	AddLog(Debug, "Script construction finished");
@@ -116,6 +116,38 @@ bool ScriptEngine::ConstructLuaContext() {
 #else
 	luabridge::setHideMetatables(true);
 #endif
+
+	lua_pushlightuserdata(m_Lua, GetComponentMTTableIndex());	//stack: ... index
+	lua_createtable(m_Lua, 0, 0);								//stack: ... index ctable
+	MoonGlare::Core::Scripts::PublishSelfLuaTable(m_Lua, "ComponentEntryMT", this, -1);
+
+	for (auto &cit : Component::ComponentRegister::GetComponentMap()) {
+		auto &cinfo = *cit.second;
+		auto &emt = *cinfo.m_EntryMetamethods;
+
+		if (!emt)
+			continue;
+		
+		if (!emt.m_Index || !emt.m_NewIndex) {
+			AddLogf(Error, "Invalid component mt set!");
+			continue;
+		}
+
+		lua_pushinteger(m_Lua, static_cast<int>(cinfo.m_CID));	//stack: ... index ctable cid cmt
+		lua_createtable(m_Lua, 0, 0);							//stack: ... index ctable cid cmt
+
+		if (emt.m_Index) {
+			lua_pushcclosure(m_Lua, emt.m_Index, 0);
+			lua_setfield(m_Lua, -2, "__index");
+		}
+		if (emt.m_NewIndex) {
+			lua_pushcclosure(m_Lua, emt.m_NewIndex, 0);
+			lua_setfield(m_Lua, -2, "__newindex");
+		}
+			
+		lua_settable(m_Lua, -3);								//stack: ... index ctable 
+	}
+	lua_settable(m_Lua, LUA_REGISTRYINDEX);						//stack: ... index ctable
 
 	ApiInit::Initialize(this);
 
@@ -222,10 +254,24 @@ bool ScriptEngine::GetRegisteredScript(const char *name) {
 	}
 
 	auto lua = GetLua();
-	lua_pushlightuserdata(lua, (void *)this);
-	lua_gettable(lua, LUA_REGISTRYINDEX);  
+	GetScriptTable(lua);
+	lua_getfield(lua, -1, name);
 
-	lua_pushstring(lua, name);
+	if (lua_isnil(lua, -1)) {
+		lua_pop(lua, 2);
+		return false;
+	} else {
+		lua_insert(lua, -2);
+		lua_pop(lua, 1);
+		return true;
+	}
+}
+
+bool ScriptEngine::GetComponentEntryMT(ComponentID cid) {
+	auto lua = GetLua();
+	GetComponentMTTable(lua);
+
+	lua_pushinteger(lua, static_cast<int>(cid));
 	lua_gettable(lua, -2);
 
 	if (lua_isnil(lua, -1)) {
@@ -237,6 +283,8 @@ bool ScriptEngine::GetRegisteredScript(const char *name) {
 		return true;
 	}
 }
+
+//---------------------------------------------------------------------------------------
 
 int ScriptEngine::RegisterNewScript(lua_State * lua) {
 	const char *name = lua_tostring(lua, -1);

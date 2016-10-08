@@ -101,6 +101,7 @@ public:
 
 	static void RegisterScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
+	static constexpr LuaMetamethods EntryMetamethods = { &EntryIndex , &EntryNewIndex, };
 protected:
 	RectTransformSettingsFlagsMap m_Flags;
 	Configuration::RuntimeRevision m_CurrentRevision;
