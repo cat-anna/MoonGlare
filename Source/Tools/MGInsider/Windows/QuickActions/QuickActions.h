@@ -5,7 +5,7 @@
 
 namespace Ui { class QuickActions; }
 
-class QuickActions : public DockWindow {
+class QuickActions : public QtShared::DockWindow {
 	Q_OBJECT
 public:
 	QuickActions(QWidget *parent = 0);

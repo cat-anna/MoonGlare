@@ -69,7 +69,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../mgdt.qrc"/>
+  <include location="../../Shared/Resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

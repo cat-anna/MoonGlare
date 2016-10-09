@@ -22,36 +22,36 @@ LuaWindow::LuaWindow(QWidget *parent):
 	ui.StatusTreeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui.OpenedFilesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-	if (mgdtSettings::get().Recent.ScriptFiles.empty()) {
+	//if (mgdtSettings::get().Recent.ScriptFiles.empty()) {
 		OpenScriptFile("");
-	} else {
-		for (auto &it : mgdtSettings::get().Recent.ScriptFiles) {
-			switch (it.Source) {
-			case EditorFileSource::RawFile:
-				OpenScriptFile(QString(it.Location.c_str()));
-				break;
-			case EditorFileSource::Engine:
-				OpenEngineScirpt(QString(it.Location.c_str()));
-				break;
-			}
-		}
-	}
+	//} else {
+		//for (auto &it : mgdtSettings::get().Recent.ScriptFiles) {
+		//	switch (it.Source) {
+		//	case EditorFileSource::RawFile:
+		//		OpenScriptFile(QString(it.Location.c_str()));
+		//		break;
+		//	case EditorFileSource::Engine:
+		//		OpenEngineScirpt(QString(it.Location.c_str()));
+		//		break;
+		//	}
+		//}
+	//}
 	RefreshOpenedFiles();
 
-	GetSettings().Window.LuaEditor.Apply(this);
+//	GetSettings().Window.LuaEditor.Apply(this);
 }
 
 LuaWindow::~LuaWindow() {
-	GetSettings().Window.LuaEditor.Store(this);
+//	GetSettings().Window.LuaEditor.Store(this);
 	ResetModelViews();
 }
 
 void LuaWindow::ResetModelViews() {
 	auto &settings = mgdtSettings::get();
-	if (m_OpenedFilesViewModel) {
-		settings.Editor.OpenedFiles.NameCollumnSize = ui.OpenedFilesList->columnWidth(2);
-		settings.Editor.OpenedFiles.TypeCollumnSize = ui.OpenedFilesList->columnWidth(3);
-	}
+	//if (m_OpenedFilesViewModel) {
+	//	settings.Editor.OpenedFiles.NameCollumnSize = ui.OpenedFilesList->columnWidth(2);
+	//	settings.Editor.OpenedFiles.TypeCollumnSize = ui.OpenedFilesList->columnWidth(3);
+	//}
 	ui.OpenedFilesList->setModel(nullptr);
 	m_OpenedFilesViewModel = std::make_unique<QStandardItemModel>();
 
@@ -64,8 +64,8 @@ void LuaWindow::ResetModelViews() {
 
 	ui.OpenedFilesList->setColumnWidth(0, 20);
 	ui.OpenedFilesList->setColumnWidth(1, 20);
-	ui.OpenedFilesList->setColumnWidth(2, settings.Editor.OpenedFiles.NameCollumnSize);
-	ui.OpenedFilesList->setColumnWidth(3, settings.Editor.OpenedFiles.TypeCollumnSize);
+	ui.OpenedFilesList->setColumnWidth(2, 70);
+	ui.OpenedFilesList->setColumnWidth(3, 50);
 }
 
 void LuaWindow::ResetStatusModelView() {
@@ -135,11 +135,11 @@ void LuaWindow::CreateEditor(const QString &path, EditorFileSource mode) {
 	tab->show();
 	ui.tabWidget->setCurrentIndex(ui.tabWidget->indexOf(tab));
 
-	if (!path.isEmpty()) {
-		std::string s = path.toUtf8().constData();
-		auto &Recent = mgdtSettings::get().Recent;
-		Recent.AddOpenedScript(s, mode);
-	}
+	//if (!path.isEmpty()) {
+	//	std::string s = path.toUtf8().constData();
+	//	auto &Recent = mgdtSettings::get().Recent;
+	//	Recent.AddOpenedScript(s, mode);
+	//}
 }
 
 //-----------------------------------------

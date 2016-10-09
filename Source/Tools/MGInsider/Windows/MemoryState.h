@@ -7,7 +7,7 @@
 namespace Ui { class MemoryState; };
 
 class MemoryState 
-		: public DockWindow
+		: public QtShared::DockWindow
 		, public RemoteConsoleRequestQueue {
 	Q_OBJECT
 public:

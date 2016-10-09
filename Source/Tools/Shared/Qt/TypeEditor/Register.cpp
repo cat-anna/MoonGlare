@@ -1,5 +1,7 @@
 #include PCH_HEADER
 
+#ifdef _BUILDING_MGEDITOR_
+
 #include <Source/Engine/Core/Component/nfComponent.h>
 
 #include <Source/Engine/Renderer/Light.h>
@@ -251,3 +253,5 @@ const Register reg;
 
 } //namespace TypeEditor
 } //namespace MoonGlare
+
+#endif

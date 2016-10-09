@@ -11,98 +11,26 @@
 
 #include "RemoteConsole.h"
 #include "LuaEditor/EditorTab.h"
+#include <iSettingsUser.h>
 
-class mgdtSettings : public QObject {
+class mgdtSettings : public QtShared::iSettings {
 	Q_OBJECT;
 public:
-	struct Editor_t {
-		std::string FontName;
-		int FontSize;
+	mgdtSettings();
+	~mgdtSettings();
 
-		struct OpenedFiles_t {
-			int NameCollumnSize;
-			int TypeCollumnSize;
-
-			template <class T> void Serialize(T & s) {
-				s.Value(NameCollumnSize, "NameCollumnSize", 100);
-				s.Value(TypeCollumnSize, "TypeCollumnSize", 30);
-			}
-		} OpenedFiles;
-
-		QFont GetEditorFont();
-
-		template <class T> void Serialize(T & s) {
-			s.Value(FontName, "FontName", "Consolas");
-			s.Value(FontSize, "FontSize", 10);
-			s.Group(OpenedFiles, "OpenedFiles");
-		}
-	} Editor;
-
-	struct LuaGlobalBrowser_t {
-		int TreeCollumnWidth;
-		int TypeCollumnWidth;
-		int ValueCollumnWidth;
-
-		template <class T> void Serialize(T & s) {
-			s.Value(TreeCollumnWidth, "TreeCollumnWidth", 200);
-			s.Value(TypeCollumnWidth, "TypeCollumnWidth", 70);
-			s.Value(ValueCollumnWidth, "ValueCollumnWidth", 50);
-		}
-	} LuaGlobalBrowser;
-
+#if 0
 	struct Connection_t {
 		int RemoteConsolePort;
-
+	
 		template <class T> void Serialize(T & s) {
 			s.Value(RemoteConsolePort, "RemoteConsolePort", MoonGlare::Debug::InsiderApi::Configuration::Insider_Port);
 		}
 	} Connection;
-
-	struct Recent_t {
-		struct ScriptFile_t {
-			std::string Location;
-			EditorFileSource Source;
-
-			bool Save(pugi::xml_node node) const {
-				node.append_child("Location").text() = Location.c_str();
-				node.append_child("Source").text() = EditorFileSourceEnum::ToString(Source).c_str();
-				return true;
-			}
-			bool Load(const pugi::xml_node node) {
-				Location = node.child("Location").text().as_string("");
-				Source = EditorFileSourceEnum::ConvertSafe(node.child("Source").text().as_string());
-				return true;
-			}
-		};
-		using ScriptFilesList = std::list<ScriptFile_t>;
-		ScriptFilesList ScriptFiles;
-
-		ScriptFilesList::iterator FindScriptFile(const std::string &s) {
-			return std::find_if(ScriptFiles.begin(), ScriptFiles.end(), [&s](const ScriptFile_t& f) {
-				return s == f.Location;
-			});
-		}
-		void RemoveOpenedScript(const std::string &s) {
-			auto it = FindScriptFile(s);
-			if (it != ScriptFiles.end())
-				ScriptFiles.erase(it);
-		}
-		void AddOpenedScript(const std::string &s, EditorFileSource type) {
-			auto it = FindScriptFile(s);
-			if (it == ScriptFiles.end())
-				ScriptFiles.emplace_back(ScriptFile_t{ s, type });
-		}
-
-		template <class T> void Serialize(T & s) {
-			//s.qStringList(ScriptFiles, "ScriptFiles", 0);
-			s.customlist(ScriptFiles, "ScriptFiles", 0);
-		}
-	} Recent;
-
 	struct Window_t {
 		bool RememberPosition;
 		bool RememberSize;
-
+	
 		struct WindowPosition_t {
 			int PosX, PosY;
 			int Width, Height;
@@ -114,16 +42,16 @@ public:
 				s.Value(Height, "Height", -1);
 				s.Value(Opened, "Opened", false);
 			}
-
+	
 			void Apply(QWidget *window);
 			void Store(QWidget *window);
 		};
-
+	
 		WindowPosition_t MainForm;
 		WindowPosition_t LuaEditor;
 		WindowPosition_t ResourceBrowser;
 		WindowPosition_t LogWindow;
-
+	
 		template <class T> void Serialize(T & s) {
 			s.Value(RememberPosition, "RememberPosition", true);
 			s.Value(RememberSize, "RememberSize", true);
@@ -133,11 +61,10 @@ public:
 			s.Group(LogWindow, "LogWindow");
 		}
 	} Window;
-
 	struct QuickActions_t {
 		struct Action_t {
 			std::string Name, Script, Group;
-
+	
 			bool Save(pugi::xml_node node) const {
 				node.append_child("Name").text() = Name.c_str();
 				node.append_child("Script").text() = Script.c_str();
@@ -153,86 +80,23 @@ public:
 		};
 		using QuickActionList_t = std::list<Action_t>;
 		QuickActionList_t QuickActionList;
-
+	
 		Action_t* FindByName(const std::string &Name) {
 			for (auto &it : QuickActionList)
 				if (it.Name == Name)
 					return &it;
 			return nullptr;
 		}
-
+	
 		template <class T> void Serialize(T & s) {
 			//s.qStringList(ScriptFiles, "ScriptFiles", 0);
 			s.customlist(QuickActionList, "QuickActionList", 0);
 		}
 	} QuickActions;
-
-	struct ResourceBrowser_t {
-		std::string LastTab;
-		
-		template <class T> void Serialize(T & s) {
-			s.Value(LastTab, "LastTab", "");
-		}
-	} ResourceBrowser;
-
-	template <class T> void Serialize(T & s) {
-		s.Group(Recent , "Recent");
-		s.Group(Connection , "Connection");
-		s.Group(Editor , "Editor");
-		s.Group(LuaGlobalBrowser , "LuaGlobalBrowser");
-		s.Group(Window, "Window");
-		s.Group(QuickActions, "QuickActions");
-		s.Group(ResourceBrowser, "ResourceBrowser");
-	}
+#endif
 
 	static mgdtSettings& get();
-
-	void Save();
-
-	struct iSettingsUser {
-		virtual ~iSettingsUser() {}
-
-		void SaveSettings();
-		void LoadSettings();
-		virtual bool DoSaveSettings(pugi::xml_node node) const = 0;
-		virtual bool DoLoadSettings(const pugi::xml_node node) = 0;
-		const std::string& GetSettingID() const { return m_SettingID; }
-	protected:
-		void SetSettingID(std::string v) { m_SettingID.swap(v); }
-
-		static void SaveGeometry(pugi::xml_node node, QWidget *widget, const char *Name) {
-			XML::UniqeChild(node, Name).text() = widget->saveGeometry().toHex().constData();
-		}
-		static void LoadGeometry(const pugi::xml_node node, QWidget *widget, const char *Name) {
-			widget->restoreGeometry(QByteArray::fromHex(node.child(Name).text().as_string()));
-		}
-
-		template<class T>
-		static void SaveState(pugi::xml_node node, T *widget, const char *Name) {
-			XML::UniqeChild(node, Name).text() = widget->saveState().toHex().constData();
-		}
-		template<class T>
-		static void LoadState(const pugi::xml_node node, T *widget, const char *Name) {
-			widget->restoreState(QByteArray::fromHex(node.child(Name).text().as_string()));
-		}
-	private:
-		std::string m_SettingID;
-	};
-
-protected:
-	void Load();
-	void SaveSettings(iSettingsUser *user);
-	void LoadSettings(iSettingsUser *user);
-signals:
-	void EditorFontChanged(const QFont &);
 private: 
-	std::unique_ptr<pugi::xml_document> m_SettingsDoc;
- 	mgdtSettings();
- 	~mgdtSettings();
-
-	pugi::xml_node StaticSettingsRoot();
-	pugi::xml_node DynamicSettingsRoot();
-
 	static mgdtSettings *_Instance;
 };
 

@@ -6,7 +6,7 @@
 
 namespace Ui { class EngineStatus; }
 
-class EngineStatus : public DockWindow, public RemoteConsoleRequestQueue {
+class EngineStatus : public QtShared::DockWindow, public RemoteConsoleRequestQueue {
 	Q_OBJECT
 public:
 	EngineStatus(QWidget *parent = 0);

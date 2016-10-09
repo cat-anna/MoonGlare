@@ -10,10 +10,12 @@ public:
 	QuickActionEditor(QWidget *parent = 0);
 	~QuickActionEditor();
 
+#if 0
 #ifdef mgdtSettings_H
 	using Action_t = mgdtSettings::QuickActions_t::Action_t;
 	void Set(const Action_t &a) ;
 	void Get(Action_t &a) const;
+#endif
 #endif
 protected:
 private:

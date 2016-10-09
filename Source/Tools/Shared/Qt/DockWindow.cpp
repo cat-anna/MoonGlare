@@ -4,9 +4,10 @@
 namespace MoonGlare {
 namespace QtShared {
 
-DockWindow::DockWindow(QWidget *parent)
+DockWindow::DockWindow(QWidget *parent, bool AutoRefresh)
 	: QDockWidget(parent)
 {
+	SetAutoRefresh(AutoRefresh);
 }
 
 DockWindow::~DockWindow()
@@ -33,6 +34,19 @@ bool DockWindow::DoLoadSettings(const pugi::xml_node node) {
 	restoreGeometry(QByteArray::fromHex(node.child("DockWindow:Geometry").text().as_string()));
 	return true;
 }
+
+void DockWindow::SetAutoRefresh(bool value, unsigned Interval) {
+	if (!value) {
+		m_RefreshTimer.reset();
+	} else {
+		m_RefreshTimer = std::make_unique<QTimer>();
+		m_RefreshTimer->setInterval(Interval);
+		m_RefreshTimer->setSingleShot(false);
+		connect(m_RefreshTimer.get(), &QTimer::timeout, [this] { Refresh(); });
+	}
+}
+
+void DockWindow::Refresh() {}
 
 } //namespace QtShared
 } //namespace MoonGlare

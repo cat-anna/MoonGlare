@@ -102,21 +102,21 @@ private:
 //-----------------------------------------
 //-----------------------------------------
 
-struct EngineStatusInfo : public DockWindowInfo {
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+struct EngineStatusInfo : public QtShared::DockWindowInfo {
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<EngineStatus>(parent);
 	}
 
-	EngineStatusInfo() {
+	EngineStatusInfo(QWidget *Parent) : QtShared::DockWindowInfo(Parent) {
 		SetSettingID("EngineStatusInfo");
 		SetDisplayName(tr("Engine status"));
 		SetShortcut("F12");
 	}
 };
-DockWindowClassRgister::Register<EngineStatusInfo> EngineStatusInfoReg("EngineStatus");
+QtShared::DockWindowClassRgister::Register<EngineStatusInfo> EngineStatusInfoReg("EngineStatus");
 
 EngineStatus::EngineStatus(QWidget *parent)
-	: DockWindow(parent)
+	: QtShared::DockWindow(parent)
 {
 	SetSettingID("EngineStatus");
 	m_Ui = std::make_unique<Ui::EngineStatus>();

@@ -55,14 +55,14 @@ public:
 					loc += std::string("[") + name + "]";
 				else	  
 					loc += std::string("['") + name + "']";
-				m_Owner->QueueRequest(SharedLuaStateRequest(new LuaRequest(loc.c_str(), first, m_Owner)));
+				m_Owner->QueueRequest(SharedRequest(new LuaRequest(loc.c_str(), first, m_Owner)));
 
 				QList<QStandardItem*> cols;
 				QStandardItem *firstmeta;
 				cols << (firstmeta = new QStandardItem("__metatable"));
 				first->appendRow(cols);
 				loc = "getmetatable(" + loc + ")";
-				m_Owner->QueueRequest(SharedLuaStateRequest(new LuaRequest(loc.c_str(), firstmeta, m_Owner, false)));
+				m_Owner->QueueRequest(SharedRequest(new LuaRequest(loc.c_str(), firstmeta, m_Owner, false)));
 			}
 		}
 		m_Parent->sortChildren(0);
@@ -104,9 +104,9 @@ LuaGlobalStateWidget::~LuaGlobalStateWidget() {
 void LuaGlobalStateWidget::ResetTreeView() {
 	auto &settings = mgdtSettings::get();
 	if (m_ViewModel) {
-		settings.LuaGlobalBrowser.TreeCollumnWidth = ui->treeView->columnWidth(0);
-		settings.LuaGlobalBrowser.TypeCollumnWidth = ui->treeView->columnWidth(1);
-		settings.LuaGlobalBrowser.ValueCollumnWidth = ui->treeView->columnWidth(2);
+		//settings.LuaGlobalBrowser.TreeCollumnWidth = ui->treeView->columnWidth(0);
+		//settings.LuaGlobalBrowser.TypeCollumnWidth = ui->treeView->columnWidth(1);
+		//settings.LuaGlobalBrowser.ValueCollumnWidth = ui->treeView->columnWidth(2);
 	}
     ui->treeView->setModel(nullptr);
 	m_ViewModel = std::make_unique<QStandardItemModel>();
@@ -117,9 +117,9 @@ void LuaGlobalStateWidget::ResetTreeView() {
 
     ui->treeView->setModel(m_ViewModel.get());
 	  
-	ui->treeView->setColumnWidth(0, settings.LuaGlobalBrowser.TreeCollumnWidth);
-	ui->treeView->setColumnWidth(1, settings.LuaGlobalBrowser.TypeCollumnWidth);
-	ui->treeView->setColumnWidth(2, settings.LuaGlobalBrowser.ValueCollumnWidth);
+	ui->treeView->setColumnWidth(0, 100);
+	ui->treeView->setColumnWidth(1, 100);
+	ui->treeView->setColumnWidth(2, 100);
 }
 
 //-----------------------------------------

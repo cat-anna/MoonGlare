@@ -546,11 +546,11 @@ void EditableEntity::Clear() {
 //----------------------------------------------------------------------------------
 
 UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, pugi::xml_node node) {
-	MoonGlare::Core::ComponentID cid = (ComponentID)ComponentID::Invalid;
+	ComponentID cid = ComponentID::Invalid;
 
 	auto idxml = node.attribute("Id");
 	if (idxml) {
-		cid = idxml.as_uint(0);
+		cid = static_cast<ComponentID>(idxml.as_uint(0));
 	} else {
 		auto namexml = node.attribute("Name");
 		if (!namexml) {
