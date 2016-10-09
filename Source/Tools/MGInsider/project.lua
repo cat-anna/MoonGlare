@@ -9,10 +9,10 @@ group "Tools"
 		qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
 	--	qtheaderpath(settings.qt.headers)"d:/Programowanie/Qt/5.5/msvc2013/"
 		qtprefix "Qt5"
-		qtmodules { "core", "gui", "widgets", "network" }
+		qtmodules { "core", "gui", "widgets", "network", }
 		qtlibsuffix ""	
 		
-		SetPCH { hdr = "pch.h", src = "pch.cpp", }	
+		SetPCH { hdr = "Tools/MGInsider/pch.h", src = "pch.cpp", }	
 	
 		kind "WindowedApp" --"ConsoleApp"
 		defines { 
@@ -21,10 +21,13 @@ group "Tools"
 		}
 		files { 
 			"**", 
+			"../Shared/Qt/**",
 			"../Shared/Resources/*",
+			"../../Source/Shared/MoonGlareInsider/**",
 		}	
 		includedirs {
-			"."
+			".",
+			"../Shared/Qt/",
 		}
 		links {
 			"lua51jit",
