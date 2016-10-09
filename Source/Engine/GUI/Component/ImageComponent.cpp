@@ -114,6 +114,13 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
+		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
+			item.m_Flags.m_Map.m_Valid = false;
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			continue;
+		}
+
 		auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
 		if (!rtentry) {
 			LastInvalidEntry = i;
