@@ -55,6 +55,7 @@ private:
 	std::unique_ptr<Ui::FilesystemViewer> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;
 	std::unordered_map<StarVFS::FileID, QStandardItem *> m_VFSItemMap;
+	std::unordered_map<std::string, QString> m_ExtIconMap;
 	Module::SharedDataModule m_Module;
 	SharedFileSystem m_FileSystem;
 };

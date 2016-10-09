@@ -14,6 +14,9 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
+#include <iFileProcessor.h>
+
+
 namespace StarVFS {
 	class StarVFS;
 	using SharedStarVFS = std::shared_ptr<StarVFS>;
@@ -21,6 +24,8 @@ namespace StarVFS {
 
 namespace MoonGlare {
 namespace Editor {
+
+class AsyncFileProcessor;
 
 class FileSystem 
 	: public QObject
@@ -36,17 +41,22 @@ public:
 	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
 	bool CreateFile(const std::string &uri);
 	bool CreateDirectory(const std::string &uri);
+
+	void QueueFileProcessing(const std::string &URI);
 public slots:
 	void Reload();
 signals:
 	void Changed();
+	void FileProcessorCreated(QtShared::SharedFileProcessor);
 protected slots:
 	void ProjectChanged(Module::SharedDataModule datamod);
-
 private:
+	std::mutex m_Mutex;
 	StarVFS::SharedStarVFS m_VFS;
 	std::string m_BasePath;
 	Module::SharedDataModule m_Module;
+	std::unordered_map<std::string, std::vector<QtShared::SharedFileProcessorInfo>> m_ExtFileProcessorList;
+	std::unique_ptr<AsyncFileProcessor> m_AsyncFileProcessor;
 	bool TranslateURI(const std::string &uri, std::string &out);
 };
 
