@@ -5,21 +5,21 @@
 #include "QuickActionEditor.h"
 #include <DockWindowInfo.h>
 
-struct QuickActionsInfo : public DockWindowInfo {
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+struct QuickActionsInfo : public QtShared::DockWindowInfo {
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<QuickActions>(parent);
 	}
 
-	QuickActionsInfo() {
+	QuickActionsInfo(QWidget *Parent) : QtShared::DockWindowInfo(Parent) {
 		SetSettingID("QuickActionsInfo");
 		SetDisplayName(tr("Quick actions"));
 		SetShortcut("F5");
 	}
 };
-DockWindowClassRgister::Register<QuickActionsInfo> QuickActionsInfoReg("QuickActions");
+//QtShared::DockWindowClassRgister::Register<QuickActionsInfo> QuickActionsInfoReg("QuickActions");
 
 QuickActions::QuickActions(QWidget *parent)
-	: DockWindow(parent)
+	: QtShared::DockWindow(parent)
 {
 	SetSettingID("QuickActions");
 	ui = new Ui::QuickActions();
@@ -78,25 +78,25 @@ void QuickActions::RefreshView() {
 	std::unordered_map<std::string, QStandardItem*> groups;
 
 	auto root = m_ViewModel->invisibleRootItem();
-	for (auto &it : settings.QuickActions.QuickActionList) {
-		QList<QStandardItem*> cols;
-		cols << new QStandardItem(it.Name.c_str());
-		cols << new QStandardItem(it.Script.c_str());
-
-		QStandardItem *group;
-		if (it.Group.empty())
-			group = root;
-		else
-			group = groups[it.Group];
-		if (!group) {
-			QList<QStandardItem*> groupcols;
-			groupcols << (group = new QStandardItem(it.Group.c_str()));
-			root->appendRow(groupcols);
-			groups[it.Group] = group;
-		}
-
-		group->appendRow(cols);
-	}
+	//for (auto &it : settings.QuickActions.QuickActionList) {
+	//	QList<QStandardItem*> cols;
+	//	cols << new QStandardItem(it.Name.c_str());
+	//	cols << new QStandardItem(it.Script.c_str());
+	//
+	//	QStandardItem *group;
+	//	if (it.Group.empty())
+	//		group = root;
+	//	else
+	//		group = groups[it.Group];
+	//	if (!group) {
+	//		QList<QStandardItem*> groupcols;
+	//		groupcols << (group = new QStandardItem(it.Group.c_str()));
+	//		root->appendRow(groupcols);
+	//		groups[it.Group] = group;
+	//	}
+	//
+	//	group->appendRow(cols);
+	//}
 
 	for (auto &it : groups)
 		it.second->sortChildren(0);
@@ -108,15 +108,16 @@ void QuickActions::NewAction() {
 	if (editor.exec() == QDialog::Rejected)
 		return;
 
-	QuickActionEditor::Action_t act;
-	editor.Get(act);
+//	QuickActionEditor::Action_t act;
+//	editor.Get(act);
 
-	auto &settings = mgdtSettings::get();
-	settings.QuickActions.QuickActionList.push_back(act);
-	RefreshView();
+//	auto &settings = mgdtSettings::get();
+//	settings.QuickActions.QuickActionList.push_back(act);
+//	RefreshView();
 }
 
 void QuickActions::RemoveAction() {
+#if 0
 	auto index = ui->treeView->selectionModel()->currentIndex();
 	int r = index.row();
 	auto parent = index.parent();
@@ -129,9 +130,11 @@ void QuickActions::RemoveAction() {
 		return str == a.Name;
 	});
 	RefreshView();
+#endif
 }
 
 void QuickActions::ModifyAction() {
+#if 0
 	auto index = ui->treeView->selectionModel()->currentIndex();
 	int r = index.row();
 	
@@ -153,6 +156,7 @@ void QuickActions::ModifyAction() {
 		return;
 	editor.Get(*action);
 	RefreshView();
+#endif
 }
 
 void QuickActions::ExecuteAction() {

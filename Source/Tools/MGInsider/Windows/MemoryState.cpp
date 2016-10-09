@@ -105,21 +105,21 @@ private:
 //-----------------------------------------
 //-----------------------------------------
 
-struct MemoryStateInfo : public DockWindowInfo {
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+struct MemoryStateInfo : public QtShared::DockWindowInfo {
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<MemoryState>(parent);
 	}
 
-	MemoryStateInfo() {
+	MemoryStateInfo(QWidget *Parent) : QtShared::DockWindowInfo(Parent) {
 		SetSettingID("MemoryStateInfo");
 		SetDisplayName(tr("Memory state"));
 		SetShortcut("F10");
 	}
 };
-DockWindowClassRgister::Register<MemoryStateInfo> MemoryStateInfoReg("MemoryState");
+QtShared::DockWindowClassRgister::Register<MemoryStateInfo> MemoryStateInfoReg("MemoryState");
 
 MemoryState::MemoryState(QWidget *parent) 
-		: DockWindow(parent) {
+		: QtShared::DockWindow(parent) {
 
 	SetSettingID("MemoryState");
 	SetQueueName("MemoryState");

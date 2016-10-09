@@ -9,6 +9,7 @@
 
 #include <StarVFS/core/Container/FolderContainer.h>
 #include "Module/DataModule.h"
+#include "AsyncFileProcessor.h"
 
 namespace MoonGlare {
 namespace Editor {
@@ -16,12 +17,25 @@ namespace Editor {
 FileSystem::FileSystem() {
 	m_VFS = std::make_shared<StarVFS::StarVFS>();
 	connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
+
+	m_AsyncFileProcessor = std::make_unique<AsyncFileProcessor>();
+	connect(this, &FileSystem::FileProcessorCreated, m_AsyncFileProcessor.get(), &AsyncFileProcessor::FileProcessorCreated);
+
+	QtShared::FileProcessorInfoClassRegister::GetRegister()->Enumerate([this](auto &ci) {
+		QtShared::SharedFileProcessorInfo ptr = ci.SharedCreate();
+
+		for (auto &it: ptr->GetSupportedTypes()) {
+			m_ExtFileProcessorList[it].push_back(ptr);
+			AddLogf(Info, "Registered file processor %s -> '%s'", it.c_str(), typeid(*ptr.get()).name());
+		}
+	});
 }
 
 FileSystem::~FileSystem() {
 }
 
 bool FileSystem::GetFileData(const std::string &uri, StarVFS::ByteTable & data) {
+	LOCK_MUTEX(m_Mutex);
 	std::string path;
 	if (!TranslateURI(uri, path)) {
 		return false;
@@ -35,8 +49,9 @@ bool FileSystem::SetFileData(const std::string & uri, StarVFS::ByteTable & data)
 	if (!TranslateURI(uri, path)) {
 		return false;
 	}
-	auto fid = m_VFS->FindFile(path);
 
+	LOCK_MUTEX(m_Mutex);
+	auto fid = m_VFS->FindFile(path);
 	if (!m_VFS->IsFileValid(fid)) {
 		//TODO: todo
 		return false;
@@ -51,6 +66,8 @@ bool FileSystem::SetFileData(const std::string & uri, StarVFS::ByteTable & data)
 	auto ret = h.SetFileData(data);
 	h.Close();
 
+	QueueFileProcessing(uri);
+
 	return ret;
 }
 
@@ -63,6 +80,7 @@ bool FileSystem::CreateFile(const std::string & uri) {
 		return false;
 	}
 
+	LOCK_MUTEX(m_Mutex);
 	auto h = m_VFS->OpenFile(path, StarVFS::RWMode::RW, StarVFS::OpenMode::CreateNew);
 
 	if (!h) {
@@ -85,6 +103,7 @@ bool FileSystem::CreateDirectory(const std::string & uri) {
 		return false;
 	}
 
+	LOCK_MUTEX(m_Mutex);
 	auto h = m_VFS->CreateDirectory(path);
 
 	if (!h) {
@@ -114,6 +133,40 @@ bool FileSystem::TranslateURI(const std::string & uri, std::string & out) {
 		return false;
 	}
 }
+
+//-----------------------------------------------------------------------------
+
+void FileSystem::QueueFileProcessing(const std::string & URI) {
+	std::string fpath;
+	if (!TranslateURI(URI, fpath)) {
+		AddLogf(Error, "Invalid file URI: %s", URI.c_str());
+		return;
+	}
+
+	auto pos = fpath.rfind(".");
+	if (pos == std::string::npos) {
+		AddLogf(Error, "Cannot find file extension: %s", fpath.c_str());
+		return;
+	}
+
+	auto ext = fpath.substr(pos + 1);
+	auto pit = m_ExtFileProcessorList.find(ext);
+	if (pit == m_ExtFileProcessorList.end() || pit->second.empty()) {
+	//	AddLogf(Info, "There is no registered processors which can handle file %s(%s)", fpath.c_str(), URI.c_str());
+		return;
+	}
+
+	for (auto &pinfo : pit->second) {
+		auto processor = pinfo->CreateFileProcessor(URI);
+		if (!processor) {
+			AddLogf(Error, "Failed to create file processor: %s", typeid(*pinfo.get()).name());
+			continue;
+		}
+		emit FileProcessorCreated(processor);
+		//m_QueuedFileProcessors.push_back(std::move(processor));
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {
@@ -125,6 +178,7 @@ void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {
 }
 
 void FileSystem::Reload() {
+	LOCK_MUTEX(m_Mutex);
 	if (m_VFS->GetContainerCount() == 0) {
 		auto ret = m_VFS->CreateContainer<StarVFS::Containers::FolderContainer>("/", m_BasePath);
 		if (ret.first != StarVFS::VFSErrorCode::Success) {
@@ -141,6 +195,30 @@ void FileSystem::Reload() {
 		c->RegisterContent();
 	}
 	Changed();
+
+	StarVFS::HandleEnumerateFunc processitem;
+	auto svfs = GetVFS();
+	processitem = [this, &svfs, &processitem](StarVFS::FileID fid) -> bool {
+		auto h = svfs->OpenFile(fid);
+		if (!h)
+			return true;
+
+		if (h.IsDirectory()) {
+			h.EnumerateChildren(processitem);
+			return true;
+		} 
+
+		auto fileuri = StarVFS::MakeFileURI(h.GetFullPath().c_str());
+		QueueFileProcessing(fileuri);
+
+		h.Close();
+
+		return true;
+	};
+
+	auto root = svfs->OpenFile("/");
+	root.EnumerateChildren(processitem);
+	root.Close();
 }
 
 } //namespace Editor 

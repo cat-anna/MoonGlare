@@ -81,19 +81,20 @@ private:
 };
 
 struct RemoteConsoleRequestQueue {
-	using SharedLuaStateRequest = std::shared_ptr < RemoteConsoleObserver >;
+	using SharedRequest = std::shared_ptr < RemoteConsoleObserver >;
 
 	RemoteConsoleRequestQueue();
 	~RemoteConsoleRequestQueue();
 
 	void CancelRequests();
 	void RequestFinished(RemoteConsoleObserver *sender);
-	void QueueRequest(SharedLuaStateRequest request);
+	void QueueRequest(SharedRequest request);
+	bool IsQueued(SharedRequest request) const;
 
 	void SetQueueName(const std::string &Name);
 private:
-	std::list<SharedLuaStateRequest> m_RequestList;
-	SharedLuaStateRequest m_CurrentRequest;
+	std::list<SharedRequest> m_RequestList;
+	SharedRequest m_CurrentRequest;
 	std::string m_QueueName;
 
 	void Process();

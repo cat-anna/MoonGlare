@@ -6,10 +6,14 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 #include "FileSystemViewer.h"
-
 #include <ui_FileSystemViewer.h>
+
 #include <DockWindowInfo.h>
+#include <iFileProcessor.h>
+#include <iFileIconProvider.h>
+
 #include <icons.h>
+
 #include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
 
@@ -61,6 +65,26 @@ FileSystemViewer::FileSystemViewer(QWidget * parent)
 	m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	m_Ui->treeView->setColumnWidth(0, 200);
+
+	QtShared::FileIconProviderClassRegister::GetRegister()->Enumerate([this](auto &ci) {
+		auto ptr = ci.SharedCreate();
+
+		for (auto &it : ptr->GetFileIconInfo()) {
+			if (it.m_Icon.empty())
+				continue;
+
+			if (m_ExtIconMap.find(it.m_Ext) != m_ExtIconMap.end()) {
+				if (m_ExtIconMap[it.m_Ext] == it.m_Icon.c_str()) {
+					AddLogf(Warning, "Found Another definition for icon for %s", it.m_Ext.c_str());
+					continue;
+				}
+				AddLogf(Error, "Attempt to change icon for %s", it.m_Ext.c_str());
+				continue;
+			}
+			m_ExtIconMap[it.m_Ext] = it.m_Icon.c_str();
+			AddLogf(Info, "Registered file icon %s->%s", it.m_Ext.c_str(), it.m_Icon.c_str());
+		}
+	});
 }
 
 FileSystemViewer::~FileSystemViewer() {
@@ -204,11 +228,16 @@ void FileSystemViewer::RefreshTreeView() {
 			auto ext = strrchr(h.GetName(), '.');
 			if (ext) {
 				++ext;
-				auto it = shdata->m_FileIconMap.find(ext);
-				if (it != shdata->m_FileIconMap.end()) {
-					item->setData(QIcon(it->second.c_str()), Qt::DecorationRole);
-				} else
-					item->setData(QIcon(), Qt::DecorationRole);
+				auto itlocal = m_ExtIconMap.find(ext);
+				if (itlocal != m_ExtIconMap.end()) {
+					item->setData(QIcon(itlocal->second), Qt::DecorationRole);
+				} else {
+					auto it = shdata->m_FileIconMap.find(ext);
+					if (it != shdata->m_FileIconMap.end()) {
+						item->setData(QIcon(it->second.c_str()), Qt::DecorationRole);
+					} else
+						item->setData(QIcon(), Qt::DecorationRole);
+				}
 			} else
 				item->setData(QIcon(), Qt::DecorationRole);
 		}

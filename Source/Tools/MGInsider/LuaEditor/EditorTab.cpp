@@ -91,7 +91,7 @@ EditorTab::EditorTab(LuaWindow *Window, QTabWidget *Owner, QWidget* parent, cons
 	m_Editor = new CodeEditor(this);
 	m_Layout->addWidget(m_Editor);
 
-	m_Editor->setFont(mgdtSettings::get().Editor.GetEditorFont());
+//	m_Editor->setFont(mgdtSettings::get().Editor.GetEditorFont());
 	m_Editor->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_Editor->setWordWrapMode(QTextOption::NoWrap);
     m_Highlighter = new QtLuaHighlighter(m_Editor->document());
@@ -100,7 +100,7 @@ EditorTab::EditorTab(LuaWindow *Window, QTabWidget *Owner, QWidget* parent, cons
 	connect(m_Editor, SIGNAL(customContextMenuRequested(QPoint)), SLOT(EditorContextMenuRequested(QPoint)));
 	connect(m_Editor, SIGNAL(textChanged()), SLOT(TextChaged()));
 
-	EditorFontChanged(mgdtSettings::get().Editor.GetEditorFont());
+//	EditorFontChanged(mgdtSettings::get().Editor.GetEditorFont());
 
 	m_LuaCompiler = std::make_unique<LuaCompiler>();
 	connect(m_LuaCompiler.get(), SIGNAL(CompilationDone(std::shared_ptr<CompilationResult>)), SLOT(SetCodeAdnotations(std::shared_ptr<CompilationResult>)));
@@ -235,9 +235,9 @@ void EditorTab::SendText(bool SelectionOnly) {
 
 void EditorTab::CloseEditor() {
 
-	std::string s = m_Name.toUtf8().constBegin();
-	auto &recent = mgdtSettings::get().Recent;
-	recent.RemoveOpenedScript(s);
+//	std::string s = m_Name.toUtf8().constBegin();
+//	auto &recent = mgdtSettings::get().Recent;
+//	recent.RemoveOpenedScript(s);
 
 	m_Owner->removeTab(m_Owner->indexOf(this));
 	delete this;

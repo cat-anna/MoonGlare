@@ -17,7 +17,7 @@ namespace Component {
 
 class ScriptComponent
 	: public AbstractComponent
-	, public ComponentIDWrap<ComponentIDs::Script> {
+	, public ComponentIDWrap<ComponentID::Script> {
 public:
  	ScriptComponent(ComponentManager *Owner);
  	virtual ~ScriptComponent();
@@ -47,7 +47,7 @@ public:
 
 	struct ScriptEntry {
 		FlagsMap m_Flags;
-		Entity m_Owner;	
+		Entity m_OwnerEntity;	
 		Handle m_SelfHandle;
 		uint32_t padding;
 
@@ -55,6 +55,9 @@ public:
 			m_Flags.m_Map.m_Valid = false;
 		}
 	};
+
+	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
+
 	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 protected:
@@ -62,7 +65,7 @@ protected:
 
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 	Array<ScriptEntry> m_Array;
-	//BaseEntityMapper<LuaHandle> m_EntityMapper;
+	EntityMapper m_EntityMapper;
 
 	void ReleaseComponent(lua_State *lua, size_t Index);
 
@@ -83,13 +86,13 @@ protected:
 	void *GetGameObjectMetaTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 1); }
 	void *GetObjectRootTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 2); }
 private:
-	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 	bool InvalidateObjectRoot(lua_State *lua, Entity Owner);//returns false on error; Owner shall be not valid;
 
 	bool InitGameObjectMetaTable(lua_State *lua);
 //support functions
+	int lua_GetScriptComponent(lua_State *lua, Entity Owner);
 	int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
-	static int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
+	int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
 	static int lua_DereferenceHandle(lua_State *lua);
 	static int lua_SetComponentState(lua_State *lua);
 
@@ -110,7 +113,8 @@ private:
 	static int lua_FindChild(lua_State *lua);
 	static int lua_GameObjectGetComponent(lua_State *lua);
 	static int lua_GetParent(lua_State *lua);
-};
+	static int lua_GetFirstChild(lua_State *lua);
+}; 
 
 } //namespace Component 
 } //namespace Core 

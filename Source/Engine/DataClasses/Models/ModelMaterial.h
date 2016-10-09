@@ -32,7 +32,7 @@ public:
 	Graphic::Material& GetMaterial() { return m_Material; }
 };
 
-typedef boost::ptr_vector<ModelMaterial> MaterialVector;
+typedef std::vector<std::unique_ptr<ModelMaterial>> MaterialVector;
 
 } // namespace Models
 } // namespace DataClasses

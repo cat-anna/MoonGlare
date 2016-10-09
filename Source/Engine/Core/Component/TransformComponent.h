@@ -19,7 +19,7 @@ namespace Component {
 
 class TransformComponent 
 	: public AbstractComponent
-	, public ComponentIDWrap<ComponentIDs::Transform>{
+	, public ComponentIDWrap<ComponentID::Transform>{
 public:
 	TransformComponent(ComponentManager *Owner);
 	virtual ~TransformComponent();

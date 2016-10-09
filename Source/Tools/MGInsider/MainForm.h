@@ -2,7 +2,7 @@
 #define MAINFORM_H
 
 #include "RemoteConsole.h"
-#include "DockWindowInfo.h"
+#include <DockWindowInfo.h>
 
 class SubWindow;
 class LuaWindow;
@@ -66,7 +66,7 @@ protected:
 	void showEvent(QShowEvent * event);
 private:
 	Ui::MainForm *ui;
-	std::vector<SharedDockWindowInfo> m_DockWindows;
+	std::vector<QtShared::SharedDockWindowInfo> m_DockWindows;
 
 	std::unique_ptr<LuaWindow> m_LuaEditor;
 	std::unique_ptr<SubWindow> m_ResourceBrowser;

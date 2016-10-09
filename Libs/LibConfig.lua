@@ -1,9 +1,9 @@
 
 Libraries{
 	libs = {
-		{ 
+		{
 			name = "OrbitLogger",
-			remotes = { 
+			remotes = {
 				origin = "git@smaug.lan:~/projects/libs/OrbitLogger.git",
 			},
 			branch = "master",
@@ -11,22 +11,26 @@ Libraries{
 				"src/library.lua",
 			}
 		},
-		{ 
+		{
 			name = "StarVFS",
-			remotes = { 
+			remotes = {
 				origin = "git@smaug.lan:~/projects/libs/StarVFS.git",
 			},
 			branch = "master",
-		},		
-		{ 
+			projects = {
+				"core/project.lua",
+				"libs/project.lua",
+			}
+		},
+		{
 			name = "libSpace",
-			remotes = { 
+			remotes = {
 				origin = "git@smaug.lan:~/projects/libs/libSpace.git",
 			},
 			branch = "master",
 			projects = {
 				"src/library.lua",
 			}
-		},			
+		},
 	},
 }

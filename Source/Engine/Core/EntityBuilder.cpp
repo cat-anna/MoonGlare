@@ -145,7 +145,7 @@ unsigned EntityBuilder::LoadComponents(Entity Owner, pugi::xml_node node) {
 }
 
 bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & hout) {
-	ComponentID cid = 0;
+	ComponentID cid = ComponentID::Invalid;
 	
 	if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
 		AddLogf(Warning, "Unknown component!");

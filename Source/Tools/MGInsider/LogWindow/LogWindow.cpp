@@ -8,8 +8,8 @@ LogWindow::LogWindow(QWidget *parent) : SubWindow(parent) {
 	ui = new Ui::LogWindow();
 	ui->setupUi(this);
 
-	auto &settings = mgdtSettings::get();
-	settings.Window.LogWindow.Apply(this);
+//	auto &settings = mgdtSettings::get();
+//	settings.Window.LogWindow.Apply(this);
 
 	LogWindowTabRegister::GetRegister()->Enumerate([this](const LogWindowTabRegister::ClassRegister::ClassInfo &ci) {
 		auto ptr = ci.Create(this);
@@ -22,8 +22,8 @@ LogWindow::LogWindow(QWidget *parent) : SubWindow(parent) {
 }
 
 LogWindow::~LogWindow(){
-	auto &settings = mgdtSettings::get();
-	settings.Window.LogWindow.Store(this);
+//	auto &settings = mgdtSettings::get();
+//	settings.Window.LogWindow.Store(this);
 	//auto tab = CurrentEditor();
 	//if (tab)
 		//settings.LogWindow.LastTab = tab->GetName().toUtf8().constData();

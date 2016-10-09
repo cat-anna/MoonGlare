@@ -124,7 +124,7 @@ void RemoteConsoleRequestQueue::Process() {
 void RemoteConsoleRequestQueue::RequestFinished(RemoteConsoleObserver *sender) {
 	if (m_RequestList.empty())
 		return;
-	m_RequestList.remove_if([this, sender](const SharedLuaStateRequest & item) {
+	m_RequestList.remove_if([this, sender](const SharedRequest & item) {
 		if (m_CurrentRequest == item) {
 			m_CurrentRequest = nullptr;
 		}
@@ -133,9 +133,22 @@ void RemoteConsoleRequestQueue::RequestFinished(RemoteConsoleObserver *sender) {
 	Process();
 }
 
-void RemoteConsoleRequestQueue::QueueRequest(SharedLuaStateRequest request) {
+void RemoteConsoleRequestQueue::QueueRequest(SharedRequest request) {
+	if (!request) {
+		//TODO: log sth
+		return;
+	}
+	if (IsQueued(request)) {
+		AddLogf(Hint, "Skipped: %s -> already in queue", typeid(*request.get()).name());
+		return;
+	}
+
 	request->SetQueueOwner(this);
 	m_RequestList.push_back(request);
 	Process();
 	//AddLogf(Debug, "Queued message %d (%s) (queue: %p:%s)", request->GetMessageType(), typeid(*request.get()).name(), this, typeid(*this).name());
+}
+
+bool RemoteConsoleRequestQueue::IsQueued(SharedRequest request) const {
+	return m_RequestList.end() != std::find_if(m_RequestList.begin(), m_RequestList.end(), [request](auto item) { return item == request; });
 }

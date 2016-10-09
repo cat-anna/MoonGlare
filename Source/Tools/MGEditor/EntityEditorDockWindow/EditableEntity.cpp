@@ -17,7 +17,7 @@ namespace Editor {
 namespace EntityEditor {
 
 using Core::Component::ComponentID;
-using Core::Component::ComponentIDs;
+using Core::Component::ComponentID;
 
 //----------------------------------------------------------------------------------
 
@@ -238,11 +238,11 @@ bool EditablePattern::SavePattern(const std::string & filename) {
 //----------------------------------------------------------------------------------
 
 UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, pugi::xml_node node) {
-	MoonGlare::Core::ComponentID cid = (ComponentID)ComponentIDs::Invalid;
+	ComponentID cid = ComponentID::Invalid;
 
 	auto idxml = node.attribute("Id");
 	if (idxml) {
-		cid = idxml.as_uint(0);
+		cid = static_cast<ComponentID>(idxml.as_uint(0));
 	} else {
 		auto namexml = node.attribute("Name");
 		if (!namexml) {
@@ -252,12 +252,12 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
 		auto ci = TypeEditor::ComponentInfo::GetComponentInfo(namexml.as_string(""));
 		if (ci)
 			cid = ci->m_CID;
-		if (cid == (ComponentID)ComponentIDs::Invalid) {
+		if (cid == (ComponentID)ComponentID::Invalid) {
 			AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
 		}
 	}
 
-	if (cid == (ComponentID)ComponentIDs::Invalid)
+	if (cid == (ComponentID)ComponentID::Invalid)
 		return nullptr;
 
 	auto ret = CreateComponent(Parent, cid);

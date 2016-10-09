@@ -158,7 +158,7 @@ inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, i
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	lua_pushvalue(lua, selfLuaIndex);
 	char buf[64];
-	sprintf_s(buf, "%s_%p", name, OwnerPtr);
+	sprintf_s(buf, "%p_%s", OwnerPtr, name);
 	lua_setglobal(lua, buf);
 	AddLogf(Debug, "Adding global registry mapping: %s by %p(%s)", buf, OwnerPtr, typeid(*OwnerPtr).name());
 #endif
@@ -170,7 +170,7 @@ inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	lua_pushnil(lua);
 	char buf[64];
-	sprintf_s(buf, "%s_%p", name, OwnerPtr);
+	sprintf_s(buf, "%p_%s", OwnerPtr, name);
 	lua_setglobal(lua, buf);
 	AddLogf(Debug, "Deleting mapped global: %s by %p(%s)", buf, OwnerPtr, typeid(*OwnerPtr).name());
 #endif

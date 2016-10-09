@@ -50,6 +50,9 @@ struct TextComponentEntry {
 	DEFINE_COMPONENT_PROPERTY(Color);
 	DEFINE_COMPONENT_PROPERTY(Text);
 
+	float GetFontSize() const { return m_FontStyle.Size; }
+	void SetFontSize(float v) { m_FontStyle.Size = v; SetDirty(); }
+
 	math::mat4 m_Matrix;
 	DataClasses::FontPtr m_Font;
 	DataClasses::SharedFontInstance m_FontInstance;
@@ -69,7 +72,7 @@ struct TextComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class TextComponent
-	: public TemplateStandardComponent<TextComponentEntry, ComponentIDs::Text> {
+	: public TemplateStandardComponent<TextComponentEntry, ComponentID::Text> {
 public:
 	TextComponent(ComponentManager *Owner);
 	virtual ~TextComponent();

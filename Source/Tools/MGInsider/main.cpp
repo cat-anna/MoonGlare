@@ -34,10 +34,11 @@ static void QtLogSink(QtMsgType type, const QMessageLogContext &context, const Q
 }
 
 int main(int argc, char *argv[]) {
-
 	OrbitLogger::ThreadInfo::SetName("MAIN", true);
 	LogCollector::Start();
 	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/MGInsider.log"); });
+
+	(new mgdtSettings())->Load();
 
 	int r;
 	//mgdtSettings::get().Load();
@@ -52,6 +53,5 @@ int main(int argc, char *argv[]) {
 	mgdtSettings::get().Save();
 
 	LogCollector::Stop();
-
 	return r;
 }

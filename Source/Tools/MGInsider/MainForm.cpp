@@ -3,7 +3,7 @@
 #include "mgdtSettings.h"
 #include "MainForm.h"
 #include "ui_MainForm.h"
-#include "DockWindow.h"
+#include <DockWindow.h>
 
 #include <Notifications.h>
 
@@ -30,12 +30,12 @@ MainForm::MainForm(QWidget *parent)
 	connect(ui->actionBrowse_resources, SIGNAL(triggered()), SLOT(ShowResourceBrowser()));
 	connect(ui->actionShow_logs, SIGNAL(triggered()), SLOT(ShowLogWindow()));
 
-	auto &settings = mgdtSettings::get();
-	settings.Window.MainForm.Apply(this);
+//	auto &settings = mgdtSettings::get();
+//	settings.Window.MainForm.Apply(this);
 
 	m_DockWindows.reserve(256);//because why not
-	DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
-		auto ptr = ci.SharedCreate();
+	QtShared::DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
+		auto ptr = ci.SharedCreate(this);
 		m_DockWindows.push_back(ptr);
 
 		ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
@@ -43,7 +43,6 @@ MainForm::MainForm(QWidget *parent)
 
 		ptr->LoadSettings();
 	});
-
 
 	{
 		QSettings settings("S.ini", QSettings::IniFormat);
@@ -61,8 +60,8 @@ MainForm::~MainForm() {
 	for (auto &it : m_DockWindows)
 		it->SaveSettings();
 	m_DockWindows.clear();
-	auto &settings = mgdtSettings::get();
-	settings.Window.MainForm.Store(this);
+//	auto &settings = mgdtSettings::get();
+//	settings.Window.MainForm.Store(this);
 	delete ui;
 }
 
@@ -78,13 +77,13 @@ void MainForm::showEvent(QShowEvent * event) {
 	static bool WindowsRestored = false;
 	if (!WindowsRestored) {
 		WindowsRestored = true;
-		if (settings.Window.LuaEditor.Opened)
-			ShowScriptEditor();
-		if (settings.Window.ResourceBrowser.Opened)
-			ShowResourceBrowser();
-		ShowResourceBrowser();
-		if (settings.Window.LogWindow.Opened)
-			ShowLogWindow();
+		//if (settings.Window.LuaEditor.Opened)
+		//	ShowScriptEditor();
+		//if (settings.Window.ResourceBrowser.Opened)
+		//	ShowResourceBrowser();
+		//ShowResourceBrowser();
+		//if (settings.Window.LogWindow.Opened)
+		//	ShowLogWindow();
 	}
 }
 
@@ -108,9 +107,9 @@ void MainForm::closeEvent(QCloseEvent * event) {
 			return;
 
 	auto &settings = mgdtSettings::get();
-	settings.Window.LuaEditor.Opened = LuaEditor;
-	settings.Window.ResourceBrowser.Opened = ResEditor;
-	settings.Window.LogWindow.Opened = logwindow;
+//	settings.Window.LuaEditor.Opened = LuaEditor;
+//	settings.Window.ResourceBrowser.Opened = ResEditor;
+//	settings.Window.LogWindow.Opened = logwindow;
 
 	event->accept();
 }

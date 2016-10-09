@@ -76,7 +76,7 @@ bool SimpleModelImpl::DoLoadMaterials(xml_node Node, const aiScene* scene) {
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) <= 0)
 			continue;
 
-		m_Materials.push_back(new ModelMaterial(this, pMaterial));
+		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial));
 	}
 
 	return true;
@@ -113,7 +113,7 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 		const aiMesh* mesh = scene->mMeshes[i];
 		MeshData& meshd = m_Meshes[i];
 		if (m_Materials.size() > mesh->mMaterialIndex)
-			meshd.Material = &m_Materials[mesh->mMaterialIndex];
+			meshd.Material = m_Materials[mesh->mMaterialIndex].get();
 		else {
 			//if (!m_Materials.empty())
 			//	AddLogf(Warning, "Model [%s] has mesh[id:%d] with wrong material id: %d", Info().c_str(), i, mesh->mMaterialIndex);

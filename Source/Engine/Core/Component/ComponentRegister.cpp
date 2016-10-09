@@ -31,8 +31,8 @@ void ComponentRegister::Dump(std::ostream &out) {
 bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentID & out) {
 	auto idxml = node.attribute("Id");
 	if (idxml) {
-		out = idxml.as_uint(0);
-		return out != (ComponentID)ComponentIDs::Invalid;
+		out = static_cast<ComponentID>(idxml.as_uint(0));
+		return out != (ComponentID)ComponentID::Invalid;
 	} else {
 		auto namexml = node.attribute("Name");
 		if (!namexml) {
@@ -40,7 +40,7 @@ bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentID & out
 			return false;
 		}
 		if (GetComponentID(namexml.as_string(""), out)) {
-			return out != (ComponentID)ComponentIDs::Invalid;
+			return out != (ComponentID)ComponentID::Invalid;
 		} else {
 			AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
 			return false;

@@ -10,6 +10,7 @@
 #define AbstractComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
+#include "ComponentRegister.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -47,6 +48,7 @@ public:
 
 	ComponentManager* GetManager() { return m_Owner; }
 
+	static constexpr LuaMetamethods EntryMetamethods = { };
 protected:
 	HandleTable* GetHandleTable() { return m_HandleTable; }
 
@@ -65,7 +67,7 @@ private:
 	void *m_padding2;
 };
 
-template<typename ELEMENT, ComponentIDs CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
+template<typename ELEMENT, ComponentID CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
 class TemplateStandardComponent 
 	: public AbstractComponent
 	, public ComponentIDWrap<CID> {

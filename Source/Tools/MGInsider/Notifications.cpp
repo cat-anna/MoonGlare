@@ -12,7 +12,6 @@ Notifications::~Notifications()
 //-----------------------------------------
 
 struct NotificationsImpl : public Notifications {
-	
 };
 
 Notifications* Notifications::Get() {

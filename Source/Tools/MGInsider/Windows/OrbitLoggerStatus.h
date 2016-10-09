@@ -6,7 +6,7 @@
 
 namespace Ui { class OrbitLoggerStatus; }
 
-class OrbitLoggerStatus : public DockWindow, public RemoteConsoleRequestQueue {
+class OrbitLoggerStatus : public QtShared::DockWindow, public RemoteConsoleRequestQueue {
 	Q_OBJECT
 public:
 	OrbitLoggerStatus(QWidget *parent = 0);

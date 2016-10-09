@@ -66,9 +66,10 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 		ModelMaterial *mat = 0;
 		if(i->GetMaterialID() != -1){
 			const Material &pmat = *m_Materials[i->GetMaterialID()];
-			mat = new ModelMaterial(esm.get(), pmat.m_Edges, pmat.m_TextureURI);
+			auto umat = std::make_unique<ModelMaterial>(esm.get(), pmat.m_Edges, pmat.m_TextureURI);
+			mat = umat.get();
 
-			MaterialVec.push_back(mat);
+			MaterialVec.push_back(std::move(umat));
 			//auto &m = //Model *Owner, const xml_node MaterialDef, DataPath MaterialOrigin, const string &OriginName
 			//matid = esm->AddMaterial(mat.GetMaterialNode(), ModelOrigin, m_Name);
 		}

@@ -73,10 +73,7 @@ using LockGuard = std::lock_guard < std::mutex > ;
 
 #pragma warning ( push, 0 )
 
-#include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/ptr_container/ptr_list.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/locale.hpp>
 
 #include <assimp/Importer.hpp>     
 #include <assimp/scene.h>          

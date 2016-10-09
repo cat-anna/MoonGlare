@@ -463,3 +463,31 @@ struct Stack <std::string const&>
     return std::string (luaL_checkstring (L, index));
   }
 };
+
+struct Stack_t {
+	template<typename T>
+	static inline int push(lua_State* L, T value, int unused) {
+		Stack<std::decay<T>::type>::push(L, std::forward<T>(value));
+		return 1;
+	}
+
+	template<typename T>
+	static inline int get(lua_State* L, T& out, int index) {
+		out = Stack<std::decay<T>::type>::get(L, index);
+		return 0;
+	}
+};
+
+struct StackGet {
+	template<typename T>
+	static inline int func(lua_State* L, T& out, int index) {
+		return Stack_t::get(L, out, index);
+	}
+};
+
+struct StackPush {
+	template<typename T>
+	static inline int func(lua_State* L, T t, int index) {
+		return Stack_t::push (L, std::forward<T>(t), index);
+	}
+};

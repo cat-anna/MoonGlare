@@ -184,7 +184,7 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	entry.m_Flags.m_Map.m_Dirty = true;
 
-	x2c::Component::TransfromComponent::TransfromEntry_t te;
+	x2c::Component::TransformComponent::TransformEntry_t te;
 	te.ResetToDefault();
 	if (!te.Read(node)) {
 		AddLog(Error, "Failed to read TransfromEntry!");

@@ -60,7 +60,7 @@ private:
 	bool Ping(InsiderMessageBuffer& buffer);
 	bool EnumerateAudio(InsiderMessageBuffer& buffer);
 	bool EnumerateMemory(InsiderMessageBuffer& buffer);
-	bool EnumerateObjects(InsiderMessageBuffer& buffer);
+	bool EnumerateEntities(InsiderMessageBuffer& buffer);
 	bool OrbitLoggerState(InsiderMessageBuffer& buffer);
 }; 
 

@@ -12,6 +12,8 @@
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
+#include <Core/Component/ScriptComponent.h>
+
 #include <Renderer/RenderInput.h>
 
 #include <Math.x2c.h>
@@ -23,7 +25,7 @@ namespace GUI {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<RectTransformComponent, RectTransformComponentEntry> RectTransformComponentTypeInfo;
-RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg("RectTransform", true, &RectTransformComponent::RegisterScriptApi);
+RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg;
 RegisterDebugApi(RectTransformComponent, &RectTransformComponent::RegisterDebugScriptApi, "Debug");
 
 #ifdef DEBUG
@@ -63,11 +65,129 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
 	;
 }
 
+int RectTransformComponent::FindChild(lua_State *lua) {
+
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
+	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+
+	lua_getfield(lua, 1, "Handle");
+	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);
+
+	auto pos = luabridge::Stack<math::vec2>::get(lua, 2);
+
+	Entity e;
+	if (!This->FindChildByPosition(Owner, pos, e)) {
+		lua_pushnil(lua);
+		return 1;
+	}
+
+	if (!This->m_ScriptComponent->GetObjectRootInstance(lua, e)) {
+		lua_pushnil(lua);
+	}
+	return 1;
+}
+
+template<typename StackFunc, typename Entry>
+bool ProcessProperty(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx) {
+	switch (hash) {
+	case "Position"_Hash32:
+		luarets = StackFunc::func(lua, e->m_Position, validx);
+		break;
+	case "Size"_Hash32:
+		luarets = StackFunc::func(lua, e->m_Size, validx);
+		break;
+	case "Order"_Hash32:
+		luarets = StackFunc::func(lua, e->m_Z, validx);
+		break;
+	default:
+		return false;
+	}
+	e->SetDirty();
+	return true;
+}
+
+template<typename StackFunc, typename Entry>
+bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, RectTransformComponent *This) {
+	switch (hash) {
+	case "FindChild"_Hash32:
+		lua_pushlightuserdata(lua, This);
+		lua_pushcclosure(lua, &RectTransformComponent::FindChild, 2);
+		luarets = 1;
+		return true;
+	default:
+		return false;
+	}
+}
+
+int RectTransformComponent::EntryIndex(lua_State *lua) {
+//	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	const char *name = lua_tostring(lua, 2);
+
+	lua_getfield(lua, 1, "ComponentInstance");
+	void *voidThis = lua_touserdata(lua, -1);
+	lua_pop(lua, 1);
+	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+
+	lua_getfield(lua, 1,"Handle");						
+	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);					
+
+	auto hash = Space::Utils::MakeHash32(name);
+
+	auto e = This->GetEntry(Owner);
+	if (!e)
+		return 0;
+
+	int lrets = 0;
+	if (QuerryFunction<luabridge::StackPush>(lua, e, hash, lrets, 0, This)) {
+		return lrets;
+	}
+	if (ProcessProperty<luabridge::StackPush>(lua, e, hash, lrets, 0)) {
+		return lrets;
+	}
+
+	return 0;
+}
+
+int RectTransformComponent::EntryNewIndex(lua_State *lua) {
+	//	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	const char *name = lua_tostring(lua, 2);
+
+	lua_getfield(lua, 1, "ComponentInstance");
+	void *voidThis = lua_touserdata(lua, -1);
+	lua_pop(lua, 1);
+	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+
+	lua_getfield(lua, 1, "Handle");
+	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+	lua_pop(lua, 1);
+
+	int validx = 3;
+
+	auto e = This->GetEntry(Owner);
+	if (!e)
+		return 0;
+
+	auto hash = Space::Utils::MakeHash32(name);
+	int lrets;
+    if (!ProcessProperty<luabridge::StackGet>(lua, e, hash, lrets, validx)) {
+		return 0;
+	}
+	return lrets;
+}
+
 //---------------------------------------------------------------------------------------
 
 bool RectTransformComponent::Initialize() {
 	memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
 	m_CurrentRevision = 1;
+
+	m_ScriptComponent = GetManager()->GetComponent<ScriptComponent>();
+	if (!m_ScriptComponent) {
+		AddLog(Error, "Failed to get ScriptComponent instance!");
+		return false;
+	}
 
 	m_Array.ClearAllocation();
 	size_t index;
@@ -133,6 +253,13 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 
 		if (!item.m_Flags.m_Map.m_Valid) {
 			//mark and continue
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			continue;
+		}
+
+		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
+			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;
@@ -263,6 +390,54 @@ bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
 	m_Flags.m_Map.m_UniformMode = rts.m_UniformMode;
 	
 	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
+bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, Entity &eout) {
+	auto ParentEntry = GetEntry(Parent);
+	if (!ParentEntry) {
+		AddLogf(Error, "Attempt to find child by position of null parent!");
+		return false;
+	}
+
+	pos += GetRootEntry().m_ScreenRect.LeftTop;
+
+	if (!ParentEntry->m_ScreenRect.IsPointInside(pos))
+		return false;
+
+	auto em = GetManager()->GetWorld()->GetEntityManager();
+	struct T {
+		static bool f(Core::EntityManager *em, RectTransformComponent *rtc, Entity Owner, const math::vec2 &pos, Entity &eout) {
+			if (!em->IsValid(Owner))
+				return false;
+			
+			auto entry = rtc->GetEntry(Owner);
+
+			if (entry) {
+				if (!entry->m_ScreenRect.IsPointInside(pos))
+					return false;
+			}
+
+			Entity child;
+			if (!em->GetFistChild(Owner, child)) {
+				eout = Owner;
+				return true;
+			}
+
+			do {
+				if (f(em, rtc, child, pos, eout)) {
+					return true;
+				}
+			} while (em->GetNextSibling(child, child));
+
+			return false;
+		}
+	};
+	auto Owner = ParentEntry->m_OwnerEntity;
+	if (!em->GetFistChild(Owner, Owner))
+		return false;
+	return T::f(em, this, Owner, pos, eout);
 }
 
 //---------------------------------------------------------------------------------------
