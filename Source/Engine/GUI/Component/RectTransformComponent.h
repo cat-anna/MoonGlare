@@ -86,6 +86,9 @@ class RectTransformComponent
 	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>
 	, public Core::iCustomDraw {
 public:
+	static constexpr char *Name = "RectTransform";
+	static constexpr bool PublishID = true;
+
  	RectTransformComponent(ComponentManager *Owner);
  	virtual ~RectTransformComponent();
 	virtual bool Initialize() override;

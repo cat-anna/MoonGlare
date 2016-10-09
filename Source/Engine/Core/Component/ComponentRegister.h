@@ -13,6 +13,17 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+struct LuaMetamethods {
+	lua_CFunction m_Index = nullptr;
+	lua_CFunction m_NewIndex = nullptr;
+
+	constexpr LuaMetamethods(lua_CFunction i = nullptr, lua_CFunction ni = nullptr): m_Index(i), m_NewIndex(ni) { }
+
+	constexpr operator bool() const { return m_Index || m_NewIndex; }
+};
+
+using ApiInitFunc = void(*)(ApiInitializer &api);
+
 struct ComponentRegister {
 
 	using ComponentCreateFunc = std::unique_ptr<AbstractComponent>(*)(ComponentManager*);
@@ -23,8 +34,9 @@ struct ComponentRegister {
 		struct {
 			bool m_RegisterID : 1;
 		} m_Flags;
-		void(*m_ApiRegFunc)(ApiInitializer &api); 
+		ApiInitFunc m_ApiRegFunc;
 		int(*m_GetCID)();
+		const LuaMetamethods* m_EntryMetamethods;
 	};
 
 	using MapType = std::unordered_map < std::string, const ComponentInfo* >;
@@ -68,15 +80,30 @@ struct RegisterComponentID : public ComponentRegister {
 		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
 		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc;
 		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
-		m_ComponentInfo.m_CreateFunc = &Construct;
-		m_ComponentInfo.m_GetCID = &GetCID;
+		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
+		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
+		m_ComponentInfo.m_EntryMetamethods = &COMPONENT::EntryMetamethods;
+		SetComponent(&m_ComponentInfo);
+	}
+
+	RegisterComponentID() {
+		m_ComponentInfo.m_Name = COMPONENT::Name;
+		m_ComponentInfo.m_Flags.m_RegisterID = COMPONENT::PublishID;
+		m_ComponentInfo.m_ApiRegFunc = &COMPONENT::RegisterScriptApi;
+		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
+		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
+		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
+		m_ComponentInfo.m_EntryMetamethods = &COMPONENT::EntryMetamethods;
 		SetComponent(&m_ComponentInfo);
 	}
 private:
+	template<typename CLASS>
 	static std::unique_ptr<AbstractComponent> Construct(ComponentManager* cm) { return std::make_unique<COMPONENT>(cm); }
-	static int GetCID() { 
+
+	template<ComponentID value>
+	static int GetCID() {
 		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
-		return static_cast<int>(COMPONENT::GetComponentID());
+		return static_cast<int>(value);
 	}
 	static ComponentInfo m_ComponentInfo;
 };
