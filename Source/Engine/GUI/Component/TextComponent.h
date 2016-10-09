@@ -50,6 +50,9 @@ struct TextComponentEntry {
 	DEFINE_COMPONENT_PROPERTY(Color);
 	DEFINE_COMPONENT_PROPERTY(Text);
 
+	float GetFontSize() const { return m_FontStyle.Size; }
+	void SetFontSize(float v) { m_FontStyle.Size = v; SetDirty(); }
+
 	math::mat4 m_Matrix;
 	DataClasses::FontPtr m_Font;
 	DataClasses::SharedFontInstance m_FontInstance;

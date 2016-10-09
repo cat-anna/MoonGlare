@@ -52,6 +52,7 @@ void TextComponent::RegisterScriptApi(ApiInitializer & root) {
 		.beginClass<TextComponentEntry>("cTextComponentEntry")
 			.addProperty("Color", &TextComponentEntry::GetColor, &TextComponentEntry::SetColor)
 			.addProperty("Text", &TextComponentEntry::GetText, &TextComponentEntry::SetText)
+			.addProperty("FontSize", &TextComponentEntry::GetFontSize, &TextComponentEntry::SetFontSize)
 		.endClass()
 		; 
 }
@@ -104,6 +105,13 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 
 		if (!entry.m_Flags.m_Map.m_Valid) {
 			//mark and continue
+			LastInvalidEntry = i;
+			++InvalidEntryCount;
+			continue;
+		}
+
+		if (!GetHandleTable()->IsValid(this, entry.m_SelfHandle)) {
+			entry.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;
