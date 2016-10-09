@@ -35,6 +35,11 @@
 #include <qinputdialog.h>
 #include <qclipboard.h>
 #include <QThread>
+#include <qdockwidget.h>
+#include <QStyledItemDelegate>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QInputDialog>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>
@@ -58,7 +63,12 @@
 #include <libSpace/src/RTTI/RTTI.h>
 #include <libSpace/src/Utils/DynamicClassRegister.h>
 #include <libSpace/src/Memory/Handle.h>
+#include <libSpace/src/Utils/CompileMurmurhash3.h>
+using namespace Space::Utils::HashLiterals;
 
 #include <Engine/Configuration.h>
+
+namespace MoonGlare { }
+using namespace MoonGlare;
 
 Q_DECLARE_METATYPE(MoonGlare::Handle);

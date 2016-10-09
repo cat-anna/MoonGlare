@@ -137,7 +137,7 @@ bool RemoteConsole::Initialize() {
 	m_Impl->m_Socket = std::make_unique<QUdpSocket>();
 	m_Impl->m_Socket->bind();
 	m_Impl->m_RemoteAddress = QHostAddress::LocalHost;
-	m_Impl->m_RemotePort = (quint16)mgdtSettings::get().Connection.RemoteConsolePort;
+	m_Impl->m_RemotePort = Debug::InsiderApi::Configuration::Insider_Port; //(quint16)mgdtSettings::get().Connection.RemoteConsolePort;
 	connect(m_Impl->m_Socket.get(), SIGNAL(readyRead()), this, SLOT(DataReady()));
 	SetState(RemoteConsoleState::Ready);
 
@@ -178,7 +178,7 @@ void RemoteConsole::SetState(RemoteConsoleState st) {
 void RemoteConsole::DataReady() {
 	while (m_Impl->m_Socket->hasPendingDatagrams()) {
 		InsiderApi::InsiderMessageBuffer buffer;
-		auto s = m_Impl->m_Socket->readDatagram((char*)buffer.GetBuffer(), Configuration::MaxMessageSize);
+		auto s = m_Impl->m_Socket->readDatagram((char*)buffer.GetBuffer(), InsiderApi::Configuration::MaxMessageSize);
 
 		if (s <= 0)
 			continue;

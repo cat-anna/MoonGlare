@@ -27,21 +27,21 @@ private:
 //-----------------------------------------
 //-----------------------------------------
 
-struct OrbitLoggerStatusInfo : public DockWindowInfo {
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+struct OrbitLoggerStatusInfo : public QtShared::DockWindowInfo {
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<OrbitLoggerStatus>(parent);
 	}
 
-	OrbitLoggerStatusInfo() {
+	OrbitLoggerStatusInfo(QWidget *Parent) : QtShared::DockWindowInfo(Parent) {
 		SetSettingID("OrbitLoggerStatusInfo");
 		SetDisplayName(tr("OrbitLogger status"));
 		SetShortcut("F11");
 	}
 };
-DockWindowClassRgister::Register<OrbitLoggerStatusInfo> OrbitLoggerStatusInfoReg("OrbitLoggerStatus");
+QtShared::DockWindowClassRgister::Register<OrbitLoggerStatusInfo> OrbitLoggerStatusInfoReg("OrbitLoggerStatus");
 
 OrbitLoggerStatus::OrbitLoggerStatus(QWidget *parent)
-	: DockWindow(parent)
+	: QtShared::DockWindow(parent)
 {
 	SetSettingID("OrbitLoggerStatus");
 	SetQueueName("OrbitLoggerStatus");
@@ -71,12 +71,12 @@ OrbitLoggerStatus::~OrbitLoggerStatus() {
 }
 
 bool OrbitLoggerStatus::DoSaveSettings(pugi::xml_node node) const {
-	DockWindow::DoSaveSettings(node);
+	QtShared::DockWindow::DoSaveSettings(node);
 	return true;
 }
 
 bool OrbitLoggerStatus::DoLoadSettings(const pugi::xml_node node) {
-	DockWindow::DoLoadSettings(node);
+	QtShared::DockWindow::DoLoadSettings(node);
 	return true;
 }
 
