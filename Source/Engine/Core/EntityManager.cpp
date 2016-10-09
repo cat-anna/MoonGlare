@@ -86,12 +86,12 @@ bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
 		return false;
 	}
 
-	auto h = m_Allocator.Allocate();
-	if (!m_Allocator.IsHandleValid(h)) {
+	eout = m_Allocator.Allocate();
+	if (!m_Allocator.IsHandleValid(eout)) {
 		AddLog(Error, "No more space!");
 		return false;
 	}
-	auto index = h.GetIndex();
+	auto index = eout.GetIndex();
 
 	m_Parent[index] = parent;
 	m_Flags[index].ClearAll();
@@ -101,7 +101,6 @@ bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
 	m_NextSibling[index] = Entity();
 	m_PrevSibling[index] = Entity();
 	m_EntityValues[index] = eout;
-	eout = h;
 
 	m_NameHash[index] = Space::Utils::MakeHash32(Name.c_str());
 	m_Names[index].swap(Name);
@@ -114,14 +113,14 @@ bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
 		} else {
 			auto siblingindex = parent.GetIndex();
 			m_Flags[siblingindex].m_Map.m_HasPrevSibling = true;
-			m_PrevSibling[siblingindex] = h;
+			m_PrevSibling[siblingindex] = eout;
 			m_NextSibling[index] = PrevFistChild;
 			m_Flags[index].m_Map.m_HasNextSibling = true;
 		}
 	} else {
 		m_Flags[parentindex].m_Map.m_HasChildren = true;
 	}
-	m_FirstChild[parentindex] = h;
+	m_FirstChild[parentindex] = eout;
 
 	return true;
 }
@@ -234,21 +233,21 @@ bool EntityManager::GetParent(Entity entity, Entity &ParentOut) const {
 	return true;
 }
 
-bool EntityManager::GetFistChild(Entity entity, Entity & ParentOut) const {
+bool EntityManager::GetFistChild(Entity entity, Entity & ChildOut) const {
 	auto index = entity.GetIndex();
 	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity) || !m_Flags[index].m_Map.m_HasChildren) {
 		return false;
 	}
-	ParentOut = m_FirstChild[index];
+	ChildOut = m_FirstChild[index];
 	return true;
 }
 
-bool EntityManager::GetNextSibling(Entity entity, Entity & ParentOut) const {
+bool EntityManager::GetNextSibling(Entity entity, Entity & SiblingOut) const {
 	auto index = entity.GetIndex();
 	if (!m_Flags[index].m_Map.m_Valid || !m_Allocator.IsHandleValid(entity) || !m_Flags[index].m_Map.m_HasNextSibling) {
 		return false;
 	}
-	ParentOut = m_NextSibling[index];
+	SiblingOut = m_NextSibling[index];
 	return true;
 }
 
@@ -327,6 +326,15 @@ bool EntityManager::GetFirstChildByName(Entity ParentE, EntityNameHash hashname,
 
 bool EntityManager::GetFirstChildByName(Entity ParentE, const char *Name, Entity & eout) {
 	return GetFirstChildByName(ParentE, Space::Utils::MakeHash32(Name ? Name : ""), eout);
+}
+
+bool EntityManager::GetRawFlags(Entity Owner, EntityFlags & flagsout) {
+	if (!IsAllocated(Owner))
+		return false;
+
+	auto index = Owner.GetIndex();
+	flagsout = m_Flags[index];
+	return true;
 }
 
 } //namespace Core 
