@@ -24,6 +24,14 @@ function StackIndex:top()
   return self[#self]
 end
 
+function StackIndex:len()
+  return #self
+end
+
+function StackIndex:empty()
+  return #self == 0
+end
+
 function Stack:Create()
   return setmetatable({}, StackMT)
 end
