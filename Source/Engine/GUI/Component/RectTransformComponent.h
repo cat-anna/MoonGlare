@@ -102,14 +102,24 @@ public:
 	bool IsUniformMode() const { return m_Flags.m_Map.m_UniformMode; }
 	const Renderer::VirtualCamera& GetCamera() const { return m_Camera; }
 
+	bool FindChildByPosition(Handle Parent, math::vec2 pos, Entity &eout);
+
 	static void RegisterScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
+
+	static int EntryIndex(lua_State *lua);
+	static int EntryNewIndex(lua_State *lua);
 	static constexpr LuaMetamethods EntryMetamethods = { &EntryIndex , &EntryNewIndex, };
+
+	static int FindChild(lua_State *lua);
 protected:
+	ScriptComponent *m_ScriptComponent;
 	RectTransformSettingsFlagsMap m_Flags;
 	Configuration::RuntimeRevision m_CurrentRevision;
 	Point m_ScreenSize;
 	Renderer::VirtualCamera m_Camera;
+
+private:
 
 //debug:
 protected:
