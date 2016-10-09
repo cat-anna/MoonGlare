@@ -63,7 +63,7 @@ enum class MessageTypes : u32 {
 	EnumerateLua,							//payload is PayLoad_EnumerateRequest
 	EnumerateAudio,							//no payload
 	EnumerateMemory,						//no payload
-	EnumerateObjects,						//no payload
+	EnumerateEntities,						//no payload
 
 //from engine
 	EngineSender							= EngineReciver + DirectionDelta,
@@ -80,8 +80,8 @@ enum class MessageTypes : u32 {
 	FolderContentList,						// Folder content
 	LuaElementList,
 	AudioList,								//payload is PayLoad_AudioListItem
-	ObjectList,								//PayLoad_ObjectInfo
 	MemoryStatusList,						//PayLoad_MemoryStatus
+	EntitiesList,							//PayLoad_EntityInfo
 	
 	//Notification about something
 	EngineNotificationBase					= EngineListOutputBase + GroupDelta,	
@@ -170,8 +170,8 @@ struct PayLoad_FolderContent_Item {
 
 struct PayLoad_LuaElement_Item {
 	u16 Index;
-	u16 NameLen; //len must include trailling null character
-	u16 ValueLen; //len must include trailling null character
+	u16 NameLen; //len must include trailing null character
+	u16 ValueLen; //len must include trailing null character
 	u8 LuaType;
 	u8 unused_8;
 	char Name_Value[0];
@@ -241,15 +241,6 @@ struct PayLoad_MemoryStatus {
 	u8 Name_OwnerName[0];
 };
 
-struct PayLoad_ObjectInfo {
-	Handle ObjectHandle;
-	Handle ParentHandle;
-	float Position[3];
-	float Quaternion[4];
-	u16 NameLen;
-	u8 Name[0];
-};
-
 struct PayLoad_OrbitLoggerStateResponse {
 	struct ChannelInfo {
 		u8 Enabled;
@@ -258,6 +249,17 @@ struct PayLoad_OrbitLoggerStateResponse {
 		u32 LinesPushed;
 	};
 	ChannelInfo m_Table[OrbitLogger::LogChannels::MaxLogChannels];
+};
+
+struct PayLoad_EntityInfo {
+	Entity::IntValue_t SelfEntity;
+	Entity::IntValue_t ParentEntity;
+	Entity::IntValue_t FirstChildEntity;
+	Entity::IntValue_t NextSiblingEntity;
+	Entity::IntValue_t PrevSiblingEntity;
+	uint8_t Flags;
+
+	u8 Name[0];
 };
 
 #pragma pack( pop )

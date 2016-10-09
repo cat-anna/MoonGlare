@@ -13,42 +13,43 @@
 
 //-----------------------------------------
 
-struct HandleLess {
-	bool operator () (MoonGlare::Handle a, MoonGlare::Handle b) const {
-		return a.GetIndex() < b.GetIndex();
-	}
-};
-
-struct ObjectBrowser::ObjectData {
-	struct Triplet {
-		MoonGlare::Handle m_Handle;
-		QStandardItem* m_ViewItem;
-		InsiderApi::PayLoad_ObjectInfo *m_Info;
-
-		Triplet(QStandardItem* item, MoonGlare::Handle h = MoonGlare::Handle(), InsiderApi::PayLoad_ObjectInfo* data = nullptr) {
-			m_Handle = h;
-			m_ViewItem = item;
-			m_Info = data;
-
-		}
-	};
-
-	std::map<MoonGlare::Handle, Triplet, HandleLess> m_ObjectMap;
-	InsiderApi::InsiderMessageBuffer m_Data;
-};
-
-//-----------------------------------------
-
 class ObjectBrowser::Request : public RemoteConsoleObserver {
 public:
 	Request(ObjectBrowser *Owner) :
-			RemoteConsoleObserver(InsiderApi::MessageTypes::EnumerateObjects, Owner),
+			RemoteConsoleObserver(InsiderApi::MessageTypes::EnumerateEntities, Owner),
 			m_Owner(Owner) {
 	}
 
+	using ItemMap = std::unordered_map<uint32_t, QStandardItem*>;
+
 	HanderStatus Message(InsiderApi::InsiderMessageBuffer &inmessage) override {
-		auto Objdata = m_Owner->GetData();
+		auto hdr = inmessage.GetAndPull<InsiderApi::PayLoad_ListBase>();
+
 		auto model = m_Owner->GetModel();
+		model->removeRows(0, model->rowCount());
+		ItemMap items;
+
+		for (size_t idx = 0; idx < hdr->Count; ++idx) {
+			auto *item = inmessage.GetAndPull<InsiderApi::PayLoad_EntityInfo>();
+			const char *Name = inmessage.PullString();
+
+			QStandardItem *parent;
+			auto pptrit = items.find(item->ParentEntity);
+			if (pptrit == items.end()) {
+				parent = model->invisibleRootItem();
+			} else {
+				parent = pptrit->second;
+			}
+
+			QStandardItem *qitem = new QStandardItem(Name);
+			items[item->SelfEntity] = qitem;
+			QList<QStandardItem*> cols;
+			cols << qitem;
+
+			parent->appendRow(cols);
+		}
+#if 0
+		auto Objdata = m_Owner->GetData();
 		Objdata->m_ObjectMap.clear();
 		model->removeRows(0, model->rowCount());
 
@@ -59,19 +60,6 @@ public:
 			m_Owner->RequestFinished(this);
 			return HanderStatus::Remove;
 		}
-#if 0
-		struct PayLoad_ObjectInfo {
-			u32 ID;
-			u32 ParentID;
-			float Position[3];
-			float Quaternion[3];
-			u16 NameLen;
-			u8 Name[0];
-		};
-#endif // 0
-
-		auto hdr = Objdata->m_Data.GetAndPull<InsiderApi::PayLoad_ListBase>();
-
 		using Triplet = ObjectData::Triplet;
 		Objdata->m_ObjectMap.insert(std::make_pair(MoonGlare::Handle(), Triplet(model->invisibleRootItem())));
 
@@ -92,10 +80,10 @@ public:
 		}
 
 		m_Owner->RefreshDetailsView();
-//		
 //		m_Parent->sortChildren(0);
 //		m_SoundParent->sortChildren(0);
 //		m_MusicParent->sortChildren(0);
+#endif
 		return HanderStatus::Remove;
 	};
 private:
@@ -105,86 +93,78 @@ private:
 //-----------------------------------------
 //-----------------------------------------
 
-struct ObjectBrowserInfo : public DockWindowInfo {
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) override {
+struct ObjectBrowserInfo : public QtShared::DockWindowInfo {
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<ObjectBrowser>(parent);
 	}
 
-	ObjectBrowserInfo() {
+	ObjectBrowserInfo(QWidget *Parent) : QtShared::DockWindowInfo(Parent) {
 		SetSettingID("ObjectBrowserInfo");
 		SetDisplayName(tr("Object browser"));
 		SetShortcut("F9");
 	}
 };
-DockWindowClassRgister::Register<ObjectBrowserInfo> ObjectBrowserInfoReg("ObjectBrowser");
+QtShared::DockWindowClassRgister::Register<ObjectBrowserInfo> ObjectBrowserInfoReg("ObjectBrowser");
 
 ObjectBrowser::ObjectBrowser(QWidget *parent)
-	: DockWindow(parent)
+	: QtShared::DockWindow(parent)
 {
 	SetSettingID("ObjectBrowser");
 	SetQueueName("Object browser");
-	m_Data = std::make_unique<ObjectData>();
 	m_Ui = std::make_unique<Ui::ObjectBrowser>();
 	m_Ui->setupUi(this);
 
 	m_ViewModel = std::make_unique<QStandardItemModel>();
-	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Name"));
+	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Tree"));
 //	m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Value"));
 
 	m_Ui->treeViewObjects->setModel(m_ViewModel.get());
 	m_Ui->treeViewObjects->setColumnWidth(0, 150);
 	m_Ui->treeViewObjects->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	//connect(m_Ui->treeViewObjects, SIGNAL(clicked(const QModelIndex &)), SLOT(ItemClicked(const QModelIndex&)));
 
-	m_DetailsModel = std::make_unique<QStandardItemModel>();
-	m_Ui->treeViewDetails->setModel(m_DetailsModel.get());
-	m_DetailsModel->setHorizontalHeaderItem(0, new QStandardItem("Name"));
-	m_DetailsModel->setHorizontalHeaderItem(1, new QStandardItem("Value"));
+	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
+	connect(Notifications::Get(), SIGNAL(OnEngineConnected()), SLOT(Refresh()));
+	connect(m_Ui->actionRefresh, SIGNAL(triggered()), SLOT(Refresh()));
 
-	m_Ui->treeViewDetails->setColumnWidth(0, 100);
-	m_Ui->treeViewDetails->setColumnWidth(1, 150);
-	m_Ui->treeViewDetails->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(RefreshView()));
-	connect(Notifications::Get(), SIGNAL(OnEngineConnected()), SLOT(RefreshView()));
-	connect(m_Ui->actionRefresh, SIGNAL(triggered()), SLOT(RefreshView()));
-
-	connect(m_Ui->treeViewObjects, SIGNAL(clicked(const QModelIndex &)), SLOT(ItemClicked(const QModelIndex&)));
+	SetAutoRefresh(true);
 }
 
 ObjectBrowser::~ObjectBrowser() {
-	m_Data.reset();
 	m_Ui.reset();
 }
 
 bool ObjectBrowser::DoSaveSettings(pugi::xml_node node) const {
 	DockWindow::DoSaveSettings(node);
-	SaveState(node, m_Ui->splitter, "Splitter:State");
+	//DockWindow::SaveColumns(node, "treeViewObjects:Columns", m_Ui->treeViewObjects, 1);
 	return true;
 }
 
 bool ObjectBrowser::DoLoadSettings(const pugi::xml_node node) {
 	DockWindow::DoLoadSettings(node);
-	LoadState(node, m_Ui->splitter, "Splitter:State");
+	//DockWindow::LoadColumns(node, "treeViewObjects:Columns", m_Ui->treeViewObjects, 1);
 	return true;
 }
 
 //-----------------------------------------
 
 void ObjectBrowser::ItemClicked(const QModelIndex& index) {
+#if 0
 	auto row = index.row();
 	auto parent = index.parent();
 	auto selectedindex = parent.isValid() ? parent.child(row, 0) : index.sibling(row, 0);
-
+	
 	auto itemptr = m_ViewModel->itemFromIndex(selectedindex);
 	if (!itemptr) {
 		m_SelectedItem = MoonGlare::Handle();
 		m_DetailsModel->removeRows(0, m_DetailsModel->rowCount());
 		return;
 	}
-
+	
 	m_SelectedItem = itemptr->data(Qt::UserRole).value<MoonGlare::Handle>();
-
+	
 	RefreshDetailsView();
+#endif
 }
 
 template<class T>
@@ -194,6 +174,7 @@ std::string tostring(const T& vec) {
 	return ss.str();
 }
 
+#if 0
 void ObjectBrowser::RefreshDetailsView() {
 	m_DetailsModel->removeRows(0, m_DetailsModel->rowCount());
 
@@ -225,9 +206,11 @@ void ObjectBrowser::RefreshDetailsView() {
 	put("Index", tostring(item.m_Handle.GetIndex()), hitm);
 	put("Generation", tostring(item.m_Handle.GetGeneration()), hitm);
 	put("Type", tostring(item.m_Handle.GetType()), hitm);
-
 }
+#endif
 
-void ObjectBrowser::RefreshView() {
-	QueueRequest(std::make_shared<Request>(this));
+void ObjectBrowser::Refresh() {
+	if (!m_Request)
+		m_Request = std::make_shared<Request>(this);
+	QueueRequest(m_Request);
 }

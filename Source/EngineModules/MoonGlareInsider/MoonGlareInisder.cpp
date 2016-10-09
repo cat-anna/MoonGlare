@@ -111,7 +111,7 @@ bool Insider::Command(InsiderMessageBuffer& buffer, const udp::endpoint &sender)
 #ifdef DEBUG_INTERFACE
 	case MessageTypes::EnumerateMemory: return EnumerateMemory(buffer);
 #endif
-	case MessageTypes::EnumerateObjects: return EnumerateObjects(buffer);
+	case MessageTypes::EnumerateEntities: return EnumerateEntities(buffer);
 	case MessageTypes::SetScriptCode: return SetScriptCode(buffer);
 	case MessageTypes::GetScriptCode: return GetScriptCode(buffer);
 	case MessageTypes::InfoRequest: return InfoRequest(buffer);
@@ -414,40 +414,35 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 	return true;
 }
 
-bool Insider::EnumerateObjects(InsiderMessageBuffer& buffer) {
+bool Insider::EnumerateEntities(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
-	return false;
-#if 0
 	auto *hdr = buffer.GetHeader();
 
-	auto rawscene = Core::GetEngine()->GetCurrentScene();
-	auto scene = dynamic_cast<Core::Scene::GameScene*>(rawscene);
-	if (!scene) {
-		hdr->MessageType = MessageTypes::NotPossibleInCurrentState;
-		AddLogf(Insider, "Enumerating objects is not supported by current scene");
-		return true;
-	}
+	auto em = Core::GetEngine()->GetWorld()->GetEntityManager();
 
 	auto *list = buffer.AllocAndZero<PayLoad_ListBase>();
-	auto oreg = scene->GetObjectRegister();
-	list->Count = oreg->size();
+	auto &count = list->Count;
 
-	for (auto it = oreg->begin(), jt = oreg->end(); it != jt; ++it) {
-		auto obj = it->get();
+	for (size_t it = 0, jt = MoonGlare::Configuration::Entity::IndexLimit; it < jt; ++it) {
+		auto flags = em->m_Flags[it];
+		if (!flags.m_Map.m_Valid)
+			continue;
 
-		auto info = buffer.AllocAndZero<PayLoad_ObjectInfo>();
-		buffer.PushString(obj->GetName());
-		info->ObjectHandle = obj->GetSelfHandle();
-		info->ParentHandle = oreg->GetParentHandle(info->ObjectHandle);
-		*((::math::fvec3*)info->Position) = convert(obj->GetPosition());
-		auto q = obj->GetQuaternion();
-		*((::math::fvec4*)info->Quaternion) = math::fvec4(q[0], q[1], q[2], q[3]);
-		info->NameLen = static_cast<u16>(obj->GetName().length());
+		++count;
+		auto info = buffer.AllocAndZero<PayLoad_EntityInfo>();
+
+		info->Flags 			  = flags.m_UIntValue;
+		info->SelfEntity		  = em->m_EntityValues[it].m_IntegerValue;
+		info->ParentEntity		  = em->m_Parent[it].m_IntegerValue;
+		info->FirstChildEntity	  = em->m_FirstChild[it].m_IntegerValue;
+		info->NextSiblingEntity	  = em->m_NextSibling[it].m_IntegerValue;
+		info->PrevSiblingEntity	  = em->m_PrevSibling[it].m_IntegerValue;
+
+		buffer.PushString(em->m_Names[it]);
 	}
 
-	hdr->MessageType = MessageTypes::ObjectList;
+	hdr->MessageType = MessageTypes::EntitiesList;
 	return true;
-#endif
 }
 
 bool Insider::OrbitLoggerState(InsiderMessageBuffer& buffer) {

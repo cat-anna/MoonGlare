@@ -16,6 +16,7 @@ class EntityManager final
 	: Space::RTTI::RTTIObject
 	, public Config::Current::DebugMemoryInterface {
 SPACERTTI_DECLARE_STATIC_CLASS(EntityManager, Space::RTTI::RTTIObject);
+friend class MoonGlare::Debug::Insider::Insider;
 public:
 	template<class T> using Array = std::array<T, Configuration::Entity::IndexLimit>;
 	template<class ... ARGS>
