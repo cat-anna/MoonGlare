@@ -17,6 +17,10 @@ Libraries{
 				origin = "git@smaug.lan:~/projects/libs/StarVFS.git",
 			},
 			branch = "master",
+			projects = {
+				"core/project.lua",
+				"libs/project.lua",
+			}
 		},
 		{
 			name = "libSpace",
