@@ -228,7 +228,7 @@ void EntityEditorModel::EntityClicked(const QModelIndex& index) {
 		m_CurrentItem = itemptr->data(UserRoles::EditableItemInfo).value<EditableItemInfo>();
 	}
 
-//	RefreshDetails();
+	RefreshDetails();
 }
 
 void EntityEditorModel::ComponentClicked(const QModelIndex & index) {
@@ -263,11 +263,11 @@ void EntityEditorModel::EntityChanged(QStandardItem * item) {
 	if (!info)
 		return;
 
-//	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-	//if(info.m_PatternURIMode)
-	//	info.m_EditableEntity->SetPatternURI(std::move(value));
-	//else
-	//	info.m_EditableEntity->GetName() = value;
+	auto value = item->data(Qt::DisplayRole).toString().toLocal8Bit().constData();
+	if(info.m_PatternURIMode)
+		info.m_EditableEntity->SetPatternURI(std::move(value));
+	else
+		info.m_EditableEntity->GetName() = value;
 
 	SetModiffiedState(true);
 }
