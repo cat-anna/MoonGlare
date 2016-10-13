@@ -309,6 +309,20 @@ void ScriptMathGlobal(ApiInitializer &root) {
 		.addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec3))nullptr)
 	.endNamespace()
 
+	.beginNamespace("Vec4")
+		.addCFunction("__call", &lua_NewQuaternion)
+		.addProperty("X", &StaticVec<math::vec4, float, 1, 0, 0, 0>, (void(*)(math::vec4))nullptr)
+		.addProperty("Y", &StaticVec<math::vec4, float, 0, 1, 0, 0>, (void(*)(math::vec4))nullptr)
+		.addProperty("Z", &StaticVec<math::vec4, float, 0, 0, 1, 0>, (void(*)(math::vec4))nullptr)
+		.addProperty("W", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec4))nullptr)
+
+		.addProperty("R", &StaticVec<math::vec4, float, 1, 0, 0, 1>, (void(*)(math::vec4))nullptr)
+		.addProperty("G", &StaticVec<math::vec4, float, 0, 1, 0, 1>, (void(*)(math::vec4))nullptr)
+		.addProperty("B", &StaticVec<math::vec4, float, 0, 0, 1, 1>, (void(*)(math::vec4))nullptr)
+		.addProperty("White", &StaticVec<math::vec4, float, 1, 1, 1, 1>, (void(*)(math::vec4))nullptr)
+		.addProperty("Black", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec4))nullptr)
+	.endNamespace()
+
 	.beginNamespace("Vec3")
 		.addCFunction("__call", &lua_NewVec3)
 
