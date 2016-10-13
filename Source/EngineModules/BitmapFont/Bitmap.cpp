@@ -110,7 +110,7 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	float dw = 1 / Cx;
 	float dh = 1 / Cy;
 
-	Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+	static Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
 
 	auto cstr = text.c_str();
 	while (*cstr) {
