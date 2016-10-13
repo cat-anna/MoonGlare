@@ -14,6 +14,7 @@
 #include <Core/EntityBuilder.h>
 
 #include <Utils/LuaUtils.h>
+#include <Core/Scripts/LuaUtils.h>
 
 #include <ComponentCommon.x2c.h>
 #include <ScriptComponent.x2c.h>
@@ -62,11 +63,10 @@ namespace lua {
 	static const char *SetStep = "SetStep";
 	static const char *SetActive = "SetActive";
 	
-	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
+	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName, int errf = 0) {
 		try {
 			AddLogf(ScriptCall, "Call to %s", CaleeName);
-			lua_call(lua, args, rets);
-			return true;
+			return lua_pcall(lua, args, rets, errf) == 0;
 		}
 		catch (Core::Scripts::eLuaPanic &err) {
 			AddLogf(Error, "Failure during call to %s message: %s", CaleeName, err.what());
@@ -204,6 +204,10 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	//stack: -		
+
+	lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+	int errf = lua_gettop(lua);
+
 	GetInstancesTable(lua);									//stack: self
 	luabridge::Stack<const MoveConfig*>::push(lua, &conf);  //stack: self movedata
 
@@ -255,7 +259,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 				lua_insert(lua, -2);							//stack: self movedata script Step script
 				lua_pushvalue(lua, -4);							//stack: self movedata script Step script movedata
 
-				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step)) {
+				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during OnStep call for component #%lu", i);
 				}
 			}
@@ -271,7 +275,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			} else {
 				//stack: self movedata script script persec
 				lua_insert(lua, -2);						//stack: self movedata script persec script 
-				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step)) {
+				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during PerSecond call for component #%lu", i);
 				}
 			}
@@ -280,7 +284,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 		lua_settop(lua, luatop);
 	}
 
-	lua_pop(lua, 2); //stack: -
+	lua_pop(lua, 3); //stack: -
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "ScriptComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
