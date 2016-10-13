@@ -60,7 +60,7 @@ void ciScene::RegisterScriptApi(ApiInitializer &api) {
 void ciScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
 
-	if(Sound::iSoundEngine::InstanceExists())
+	if(Sound::iSoundEngine::InstanceExists() && !GetSettings().PlayList.empty())
 		GetSoundEngine()->SetPlayList(GetSettings().PlayList);
 
 	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);

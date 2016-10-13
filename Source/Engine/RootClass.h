@@ -28,7 +28,6 @@ public:
 	const string& GetName() const { return m_Name; }
 	const char* GetCharName() const { return GetName().c_str(); }
 	static void RegisterScriptApi(ApiInitializer &api);
-protected:
 	void SetName(const string& name) { m_Name = name; }
 private:
 	string m_Name;
