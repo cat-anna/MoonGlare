@@ -6,6 +6,8 @@
 #include <Engine/Core/DataManager.h>
 #include "GameApplication.h"
 
+#include <Engine/BaseResources.h>
+
 namespace MoonGlare {
 namespace Application {
  
@@ -28,7 +30,7 @@ GameApplication::~GameApplication() {
 
 bool GameApplication::PostSystemInit() {
 	GetDataMgr()->LoadGlobalData();
-	Core::GetScenesManager()->SetNextScene(GetDataMgr()->GetConfiguration().m_FirstScene);
+	Core::GetScenesManager()->SetNextScene(Configuration::BaseResources::FirstScene::get());
 	return true;
 }
 

@@ -113,6 +113,15 @@ public:
 		static Type _value;
 	};
 
+	template<class D>
+	struct BaseSettingInfo<std::string, D> {
+		using Type = std::string;
+		static void set(std::string v) { _value.swap(v); }
+		static const std::string& get() { return _value; }
+	protected:
+		static std::string _value;
+	};
+
 	struct SettingManipulatorBase {
 		virtual ~SettingManipulatorBase() { }
 		virtual bool get(int *value) const { return false; }
@@ -210,6 +219,9 @@ protected:
 
 template<class T, class D>
 T Settings_t::BaseSettingInfo<T, D>::_value = D::default();
+
+template<class D>
+std::string Settings_t::BaseSettingInfo<std::string, D>::_value = D::default();
 
 extern Settings_t Settings;
 using StaticSettings = Settings_t;

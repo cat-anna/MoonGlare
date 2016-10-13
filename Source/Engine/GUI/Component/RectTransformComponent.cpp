@@ -431,7 +431,8 @@ bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, 
 				}
 			} while (em->GetNextSibling(child, child));
 
-			return false;
+			eout = Owner;
+			return true;
 		}
 	};
 	auto Owner = ParentEntry->m_OwnerEntity;
@@ -534,7 +535,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 		m_Position = Point(parentmargin.Left, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
 		break;
 	case AlignMode::RightMiddle: 
-		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
+		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin() - m_Size.y) / 2.0f);
 		break;
 	case AlignMode::MiddleTop: 
 		m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentmargin.Top);

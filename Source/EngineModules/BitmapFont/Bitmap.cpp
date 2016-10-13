@@ -209,6 +209,9 @@ void BitmapFontWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
 }
 
 void BitmapFontWrapper::GenerateCommands(Renderer::CommandQueue & Queue, uint16_t key) {
+	if (m_VAO.Handle() == 0)
+		return;
+
 	Renderer::RendererConf::CommandKey qkey{ key };
 
 	Queue.PushCommand<Renderer::Commands::Texture2DBind>(qkey)->m_Texture = m_Texture->Handle();

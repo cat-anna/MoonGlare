@@ -449,19 +449,10 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushcclosure(lua, &lua_SetActive, 1);					//stack: ObjectRoot Script lua_SetActive
 	lua_setfield(lua, -2, lua::SetActive);						//stack: ObjectRoot Script
 
-
 	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());				//stack: ObjectRoot Script this SelfHandle 
 	lua_pushcclosure(lua, &lua_GetComponent, 2);				//stack: ObjectRoot Script lua_GetComponent
-	lua_pushvalue(lua, -1);										//stack: ObjectRoot Script lua_GetComponent lua_GetComponent
-	lua_setfield(lua, -3, "GetComponent");						//stack: ObjectRoot Script lua_GetComponent
-
-	lua_pushvalue(lua, -2);										//stack: ObjectRoot Script lua_GetComponent Script
-	lua_pushnumber(lua, (float)ComponentID::Transform);		//stack: ObjectRoot Script lua_GetComponent Script TransformCID
-	lua_call(lua, 2, 1);										//stack: ObjectRoot Script TransformInfo
-	lua_setfield(lua, -2, "Transform");							//stack: ObjectRoot Script 
-	
-	//TODO: DestroyObject(void/other)
+	lua_setfield(lua, -2, "GetComponent");						//stack: ObjectRoot Script 
 
 	lua_getfield(lua, -1, lua::Function_OnCreate);				//stack: ObjectRoot Script OnCreate/nil
 	if (lua_isnil(lua, -1)) {
@@ -607,7 +598,7 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
 	}
 
 	if (!cptr->GetInstanceHandle(Owner, ComponentHandle)) {
-		AddLogf(Error, "ScripComponent::GetComponent: no component instance for requested object");
+		AddLogf(Debug, "ScripComponent::GetComponent: no component instance for requested object");
 		return 0;
 	}
 
@@ -716,6 +707,7 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
 	if (This->GetHandleTable()->GetOwnerCID(h, cid)) {
 		switch (static_cast<ComponentID>(cid)) {
 		case ComponentID::Transform:
+		case ComponentID::RectTransform:
 			AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Cannot release component of cid: %d", cid);
 			lua_pushboolean(lua, 0);
 			return 1;

@@ -145,11 +145,14 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
 			}
 			light = &lptr->m_Base;
 			lptr->m_Attenuation = item.m_Attenuation;
+			float infl = lptr->GetLightInfluenceRadius() * 10.0f;
 
 			auto pos = convert(tr.getOrigin());
-
+	
 			lptr->m_Position = pos;
-			tr.getOpenGLMatrix(&lptr->m_PositionMatrix[0][0]);
+			math::mat4 mat;
+			tr.getOpenGLMatrix(&mat[0][0]);
+			lptr->m_PositionMatrix = glm::scale(mat, math::vec3(infl));
 
 			break;
 		}
