@@ -15,6 +15,7 @@ SPACERTTI_IMPLEMENT_STATIC_CLASS(StringTable)
 //RegisterApiDerivedClass(StringTable, &StringTable::RegisterScriptApi);
 
 StringTable::StringTable() {
+	Clear();
 }
 
 StringTable::~StringTable() {
@@ -34,6 +35,15 @@ StringTable::~StringTable() {
 //}
 
 //------------------------------------------------------------------------------------------
+
+void StringTable::InitInternalTable() {
+	auto &mgt = m_TableMap["MoonGlare"].StringMap;
+#ifdef DEBUG
+	mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionStringFull();
+#else
+	mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionString();
+#endif
+}
 
 bool StringTable::Load(const string& TableName) {
 	XMLFile TableFile, TableTranslationFile;
@@ -61,13 +71,14 @@ bool StringTable::Load(const string& TableName) {
 
 void StringTable::Clear() {
 	m_TableMap.clear();
+	InitInternalTable();
 }
 
 //------------------------------------------------------------------------------------------
 
-static string __NoTable("{Unable to load string table}");
-static string __NoString("{String does not exists}");
-static string __EmptyString("");
+static const string __NoTable("{Unable to load string table}");
+static const string __NoString("{String does not exists}");
+static const string __EmptyString("");
 
 const string& StringTable::GetString(const string& id, const string& Table) {
 	if (id.empty()) {

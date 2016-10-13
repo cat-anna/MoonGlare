@@ -11,6 +11,7 @@
 
 #include "nfGUIComponent.h"
 #include <Core/Component/AbstractComponent.h>
+#include <TextProcessor.h>
 
 #include "../Enums.h"
 
@@ -66,7 +67,7 @@ struct TextComponentEntry {
 
 	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
 
-	void Update(RectTransformComponentEntry &Parent, bool Uniform);
+	void Update(RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
@@ -85,6 +86,7 @@ public:
 protected:
 	RectTransformComponent *m_RectTransform;
 	GUIShader *m_Shader;
+	TextProcessor m_TextProcessor;
 };
 
 } //namespace Component 
