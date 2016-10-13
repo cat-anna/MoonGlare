@@ -13,6 +13,8 @@
 
 #include <Engine/Core/Engine.h>
 
+#include <Engine/BaseResources.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scene {
@@ -57,8 +59,8 @@ bool ScenesManager::Initialize() {
 	{
 //register default loading scene
 		//ciScene *ptr = new EngineLoadScene();
-		auto &sd = AllocDescriptor(LoadingSceneName, SceneType::External);
-		sd.Class = DefaultLoadingScene::GetStaticTypeInfo()->GetName();
+		//auto &sd = AllocDescriptor(LoadingSceneName, SceneType::External);
+		//sd.Class = DefaultLoadingScene::GetStaticTypeInfo()->GetName();
 		//sd.ptr.reset(ptr);
 		//sd.ptr->Initialize();
 		//m_SceneStack.push_back(&sd);
@@ -117,7 +119,7 @@ void ScenesManager::LoadingSceneTimedOutJob() {
 
 	AddLog(Hint, "Loading scene timed out!");
 
-	auto *desc = GetSceneDescriptor(LoadingSceneName);
+	auto *desc = GetSceneDescriptor(Configuration::BaseResources::FallbackLoadScene::get());
 	if (!desc) {
 		AddLog(Error, "Unable to find loading scene descriptor");
 		return;
@@ -336,12 +338,8 @@ SceneDescriptor* ScenesManager::GetSceneDescriptor(const string &Name) {
 	}
 	auto node = xml->document_element();
 	const char* xmlclass = node.attribute(xmlAttr_Class).as_string(nullptr);
-	if(!xmlclass) {
-		AddLogf(Error, "No class definition for scene '%s'", Name.c_str());
-		return nullptr;
-	}
 	auto &sd = AllocDescriptor(Name, SceneType::Invalid);
-	sd.Class = xmlclass;
+	sd.Class = xmlclass ? xmlclass : "Scene";
 	sd.Type = SceneType::External;
 	GetDataMgr()->NotifyResourcesChanged();
 	return &sd;

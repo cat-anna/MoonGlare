@@ -326,6 +326,7 @@ Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const
 			delete ptr;
 			return nullptr;
 		}
+		ptr->SetName(Name);
 	}
 	return ptr;
 }
