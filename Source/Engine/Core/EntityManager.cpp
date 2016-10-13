@@ -182,8 +182,10 @@ bool EntityManager::Step(const Core::MoveConfig & config) {
 		if (indexflags.m_HasNextSibling) {
 			auto next = m_NextSibling[index];
 			auto parent = m_Parent[index];
-			if (!IsAllocated(next) || !!IsAllocated(parent)) {
-				AddLogf(Error, "Entity chain is broken!");
+			bool na = IsAllocated(next);
+			bool pa = IsAllocated(parent);
+			if (!na || !pa) {
+				AddLogf(Error, "Entity chain is broken! [%d->%d]", pa?1:0, na?1:0);
 			} else {
 				m_PrevSibling[next.GetIndex()] = Entity();
 				m_Flags[next.GetIndex()].m_Map.m_HasPrevSibling = false;
