@@ -158,7 +158,7 @@ int Window::GetMonitors(lua_State *lua) {
 		lua_setfield(lua, -2, "Height");
 
 		lua_pushinteger(lua, mode->width);
-		lua_setfield(lua, -2, "Height");
+		lua_setfield(lua, -2, "Width");
 
 		lua_settable(lua, -3);
 	}

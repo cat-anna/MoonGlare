@@ -92,7 +92,7 @@ protected:
 	DefineFlagSetter(m_Flags, Flags::MainWindow, MainWindow);
 	DefineFlag(m_Flags, Flags::AllowMouseUnhook, AllowMouseUnhook);
 	void key_callback(int key, bool Pressed);
-	void ProcessChar(unsigned  Key);
+	void ProcessChar(unsigned Key);
 private:
 	MoonGlare::Core::InputProcessor *m_InputProcessor;
 	GLFWwindow *m_Window;
