@@ -7,10 +7,7 @@
 #include PCH_HEADER
 
 #include <ui_EntityEditorModel.h>
-//#include <DockWindowInfo.h>
-//#include <icons.h>
-//#include "../Windows/MainWindow.h"
-//#include <FileSystem.h>
+#include <icons.h>
 
 #include "EntityEditorModel.h"
 
@@ -310,38 +307,81 @@ void EntityEditorModel::EntityContextMenu(const QPoint &pos) {
 	QMenu menu(this);
 	auto EntityInfo = m_CurrentItem;
 
-	if (EntityInfo.m_Parent) {
-		menu.addAction("Move up", [this, EntityInfo]() {
-			EntityInfo.m_Parent->MoveUp(EntityInfo.m_EditableEntity);
-			SetModiffiedState(true);
-			Refresh();
-		});
-		menu.addAction("Move Down", [this, EntityInfo]() {
-			EntityInfo.m_Parent->MoveDown(EntityInfo.m_EditableEntity);
-			SetModiffiedState(true);
-			Refresh();
-		});
-		menu.addSeparator();
-	}
+	bool Deletable = EntityInfo.m_EditableEntity->IsDeletable();
+	bool Movable = EntityInfo.m_EditableEntity->IsDeletable();
 
-	if (EntityInfo.m_Parent) {
-		menu.addAction("Delete child", [this, EntityInfo]() {
-			if (!AskForPermission())
-				return;
-			EntityInfo.m_Parent->DeleteChild(EntityInfo.m_EditableEntity);
-			SetModiffiedState(true);
-			Refresh();
-		});
-	}
+	menu.addAction(ICON_16_ARROW_UP, "Move up", [this, EntityInfo]() {
+		EntityInfo.m_Parent->MoveUp(EntityInfo.m_EditableEntity);
+		SetModiffiedState(true);
+		Refresh();
+	})->setEnabled(Movable);
+	menu.addAction(ICON_16_ARROW_DOWN, "Move down", [this, EntityInfo]() {
+		EntityInfo.m_Parent->MoveDown(EntityInfo.m_EditableEntity);
+		SetModiffiedState(true);
+		Refresh();
+	})->setEnabled(Movable);
 
-	menu.addAction("Add child", [this, EntityInfo]() {
+	menu.addSeparator();
+
+	menu.addAction(ICON_16_CREATE_RESOURCE, "Add child", [this, EntityInfo]() {
 		EntityInfo.m_EditableEntity->AddChild();
 		SetModiffiedState(true);
 		Refresh();
 	});
+
+	menu.addAction(ICON_16_DELETE, "Delete child", [this, EntityInfo]() {
+		if (!AskForPermission())
+			return;
+		EntityInfo.m_EditableEntity->Delete();
+		SetModiffiedState(true);
+		Refresh();
+	})->setEnabled(Deletable);
+
+	menu.addSeparator();
+
+	menu.addAction(ICON_16_COPY, "Copy", this, &EntityEditorModel::CopyEntity);
+	menu.addAction(ICON_16_PASE, "Paste", this, &EntityEditorModel::PasteEntity);
+	menu.addAction(ICON_16_CUT, "Cut", this, &EntityEditorModel::CutEntity)->setEnabled(Deletable);
+
 	menu.addSeparator();
 
 	menu.exec(QCursor::pos());
+}
+
+//----------------------------------------------------------------------------------
+
+void EntityEditorModel::CutEntity() {
+	if (!m_CurrentItem)
+		return;
+
+	std::string txt;
+	if (!m_CurrentItem.m_EditableEntity->Serialize(txt)) {
+		//todo
+		return;
+	}
+	QClipboard *clipboard = QApplication::clipboard();
+	clipboard->setText(txt.c_str());
+	m_CurrentItem.m_EditableEntity->Delete();
+}
+
+void EntityEditorModel::CopyEntity() {
+	if (!m_CurrentItem)
+		return;
+
+	std::string txt;
+	m_CurrentItem.m_EditableEntity->Serialize(txt);
+	QClipboard *clipboard = QApplication::clipboard();
+	clipboard->setText(txt.c_str());
+}
+
+void EntityEditorModel::PasteEntity() {
+	if (!m_CurrentItem)
+		return;
+
+	QClipboard *clipboard = QApplication::clipboard();
+	std::string txt = clipboard->text().toLocal8Bit().constData();
+	m_CurrentItem.m_EditableEntity->DeserializeToChild(txt);
+	Refresh();
 }
 
 //----------------------------------------------------------------------------------
@@ -354,6 +394,7 @@ void EntityEditorModel::ShowAddComponentMenu() {
 }
 
 //----------------------------------------------------------------------------------
+
 #if 0
 void EntityEditorModel::ProjectChanged(Module::SharedDataModule datamod) {
 //	m_Module = datamod;
@@ -376,8 +417,10 @@ EditableEntity::EditableEntity(EditableEntity *Parent)
 EditableEntity::~EditableEntity() {}
 
 bool EditableEntity::Read(pugi::xml_node node, const char *NodeName) {
-	if (NodeName)
-		node = node.child(NodeName);
+	return Read(node.child(NodeName ? NodeName : "Entity"));
+}
+
+bool EditableEntity::Read(pugi::xml_node node) {
 	m_Name = node.attribute("Name").as_string("");
 	m_PatternURI = node.attribute("Pattern").as_string("");
 
@@ -442,21 +485,23 @@ bool EditableEntity::Read(pugi::xml_node node, const char *NodeName) {
 }
 
 bool EditableEntity::Write(pugi::xml_node node, const char *NodeName) {
-	auto selfnode = node.append_child(NodeName ? NodeName : "Entity");
+	return Write(node.append_child(NodeName ? NodeName : "Entity"));
+}
 
+bool EditableEntity::Write(pugi::xml_node node) {
 	if (!m_Name.empty())
-		selfnode.append_attribute("Name") = m_Name.c_str();
+		node.append_attribute("Name") = m_Name.c_str();
 	if (!m_PatternURI.empty())
-		selfnode.append_attribute("Pattern") = m_PatternURI.c_str();
+		node.append_attribute("Pattern") = m_PatternURI.c_str();
 
 	bool ret = true;
 	for (auto &it : m_Components) {
-		auto cnode = selfnode.append_child("Component");
+		auto cnode = node.append_child("Component");
 		cnode.append_attribute("Name") = it->GetName().c_str();
 		ret = ret && it->Write(cnode);
 	}
 	for (auto &it : m_Children) {
-		ret = ret && it->Write(selfnode);
+		ret = ret && it->Write(node, "Entity");
 	}
 	return ret;
 }
@@ -540,6 +585,32 @@ void EditableEntity::Clear() {
 	m_Components.clear();
 	m_Name = "Entity";
 	m_PatternURI.clear();
+}
+
+bool EditableEntity::Serialize(std::string &out) {
+	pugi::xml_document xdoc;
+	if (!Write(xdoc, "Entity"))
+		return false;
+	std::stringstream ss;
+	xdoc.save(ss);
+	out = ss.str();
+	return true;
+}
+
+bool EditableEntity::Deserialize(std::string &out) {
+	pugi::xml_document xdoc;
+	if (!xdoc.load_string(out.c_str())) {
+		return false;
+	}
+	return Read(xdoc.document_element());
+}
+
+bool EditableEntity::DeserializeToChild(std::string &out) {
+	auto ch = AddChild();
+	if (ch->Deserialize(out))
+		return true;
+	DeleteChild(ch);
+	return false;
 }
 
 //----------------------------------------------------------------------------------

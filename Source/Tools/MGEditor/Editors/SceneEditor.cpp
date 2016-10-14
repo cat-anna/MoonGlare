@@ -337,7 +337,6 @@ void SceneEditor::RefreshComponentTree() {
 	auto *root = m_ComponentModel->invisibleRootItem();
 
 	std::map<Core::ComponentID, QStandardItem*> Deps;
-
 	Deps[(Core::ComponentID)Core::Component::ComponentID::Invalid] = root;
 
 	auto GetParent = [&Deps](Core::ComponentID cid) {

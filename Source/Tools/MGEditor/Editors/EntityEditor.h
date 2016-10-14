@@ -10,11 +10,12 @@
 #define FileSystemViewer_H
 
 #include <DockWindow.h>
-#include "../Notifications.h"
 #include <iEditor.h>
 #include <ChangesManager.h>
+#include <DataModels/EntityEditorModel.h>
 
-#include <TypeEditor/Structure.h>
+#include "../Notifications.h"
+
 
 namespace Ui { class EntityEditor; }
 
@@ -66,6 +67,9 @@ public:
 	virtual bool CanDropChanges() const override  { return false; }
 	virtual bool DropChanges() override { return false; }
 	virtual std::string GetInfoLine() const override { return m_CurrentPatternFile; }
+
+
+	class BaseEntity : public QtShared::DataModels::EditableEntity {};
 public slots:
 	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) override;
 	virtual bool OpenData(const std::string &file) override;
@@ -73,27 +77,13 @@ public slots:
 	virtual bool TryCloseData() override;
 
 	void Refresh();
-	void RefreshDetails();
+	void Clear();
 protected slots:
-	void EntityClicked(const QModelIndex& index);
-	void ComponentClicked(const QModelIndex& index);
-	void ComponentChanged(QStandardItem *item);
-	void EntityChanged(QStandardItem *item);
-	void ComponentContextMenu(const QPoint &);
-	void EntityContextMenu(const QPoint &);
-
-	void ShowAddComponentMenu();
-
 	void ProjectChanged(Module::SharedDataModule datamod);
 private: 
 	std::unique_ptr<Ui::EntityEditor> m_Ui;
-	std::unique_ptr<QStandardItemModel> m_EntityModel;
-	std::unique_ptr<QStandardItemModel> m_ComponentModel;
-	std::unique_ptr<EditableEntity> m_RootEntity;
-	std::unique_ptr<QMenu> m_AddComponentMenu;
+	BaseEntity *m_BaseEntity;
 	std::string m_CurrentPatternFile;
-	EditableItemInfo m_CurrentItem;
-	EditableComponentValueInfo m_CurrentComponent;
 };
 
 } //namespace EntityEditor 
