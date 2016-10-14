@@ -48,36 +48,6 @@ QtShared::DockWindowClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("Sc
 
 //----------------------------------------------------------------------------------
 
-struct ScriptFileProcessor
-	: public QtShared::iFileProcessor 
-{
-	ScriptFileProcessor(std::string URI) : QtShared::iFileProcessor(std::move(URI)){
-	}
-
-	virtual ProcessResult ProcessFile() override {
-		AddLogf(Info, "Processing: %s", m_URI.c_str());
-		std::this_thread::sleep_for(std::chrono::seconds(5));
-		return ProcessResult::Success;
-	}
-private:
-};
-
-struct ScriptFileProcessorInfo
-	: public QtShared::iFileProcessorInfo 
-	, public QtShared::iFileIconProvider
-{
-	virtual QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
-		return std::make_shared<ScriptFileProcessor>(std::move(URI));
-	}
-
-	virtual std::vector<std::string> GetSupportedTypes() { return { "lua", }; }
-	virtual std::vector<FileIconInfo> GetFileIconInfo() { return { FileIconInfo { "lua", ICON_16_LUALOGO_RESOURCE, }, }; }
-};
-QtShared::FileProcessorInfoClassRegister::Register<ScriptFileProcessorInfo> ScriptBaseInfoReg2("ScriptBase");
-QtShared::FileIconProviderClassRegister::Register<ScriptFileProcessorInfo> ScriptBaseInfoReg3("ScriptBase");
-
-//----------------------------------------------------------------------------------
-
 ScriptBase::ScriptBase(QWidget * parent)
 	:  QtShared::DockWindow(parent) {
 	SetSettingID("ScriptBase");
