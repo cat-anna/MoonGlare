@@ -74,11 +74,8 @@ public:
 	DefineFlagGetter(m_Flags, Flags::MouseHooked, MouseHooked);
 	const uvec2& Size() const { return m_Size; }
 
-	int GetModeCount() const;
-	GLFWvidmode GetMode(int index) const;
 	GLFWvidmode GetCurrentMode() const;
-	int GetMonitorCount() const;
-	string GetMonitorName(int index) const;
+	int GetMonitors(lua_State *lua);
 	int GetMonitorModes(lua_State *lua);
 
 	void SetPosition(const math::uvec2 &pos);
