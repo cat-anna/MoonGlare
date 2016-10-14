@@ -106,6 +106,7 @@ unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
 					AddLogf(Error, "Failed to load child!");
 					continue;
 				}
+				c += ProcessXML(child, it);
 				count += c;
 				continue;
 			}
