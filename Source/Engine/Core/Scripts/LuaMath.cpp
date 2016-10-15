@@ -26,6 +26,8 @@ template<class T> inline T VecNormalized(const T * vec) { return glm::normalize(
 template<class T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
 template<class T> inline float VecLength(const T *vec) { return glm::length(*vec); }
 template<class T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
+template<class T> inline T VecDiv(T *a, T* b) { return *a / *b; }
+template<class T> inline T VecMul(T *a, T* b) { return *a * *b; }
 template<class T> inline T VecAdd(T *a, T* b) { return *a + *b; }
 template<class T> inline T VecSub(T *a, T* b) { return *a - *b; }
 template<class T> inline std::string ToString(T *vec) {
@@ -255,10 +257,10 @@ void ScriptMathClasses(ApiInitializer &root){
 		.addProperty<float>("Length", &VecLength<math::vec4>)
 		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec4, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec4, std::string>::callee<QuaternionToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec4, float, math::vec4*>::callee<VecDotProduct>())
+		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecMul>())
 		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecAdd>())
 		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecSub>())
-		.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<QuaternionCrossProduct>())
+	//	.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<QuaternionCrossProduct>())
 	.endClass()
 
 	.beginClass<math::vec3>("cVec3")
@@ -271,10 +273,10 @@ void ScriptMathClasses(ApiInitializer &root){
 
 		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec3, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec3, std::string>::callee<Vec3ToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec3, float, math::vec3*>::callee<VecDotProduct>())
+		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecMul>())
 		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecAdd>())
 		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecSub>())
-		.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<Vec3CrossProduct>())
+	//	.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<Vec3CrossProduct>())
 	.endClass()
 
 	.beginClass<math::vec2>("cVec2")
@@ -286,7 +288,7 @@ void ScriptMathClasses(ApiInitializer &root){
 
 		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec2, void>::callee<VecNormalize>())
 		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec2, std::string>::callee<Vec2ToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec2, float, math::vec2*>::callee<VecDotProduct>())
+		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecMul>())
 		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecAdd>())
 		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecSub>())
 	.endClass()
