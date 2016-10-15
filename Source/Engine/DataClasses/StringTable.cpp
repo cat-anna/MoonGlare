@@ -38,11 +38,10 @@ StringTable::~StringTable() {
 
 void StringTable::InitInternalTable() {
 	auto &mgt = m_TableMap["MoonGlare"].StringMap;
-#ifdef DEBUG
+
 	mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionStringFull();
-#else
-	mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionString();
-#endif
+	mgt["BuildDate"] = Core::GetMoonGlareEngineVersion().BuildDate;
+	mgt["Version"] = Core::GetMoonGlareEngineVersion().VersionString();
 }
 
 bool StringTable::Load(const string& TableName) {
