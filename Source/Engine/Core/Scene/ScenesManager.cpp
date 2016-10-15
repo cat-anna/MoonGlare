@@ -8,8 +8,6 @@
 #include <MoonGlare.h>
 
 #include "BackstageScene.h"
-#include "LoadingBaseScene.h"
-#include "DefaultLoadingScene.h"
 
 #include <Engine/Core/Engine.h>
 
