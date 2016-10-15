@@ -87,6 +87,16 @@ int RectTransformComponent::FindChild(lua_State *lua) {
 	return 1;
 }
 
+int RectTransformComponent::PixelToCurrent(lua_State *lua) {
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
+	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+
+	auto value = luabridge::Stack<math::vec2>::get(lua, 2);
+	value = This->PixelToCurrent(value);
+	luabridge::Stack<math::vec2>::push(lua, value);
+	return 1;
+}
+
 template<bool Read, typename StackFunc>
 bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
 	switch (hash) {
@@ -125,6 +135,11 @@ bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int v
 	case "FindChild"_Hash32:
 		lua_pushlightuserdata(lua, This);
 		lua_pushcclosure(lua, &RectTransformComponent::FindChild, 2);
+		luarets = 1;
+		return true;
+	case "PixelToCurrent"_Hash32:
+		lua_pushlightuserdata(lua, This);
+		lua_pushcclosure(lua, &RectTransformComponent::PixelToCurrent, 2);
 		luarets = 1;
 		return true;
 	default:
@@ -283,9 +298,11 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 
 			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
 				//nothing to do, nothing changed;
+				item.m_Flags.m_Map.m_Changed = false;
 			} else {
 				item.Recalculate(*ParentEntry);
 				item.m_Revision = m_CurrentRevision;
+				item.m_Flags.m_Map.m_Changed = true;
 			}
 			//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
 		} else {
