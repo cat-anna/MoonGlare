@@ -272,9 +272,14 @@ void Window::CreateWindow() {
 		GraphicSettings::Height::set(h);
 	}
 
-	m_Size = uvec2(w, h);
 	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", monitor , 0);
 	CriticalCheck(m_Window, "Unable to create new window!");
+
+	int iw, ih;
+	glfwGetWindowSize(m_Window, &iw, &ih);
+	m_Size = uvec2(iw, ih);
+	GraphicSettings::Width::set(m_Size[0]);
+	GraphicSettings::Height::set(m_Size[1]);
 
 #if 0
 	if (!fullscreen) {
@@ -294,7 +299,7 @@ void Window::CreateWindow() {
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 	//glfwSetCursorPosCallback(m_Window, glfw_mousepos_callback);
 
-	AddLogf(Debug, "Created window %dx%d", w, h);
+	AddLogf(Debug, "Created window %dx%d", iw, ih);
 }
 
 void Window::key_callback(int key, bool Pressed) {
