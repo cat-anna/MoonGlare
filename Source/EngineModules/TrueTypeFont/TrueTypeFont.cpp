@@ -113,7 +113,7 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 	Graphic::vec3 char_scale(h / m_CacheHight);
 	const wstring::value_type *cstr = text.c_str();
 	Graphic::vec2 pos(0);
-	float hmax = 0;
+	float hmax = h;
 
 	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 	float Aspect = ScreenSize[0] / ScreenSize[1];
@@ -134,19 +134,20 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 		chpos *= char_scale.x;
 		bs *= char_scale.x;
 		auto subpos = pos + chpos;
+		float bsy = bs.y;
+
+		if (UniformPosition) {
+			subpos = subpos / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+		}
 
 		if (c != L' ') {
-			if (UniformPosition) {
-				subpos = subpos / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
-				bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
-			}
-
 			wrapper->m_Chars.push_back(g);
 			auto base = Verticles.size();
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + bs.y, 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + 0,	 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + 0,	 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + bs.y, 0) *= char_scale);
+			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + bs.y, 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + 0,	 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + 0,	 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + bs.y, 0));
 			auto &tc = g->m_TextureSize;
 			TexCoords.push_back(Graphic::vec2(0,	tc.y));
 			TexCoords.push_back(Graphic::vec2(0,	0));
@@ -158,7 +159,7 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 		}
 
 		pos.x += g->m_Advance.x * char_scale.x;
-		hmax = math::max(h, bs.y);
+		hmax = math::max(hmax, bsy);
 	}
 	pos.y = hmax;
 
