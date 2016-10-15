@@ -129,7 +129,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		if (!entry.m_Flags.m_Map.m_Active)
 			continue;
 
-		if (entry.m_Flags.m_Map.m_Dirty) {
+		if (entry.m_Flags.m_Map.m_Dirty || rtentry->m_Flags.m_Map.m_Changed) {
 			entry.Update(*rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);
 		}
 
@@ -198,6 +198,7 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;
+	entry.m_Flags.m_Map.m_TextDirty = true;
 	m_EntityMapper.SetComponentMapping(entry);
 	return true;
 }
@@ -206,11 +207,15 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
 
-	std::string processed;
-	tproc.Process(m_Text, processed);
-	std::wstring txt = Utils::Strings::towstring(processed);
+	if (m_Flags.m_Map.m_TextDirty) {
+		std::string processed;
+		tproc.Process(m_Text, processed);
+		std::wstring txt = Utils::Strings::towstring(processed);
 
-	m_FontInstance = DataClasses::SharedFontInstance(m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, Uniform).release());
+		m_FontInstance = DataClasses::SharedFontInstance(m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, Uniform).release());
+	m_Flags.m_Map.m_TextDirty = false;
+	}
+
 	auto tsize = m_FontInstance->GetSize();
 	auto psize = Parent.m_ScreenRect.GetSize();
 

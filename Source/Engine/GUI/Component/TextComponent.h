@@ -26,6 +26,7 @@ union TextComponentEntryFlagsMap {
 		bool m_Valid : 1;
 		bool m_Dirty : 1;
 		bool m_Active : 1;
+		bool m_TextDirty : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -65,7 +66,7 @@ struct TextComponentEntry {
 		m_FontInstance.reset();
 	}
 
-	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true;  m_Flags.m_Map.m_TextDirty = true; }
 
 	void Update(RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
 };
