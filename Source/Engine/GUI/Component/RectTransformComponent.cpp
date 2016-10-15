@@ -88,8 +88,8 @@ int RectTransformComponent::FindChild(lua_State *lua) {
 	return 1;
 }
 
-template<typename StackFunc, typename Entry>
-bool ProcessProperty(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx) {
+template<typename StackFunc>
+bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
 	switch (hash) {
 	case "Position"_Hash32:
 		luarets = StackFunc::func(lua, e->m_Position, validx);
@@ -99,6 +99,9 @@ bool ProcessProperty(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int 
 		break;
 	case "Order"_Hash32:
 		luarets = StackFunc::func(lua, e->m_Z, validx);
+		break;
+	case "ScreenPosition"_Hash32:
+		luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
 		break;
 	default:
 		return false;
