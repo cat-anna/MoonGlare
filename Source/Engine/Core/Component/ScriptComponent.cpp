@@ -387,6 +387,9 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	int top = lua_gettop(lua);
 	//stack: -
 
+	lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+	int errf = lua_gettop(lua);
+
 	if (!m_ScriptEngine->GetRegisteredScript(se.m_Script.c_str())) {
 		AddLogf(Error, "There is no such script: '%s'", se.m_Script.c_str());
 		GetHandleTable()->Release(this, ch);
@@ -459,7 +462,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		lua_pop(lua, 1);										//stack: ObjectRoot Script
 	} else {
 		lua_pushvalue(lua, -2);									//stack: ObjectRoot Script OnCreate Script
-		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate)) {
+		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate, errf)) {
 			//no need for more logging
 		}
 	}
