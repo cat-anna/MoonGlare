@@ -25,7 +25,7 @@ struct CommandQueue final {
  	~CommandQueue() { }
 
 	uint32_t CommandsCapacity() const { return RendererConf::CommandQueue::CommandLimit; }
-	uint32_t CommandsAllocated() const { return m_AllocatedMemory; }
+	uint32_t CommandsAllocated() const { return m_AllocatedCommands; }
 	uint32_t MemoryCapacity() const { return RendererConf::CommandQueue::ArgumentMemoryBuffer; }
 	uint32_t MemoryAllocated() const { return m_AllocatedMemory; }
 

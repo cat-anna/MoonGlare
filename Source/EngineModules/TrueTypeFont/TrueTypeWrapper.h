@@ -23,8 +23,9 @@ public:
  	TrueTypeWrapper();
  	virtual ~TrueTypeWrapper();
 
-	void Render(Graphic::cRenderDevice &dev);
-	void RenderMesh(Graphic::cRenderDevice &dev);
+	virtual void Render(Graphic::cRenderDevice &dev) override;
+	virtual void RenderMesh(Graphic::cRenderDevice &dev) override;
+	virtual void GenerateCommands(Renderer::CommandQueue &Queue, uint16_t key) override;
 protected:
 	std::vector<FontGlyph*> m_Chars;
 	Graphic::VAO m_VAO;

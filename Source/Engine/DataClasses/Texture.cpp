@@ -46,12 +46,12 @@ Texture::SharedImage Texture::AllocateImage(const math::uvec2& size, BPP bpp) {
 void Texture::StoreImage(SharedImage image, const string &file, ImageFormat format) {
 #ifndef _DISABLE_FREEIMAGE_LIB_
 	if (image->value_type == Graphic::Flags::fBGR) {
-		RGBToBGR((FIBITMAP*)image->FIImage);
+		SwapRedAndBlue((FIBITMAP*)image->FIImage);
 		image->value_type = Graphic::Flags::fRGB;
 	}
 
 	if (image->value_type == Graphic::Flags::fBGRA) {
-		RGBAToBGRA((FIBITMAP*)image->FIImage);
+		SwapRedAndBlue((FIBITMAP*)image->FIImage);
 		image->value_type = Graphic::Flags::fRGBA;
 	}
 
@@ -136,18 +136,19 @@ bool Texture::LoadImageMemory(const void* ImgData, unsigned ImgLen, ImageInfo& i
 	//FreeImage_FlipHorizontal(dib);
 	switch (FreeImage_GetBPP(dib)){
 	case 32:
-		RGBAToBGRA(dib);
+		SwapRedAndBlue(dib);
 		image.BPPtype = Graphic::Flags::fRGBA; 
 		break;
 	case 24:
-		RGBToBGR(dib);
+		if(fif != FIF_PNG)
+			SwapRedAndBlue(dib);
 		image.BPPtype = Graphic::Flags::fRGB;
 		break; 
 	default:{
 		FIBITMAP *dib24 = FreeImage_ConvertTo24Bits(dib);
 		FreeImage_Unload(dib);
 		dib = dib24;
-		RGBToBGR(dib);
+		SwapRedAndBlue(dib);
 		image.BPPtype = Graphic::Flags::fRGB; 
 	}
 	}

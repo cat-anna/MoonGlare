@@ -4,8 +4,6 @@
 namespace MoonGlare {
 namespace Core {
 
-const Version::Info& GetMoonGlareEngineVersion();
-
 class Engine : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();

@@ -226,6 +226,9 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 }
 
 bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin) {
+	if(Name.find("://") != std::string::npos)
+		return OpenXML(doc, Name);
+
 	string buffer;
 	buffer.reserve(128);
 	switch (origin) {

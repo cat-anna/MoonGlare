@@ -69,13 +69,11 @@ struct DataModuleInfo {
 
 struct RuntimeConfiguration {
 	std::string m_ConsoleFont = "Arial";
-	std::string m_FirstScene;
 
 	void LoadUpdate(const xml_node node) {
 		if (!node)
 			return;
 		XML::ReadTextIfPresent(node, "ConsoleFont", m_ConsoleFont);
-		XML::ReadTextIfPresent(node, "FirstScene", m_FirstScene);
 		return;
 	}
 
@@ -114,6 +112,8 @@ public:
 
 	const string& GetString(const string &Id, const string& TableName);
 	Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const;
+
+	DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
 
 	bool Initialize(Scripts::ScriptEngine *ScriptEngine);
 	bool Finalize();

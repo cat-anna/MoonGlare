@@ -25,6 +25,7 @@ ScriptEngine::ScriptEngine() :
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptRuntime, "SCRT");
 }
 
 ScriptEngine::~ScriptEngine() {

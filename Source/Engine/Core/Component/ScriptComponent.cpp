@@ -14,6 +14,7 @@
 #include <Core/EntityBuilder.h>
 
 #include <Utils/LuaUtils.h>
+#include <Core/Scripts/LuaUtils.h>
 
 #include <ComponentCommon.x2c.h>
 #include <ScriptComponent.x2c.h>
@@ -62,11 +63,10 @@ namespace lua {
 	static const char *SetStep = "SetStep";
 	static const char *SetActive = "SetActive";
 	
-	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName) {
+	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName, int errf = 0) {
 		try {
 			AddLogf(ScriptCall, "Call to %s", CaleeName);
-			lua_call(lua, args, rets);
-			return true;
+			return lua_pcall(lua, args, rets, errf) == 0;
 		}
 		catch (Core::Scripts::eLuaPanic &err) {
 			AddLogf(Error, "Failure during call to %s message: %s", CaleeName, err.what());
@@ -204,6 +204,10 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 	Utils::Scripts::LuaStackOverflowAssert check(lua);
 	//stack: -		
+
+	lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+	int errf = lua_gettop(lua);
+
 	GetInstancesTable(lua);									//stack: self
 	luabridge::Stack<const MoveConfig*>::push(lua, &conf);  //stack: self movedata
 
@@ -255,7 +259,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 				lua_insert(lua, -2);							//stack: self movedata script Step script
 				lua_pushvalue(lua, -4);							//stack: self movedata script Step script movedata
 
-				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step)) {
+				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during OnStep call for component #%lu", i);
 				}
 			}
@@ -271,7 +275,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			} else {
 				//stack: self movedata script script persec
 				lua_insert(lua, -2);						//stack: self movedata script persec script 
-				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step)) {
+				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during PerSecond call for component #%lu", i);
 				}
 			}
@@ -280,7 +284,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 		lua_settop(lua, luatop);
 	}
 
-	lua_pop(lua, 2); //stack: -
+	lua_pop(lua, 3); //stack: -
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "ScriptComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
@@ -383,6 +387,9 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	int top = lua_gettop(lua);
 	//stack: -
 
+	lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+	int errf = lua_gettop(lua);
+
 	if (!m_ScriptEngine->GetRegisteredScript(se.m_Script.c_str())) {
 		AddLogf(Error, "There is no such script: '%s'", se.m_Script.c_str());
 		GetHandleTable()->Release(this, ch);
@@ -445,26 +452,17 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	lua_pushcclosure(lua, &lua_SetActive, 1);					//stack: ObjectRoot Script lua_SetActive
 	lua_setfield(lua, -2, lua::SetActive);						//stack: ObjectRoot Script
 
-
 	lua_pushlightuserdata(lua, this);							//stack: ObjectRoot Script this
 	lua_pushlightuserdata(lua, ch.GetVoidPtr());				//stack: ObjectRoot Script this SelfHandle 
 	lua_pushcclosure(lua, &lua_GetComponent, 2);				//stack: ObjectRoot Script lua_GetComponent
-	lua_pushvalue(lua, -1);										//stack: ObjectRoot Script lua_GetComponent lua_GetComponent
-	lua_setfield(lua, -3, "GetComponent");						//stack: ObjectRoot Script lua_GetComponent
-
-	lua_pushvalue(lua, -2);										//stack: ObjectRoot Script lua_GetComponent Script
-	lua_pushnumber(lua, (float)ComponentID::Transform);		//stack: ObjectRoot Script lua_GetComponent Script TransformCID
-	lua_call(lua, 2, 1);										//stack: ObjectRoot Script TransformInfo
-	lua_setfield(lua, -2, "Transform");							//stack: ObjectRoot Script 
-	
-	//TODO: DestroyObject(void/other)
+	lua_setfield(lua, -2, "GetComponent");						//stack: ObjectRoot Script 
 
 	lua_getfield(lua, -1, lua::Function_OnCreate);				//stack: ObjectRoot Script OnCreate/nil
 	if (lua_isnil(lua, -1)) {
 		lua_pop(lua, 1);										//stack: ObjectRoot Script
 	} else {
 		lua_pushvalue(lua, -2);									//stack: ObjectRoot Script OnCreate Script
-		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate)) {
+		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate, errf)) {
 			//no need for more logging
 		}
 	}
@@ -603,7 +601,7 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
 	}
 
 	if (!cptr->GetInstanceHandle(Owner, ComponentHandle)) {
-		AddLogf(Error, "ScripComponent::GetComponent: no component instance for requested object");
+		AddLogf(Debug, "ScripComponent::GetComponent: no component instance for requested object");
 		return 0;
 	}
 
@@ -712,6 +710,7 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
 	if (This->GetHandleTable()->GetOwnerCID(h, cid)) {
 		switch (static_cast<ComponentID>(cid)) {
 		case ComponentID::Transform:
+		case ComponentID::RectTransform:
 			AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Cannot release component of cid: %d", cid);
 			lua_pushboolean(lua, 0);
 			return 1;

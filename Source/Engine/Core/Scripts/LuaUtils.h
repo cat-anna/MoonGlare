@@ -13,7 +13,8 @@ namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
-void LuaTraceback(lua_State *L);
+int LuaErrorHandler(lua_State *L);
+int LuaTraceback(lua_State *L);
 int LuaPanic(lua_State *L);
 
 } //namespace Scripts 

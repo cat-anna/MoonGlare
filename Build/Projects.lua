@@ -2,14 +2,8 @@
 function MoonGlare.LookForProjects()
 	local i,v
 	for i,v in ipairs(os.matchfiles(dir.root .. "/**/project.lua")) do
-		local reltative = path.getrelative(dir.root, v)
-		local find = reltative:find("MoonGlare/Libs/")
-		if find then
-			print("Skiping project: " .. reltative)
-		else
-			print("Found project: " .. reltative)
-			dofile(v)
-		end
+		print("Found project: " .. path.getrelative(dir.root, v))
+		dofile(v)
 	end
 end
 

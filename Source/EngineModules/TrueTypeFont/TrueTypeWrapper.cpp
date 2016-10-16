@@ -10,6 +10,12 @@
 #include "FreeTypeHelper.h"
 #include "TrueTypeWrapper.h"
 
+//#include <Renderer/Commands/ControllCommands.h>
+//#include <Renderer/Commands/ShaderCommands.h>
+#include <Renderer/Commands/TextureCommands.h>
+#include <Renderer/Commands/ArrayCommands.h>
+#include <Renderer/RenderInput.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
@@ -37,7 +43,7 @@ void TrueTypeWrapper::Render(Graphic::cRenderDevice &dev) {
 		if (!it->m_Ready)
 			break;
 		it->m_Texture.Bind();
-		m_VAO.DrawElements(4, id * 4, 0, Graphic::Flags::fQuads);
+		m_VAO.DrawElements(6, id * 6, 0, Graphic::Flags::fTriangles);
 		++id;
 	}
 	m_VAO.UnBind();
@@ -45,6 +51,30 @@ void TrueTypeWrapper::Render(Graphic::cRenderDevice &dev) {
 
 void TrueTypeWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
 	//m_VAO.RenderMesh(m_Meshes);
+}
+
+void TrueTypeWrapper::GenerateCommands(Renderer::CommandQueue & Queue, uint16_t key) {
+	if (m_Chars.empty())
+		return;
+
+	if (m_VAO.Handle() == 0)
+		return;
+
+	Renderer::RendererConf::CommandKey qkey{ key };
+
+	Queue.PushCommand<Renderer::Commands::VAOBind>(qkey)->m_VAO = m_VAO.Handle();
+
+	uint32_t id = 0;
+	for (auto it : m_Chars) {
+		if (!it->m_Ready)
+			break;
+		Queue.PushCommand<Renderer::Commands::Texture2DBind>(qkey)->m_Texture = it->m_Texture.Handle();
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTrianglesBase>(qkey);
+		arg->m_NumIndices = 6;
+		arg->m_BaseIndex = (id * 6) * 4;
+		arg->m_IndexValueType = GL_UNSIGNED_INT;
+		++id;
+	}
 }
 
 } //namespace TrueTypeFont 

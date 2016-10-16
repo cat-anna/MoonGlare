@@ -43,6 +43,10 @@ struct RenderInput;
 namespace MoonGlare {
 namespace Core {
 
+const Version::Info& GetMoonGlareEngineVersion();
+
+class TextProcessor;
+
 struct iCustomDraw {
 	virtual void DefferedDraw(Graphic::cRenderDevice& dev) { }
 	virtual void D2Draw(Graphic::cRenderDevice& dev) { }

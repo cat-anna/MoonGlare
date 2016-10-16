@@ -86,6 +86,8 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 		return FontInstance(new EmptyWrapper());
 	}
 
+	static Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+
 	auto wrapper = new TrueTypeWrapper();
 	wrapper->m_Chars.reserve(text.length());
 	float h;
@@ -105,25 +107,16 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 	unsigned text_len = text.length();
 	Verticles.reserve(4 * text_len);
 	TexCoords.reserve(4 * text_len);
-	Index.reserve(4 * text_len);
+	Index.reserve(6 * text_len);
 	wrapper->m_Chars.reserve(text_len);
 
 	Graphic::vec3 char_scale(h / m_CacheHight);
 	const wstring::value_type *cstr = text.c_str();
 	Graphic::vec2 pos(0);
-	float hmax = 0;
+	float hmax = h;
 
-	//m_VAO.Bind();
-	//uint32_t id = 0;
-	//dev.CurrentShader()->SetBackColor(m_Color);
-	//for (auto it : m_Chars) {
-	//	if (!it->m_Ready)
-	//		break;
-	//	it->m_Texture.Bind();
-	//	m_VAO.DrawElements(4, id * 4, 0, Graphic::Flags::fQuads);
-	//	++id;
-	//}
-	//m_VAO.UnBind();
+	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+	float Aspect = ScreenSize[0] / ScreenSize[1];
 
 	while (*cstr) {
 		wchar_t c = *cstr;
@@ -141,30 +134,41 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 		chpos *= char_scale.x;
 		bs *= char_scale.x;
 		auto subpos = pos + chpos;
+		float bsy = bs.y;
+
+		if (UniformPosition) {
+			subpos = subpos / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+		}
 
 		if (c != L' ') {
 			wrapper->m_Chars.push_back(g);
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + bs.y, 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + 0,	 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + 0,	 0) *= char_scale);
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + bs.y, 0) *= char_scale);
+			auto base = Verticles.size();
+			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + bs.y, 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + 0,	 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + 0,	 0));
+			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + bs.y, 0));
 			auto &tc = g->m_TextureSize;
 			TexCoords.push_back(Graphic::vec2(0,	tc.y));
 			TexCoords.push_back(Graphic::vec2(0,	0));
 			TexCoords.push_back(Graphic::vec2(tc.x,	0));
 			TexCoords.push_back(Graphic::vec2(tc.x,	tc.y));
-			for (int i = 0; i < 4; ++i)
-				Index.push_back(Index.size());
+
+			for (auto idx : BaseIndex)
+				Index.push_back(base + idx);
 		}
 
 		pos.x += g->m_Advance.x * char_scale.x;
-		hmax = math::max(h, bs.y);
+		hmax = math::max(hmax, bsy);
 	}
 	pos.y = hmax;
-	wrapper->m_size = pos;
+
+	if (UniformPosition)
+		wrapper->m_size = pos / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
+	else
+		wrapper->m_size = pos;
+
 	wrapper->m_VAO.DelayInit(Verticles, TexCoords, Normals, Index);
-
-
 	
 	return FontInstance(wrapper);
 }

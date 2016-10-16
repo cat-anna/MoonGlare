@@ -45,7 +45,7 @@ struct iChangeContainer {
 	virtual ~iChangeContainer() { 
 		SetModiffiedState(false);
 	};
-	virtual bool SaveChanges() { return false; }
+	virtual bool SaveChanges() { SetModiffiedState(false); return false; }
 	virtual bool CanDropChanges() const { return false; }
 	virtual bool DropChanges() { return false; }
 	virtual std::string GetInfoLine() const { return ""; }
@@ -72,9 +72,6 @@ protected:
 				m_Parent->SetModiffiedState(value);
 			}
 		} else {
-			for (auto *it : m_Children) {
-				it->SetModiffiedState(false);
-			}
 		}
 		if(ChangesManager::Get())
 			ChangesManager::Get()->SetModiffiedState(this, value);

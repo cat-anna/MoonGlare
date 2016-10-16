@@ -25,6 +25,7 @@ union RectTransformComponentEntryFlagsMap {
 	struct MapBits_t {
 		bool m_Valid : 1;
 		bool m_Dirty : 1;
+		bool m_Changed : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -98,6 +99,7 @@ public:
 	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
 
 	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
+	const RectTransformComponentEntry &GetRootEntry() const { return m_Array[0]; }
 
 	bool IsUniformMode() const { return m_Flags.m_Map.m_UniformMode; }
 	const Renderer::VirtualCamera& GetCamera() const { return m_Camera; }
@@ -112,6 +114,13 @@ public:
 	static constexpr LuaMetamethods EntryMetamethods = { &EntryIndex , &EntryNewIndex, };
 
 	static int FindChild(lua_State *lua);
+	static int PixelToCurrent(lua_State *lua);
+
+	math::vec2 PixelToCurrent(math::vec2 pix) const {
+		if (!IsUniformMode())
+			return pix;
+		return pix / m_ScreenSize * GetRootEntry().m_Size;
+	}
 protected:
 	ScriptComponent *m_ScriptComponent;
 	RectTransformSettingsFlagsMap m_Flags;

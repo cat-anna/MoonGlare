@@ -130,7 +130,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 		if (!item.m_Flags.m_Map.m_Active)
 			continue;
-
+		
 		item.Update(conf.TimeDelta, *rtentry);
 		
 		if (!item.m_Animation)
@@ -139,6 +139,10 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		if (!CanRender)
 			continue;
 		
+		auto vao = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
+		if (vao == 0)
+			continue;
+
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
 		m_Shader->SetWorldMatrix(Queue, key, item.m_ImageMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
@@ -146,7 +150,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 
 		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
-		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
+		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = vao;
 
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 		arg->m_NumIndices = 6;
@@ -155,11 +159,11 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		QueueDirty = true;
 	}
 
-	if (!QueueDirty)
-		Queue.Rollback(QueueSavePoint);
-	else {
+	//if (!QueueDirty)
+	//	Queue.Rollback(QueueSavePoint);
+//	else {
 		//	m_Shader->VAORelease(Queue);
-	}
+	//}
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);

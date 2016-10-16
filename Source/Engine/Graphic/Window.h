@@ -74,11 +74,8 @@ public:
 	DefineFlagGetter(m_Flags, Flags::MouseHooked, MouseHooked);
 	const uvec2& Size() const { return m_Size; }
 
-	int GetModeCount() const;
-	GLFWvidmode GetMode(int index) const;
 	GLFWvidmode GetCurrentMode() const;
-	int GetMonitorCount() const;
-	string GetMonitorName(int index) const;
+	int GetMonitors(lua_State *lua);
 	int GetMonitorModes(lua_State *lua);
 
 	void SetPosition(const math::uvec2 &pos);
@@ -95,7 +92,7 @@ protected:
 	DefineFlagSetter(m_Flags, Flags::MainWindow, MainWindow);
 	DefineFlag(m_Flags, Flags::AllowMouseUnhook, AllowMouseUnhook);
 	void key_callback(int key, bool Pressed);
-	void ProcessChar(unsigned  Key);
+	void ProcessChar(unsigned Key);
 private:
 	MoonGlare::Core::InputProcessor *m_InputProcessor;
 	GLFWwindow *m_Window;

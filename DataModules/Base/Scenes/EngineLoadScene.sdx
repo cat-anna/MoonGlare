@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<Scene>
+	<Entities Name="Entity">
+		<Entity Name="Left">
+			<Component Name="RectTransform">
+				<Position X="0" Y="0" />
+				<Size X="2" Y="1" />
+				<AlignMode>15</AlignMode>
+				<Margin Left="10" Top="10" Right="10" Bottom="10" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+			<Entity Name="Logo">
+				<Component Name="RectTransform">
+					<Position X="0" Y="0" />
+					<Size X="411" Y="321" />
+					<AlignMode>10</AlignMode>
+					<Margin Left="0" Top="0" Right="0" Bottom="0" />
+					<UniformMode>false</UniformMode>
+					<Z>0</Z>
+				</Component>
+				<Component Name="Image">
+					<Active>true</Active>
+					<ScaleMode>1</ScaleMode>
+					<Color R="1" G="1" B="1" A="1" />
+					<TextureURI>file:///Textures/MoonClouds.png</TextureURI>
+					<Speed>10</Speed>
+					<StartFrame>0</StartFrame>
+					<FrameCount>12</FrameCount>
+					<FrameStripCount X="12" Y="1" />
+					<Spacing X="0" Y="0" />
+					<FrameSize X="0" Y="0" />
+				</Component>
+			</Entity>
+		</Entity>
+		<Entity Name="Right">
+			<Component Name="RectTransform">
+				<Position X="1" Y="0" />
+				<Size X="2" Y="1" />
+				<AlignMode>15</AlignMode>
+				<Margin Left="10" Top="10" Right="10" Bottom="10" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+			<Entity Name="InfoText">
+				<Component Name="RectTransform">
+					<Position X="0" Y="0" />
+					<Size X="1" Y="1" />
+					<AlignMode>9</AlignMode>
+					<Margin Left="0" Top="0" Right="0" Bottom="0" />
+					<UniformMode>false</UniformMode>
+					<Z>0</Z>
+				</Component>
+				<Component Name="Text">
+					<Active>true</Active>
+					<Text>${Menu.Loading}</Text>
+					<TextAlignMode>3</TextAlignMode>
+					<Color R="1" G="1" B="1" A="1" />
+					<FontName>Arial</FontName>
+					<FontSize>32</FontSize>
+				</Component>
+			</Entity>
+		</Entity>
+	</Entities>
+	<Configuration />
+	<Components>
+		<Component Name="Script" Id="17" />
+		<Component Name="RectTransform" Id="96">
+			<UniformPositionMode>true</UniformPositionMode>
+		</Component>
+		<Component Name="Image" Id="97" />
+		<Component Name="Text" Id="99" />
+	</Components>
+</Scene>

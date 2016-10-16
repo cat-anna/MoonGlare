@@ -39,8 +39,14 @@ public:
 	EditableEntity(EditableEntity *Parent = nullptr);
 	virtual ~EditableEntity();
 
-	virtual bool Read(pugi::xml_node node, const char *NodeName = nullptr);
-	virtual bool Write(pugi::xml_node node, const char *NodeName = nullptr);
+	virtual bool Read(pugi::xml_node node);
+	virtual bool Read(pugi::xml_node node, const char *NodeName);
+	virtual bool Write(pugi::xml_node node);
+	virtual bool Write(pugi::xml_node node, const char *NodeName);
+
+	bool Serialize(std::string &out);
+	bool Deserialize(std::string &out);
+	bool DeserializeToChild(std::string &out);
 
 	std::string& GetName() { return m_Name; }
 	const std::string& GetPatternURI() { return m_PatternURI; }
@@ -72,6 +78,10 @@ public:
 	void DeleteChild(EditableEntity *c);
 	EditableComponent* AddComponent(Core::ComponentID cid);
 	void DeleteComponent(EditableComponent *c);
+	void Delete() { GetParent()->DeleteChild(this); }
+
+	bool IsDeletable() const { return GetParent() != nullptr; }
+	bool IsMovable() const { return GetParent() != nullptr; }
 
 	void Clear();
 protected:
@@ -158,6 +168,10 @@ protected slots:
 	void EntityChanged(QStandardItem *item);
 	void ComponentContextMenu(const QPoint &);
 	void EntityContextMenu(const QPoint &);
+
+	void CutEntity();
+	void CopyEntity();
+	void PasteEntity();
 	
 	void ShowAddComponentMenu();
 	//void ProjectChanged(Module::SharedDataModule datamod);

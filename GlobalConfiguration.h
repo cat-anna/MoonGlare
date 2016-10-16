@@ -16,6 +16,7 @@ enum GlobalChanels : LogChannel {
 	Insider = FirstUserChannel + 8,
 	Script,
 	ScriptCall,
+	ScriptRuntime,
 	Performance,
 	Resources,
 	FSEvent,

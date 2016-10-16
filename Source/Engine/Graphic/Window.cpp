@@ -111,13 +111,8 @@ void Window::RegisterScriptApi(::ApiInitializer &api) {
 	.deriveClass<ThisClass, BaseClass>("cWindow")
 		.addFunction("SetTitle", &ThisClass::SetTitle)
 
-		.addFunction("GetMonitorCount", &ThisClass::GetMonitorCount)
-		.addFunction("GetMonitorName", &ThisClass::GetMonitorName)
+		.addCFunction("GetMonitors", &ThisClass::GetMonitors)
 		.addCFunction("GetMonitorModes", &ThisClass::GetMonitorModes)
-
-		.addFunction("GetMode", &ThisClass::GetMode)
-		.addFunction("GetModeCount", &ThisClass::GetModeCount)
-		.addFunction("GetCurrentMode", &ThisClass::GetCurrentMode)
 #ifdef DEBUG
 		.addFunction("GrabMouse", &ThisClass::GrabMouse)
 		.addFunction("ReleaseMouse", &ThisClass::ReleaseMouse)
@@ -134,29 +129,41 @@ void Window::RegisterScriptApi(::ApiInitializer &api) {
 
 //-------------------------------------------------------------------------------------------------
 
-int Window::GetMonitorCount() const {
-	int c;
-	glfwGetMonitors(&c);
-	return c;
-}
+int Window::GetMonitors(lua_State *lua) {
+	int count;
+	auto primarymonitor = glfwGetPrimaryMonitor();
+	auto monitors = glfwGetMonitors(&count);
 
-string Window::GetMonitorName(int index) const {
-	int c;
-	/*auto mon =*/ glfwGetMonitors(&c);
-	if (c <= index)
-		return "No such monitor";
-//	auto n = glfwGetMonitorName(mon[index]);
-//	if (!n)
-//		return "?";
+	lua_createtable(lua, 0, 0);
 
-	string ret;
-	ret.reserve(256);
-	ret += "Monitor ";
-	ret += std::to_string(index);
-//	ret += " - ";
-//	ret += n;
+	for (int i = 0; i < count; ++i) {
+		auto monitor = monitors[i];
 
-	return std::move(ret);
+		lua_pushinteger(lua, i + 1);
+		lua_createtable(lua, 0, 0);
+
+		lua_pushinteger(lua, i);
+		lua_setfield(lua, -2, "Index");
+
+		lua_pushstring(lua, glfwGetMonitorName(monitor));
+		lua_setfield(lua, -2, "Name");
+
+		if (monitor == primarymonitor) {
+			lua_pushboolean(lua, 1);
+			lua_setfield(lua, -2, "primary");
+		}
+
+		auto mode = glfwGetVideoMode(monitor);
+		lua_pushinteger(lua, mode->height);
+		lua_setfield(lua, -2, "Height");
+
+		lua_pushinteger(lua, mode->width);
+		lua_setfield(lua, -2, "Width");
+
+		lua_settable(lua, -3);
+	}
+
+	return 1;
 }
 
 int Window::GetMonitorModes(lua_State *lua) {
@@ -190,70 +197,27 @@ int Window::GetMonitorModes(lua_State *lua) {
 		lua_pushinteger(lua, index);
 		lua_createtable(lua, 0, 0);
 
-		lua_pushstring(lua, "Height");
 		lua_pushinteger(lua, mode->height);
-		lua_settable(lua, -3);
+		lua_setfield(lua, -2, "Height");
 
-		lua_pushstring(lua, "Width");
 		lua_pushinteger(lua, mode->width);
-		lua_settable(lua, -3);
+		lua_setfield(lua, -2, "Width");
 
-		lua_pushstring(lua, "ColorDepth");
-		lua_pushinteger(lua, mode->blueBits + mode->greenBits + mode->redBits);
-		lua_settable(lua, -3);
+		lua_pushinteger(lua, i);
+		lua_setfield(lua, -2, "Index");
 
-		lua_pushstring(lua, "RefreshRate");
-		lua_pushinteger(lua, mode->refreshRate);
-		lua_settable(lua, -3);
+		//lua_pushinteger(lua, mode->refreshRate);
+		//lua_setfield(lua, -2, "RefreshRate");
 
-		if (currmode->blueBits == mode->blueBits &&
-			currmode->greenBits == mode->greenBits &&
-			currmode->redBits == mode->redBits &&
-			currmode->width == mode->width &&
-			currmode->height == mode->height &&
-			currmode->refreshRate == mode->refreshRate) {
-
-			lua_pushstring(lua, "Current");
-			lua_pushboolean(lua, true);
-			lua_settable(lua, -3);
+		if (memcmp(mode, currmode, sizeof(*currmode)) == 0) {
+			lua_pushboolean(lua, 1);
+			lua_setfield(lua, -2, "Current");
 		}
+
 		lua_settable(lua, -3);
 	}
 
 	return 1;
-}
-
-int Window::GetModeCount() const {
-	auto monitor = glfwGetWindowMonitor(m_Window);
-	if (!monitor)
-		monitor = glfwGetPrimaryMonitor();
-
-	int modecount;
-	const GLFWvidmode* modes = glfwGetVideoModes(monitor, &modecount);
-	int count = 0;
-	for (int j = 0; j < modecount; ++j) {
-		if (!IsModeSuggested(modes + j))
-			continue;
-		++count;
-	}
-	return count;
-}
-
-GLFWvidmode Window::GetMode(int index) const {
-	auto monitor = glfwGetWindowMonitor(m_Window);
-	if (!monitor)
-		monitor = glfwGetPrimaryMonitor();
-
-	int modecount;
-	const GLFWvidmode* modes = glfwGetVideoModes(monitor, &modecount);
-	for (int j = 0; j < modecount; ++j) {
-		if (!IsModeSuggested(modes + j))
-			continue;
-		if (index <= 0)
-			return modes[j];
-		--index;
-	}
-	return GLFWvidmode{};
 }
 
 GLFWvidmode Window::GetCurrentMode() const {
@@ -288,13 +252,15 @@ void Window::CreateWindow() {
 	bool fullscreen = GraphicSettings::FullScreen::get();
 	GLFWmonitor *monitor = nullptr;
 
-	if (m < 0) {
-		monitor = glfwGetPrimaryMonitor();
-	} else {
-		int c;
-		auto mont = glfwGetMonitors(&c);
-		if (c > m)
-			monitor = mont[m];
+	if (fullscreen) {
+		if (m < 0) {
+			monitor = glfwGetPrimaryMonitor();
+		} else {
+			int c;
+			auto mont = glfwGetMonitors(&c);
+			if (c > m)
+				monitor = mont[m];
+		}
 	}
 
 
@@ -306,9 +272,14 @@ void Window::CreateWindow() {
 		GraphicSettings::Height::set(h);
 	}
 
-	m_Size = uvec2(w, h);
-	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", fullscreen ? monitor : nullptr, 0);
+	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", monitor , 0);
 	CriticalCheck(m_Window, "Unable to create new window!");
+
+	int iw, ih;
+	glfwGetWindowSize(m_Window, &iw, &ih);
+	m_Size = uvec2(iw, ih);
+	GraphicSettings::Width::set(m_Size[0]);
+	GraphicSettings::Height::set(m_Size[1]);
 
 #if 0
 	if (!fullscreen) {
@@ -328,7 +299,7 @@ void Window::CreateWindow() {
 	glfwSetScrollCallback(m_Window, glfw_scroll_callback);
 	//glfwSetCursorPosCallback(m_Window, glfw_mousepos_callback);
 
-	AddLogf(Debug, "Created window %dx%d", w, h);
+	AddLogf(Debug, "Created window %dx%d", iw, ih);
 }
 
 void Window::key_callback(int key, bool Pressed) {

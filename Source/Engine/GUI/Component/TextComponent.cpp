@@ -78,6 +78,8 @@ bool TextComponent::Initialize() {
 		}
 	});
 
+	m_TextProcessor.SetTables(GetDataMgr()->GetStringTables());
+
 	return true;
 }
 
@@ -127,8 +129,8 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		if (!entry.m_Flags.m_Map.m_Active)
 			continue;
 
-		if (entry.m_Flags.m_Map.m_Dirty) {
-			entry.Update(*rtentry, m_RectTransform->IsUniformMode());
+		if (entry.m_Flags.m_Map.m_Dirty || rtentry->m_Flags.m_Map.m_Changed) {
+			entry.Update(*rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);
 		}
 
 		if (!entry.m_FontInstance)
@@ -141,12 +143,6 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
-
-//		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
-//		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
-//		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
-//		arg->m_NumIndices = 6;
-//		arg->m_IndexValueType = GL_UNSIGNED_INT;
 
 		QueueDirty = true;
 	}
@@ -202,15 +198,24 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;
+	entry.m_Flags.m_Map.m_TextDirty = true;
 	m_EntityMapper.SetComponentMapping(entry);
 	return true;
 }
 
 //---------------------------------------------------------------------------------------
 
-void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Uniform) {
-	std::wstring txt = Utils::Strings::towstring(m_Text);
-	m_FontInstance = DataClasses::SharedFontInstance(m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, Uniform).release());
+void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
+
+	if (m_Flags.m_Map.m_TextDirty) {
+		std::string processed;
+		tproc.Process(m_Text, processed);
+		std::wstring txt = Utils::Strings::towstring(processed);
+
+		m_FontInstance = DataClasses::SharedFontInstance(m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, Uniform).release());
+	m_Flags.m_Map.m_TextDirty = false;
+	}
+
 	auto tsize = m_FontInstance->GetSize();
 	auto psize = Parent.m_ScreenRect.GetSize();
 

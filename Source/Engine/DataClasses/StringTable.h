@@ -32,6 +32,8 @@ protected:
 	using StringTableMap = std::unordered_map < string, StringTableInfo > ;
 	StringTableMap m_TableMap;
 
+	void InitInternalTable();
+
 	bool Load(const string& TableName);
 };
 

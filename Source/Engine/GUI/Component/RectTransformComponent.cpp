@@ -66,7 +66,6 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
 }
 
 int RectTransformComponent::FindChild(lua_State *lua) {
-
 	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
 	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
 
@@ -88,8 +87,18 @@ int RectTransformComponent::FindChild(lua_State *lua) {
 	return 1;
 }
 
-template<typename StackFunc, typename Entry>
-bool ProcessProperty(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx) {
+int RectTransformComponent::PixelToCurrent(lua_State *lua) {
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
+	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+
+	auto value = luabridge::Stack<math::vec2>::get(lua, 2);
+	value = This->PixelToCurrent(value);
+	luabridge::Stack<math::vec2>::push(lua, value);
+	return 1;
+}
+
+template<bool Read, typename StackFunc>
+bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
 	switch (hash) {
 	case "Position"_Hash32:
 		luarets = StackFunc::func(lua, e->m_Position, validx);
@@ -99,6 +108,19 @@ bool ProcessProperty(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int 
 		break;
 	case "Order"_Hash32:
 		luarets = StackFunc::func(lua, e->m_Z, validx);
+		break;
+	case "ScreenPosition"_Hash32:
+		luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
+		break;
+	case "AlignMode"_Hash32:
+		if (Read) {
+			int v = static_cast<int>(e->m_AlignMode);
+			luarets = StackFunc::func(lua, v, validx);
+		} else {
+			int v;
+			luarets = StackFunc::func(lua, (int)v, validx);
+			e->m_AlignMode = static_cast<AlignMode>(v);
+		}
 		break;
 	default:
 		return false;
@@ -113,6 +135,11 @@ bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int v
 	case "FindChild"_Hash32:
 		lua_pushlightuserdata(lua, This);
 		lua_pushcclosure(lua, &RectTransformComponent::FindChild, 2);
+		luarets = 1;
+		return true;
+	case "PixelToCurrent"_Hash32:
+		lua_pushlightuserdata(lua, This);
+		lua_pushcclosure(lua, &RectTransformComponent::PixelToCurrent, 2);
 		luarets = 1;
 		return true;
 	default:
@@ -143,7 +170,7 @@ int RectTransformComponent::EntryIndex(lua_State *lua) {
 	if (QuerryFunction<luabridge::StackPush>(lua, e, hash, lrets, 0, This)) {
 		return lrets;
 	}
-	if (ProcessProperty<luabridge::StackPush>(lua, e, hash, lrets, 0)) {
+	if (ProcessProperty<true, luabridge::StackPush>(lua, e, hash, lrets, 0)) {
 		return lrets;
 	}
 
@@ -171,7 +198,7 @@ int RectTransformComponent::EntryNewIndex(lua_State *lua) {
 
 	auto hash = Space::Utils::MakeHash32(name);
 	int lrets;
-    if (!ProcessProperty<luabridge::StackGet>(lua, e, hash, lrets, validx)) {
+    if (!ProcessProperty<false, luabridge::StackGet>(lua, e, hash, lrets, validx)) {
 		return 0;
 	}
 	return lrets;
@@ -271,9 +298,11 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 
 			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
 				//nothing to do, nothing changed;
+				item.m_Flags.m_Map.m_Changed = false;
 			} else {
 				item.Recalculate(*ParentEntry);
 				item.m_Revision = m_CurrentRevision;
+				item.m_Flags.m_Map.m_Changed = true;
 			}
 			//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
 		} else {
@@ -431,7 +460,8 @@ bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, 
 				}
 			} while (em->GetNextSibling(child, child));
 
-			return false;
+			eout = Owner;
+			return true;
 		}
 	};
 	auto Owner = ParentEntry->m_OwnerEntity;
@@ -534,7 +564,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 		m_Position = Point(parentmargin.Left, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
 		break;
 	case AlignMode::RightMiddle: 
-		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
+		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin() - m_Size.y) / 2.0f);
 		break;
 	case AlignMode::MiddleTop: 
 		m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentmargin.Top);

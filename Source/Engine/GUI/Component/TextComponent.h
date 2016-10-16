@@ -11,6 +11,7 @@
 
 #include "nfGUIComponent.h"
 #include <Core/Component/AbstractComponent.h>
+#include <TextProcessor.h>
 
 #include "../Enums.h"
 
@@ -25,6 +26,7 @@ union TextComponentEntryFlagsMap {
 		bool m_Valid : 1;
 		bool m_Dirty : 1;
 		bool m_Active : 1;
+		bool m_TextDirty : 1;
 	};
 	MapBits_t m_Map;
 	uint8_t m_UintValue;
@@ -64,9 +66,9 @@ struct TextComponentEntry {
 		m_FontInstance.reset();
 	}
 
-	void SetDirty() { m_Flags.m_Map.m_Dirty = true;}
+	void SetDirty() { m_Flags.m_Map.m_Dirty = true;  m_Flags.m_Map.m_TextDirty = true; }
 
-	void Update(RectTransformComponentEntry &Parent, bool Uniform);
+	void Update(RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
@@ -85,6 +87,7 @@ public:
 protected:
 	RectTransformComponent *m_RectTransform;
 	GUIShader *m_Shader;
+	TextProcessor m_TextProcessor;
 };
 
 } //namespace Component 

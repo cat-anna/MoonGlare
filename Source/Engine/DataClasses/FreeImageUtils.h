@@ -4,29 +4,17 @@
 
 #include <FreeImage.h>
 
-void RGBToBGR(FIBITMAP *dib){
-	BYTE *bits = FreeImage_GetBits(dib);
-	int width = FreeImage_GetWidth(dib);
-	int height = FreeImage_GetHeight(dib);
+void SwapRedAndBlue(FIBITMAP *dib){
+	unsigned height = FreeImage_GetHeight(dib);
 
-	for(int i = 0, j = height * width; i < j; ++i){
-		BYTE b = bits[0];
-		bits[0] = bits[2];
-		bits[2] = b;
-		bits += 3;
-	}
-}
+	unsigned linebytes = FreeImage_GetLine(dib);
+	unsigned bpp = FreeImage_GetBPP(dib) / 8;
 
-void RGBAToBGRA(FIBITMAP *dib){
-	BYTE *bits = FreeImage_GetBits(dib);
-	int width = FreeImage_GetWidth(dib);
-	int height = FreeImage_GetHeight(dib);
-
-	for(int i = 0, j = height * width; i < j; ++i){
-		BYTE b = bits[0];
-		bits[0] = bits[2];
-		bits[2] = b;
-		bits += 4;
+	for (unsigned h = 0; h < height; ++h) {
+		BYTE *line = FreeImage_GetScanLine(dib, h);
+		for (unsigned w = 0; w < linebytes; w += bpp) {
+			std::swap(line[w + FI_RGBA_BLUE], line[w + FI_RGBA_RED]);
+		}
 	}
 }
 

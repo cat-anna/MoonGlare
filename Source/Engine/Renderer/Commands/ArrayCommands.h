@@ -36,6 +36,17 @@ struct VAODrawTrianglesArgument {
 };
 using VAODrawTriangles = CommandTemplate<VAODrawTrianglesArgument>;
 
+struct VAODrawTrianglesBaseArgument {
+	unsigned m_NumIndices;
+	unsigned m_IndexValueType;
+	unsigned m_BaseIndex;
+
+	static void Execute(const VAODrawTrianglesBaseArgument *arg) {
+		glDrawElements(GL_TRIANGLES, arg->m_NumIndices, arg->m_IndexValueType, reinterpret_cast<void*>(arg->m_BaseIndex));
+	}
+};
+using VAODrawTrianglesBase = CommandTemplate<VAODrawTrianglesBaseArgument>;
+
 } //namespace Commands
 } //namespace OpenGL
 } //namespace Renderer 
