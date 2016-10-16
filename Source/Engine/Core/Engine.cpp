@@ -92,6 +92,7 @@ void Engine::ScriptApi(ApiInitializer &root){
 		.addFunction("ClearSceneStack", &ThisClass::ClearSceneStack)
 		.addFunction("PopScenes", &ThisClass::PopScenes)
 		.addFunction("ClearScenesUntil", &ThisClass::ClearScenesUntil)
+		.addFunction("ChangeScene", &ThisClass::ChangeScene)
 
 //		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
 		
