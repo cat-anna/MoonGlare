@@ -91,7 +91,6 @@ public:
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
-	const GUI::GUIEnginePtr& GetGUI() const { return m_GUI; }
 //very old
 	DefineFlagGetter(m_Flags, sfset_IsReady, Ready)
 	DefineFlagGetter(m_Flags, sf_Initialized, Initialized)
@@ -108,7 +107,6 @@ protected:
 	Graphic::Environment m_Environment;
 
 	TimeEvents m_TimeEvents;
-	GUI::GUIEnginePtr m_GUI;
 	XMLFile m_MetaData;
 
 	virtual bool DoInitialize();

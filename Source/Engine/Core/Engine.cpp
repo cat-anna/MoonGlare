@@ -3,7 +3,6 @@
 
 #include "Engine.h"
 
-#include <GUI/GUI.h>
 #include "Console.h"
 
 #include <Graphic/Dereferred/DereferredPipeline.h>
@@ -268,9 +267,6 @@ void Engine::DoRender(MoveConfig &conf) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
-
-	if (m_CurrentScene && m_CurrentScene->GetGUI())
-		m_CurrentScene->GetGUI()->Draw(dev);
 
 	conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Execute();
 

@@ -19,8 +19,6 @@
 #include <ComponentCommon.x2c.h>
 #include <ScriptComponent.x2c.h>
 
-#include <GUI/Component/RectTransformComponent.h>
-
 namespace MoonGlare {
 namespace Core {
 namespace Component {

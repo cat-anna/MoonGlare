@@ -7,7 +7,6 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/GUI/nGUI.h>
 #include <Engine/iSoundEngine.h>
 #include <Engine/Core/Engine.h>
 
@@ -50,8 +49,6 @@ void ciScene::RegisterScriptApi(ApiInitializer &api) {
 
 		.addFunction("FinishScene", &ThisClass::FinishScene)
 		.addFunction("SetFinishedState", &ThisClass::SetFinishedState)
-		
-		.addFunction("GetGUI", Utils::Template::SmartPointerTweeks<ThisClass, GUI::GUIEnginePtr>::Get<&ThisClass::m_GUI>())
 	.endClass();
 }
 
@@ -66,17 +63,12 @@ void ciScene::BeginScene() {
 	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
 	m_Environment.Initialize();
 
-	m_GUI->Activate();
-
 	SetReady(true);
 	InvokeOnBeginScene();
 }
 
 void ciScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
-
-	if (m_GUI)
-		m_GUI->Deactivate();
 
 	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 	m_Environment.Finalize();
@@ -113,9 +105,6 @@ bool ciScene::Finalize() {
 }
 
 bool ciScene::DoInitialize() {
-	m_GUI = std::make_unique<GUI::GUIEngine>();
-	m_GUI->Initialize(Graphic::GetRenderDevice()->GetContext().get());
-
 	if (!m_ComponentManager.Initialize(this)) {
 		AddLogf(Error, "Failed to initialize component manager");
 		return false;
@@ -130,9 +119,6 @@ bool ciScene::DoInitialize() {
 }
 
 bool ciScene::DoFinalize() {
-	if (m_GUI) m_GUI->Finalize();
-	m_GUI.reset();
-
 	if (!m_ComponentManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize component manager");
 		return false;
@@ -146,9 +132,6 @@ bool ciScene::DoFinalize() {
 void ciScene::DoMove(const MoveConfig &conf) {
 	conf.Scene = this;
 	m_TimeEvents.CheckEvents(conf);
-	if (m_GUI)
-		m_GUI->Process(conf);
-
 	m_ComponentManager.Step(conf);
 }
 

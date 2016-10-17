@@ -6,7 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include "GUI.h"
+
+#include "nfGUI.h"
+#include "Animation.h"
 
 namespace MoonGlare {
 namespace GUI {
