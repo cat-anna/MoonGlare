@@ -11,7 +11,6 @@
 #include <Engine/Core/Console.h>
 #include "GraphicSettings.h"
 
-#include <Core/InputMap.h>
 #include <Core/InputProcessor.h>
 
 namespace Graphic {
@@ -313,7 +312,6 @@ void Window::key_callback(int key, bool Pressed) {
 		if (!Pressed) return;
 		if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
 			ReleaseMouse();
-			MoonGlare::Core::GetInput()->ClearMouseDelta();
 			return;
 		}
 		MoonGlare::Core::GetEngine()->HandleEscapeKey();
@@ -411,7 +409,6 @@ void Window::Process() {
 	glfwPollEvents();
 	if (IsMouseHooked()) {
 		auto delta = CursorDelta();
-		MoonGlare::Core::GetInput()->SetMouseDelta(delta);
 		if (m_InputProcessor)
 			m_InputProcessor->SetMouseDelta(delta);
 	}
@@ -464,11 +461,6 @@ void Window::glfwMouseButtonCallback(GLFWwindow *window, int button, int action,
 
 	if (w->m_InputProcessor)
 		w->m_InputProcessor->SetMouseButtonState(button, action == GLFW_PRESS);
-
-	if (action == GLFW_PRESS)
-		::Core::Input::MouseDownEvent(MouseBtn, mods);
-	else
-		::Core::Input::MouseUpEvent(MouseBtn, mods);
 }
 
 void Window::glfw_focus_callback(GLFWwindow* window, int focus) {

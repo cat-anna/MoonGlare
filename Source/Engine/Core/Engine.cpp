@@ -5,7 +5,6 @@
 
 #include <GUI/GUI.h>
 #include "Console.h"
-#include <Core/InputMap.h>
 
 #include <Graphic/Dereferred/DereferredPipeline.h>
 
@@ -37,11 +36,9 @@ Engine::Engine() :
 
 	SetThisAsInstance();
 	new JobQueue();
-	new ::Core::Input();
 }
 
 Engine::~Engine() {
-	::Core::Input::DeleteInstance();
 	JobQueue::DeleteInstance();
 }
 
