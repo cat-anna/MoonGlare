@@ -210,19 +210,6 @@ void Engine::EngineMain() {
 		m_CurrentScene->EndScene();
 }         
 
-void Engine::HandleEscapeKeyImpl() {
-	if (!m_CurrentScene)
-		return; //actin cannot be handled properly so ignore
-
-	if (m_CurrentScene->InvokeOnEscape())
-		return; //Action handled nothing to do more
-
-	AddLog(Debug, "Unhandled escape key catched!");
-#ifdef DEBUG
-	Exit();
-#endif
-}
-
 //----------------------------------------------------------------------------------
 
 void Engine::ChangeSceneImpl() {
@@ -231,7 +218,7 @@ void Engine::ChangeSceneImpl() {
 	auto *prevScene = m_CurrentScene;
 	m_CurrentScene = GetScenesManager()->GetNextScene();
 	if (m_CurrentScene) 
-		m_CurrentScene->BeginScene();
+		m_CurrentScene->BeginScene(); 
 	AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
 			(prevScene ? prevScene->GetName().c_str() : "NULL"), prevScene,
 			(m_CurrentScene ? m_CurrentScene->GetName().c_str() : "NULL"), m_CurrentScene);

@@ -308,14 +308,6 @@ void Window::key_callback(int key, bool Pressed) {
 		return;
 	}
 	switch (key) {
-	case GLFW_KEY_ESCAPE:
-		if (!Pressed) return;
-		if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
-			ReleaseMouse();
-			return;
-		}
-		MoonGlare::Core::GetEngine()->HandleEscapeKey();
-		return;
 	case GLFW_KEY_GRAVE_ACCENT://` - 0xC0
 		if (!Pressed) return;
 		if (!::Settings->Engine.EnableConsole)
@@ -339,7 +331,13 @@ void Window::key_callback(int key, bool Pressed) {
 
 			MoonGlare::DataClasses::Texture::AsyncStoreImage(img, buf);
 		});
-		return;
+		return;	case GLFW_KEY_ESCAPE:
+			if (!Pressed) return;
+			if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
+				ReleaseMouse();
+				return;
+			}
+		[[fallthrough]]
 	default:
 		if (m_InputProcessor)
 			m_InputProcessor->SetKeyState(key, Pressed);

@@ -44,8 +44,6 @@ public:
 	/** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
 	void Exit();				
 
-	void HandleEscapeKey() { m_ActionQueue.Add([this]() { HandleEscapeKeyImpl(); }); }
-
 	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
 	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
@@ -78,8 +76,6 @@ protected:
 	unsigned m_LastFPS;				//!< FPS in previous second.
 	unsigned m_FrameCounter;		//!< Counter of fps in current second. Updated per cycle.
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
-
-	virtual void HandleEscapeKeyImpl();
 
 	//void GoToSceneImpl(const string& Name);
 	//void HandleSceneStateChangeImpl();

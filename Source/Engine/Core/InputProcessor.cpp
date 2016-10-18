@@ -28,7 +28,6 @@ InputProcessor::InputProcessor() {
 }
 
 InputProcessor::~InputProcessor() {
-
 }
 
 //---------------------------------------------------------------------------------------
@@ -79,6 +78,8 @@ bool InputProcessor::Initialize(World *world) {
 		AddLogf(Info, "Loaded InputConfiguration from: %s", Configuration::Input::SettingsFileName);
 	}
 
+	AddKeyboardSwitch("Escape", GLFW_KEY_ESCAPE);
+
 	return true;
 }
 
@@ -111,7 +112,11 @@ bool InputProcessor::Step(const Core::MoveConfig & config) {
 //---------------------------------------------------------------------------------------
 
 void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
-	THROW_ASSERT(Id < Configuration::Input::MaxKeyCode, "Key code id overflow!");
+	THROW_ASSERT(Id < Configuration::Input::MaxKeyCode, "");
+	if (Id >= Configuration::Input::MaxKeyCode) {
+		AddLogf(Warning, "Key code id overflow: %u", Id);
+		return;
+	}
 	//AddLogf(Debug, "Processing key: %u:%d", Id, Pressed ? 1 : 0);
 
 	auto &keyinfo = m_Keys[Id];
