@@ -50,13 +50,6 @@ void BackstageScene::DoMove(const MoveConfig &conf) {
 
 //----------------------------------------------------------------
 
-int BackstageScene::InvokeOnTimer(int TimerID) { SCRIPT_INVOKE(OnTimer, TimerID); }
-int BackstageScene::InvokeOnEscape() { SCRIPT_INVOKE(OnEscape); }
-int BackstageScene::InvokeOnBeginScene() { SCRIPT_INVOKE(OnBeginScene); }
-int BackstageScene::InvokeOnEndScene() { SCRIPT_INVOKE(OnEndScene); }
-int BackstageScene::InvokeOnInitialize() { SCRIPT_INVOKE(OnInitialize); }
-int BackstageScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
-
 } //namespace Scenes 
 } //namespace Core 
 } //namespace MoonGlare 

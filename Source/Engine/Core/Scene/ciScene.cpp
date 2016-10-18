@@ -17,7 +17,6 @@ namespace Core {
 namespace Scene {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(ciScene)
-IMPLEMENT_SCRIPT_EVENT_VECTOR(SceneScriptEvents);
 RegisterApiDerivedClass(ciScene, &ciScene::RegisterScriptApi);
 inline ciScene* CurrentInstance() { return GetEngine()->GetCurrentScene(); }
 RegisterApiDynamicInstance(ciScene, &CurrentInstance, "Scene");
@@ -26,12 +25,8 @@ SceneClassRegister::Register<ciScene> SceneReg("Scene");
 ciScene::ciScene() :
 		BaseClass(),
 		m_SceneState(SceneState::Waiting),
-		m_ScriptHandlers(),
 		m_Flags(0),
 		m_TimeEvents() {
-	m_EventProxy.set(new EventProxy<ThisClass, 
-					 &ThisClass::InvokeOnTimer,
-					 &ThisClass::InternalEventNotification>(this));
 }
 
 ciScene::~ciScene() {
@@ -41,12 +36,6 @@ ciScene::~ciScene() {
 void ciScene::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("iScene")
-		.addFunction("SetTimer", &ThisClass::SetTimer)
-		.addFunction("KillTimer", &ThisClass::KillTimer)
-
-		.addFunction("InvokeOnTimer", &ThisClass::InvokeOnTimer)
-		.addFunction("SetEventFunction", &ThisClass::SetEventFunction)
-
 		.addFunction("FinishScene", &ThisClass::FinishScene)
 		.addFunction("SetFinishedState", &ThisClass::SetFinishedState)
 	.endClass();
@@ -64,7 +53,6 @@ void ciScene::BeginScene() {
 	m_Environment.Initialize();
 
 	SetReady(true);
-	InvokeOnBeginScene();
 }
 
 void ciScene::EndScene() {
@@ -73,7 +61,6 @@ void ciScene::EndScene() {
 	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 	m_Environment.Finalize();
 
-	InvokeOnEndScene();
 	SetReady(false);
 }
 
@@ -84,8 +71,6 @@ bool ciScene::Initialize() {
 		AddLog(Error, "Unable to initialize scene " << GetName());
 		return false;
 	}
-	if (InvokeOnInitialize() != 0)
-		return false;
 	SetInitialized(true);
 	return true;
 }
@@ -98,8 +83,6 @@ bool ciScene::Finalize() {
 		AddLog(Error, "Unable to finalize scene " << GetName());
 		return false;
 	}
-	if(InvokeOnFinalize() != 0)
-		return false;
 	SetInitialized(false);
 	return true;
 }
@@ -137,15 +120,6 @@ void ciScene::DoMove(const MoveConfig &conf) {
 
 //----------------------------------------------------------------
 
-int ciScene::InvokeOnTimer(int TimerID) { SCRIPT_INVOKE(OnTimer, TimerID); }
-int ciScene::InvokeOnEscape() { SCRIPT_INVOKE(OnEscape); }
-int ciScene::InvokeOnBeginScene() { SCRIPT_INVOKE(OnBeginScene); }
-int ciScene::InvokeOnEndScene() { SCRIPT_INVOKE(OnEndScene); }
-int ciScene::InvokeOnInitialize() { SCRIPT_INVOKE(OnInitialize); }
-int ciScene::InvokeOnFinalize() { SCRIPT_INVOKE(OnFinalize); }
-
-//----------------------------------------------------------------
-
 bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
 	m_MetaData.swap(file);
 	if (!m_MetaData) return false;
@@ -154,7 +128,6 @@ bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
 
 bool ciScene::LoadMeta(const xml_node Node) {
 	SetName(Node.attribute(xmlAttr_Name).as_string("??"));
-	m_ScriptHandlers->LoadFromXML(Node);
 	m_Environment.LoadMeta(Node.child("Environment"));
 	m_Settings.LoadMeta(Node.child("Settings"));
 	return m_ComponentManager.LoadComponents(Node.child("Components"));
@@ -188,10 +161,8 @@ int ciScene::InternalEventNotification(Events::InternalEvents event, int Param) 
 }
 
 //----------------------------------------------------------------
-//----------------------------------------------------------------
 
 SceneSettings::SceneSettings(): PlayList("") {
-
 }
 
 bool SceneSettings::LoadMeta(const xml_node node) {
