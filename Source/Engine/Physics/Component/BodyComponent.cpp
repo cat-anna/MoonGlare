@@ -68,7 +68,6 @@ bool BodyComponent::Initialize() {
 		return false;
 	}
 
-
 	return true;
 }
 
@@ -155,10 +154,8 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 //	Handle &h = hout;
 //	HandleIndex index = m_Allocated++;
 
-	auto *tc = GetManager()->GetTransformComponent();
-
 	Handle TCHandle;
-	if (!tc->GetInstanceHandle(Owner, TCHandle)) {
+	if (!m_TransformComponent->GetInstanceHandle(Owner, TCHandle)) {
 		AddLogf(Error, "Failed get transform handle!");
 		return false;
 	}
@@ -187,9 +184,9 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	auto &motionstste = m_MotionStateProxy[index];
 
 	body.Reset(this, hout);
-	body.SetTrnsform(tc, TCHandle);
+	body.SetTransform(m_TransformComponent, TCHandle);
 	motionstste.Reset(this, hout);
-	motionstste.SetTrnsform(tc, TCHandle);
+	motionstste.SetTransform(m_TransformComponent, TCHandle);
 
 //	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
 	//body.setCollisionShape(cs);

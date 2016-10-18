@@ -93,7 +93,7 @@ public:
 			m_EntryHandle = eh;
 			m_BodyComponent = bc;
 		}
-		void SetTrnsform(Core::Component::TransformComponent *Transform, Handle th) {
+		void SetTransform(Core::Component::TransformComponent *Transform, Handle th) {
 			m_TransformHandle = th;
 			m_Transform = Transform;
 		}

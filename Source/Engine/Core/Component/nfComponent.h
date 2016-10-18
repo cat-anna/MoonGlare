@@ -23,9 +23,7 @@ using UniqueAbstractComponent = std::unique_ptr<AbstractComponent>;
 
 class ComponentManager;
 
-class ScriptComponent;
 class TransformComponent;
-class CameraComponent;
 
 enum class ComponentID : uint32_t {
 	Invalid = 0,

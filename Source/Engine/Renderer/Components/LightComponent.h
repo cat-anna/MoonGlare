@@ -69,6 +69,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 private:
 	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+	TransformComponent *m_TransformComponent;
 };
 } //namespace Component 
 } //namespace Renderer 

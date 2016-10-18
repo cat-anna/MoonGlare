@@ -71,6 +71,7 @@ public:
 	using CameraEntry = CameraComponentEntry;
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
+	TransformComponent *m_TransformComponent;
 };
 
 } //namespace Component 
