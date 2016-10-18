@@ -10,6 +10,7 @@
 #define RectTransformComponent_H
 
 #include <Core/Component/AbstractComponent.h>
+#include <Core/Scripts/ScriptComponent.h>
 
 #include "../Margin.h"
 #include "../Enums.h"
@@ -82,6 +83,8 @@ struct RectTransformSettingsFlagsMap {
 
 	static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 };
+
+using Core::Scripts::Component::ScriptComponent;
 
 class RectTransformComponent 
 	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>

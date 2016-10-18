@@ -11,9 +11,9 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-namespace MoonGlare {
-namespace Core {
-namespace Component {
+namespace MoonGlare::Core::Scripts::Component {
+
+using namespace Core::Component;
 
 class ScriptComponent
 	: public AbstractComponent
@@ -116,8 +116,6 @@ private:
 	static int lua_GetFirstChild(lua_State *lua);
 }; 
 
-} //namespace Component 
-} //namespace Core 
-} //namespace MoonGlare 
+} //namespace MoonGlare::Core::Scripts::Component 
 
 #endif
