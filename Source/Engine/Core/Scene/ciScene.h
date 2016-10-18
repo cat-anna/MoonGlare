@@ -20,23 +20,6 @@ enum class SceneState {
 	Finished,
 };
 
-enum class SceneEscapeAction {
-	None,
-	ExitEngine,
-	EnterPreviousScene,
-	EnterSystemMenu,
-
-	ExtendedAction,
-};
-
-struct SceneSettings {
-	string PlayList;
-
-	SceneSettings();
-
-	bool LoadMeta(const xml_node node);
-};
-
 class ciScene : public DataClasses::BasicResource {
 	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, DataClasses::BasicResource)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
@@ -48,7 +31,6 @@ public:
 	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
 
 //old
-	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);
 
@@ -106,7 +88,6 @@ protected:
 private:
 //old
 	SceneState m_SceneState;
-	SceneSettings m_Settings;
 };
 
 } //namespace Scene

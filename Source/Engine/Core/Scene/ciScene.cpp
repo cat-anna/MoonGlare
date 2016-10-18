@@ -30,7 +30,6 @@ ciScene::ciScene() :
 }
 
 ciScene::~ciScene() {
-	//TODO: delete ScritpHanldlers;
 }
 
 void ciScene::RegisterScriptApi(ApiInitializer &api) {
@@ -45,9 +44,6 @@ void ciScene::RegisterScriptApi(ApiInitializer &api) {
 
 void ciScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
-
-	if(Sound::iSoundEngine::InstanceExists() && !GetSettings().PlayList.empty())
-		GetSoundEngine()->SetPlayList(GetSettings().PlayList);
 
 	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
 	m_Environment.Initialize();
@@ -129,7 +125,6 @@ bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
 bool ciScene::LoadMeta(const xml_node Node) {
 	SetName(Node.attribute(xmlAttr_Name).as_string("??"));
 	m_Environment.LoadMeta(Node.child("Environment"));
-	m_Settings.LoadMeta(Node.child("Settings"));
 	return m_ComponentManager.LoadComponents(Node.child("Components"));
 }
 
@@ -158,16 +153,6 @@ void ciScene::SetSceneState(SceneState state) {
 int ciScene::InternalEventNotification(Events::InternalEvents event, int Param) {
 	//No events are handled here
 	return 0;
-}
-
-//----------------------------------------------------------------
-
-SceneSettings::SceneSettings(): PlayList("") {
-}
-
-bool SceneSettings::LoadMeta(const xml_node node) {
-	PlayList = node.child("PlayList").text().as_string("");
-	return true;
 }
 
 } // namespace Scene
