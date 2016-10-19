@@ -11,6 +11,7 @@
 
 #include <Core/Component/AbstractComponent.h>
 #include <Core/Scripts/ScriptComponent.h>
+#include <Core/Scripts/ComponentEntryWrap.h>
 
 #include "../Margin.h"
 #include "../Enums.h"
@@ -88,6 +89,7 @@ using Core::Scripts::Component::ScriptComponent;
 
 class RectTransformComponent 
 	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>
+	, public Core::Scripts::Component::ComponentEntryWrap<RectTransformComponent>
 	, public Core::iCustomDraw {
 public:
 	static constexpr char *Name = "RectTransform";
@@ -112,17 +114,64 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
 
-	static int EntryIndex(lua_State *lua);
-	static int EntryNewIndex(lua_State *lua);
-	static constexpr LuaMetamethods EntryMetamethods = { &EntryIndex , &EntryNewIndex, };
-
 	static int FindChild(lua_State *lua);
-	static int PixelToCurrent(lua_State *lua);
+	static int LuaPixelToCurrent(lua_State *lua);
 
 	math::vec2 PixelToCurrent(math::vec2 pix) const {
 		if (!IsUniformMode())
 			return pix;
 		return pix / m_ScreenSize * GetRootEntry().m_Size;
+	}
+
+	template<bool Read, typename StackFunc>
+	static bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
+		switch (hash) {
+		case "Position"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Position, validx);
+			break;
+		case "Size"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Size, validx);
+			break;
+		case "Order"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Z, validx);
+			break;
+		case "ScreenPosition"_Hash32:
+			luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
+			break;
+		case "AlignMode"_Hash32:
+			if (Read) {
+				int v = static_cast<int>(e->m_AlignMode);
+				luarets = StackFunc::func(lua, v, validx);
+			} else {
+				int v;
+				luarets = StackFunc::func(lua, (int)v, validx);
+				e->m_AlignMode = static_cast<AlignMode>(v);
+			}
+			break;
+		default:
+			return false;
+		}
+		e->SetDirty();
+		return true;
+	}
+
+	template<typename StackFunc, typename Entry>
+	static bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, RectTransformComponent *This) {
+		switch (hash) {
+		case "FindChild"_Hash32:
+			lua_pushlightuserdata(lua, This);
+			lua_pushcclosure(lua, &RectTransformComponent::FindChild, 1);
+			luarets = 1;
+			return true;
+		case "PixelToCurrent"_Hash32:
+			//lua_pushlightuserdata(lua, This);
+			//lua_pushcclosure(lua, &RectTransformComponent::PixelToCurrent, 1);
+			PushThisClosure<decltype(&PixelToCurrent), &PixelToCurrent>(lua, This);
+			luarets = 1;
+			return true;
+		default:
+			return false;
+		}
 	}
 protected:
 	ScriptComponent *m_ScriptComponent;

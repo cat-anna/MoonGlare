@@ -42,15 +42,6 @@ RectTransformComponent::~RectTransformComponent() {
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
-	root
-		.beginClass<RectTransformComponentEntry>("cRectTransformComponentEntry")
-			.addProperty("Position", &RectTransformComponentEntry::GetPosition, &RectTransformComponentEntry::SetPosition)
-			.addProperty("Size", &RectTransformComponentEntry::GetSize, &RectTransformComponentEntry::SetSize)
-			.addProperty("Order", &RectTransformComponentEntry::GetZ, &RectTransformComponentEntry::SetZ)
-		.endClass()
-		//.beginClass<RectTransformComponent>("cRectTransformComponent") 
-		//.endClass()
-		;
 }
 
 void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
@@ -63,8 +54,10 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
 	;
 }
 
+//---------------------------------------------------------------------------------------
+
 int RectTransformComponent::FindChild(lua_State *lua) {
-	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
 	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
 
 	lua_getfield(lua, 1, "Handle");
@@ -83,123 +76,6 @@ int RectTransformComponent::FindChild(lua_State *lua) {
 		lua_pushnil(lua);
 	}
 	return 1;
-}
-
-int RectTransformComponent::PixelToCurrent(lua_State *lua) {
-	void *voidThis = lua_touserdata(lua, lua_upvalueindex(2));
-	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
-
-	auto value = luabridge::Stack<math::vec2>::get(lua, 2);
-	value = This->PixelToCurrent(value);
-	luabridge::Stack<math::vec2>::push(lua, value);
-	return 1;
-}
-
-template<bool Read, typename StackFunc>
-bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
-	switch (hash) {
-	case "Position"_Hash32:
-		luarets = StackFunc::func(lua, e->m_Position, validx);
-		break;
-	case "Size"_Hash32:
-		luarets = StackFunc::func(lua, e->m_Size, validx);
-		break;
-	case "Order"_Hash32:
-		luarets = StackFunc::func(lua, e->m_Z, validx);
-		break;
-	case "ScreenPosition"_Hash32:
-		luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
-		break;
-	case "AlignMode"_Hash32:
-		if (Read) {
-			int v = static_cast<int>(e->m_AlignMode);
-			luarets = StackFunc::func(lua, v, validx);
-		} else {
-			int v;
-			luarets = StackFunc::func(lua, (int)v, validx);
-			e->m_AlignMode = static_cast<AlignMode>(v);
-		}
-		break;
-	default:
-		return false;
-	}
-	e->SetDirty();
-	return true;
-}
-
-template<typename StackFunc, typename Entry>
-bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, RectTransformComponent *This) {
-	switch (hash) {
-	case "FindChild"_Hash32:
-		lua_pushlightuserdata(lua, This);
-		lua_pushcclosure(lua, &RectTransformComponent::FindChild, 2);
-		luarets = 1;
-		return true;
-	case "PixelToCurrent"_Hash32:
-		lua_pushlightuserdata(lua, This);
-		lua_pushcclosure(lua, &RectTransformComponent::PixelToCurrent, 2);
-		luarets = 1;
-		return true;
-	default:
-		return false;
-	}
-}
-
-int RectTransformComponent::EntryIndex(lua_State *lua) {
-//	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	const char *name = lua_tostring(lua, 2);
-
-	lua_getfield(lua, 1, "ComponentInstance");
-	void *voidThis = lua_touserdata(lua, -1);
-	lua_pop(lua, 1);
-	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
-
-	lua_getfield(lua, 1,"Handle");						
-	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
-	lua_pop(lua, 1);					
-
-	auto hash = Space::Utils::MakeHash32(name);
-
-	auto e = This->GetEntry(Owner);
-	if (!e)
-		return 0;
-
-	int lrets = 0;
-	if (QuerryFunction<luabridge::StackPush>(lua, e, hash, lrets, 0, This)) {
-		return lrets;
-	}
-	if (ProcessProperty<true, luabridge::StackPush>(lua, e, hash, lrets, 0)) {
-		return lrets;
-	}
-
-	return 0;
-}
-
-int RectTransformComponent::EntryNewIndex(lua_State *lua) {
-	//	Utils::Scripts::LuaStackOverflowAssert check(lua);
-	const char *name = lua_tostring(lua, 2);
-
-	lua_getfield(lua, 1, "ComponentInstance");
-	void *voidThis = lua_touserdata(lua, -1);
-	lua_pop(lua, 1);
-	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
-
-	lua_getfield(lua, 1, "Handle");
-	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
-	lua_pop(lua, 1);
-
-	int validx = 3;
-
-	auto e = This->GetEntry(Owner);
-	if (!e)
-		return 0;
-
-	auto hash = Space::Utils::MakeHash32(name);
-	int lrets;
-    if (!ProcessProperty<false, luabridge::StackGet>(lua, e, hash, lrets, validx)) {
-		return 0;
-	}
-	return lrets;
 }
 
 //---------------------------------------------------------------------------------------

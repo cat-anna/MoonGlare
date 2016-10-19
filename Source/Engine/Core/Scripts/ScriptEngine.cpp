@@ -124,6 +124,8 @@ bool ScriptEngine::ConstructLuaContext() {
 
 	for (auto &cit : Component::ComponentRegister::GetComponentMap()) {
 		auto &cinfo = *cit.second;
+		if (!cinfo.m_EntryMetamethods)
+			continue;
 		auto &emt = *cinfo.m_EntryMetamethods;
 
 		if (!emt)

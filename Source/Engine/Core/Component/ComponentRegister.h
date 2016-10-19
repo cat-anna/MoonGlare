@@ -82,7 +82,7 @@ struct RegisterComponentID : public ComponentRegister {
 		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
 		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
-		m_ComponentInfo.m_EntryMetamethods = &COMPONENT::EntryMetamethods;
+		m_ComponentInfo.m_EntryMetamethods = nullptr;// &COMPONENT::EntryMetamethods;
 		SetComponent(&m_ComponentInfo);
 	}
 
