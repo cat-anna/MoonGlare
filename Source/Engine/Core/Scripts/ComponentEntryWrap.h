@@ -37,6 +37,32 @@ protected:
 	static void PushThisClosure(lua_State *lua, Component_t *This) {
 		Utils::Scripts::lua_PushCClosure(lua, &FnWrap<MEMFN, fn>::f, (void*)This );
 	}
+	template<typename ENUMCONV, typename ENUM, bool READ>
+	int ProcessEnum(lua_State *lua, ENUM &e, int idx) {
+		if (READ) {
+			auto val = ENUMCONV::ToString(e);
+			return StackFunc::func(lua, val.c_str(), idx);
+		} else {
+			switch (lua_type(lua, idx)) {
+			case LUA_TNUMBER: {
+				int v, luarets = StackFunc::func(lua, v, idx);
+				e = static_cast<AlignMode>(ENUM);
+				return luarets
+			}
+			case LUA_TSTRING: 	{
+				const char *v = nullptr;
+				int luarets = StackFunc::func(lua, v, idx);
+				if (!ENUMCONV::Convert(v, e)) {
+					//TODO: log
+				}
+				return luarets
+			}
+			default:
+				//TODO log
+				return 0;
+			}
+		}
+	}
 private:
 	static int Index(lua_State *lua) {
 		Utils::Scripts::LuaStackOverflowAssert check(lua);

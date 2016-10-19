@@ -43,17 +43,15 @@ struct RectTransformComponentEntry {
 	Entity m_OwnerEntity;
 	RectTransformComponentEntryFlagsMap m_Flags;
 
+	AlignMode m_AlignMode;
+	uint8_t m_padding;
 	uint16_t m_Z;
+
 	Point m_Position;				//not pod
 	Point m_Size;					//not pod
-	DEFINE_COMPONENT_PROPERTY(Z);
-	DEFINE_COMPONENT_PROPERTY(Position);
-	DEFINE_COMPONENT_PROPERTY(Size);
 	//TODO: margin property
-	//TODO: AlignMode property
 
 	Margin m_Margin;				//not pod
-	AlignMode m_AlignMode;
 
 	math::mat4 m_GlobalMatrix;		//not pod
 	math::mat4 m_LocalMatrix;		//not pod
@@ -67,6 +65,7 @@ struct RectTransformComponentEntry {
 
 	void Reset() {
 		m_Revision = 0;
+		m_Flags.ClearAll();
 	}
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
@@ -102,6 +101,7 @@ public:
 	virtual void Step(const Core::MoveConfig &conf) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
+	virtual bool PushEntryToLua(Handle h, lua_State * lua, int & luarets) override { return false; }
 
 	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
 	const RectTransformComponentEntry &GetRootEntry() const { return m_Array[0]; }
@@ -115,7 +115,6 @@ public:
 	static void RegisterDebugScriptApi(ApiInitializer &root);
 
 	static int FindChild(lua_State *lua);
-	static int LuaPixelToCurrent(lua_State *lua);
 
 	math::vec2 PixelToCurrent(math::vec2 pix) const {
 		if (!IsUniformMode())
@@ -139,14 +138,7 @@ public:
 			luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
 			break;
 		case "AlignMode"_Hash32:
-			if (Read) {
-				int v = static_cast<int>(e->m_AlignMode);
-				luarets = StackFunc::func(lua, v, validx);
-			} else {
-				int v;
-				luarets = StackFunc::func(lua, (int)v, validx);
-				e->m_AlignMode = static_cast<AlignMode>(v);
-			}
+			luarets = ComponentEntryWrap::ProcessEnum<AlignModeEnum>(lua, e->m_AlignMode, validx);
 			break;
 		default:
 			return false;
@@ -164,8 +156,6 @@ public:
 			luarets = 1;
 			return true;
 		case "PixelToCurrent"_Hash32:
-			//lua_pushlightuserdata(lua, This);
-			//lua_pushcclosure(lua, &RectTransformComponent::PixelToCurrent, 1);
 			PushThisClosure<decltype(&PixelToCurrent), &PixelToCurrent>(lua, This);
 			luarets = 1;
 			return true;
