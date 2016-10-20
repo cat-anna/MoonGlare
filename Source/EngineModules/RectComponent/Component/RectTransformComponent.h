@@ -143,7 +143,9 @@ public:
 		default:
 			return false;
 		}
-		e->SetDirty();
+		if (!Read) {
+			e->SetDirty();
+		}
 		return true;
 	}
 
