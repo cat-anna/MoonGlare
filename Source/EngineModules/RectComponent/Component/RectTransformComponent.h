@@ -138,7 +138,7 @@ public:
 			luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
 			break;
 		case "AlignMode"_Hash32:
-			luarets = ComponentEntryWrap::ProcessEnum<AlignModeEnum>(lua, e->m_AlignMode, validx);
+			luarets = ComponentEntryWrap::ProcessEnum<AlignModeEnum, Read, StackFunc>(lua, e->m_AlignMode, validx);
 			break;
 		default:
 			return false;

@@ -171,7 +171,7 @@ void Engine::EngineMain() {
 
 		float MoveTime = static_cast<float>(glfwGetTime());
 
-		conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Sort();
+		conf.m_RenderInput->m_CommandQueues.Sort();
 
 		float SortTime = static_cast<float>(glfwGetTime());
 
@@ -255,7 +255,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
 
-	conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Execute();
+	conf.m_RenderInput->m_CommandQueues.Execute();
 
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);
