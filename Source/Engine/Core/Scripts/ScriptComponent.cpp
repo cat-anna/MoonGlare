@@ -6,24 +6,21 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include "AbstractComponent.h"
+
+#include <Core/Component/AbstractComponent.h>
 #include "ScriptComponent.h"
-#include "TransformComponent.h"
-#include "ComponentManager.h"
-#include "ComponentRegister.h"
+#include <Core/Component/ComponentManager.h>
+#include <Core/Component/ComponentRegister.h>
 #include <Core/EntityBuilder.h>
 
-#include <Utils/LuaUtils.h>
-#include <Core/Scripts/LuaUtils.h>
+#include <Core/Component/TransformComponent.h>
 
-#include <ComponentCommon.x2c.h>
+#include <Utils/LuaUtils.h>
+#include "LuaUtils.h"
+
 #include <ScriptComponent.x2c.h>
 
-#include <GUI/Component/RectTransformComponent.h>
-
-namespace MoonGlare {
-namespace Core {
-namespace Component {
+namespace MoonGlare::Core::Scripts::Component {
 
 static_assert(sizeof(void*) == sizeof(Handle), "Size of void* must match the size of Handle!");
 
@@ -933,7 +930,7 @@ returns:
 	lua_pop(lua, 1);
 
 	if (HasRot || HasPos) {
-		auto *tc = cm->GetTransformComponent();
+		auto *tc = cm->GetComponent<TransformComponent>();
 		auto entry = tc->GetEntry(Child);
 		if (!entry) {
 			AddLogf(Error, "GameObject::SpawnChild: Child does not have transform component!");
@@ -1214,6 +1211,4 @@ int ScriptComponent::lua_GetFirstChild(lua_State * lua) {
 	return check.ReturnArgs(1);
 }
 
-} //namespace Component 
-} //namespace Core 
-} //namespace MoonGlare 
+} //namespace MoonGlare::Core::Scripts::Component  

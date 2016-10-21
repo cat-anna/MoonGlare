@@ -27,7 +27,8 @@ namespace Component {
 RegisterComponentID<LightComponent> LightComponentReg("Light", true, &LightComponent::RegisterScriptApi);
 
 LightComponent::LightComponent(ComponentManager * Owner) 
-		: TemplateStandardComponent(Owner) {
+		: TemplateStandardComponent(Owner) 
+		, m_TransformComponent(nullptr) {
 }
 
 LightComponent::~LightComponent() {
@@ -60,6 +61,13 @@ void LightComponent::RegisterScriptApi(ApiInitializer & root) {
 
 bool LightComponent::Initialize() {
 	m_Array.fill(LightEntry());
+
+	m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
+	if (!m_TransformComponent) {
+		AddLog(Error, "Failed to get RectTransformComponent instance!");
+		return false;
+	}
+
 	return true;
 }
 
@@ -70,7 +78,6 @@ bool LightComponent::Finalize() {
 //------------------------------------------------------------------------------------------
 
 void LightComponent::Step(const Core::MoveConfig & conf) {
-	auto *tc = GetManager()->GetTransformComponent();
 	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
@@ -98,7 +105,7 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 	
-		auto *tcentry = tc->GetEntry(item.m_Owner);
+		auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
 		if (!tcentry) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;

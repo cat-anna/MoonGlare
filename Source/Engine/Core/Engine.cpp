@@ -3,9 +3,7 @@
 
 #include "Engine.h"
 
-#include <GUI/GUI.h>
 #include "Console.h"
-#include <Core/InputMap.h>
 
 #include <Graphic/Dereferred/DereferredPipeline.h>
 
@@ -37,11 +35,9 @@ Engine::Engine() :
 
 	SetThisAsInstance();
 	new JobQueue();
-	new ::Core::Input();
 }
 
 Engine::~Engine() {
-	::Core::Input::DeleteInstance();
 	JobQueue::DeleteInstance();
 }
 
@@ -175,7 +171,7 @@ void Engine::EngineMain() {
 
 		float MoveTime = static_cast<float>(glfwGetTime());
 
-		conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Sort();
+		conf.m_RenderInput->m_CommandQueues.Sort();
 
 		float SortTime = static_cast<float>(glfwGetTime());
 
@@ -214,19 +210,6 @@ void Engine::EngineMain() {
 		m_CurrentScene->EndScene();
 }         
 
-void Engine::HandleEscapeKeyImpl() {
-	if (!m_CurrentScene)
-		return; //actin cannot be handled properly so ignore
-
-	if (m_CurrentScene->InvokeOnEscape())
-		return; //Action handled nothing to do more
-
-	AddLog(Debug, "Unhandled escape key catched!");
-#ifdef DEBUG
-	Exit();
-#endif
-}
-
 //----------------------------------------------------------------------------------
 
 void Engine::ChangeSceneImpl() {
@@ -235,7 +218,7 @@ void Engine::ChangeSceneImpl() {
 	auto *prevScene = m_CurrentScene;
 	m_CurrentScene = GetScenesManager()->GetNextScene();
 	if (m_CurrentScene) 
-		m_CurrentScene->BeginScene();
+		m_CurrentScene->BeginScene(); 
 	AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
 			(prevScene ? prevScene->GetName().c_str() : "NULL"), prevScene,
 			(m_CurrentScene ? m_CurrentScene->GetName().c_str() : "NULL"), m_CurrentScene);
@@ -272,10 +255,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
 
-	if (m_CurrentScene && m_CurrentScene->GetGUI())
-		m_CurrentScene->GetGUI()->Draw(dev);
-
-	conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI].Execute();
+	conf.m_RenderInput->m_CommandQueues.Execute();
 
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);

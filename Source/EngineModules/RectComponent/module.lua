@@ -1,11 +1,10 @@
 -- Moonglare module build script
 
 define_module { 
-	name = "MenuScene",
+	name = "RectComponent",
 	group = "Engine",
 	
 	Add = function()
-		files { "*", }
-	end,		
-		
+		files { "**", }
+	end,
 }

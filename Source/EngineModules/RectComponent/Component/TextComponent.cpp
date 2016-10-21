@@ -90,7 +90,7 @@ bool TextComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void TextComponent::Step(const Core::MoveConfig & conf) {
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
 	auto QueueSavePoint = Queue.GetSavePoint();
 	bool QueueDirty = false;
 	bool CanRender = false;

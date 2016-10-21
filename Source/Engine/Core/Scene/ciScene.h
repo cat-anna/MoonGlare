@@ -20,37 +20,9 @@ enum class SceneState {
 	Finished,
 };
 
-enum class SceneEscapeAction {
-	None,
-	ExitEngine,
-	EnterPreviousScene,
-	EnterSystemMenu,
-
-	ExtendedAction,
-};
-
-struct SceneSettings {
-	string PlayList;
-
-	SceneSettings();
-
-	bool LoadMeta(const xml_node node);
-};
-
-DECLARE_SCRIPT_EVENT_VECTOR(SceneScriptEvents, iScriptEvents,
-		SCRIPT_EVENT_ADD(
-			(OnTimer)
-			(OnBeginScene)(OnEndScene)
-			(OnInitialize)(OnFinalize)
-			(OnEscape)
-		),
-		SCRIPT_EVENT_REMOVE());
-
 class ciScene : public DataClasses::BasicResource {
 	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, DataClasses::BasicResource)
-	DECLARE_SCRIPT_HANDLERS_ROOT(SceneScriptEvents);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
-	DECLARE_EVENT_HOLDER();
 public:
 	ciScene(const ciScene&) = delete;
 	ciScene();
@@ -59,17 +31,9 @@ public:
 	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
 
 //old
-	DefineRefSetGet(Settings, SceneSettings);
 	void SetSceneState(SceneState state);
 	DefineREADAcces(SceneState, SceneState);
 
-	/** Script code invokers  */
-	virtual int InvokeOnTimer(int TimerID);
-	virtual int InvokeOnEscape();
-	virtual int InvokeOnBeginScene();
-	virtual int InvokeOnEndScene();
-	virtual int InvokeOnInitialize();
-	virtual int InvokeOnFinalize();
 
 	/** @brief Call this function to initialize scene before first call */
 	virtual void BeginScene();
@@ -84,14 +48,11 @@ public:
 
 	virtual void DoMove(const MoveConfig &conf);
 
-	int SetTimer(float secs, int TimerID, bool cyclic) { return SetProxyTimer(GetEventProxy(), secs, TimerID, cyclic); }
-	void KillTimer(int TimerID) { return KillProxyTimer(GetEventProxy(), TimerID); }
 	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
 	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
-	const GUI::GUIEnginePtr& GetGUI() const { return m_GUI; }
 //very old
 	DefineFlagGetter(m_Flags, sfset_IsReady, Ready)
 	DefineFlagGetter(m_Flags, sf_Initialized, Initialized)
@@ -108,7 +69,6 @@ protected:
 	Graphic::Environment m_Environment;
 
 	TimeEvents m_TimeEvents;
-	GUI::GUIEnginePtr m_GUI;
 	XMLFile m_MetaData;
 
 	virtual bool DoInitialize();
@@ -128,7 +88,6 @@ protected:
 private:
 //old
 	SceneState m_SceneState;
-	SceneSettings m_Settings;
 };
 
 } //namespace Scene

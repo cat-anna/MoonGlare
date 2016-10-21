@@ -5,13 +5,19 @@
 namespace MoonGlare {
 namespace Configuration {
 
-struct Renderer {
+namespace Renderer {
 	struct CommandQueue {
 		enum {
 			ArgumentMemoryBuffer	= 1024 * 1024, //1mb
 			CommandLimit			= 4096,
 			BytesPerCommand			= ArgumentMemoryBuffer / CommandLimit,
 		};
+	};
+
+	enum class CommandQueueID {
+		GUI,
+
+		MaxValue,
 	};
 
 	union CommandKey {
@@ -28,7 +34,7 @@ struct Renderer {
 } //namespace Configuration 
 
 namespace Renderer {
-	using RendererConf = Configuration::Renderer;
+	namespace RendererConf = Configuration::Renderer;
 }
 
 } //namespace MoonGlare 

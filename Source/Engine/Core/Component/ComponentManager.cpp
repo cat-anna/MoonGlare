@@ -19,7 +19,6 @@ namespace Component {
 
 ComponentManager::ComponentManager() 
 	: m_UsedCount(0)
-	, m_TransformComponent(nullptr)
 	, m_Scene(nullptr) {
 
 	m_World = GetEngine()->GetWorld();//TODO
@@ -48,7 +47,7 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Initialize()) {
-			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()));
+			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()).name());
 			return false;
 		}
 	}
@@ -59,7 +58,7 @@ bool ComponentManager::Initialize(ciScene *scene) {
 bool ComponentManager::Finalize() {
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Finalize()) {
-			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()));
+			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()).name());
 		}
 	}
 	return true;
@@ -93,15 +92,6 @@ bool ComponentManager::LoadComponents(pugi::xml_node node) {
 		if (!cptr) {
 			AddLogf(Error, "Failed to create CID: %d", cid);
 			continue;
-		}
-
-		auto *tc = dynamic_cast<TransformComponent*>(cptr.get());
-		if (tc) {
-			if (m_TransformComponent) {
-				AddLogf(Error, "Attempt to create second Transform component!");
-				return false;
-			}
-			m_TransformComponent = tc;
 		}
 
 		if (!cptr->LoadComponentConfiguration(it)) {

@@ -11,7 +11,6 @@
 #include <Engine/Core/Console.h>
 #include "GraphicSettings.h"
 
-#include <Core/InputMap.h>
 #include <Core/InputProcessor.h>
 
 namespace Graphic {
@@ -309,15 +308,6 @@ void Window::key_callback(int key, bool Pressed) {
 		return;
 	}
 	switch (key) {
-	case GLFW_KEY_ESCAPE:
-		if (!Pressed) return;
-		if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
-			ReleaseMouse();
-			MoonGlare::Core::GetInput()->ClearMouseDelta();
-			return;
-		}
-		MoonGlare::Core::GetEngine()->HandleEscapeKey();
-		return;
 	case GLFW_KEY_GRAVE_ACCENT://` - 0xC0
 		if (!Pressed) return;
 		if (!::Settings->Engine.EnableConsole)
@@ -341,7 +331,13 @@ void Window::key_callback(int key, bool Pressed) {
 
 			MoonGlare::DataClasses::Texture::AsyncStoreImage(img, buf);
 		});
-		return;
+		return;	case GLFW_KEY_ESCAPE:
+			if (!Pressed) return;
+			if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
+				ReleaseMouse();
+				return;
+			}
+		[[fallthrough]]
 	default:
 		if (m_InputProcessor)
 			m_InputProcessor->SetKeyState(key, Pressed);
@@ -411,7 +407,6 @@ void Window::Process() {
 	glfwPollEvents();
 	if (IsMouseHooked()) {
 		auto delta = CursorDelta();
-		MoonGlare::Core::GetInput()->SetMouseDelta(delta);
 		if (m_InputProcessor)
 			m_InputProcessor->SetMouseDelta(delta);
 	}
@@ -464,11 +459,6 @@ void Window::glfwMouseButtonCallback(GLFWwindow *window, int button, int action,
 
 	if (w->m_InputProcessor)
 		w->m_InputProcessor->SetMouseButtonState(button, action == GLFW_PRESS);
-
-	if (action == GLFW_PRESS)
-		::Core::Input::MouseDownEvent(MouseBtn, mods);
-	else
-		::Core::Input::MouseUpEvent(MouseBtn, mods);
 }
 
 void Window::glfw_focus_callback(GLFWwindow* window, int focus) {

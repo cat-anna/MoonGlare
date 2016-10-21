@@ -139,10 +139,10 @@ void ApiInit::Initialize(ScriptEngine *s) {
 		if (where) {
 			s->GetApiInitializer()
 				.beginNamespace(where)
-					.DefferCalls([it](auto &n) {it.func(n); });
+					.DefferCalls([it](auto &n) { it.func(n); });
 		} else {
-			s->GetApiInitializer()
-				.DefferCalls([it](auto &n) {it.func(n); });
+			s->GetApiInitializer() 
+				.DefferCalls([it](auto &n) { it.func(n); });
 		}
 		luabridge::ResetLocation();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_

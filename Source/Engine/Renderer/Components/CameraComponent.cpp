@@ -27,7 +27,8 @@ namespace Component {
 RegisterComponentID<CameraComponent> CameraComponentReg("Camera", true, &CameraComponent::RegisterScriptApi);
 
 CameraComponent::CameraComponent(ComponentManager *Owner)
-		: TemplateStandardComponent(Owner) {
+		: TemplateStandardComponent(Owner) 
+		, m_TransformComponent(nullptr) {
 }
 
 CameraComponent::~CameraComponent() {
@@ -49,6 +50,13 @@ void CameraComponent::RegisterScriptApi(ApiInitializer & root) {
 bool CameraComponent::Initialize() {
 	m_Array.fill(CameraComponentEntry());
 	//	m_Array.MemZeroAndClear();
+
+	m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
+	if (!m_TransformComponent) {
+		AddLog(Error, "Failed to get RectTransformComponent instance!");
+		return false;
+	}
+
 	return true;
 }
 
@@ -63,7 +71,6 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
 		return;
 	}
 
-	auto *tc = GetManager()->GetTransformComponent();
 	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
@@ -107,7 +114,7 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
 		GotActive = true;
 		ActiveId = i;
 
-		auto *tcentry = tc->GetEntry(item.m_Owner);
+		auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
 		if (!tcentry) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;
@@ -159,8 +166,7 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		return false;
 	}
 
-	auto *tc = GetManager()->GetTransformComponent();
-	if (!tc->GetInstanceHandle(Owner, entry.m_TransformHandle)) {
+	if (!m_TransformComponent->GetInstanceHandle(Owner, entry.m_TransformHandle)) {
 		AddLog(Error, "Cannot get handle to TransformComponent instance!");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;

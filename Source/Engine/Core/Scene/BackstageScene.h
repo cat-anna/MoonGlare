@@ -21,13 +21,6 @@ public:
 	virtual void BeginScene() override;
 	virtual void EndScene() override;
 
-	virtual int InvokeOnTimer(int TimerID) override;
-	virtual int InvokeOnEscape() override;
-	virtual int InvokeOnBeginScene() override;
-	virtual int InvokeOnEndScene() override;
-	virtual int InvokeOnInitialize() override;
-	virtual int InvokeOnFinalize() override;
-
 	virtual void DoMove(const MoveConfig &conf) override;
 protected:
 	virtual bool DoInitialize() override;

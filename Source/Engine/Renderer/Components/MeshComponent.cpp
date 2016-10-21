@@ -24,6 +24,7 @@ RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent
 
 MeshComponent::MeshComponent(ComponentManager * Owner) 
 	: TemplateStandardComponent(Owner)
+	, m_TransformComponent(nullptr)
 {
 
 	DebugMemorySetClassName("MeshComponent");
@@ -54,6 +55,13 @@ void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
 bool MeshComponent::Initialize() {
 //	m_Array.MemZeroAndClear();
 	m_Array.fill(MeshEntry());
+
+	m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
+	if (!m_TransformComponent) {
+		AddLog(Error, "Failed to get RectTransformComponent instance!");
+		return false;
+	}
+	
 	return true;
 }
 
@@ -62,7 +70,6 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
-	auto *tc = GetManager()->GetTransformComponent();
 	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
@@ -90,7 +97,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 			continue;
 		}
 
-		auto *tcentry = tc->GetEntry(item.m_Owner);
+		auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
 		if (!tcentry) {
 			item.m_Flags.m_Map.m_Valid = false;
 			LastInvalidEntry = i;

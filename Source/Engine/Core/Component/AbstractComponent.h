@@ -47,8 +47,6 @@ public:
 //	virtual Handle GetHandle(Entity e) = 0;
 
 	ComponentManager* GetManager() { return m_Owner; }
-
-	static constexpr LuaMetamethods EntryMetamethods = { };
 protected:
 	HandleTable* GetHandleTable() { return m_HandleTable; }
 

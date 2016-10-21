@@ -92,7 +92,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[(size_t)Renderer::CommandQueueID::GUI];
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
 	auto QueueSavePoint = Queue.GetSavePoint();
 	bool QueueDirty = false;
 	bool CanRender = false;

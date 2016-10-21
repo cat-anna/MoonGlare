@@ -10,6 +10,8 @@
 #define RectTransformComponent_H
 
 #include <Core/Component/AbstractComponent.h>
+#include <Core/Scripts/ScriptComponent.h>
+#include <Core/Scripts/ComponentEntryWrap.h>
 
 #include "../Margin.h"
 #include "../Enums.h"
@@ -41,17 +43,15 @@ struct RectTransformComponentEntry {
 	Entity m_OwnerEntity;
 	RectTransformComponentEntryFlagsMap m_Flags;
 
+	AlignMode m_AlignMode;
+	uint8_t m_padding;
 	uint16_t m_Z;
+
 	Point m_Position;				//not pod
 	Point m_Size;					//not pod
-	DEFINE_COMPONENT_PROPERTY(Z);
-	DEFINE_COMPONENT_PROPERTY(Position);
-	DEFINE_COMPONENT_PROPERTY(Size);
 	//TODO: margin property
-	//TODO: AlignMode property
 
 	Margin m_Margin;				//not pod
-	AlignMode m_AlignMode;
 
 	math::mat4 m_GlobalMatrix;		//not pod
 	math::mat4 m_LocalMatrix;		//not pod
@@ -65,6 +65,7 @@ struct RectTransformComponentEntry {
 
 	void Reset() {
 		m_Revision = 0;
+		m_Flags.ClearAll();
 	}
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
@@ -83,8 +84,11 @@ struct RectTransformSettingsFlagsMap {
 	static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 };
 
+using Core::Scripts::Component::ScriptComponent;
+
 class RectTransformComponent 
 	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>
+	, public Core::Scripts::Component::ComponentEntryWrap<RectTransformComponent>
 	, public Core::iCustomDraw {
 public:
 	static constexpr char *Name = "RectTransform";
@@ -97,6 +101,7 @@ public:
 	virtual void Step(const Core::MoveConfig &conf) override;
 	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
+	virtual bool PushEntryToLua(Handle h, lua_State * lua, int & luarets) override { return false; }
 
 	RectTransformComponentEntry &GetRootEntry() { return m_Array[0]; }
 	const RectTransformComponentEntry &GetRootEntry() const { return m_Array[0]; }
@@ -109,17 +114,56 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
 
-	static int EntryIndex(lua_State *lua);
-	static int EntryNewIndex(lua_State *lua);
-	static constexpr LuaMetamethods EntryMetamethods = { &EntryIndex , &EntryNewIndex, };
-
 	static int FindChild(lua_State *lua);
-	static int PixelToCurrent(lua_State *lua);
 
 	math::vec2 PixelToCurrent(math::vec2 pix) const {
 		if (!IsUniformMode())
 			return pix;
 		return pix / m_ScreenSize * GetRootEntry().m_Size;
+	}
+
+	template<bool Read, typename StackFunc>
+	static bool ProcessProperty(lua_State *lua, RectTransformComponentEntry *e, uint32_t hash, int &luarets, int validx) {
+		switch (hash) {
+		case "Position"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Position, validx);
+			break;
+		case "Size"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Size, validx);
+			break;
+		case "Order"_Hash32:
+			luarets = StackFunc::func(lua, e->m_Z, validx);
+			break;
+		case "ScreenPosition"_Hash32:
+			luarets = StackFunc::func(lua, e->m_ScreenRect.LeftTop, validx);
+			break;
+		case "AlignMode"_Hash32:
+			luarets = ComponentEntryWrap::ProcessEnum<AlignModeEnum, Read, StackFunc>(lua, e->m_AlignMode, validx);
+			break;
+		default:
+			return false;
+		}
+		if (!Read) {
+			e->SetDirty();
+		}
+		return true;
+	}
+
+	template<typename StackFunc, typename Entry>
+	static bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, RectTransformComponent *This) {
+		switch (hash) {
+		case "FindChild"_Hash32:
+			lua_pushlightuserdata(lua, This);
+			lua_pushcclosure(lua, &RectTransformComponent::FindChild, 1);
+			luarets = 1;
+			return true;
+		case "PixelToCurrent"_Hash32:
+			PushThisClosure<decltype(&PixelToCurrent), &PixelToCurrent>(lua, This);
+			luarets = 1;
+			return true;
+		default:
+			return false;
+		}
 	}
 protected:
 	ScriptComponent *m_ScriptComponent;
