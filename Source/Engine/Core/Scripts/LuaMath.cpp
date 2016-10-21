@@ -22,22 +22,34 @@ float getPi() { return 3.14159f * (static_cast<float>(multiplier) / static_cast<
 
 //Templates
 
-template<class T> inline T VecNormalized(const T * vec) { return glm::normalize(*vec); }
-template<class T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
-template<class T> inline float VecLength(const T *vec) { return glm::length(*vec); }
-template<class T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
-template<class T> inline T VecDiv(T *a, T* b) { return *a / *b; }
-template<class T> inline T VecMul(T *a, T* b) { return *a * *b; }
-template<class T> inline T VecAdd(T *a, T* b) { return *a + *b; }
-template<class T> inline T VecSub(T *a, T* b) { return *a - *b; }
-template<class T> inline std::string ToString(T *vec) {
+template<typename T> inline T VecNormalized(const T * vec) { return glm::normalize(*vec); }
+template<typename T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
+template<typename T> inline float VecLength(const T *vec) { return glm::length(*vec); }
+template<typename T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
+template<typename T> inline T VecDiv(T *a, T* b) { return *a / *b; }
+template<typename T> inline T VecMul(T *a, T* b) { return *a * *b; }
+template<typename T> inline T VecAdd(T *a, T* b) { return *a + *b; }
+template<typename T> inline T VecSub(T *a, T* b) { return *a - *b; }
+template<typename T> inline std::string ToString(T *vec) {
 	std::ostringstream oss;
 	oss << *vec;
 	return oss.str();
 }
-template<class T, class A, int ... ints> inline T StaticVec() { return T(static_cast<A>(ints)...); }
+template<typename T, typename A, int ... ints> inline T StaticVec() { return T(static_cast<A>(ints)...); }
+template<typename T> inline T VecClamp(T *v, T *min, T *max) {
+	T ret = *v;
+	for (int i = 0; i < ret.length(); ++i) {
+		if (ret[i] < (*min)[i])
+			ret[i] = (*min)[i];
+		else
+			if (ret[i] > (*max)[i])
+				ret[i] = (*max)[i];
+	}
+	return ret;
+}
+template<typename T> inline void VecClampSelf(T *v, T *min, T *max) { *v = VecClamp(v, min, max); }
 
-//Quaternions
+//Quaternions/Vec4
 
 inline math::vec4 QuaternionCrossProduct(math::vec4 *a, math::vec4* b) {
 	auto &q1 = *a;
@@ -49,10 +61,10 @@ inline math::vec4 QuaternionCrossProduct(math::vec4 *a, math::vec4* b) {
 	out.w = q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z;
 	return out;
 }
-inline std::string QuaternionToString(math::vec4 *vec) {
+template<> inline std::string ToString<math::vec4>(math::vec4 *vec) {
 	auto &t = *vec;
 	char b[256];
-	sprintf(b, "Quaternion(%f, %f, %f, %f)", t[0], t[1], t[2], t[3]);
+	sprintf(b, "Vec4(%f, %f, %f, %f)", t[0], t[1], t[2], t[3]);
 	return b;
 }
 inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b) {
@@ -141,10 +153,10 @@ inline int lua_NewQuaternion(lua_State *lua) {
 //Vec3
 
 inline math::vec3 Vec3CrossProduct(math::vec3 *a, math::vec3* b) { return glm::cross(*a, *b); }
-inline std::string Vec3ToString(math::vec3 *vec) {
+template<> inline std::string ToString<math::vec3>(math::vec3 *vec) {
 	auto &t = *vec;
 	char b[256];
-	sprintf(b, "vec3(%f, %f, %f)", t[0], t[1], t[2]);
+	sprintf(b, "Vec3(%f, %f, %f)", t[0], t[1], t[2]);
 	return b;
 }
 inline int lua_NewVec3(lua_State *lua) {
@@ -192,7 +204,7 @@ inline math::vec3 SphericalToCartesian(const math::vec2 *vec) {
 
 //Vec2
 
-inline std::string Vec2ToString(math::vec2 *vec) {
+template<> inline std::string ToString<math::vec2>(math::vec2 *vec) {
 	auto &t = *vec;
 	char b[256];
 	sprintf(b, "vec2(%f, %f)", t[0], t[1]);
@@ -237,60 +249,53 @@ inline float Clamp(float v, float min, float max) {
 }
 inline float Clamp01(float v) { return Clamp(v, 0.0f, 1.0f); }
 
+//Common
+
+template<typename VEC>
+struct VecCommon {
+	template<typename API>
+	static void f(API &api) {
+		api
+			.addProperty<VEC>("Normalized", &VecNormalized<VEC>)
+			.addProperty<float>("Length", &VecLength<VEC>)
+
+			.addFunction("Normalize", Utils::Template::InstancedStaticCall<VEC, void>::callee<VecNormalize>())
+			.addFunction("Clamp", Utils::Template::InstancedStaticCall<VEC, void, VEC*, VEC*>::callee<VecClampSelf>())
+
+			.addFunction("__tostring", Utils::Template::InstancedStaticCall<VEC, std::string>::callee<ToString>())
+			.addFunction("__mul", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecMul>())
+			.addFunction("__add", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecAdd>())
+			.addFunction("__sub", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecSub>())
+			;
+	}
+};
+
 //Registration
 
-void ScriptMathClasses(ApiInitializer &root){
-
+void ScriptMathClasses(ApiInitializer &root) {
 	root
 	.addFunction("Clamp", &Clamp)
 	.addFunction("Clamp01", &Clamp01)
 //	.addProperty("pi", &getPi)
 //	.addProperty("pi_half", &getPi<1, 2>)
 
-	.beginClass<math::vec4>("cQuaternion")
-	//	.addConstructor<void(*)(float, float, float, float)>()
+	.beginClass<math::vec4>("cVec4")
 		.addData("x", &math::vec4::x)
 		.addData("y", &math::vec4::y)
 		.addData("z", &math::vec4::z)
 		.addData("w", &math::vec4::w)
-		.addProperty<math::vec4>("Normalized", &VecNormalized<math::vec4>)
-		.addProperty<float>("Length", &VecLength<math::vec4>)
-		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec4, void>::callee<VecNormalize>())
-		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec4, std::string>::callee<QuaternionToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecMul>())
-		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecAdd>())
-		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<VecSub>())
-	//	.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<QuaternionCrossProduct>())
+		.DefferCalls<&VecCommon<math::vec4>::f>()
 	.endClass()
-
 	.beginClass<math::vec3>("cVec3")
-	//	.addConstructor<void(*)(float, float, float)>()
 		.addData("x", &math::vec3::x)
 		.addData("y", &math::vec3::y)
 		.addData("z", &math::vec3::z)
-		.addProperty<math::vec3>("Normalized", &VecNormalized<math::vec3>)
-		.addProperty<float>("Length", &VecLength<math::vec3>)
-
-		.addFunction("Normalize", Utils::Template::InstancedStaticCall<math::vec3, void>::callee<VecNormalize>())
-		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec3, std::string>::callee<Vec3ToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecMul>())
-		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecAdd>())
-		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecSub>())
-	//	.addFunction("__mod", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<Vec3CrossProduct>())
+		.DefferCalls<&VecCommon<math::vec3>::f>()
 	.endClass()
-
 	.beginClass<math::vec2>("cVec2")
-		.addConstructor<void(*)(float, float)>()
 		.addData("x", &math::vec2::x)
 		.addData("y", &math::vec2::y)
-		.addProperty<math::vec2>("Normalized", &VecNormalized<math::vec2>)
-		.addProperty<float>("Length", &VecLength<math::vec2>)
-
-		.addFunction("normalize", Utils::Template::InstancedStaticCall<math::vec2, void>::callee<VecNormalize>())
-		.addFunction("__tostring", Utils::Template::InstancedStaticCall<math::vec2, std::string>::callee<Vec2ToString>())
-		.addFunction("__mul", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecMul>())
-		.addFunction("__add", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecAdd>())
-		.addFunction("__sub", Utils::Template::InstancedStaticCall<math::vec2, math::vec2, math::vec2*>::callee<VecSub>())
+		.DefferCalls<&VecCommon<math::vec2>::f>()
 	.endClass()
 	;
 }
@@ -308,39 +313,51 @@ void ScriptMathGlobal(ApiInitializer &root) {
 		.addFunction("FromEulerXYZ", &QuaternionFromEulerXYZ)
 		.addFunction("RotationTo", &QuaternionRotationTo)
 
-		.addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec3))nullptr)
+		.addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>)
 	.endNamespace()
 
 	.beginNamespace("Vec4")
 		.addCFunction("__call", &lua_NewQuaternion)
-		.addProperty("X", &StaticVec<math::vec4, float, 1, 0, 0, 0>, (void(*)(math::vec4))nullptr)
-		.addProperty("Y", &StaticVec<math::vec4, float, 0, 1, 0, 0>, (void(*)(math::vec4))nullptr)
-		.addProperty("Z", &StaticVec<math::vec4, float, 0, 0, 1, 0>, (void(*)(math::vec4))nullptr)
-		.addProperty("W", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec4))nullptr)
+		.addFunction("Clamp", &VecClamp<math::vec4>)
 
-		.addProperty("R", &StaticVec<math::vec4, float, 1, 0, 0, 1>, (void(*)(math::vec4))nullptr)
-		.addProperty("G", &StaticVec<math::vec4, float, 0, 1, 0, 1>, (void(*)(math::vec4))nullptr)
-		.addProperty("B", &StaticVec<math::vec4, float, 0, 0, 1, 1>, (void(*)(math::vec4))nullptr)
-		.addProperty("White", &StaticVec<math::vec4, float, 1, 1, 1, 1>, (void(*)(math::vec4))nullptr)
-		.addProperty("Black", &StaticVec<math::vec4, float, 0, 0, 0, 1>, (void(*)(math::vec4))nullptr)
+		.addProperty("X", &StaticVec<math::vec4, float, 1, 0, 0, 0>)
+		.addProperty("Y", &StaticVec<math::vec4, float, 0, 1, 0, 0>)
+		.addProperty("Z", &StaticVec<math::vec4, float, 0, 0, 1, 0>)
+		.addProperty("W", &StaticVec<math::vec4, float, 0, 0, 0, 1>)
+
+		.addProperty("R", &StaticVec<math::vec4, float, 1, 0, 0, 1>)
+		.addProperty("G", &StaticVec<math::vec4, float, 0, 1, 0, 1>)
+		.addProperty("B", &StaticVec<math::vec4, float, 0, 0, 1, 1>)
+		.addProperty("White", &StaticVec<math::vec4, float, 1, 1, 1, 1>)
+		.addProperty("Black", &StaticVec<math::vec4, float, 0, 0, 0, 1>)
+
+		.addProperty("Zero", &StaticVec<math::vec4, float, 0, 0, 0, 0>)
+		.addProperty("One", &StaticVec<math::vec4, float, 1, 1, 1, 1>)
 	.endNamespace()
 
 	.beginNamespace("Vec3")
 		.addCFunction("__call", &lua_NewVec3)
-
 		.addFunction("FromSpherical", &SphericalToCartesian)
+		.addFunction("Clamp", &VecClamp<math::vec3>)
 
-		.addProperty("Up", &StaticVec<math::vec3, float, 0, 1, 0>, (void(*)(math::vec3))nullptr)
-		.addProperty("Down", &StaticVec<math::vec3, float, 0, -1, 0>, (void(*)(math::vec3))nullptr)
+		.addProperty("Zero", &StaticVec<math::vec3, float, 0, 0, 0>)
+		.addProperty("One", &StaticVec<math::vec3, float, 1, 1, 1>)
 
-		.addProperty("X", &StaticVec<math::vec3, float, 1, 0, 0>, (void(*)(math::vec3))nullptr)
-		.addProperty("Y", &StaticVec<math::vec3, float, 0, 1, 0>, (void(*)(math::vec3))nullptr)
-		.addProperty("Z", &StaticVec<math::vec3, float, 0, 0, 1>, (void(*)(math::vec3))nullptr)
+		.addProperty("Up", &StaticVec<math::vec3, float, 0, 1, 0>)
+		.addProperty("Down", &StaticVec<math::vec3, float, 0, -1, 0>)
+
+		.addProperty("X", &StaticVec<math::vec3, float, 1, 0, 0>)
+		.addProperty("Y", &StaticVec<math::vec3, float, 0, 1, 0>)
+		.addProperty("Z", &StaticVec<math::vec3, float, 0, 0, 1>)
 
 	.endNamespace()
 		
 	.beginNamespace("Vec2")
 		.addCFunction("__call", &lua_NewVec2)
+		.addFunction("Clamp", &VecClamp<math::vec2>)
+
+		.addProperty("Zero", &StaticVec<math::vec2, float, 0, 0>)
+		.addProperty("One", &StaticVec<math::vec2, float, 1, 1>)
 	.endNamespace()
 	;
 }

@@ -874,7 +874,25 @@ private:
 
       return *this;
     }
-  };
+ 
+	template<typename T, void(T::*PTR)(Class <T>&)>
+	Class <T>& DefferCalls(T *t) {
+		(t->*PTR)(*this);
+		return *this;
+	}
+
+	template<void(*PTR)(Class<T>&)>
+	Class <T>& DefferCalls()  {
+		PTR(*this);
+		return *this;
+	}
+
+	template<typename T>
+	Class <T>& DefferCalls(T t) {
+		t(*this);
+		return *this;
+	}
+ };
 
 private:
   //----------------------------------------------------------------------------
@@ -1080,7 +1098,7 @@ public:
       If the set function is omitted or null, the property is read-only.
   */
   template <class TG, class TS>
-  Namespace& addProperty (char const* name, TG (*get) (), void (*set)(TS) = 0)
+  Namespace& addProperty (char const* name, TG (*get) (), void (*set)(TS) )
   {
     assert (lua_istable (L, -1));
 
@@ -1094,7 +1112,7 @@ public:
 
     rawgetfield (L, -1, "__propset");
     assert (lua_istable (L, -1));
-    if (set != 0)
+    if (set != nullptr)
     {
       typedef void (*set_t) (TS);
       new (lua_newuserdata (L, sizeof (set_t))) set_t (set);
@@ -1109,6 +1127,11 @@ public:
     lua_pop (L, 1);
 
     return *this;
+  }
+
+  template <class TG>
+  Namespace& addProperty(char const* name, TG(*get) ()) {
+	  return addProperty<TG>(name, get, (void(*)(TG))nullptr);
   }
 
   //----------------------------------------------------------------------------
