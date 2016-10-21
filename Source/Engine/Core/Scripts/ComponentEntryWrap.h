@@ -37,17 +37,18 @@ protected:
 	static void PushThisClosure(lua_State *lua, Component_t *This) {
 		Utils::Scripts::lua_PushCClosure(lua, &FnWrap<MEMFN, fn>::f, (void*)This );
 	}
-	template<typename ENUMCONV, typename ENUM, bool READ>
-	int ProcessEnum(lua_State *lua, ENUM &e, int idx) {
+	template<typename ENUMCONV, bool READ, typename StackFunc, typename ENUM>
+	static int ProcessEnum(lua_State *lua, ENUM &e, int idx) {
 		if (READ) {
 			auto val = ENUMCONV::ToString(e);
-			return StackFunc::func(lua, val.c_str(), idx);
+			auto cstr = val.c_str();
+			return StackFunc::func(lua, cstr, idx);
 		} else {
 			switch (lua_type(lua, idx)) {
 			case LUA_TNUMBER: {
 				int v, luarets = StackFunc::func(lua, v, idx);
-				e = static_cast<AlignMode>(ENUM);
-				return luarets
+				e = static_cast<ENUM>(v);
+				return luarets;
 			}
 			case LUA_TSTRING: 	{
 				const char *v = nullptr;
@@ -55,7 +56,7 @@ protected:
 				if (!ENUMCONV::Convert(v, e)) {
 					//TODO: log
 				}
-				return luarets
+				return luarets;
 			}
 			default:
 				//TODO log
