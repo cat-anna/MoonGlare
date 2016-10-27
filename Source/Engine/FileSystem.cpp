@@ -20,7 +20,6 @@ DataPathsTable::DataPathsTable() {
 	_at(Root)		= "";
 	_at(Models)		= xmlModuleNode_Models;
 	_at(Fonts)		= xmlModuleNode_Fonts;
-	_at(Scenes)		= xmlModuleNode_Scenes;
 	_at(Shaders)	= xmlModuleNode_Shaders;
 	_at(Scripts)	= xmlModuleNode_Scripts;
 	_at(Sounds)		= xmlModuleNode_Sounds;
@@ -178,6 +177,26 @@ bool MoonGlareFileSystem::EnumerateFolder(const string& SubPath, DataPath origin
 
 //-------------------------------------------------------------------------------------------------
 
+bool MoonGlareFileSystem::OpenFile(StarVFS::ByteTable & FileData, StarVFS::FileID fid) {
+	FileData.reset();
+
+	if (!m_StarVFS->IsFileValid(fid)) {
+		AddLogf(Warning, "Failed to find file: fid:%u", (unsigned)fid);
+		return false;
+	}
+	if (m_StarVFS->IsFileDirectory(fid)) {
+		AddLogf(Error, "Attempt to read directory: fid:%u", (unsigned)fid);
+		return false;
+	}
+	if (!m_StarVFS->GetFileData(fid, FileData)) {
+		AddLogf(Warning, "Failed to read file fid:%u", (unsigned)fid);
+		return false;
+	}
+
+	AddLogf(FSEvent, "Opened file: fid:%u -> %s", (unsigned)fid, m_StarVFS->GetFullFilePath(fid).c_str());
+	return true;
+}
+
 bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
 	ASSERT(m_StarVFS);
 
@@ -205,24 +224,24 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 		DataSubPaths.Translate(path, FileName, origin);
 	}
 	
-	FileData.reset();
 	auto fid = m_StarVFS->FindFile(path.c_str());
-	if (!m_StarVFS->IsFileValid(fid)) {
-		AddLogf(Warning, "Failed to find file: %s", path.c_str());
-		return false;
-	}
-	if (m_StarVFS->IsFileDirectory(fid)) {
-		AddLogf(Error, "Attempt to read directory: %s", path.c_str());
-		return false;
-	}
-	if (!m_StarVFS->GetFileData(fid, FileData)) {
-		AddLogf(Warning, "Failed to read file: (fid:%d) %s", fid, path.c_str());
+	return OpenFile(FileData, fid);
+}
+
+bool MoonGlareFileSystem::OpenXML(XMLFile &doc, StarVFS::FileID fid) {
+	ASSERT(m_StarVFS);
+
+	doc.reset();
+	StarVFS::ByteTable data;
+	if (!OpenFile(data, fid)) {
+		//already logged, no need for more
 		return false;
 	}
 
-	AddLogf(FSEvent, "Opened file: %u(%s)", (unsigned)fid, path.c_str());
+	doc = std::make_unique<pugi::xml_document>();
+	auto result = doc->load_string((char*)data.get());
 
-	return true;
+	return static_cast<bool>(result);
 }
 
 bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin) {
@@ -236,7 +255,6 @@ bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, Data
 		buffer += Name;
 		buffer += "/Model.xml";
 		break;
-	case DataPath::Scenes:
 	case DataPath::Shaders:
 	case DataPath::Fonts:
 	case DataPath::Objects:
@@ -319,18 +337,24 @@ bool MoonGlareFileSystem::LoadContainer(const std::string &URI) {
 	return true;
 }
 
+void MoonGlareFileSystem::FindFiles(const char * ext, StarVFS::DynamicFIDTable & out) {
+	ASSERT(m_StarVFS);
+	m_StarVFS->FindFilesByTypeHash((StarVFS::CString)ext, out);
+}
+
+const char * MoonGlareFileSystem::GetFileName(StarVFS::FileID fid) const {
+	ASSERT(m_StarVFS);
+	return m_StarVFS->GetFileName(fid);
+}
+
+std::string MoonGlareFileSystem::GetFullFileName(StarVFS::FileID fid) const {
+	ASSERT(m_StarVFS);
+	return m_StarVFS->GetFullFilePath(fid);
+}
+
 //----------------------------------------------------------------------------------
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(DirectoryReader);
-RegisterApiDerivedClass(DirectoryReader, &DirectoryReader::RegisterScriptApi);
-
-void DirectoryReader::RegisterScriptApi(ApiInitializer &api) {
-	api
-	.deriveClass<ThisClass, BaseClass>("cDirectoryReader")
-		//.addFunction("GetDataReader", &ThisClass::GetDataReader)
-	.endClass()
-	;
-}
 
 } //namespace FileSystem 
 } //namespace MoonGlare 

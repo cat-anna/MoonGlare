@@ -34,8 +34,17 @@ public:
 
 	bool LoadContainer(const std::string &URI);
 
+	void FindFiles(const char *ext, StarVFS::DynamicFIDTable &out);
+
+	const char *GetFileName(StarVFS::FileID fid) const;
+	std::string GetFullFileName(StarVFS::FileID fid) const;
+
+	/** Read raw file data */
+	bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
 	/** Read raw file data */
 	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
+	/** Open an xml document */
+	bool OpenXML(XMLFile &doc, StarVFS::FileID fid);
 	/** Open an xml document */
 	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin = DataPath::URI);
 	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
