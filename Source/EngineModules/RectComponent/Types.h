@@ -7,5 +7,5 @@ namespace GUI {
 }
 }
 
-#include <Engine/GUI/Enums.h>
-#include <Engine/GUI/Margin.h>
+#include "Enums.h"
+#include "Margin.h"

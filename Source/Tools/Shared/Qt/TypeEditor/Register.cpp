@@ -5,7 +5,7 @@
 #include <Source/Engine/Core/Component/nfComponent.h>
 
 #include <Source/Engine/Renderer/Light.h>
-#include <Engine/GUI/Types.h>
+#include <EngineModules/RectComponent/Types.h>
 
 #include <Math.x2c.h>
 #include <LightComponent.x2c.h>
