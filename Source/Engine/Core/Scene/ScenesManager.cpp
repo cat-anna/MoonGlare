@@ -9,6 +9,7 @@
 
 #include "BackstageScene.h"
 
+#include "ScenesManager.h"
 #include <Engine/Core/Engine.h>
 
 #include <Engine/BaseResources.h>
@@ -31,6 +32,7 @@ ScenesManager::ScenesManager():
 		m_NextSceneRegister(nullptr) {
 	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::HandleTimer>(this));
 	SetThisAsInstance();
+	, m_World(nullptr)
 }
 
 ScenesManager::~ScenesManager() {
@@ -44,7 +46,6 @@ void ScenesManager::RegisterScriptApi(ApiInitializer &api) {
 
 //----------------------------------------------------------------------------------
 
-bool ScenesManager::Initialize() { 
 	{
 //register backstage scene
 		ciScene *ptr = new BackstageScene();
@@ -63,6 +64,10 @@ bool ScenesManager::Initialize() {
 		//sd.ptr->Initialize();
 		//m_SceneStack.push_back(&sd);
 	}
+bool ScenesManager::Initialize(World *world) {
+	ASSERT(world);
+
+	m_World = world;
 	return true;
 }
 
@@ -72,7 +77,7 @@ bool ScenesManager::Finalize() {
 	return true;
 }
 
-//----------------------------------------------------------------------------------
+bool ScenesManager::PostSystemInit() {
 
 #ifdef DEBUG_DUMP
 
@@ -86,9 +91,18 @@ void ScenesManager::DumpAllDescriptors(std::ostream& out) {
 		out << buf;
 	}
 	out << "\n";
+	
+	return true;
 }
 
-#endif // DEBUG_DUMP
+bool ScenesManager::PreSystemStart() {
+
+	return true;
+}
+
+bool ScenesManager::PreSystemShutdown() {
+	return true;
+}
 
 //----------------------------------------------------------------------------------
 
@@ -101,8 +115,10 @@ int ScenesManager::HandleTimer(int TimerID) {
 	}
 	default:
 		AddLogf(Warning, "SceneManager recived undefined TimerID: %d", TimerID);
+bool ScenesManager::Step(const Core::MoveConfig & config) {
 	}
-	return 0;
+
+	return true;
 }
 
 //----------------------------------------------------------------------------------

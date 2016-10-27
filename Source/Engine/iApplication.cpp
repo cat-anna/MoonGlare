@@ -42,7 +42,6 @@ bool iApplication::PostSystemInit() {
 using Modules::ModulesManager;
 using MoonGlare::Core::Console;
 using FileSystem::MoonGlareFileSystem;
-using MoonGlare::Core::Scene::ScenesManager;
 using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
@@ -75,7 +74,6 @@ bool iApplication::Initialize() {
 	Graphic::Window::InitializeWindowSystem();
 	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true));
 
-	new ScenesManager();
 	new MoonGlare::Core::Engine();
 
 	if (Settings->Engine.EnableConsole)
@@ -83,7 +81,6 @@ bool iApplication::Initialize() {
 
 	Graphic::GetRenderDevice()->Initialize();
 	MoonGlare::Core::GetEngine()->Initialize();
-	MoonGlare::Core::GetScenesManager()->Initialize();
 
 	//Temporary solution which probably will be used for eternity
 	Graphic::GetRenderDevice()->GetContext()->SetInputProcessor(MoonGlare::Core::GetEngine()->GetWorld()->GetInputProcessor());
@@ -128,14 +125,12 @@ bool iApplication::Finalize() {
 
 	_del_chk(Console, "Console finalization failed");
 
-	_finit_chk(ScenesManager, "Scenes Manager finalization failed");
 	_finit_chk(MoonGlare::Core::Engine, "Engine finalization failed");
 	_finit_chk(Graphic::cRenderDevice, "Render device finalization failed");
 	_finit_chk(DataManager, "Data Manager finalization failed");
 	_finit_chk(ModulesManager, "Finalization of modules manager failed!");
 
 	ModulesManager::DeleteInstance();
-	ScenesManager::DeleteInstance();
 	MoonGlare::Core::Engine::DeleteInstance();
 	DataManager::DeleteInstance();
 

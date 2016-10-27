@@ -9,6 +9,7 @@
 #include "World.h"
 
 #include "Core/InputProcessor.h"
+#include "Core/Scene/ScenesManager.h"
 
 namespace MoonGlare {
 
@@ -47,10 +48,22 @@ bool World::Initialize(Core::Scripts::ScriptEngine *se) {
 		return false;
 	}
 
+	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>();
+	if (!m_ScenesManager->Initialize(this)) {
+		AddLogf(Error, "Failed to initialize ScenesManager");
+		m_ScenesManager.reset();
+		return false;
+	}
+
 	return true;
 }
 
 bool World::Finalize() {
+	if (m_ScenesManager && !m_ScenesManager->Finalize()) {
+		AddLogf(Error, "Failed to finalize InputProcessor");
+	}
+	m_ScenesManager.reset();
+
 	if (m_InputProcessor) {
 
 #ifdef DEBUG_DUMP
@@ -80,29 +93,44 @@ bool World::Finalize() {
 }
 
 bool World::PostSystemInit() {
+	if (!m_ScenesManager || !m_ScenesManager->PostSystemInit()) {
+		AddLog(Error, "Failure during SceneManager PostSystemInit");
+		return false;
+	}
 	return true;
 }
 
 bool World::PreSystemStart() {
+	if (!m_ScenesManager || !m_ScenesManager->PreSystemStart()) {
+		AddLog(Error, "Failure during SceneManager PostSystemInit");
+		return false;
+	}
 	return true;
 }
 
 bool World::PreSystemShutdown() {
+	if (!m_ScenesManager || !m_ScenesManager->PreSystemShutdown()) {
+		AddLog(Error, "Failure during SceneManager PostSystemInit");
+		return false;
+	}
 	return true;
 }
 
 bool World::Step(const Core::MoveConfig & config) {
 	if (!m_EntityManager.Step(config)) {
-		AddLog(Error, "Faield to Step EntityManager");
+		AddLog(Error, "Failed to Step EntityManager");
 	}
 	if (!m_HandleTable.Step(config)) {
-		AddLog(Error, "Faield to Step HandleTable");
+		AddLog(Error, "Failed to Step HandleTable");
 	}
 	if (!m_ResourceTable.Step(config)) {
-		AddLog(Error, "Faield to Step ResourceTable");
+		AddLog(Error, "Failed to Step ResourceTable");
 	}
 	if (!m_InputProcessor->Step(config)) {
-		AddLog(Error, "Faield to Step InputProcessor");
+		AddLog(Error, "Failed to Step InputProcessor");
+	}
+	if (!m_ScenesManager->Step(config)) {
+		AddLog(Error, "Failed to Step ScenesManager");
 	}
 	return true;
 }

@@ -27,7 +27,6 @@ Engine::Engine() :
 		m_SkippedFrames(0),
 		m_FrameTimeSlice(1.0f),
 
-		m_CurrentScene(0),
 		m_Dereferred(),
 		m_Forward()
 {
@@ -96,12 +95,6 @@ void Engine::ScriptApi(ApiInitializer &root){
 		.addFunction("GetFrameRate", &ThisClass::GetFrameRate)
 		.addFunction("GetInfoString", Utils::Template::InstancedStaticCall<ThisClass, string>::get<&ThisClass::GetVersionString>())
 		
-		.addFunction("SetNextScene", &ThisClass::SetNextScene)
-		.addFunction("ClearSceneStack", &ThisClass::ClearSceneStack)
-		.addFunction("PopScenes", &ThisClass::PopScenes)
-		.addFunction("ClearScenesUntil", &ThisClass::ClearScenesUntil)
-		.addFunction("ChangeScene", &ThisClass::ChangeScene)
-
 //		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
 		
 #ifdef DEBUG_SCRIPTAPI
@@ -130,9 +123,6 @@ void Engine::Abort() {
 }
 
 void Engine::EngineMain() {
-	m_CurrentScene = GetScenesManager()->GetNextScene();
-	if (m_CurrentScene)
-		m_CurrentScene->BeginScene();
 	if (!m_World->PreSystemStart()) {
 		AddLogf(Error, "Failure during PreSystemStart");
 		return;
@@ -223,29 +213,11 @@ void Engine::EngineMain() {
 		}
 	}
 
-	if (m_CurrentScene)
-		m_CurrentScene->EndScene();
 	if (!m_World->PreSystemShutdown()) {
 		AddLogf(Error, "Failure during PreSystemShutdown");
 		return;
 	}
 }         
-
-//----------------------------------------------------------------------------------
-
-void Engine::ChangeSceneImpl() {
-	if (m_CurrentScene)
-		m_CurrentScene->EndScene();
-	auto *prevScene = m_CurrentScene;
-	m_CurrentScene = GetScenesManager()->GetNextScene();
-	if (m_CurrentScene) 
-		m_CurrentScene->BeginScene(); 
-	AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
-			(prevScene ? prevScene->GetName().c_str() : "NULL"), prevScene,
-			(m_CurrentScene ? m_CurrentScene->GetName().c_str() : "NULL"), m_CurrentScene);
-	if (prevScene)
-		GetScenesManager()->PushScene(prevScene);
-}
 
 //----------------------------------------------------------------------------------
 
@@ -262,8 +234,8 @@ void Engine::DoRender(MoveConfig &conf) {
 	if(conf.Camera)
 		dev.Bind(conf.Camera);
 	 
-	if (conf.Scene)
-		m_Dereferred->Execute(conf, dev);
+	m_Dereferred->Execute(conf, dev);
+
 	m_Forward->BeginFrame(dev);
 
 	dev.SetModelMatrix(math::mat4());
@@ -297,13 +269,9 @@ void Engine::DoRender(MoveConfig &conf) {
 } 
 
 void Engine::DoMove(MoveConfig &conf) {
-	conf.Scene = nullptr;
-
 	m_TimeEvents.CheckEvents(conf);
 	GetScriptEngine()->Step(conf);
 	GetWorld()->Step(conf);
-	if (m_CurrentScene)
-		m_CurrentScene->DoMove(conf);
 }
 
 //----------------------------------------------------------------------------------
@@ -356,25 +324,6 @@ string Engine::GetVersionString() {
 	return ::MoonGlare::Core::GetMoonGlareEngineVersion().VersionString();
 #endif
 }
-
-//----------------------------------------------------------------------------------
-
-void Engine::SetNextScene(const string& Name) const { 
-	GetScenesManager()->SetNextScene(Name); 
-}
-
-void Engine::ClearSceneStack() {
-	GetScenesManager()->ClearSceneStack();
-}
-
-void Engine::PopScenes(int count) const {
-	GetScenesManager()->PopScenes(count);
-}
-
-void Engine::ClearScenesUntil(const string& Name) const {
-	GetScenesManager()->ClearScenesUntil(Name);
-}
-
 
 } //namespace Core
 } //namespace MoonGlare 

@@ -52,11 +52,14 @@ public:
 	ScenesManager();
 	virtual ~ScenesManager();
 
-	bool Initialize();
+	bool Initialize(World *world);
 	bool Finalize();
 
 	typedef std::unordered_map<string, SceneDescriptor> SceneList;
 	typedef std::list<SceneDescriptor*> SceneStack;
+	bool PostSystemInit();
+	bool PreSystemStart();
+	bool PreSystemShutdown();
 
 	ciScene* GetNextScene();
 	void SetNextScene(const string& Name, int Param = 0);
@@ -65,6 +68,7 @@ public:
 	void ClearSceneStack();
 	void PopScenes(int count);
 	void ClearScenesUntil(const string& Name);
+	bool Step(const Core::MoveConfig &config);
 
 	//void NotifySceneLoaded(ciScene *scene);
 
@@ -88,6 +92,7 @@ protected:
 	SceneStack m_SceneStack;
 	ciScene* m_NextSceneRegister;
 
+	World *m_World;
 	ciScene* PopScene();
 	ciScene* GetSceneInstance(SceneDescriptor *descr);
 	int HandleTimer(int TimerID);

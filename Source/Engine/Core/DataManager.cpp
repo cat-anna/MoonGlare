@@ -376,7 +376,11 @@ void Manager::DumpResources() {
 	file << "Revision index: " << RevisionIndex << "\n\n";
 	++RevisionIndex;
 	GetDataMgr()->DumpAllResources(file);
-	Core::GetScenesManager()->DumpAllDescriptors(file);
+	
+	auto sm = world->GetScenesManager();
+	if(sm)
+		sm->DumpAllDescriptors(file);
+
 	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);
