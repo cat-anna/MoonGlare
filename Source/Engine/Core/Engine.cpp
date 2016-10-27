@@ -33,6 +33,8 @@ Engine::Engine() :
 {
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
+	m_World = std::make_unique < World >();
+
 	SetThisAsInstance();
 	new JobQueue();
 }
@@ -44,7 +46,6 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 bool Engine::Initialize() {
-	m_World = std::make_unique < World >();
 
 	if (!m_World->Initialize(GetScriptEngine())) {
 		AddLogf(Error, "Failed to initialize world!");
@@ -72,6 +73,17 @@ bool Engine::Finalize() {
 		AddLogf(Error, "Failed to finalize world!");
 	}
 	m_World.reset();
+
+	return true;
+}
+
+bool Engine::PostSystemInit() {
+	GetDataMgr()->LoadGlobalData();
+	
+	if (!m_World->PostSystemInit()) {
+		AddLogf(Error, "World PostSystemInit failed!");
+		return false;
+	}
 
 	return true;
 }
@@ -121,6 +133,11 @@ void Engine::EngineMain() {
 	m_CurrentScene = GetScenesManager()->GetNextScene();
 	if (m_CurrentScene)
 		m_CurrentScene->BeginScene();
+	if (!m_World->PreSystemStart()) {
+		AddLogf(Error, "Failure during PreSystemStart");
+		return;
+	}
+
 	Graphic::GetRenderDevice()->GetContext()->GrabMouse();
 
 	m_Running = true;
@@ -208,6 +225,10 @@ void Engine::EngineMain() {
 
 	if (m_CurrentScene)
 		m_CurrentScene->EndScene();
+	if (!m_World->PreSystemShutdown()) {
+		AddLogf(Error, "Failure during PreSystemShutdown");
+		return;
+	}
 }         
 
 //----------------------------------------------------------------------------------

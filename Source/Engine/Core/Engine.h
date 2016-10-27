@@ -12,8 +12,10 @@ public:
     ~Engine();
 
 	bool Initialize();
-	void EngineMain();
 	bool Finalize();
+	bool PostSystemInit();
+
+	void EngineMain();
 
     void DoMove(MoveConfig &conf);
     void DoRender(MoveConfig &conf);

@@ -79,6 +79,18 @@ bool World::Finalize() {
 	return true;
 }
 
+bool World::PostSystemInit() {
+	return true;
+}
+
+bool World::PreSystemStart() {
+	return true;
+}
+
+bool World::PreSystemShutdown() {
+	return true;
+}
+
 bool World::Step(const Core::MoveConfig & config) {
 	if (!m_EntityManager.Step(config)) {
 		AddLog(Error, "Faield to Step EntityManager");

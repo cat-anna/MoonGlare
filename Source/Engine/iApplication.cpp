@@ -25,8 +25,7 @@ iApplication::iApplication() : BaseClass() {
 	SetThisAsInstance();
 }
 
-iApplication::~iApplication() {
-}
+iApplication::~iApplication() {}
 
 //---------------------------------------------------------------------------------------
 
@@ -96,6 +95,12 @@ bool iApplication::Initialize() {
 		AddLogf(Error, "Post system init action failed!");
 		return false;
 	}
+
+	if (!Core::GetEngine()->PostSystemInit()) {
+		AddLogf(Error, "Engine core post system init action failed!");
+		return false;
+	}
+
 	return true;
 }
 

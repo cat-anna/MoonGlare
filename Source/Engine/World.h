@@ -22,6 +22,9 @@ public:
 
 	bool Initialize(Core::Scripts::ScriptEngine *se);
 	bool Finalize();
+	bool PostSystemInit();
+	bool PreSystemStart();
+	bool PreSystemShutdown();
 
 	bool Step(const Core::MoveConfig &config);
 
