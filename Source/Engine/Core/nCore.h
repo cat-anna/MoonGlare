@@ -13,7 +13,6 @@
 //core shortcut getters
 namespace MoonGlare {
 namespace Core {
-	inline Scene::ScenesManager* GetScenesManager() { return Scene::ScenesManager::Instance(); }
 } //namespace Core 
 } //namespace MoonGlare 
 

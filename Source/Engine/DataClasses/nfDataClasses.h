@@ -13,7 +13,6 @@ enum class DataPath {
 
 	Models,
 	Fonts,
-	Scenes,
 	Shaders,
 	Scripts,
 	Sounds,

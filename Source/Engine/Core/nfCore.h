@@ -57,10 +57,9 @@ protected:
 struct MoveConfig { 
 	float TimeDelta;
 
-	mutable ciScene *Scene = nullptr;
+//	mutable ciScene *Scene = nullptr;
 	mutable Graphic::VirtualCamera *Camera = nullptr;
 	
-//	mutable std::vector<::Core::Scene::ModelInstance*> RenderList;
 	mutable std::vector<iCustomDraw*> CustomDraw;
 
 	mutable std::unique_ptr<Renderer::RenderInput> m_RenderInput;

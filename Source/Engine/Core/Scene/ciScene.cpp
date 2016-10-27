@@ -21,9 +21,8 @@ RegisterApiDerivedClass(ciScene, &ciScene::RegisterScriptApi);
 
 ciScene::ciScene() :
 		BaseClass(),
-		m_SceneState(SceneState::Waiting),
-		m_Flags(0),
-		m_TimeEvents() {
+		m_Descriptor(nullptr),
+		m_Flags(0) {
 }
 
 ciScene::~ciScene() {
@@ -55,13 +54,36 @@ void ciScene::EndScene() {
 	SetReady(false);
 }
 
-bool ciScene::Initialize() {
+bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor) {
 	if (IsInitialized()) return true;
-	AddLog(Debug, "Initializing scene: " << GetName());
-	if (!DoInitialize()) {
-		AddLog(Error, "Unable to initialize scene " << GetName());
+	
+	ASSERT(Descriptor);
+	
+	AddLog(Debug, "Initializing scene: " << Name);
+
+	m_Descriptor = Descriptor;
+
+	auto em = GetEngine()->GetWorld()->GetEntityManager();
+	if (!em->Allocate(OwnerEntity, m_Entity, std::move(Name))) {
+		AddLogf(Error, "Failed to allocate scene entity!");
 		return false;
 	}
+
+	if (!m_ComponentManager.LoadComponents(Node.child("Components"))) {
+		AddLogf(Error, "Failed to load components");
+		return false;
+	}
+
+	if (!m_ComponentManager.Initialize(this)) {
+		AddLogf(Error, "Failed to initialize component manager");
+		return false;
+	}
+
+	//SetName(Node.attribute(xmlAttr_Name).as_string("??"));
+	m_Environment.LoadMeta(Node.child("Environment"));
+	EntityBuilder eb(&m_ComponentManager);
+	eb.ProcessXML(GetSceneEntity(), Node.child("Entities"));
+
 	SetInitialized(true);
 	return true;
 }
@@ -69,86 +91,23 @@ bool ciScene::Initialize() {
 bool ciScene::Finalize() {
 	if (!IsInitialized()) return true;
 	if (IsReady()) EndScene();
-	AddLog(Debug, "Finalizing scene: " << GetName());
-	if (!DoFinalize()) {
-		AddLog(Error, "Unable to finalize scene " << GetName());
-		return false;
-	}
-	SetInitialized(false);
-	return true;
-}
 
-bool ciScene::DoInitialize() {
-	if (!m_ComponentManager.Initialize(this)) {
-		AddLogf(Error, "Failed to initialize component manager");
-		return false;
-	}
-
-	auto node = GetRootNode().child("Entities");
-	EntityBuilder eb(&m_ComponentManager);
-	auto root = GetEngine()->GetWorld()->GetEntityManager()->GetRootEntity();
-	eb.ProcessXML(root, node);
-
-	return true;
-}
-
-bool ciScene::DoFinalize() {
 	if (!m_ComponentManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize component manager");
 		return false;
 	}
 
+	SetInitialized(false);
 	return true;
 }
 
 //----------------------------------------------------------------
 
 void ciScene::DoMove(const MoveConfig &conf) {
-	conf.Scene = this;
-	m_TimeEvents.CheckEvents(conf);
 	m_ComponentManager.Step(conf);
 }
 
 //----------------------------------------------------------------
-
-bool ciScene::SetMetaData(FileSystem::XMLFile &file) {
-	m_MetaData.swap(file);
-	if (!m_MetaData) return false;
-	return LoadMeta(GetRootNode());
-}
-
-bool ciScene::LoadMeta(const xml_node Node) {
-	SetName(Node.attribute(xmlAttr_Name).as_string("??"));
-	m_Environment.LoadMeta(Node.child("Environment"));
-	return m_ComponentManager.LoadComponents(Node.child("Components"));
-}
-
-const xml_node ciScene::GetRootNode() const { 
-	if (!m_MetaData)
-		return xml_node();
-	return m_MetaData->document_element();
-}
-
-//----------------------------------------------------------------
-
-void ciScene::FinishScene() {
-	SetSceneState(SceneState::Finished);
-	GetEngine()->ChangeScene();
-}
-
-void ciScene::SetFinishedState() {
-	SetSceneState(SceneState::Finished);
-}
-
-void ciScene::SetSceneState(SceneState state) {
-	m_SceneState = state;
-	//GetEngine()->HandleSceneStateChange();
-}
-
-int ciScene::InternalEventNotification(Events::InternalEvents event, int Param) {
-	//No events are handled here
-	return 0;
-}
 
 } // namespace Scene
 } // namespace Core

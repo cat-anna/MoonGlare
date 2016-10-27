@@ -111,7 +111,6 @@ public:
 	DataClasses::ModelPtr GetModel(const string& Name);
 
 	const string& GetString(const string &Id, const string& TableName);
-	Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const;
 
 	DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
 
