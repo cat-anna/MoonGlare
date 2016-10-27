@@ -6,5 +6,11 @@ Structure.new {
 	name = "SceneConfiguration",
     description = "",
 	fields = {
+		{
+			name = "Stateful",
+			description = "",
+			type = bool,
+			default = false,
+		},
 	},
 }
