@@ -672,10 +672,11 @@ int ScriptComponent::lua_SetComponentState(lua_State *lua) {
 	Handle h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
 	int rets = 0;
 	if (!cptr->PushEntryToLua(h, lua, rets)) {
-		AddLogf(Error, "ComponentInstanceInfo::Set: Error: Component '%s' does not support lua api", typeid(*cptr).name());
-		return 0;
-	}
-	//stack: self values component
+		lua_pushvalue(lua, -2);
+		//AddLogf(Error, "ComponentInstanceInfo::Set: Error: Component '%s' does not support lua api", typeid(*cptr).name());
+		//return 0;
+	} 
+	//stack: self values component/self
 
 	lua_pushnil(lua);								//stack: self values component nil
 
@@ -684,7 +685,7 @@ int ScriptComponent::lua_SetComponentState(lua_State *lua) {
 		lua_insert(lua, -2);						//stack: self values component key key value 
 		lua_settable(lua, 3);						//stack: self values component key  
 	}
-	//stack: self values component
+	//stack: self values component/self
 	lua_pop(lua, 1);
 
 	return 0;
