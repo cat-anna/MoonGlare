@@ -8,22 +8,15 @@
 #ifndef NFSCENE_H_
 #define NFSCENE_H_
 
-namespace MoonGlare {
-namespace Core {
+namespace MoonGlare::Core {
+
 	namespace Scene {
-		class ModelInstance;
-
-		class GameScene;
 		class ciScene;
-
 		class ScenesManager;
-
-		using SceneClassRegister = Space::DynamicClassRegister < ciScene > ;
 	} // namespace Scene
-	using Scene::GameScene;
+
 	using Scene::ciScene;
 
-} // namespace Core
-} //namespace MoonGlare 
+} // namespace Core::MoonGlare 
 
 #endif // SCENE_H_ 

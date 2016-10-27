@@ -18,9 +18,6 @@ namespace Scene {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(ciScene)
 RegisterApiDerivedClass(ciScene, &ciScene::RegisterScriptApi);
-inline ciScene* CurrentInstance() { return GetEngine()->GetCurrentScene(); }
-RegisterApiDynamicInstance(ciScene, &CurrentInstance, "Scene");
-SceneClassRegister::Register<ciScene> SceneReg("Scene");
 
 ciScene::ciScene() :
 		BaseClass(),
@@ -33,11 +30,9 @@ ciScene::~ciScene() {
 }
 
 void ciScene::RegisterScriptApi(ApiInitializer &api) {
-	api
-	.deriveClass<ThisClass, BaseClass>("iScene")
-		.addFunction("FinishScene", &ThisClass::FinishScene)
-		.addFunction("SetFinishedState", &ThisClass::SetFinishedState)
-	.endClass();
+	//api
+	//.deriveClass<ThisClass, BaseClass>("iScene")
+	//.endClass();
 }
 
 //----------------------------------------------------------------
