@@ -43,7 +43,7 @@ void InputProcessor::RegisterScriptApi(ApiInitializer &root) {
 
 //---------------------------------------------------------------------------------------
 
-bool InputProcessor::Initialize(World *world) {
+bool InputProcessor::Initialize(World *world)  {
 	m_World = world;
 	auto *ScriptEngine = m_World->GetScriptEngine();
 	{
@@ -112,7 +112,6 @@ bool InputProcessor::Step(const Core::MoveConfig & config) {
 //---------------------------------------------------------------------------------------
 
 void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
-	THROW_ASSERT(Id < Configuration::Input::MaxKeyCode, "");
 	if (Id >= Configuration::Input::MaxKeyCode) {
 		AddLogf(Warning, "Key code id overflow: %u", Id);
 		return;

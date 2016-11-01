@@ -305,6 +305,7 @@ bool ScenesManager::DropSceneState(const std::string &SID) {
 	}
 
 	sd->DropScene();
+	AddLogf(Info, "Dropped scene state: %s", SID.c_str());
 
 	return true;
 }
