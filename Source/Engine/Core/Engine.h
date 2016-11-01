@@ -12,23 +12,13 @@ public:
     ~Engine();
 
 	bool Initialize();
-	void EngineMain();
 	bool Finalize();
+	bool PostSystemInit();
+
+	void EngineMain();
 
     void DoMove(MoveConfig &conf);
     void DoRender(MoveConfig &conf);
-
-	/** Proxy call to SceneManager instance. Should be used only by scripts. */
-	void SetNextScene(const string& Name) const;
-	/** Proxy call to SceneManager instance. Should be used only by scripts. */
-	void ClearSceneStack();
-	/** Proxy call to SceneManager instance. Should be used only by scripts. */
-	void PopScenes(int count) const;
-	/** Proxy call to SceneManager instance. Should be used only by scripts. */
-	void ClearScenesUntil(const string& Name) const;
-
-	/** Queue change scene action. */
-	void ChangeScene() { m_ActionQueue.Add([this]() { ChangeSceneImpl(); }); }
 
 	//void HandleSceneStateChange() { m_ActionQueue.Add([this]() { HandleSceneStateChangeImpl(); }); }
 	/** pushes new scene onto stack, switches to it, and returns it */
@@ -37,15 +27,10 @@ public:
 	/** Add action which has to be called between engine steps */
 	template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
 
-	DefineREADAccesPTR(CurrentScene, ciScene);
-
 	/** Abort engine execution. Throws exception. No cleanup is done. */
 	void Abort();			
 	/** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
 	void Exit();				
-
-	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
-	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
 	static void ScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
@@ -62,7 +47,6 @@ public:
 
 protected:
 	unsigned m_Flags;
-	ciScene* m_CurrentScene;
 	Space::ActionQueue m_ActionQueue;
 	TimeEvents m_TimeEvents;
 
@@ -77,8 +61,6 @@ protected:
 	unsigned m_FrameCounter;		//!< Counter of fps in current second. Updated per cycle.
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
 
-	//void GoToSceneImpl(const string& Name);
-	//void HandleSceneStateChangeImpl();
 	void ChangeSceneImpl();
 }; 
 

@@ -5,11 +5,13 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <nfMoonGlare.h>
+#include <MoonGlare.h>
 #include "ComponentManager.h"
 #include "ComponentRegister.h"
 #include "AbstractComponent.h"
 #include "TransformComponent.h"
+
+//#include <Core/Scene/ciScene.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -76,8 +78,7 @@ bool TransformComponent::Initialize() {
 	auto &RootEntry = m_Array[index];
 	RootEntry.m_Flags.ClearAll();
 	RootEntry.m_Flags.m_Map.m_Valid = true;
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
+	RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
 	RootEntry.m_GlobalMatrix = math::mat4();
 	RootEntry.m_LocalScale = Physics::vec3(1, 1, 1);
 	RootEntry.m_GlobalScale = Physics::vec3(1, 1, 1);

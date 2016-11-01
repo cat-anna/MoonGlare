@@ -2,7 +2,9 @@
 #include <MoonGlare.h>
 #include <Engine/iSoundEngine.h>
 #include <Engine/ModulesManager.h>
+#include <Engine/Core/Engine.h>
 #include <Engine/Core/DataManager.h>
+#include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
 
 #include <StarVFS/core/nStarVFS.h>
@@ -309,28 +311,6 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 	return m_StringTables->GetString(Id, TableName);
 }
 
-Core::ciScene* Manager::LoadScene(const string& Name, const string& Class) const {
-	Core::ciScene* ptr = Core::Scene::SceneClassRegister::CreateClass(Class);
-	if (!ptr) {
-		AddLogf(Error, "Unable to create scene class '%s' for object '%s'", Class.c_str(), Name.c_str());
-		return 0;
-	}
-	AddLogf(Debug, "Loading scene '%s' of class '%s'", Name.c_str(), Class.c_str());
-
-	FileSystem::XMLFile doc;
-	if (!GetFileSystem()->OpenResourceXML(doc, Name, DataPath::Scenes)) {
-		AddLog(Warning, "Unable to load xml for scene: " << Name);
-	} else {
-		if (!ptr->SetMetaData(doc)) {
-			AddLogf(Error, "Unable to scene map '%s' of class '%s'", Name.c_str(), Class.c_str());
-			delete ptr;
-			return nullptr;
-		}
-		ptr->SetName(Name);
-	}
-	return ptr;
-}
-
 //------------------------------------------------------------------------------------------
 
 #ifdef DEBUG_DUMP
@@ -375,12 +355,19 @@ void Manager::DumpResources() {
 	static std::ofstream file (DEBUG_LOG_FOLDER "resources.txt");
 	file << "Revision index: " << RevisionIndex << "\n\n";
 	++RevisionIndex;
+
+	auto world = Core::GetEngine()->GetWorld();
+
 	GetDataMgr()->DumpAllResources(file);
-	Core::GetScenesManager()->DumpAllDescriptors(file);
+	
+	auto sm = world->GetScenesManager();
+	if(sm)
+		sm->DumpAllDescriptors(file);
+
 	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);
-//	::Core::GetGlobalContext()->Dump(file);
+
 	//TODO: dump global context
 	file << "\n\n--------------------------------------------------------------------------------------\n" << std::flush;
 #endif
@@ -388,7 +375,7 @@ void Manager::DumpResources() {
 
 #ifdef DEBUG_DUMP
 void Manager::NotifyResourcesChanged() {
-	JobQueue::QueueJob([this]{ DumpResources(); });
+	GetEngine()->PushSynchronizedAction([this]{ DumpResources(); });
 } 
 #endif
 

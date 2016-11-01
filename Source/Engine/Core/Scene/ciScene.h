@@ -13,15 +13,10 @@ namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
-enum class SceneState {
-	Unknown,
-	Active,
-	Waiting,
-	Finished,
-};
+struct SceneDescriptor;
 
-class ciScene : public DataClasses::BasicResource {
-	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, DataClasses::BasicResource)
+class ciScene : public cRootClass {
+	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	ciScene(const ciScene&) = delete;
@@ -30,26 +25,19 @@ public:
 
 	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
 
+	bool Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor);
+	bool Finalize();
+
+	Entity GetSceneEntity() const { return m_Entity; }
+	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
+
 //old
-	void SetSceneState(SceneState state);
-	DefineREADAcces(SceneState, SceneState);
-
-
 	/** @brief Call this function to initialize scene before first call */
 	virtual void BeginScene();
 	/** @brief Call this function when scene won't be used for some time */
 	virtual void EndScene();
-	/** @brief Initialize scene */
-	bool Initialize();
-	/** @brief Finalize scene */
-	bool Finalize();
-
-	bool SetMetaData(FileSystem::XMLFile &file);
 
 	virtual void DoMove(const MoveConfig &conf);
-
-	int SetProxyTimer(EventProxyPtr proxy, float secs, int TimerID, bool cyclic) { return m_TimeEvents.SetTimer(TimerID, secs, cyclic, proxy); }
-	void KillProxyTimer(EventProxyPtr proxy, int TimerID) { m_TimeEvents.KillTimer(TimerID, proxy); }
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
@@ -63,31 +51,19 @@ public:
 		sfset_IsReady = sf_Ready | sf_Initialized,
 	};
 protected:
+	Entity m_Entity;
 	Component::ComponentManager m_ComponentManager;
+	SceneDescriptor *m_Descriptor;
 //old
-
 	Graphic::Environment m_Environment;
-
-	TimeEvents m_TimeEvents;
-	XMLFile m_MetaData;
-
-	virtual bool DoInitialize();
-	virtual bool DoFinalize();
-	virtual bool LoadMeta(const xml_node Node);
-
-	const xml_node GetRootNode() const;
 
 	void FinishScene();
 	void SetFinishedState();
 
-	virtual int InternalEventNotification(Events::InternalEvents event, int Param);
 //very old
 	unsigned m_Flags;
 	DefineFlagSetter(m_Flags, sf_Initialized, Initialized);
 	DefineFlagSetter(m_Flags, sf_Ready, Ready);
-private:
-//old
-	SceneState m_SceneState;
 };
 
 } //namespace Scene

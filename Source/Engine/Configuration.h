@@ -106,6 +106,11 @@ namespace MoonGlare {
 				MaxConsoleLines = 20,
 			};
 		};
+
+		namespace SceneManager {
+			static const char* SceneFileExt = ".sdx";
+		}
+
 	} //namespace Configuration
 
 using Configuration::HashID;

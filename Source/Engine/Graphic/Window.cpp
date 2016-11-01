@@ -424,7 +424,7 @@ void Window::glfw_error_callback(int error, const char* description) {
 }
 
 void Window::glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
-	if (action == GLFW_REPEAT) {
+	if (action == GLFW_REPEAT || key == GLFW_KEY_UNKNOWN) {
 		//AddLogf(Debug, "glfw repeat: %d", key);
 		return;
 	}

@@ -3,7 +3,6 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iApplication.h>
-#include <Engine/Core/DataManager.h>
 #include "GameApplication.h"
 
 #include <Engine/BaseResources.h>
@@ -26,12 +25,6 @@ GameApplication::GameApplication(int argc, char** argv) {
 }
 
 GameApplication::~GameApplication() {
-}
-
-bool GameApplication::PostSystemInit() {
-	GetDataMgr()->LoadGlobalData();
-	Core::GetScenesManager()->SetNextScene(Configuration::BaseResources::FirstScene::get());
-	return true;
 }
 
 const char* GameApplication::ExeName() const {

@@ -22,6 +22,9 @@ public:
 
 	bool Initialize(Core::Scripts::ScriptEngine *se);
 	bool Finalize();
+	bool PostSystemInit();
+	bool PreSystemStart();
+	bool PreSystemShutdown();
 
 	bool Step(const Core::MoveConfig &config);
 
@@ -31,8 +34,10 @@ public:
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
 
 	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
+	Core::Scene::ScenesManager *GetScenesManager() { return m_ScenesManager.get(); };
 private: 
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
+	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
 
 	Core::Scripts::ScriptEngine *m_ScriptEngine;
 

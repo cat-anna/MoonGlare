@@ -29,6 +29,9 @@ Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg
 BodyShapeComponent::BodyShapeComponent(Core::Component::ComponentManager *Owner)
 		: AbstractComponent(Owner) {
 
+	m_BodyComponent = nullptr;
+	m_TransformComponent = nullptr;
+
 	DebugMemorySetParent(GetManager());
 	DebugMemorySetClassName("BodyShapeComponent");
 	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
@@ -135,6 +138,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	size_t index;
 	if (!BuildEntry(Owner, hout, index)) {
 		AddLog(Error, "Failed to build entry!");
+		return false;
 	}
 
 	auto &entry = m_Array[index];
@@ -189,6 +193,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	}
 
 	entry.m_Flags.m_Map.m_Valid = true;
+	//entry.
 	entry.SetShapeInternal(std::move(shape));
 	
 //	auto tcEntry = m_TransformComponent->GetEntry(Owner);

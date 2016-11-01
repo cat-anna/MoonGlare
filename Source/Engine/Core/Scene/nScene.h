@@ -8,6 +8,5 @@
 #define NSCENE_H_
 
 #include "ciScene.h"
-#include "ScenesManager.h"
 
 #endif // NSCENE_H_

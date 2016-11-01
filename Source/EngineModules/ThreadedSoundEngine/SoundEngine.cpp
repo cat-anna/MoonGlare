@@ -373,6 +373,7 @@ void SoundEngine::SetPlayList(const string& PlayListName) {
 			m_PlayList->LoadMeta(xml->document_element());
 	}
 
+	StopMusic();
 	RunPlayList();
 }
 

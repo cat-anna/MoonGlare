@@ -6,134 +6,232 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
-
-#include "BackstageScene.h"
-
+#include "ScenesManager.h"
 #include <Engine/Core/Engine.h>
-
 #include <Engine/BaseResources.h>
 
-namespace MoonGlare {
-namespace Core {
-namespace Scene {
+#include <Scene.x2c.h>
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScenesManager)
-RegisterApiDerivedClass(ScenesManager, &ScenesManager::RegisterScriptApi);
+namespace MoonGlare::Core::Scene {
 
-struct ScenesManagerTimers {
-	enum {
-		SceneTimeout = 1,
-	};
-};
+SPACERTTI_IMPLEMENT_STATIC_CLASS(ScenesManager)
+RegisterApiBaseClass(ScenesManager, &ScenesManager::RegisterScriptApi);
+ScenesManager* GetScenesManager() { return GetEngine()->GetWorld()->GetScenesManager(); }
+RegisterApiInstance(ScenesManager, &GetScenesManager, "SceneManager");
 
-ScenesManager::ScenesManager():
-		m_Flags(0),
-		m_NextSceneRegister(nullptr) {
-	m_EventProxy.set(new EventProxy<ThisClass, &ThisClass::HandleTimer>(this));
-	SetThisAsInstance();
+ScenesManager::ScenesManager()
+	: m_LoadingSceneDescriptor(nullptr)
+	, m_CurrentScene(nullptr)
+	, m_CurrentSceneDescriptor(nullptr)
+	, m_World(nullptr)
+	, m_LoadingInProgress(false)
+{
 }
 
 ScenesManager::~ScenesManager() {
-	Finalize();
 }
 
 //----------------------------------------------------------------------------------
 
 void ScenesManager::RegisterScriptApi(ApiInitializer &api) {
+	api
+		.beginClass<ThisClass>("cScenesManager")
+			.addFunction("LoadScene", &ThisClass::LoadScene)
+			.addFunction("DropSceneState", &ThisClass::DropSceneState)
+			.addFunction("CurrentSceneName", &ThisClass::GetCurrentSceneName)
+		.endClass()
+		;
 }
 
 //----------------------------------------------------------------------------------
 
-bool ScenesManager::Initialize() { 
-	{
-//register backstage scene
-		ciScene *ptr = new BackstageScene();
-		auto &sd = AllocDescriptor(ptr->GetName(), SceneType::Backstage);
-		sd.Class = BackstageScene::GetStaticTypeInfo()->GetName();
-		sd.ptr.reset(ptr);
-		sd.ptr->Initialize();
-		m_SceneStack.push_back(&sd);
-	}
-	{
-//register default loading scene
-		//ciScene *ptr = new EngineLoadScene();
-		//auto &sd = AllocDescriptor(LoadingSceneName, SceneType::External);
-		//sd.Class = DefaultLoadingScene::GetStaticTypeInfo()->GetName();
-		//sd.ptr.reset(ptr);
-		//sd.ptr->Initialize();
-		//m_SceneStack.push_back(&sd);
-	}
+bool ScenesManager::Initialize(World *world) {
+	ASSERT(world);
+
+	m_World = world;
+	m_DescriptorTable.reserve(32);//TODO: some config?
+
 	return true;
 }
 
 bool ScenesManager::Finalize() { 
-	m_SceneStack.clear();
-	m_SceneList.clear();
+	m_SIDMap.clear();
+	m_DescriptorTable.clear();
+	return true;
+}
+
+bool ScenesManager::PostSystemInit() {
+	auto fs = GetFileSystem();
+	StarVFS::DynamicFIDTable scenefids;
+	fs->FindFiles(Configuration::SceneManager::SceneFileExt, scenefids);
+
+	for (auto fid : scenefids) {
+		std::string sid = fs->GetFileName(fid);
+
+		while (sid.back() != '.')
+			sid.pop_back();
+		sid.pop_back();
+
+		AddLogf(Debug, "Found scene: %s -> %s", fs->GetFullFileName(fid).c_str(), sid.c_str());
+			
+		AllocDescriptor(fid, sid);
+	}
+	
+	return true;
+}
+
+bool ScenesManager::PreSystemStart() {
+	m_LoadingSceneDescriptor = FindDescriptor(Configuration::BaseResources::FallbackLoadScene::get());
+	if (!m_LoadingSceneDescriptor) {
+		AddLogf(Error, "There is no FallbackLoadScene");
+		return false;
+	}
+
+	if (!LoadNextScene(m_LoadingSceneDescriptor)) {
+		AddLogf(Error, "Failed to load FallbackLoadScene");
+		return false;
+	}
+
+	m_LoadingSceneDescriptor->m_Flags.m_Stateful = true;
+
+	JobQueue::QueueJob([this] { 
+		while(m_NextSceneDescriptor)
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		LoadNextScene(Configuration::BaseResources::FirstScene::get());
+	});
+
+	return true;
+}
+
+bool ScenesManager::PreSystemShutdown() {
 	return true;
 }
 
 //----------------------------------------------------------------------------------
 
-#ifdef DEBUG_DUMP
+bool ScenesManager::Step(const Core::MoveConfig & config) {
+	if (m_NextSceneDescriptor) {
+		if (m_CurrentScene)
+			m_CurrentScene->EndScene();
 
-void ScenesManager::DumpAllDescriptors(std::ostream& out) {
-	out << "Scene descriptors:\n";
-	for (auto &it : m_SceneList) {
-		auto &sd = it.second;
-		char buf[128];
-		sprintf(buf, "%40s [class %-20s]\n", 
-				sd.Name.c_str(), sd.Class.c_str());
-		out << buf;
+		auto *prevScene = m_CurrentScene;
+		auto *prevSceneDesc = m_CurrentSceneDescriptor;
+
+		m_CurrentScene = m_NextSceneDescriptor->m_Ptr.get();
+		m_CurrentSceneDescriptor = m_NextSceneDescriptor;
+		m_NextSceneDescriptor = nullptr;
+
+		if (m_CurrentScene) {
+			m_CurrentScene->BeginScene();
+		}
+
+		AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
+				(prevSceneDesc ? prevSceneDesc->m_SID.c_str() : "NULL"), prevScene,
+				(m_CurrentScene ? m_CurrentSceneDescriptor->m_SID.c_str() : "NULL"), m_CurrentScene);
+
+		if (prevSceneDesc)
+			ProcessPreviousScene(prevSceneDesc);
 	}
-	out << "\n";
-}
 
-#endif // DEBUG_DUMP
+	if (m_CurrentScene)
+		m_CurrentScene->DoMove(config);
+	return true;
+}
 
 //----------------------------------------------------------------------------------
 
-int ScenesManager::HandleTimer(int TimerID) {
-	switch (TimerID) {
-	case ScenesManagerTimers::SceneTimeout: {
-		//SetSceneLoadingTimedOut(true);
-		JobQueue::QueueJob([this] { LoadingSceneTimedOutJob(); });
-		break;
+bool ScenesManager::LoadScene(const std::string &SID) {
+	ASSERT(m_LoadingSceneDescriptor);
+
+	auto sd = FindDescriptor(SID);
+	if (!sd) {
+		AddLogf(Error, "Scene '%s' does not exits", SID.c_str());
+		return false;
 	}
-	default:
-		AddLogf(Warning, "SceneManager recived undefined TimerID: %d", TimerID);
-	}
-	return 0;
+
+	SetNextSceneDescriptor(m_LoadingSceneDescriptor);
+
+	JobQueue::QueueJob([this, sd] {
+		while (m_NextSceneDescriptor)
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		LoadNextScene(sd);
+	});
+
+	return true;
 }
 
-//----------------------------------------------------------------------------------
-
-void ScenesManager::LoadingSceneTimedOutJob() {
-	LOCK_MUTEX(m_Lock);
-	if (IsNextSceneLoaded()) {
-		AddLog(Debug, "Scene loading timeout expired!");
-		return;
+bool ScenesManager::LoadNextScene(const std::string &SID) {
+	auto d = FindDescriptor(SID);
+	if (!d) {
+		AddLogf(Error, "Scene '%s' does not exits", SID.c_str());
+		return false;
 	}
-	SetSceneLoadingTimedOut(true);
-
-	AddLog(Hint, "Loading scene timed out!");
-
-	auto *desc = GetSceneDescriptor(Configuration::BaseResources::FallbackLoadScene::get());
-	if (!desc) {
-		AddLog(Error, "Unable to find loading scene descriptor");
-		return;
-	}
-
-	auto *scene = GetSceneInstance(desc);
-	if (!scene) {
-		AddLog(Error, "Unable to create loading scene instance");
-		return;
-	}
-
-	m_NextSceneRegister = scene;
-	GetEngine()->ChangeScene();
+	return LoadNextScene(d);
 }
 
-void ScenesManager::LoadSceneJob(const string& Name, int Param, EventProxyPtr proxy) {
+bool ScenesManager::LoadNextScene(SceneDescriptor *descriptor) {
+	ASSERT(descriptor);
+	if (!LoadSceneData(descriptor)) {
+		AddLogf(Error, "Failed to load scene '%s'", descriptor->m_SID.c_str());
+		return false;
+	}
+
+	return SetNextSceneDescriptor(descriptor);
+}
+
+bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
+	ASSERT(descriptor);
+
+	LOCK_MUTEX(descriptor->m_Lock);
+
+	if (descriptor->m_Flags.m_LoadInProgress)
+		return false;
+	if (descriptor->m_Flags.m_Loaded && descriptor->m_Ptr)
+		return true;
+	if (m_LoadingInProgress)
+		return false;
+	m_LoadingInProgress = true;
+
+	descriptor->m_Ptr.reset();
+	descriptor->m_Flags.m_Loaded = false;
+	descriptor->m_Flags.m_LoadInProgress = true;
+
+	AddLogf(Debug, "Loading scene '%s'", descriptor->m_SID.c_str());
+
+	do {
+		FileSystem::XMLFile doc;
+		if (!GetFileSystem()->OpenXML(doc, descriptor->m_FID)) {
+			AddLogf(Warning, "Unable to load xml for scene: '%s'", descriptor->m_SID.c_str());
+			break;
+		}
+
+		auto xmlroot = doc->document_element();
+
+		x2c::Core::Scene::SceneConfiguration_t sc;
+		sc.ResetToDefault();
+		if (!sc.Read(xmlroot, "Configuration")) {
+			AddLogf(Error, "Failed to read configuration for scene: %s", descriptor->m_SID.c_str());
+			break;
+		}
+
+		descriptor->m_Flags.m_Stateful = sc.m_Stateful;
+
+		auto ptr = std::make_unique<ciScene>();
+		auto RootEntity = m_World->GetEntityManager()->GetRootEntity();
+		if (!ptr->Initialize(xmlroot, descriptor->m_SID, RootEntity, descriptor)) {
+			AddLogf(Error, "Failed to initialize scene '%s'", descriptor->m_SID.c_str());
+			break;
+		}
+
+		descriptor->m_Ptr.swap(ptr);
+		descriptor->m_Flags.m_Loaded = true;
+	} while (false);
+
+	descriptor->m_Flags.m_LoadInProgress = false;
+	m_LoadingInProgress = false;
+	return descriptor->m_Flags.m_Loaded;
+
+#if 0
 	auto *desc = GetSceneDescriptor(Name);
 	if (!desc) {
 		AddLogf(Error, "Unable to find descriptor for scene: '%s'", Name.c_str());
@@ -144,16 +242,6 @@ void ScenesManager::LoadSceneJob(const string& Name, int Param, EventProxyPtr pr
 			evHandler->InternalEvent(Events::InternalEvents::SceneLoadingFinished, Param);
 		}
 		return;
-	}
-
-	ciScene *s;
-	if (desc->ptr) {
-		s = desc->ptr.get();
-	} else {
-		if (proxy.expired()) {
-			GetEngine()->SetProxyTimer(GetEventProxy(), 1.0f/*StaticSettings::Scenes::GetSceneLoadTimeOut()*/, ScenesManagerTimers::SceneTimeout, false);
-		}
-		s = GetSceneInstance(desc);
 	}
 
 	while (IsSceneLoadingTimedOut()) {
@@ -177,212 +265,122 @@ void ScenesManager::LoadSceneJob(const string& Name, int Param, EventProxyPtr pr
 		GetEngine()->ChangeScene();
 	else
 		evHandler->InternalEvent(Events::InternalEvents::SceneLoadingFinished, Param);
+#endif
+
+	return false;
+}
+
+bool ScenesManager::SetNextSceneDescriptor(SceneDescriptor *descriptor) {
+	m_NextSceneDescriptor = descriptor;
+	//TODO
+	return true;
+}
+
+void ScenesManager::ProcessPreviousScene(SceneDescriptor *descriptor) {
+	ASSERT(descriptor);
+	if (descriptor->m_Flags.m_Stateful) {
+		return;
+	}
+
+	descriptor->DropScene();
 }
 
 //----------------------------------------------------------------------------------
 
-ciScene* ScenesManager::GetNextScene() {
+bool ScenesManager::DropSceneState(const std::string &SID) {
+	auto sd = FindDescriptor(SID);
+	if (!sd) {
+		AddLogf(Error, "There is no scene: %s", SID.c_str());
+		return false;
+	}
+
+	if (!sd->m_Flags.m_Loaded) {
+		AddLogf(Warning, "Scene '%s' is not loaded!", SID.c_str());
+		return false;
+	}
+
+	if (sd == m_CurrentSceneDescriptor) {
+		AddLogf(Warning, "Cannot drop current scene: %s", SID.c_str());
+		return false;
+	}
+
+	sd->DropScene();
+	AddLogf(Info, "Dropped scene state: %s", SID.c_str());
+
+	return true;
+}
+
+bool ScenesManager::SetSceneStateful(const std::string & SID, bool value) {
+	auto sd = FindDescriptor(SID);
+	if (!sd) {
+		AddLogf(Error, "There is no scene: %s", SID.c_str());
+		return false;
+	}
+
+	if (!sd->m_Flags.m_Loaded) {
+		AddLogf(Warning, "Scene '%s' is not loaded!", SID.c_str());
+		return false;
+	}
+
+	sd->m_Flags.m_Stateful = value;
+
+	return false;
+}
+
+//----------------------------------------------------------------------------------
+
+SceneDescriptor* ScenesManager::FindDescriptor(const std::string &SID) {
+	auto sidit = m_SIDMap.find(SID);
+	if (sidit != m_SIDMap.end()) {
+		AddLogf(Debug, "Scene exits: sid:%s", SID.c_str());
+		return sidit->second;
+	}
+	AddLogf(Debug, "Scene DOES NOT exits: sid:%s", SID.c_str());
+	return nullptr;
+}
+
+SceneDescriptor* ScenesManager::AllocDescriptor(StarVFS::FileID fid, const std::string &SID) {
+	LOCK_MUTEX(m_Lock);
 	{
-		LOCK_MUTEX(m_Lock);
-		if (IsSceneLoadingTimedOut()) {
-			if (!m_NextSceneRegister)
-				return nullptr;
-			SetSceneLoadingTimedOut(false);
-			auto *b = m_NextSceneRegister; 
-			m_NextSceneRegister = nullptr;
-			return b;
-		}
-
-		if (IsNextSceneLoaded()) {
-			if (!m_NextSceneRegister)
-				return nullptr;
-			SetNextScenePending(false);
-			SetNextSceneLoaded(false);
-			auto *b = m_NextSceneRegister; 
-			m_NextSceneRegister = nullptr;
-			return b;
-		}
-
-		if (IsNextScenePending())
+		auto ptr = FindDescriptor(SID);
+		if (ptr) {
+			AddLogf(Error, "Cannot allocate scene, SID already exists. fid:%u sid:%s", (unsigned)fid, SID.c_str());
 			return nullptr;
-	}
-	return PopScene();
-}
-
-void ScenesManager::ScenePrepeareImpl(const string& Name, int Param, EventProxyPtr proxy) {
-	LOCK_MUTEX(m_Lock);
-	if (IsNextScenePending()) {
-//		AddLog(FixMe, "Setting next scene while next scene is pending is not implemented");
-		AddLog(Error, "Cannot set next scene while next scene is pending!");
-		GetEngine()->Abort();
+		}
 	}
 
-	m_NextSceneRegister = nullptr;
-	SetNextScenePending(true);
-	JobQueue::QueueJob([this, Name, Param, proxy] { LoadSceneJob(Name, Param, proxy); });
-}
+	m_DescriptorTable.emplace_back();
 
-void ScenesManager::AsyncSetNextScene(const string& Name, EventProxyPtr proxy, int Param) {
-	ScenePrepeareImpl(Name, Param, proxy);
-}
-
-void ScenesManager::SetNextScene(const string& Name, int Param) {
-	ScenePrepeareImpl(Name, Param, EventProxyPtr());
-}
-
-void ScenesManager::PushScene(ciScene *scene) {
-	if (!scene) return;
-
-	auto *descr = GetSceneDescriptor(scene->GetName());
-	if (!descr) {
-		AddLogf(Error, "Descriptor for scene '%s' not found!", scene->GetName().c_str());
-		return;
-	}
-	LOCK_MUTEX(m_Lock);
-	switch (scene->GetSceneState()) {
-	case SceneState::Finished:
-		AddLogf(Debug, "Destroying scene '%s', because scene is finished.", scene->GetName().c_str());
-		descr->KillScene();
-		return;
-	default:
-		break;
-	}
-	//descr->Suspend();
-	m_SceneStack.push_back(descr);
-}
-
-ciScene* ScenesManager::PopScene() {
-	if (m_SceneStack.empty()) {
-		AddLog(Error, "Scene stack is empty!");
-		return nullptr;
-	}
-	SceneDescriptor *descr;
-	{
-		LOCK_MUTEX(m_Lock);
-		descr = m_SceneStack.back();
-		m_SceneStack.pop_back();
-	}
-	return descr->ptr.get();
-}
-
-void ScenesManager::ClearSceneStack() {
-	AddLogf(Debug, "Received request to clear scene stack!");
-	LOCK_MUTEX(m_Lock);
-
-	do {
-		auto desc = m_SceneStack.back();
-		if (desc->Type == SceneType::Backstage)
-			break;
+	auto &sd = m_DescriptorTable.back();
+	sd = std::make_unique<SceneDescriptor>();
+	m_SIDMap[SID] = sd.get();
 		
-		auto s = PopScene();
-		s->SetSceneState(SceneState::Finished);
-		PushScene(s);
-	} while (true);
-}
+	sd->m_SID = SID;
+	sd->m_FID = fid;
 
-void ScenesManager::PopScenes(int count) {
-	AddLogf(Debug, "Received request to pop %d scenes", count);
-	LOCK_MUTEX(m_Lock);
-
-	for (int i = 0; i < count; ++i) {
-		auto desc = m_SceneStack.back();
-		if (desc->Type == SceneType::Backstage) {
-			AddLogf(Error, "Unable to pop %d scenes: backstage has been found! Cleared %s scenes", count, i);
-			break;
-		}
-
-		auto s = PopScene();
-		s->SetSceneState(SceneState::Finished);
-		PushScene(s);
-	} 
-}
-
-void ScenesManager::ClearScenesUntil(const string& Name) {
-	AddLogf(Debug, "Received request to remove all scenes until '%s'", Name.c_str());
-	LOCK_MUTEX(m_Lock);
-
-	do {
-		auto desc = m_SceneStack.back();
-		if (desc->Type == SceneType::Backstage) {
-			AddLogf(Error, "Unable to pop all scenes until '%s': backstage has been found!", Name.c_str());
-			break;
-		}
-		if (desc->Name == Name) {
-			break;
-		}
-
-		auto s = PopScene();
-		s->SetSceneState(SceneState::Finished);
-		PushScene(s);
-	} while (true);
+	sd->m_Flags.m_Valid = false;
+	sd->m_Flags.m_SingleInstance = false;
+	
+	return sd.get();
 }
 
 //----------------------------------------------------------------------------------
 
-SceneDescriptor* ScenesManager::GetSceneDescriptor(const string &Name) {
-	{
-		LOCK_MUTEX(m_Lock);
-		auto it = m_SceneList.find(Name);
-		if (it != m_SceneList.end()) {
-			if (it->second.Type == SceneType::Invalid)
-				return nullptr;
-			return &it->second;
-		}
-	}		
-	FileSystem::XMLFile xml;
-	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Scenes)) {
-		AddLogf(Error, "Unable to open xml file for scene '%s'", Name.c_str());
-		return nullptr;
+#ifdef DEBUG_DUMP
+
+void ScenesManager::DumpAllDescriptors(std::ostream& out) {
+	out << "Scene descriptors:\n";
+	for (auto &it : m_DescriptorTable) {
+		auto &sd = *it;
+		char buf[128];
+		sprintf(buf, "%20s ->%5u[%s]\n", sd.m_SID.c_str(), (unsigned)sd.m_FID, GetFileSystem()->GetFullFileName(sd.m_FID).c_str());
+		out << buf;
 	}
-	auto node = xml->document_element();
-	const char* xmlclass = node.attribute(xmlAttr_Class).as_string(nullptr);
-	auto &sd = AllocDescriptor(Name, SceneType::Invalid);
-	sd.Class = xmlclass ? xmlclass : "Scene";
-	sd.Type = SceneType::External;
-	GetDataMgr()->NotifyResourcesChanged();
-	return &sd;
+	out << "\n";
 }
 
-SceneDescriptor& ScenesManager::AllocDescriptor(const string& Name, SceneType Type) {
-	LOCK_MUTEX(m_Lock);
-	auto p = m_SceneList.emplace(std::piecewise_construct, std::tuple<std::string>(Name), std::tuple<>());
-	auto &sd = p.first->second;
-	sd.Name = Name;
-	sd.Type = Type;
-	return sd;
-}
-
-ciScene* ScenesManager::GetSceneInstance(SceneDescriptor *descr) {
-	if (!descr) {
-		AddLogf(Error, "Wrong descriptor!");
-		return 0;
-	}
-	LOCK_MUTEX(descr->Lock);
-	if (descr->ptr) {
-		//todo: do sth with descriptor?
-		return descr->ptr.get();
-	} else {
-		switch (descr->Type) {
-		case SceneType::External: {
-			auto *s = GetDataMgr()->LoadScene(descr->Name, descr->Class);
-			if (!s)
-				break;
-			descr->ptr.reset(s);
-			s->Initialize();
-			return descr->ptr.get();
-		}
-
-		case SceneType::Internal:
-			AddLog(Error, "Engine scenes cannot be created that way.");
-			break;
-		}
-	}
-	AddLog(Error, "Unable to get scene instance!");
-	return 0;
-}
+#endif // DEBUG_DUMP
 
 //----------------------------------------------------------------------------------
 
-} //namespace Scene
-} //namespace Core
-} //namespace MoonGlare 
+} //namespace Scene::Core::MoonGlare 
