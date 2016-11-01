@@ -9,8 +9,8 @@ uniform sampler2D Texture0;
 //---------------
 
 interface VSOutput {
-    vec2 VertexUV0; 
-    vec3 VertexNormal; 
+    vec2 VertexUV0;
+    vec3 VertexNormal;
 	vec3 VertexWorldPos;
 };
 
@@ -18,12 +18,12 @@ interface VSOutput {
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
 
-shader Geometry_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) { 
+shader Geometry_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) {
 	gl_Position = WorldMatrix * vec4(Pos, 1.0);
     VSout.VertexUV0 = TexCoord;
 	VSout.VertexNormal = (ModelMatrix * vec4(Normal, 0.0)).xyz;
 	VSout.VertexWorldPos = (ModelMatrix * vec4(Pos, 1.0)).xyz;
-}; 
+};
 
 shader Geometry_fs(in VSOutput FSin, out vec3 WorldPosOut : 1, out vec3 DiffuseOut : 2, out vec3 NormalOut : 3) {
 	vec4 color = texture2D(Texture0, FSin.VertexUV0);
@@ -32,8 +32,8 @@ shader Geometry_fs(in VSOutput FSin, out vec3 WorldPosOut : 1, out vec3 DiffuseO
 	//	discard;
 	}
 	DiffuseOut	= color.xyz * Material.BackColor;
-	WorldPosOut	= FSin.VertexWorldPos;					
-	NormalOut	= FSin.VertexNormal;			
+	WorldPosOut	= FSin.VertexWorldPos;
+	NormalOut	= FSin.VertexNormal;
 };
 
 program Geometry {
@@ -43,44 +43,44 @@ program Geometry {
 
 //---------------------
 
-vec2 CalcTexCoord() {
-    return gl_FragCoord.xy / ScreenSize;
+vec2 CalcTexCoord(vec4 Pos) {
+    return vec2(Pos) / ScreenSize;
 }
 
-//---------------------
+//--------------------- 
 
 uniform sampler2D PositionMap;
 uniform sampler2D ColorMap;
 uniform sampler2D NormalMap;
 
 shader Light_point_fs(in VSOutput FSin, out vec4 FragColor) {
-    vec2 TexCoord = CalcTexCoord();
+    vec2 TexCoord = CalcTexCoord(gl_FragCoord);
 	vec3 WorldPos = texture(PositionMap, TexCoord).xyz;
 	vec3 Color = texture(ColorMap, TexCoord).xyz;
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 //	Normal = normalize(Normal);
-	FragColor = vec4(Color, 1.0) * CalcPointLight(WorldPos, Normal);	
+	FragColor = vec4(Color, 1.0) * CalcPointLight(WorldPos, Normal);
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
 };
 
 shader Light_directional_fs(in VSOutput FSin, out vec4 FragColor) {
-    vec2 TexCoord = CalcTexCoord();
+    vec2 TexCoord = CalcTexCoord(gl_FragCoord);
 	vec3 WorldPos = texture(PositionMap, TexCoord).xyz;
 	vec3 Color = texture(ColorMap, TexCoord).xyz;//ColorMap
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
-	FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);	
+	FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
 };
 
 shader Light_spot_fs(in VSOutput FSin, out vec4 FragColor) {
-    vec2 TexCoord = CalcTexCoord();
+    vec2 TexCoord = CalcTexCoord(gl_FragCoord);
 	vec3 WorldPos = texture(PositionMap, TexCoord).xyz;
 	vec3 Color = texture(ColorMap, TexCoord).xyz;
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
 
-	FragColor = vec4(Color, 1) * CalcSpotLight(WorldPos, Normal); 
+	FragColor = vec4(Color, 1) * CalcSpotLight(WorldPos, Normal);
 
 	if(EnableShadowTest) {
 		FragColor.xyz *= PlanarShadowTest(WorldPos, Normal);
@@ -88,7 +88,7 @@ shader Light_spot_fs(in VSOutput FSin, out vec4 FragColor) {
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
 };
 
-shader Light_vs(in vec3 Position : 0, out VSOutput VSout) {          
+shader Light_vs(in vec3 Position : 0, out VSOutput VSout) {
     gl_Position = WorldMatrix * vec4(Position, 1.0);
 };
 
@@ -108,7 +108,7 @@ program Light_spot {
 };
 //---------------------
 
-shader ds_stencil_fs(in VSOutput FSin) { 
+shader ds_stencil_fs(in VSOutput FSin) {
 };
 
 program Stencil {
