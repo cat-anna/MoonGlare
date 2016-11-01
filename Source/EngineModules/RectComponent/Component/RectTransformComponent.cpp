@@ -100,8 +100,7 @@ bool RectTransformComponent::Initialize() {
 	auto &RootEntry = m_Array[index];
 	RootEntry.m_Flags.ClearAll();
 	RootEntry.m_Flags.m_Map.m_Valid = true;
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
-	RootEntry.m_OwnerEntity = EntityManager->GetRootEntity();
+	RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
 
 	m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 
