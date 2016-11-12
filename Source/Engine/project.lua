@@ -32,12 +32,9 @@ group ""
 			"libSpace",
 			"OrbitLogger",
 			"StarVFS",
-			"StaticZlib",
 
 			"lua51jit",
 			"freeimage",
-			"glfw3dll",
-			"glew32",
 			"glfx",
 			"assimp",
 		}

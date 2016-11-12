@@ -7,7 +7,6 @@ define_module {
 	Add = function()
 		files { "*", }
 		
-		links { "freetype255MT", }
 	end,
 
 	--libs = { 

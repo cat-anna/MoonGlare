@@ -85,8 +85,8 @@ using LockGuard = std::lock_guard < std::mutex > ;
 //#include <bullet-2.82/src/btBulletCollisionCommon.h>
 
 #define GLM_FORCE_RADIANS
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #pragma warning ( pop )
 
