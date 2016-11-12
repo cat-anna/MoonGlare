@@ -8,10 +8,9 @@
 #define CISCENE_H_
 
 #include "../Component/nComponent.h"
+#include "Scene.Events.h"
 
-namespace MoonGlare {
-namespace Core {
-namespace Scene {
+namespace MoonGlare::Core::Scene {
 
 struct SceneDescriptor;
 
@@ -33,9 +32,9 @@ public:
 
 //old
 	/** @brief Call this function to initialize scene before first call */
-	virtual void BeginScene();
+	void BeginScene();
 	/** @brief Call this function when scene won't be used for some time */
-	virtual void EndScene();
+	void EndScene();
 
 	virtual void DoMove(const MoveConfig &conf);
 
@@ -47,13 +46,17 @@ public:
 	enum eSceneFlags {
 		sf_Initialized = 0x0001,
 		sf_Ready = 0x0002,
-
 		sfset_IsReady = sf_Ready | sf_Initialized,
 	};
 protected:
 	Entity m_Entity;
 	Component::ComponentManager m_ComponentManager;
 	SceneDescriptor *m_Descriptor;
+
+	void SendState(SceneState state) {
+		m_ComponentManager.GetEventDispatcher().SendMessage<SceneStateChangeEvent>({ state });
+	}
+
 //old
 	Graphic::Environment m_Environment;
 
@@ -66,8 +69,6 @@ protected:
 	DefineFlagSetter(m_Flags, sf_Ready, Ready);
 };
 
-} //namespace Scene
-} //namespace Core
-} //namespace MoonGlare
+} //namespace MoonGlare::Core::Scene
 
 #endif // CSCENE_H_

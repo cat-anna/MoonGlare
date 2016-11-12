@@ -12,6 +12,8 @@
 
 #include <Core/EntityBuilder.h>
 
+#include "Scene.Events.h"
+
 namespace MoonGlare {
 namespace Core {
 namespace Scene {
@@ -42,11 +44,15 @@ void ciScene::BeginScene() {
 	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
 	m_Environment.Initialize();
 
+	SendState(SceneState::Started);
+
 	SetReady(true);
 }
 
 void ciScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
+
+	SendState(SceneState::Paused);
 
 	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 	m_Environment.Finalize();
@@ -81,8 +87,10 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 
 	//SetName(Node.attribute(xmlAttr_Name).as_string("??"));
 	m_Environment.LoadMeta(Node.child("Environment"));
-	EntityBuilder eb(&m_ComponentManager);
-	eb.ProcessXML(GetSceneEntity(), Node.child("Entities"));
+
+	SendState(SceneState::Created);
+
+	EntityBuilder(&m_ComponentManager).ProcessXML(GetSceneEntity(), Node.child("Entities"));
 
 	SetInitialized(true);
 	return true;
@@ -91,6 +99,8 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 bool ciScene::Finalize() {
 	if (!IsInitialized()) return true;
 	if (IsReady()) EndScene();
+
+	//SendState(SceneState::);
 
 	if (!m_ComponentManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize component manager");
