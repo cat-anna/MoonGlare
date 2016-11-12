@@ -20,6 +20,7 @@ enum GlobalChanels : LogChannel {
 	Performance,
 	Resources,
 	FSEvent,
+	Event,
 };
 }
 }

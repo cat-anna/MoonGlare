@@ -24,6 +24,9 @@
 
 #define DEBUG_INTERFACE 1
 
+#define CHECK(WHAT) if(!(WHAT)) { AddLogf(Error, "CHECK FAILED: '" #WHAT "'"); };
+#define INITCHECK(WHAT) if(!(WHAT)) { AddLogf(Error, "CHECK FAILED: '" #WHAT "'"); return false; };
+
 #define DEBUG_LOG 1
 #define DEBUG_DUMP 1
 #define DEBUG_SCRIPTAPI 1

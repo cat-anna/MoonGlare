@@ -9,6 +9,8 @@
 #ifndef ComponentManager_H
 #define ComponentManager_H
 
+#include "../EventDispatcher.h"
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -41,6 +43,8 @@ public:
 	ciScene* GetScene() { return m_Scene; }
 	World* GetWorld() { return m_World; }
 
+	EventDispatcher& GetEventDispatcher() { return m_EventDispatcher; }
+
 	struct ComponentInfo {
 		float m_TotalStepDuration;
 		unsigned m_PeriodCount;
@@ -49,6 +53,7 @@ private:
 	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
 	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
 	size_t m_UsedCount;
+	EventDispatcher m_EventDispatcher;
 	ciScene *m_Scene;
 	World *m_World;
 

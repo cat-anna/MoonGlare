@@ -7,81 +7,45 @@
 #ifndef Events_H
 #define Events_H
 
-namespace MoonGlare {
-namespace Core {
-namespace Events {
+#include "Configuration.Core.h"
 
-enum class InternalEvents {
-	None,
+namespace MoonGlare::Core {
 
-	SceneLoadingFinished,
-};
+using EventClassID = uint32_t;
 
-class EventBaseProxy : public cRootClass {
-	SPACERTTI_DECLARE_STATIC_CLASS(EventBaseProxy, cRootClass)
+class BaseEventInfo {
+	using Conf = Configuration::Core::Events;
 public:
-	EventBaseProxy();
-	virtual ~EventBaseProxy();
+	static EventClassID GetEventClassesCount() { return s_IdAlloc; }
+	static const Space::RTTI::TypeInfo* GetEventTypeInfo(EventClassID id) { return s_EventClassesTypeInfo[id]; }
 
-	virtual int TimerEvent(int TimerID);
-
-	virtual int InternalEvent(InternalEvents event, int Param);
-};
-
-using EventProxyPtr = std::weak_ptr<EventBaseProxy>;
-
-template<class OWNER, 
-		int (OWNER::*TimerFunc)(int) = nullptr,
-		int (OWNER::*InternalEventFunc)(InternalEvents, int) = nullptr>
-class EventProxy : public EventBaseProxy {
-public:
-	typedef OWNER Owner_t;
-	EventProxy(Owner_t *Owner) : m_Owner(Owner) { };
-
-	virtual int TimerEvent(int TimerID) { 
-		if (TimerFunc == nullptr) return 0;
-		return (m_Owner->*TimerFunc)(TimerID);
-	};
-	virtual int InternalEvent(InternalEvents event, int Param) { 
-		if (InternalEventFunc == nullptr) return 0;
-		return (m_Owner->*InternalEventFunc)(event, Param);
-	};
+	static void DumpClasses(std::ofstream &output);
+protected:
+	template<class T>
+	static EventClassID AllocateEventClass() {
+		auto id = AllocateID();
+		ASSERT(id < Conf::MaxEventTypes);
+		s_EventClassesTypeInfo[id] = Space::RTTI::GetStaticTypeInfo<T>();
+		return id;
+	}
 private:
-	Owner_t *m_Owner;
+	static EventClassID AllocateID() { return s_IdAlloc++; }
+	static EventClassID s_IdAlloc;
+	using EventClassesTypeTable = std::array<const Space::RTTI::TypeInfo*, Conf::MaxEventTypes>;
+	static EventClassesTypeTable s_EventClassesTypeInfo;
 };
 
-class EventProxyHolderBase {
-public:
-	EventProxyHolderBase() {};
-	~EventProxyHolderBase() {};
-
-	EventProxyPtr get() const { return EventProxyPtr(m_handler); }
-protected:
-	std::shared_ptr<EventBaseProxy> m_handler;
+template<class T>
+struct EventInfo : public BaseEventInfo {
+	static EventClassID GetClassID() { return s_ClassID; }
+	static_assert(std::is_pod<T>::value, "Event must be pod type!");
+private:
+	static EventClassID s_ClassID;
 };
 
-class EventProxyHolder : public EventProxyHolderBase {
-public:
-	EventProxyHolder() { }
-	~EventProxyHolder() {};
-	void set(EventBaseProxy *ptr) { m_handler.reset(ptr); }
-protected:
-};
+template<typename T>
+EventClassID EventInfo<T>::s_ClassID = BaseEventInfo::AllocateEventClass<T>();
 
-#define DECLARE_PROTECTED_EVENT_HOLDER()		\
-	protected: EventProxyHolder m_EventProxy;	\
-	protected: EventProxyPtr GetEventProxy() const { return m_EventProxy.get();}
+} //namespace MoonGlare::Core 
 
-#define DECLARE_EVENT_HOLDER()					\
-	protected: EventProxyHolder m_EventProxy;	\
-	public: EventProxyPtr GetEventProxy() const { return m_EventProxy.get();}
-
-} //namespace Events 
-
-using Events::EventProxyPtr;
-using Events::EventProxyHolder;
-using Events::EventProxy;
-
-} //namespace Core 
-} //namespace MoonGlare 
 #endif

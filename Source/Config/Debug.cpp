@@ -11,6 +11,7 @@
 #include <MoonGlare.h>
 
 #include "Core/Interfaces.h"
+#include "Core/Events.h"
 
 namespace Config {
 namespace Debug {
@@ -93,6 +94,9 @@ void Debug::DumpAll(const char* prefixname) {
 
 	std::ofstream ClassLists((sprintf(buf, "logs/%s_ClassLists.txt", prefixname), buf));
 	MoonGlare::Core::Interfaces::DumpLists(ClassLists);
+
+	std::ofstream Events((sprintf(buf, "logs/EventTable.txt"), buf));
+	MoonGlare::Core::BaseEventInfo::DumpClasses(Events);
 }
 
 void Debug::CheckInstances() {

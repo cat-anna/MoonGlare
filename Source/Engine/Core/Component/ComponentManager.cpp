@@ -43,6 +43,8 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	}
 	m_Scene = scene;
 
+	INITCHECK(m_EventDispatcher.Initialize());
+
 	Space::MemZero(m_ComponentInfo);
 	
 	for (size_t i = 0; i < m_UsedCount; ++i) {
@@ -56,6 +58,8 @@ bool ComponentManager::Initialize(ciScene *scene) {
 }
 
 bool ComponentManager::Finalize() {
+	CHECK(m_EventDispatcher.Finalize());
+
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Finalize()) {
 			AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()).name());
