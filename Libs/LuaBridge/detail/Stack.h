@@ -483,11 +483,22 @@ struct StackGet {
 	static inline int func(lua_State* L, T& out, int index) {
 		return Stack_t::get(L, out, index);
 	}
+	template<typename T, typename O, typename G, typename S>
+	static inline int funcProp(lua_State* L, O*obj, G(O::*get)()const, void(O::*set)(S v), int index) {
+		T v;
+		int r = Stack_t::get(L, v, index);
+		(obj->*set)(v);
+		return r;
+	}
 };
 
 struct StackPush {
 	template<typename T>
 	static inline int func(lua_State* L, T t, int index) {
 		return Stack_t::push (L, std::forward<T>(t), index);
+	}
+	template<typename T, typename O, typename G, typename S>
+	static inline int funcProp(lua_State* L, O *obj, G(O::*get)()const, void(O::*set)(S v), int index) {
+		return Stack_t::push(L, (obj->*get)(), index);
 	}
 };

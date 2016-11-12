@@ -17,6 +17,11 @@ public:
  	EntityBuilder(Component::ComponentManager *Manager);
  	~EntityBuilder();
 
+	static bool Build(Component::ComponentManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+		EntityBuilder eb(Manager);
+		return eb.Build(Owner, PatternUri, eout, std::move(Name));
+	}
+
 	bool Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name);
 
 //xml

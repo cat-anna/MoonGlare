@@ -894,11 +894,8 @@ returns:
 	void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
 	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
-	auto cm = This->GetManager();
-
 	Entity Child;
-	EntityBuilder eb(cm);
-	if (!eb.Build(Owner, pattername, Child, (ChildName ? std::string(ChildName) : std::string()))) {
+	if (!EntityBuilder::Build(This->GetManager(), Owner, pattername, Child, (ChildName ? std::string(ChildName) : std::string()))) {
 		AddLogf(Error, "GameObject::SpawnChild: Error: Failed to build child: %s", pattername);
 		lua_settop(lua, argc);
 		return 0;
@@ -930,6 +927,7 @@ returns:
 	}
 	lua_pop(lua, 1);
 
+	auto cm = This->GetManager();
 	if (HasRot || HasPos) {
 		auto *tc = cm->GetComponent<TransformComponent>();
 		auto entry = tc->GetEntry(Child);

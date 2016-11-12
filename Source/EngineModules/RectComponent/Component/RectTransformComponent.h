@@ -172,8 +172,6 @@ protected:
 	Point m_ScreenSize;
 	Renderer::VirtualCamera m_Camera;
 
-private:
-
 //debug:
 protected:
 	// iCustomDraw
