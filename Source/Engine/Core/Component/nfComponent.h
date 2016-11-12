@@ -25,7 +25,7 @@ class ComponentManager;
 
 class TransformComponent;
 
-enum class ComponentID : uint32_t {
+enum class ComponentID : uint8_t {
 	Invalid = 0,
 
 //Core - 0x1X

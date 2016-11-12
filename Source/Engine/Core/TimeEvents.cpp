@@ -6,6 +6,7 @@
 namespace MoonGlare {
 namespace Core {
 
+#if 0
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(TimeEvents)
 
 TimeEvents::TimeEvents(){
@@ -73,6 +74,8 @@ int TimeEvents::KillTimer(int Event, EventProxyPtr Owner){
 	AddLogf(Warning, "Timer with id %d does not exists!", Event);
 	return 0;
 }
+
+#endif
 
 } //namespace Core
 } //namespace MoonGlare 

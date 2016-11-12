@@ -269,7 +269,6 @@ void Engine::DoRender(MoveConfig &conf) {
 } 
 
 void Engine::DoMove(MoveConfig &conf) {
-	m_TimeEvents.CheckEvents(conf);
 	GetScriptEngine()->Step(conf);
 	GetWorld()->Step(conf);
 }

@@ -5,6 +5,7 @@
 namespace MoonGlare {
 namespace Core {
 
+#if 0
 class TimeEvents : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(TimeEvents, cRootClass)
 public:
@@ -38,6 +39,8 @@ protected:
 	float m_CurrentTime = 0;
 	TimeEventsQueue m_Queue;
 };
+#endif // 0
+
 
 } //namespace Core
 } //namespace MoonGlare 

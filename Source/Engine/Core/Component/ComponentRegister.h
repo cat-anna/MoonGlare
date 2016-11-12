@@ -102,7 +102,6 @@ private:
 
 	template<ComponentID value>
 	static int GetCID() {
-		static_assert(sizeof(int) == sizeof(ComponentID), "Component id size does not match int size");
 		return static_cast<int>(value);
 	}
 	static ComponentInfo m_ComponentInfo;

@@ -47,7 +47,6 @@ using UniqueSceneDescriptor = std::unique_ptr<SceneDescriptor>;
 
 class ScenesManager : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(ScenesManager, cRootClass);
-	DECLARE_PROTECTED_EVENT_HOLDER();
 public:
 	ScenesManager();
 	virtual ~ScenesManager();
@@ -103,24 +102,6 @@ protected:
 	SceneDescriptor* FindDescriptor(const std::string &SID);
 	SceneDescriptor* AllocDescriptor(StarVFS::FileID fid, const std::string &SID);
 
-//----------------------------------------------------------------------------------
-# if 0
-//old:
-public:
-	ciScene* GetNextScene();
-	void SetNextScene(const string& Name, int Param = 0);
-	void AsyncSetNextScene(const string& Name, EventProxyPtr proxy, int Param = 0);
-	void PushScene(ciScene *scene);
-	void ClearScenesUntil(const string& Name);
-protected:
-	ciScene* PopScene();
-	ciScene* GetSceneInstance(SceneDescriptor *descr);
-	int HandleTimer(int TimerID);
-	void ScenePrepeareImpl(const string& Name, int Param, EventProxyPtr proxy);
-	void LoadingSceneTimedOutJob();
-	void LoadSceneJob(const string& Name, int Param, EventProxyPtr proxy);
-	SceneDescriptor* GetSceneDescriptor(const string &Name);
-#endif
 };
 
 } //namespace Scene::Core::MoonGlare 
