@@ -12,6 +12,8 @@
 #include <libSpace/src/Container/StaticVector.h>
 
 #include <Core/Component/AbstractComponent.h>
+#include <Core/Scripts/ScriptComponent.h>
+#include <Core/Scripts/ComponentEntryWrap.h>
 
 namespace MoonGlare {
 namespace Renderer {
@@ -65,8 +67,13 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 };
 
 class MeshComponent
-	: public TemplateStandardComponent<MeshComponentEntry, ComponentID::Mesh> {
+	: public TemplateStandardComponent<MeshComponentEntry, ComponentID::Mesh> 
+	, public Core::Scripts::Component::ComponentEntryWrap<MeshComponent>
+{
 public:
+	static constexpr char *Name = "Mesh";
+	static constexpr bool PublishID = true;
+
 	MeshComponent(ComponentManager *Owner);
 	virtual ~MeshComponent();
 	virtual bool Initialize() override;
@@ -79,6 +86,29 @@ public:
 //	static_assert(std::is_pod<MeshEntry>::value, "ScriptEntry must be pod!");
 
 	using MeshEntry = MeshComponentEntry;
+
+	template<bool Read, typename StackFunc>
+	static bool ProcessProperty(lua_State *lua, MeshComponentEntry *e, uint32_t hash, int &luarets, int validx) {
+		switch (hash) {
+		case "Visible"_Hash32:
+			luarets = StackFunc::funcProp<bool>(lua, e, &MeshComponentEntry::IsVisible, &MeshComponentEntry::SetVisible, validx);
+			break;
+		default:
+			return false;
+		}
+		if (!Read) {
+		//	e->SetDirty();
+		}
+		return true;
+	}
+
+	template<typename StackFunc, typename Entry>
+	static bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, MeshComponent *This) {
+		switch (hash) {
+		default:
+			return false;
+		}
+	}
 
 	static void RegisterScriptApi(ApiInitializer &root);
 private:
