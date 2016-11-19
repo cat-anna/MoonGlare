@@ -1,0 +1,144 @@
+
+SetTitle "MoonGlare feature & development roadmap graph"
+
+Def {
+    Name = "MeshAnimation",
+    Deps = {
+        "Renderer",
+        "ResourceManager",
+    }
+}
+
+Def {
+    Name = "MeshAnimatorComponent",
+    Deps = {
+        "MeshAnimation",
+    }
+}
+
+Def {
+    Name = "TextPrerendering",
+    Deps = {
+        "Renderer",
+    }
+}
+
+DefDone "SceneManager"
+
+Def {
+    Name = "Renderer",
+    Deps = {
+        "ResourceManager",
+    }
+}
+
+Def {
+    Name = "PointLightShadows",
+    Deps = {
+        "Renderer",
+    }
+}
+
+Def {
+    Name = "ParticleSystem",
+    Deps = {
+        "Renderer",
+    }
+}
+
+Def {
+    Name = "ImproveRenderingPerformance",
+    Deps = {
+        "Renderer",
+    }
+}
+
+-----------------------------------------------------------
+
+DefDone "MessagesSubsystem"
+Def {
+	Name = "CollisionCallbacks",
+	Deps = {
+		"MessagesSubsystem",
+	}
+}
+Def {
+	Name = "AddInternalMessages",
+	Deps = {
+		"MessagesSubsystem",
+	}
+}
+
+-----------------------------------------------------------
+
+Def { Name = "NewComponentLuaApi", }
+
+-----------------------------------------------------------
+
+Def {
+	Name = "SceneHooks",
+	Deps = {
+		"MessagesSubsystem",
+	}
+}
+
+-----------------------------------------------------------
+
+Def {
+    Name = "SaveGame",
+    Deps = {
+        "ScriptComponentSerialization",
+    }
+}
+
+-----------------------------------------------------------
+
+Target {
+	Name = "Improvements",
+	Deps = {
+		Def "GLFXRemoval",
+        Def "RectTransformRefactor",
+        Def "UdpInputSinkModule",
+	}
+}
+
+-----------------------------------------------------------
+
+Def {
+    Name = "MazeGameImpl",
+    Deps = {
+        Def { Name = "GameWin", Deps = { "CollisionCallbacks" }, },
+        Def { Name = "EngineAboutScene", },
+        Def { Name = "SceneBlockModels", },
+    }
+}
+
+Target {
+    Name = "MazeGameDemo",
+    Deps = {
+        "SceneManager",
+        "MazeGameImpl",
+    }
+}
+
+-----------------------------------------------------------
+
+Target {
+    Name = "SimpleDungeonGame",
+    Deps = {
+        "MazeGameDemo",
+        "MeshAnimatorComponent",
+        "ParticleSystem",
+        "PointLightShadows",
+        "NewComponentLuaApi",
+        "Renderer"
+    }
+}
+
+Target {
+    Name = "ComplexDungeonGame",
+    Deps = {
+        "SimpleDungeonGame",
+        "SaveGame",
+    }
+}
