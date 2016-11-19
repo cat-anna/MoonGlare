@@ -43,7 +43,7 @@
 #include <QInputDialog>
 
 #define GLM_FORCE_RADIANS
-#include <glm/glm/glm.hpp>
+#include <glm/glm.hpp>
 
 #include <bullet3-master/src/btBulletDynamicsCommon.h>
 #include <bullet3-master/src/btBulletCollisionCommon.h>
