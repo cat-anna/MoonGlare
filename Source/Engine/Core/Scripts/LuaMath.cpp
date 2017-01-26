@@ -11,6 +11,10 @@
 
 #include <Libs/LuaBridge/dump.cpp>
 
+#include <functional>
+#include <Eigen/Core>
+::Space::RTTI::TypeInfoInitializer<Eigen::Vector2f, Eigen::Vector3f, Eigen::Vector4f, Eigen::Matrix4f> EigenTypeInfo;
+
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {

@@ -4,18 +4,9 @@
 	by Paweu
 */
 #include <pch.h>
-
-#ifdef DEBUG
-#pragma comment (lib, "bullet3-master/bin/LinearMath_vs2010_debug.lib")
-#pragma comment (lib, "bullet3-master/bin/BulletDynamics_vs2010_debug.lib")
-#pragma comment (lib, "bullet3-master/bin/BulletCollision_vs2010_debug.lib")
-#else
-#pragma comment (lib, "bullet3-master/bin/LinearMath_vs2010.lib")
-#pragma comment (lib, "bullet3-master/bin/BulletDynamics_vs2010.lib")
-#pragma comment (lib, "bullet3-master/bin/BulletCollision_vs2010.lib")
-#endif
-
+																	
 #if 0
+
 #include <MoonGlare.h>
 
 namespace Physics {

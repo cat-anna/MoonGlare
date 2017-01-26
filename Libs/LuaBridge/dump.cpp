@@ -5,7 +5,7 @@
 namespace luabridge
 {
 
-static inline std::string dumpLuaState(lua_State *L) {
+std::string dumpLuaState(lua_State *L) {
 	std::stringstream ostr;
 	int i;
 	int top = lua_gettop(L);

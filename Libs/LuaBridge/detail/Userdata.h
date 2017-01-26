@@ -707,6 +707,17 @@ struct Stack <T*>
   }
 };
 
+//template <>
+//struct Stack <void*> {
+//	static inline void push(lua_State* L, void* const p) {
+//		lua_pushlightuserdata(L, p);
+//	}
+//
+//	static inline void* const get(lua_State* L, int index) {
+//		return lua_touserdata(L, index);
+//	}
+//};
+
 // Strips the const off the right side of *
 template <class T>
 struct Stack <T* const>

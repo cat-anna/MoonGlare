@@ -4,7 +4,7 @@
 
 namespace MoonGlare::Core::Scene {
 
-enum class SceneState {
+enum class SceneState : unsigned {
 	Invalid,
 	Created,
 	Started,
@@ -13,12 +13,22 @@ enum class SceneState {
 
 struct SceneStateChangeEvent {
 	SceneState m_State;
+	ciScene *m_Scene;
 
-	friend std::ostream& operator<<(std::ostream& out, const SceneStateChangeEvent const & dt) {
+	friend std::ostream& operator<<(std::ostream& out, const SceneStateChangeEvent & dt) {
 		out << "SceneStateChangeEvent["
 			<< "State:" << (int)dt.m_State
+			<< " Scene:" << dt.m_Scene
 			<< "]";
 		return out;
+	}
+
+	static ApiInitializer RegisterLuaApi(ApiInitializer api) {
+		return api
+			.beginClass<SceneStateChangeEvent>("cSceneStateChangeEvent")
+			.addData("State", (int SceneStateChangeEvent::*)&SceneStateChangeEvent::m_State, false)
+			.addData("Scene", &SceneStateChangeEvent::m_Scene, false)
+			.endClass();
 	}
 };
 

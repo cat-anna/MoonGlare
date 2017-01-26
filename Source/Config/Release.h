@@ -19,6 +19,7 @@
 
 #define THROW_ASSERT(CHECK, MSG)	VoidAction
 #define THROW_ASSERTs(...)			VoidAction
+#define ASSERT(...)					VoidAction
 
 #define SPACERTTI_SINGLETON_CHECK		VoidAction
 #define SPACERTTI_SINGLETON_SET_CHECK	VoidAction

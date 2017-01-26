@@ -43,8 +43,8 @@ bool ComponentManager::Initialize(ciScene *scene) {
 	}
 	m_Scene = scene;
 
-	INITCHECK(m_EventDispatcher.Initialize());
-
+	INITCHECK(m_EventDispatcher.Initialize(GetWorld()));
+					  
 	Space::MemZero(m_ComponentInfo);
 	
 	for (size_t i = 0; i < m_UsedCount; ++i) {

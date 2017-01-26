@@ -1119,6 +1119,9 @@ private:
   int m_ref;
 };
 
+template <>
+inline void LuaRef::cast<void>() const { }
+
 //------------------------------------------------------------------------------
 /**
     Stack specialization for Nil

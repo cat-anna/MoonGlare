@@ -10,7 +10,7 @@
 namespace MoonGlare::Core {
 
 EventClassID BaseEventInfo::s_IdAlloc = 0;
-BaseEventInfo::EventClassesTypeTable BaseEventInfo::s_EventClassesTypeInfo = { nullptr, };
+BaseEventInfo::EventClassesTypeTable BaseEventInfo::s_EventClassesTypeInfo;
 
 void BaseEventInfo::DumpClasses(std::ofstream &output) {
 	output << "Event classes:\n";
@@ -23,7 +23,7 @@ void BaseEventInfo::DumpClasses(std::ofstream &output) {
 	for (EventClassID i = 0; i < s_IdAlloc; ++i) {
 		char nbuf[32];
 		sprintf_s(nbuf, "%-3d ", i);
-		output << nbuf << *s_EventClassesTypeInfo[i] << "\n";
+		output << nbuf << *s_EventClassesTypeInfo[i].m_RTTI << "\n";
 	}
 
 	output << "\n";

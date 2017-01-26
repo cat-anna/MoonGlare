@@ -36,7 +36,6 @@ group ""
 			"lua51jit",
 			"freeimage",
 			"glfx",
-			"assimp",
 		}
 
 		Features.ApplyAll(Engine.Features)

@@ -51,6 +51,9 @@ namespace Component {
 class BodyComponent;
 class BodyShapeComponent;
 
+struct OnCollisionEnterEvent;
+struct OnCollisionLeaveEvent;
+
 } //namespace Component
 
 using namespace ::Physics;

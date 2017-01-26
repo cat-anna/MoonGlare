@@ -38,6 +38,7 @@
 #include <set>
 #include <unordered_map>
 #include <array>
+#include <bitset>
 #include <algorithm>
 #include <thread>
 #include <future>
@@ -49,6 +50,7 @@
 #include <atomic>
 #include <random>
 #include <type_traits>
+
 using std::istream;
 using std::ostream;
 using std::string;
@@ -66,8 +68,6 @@ using LockGuard = std::lock_guard < std::mutex > ;
 #define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard < decltype(mutex) > name (mutex)
 #define LOCK_MUTEX(mutex) LOCK_MUTEX_NAMED(mutex, LOCK_MUTEX_LABEL_UNIQUE)
 
-//#define thread_local __declspec(thread)
-
 #undef min
 #undef max
 
@@ -79,10 +79,8 @@ using LockGuard = std::lock_guard < std::mutex > ;
 #include <assimp/scene.h>          
 #include <assimp/postprocess.h>    
 
-#include <bullet3-master/src/btBulletDynamicsCommon.h>
-#include <bullet3-master/src/btBulletCollisionCommon.h>
-//#include <bullet-2.82/src/btBulletDynamicsCommon.h>
-//#include <bullet-2.82/src/btBulletCollisionCommon.h>
+#include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/btBulletCollisionCommon.h>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -101,7 +99,6 @@ using pugi::xml_document;
 #include <libSpace/src/RTTI.h>
 #include <libSpace/src/Utils.h>
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
-
 using namespace Space::Utils::HashLiterals;
 
 #include "Serialize.h"
@@ -109,10 +106,10 @@ using namespace Space::Utils::HashLiterals;
 //scripts
 #include <luaJiT-2.0.4/lua.hpp>
 #if defined(_USE_API_GENERATOR_)
-#	include <ApiGen/ApiDefAutoGen.h>
+#include <ApiGen/ApiDefAutoGen.h>
 #elif defined(_DISABLE_SCRIPT_ENGINE_)
 #else
-#	include <Libs/LuaBridge/LuaBridge.h>
+#include <Libs/LuaBridge/LuaBridge.h>
 #endif
 
 using StringVector = std::vector < string > ;

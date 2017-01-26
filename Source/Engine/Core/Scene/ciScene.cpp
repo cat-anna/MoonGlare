@@ -31,9 +31,21 @@ ciScene::~ciScene() {
 }
 
 void ciScene::RegisterScriptApi(ApiInitializer &api) {
-	//api
-	//.deriveClass<ThisClass, BaseClass>("iScene")
-	//.endClass();
+	api
+	.deriveClass<ThisClass, BaseClass>("iScene")
+		.addFunction("SpawnChild", &ThisClass::SpawnChildRaw)
+	.endClass();
+}
+
+bool ciScene::SpawnChildRaw(const char * URI, const char * Name) {
+	Entity e;
+	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name ? Name : "?", URI ? URI : "?");
+	return EntityBuilder(&m_ComponentManager).Build(GetSceneEntity(), URI, e, Name) ;
+}
+
+bool ciScene::SpawnChild(const std::string & URI, std::string Name, Entity & out) {
+	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name.c_str(), URI.c_str());
+	return EntityBuilder(&m_ComponentManager).Build(GetSceneEntity(), URI.c_str(), out, std::move(Name)) ;
 }
 
 //----------------------------------------------------------------
@@ -85,7 +97,6 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 		return false;
 	}
 
-	//SetName(Node.attribute(xmlAttr_Name).as_string("??"));
 	m_Environment.LoadMeta(Node.child("Environment"));
 
 	SendState(SceneState::Created);

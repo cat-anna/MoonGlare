@@ -48,6 +48,7 @@ public:
 			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
 			bool m_Kinematic : 1;
 			bool m_HasShape : 1;
+			bool m_WantsCollisionEvent : 1;
 		};
 		MapBits_t m_Map;
 		uint32_t m_UintValue;
@@ -76,7 +77,7 @@ public:
 	};
 
 	BodyEntry* GetEntry(Handle h);	
-	BodyEntry* GetEntry(Entity e);	
+	BodyEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
 
 	struct BulletRigidBody;
 	BulletRigidBody* GetRigidBody(Handle h);	 //return nullptr if h/e is not valid
@@ -88,10 +89,12 @@ public:
 		Handle m_EntryHandle;
 		Handle m_TransformHandle;
 		Core::Component::TransformComponent *m_Transform;
+		Entity m_Entity;
 
-		void Reset(BodyComponent *bc, Handle eh) {
+		void Reset(BodyComponent *bc, Handle eh, Entity e) {
 			m_EntryHandle = eh;
 			m_BodyComponent = bc;
+			m_Entity = e;
 		}
 		void SetTransform(Core::Component::TransformComponent *Transform, Handle th) {
 			m_TransformHandle = th;
@@ -147,6 +150,10 @@ protected:
 	Array<BulletMotionStateProxy> m_MotionStateProxy;
 	Array<BulletRigidBody> m_BulletRigidBody;
 	Core::EntityMapper m_EntityMapper;
+
+	using CollisionKey = std::tuple<const btCollisionObject*, const btCollisionObject*>;
+	using CollisionMap = std::map<CollisionKey, const btManifoldPoint*>;
+	CollisionMap m_LastCollisions;
 };
 
 } //namespace Component 

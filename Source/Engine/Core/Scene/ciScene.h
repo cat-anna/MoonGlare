@@ -54,8 +54,11 @@ protected:
 	SceneDescriptor *m_Descriptor;
 
 	void SendState(SceneState state) {
-		m_ComponentManager.GetEventDispatcher().SendMessage<SceneStateChangeEvent>({ state });
+		m_ComponentManager.GetEventDispatcher().SendMessage<SceneStateChangeEvent>({ state, this });
 	}
+
+	bool SpawnChild(const std::string &URI, std::string Name, Entity &out);
+	bool SpawnChildRaw(const char *URI, const char *Name);
 
 //old
 	Graphic::Environment m_Environment;

@@ -8,14 +8,12 @@ namespace Core {
 
 	class HandleTable;
 	class InputProcessor;
+	class Hooks;
 
 }//namespace Core
 }//namespace MoonGlare
 
 namespace Core {
-	class Input;
-	struct MouseEventDispatcher;
-
 	using ::MoonGlare::Core::MoveConfig;
 }
 

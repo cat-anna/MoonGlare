@@ -120,6 +120,7 @@ local function SetCommonConfig()
 			"4003", -- not enough actual parameters for macro TODO:REMOVE THIS
 			"4127", -- conditional expression is constant
 			"4200", -- nonstandard extension used: zero-sized array in struct/union
+			"4307", -- integral constant overflow
 		}
 		buildoptions  { "/std:c++latest", }
 

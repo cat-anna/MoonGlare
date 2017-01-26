@@ -35,9 +35,12 @@ public:
 
 	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 	Core::Scene::ScenesManager *GetScenesManager() { return m_ScenesManager.get(); };
+
+	Core::Hooks* GetHooks() { return m_Hooks.get(); }
 private: 
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
+	std::unique_ptr<Core::Hooks> m_Hooks;
 
 	Core::Scripts::ScriptEngine *m_ScriptEngine;
 

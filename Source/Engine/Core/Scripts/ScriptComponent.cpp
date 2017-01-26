@@ -15,9 +15,6 @@
 
 #include <Core/Component/TransformComponent.h>
 
-#include <Utils/LuaUtils.h>
-#include "LuaUtils.h"
-
 #include <ScriptComponent.x2c.h>
 
 namespace MoonGlare::Core::Scripts::Component {
@@ -59,24 +56,7 @@ namespace lua {
 	static const char *SetPerSecond = "SetPerSecond";
 	static const char *SetStep = "SetStep";
 	static const char *SetActive = "SetActive";
-	
-	bool Lua_SafeCall(lua_State *lua, int args, int rets, const char *CaleeName, int errf = 0) {
-		try {
-			AddLogf(ScriptCall, "Call to %s", CaleeName);
-			return lua_pcall(lua, args, rets, errf) == 0;
-		}
-		catch (Core::Scripts::eLuaPanic &err) {
-			AddLogf(Error, "Failure during call to %s message: %s", CaleeName, err.what());
-			return false;
-		}
-	}
-
-	template<typename T>
-	void LuaSetField(lua_State *lua, T t, const char *Name, int index) {
-		Utils::Scripts::Lua_push(lua, t);
-		lua_setfield(lua, index - 1, Name); // -1 -> to include pushed value
-	}
-}
+}				    
 
 ::Space::RTTI::TypeInfoInitializer<ScriptComponent, ScriptComponent::ScriptEntry> ScriptComponentTypeInfo;
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", true);
@@ -99,7 +79,7 @@ bool ScriptComponent::Initialize() {
 	m_ScriptEngine = GetManager()->GetWorld()->GetScriptEngine();
 	THROW_ASSERT(m_ScriptEngine, "No script engine instance!");
 
-	m_Array.MemZeroAndClear();
+	m_Array.ForceMemZeroAndClear();
 
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
@@ -256,7 +236,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 				lua_insert(lua, -2);							//stack: self movedata script Step script
 				lua_pushvalue(lua, -4);							//stack: self movedata script Step script movedata
 
-				if (!lua::Lua_SafeCall(lua, 2, 0, lua::Function_Step, errf)) {
+				if (!LuaSafeCall(lua, 2, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during OnStep call for component #%lu", i);
 				}
 			}
@@ -272,7 +252,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 			} else {
 				//stack: self movedata script script persec
 				lua_insert(lua, -2);						//stack: self movedata script persec script 
-				if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_Step, errf)) {
+				if (!LuaSafeCall(lua, 1, 0, lua::Function_Step, errf)) {
 					AddLogf(Error, "Failure during PerSecond call for component #%lu", i);
 				}
 			}
@@ -310,7 +290,7 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 			lua_pop(lua, 1);
 		} else {
 			lua_pushvalue(lua, -2);				//stack: self current_table script@1 OnDestroy script@1
-			if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnDestroy)) { //stack: self current_table script@1
+			if (!LuaSafeCall(lua, 1, 0, lua::Function_OnDestroy)) { //stack: self current_table script@1
 				//	nothing there, nothing more to be logged
 			}
 		}
@@ -349,6 +329,15 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 	entry->Reset();
 	GetHandleTable()->Release(this, entry->m_SelfHandle); // handle may be already released; no need to check for failure
 	m_Array.DeallocateLast();
+}
+
+ScriptComponent::ScriptEntry *ScriptComponent::GetEntry(Handle h) {
+	auto *ht = GetHandleTable();
+	HandleIndex hi;
+	if (!ht->GetHandleIndex(this, h, hi)) {
+		return nullptr;
+	}
+	return &m_Array[hi];
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -402,6 +391,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Flags.m_Map.m_Step = true;
 	entry.m_Flags.m_Map.m_Active = se.m_Active;
 	entry.m_Flags.m_Map.m_OnPerSecond = se.m_PerSecond;
+	entry.m_ExistingEventHandlers.set();
 	m_EntityMapper.SetComponentMapping(entry);
 
 	if (!GetObjectRootInstance(lua, Owner)) {
@@ -459,7 +449,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		lua_pop(lua, 1);										//stack: ObjectRoot Script
 	} else {
 		lua_pushvalue(lua, -2);									//stack: ObjectRoot Script OnCreate Script
-		if (!lua::Lua_SafeCall(lua, 1, 0, lua::Function_OnCreate, errf)) {
+		if (!LuaSafeCall(lua, 1, 0, lua::Function_OnCreate, errf)) {
 			//no need for more logging
 		}
 	}
@@ -535,8 +525,8 @@ bool ScriptComponent::GetObjectRootInstance(lua_State *lua, Entity Owner) {
 	lua_pushvalue(lua, -1);													//stack: OR GO GO
 	lua_setfield(lua, -3, lua::GameObjectName);								//stack: OR GO
 
-	lua::LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -1);	
-	lua::LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -2);	
+	LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -1);	
+	LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -2);	
 
 	GetGameObjectMetaTable(lua);											//stack: OR GO GO_MT
 	lua_setmetatable(lua, -2);												//stack: OR GO

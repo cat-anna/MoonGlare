@@ -42,7 +42,7 @@
 #include <QInputDialog>
 
 #define GLM_FORCE_RADIANS
-#include <glm/glm/glm.hpp>
+#include <glm/glm.hpp>
 
 #pragma warning ( pop )
 

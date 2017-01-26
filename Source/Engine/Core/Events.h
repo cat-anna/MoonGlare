@@ -17,7 +17,13 @@ class BaseEventInfo {
 	using Conf = Configuration::Core::Events;
 public:
 	static EventClassID GetEventClassesCount() { return s_IdAlloc; }
-	static const Space::RTTI::TypeInfo* GetEventTypeInfo(EventClassID id) { return s_EventClassesTypeInfo[id]; }
+
+	struct EventClassInfo {
+		const Space::RTTI::TypeInfo* m_RTTI;
+		ApiInitializer(*m_ApiInit)(ApiInitializer);
+	};
+
+	static const EventClassInfo& GetEventTypeInfo(EventClassID id) { return s_EventClassesTypeInfo[id]; }
 
 	static void DumpClasses(std::ofstream &output);
 protected:
@@ -25,20 +31,23 @@ protected:
 	static EventClassID AllocateEventClass() {
 		auto id = AllocateID();
 		ASSERT(id < Conf::MaxEventTypes);
-		s_EventClassesTypeInfo[id] = Space::RTTI::GetStaticTypeInfo<T>();
+		s_EventClassesTypeInfo[id] = {
+			Space::RTTI::GetStaticTypeInfo<T>(),
+			&T::RegisterLuaApi,
+		};
 		return id;
 	}
 private:
 	static EventClassID AllocateID() { return s_IdAlloc++; }
 	static EventClassID s_IdAlloc;
-	using EventClassesTypeTable = std::array<const Space::RTTI::TypeInfo*, Conf::MaxEventTypes>;
+	using EventClassesTypeTable = std::array<EventClassInfo, Conf::MaxEventTypes>;
 	static EventClassesTypeTable s_EventClassesTypeInfo;
 };
 
 template<class T>
 struct EventInfo : public BaseEventInfo {
 	static EventClassID GetClassID() { return s_ClassID; }
-	static_assert(std::is_pod<T>::value, "Event must be pod type!");
+//	static_assert(std::is_pod<T>::value, "Event must be pod type!");
 private:
 	static EventClassID s_ClassID;
 };

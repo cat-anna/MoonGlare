@@ -8,6 +8,8 @@
 #include <MoonGlare.h>
 #include "EventDispatcher.h"
 
+#include "Core/Hooks.h"
+
 namespace MoonGlare::Core {
 	
 ::Space::RTTI::TypeInfoInitializer<EventHandlerInterface, BaseEventCallDispatcher, EventDispatcher> EventTypeInfo;
@@ -20,8 +22,9 @@ EventDispatcher::EventDispatcher() {
 	}
 }
 
-bool EventDispatcher::Initialize() {
-	return true;
+bool EventDispatcher::Initialize(World *world) {
+	ASSERT(world);
+	return world->GetHooks()->Subscribe(*this);
 }
 
 bool EventDispatcher::Finalize() {

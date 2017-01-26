@@ -14,7 +14,10 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/AbstractComponent.h>
 #include <Core/Component/TransformComponent.h>
+#include <Core/Scripts/ScriptComponent.h> 
 #include "BodyComponent.h"
+
+#include "Coillision.Events.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -62,10 +65,19 @@ void BodyComponent::RegisterScriptApi(ApiInitializer &root) {
 bool BodyComponent::Initialize() {
 //	m_Array.MemZeroAndClear();
 
+	auto &ed = GetManager()->GetEventDispatcher();
+
 	m_TransformComponent = GetManager()->GetComponent<Core::Component::TransformComponent>();
 	if (!m_TransformComponent) {
 		AddLogf(Error, "Unable to get TransformComponent instance!");
 		return false;
+	}
+
+	auto sc = GetManager()->GetComponent<Core::Scripts::Component::ScriptComponent>();
+	if (sc) {
+		using Core::Scripts::Component::ScriptComponent;
+		ed.RegisterTemplate<OnCollisionEnterEvent>(sc);
+		ed.RegisterTemplate<OnCollisionLeaveEvent>(sc);
 	}
 
 	return true;
@@ -129,7 +141,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			auto *shape = ((btRigidBody&)body).getCollisionShape();
 			if (shape)
 				shape->setLocalScaling(tcentry->m_GlobalScale);
-			body.activate(true);
+			m_DynamicsWorld->updateSingleAabb(&body);
 		} else {
 			if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
 				if (item.m_Revision != tcentry->m_Revision) {
@@ -137,14 +149,95 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 					auto *shape = ((btRigidBody&)body).getCollisionShape();
 					if (shape)
 						shape->setLocalScaling(tcentry->m_GlobalScale);
-					body.activate(true);
+					m_DynamicsWorld->updateSingleAabb(&body);
 					item.m_Revision = tcentry->m_Revision;
 				}
 			}
 		}
 	}
 
-	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 5, 1.0f / (60.0f * 5.0f));
+	struct T {
+		static void myTickCallback(btDynamicsWorld *dynamicsWorld, btScalar timeStep) {
+			CollisionMap & objectsCollisions = *((CollisionMap*) dynamicsWorld->getWorldUserInfo());
+			int numManifolds = dynamicsWorld->getDispatcher()->getNumManifolds();
+			for (int i = 0; i < numManifolds; i++) {
+				btPersistentManifold *contactManifold = dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+				auto *objA = contactManifold->getBody0();
+				auto *objB = contactManifold->getBody1();
+
+				bool ColA = objA->getUserIndex2() != 0;
+				bool ColB = objB->getUserIndex2() != 0;
+
+				if (!ColA && !ColB)
+					continue;
+
+				auto tA = std::make_tuple(objA, objB);
+				auto tB = std::make_tuple(objB, objA);
+
+				int numContacts = contactManifold->getNumContacts();
+				for (int j = 0; j < numContacts; j++) {
+					btManifoldPoint& pt = contactManifold->getContactPoint(j);
+					if (pt.getDistance() > 0.0001f)
+						continue;
+					if(ColA) objectsCollisions[tA] = &pt;
+					if(ColB) objectsCollisions[tB] = &pt;
+				}
+			}
+		}
+	};
+
+	CollisionMap cmap;
+	m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
+
+	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 1/*5*/, 1.0f / (60.0f));
+
+
+	CollisionMap last;
+	last.swap(m_LastCollisions);
+		   
+	auto world = GetManager()->GetWorld();
+
+	while (!cmap.empty()) {
+		auto item = cmap.begin();
+		auto colit = last.find(item->first);
+		if (colit == last.end()) {
+			// new
+			BodyEntry *be1 = &m_Array[std::get<0>(item->first)->getUserIndex()];
+			BodyEntry *be2 = &m_Array[std::get<1>(item->first)->getUserIndex()];
+			const std::string *name1 = nullptr, *name2 = nullptr;
+			world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
+			world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
+			AddLogf(Warning, "new col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
+
+			OnCollisionEnterEvent ev;
+			ev.m_Source = be1->m_OwnerEntity;
+			ev.m_Object = be2->m_OwnerEntity;
+			ev.m_Normal = item->second->m_normalWorldOnB;
+			GetManager()->GetEventDispatcher().SendMessage(ev);
+
+			m_LastCollisions.insert(*item);
+		} else {
+			// old
+			m_LastCollisions.insert(*item);
+			last.erase(colit);
+		}
+		cmap.erase(item);
+	}
+
+	for (auto &old : last) {
+		BodyEntry *be1 = &m_Array[std::get<0>(old.first)->getUserIndex()];
+		BodyEntry *be2 = &m_Array[std::get<1>(old.first)->getUserIndex()];
+		const std::string *name1 = nullptr, *name2 = nullptr;
+		world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
+		world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
+		AddLogf(Warning, "old col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
+
+		OnCollisionLeaveEvent ev;
+		ev.m_Source = be1->m_OwnerEntity;
+		ev.m_Object = be2->m_OwnerEntity;
+		ev.m_Normal = old.second->m_normalWorldOnB;
+		GetManager()->GetEventDispatcher().SendMessage(ev);
+	}
 }
 
 //---------------------------------------------------------------------------------------
@@ -183,9 +276,9 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	auto &body = m_BulletRigidBody[index];
 	auto &motionstste = m_MotionStateProxy[index];
 
-	body.Reset(this, hout);
+	body.Reset(this, hout, Owner);
 	body.SetTransform(m_TransformComponent, TCHandle);
-	motionstste.Reset(this, hout);
+	motionstste.Reset(this, hout, Owner);
 	motionstste.SetTransform(m_TransformComponent, TCHandle);
 
 //	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
@@ -208,9 +301,10 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	body.setLinearVelocity(convert(bodyentry.m_LinearVelocity));
 	body.setAngularVelocity(convert(bodyentry.m_AngularVelocity));
 
-	body.setDamping(0.2f, 0.2f);
-	body.setFriction(0.5f);
-	body.setRestitution(0.3f);
+	//body.setDamping(0.9f, 0.9f);
+	body.setFriction(0.9f);
+	body.setRollingFriction(0.9f);
+	//body.setRestitution(0.9f);
 
 	//Friction = 0.5f;
 	//Restitution = 0.3f;
@@ -223,10 +317,19 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	body.setSleepingThresholds(0.1f, 0.1f);
 //	entry.m_CollisionMask = CollisionMask();		//TODO:
 	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic;
+	entry.m_Flags.m_Map.m_WantsCollisionEvent = bodyentry.m_WantsCollisionEvent;
 
 	if (entry.m_Mass == 0.0f) {
 		body.setActivationState(DISABLE_SIMULATION);
 	}
+
+	if (!entry.m_Flags.m_Map.m_Kinematic) {
+		body.setActivationState(DISABLE_DEACTIVATION);
+	}
+
+	body.setUserPointer(&body);
+	body.setUserIndex(index);
+	body.setUserIndex2(entry.m_Flags.m_Map.m_WantsCollisionEvent ? 1 : 0);
 
 	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
 

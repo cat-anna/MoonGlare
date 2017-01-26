@@ -10,6 +10,7 @@
 
 #include "Core/InputProcessor.h"
 #include "Core/Scene/ScenesManager.h"
+#include "Core/Hooks.h"
 
 namespace MoonGlare {
 
@@ -44,14 +45,18 @@ bool World::Initialize(Core::Scripts::ScriptEngine *se) {
 	m_InputProcessor = std::make_unique<Core::InputProcessor>();
 	if (!m_InputProcessor->Initialize(this)) {
 		AddLogf(Error, "Failed to initialize InputProcessor");
-		m_InputProcessor.reset();
 		return false;
 	}
 
 	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>();
 	if (!m_ScenesManager->Initialize(this)) {
 		AddLogf(Error, "Failed to initialize ScenesManager");
-		m_ScenesManager.reset();
+		return false;
+	}
+
+	m_Hooks = std::make_unique<Core::Hooks>();
+	if (!m_Hooks->Initialize(this)) {
+		AddLogf(Error, "Failed to initialize Hooks");
 		return false;
 	}
 
@@ -88,6 +93,11 @@ bool World::Finalize() {
 	if (!m_EntityManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize EntityManager!");
 	}
+
+	if (m_Hooks && !m_Hooks->Finalize()) {
+		AddLogf(Error, "Failed to finalize Hooks!");
+	}
+	m_Hooks.reset();
 
 	return true;
 }

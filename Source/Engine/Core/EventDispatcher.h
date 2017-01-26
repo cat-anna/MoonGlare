@@ -10,12 +10,11 @@
 #define MessageSubsystem_H
 
 #include "Configuration.Core.h"
-//#include <libSpace/src/Container/StaticVector.h>
+#include "Events.h"
 
 namespace MoonGlare::Core {
 
 struct EventHandlerInterface {
-
 protected:
 	virtual ~EventHandlerInterface() { }
 };
@@ -35,12 +34,12 @@ struct BaseEventCallDispatcher {
 			static void Call(void *reciver, const void *event) {
 				ASSERT(reciver);
 				ASSERT(event);
-				RECIVER *r = reinterpret_cast<RECIVER*>(event);
+				auto *r = reinterpret_cast<RECIVER*>(reciver);
 				const EVENT &ev = *reinterpret_cast<const EVENT*>(event);
-				(R->*HANDLER)(ev);
+				(r->*HANDLER)(ev);
 			}
 		};
-		m_Handlers.emplace_back({ reciver, &F::Call });
+		m_Handlers.emplace_back( HandlerCaller { reciver, &F::Call });
 #ifdef DEBUG
 		m_Handlers.back().m_Interface = dynamic_cast<EventHandlerInterface*>(reciver);
 #endif
@@ -65,7 +64,7 @@ public:
 
 	EventDispatcher();
 	
-	bool Initialize();
+	bool Initialize(World *world);
 	bool Finalize();
 
 	template<typename EVENT>
@@ -83,7 +82,11 @@ public:
 	}
 	template<typename EVENT, typename RECIVER>
 	void Register(RECIVER *reciver) {
-		return Register < EVENT, RECIVER, static_cast<void(RECIVER::*HANDLER)(const EVENT&)>(&RECIVER::HandleEvent)>(reciver);
+		return Register < EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent) > (reciver);
+	}
+	template<typename EVENT, typename RECIVER>
+	void RegisterTemplate(RECIVER *reciver) {
+		return Register < EVENT, RECIVER, &RECIVER::HandleEventTemplate<EVENT>>(reciver);
 	}
 private:
 	template<typename T>

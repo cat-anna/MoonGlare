@@ -75,7 +75,7 @@ Def { Name = "NewComponentLuaApi", }
 
 -----------------------------------------------------------
 
-Def {
+DefDone {
 	Name = "SceneHooks",
 	Deps = {
 		"MessagesSubsystem",
@@ -99,6 +99,7 @@ Target {
 		Def "GLFXRemoval",
         Def "RectTransformRefactor",
         Def "UdpInputSinkModule",
+        Def "Switch_GLM_To_Eigen",
 	}
 }
 
@@ -108,8 +109,8 @@ Def {
     Name = "MazeGameImpl",
     Deps = {
         Def { Name = "GameWin", Deps = { "CollisionCallbacks" }, },
-        Def { Name = "EngineAboutScene", },
-        Def { Name = "SceneBlockModels", },
+        Def "EngineAboutScene",
+        Def "SceneBlockModels",
     }
 }
 

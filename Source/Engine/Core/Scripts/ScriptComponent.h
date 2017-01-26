@@ -10,6 +10,10 @@
 #define ScriptComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
+#include <Core/Configuration.Core.h>
+
+#include <Utils/LuaUtils.h>
+#include "LuaUtils.h"
 
 namespace MoonGlare::Core::Scripts::Component {
 
@@ -49,17 +53,68 @@ public:
 		FlagsMap m_Flags;
 		Entity m_OwnerEntity;	
 		Handle m_SelfHandle;
-		uint32_t padding;
+		std::bitset<Configuration::Core::Events::MaxEventTypes> m_ExistingEventHandlers;
 
 		void Reset() {
 			m_Flags.m_Map.m_Valid = false;
 		}
 	};
+	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
+//	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 
 	bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 
-	static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
-	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
+	ScriptEntry* GetEntry(Handle h);
+	ScriptEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
+
+	template<typename EVENT>
+	void HandleEventTemplate(const EVENT &ev) {
+		auto *entry = GetEntry(ev.m_Source);
+		if (!entry || !entry->m_Flags.m_Map.m_Valid || !entry->m_Flags.m_Map.m_Active) {
+			return;
+		}
+
+		if (!entry->m_ExistingEventHandlers[EventInfo<EVENT>::GetClassID()]) {
+			return;
+		}
+
+		auto lua = m_ScriptEngine->GetLua();
+		LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
+		Utils::Scripts::LuaStackOverflowAssert check(lua);
+		//stack: -	
+
+		int luatop = lua_gettop(lua);
+		lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+		int errf = lua_gettop(lua);
+
+		int index = entry - &m_Array[0] + 1;
+
+		GetInstancesTable(lua);									//stack: self
+		lua_rawgeti(lua, -1, index);							//stack: self Script/nil
+
+		if (!lua_istable(lua, -1)) {
+			lua_settop(lua, luatop);
+			AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", index);
+			return;
+		}
+
+		lua_getfield(lua, -1, EVENT::EventName);			//stack: self Script func/nil
+		if (lua_isnil(lua, -1)) {
+			AddLogf(Warning, "ScriptComponent: There is no %s function in component at index: %d", EVENT::EventName, index);
+			lua_settop(lua, luatop);
+			entry->m_ExistingEventHandlers[EventInfo<EVENT>::GetClassID()] = false;
+			return;
+		} else {
+			//stack: self Script func
+			lua_insert(lua, -2);							//stack: self func Script 
+			luabridge::Stack<const EVENT*>::push(lua, &ev);  //stack: self func Script event
+
+			if (!LuaSafeCall(lua, 2, 0, EVENT::EventName, errf)) {
+				AddLogf(Error, "Failure during %s call for component #%lu", EVENT::EventName, index);
+			}
+		}
+		lua_settop(lua, luatop);
+	}
 protected:
 	Scripts::ScriptEngine *m_ScriptEngine;
 

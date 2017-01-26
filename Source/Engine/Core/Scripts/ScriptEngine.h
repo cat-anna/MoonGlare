@@ -16,7 +16,29 @@ public:
 
 	void Step(const MoveConfig & conf);
 
-	template<class RET, class ... Types>
+	template<class RET = void, class ... Types>
+	RET RunChildFunction(const char *Location, const char *FuncName, Types ... args) {
+		AddLogf(ScriptCall, "Call to: '%s'", FuncName);
+		LOCK_MUTEX(m_Mutex);
+		try {
+			IncrementPerformanceCounter(ExecutionCount);
+			luabridge::LuaRef fun = luabridge::getGlobal(m_Lua, Location)[FuncName];
+			luabridge::LuaRef ret = fun(args...);
+			return ret.cast<RET>();
+		}
+		catch (const std::exception & e) {
+			AddLogf(Error, "Runtime script error! Function '%s.%s', message: '%s'",	Location, FuncName, e.what());
+			IncrementPerformanceCounter(ExecutionErrors);
+			return RET(0);
+		}
+		catch (...) {
+			AddLogf(Error, "Runtime script error! Function '%s.%s' failed with unknown message!", Location, FuncName);
+			IncrementPerformanceCounter(ExecutionErrors);
+			return RET(0);
+		}
+	}
+
+	template<class RET = void, class ... Types>
 	RET RunFunction(const char *FuncName, Types ... args) {
 		AddLogf(ScriptCall, "Call to: '%s'", FuncName);
 		LOCK_MUTEX(m_Mutex);
@@ -27,8 +49,7 @@ public:
 			return ret.cast<RET>();
 		}
 		catch (const std::exception & e) {
-			AddLogf(Error, "Runtime script error! Function '%s', message: '%s'",
-					FuncName, e.what());
+			AddLogf(Error, "Runtime script error! Function '%s', message: '%s'", FuncName, e.what());
 			IncrementPerformanceCounter(ExecutionErrors);
 			return RET(0);
 		}

@@ -23,6 +23,13 @@ Structure.new {
 			default = true,
 		},	
 		{
+			name = "WantsCollisionEvent",
+			description = "",
+			type = bool,
+			require = false,
+			default = false,
+		},	
+		{
 			name = "LinearVelocity",
 			description = "Starting object linear velocity",
 			type = Vec3,

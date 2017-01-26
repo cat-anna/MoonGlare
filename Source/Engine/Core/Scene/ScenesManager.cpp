@@ -230,44 +230,6 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
 	descriptor->m_Flags.m_LoadInProgress = false;
 	m_LoadingInProgress = false;
 	return descriptor->m_Flags.m_Loaded;
-
-#if 0
-	auto *desc = GetSceneDescriptor(Name);
-	if (!desc) {
-		AddLogf(Error, "Unable to find descriptor for scene: '%s'", Name.c_str());
-		SetNextSceneLoaded(false);
-		SetNextScenePending(false);
-		auto evHandler = proxy.lock();
-		if (evHandler) {
-			evHandler->InternalEvent(Events::InternalEvents::SceneLoadingFinished, Param);
-		}
-		return;
-	}
-
-	while (IsSceneLoadingTimedOut()) {
-		//wait until loding scene has been set
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	}
-
-	LOCK_MUTEX(m_Lock);
-
-	GetEngine()->KillProxyTimer(GetEventProxy(), ScenesManagerTimers::SceneTimeout);
-	if (!s) {
-		SetNextScenePending(false);
-		SetNextSceneLoaded(false);
-	} else {
-		m_NextSceneRegister = s;
-		SetNextSceneLoaded(true);
-	}
-	auto evHandler = proxy.lock();
-
-	if (!evHandler)
-		GetEngine()->ChangeScene();
-	else
-		evHandler->InternalEvent(Events::InternalEvents::SceneLoadingFinished, Param);
-#endif
-
-	return false;
 }
 
 bool ScenesManager::SetNextSceneDescriptor(SceneDescriptor *descriptor) {

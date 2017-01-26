@@ -193,6 +193,18 @@ void ApiInit::Initialize(ScriptEngine *s) {
 		}
 	}
 
+	{
+		auto maxid = BaseEventInfo::GetEventClassesCount();
+		for (decltype(maxid) it = 0; it < maxid; ++it) {
+			auto info = BaseEventInfo::GetEventTypeInfo(it);
+			s->GetApiInitializer()
+				.beginNamespace("api")
+					.beginNamespace("Events")
+						.DefferCalls([&info] (auto &n) { info.m_ApiInit(n); });
+			luabridge::ResetLocation();
+		}
+	}
+
 	luabridge::gLuaBridgeApiDumpInstance.m_output.flush();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	std::chrono::high_resolution_clock::time_point tend = std::chrono::high_resolution_clock::now();
