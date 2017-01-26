@@ -32,6 +32,7 @@ group ""
 			"libSpace",
 			"OrbitLogger",
 			"StarVFS",
+            "Renderer",
 
 			"lua51jit",
 			"freeimage",

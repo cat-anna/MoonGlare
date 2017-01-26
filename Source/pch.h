@@ -20,60 +20,19 @@
 #include <GLFW/glfw3.h>
 #include <GL/glfx.h>
 //std include
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <cmath>
-#include <list>
-#include <vector>
-#include <queue>
-#include <deque>
-#include <stack>
-#include <map>
-#include <set>
-#include <unordered_map>
-#include <array>
-#include <bitset>
-#include <algorithm>
-#include <thread>
-#include <future>
-#include <condition_variable>
-#include <mutex>
-#include <chrono>
+
 #include <locale>
 #include <codecvt>
-#include <atomic>
-#include <random>
-#include <type_traits>
+
+#include <Config/pch_common.h>
+
 
 using std::istream;
 using std::ostream;
 using std::string;
 using wstring = std::wstring;//u16string
-using LockGuard = std::lock_guard < std::mutex > ;
-
-#define MERGE_(a,b)  a##b
-#define LABEL_(a) MERGE_(unique_name_, a)
-#define UNIQUE_NAME LABEL_(__LINE__)
-
-#define LOCK_MUTEX_MERGE(a, b) a ## b
-#define LOCK_MUTEX_LABEL(name) LOCK_MUTEX_MERGE(__lock_, name)
-#define LOCK_MUTEX_LABEL_UNIQUE LOCK_MUTEX_LABEL(__LINE__)
-
-#define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard < decltype(mutex) > name (mutex)
-#define LOCK_MUTEX(mutex) LOCK_MUTEX_NAMED(mutex, LOCK_MUTEX_LABEL_UNIQUE)
-
-#undef min
-#undef max
 
 #pragma warning ( push, 0 )
-
-#include <boost/preprocessor/seq/for_each.hpp>
 
 #include <assimp/Importer.hpp>     
 #include <assimp/scene.h>          
@@ -112,11 +71,6 @@ using namespace Space::Utils::HashLiterals;
 #include <Libs/LuaBridge/LuaBridge.h>
 #endif
 
-using StringVector = std::vector < string > ;
-using StringDeque = std::deque < string > ;
-using StringList = std::list < string > ;
-using StringStringMap = std::unordered_map < string, string > ;
-
 class cRootClass;
 
 #include "Config/Config.h"
@@ -140,7 +94,7 @@ class cRootClass;
 #include "d2math.h"
 #include "Utils/XMLUtils.h"
 #include "Utils/StreamUtils.h"
-
+#include <Utils/PerfCounters.h>
 
 namespace Utils {
 namespace Scripts {
@@ -172,69 +126,5 @@ namespace Core {
 using Core::ApiInitializer;
 
 #include "Error.h"
-
-#define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)
-
-#ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
-
-#define __LOG_ACTION_F_Performance(T, ...)			ORBITLOGGER_BeginLogf(Hint, 0, __VA_ARGS__)
-#define __LOG_ACTION_Performance(T, A)				ORBITLOGGER_BeginLog(Hint, 0, A)
-
-namespace PerformanceCounters {
-inline void PrintPerfCounter(unsigned __int64 Value, void *OwnerPtr, const char *OwnerName, const char *Name) {
-	//AddLogf(Performance, "Destroying counter %s. Owner %s (%x). Current value: %llu", Name, OwnerName, OwnerPtr, static_cast<unsigned long long>(Value));
-}
-
-template<class OWNER, class INFO>
-struct Counter {
-	OWNER *Owner = nullptr;
-	unsigned __int64 Value = 0;
-	void increment(unsigned __int64 val = 1) { Value += val; }
-	void decrement(unsigned __int64 val = 1) { Value -= val; }
-	void SetOwner(OWNER *ptr) {
-		Owner = ptr;
-	}
-	~Counter() {
-		const char *OwnerName;
-		if (Owner)
-			OwnerName = Owner->GetDynamicTypeInfo()->GetName();
-		else
-			OwnerName = OWNER::GetStaticTypeInfo()->GetName();
-		PrintPerfCounter(Value, Owner, OwnerName, INFO::Name());
-	}
-};
-}
-
-#define DeclarePerformanceCounter(NAME)			\
-private:										\
-	struct __PerfCounterInfo_##NAME	{			\
-		static const char* Name() { return #NAME; }\
-	};											\
-	PerformanceCounters::Counter<ThisClass, __PerfCounterInfo_##NAME> m_PerfCounter##NAME
-
-#define IncrementPerformanceCounter(NAME)		do { m_PerfCounter##NAME.increment(); } while(0)
-#define DecrementPerformanceCounter(NAME)		do { m_PerfCounter##NAME.decrement(); } while(0)
-#define PerformanceCounter_inc(NAME, VALUE)		do { m_PerfCounter##NAME.increment(VALUE); } while(0)
-#define PerformanceCounter_dec(NAME, VALUE)		do { m_PerfCounter##NAME.decrement(VALUE); } while(0)
-#define SetPerformanceCounterOwner(NAME)		do { m_PerfCounter##NAME.SetOwner(this); } while(0)
-#else
-#define DeclarePerformanceCounter(NAME)	
-#define IncrementPerformanceCounter(NAME)		do { /* nothing there */ } while(0)
-#define DecrementPerformanceCounter(NAME)		do { /* nothing there */ } while(0)
-#define SetPerformanceCounterOwner(NAME)		do { /* nothing there */ } while(0)
-#define __LOG_ACTION_F_Performance(T, ...)		ORBITLOGGER_DISASBLED_ACTION()
-#define __LOG_ACTION_Performance(T, A)			ORBITLOGGER_DISASBLED_ACTION()
-#endif
-
-
-#define DISABLE_COPY() public: ThisClass(const ThisClass&) = delete; ThisClass& operator=(const ThisClass&) = delete
-
-#define AS_STRING(X) #X
-
-#ifdef DEBUG
-#define ERROR_STR				"{badstr in " __FUNCTION__ " at " AS_STRING(__LINE__) "}"
-#else
-#define ERROR_STR				"{?}"
-#endif
 
 #endif
