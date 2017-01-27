@@ -75,7 +75,6 @@ bool BodyComponent::Initialize() {
 
 	auto sc = GetManager()->GetComponent<Core::Scripts::Component::ScriptComponent>();
 	if (sc) {
-		using Core::Scripts::Component::ScriptComponent;
 		ed.RegisterTemplate<OnCollisionEnterEvent>(sc);
 		ed.RegisterTemplate<OnCollisionLeaveEvent>(sc);
 	}
@@ -143,15 +142,19 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 				shape->setLocalScaling(tcentry->m_GlobalScale);
 			m_DynamicsWorld->updateSingleAabb(&body);
 		} else {
-			if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
-				if (item.m_Revision != tcentry->m_Revision) {
-					((btRigidBody&)body).setWorldTransform(tcentry->m_LocalTransform);
-					auto *shape = ((btRigidBody&)body).getCollisionShape();
-					if (shape)
-						shape->setLocalScaling(tcentry->m_GlobalScale);
-					m_DynamicsWorld->updateSingleAabb(&body);
-					item.m_Revision = tcentry->m_Revision;
+			if (tcentry) {
+				if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
+					if (item.m_Revision != tcentry->m_Revision) {
+						((btRigidBody&) body).setWorldTransform(tcentry->m_LocalTransform);
+						auto *shape = ((btRigidBody&) body).getCollisionShape();
+						if (shape)
+							shape->setLocalScaling(tcentry->m_GlobalScale);
+						m_DynamicsWorld->updateSingleAabb(&body);
+						item.m_Revision = tcentry->m_Revision;
+					}
 				}
+			} else {
+				item.m_Flags.m_Map.m_Valid = false;
 			}
 		}
 	}
@@ -191,7 +194,6 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 
 	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 1/*5*/, 1.0f / (60.0f));
 
-
 	CollisionMap last;
 	last.swap(m_LastCollisions);
 		   
@@ -207,10 +209,10 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			const std::string *name1 = nullptr, *name2 = nullptr;
 			world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
 			world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
-			AddLogf(Warning, "new col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
+		//	AddLogf(Warning, "new col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
 
 			OnCollisionEnterEvent ev;
-			ev.m_Source = be1->m_OwnerEntity;
+			ev.m_Destination = be1->m_OwnerEntity;
 			ev.m_Object = be2->m_OwnerEntity;
 			ev.m_Normal = item->second->m_normalWorldOnB;
 			GetManager()->GetEventDispatcher().SendMessage(ev);
@@ -230,10 +232,10 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		const std::string *name1 = nullptr, *name2 = nullptr;
 		world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
 		world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
-		AddLogf(Warning, "old col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
+	//	AddLogf(Warning, "old col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
 
 		OnCollisionLeaveEvent ev;
-		ev.m_Source = be1->m_OwnerEntity;
+		ev.m_Destination = be1->m_OwnerEntity;
 		ev.m_Object = be2->m_OwnerEntity;
 		ev.m_Normal = old.second->m_normalWorldOnB;
 		GetManager()->GetEventDispatcher().SendMessage(ev);

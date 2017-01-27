@@ -65,7 +65,7 @@ local function SetCommonConfig()
 	}
 	defines {
 		"STARVFS_USE_ORBITLOGGER",
-		"BOOST_NO_AUTO_PTR",
+	--	"BOOST_NO_AUTO_PTR",
 	}
 	libdirs {
 		"../../../../../LibsC",

@@ -73,10 +73,13 @@ Calling of this function may be disabled.
 
 This function is disabled by default. It may be enabled by *Script component* configuration or special function.
 
-This function does not takes any arguments, and if enabled, it is called once per second.
+This function does not takes any arguments, and if enabled, it is called aproximately once per second.
 
 ## GameObject
-TODO
+Basically `GameObject` is container for component instances. It may have no children but always has a parent.
+
+If `GameObject` is removed all its children as removed as well.
+
 ### GameObject interface
 TODO
 #### GameObject:GetComponent(ComponentID [, Owner])
@@ -97,6 +100,8 @@ TODO
 TODO
 #### GameObject:Destroy()
 TODO
+#### GameObject:GetObject(internalhandle)
+Translates `GameObject` interal handle into lua object which may be used. Returns _nil_ if handle is not valid. See  [Internal handles](#internal-handles) for details.
 
 ## Script instance
 
@@ -118,7 +123,7 @@ end
 ```
 
 #### self.Entity
-This variable holds handle to owner of script instance.
+This variable holds internal handle to `GameObject` which owns script instance. [Internal handles](#internal-handles) for details.
 
 #### self.Handle
 This variable holds script instance handle.
@@ -141,6 +146,8 @@ In disabled state no function will be called from Engine to instance. However in
 #### Class:GetComponent(ComponentID [, Owner])
 This function is shortcut for [GameObject:GetComponent](#gameobject-getcomponent-componentid-owner-)
 
+#Event subsystem
+
 # Components
 TODO
 ## TODO
@@ -160,7 +167,10 @@ TODO
 ### Physics component
 TODO
 ### BodyShape component
-TODO
+May emit events (if enabled):
+* OnCollisionEnterEvent
+* OnCollisionLeaveEvent
+
 ## Graphical user interface
 TODO
 ### RectTransform component
@@ -171,5 +181,7 @@ TODO
 TODO
 ### Image component
 TODO
+
+
 # Engine modules
 TODO

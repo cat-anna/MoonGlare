@@ -103,6 +103,14 @@ Target {
 	}
 }
 
+Target {
+    Name = "Optimizations",
+    Deps = {
+        Def "UserInputEvents",
+        Def "SimplifyComponentLayout",
+    },
+}
+
 -----------------------------------------------------------
 
 Def {

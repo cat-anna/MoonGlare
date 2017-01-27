@@ -17,16 +17,16 @@ struct OnCollisionEnterEvent {
 	static constexpr char* EventName = "OnCollisionEnterEvent";
 	static constexpr char* HandlerName = "CollisionEnter";
 
-	Entity m_Source;
+	Entity m_Destination;
 	Entity m_Object;
 
 	btVector3 m_Normal;
 
 	friend std::ostream& operator<<(std::ostream& out, const OnCollisionEnterEvent &event) {
 		out << "OnCollisionEnterEvent"
-			<< "[Source:" << event.m_Source
-			<< " Object:" << event.m_Object
-			<< " Normal:" << event.m_Normal
+			<< "[Destination:" << event.m_Destination
+			<< ";Object:" << event.m_Object
+			<< ";Normal:" << event.m_Normal
 			<< "]";
 		return out;
 	}
@@ -34,8 +34,9 @@ struct OnCollisionEnterEvent {
 	static ApiInitializer RegisterLuaApi(ApiInitializer api) {
 		return api
 			.beginClass<OnCollisionEnterEvent>("cOnCollisionEnterEvent")
-				.addData("Source", &OnCollisionEnterEvent::m_Source, false)
+				.addData("Destination", &OnCollisionEnterEvent::m_Destination, false)
 				.addData("Object", &OnCollisionEnterEvent::m_Object, false)
+				.addStaticData("Name", EventName, false)
 			.endClass();
 	}
 };
@@ -44,16 +45,16 @@ struct OnCollisionLeaveEvent {
 	static constexpr char* EventName = "OnCollisionLeaveEvent";
 	static constexpr char* HandlerName = "CollisionLeave";
 
-	Entity m_Source;
+	Entity m_Destination;
 	Entity m_Object;
 
 	btVector3 m_Normal;
 
 	friend std::ostream& operator<<(std::ostream& out, const OnCollisionLeaveEvent &event) {
 		out << "OnCollisionLeaveEvent"
-			<< "[Source:" << event.m_Source
-			<< " Object:" << event.m_Object
-			<< " Normal:" << event.m_Normal
+			<< "[Destination:" << event.m_Destination
+			<< ";Object:" << event.m_Object
+			<< ";Normal:" << event.m_Normal
 			<< "]";
 		return out;
 	}
@@ -61,8 +62,9 @@ struct OnCollisionLeaveEvent {
 	static ApiInitializer RegisterLuaApi(ApiInitializer api) {
 		return api
 			.beginClass<OnCollisionLeaveEvent>("cOnCollisionLeaveEvent")
-				.addData("Source", &OnCollisionLeaveEvent::m_Source, false)
+				.addData("Destination", &OnCollisionLeaveEvent::m_Destination, false)
 				.addData("Object", &OnCollisionLeaveEvent::m_Object, false)
+				.addStaticData("Name", EventName, false)
 			.endClass();
 	}
 };

@@ -563,31 +563,31 @@ private:
     template <class U>
     Class <T>& addStaticData (char const* name, U* pu, bool isWritable = true)
     {
-      assert (lua_istable (L, -1));
+		typedef const U *mp_t;
 
-      rawgetfield (L, -1, "__propget");
-      assert (lua_istable (L, -1));
-      lua_pushlightuserdata (L, pu);
-      lua_pushcclosure (L, &CFunc::getVariable <U>, 1);
-      rawsetfield (L, -2, name);
-      lua_pop (L, 1);
+		// Add to __propget in class and const tables.
+		{
+			rawgetfield(L, -2, "__propget");
+			rawgetfield(L, -4, "__propget");
+			lua_pushlightuserdata(L, pu);
+			lua_pushcclosure(L, &CFunc::getVariable <U>, 1);
+			lua_pushvalue(L, -1);
+			rawsetfield(L, -4, name);
+			rawsetfield(L, -2, name);
+			lua_pop(L, 2);
+		}
 
-      rawgetfield (L, -1, "__propset");
-      assert (lua_istable (L, -1));
-      if (isWritable)
-      {
-        lua_pushlightuserdata (L, pu);
-        lua_pushcclosure (L, &CFunc::setVariable <U>, 1);
-      }
-      else
-      {
-        lua_pushstring (L, name);
-        lua_pushcclosure (L, &CFunc::readOnlyError, 1);
-      }
-      rawsetfield (L, -2, name);
-      lua_pop (L, 1);
+		if (isWritable) {
+			// Add to __propset in class table.
+			rawgetfield(L, -2, "__propset");
+			assert(lua_istable(L, -1));
+			lua_pushlightuserdata(L, pu);
+			lua_pushcclosure(L, &CFunc::setVariable <U>, 1);
+			rawsetfield(L, -2, name);
+			lua_pop(L, 1);
+		}
 
-      return *this;
+		return *this;
     }
 
     //--------------------------------------------------------------------------

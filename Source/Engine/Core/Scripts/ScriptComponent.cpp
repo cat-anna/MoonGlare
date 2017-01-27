@@ -52,6 +52,7 @@ namespace lua {
 	static const char *FindChild = "FindChild";
 	static const char *GetParent = "GetParent";
 	static const char *GetFirstChild = "GetFirstChild";
+	static const char *GetGameObject = "GetObject";
 	
 	static const char *SetPerSecond = "SetPerSecond";
 	static const char *SetStep = "SetStep";
@@ -158,6 +159,10 @@ bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
 	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
 	lua_pushcclosure(lua, &lua_GetFirstChild, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_GetFirstChild
 	lua_setfield(lua, -2, lua::GetFirstChild);												 //stack: GameObjectMT GameObjectMT_index
+
+	lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index this
+	lua_pushcclosure(lua, &lua_GetGameObject, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_GetFirstChild
+	lua_setfield(lua, -2, lua::GetGameObject);												 //stack: GameObjectMT GameObjectMT_index
 
 	Utils::Scripts::lua_PushCClosure(lua, &lua_Destroy, (void*)GetManager()->GetWorld());	 //stack: GameObjectMT GameObjectMT_index closure
 	lua_setfield(lua, -2, lua::DestroyName);												 //stack: GameObjectMT GameObjectMT_index 
@@ -1000,7 +1005,6 @@ int ScriptComponent::lua_SetName(lua_State * lua) {
 	const char *NewName = lua_tostring(lua, 2);
 	if (!NewName) {
 		AddLogf(Error, "GameObject::SetName: Error: Invalid name! (not a string!)");
-		lua_pop(lua, 1);
 		return 0;
 	}
 
@@ -1199,5 +1203,33 @@ int ScriptComponent::lua_GetFirstChild(lua_State * lua) {
 
 	return check.ReturnArgs(1);
 }
+ 
+int ScriptComponent::lua_GetGameObject(lua_State * lua) {
+	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+	ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
+	Entity E = Entity::FromVoidPtr(lua_touserdata(lua, 2));
+	if (!E.GetVoidPtr()) {
+		AddLogf(ScriptRuntime, "GameObject::lua_GetGameObject: Error: Invalid argument");
+		return 0;
+	}
+
+	if (!This->GetManager()->GetWorld()->GetEntityManager()->IsValid(E)) {
+		AddLogf(ScriptRuntime, "GameObject::lua_GetGameObject: Error: Invalid object");
+		return 0;
+	}
+
+	//TODO: check Parent
+
+	if (!This->GetObjectRootInstance(lua, E)) {
+		AddLogf(ScriptRuntime, "GameObject::lua_GetGameObject: Error: Failed to get gameobject");
+		return 0;
+	}
+
+	lua_insert(lua, -2);											//stack: self GO OR
+	lua_pop(lua, 1);												//stack: self GO
+
+	return check.ReturnArgs(1);
+}
 } //namespace MoonGlare::Core::Scripts::Component  

@@ -17,14 +17,15 @@ function EventUtils.EnableCollision(script)
 end
 
 function EventHandlers:OnCollisionEnterEvent(data)
-    print(tostring(data.Object))
-    return self:CollisionEnter {
-        name = "test Enter",
-    }
+--    print(tostring(data.Object))
+    return self:CollisionEnter (data)
+--     {
+--        name = "test Enter",
+--    }
 end
 
 function EventHandlers:OnCollisionLeaveEvent(data)
-    print(tostring(data.Object))
+--    print(tostring(data.Object))
     return self:CollisionLeave {
         name = "test Leave",
     }
