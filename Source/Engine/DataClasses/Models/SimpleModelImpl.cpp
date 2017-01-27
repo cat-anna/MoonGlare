@@ -12,7 +12,6 @@ namespace DataClasses {
 namespace Models {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(SimpleModelImpl);
-ModelClassRegister::Register<SimpleModelImpl> SimpleModelImplReg("SimpleModel");
 
 SimpleModelImpl::SimpleModelImpl(const string& Name) :
 		BaseClass(Name){
@@ -22,6 +21,21 @@ SimpleModelImpl::~SimpleModelImpl() {
 }
 
 //------------------------------------------------------------------------
+
+
+bool SimpleModelImpl::Load(const std::string &Name) {
+
+	if (Name.find("://") != std::string::npos) {
+		return DoLoadModel(Name);
+	}
+
+	FileSystem::XMLFile xml;
+	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
+		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());
+		return false;
+	}
+	return LoadFromXML(xml->document_element());
+}
 
 bool SimpleModelImpl::LoadFromXML(const xml_node Node) {
 	if (!Node) {
@@ -38,24 +52,31 @@ bool SimpleModelImpl::LoadFromXML(const xml_node Node) {
 		return false;
 	}
 
-	file = (GetName() + "/") += file;
+	file = "file:///Models/" + (GetName() + "/") += file;
+
+	return DoLoadModel(file);
+}
+
+//------------------------------------------------------------------------
+
+bool SimpleModelImpl::DoLoadModel(const std::string & fName) {
 	StarVFS::ByteTable data;
-	if (!GetFileSystem()->OpenFile(file, DataPath::Models, data)) {
+	if (!GetFileSystem()->OpenFile(fName, DataPath::URI, data)) {
 		AddLogf(Error, "Unable to load model: %s", GetName().c_str());
 		return false;
 	}
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFileFromMemory(
-						data.get(), data.size(),
-						aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_SortByPType,
-						strrchr(file.c_str(), '.'));
+		data.get(), data.size(),
+		aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType,
+		strrchr(fName.c_str(), '.'));
 
 	if (!scene) {
 		AddLog(Error, "Unable to to load model file[Name:'" << GetName().c_str() << "']. Error: " << importer.GetErrorString());
 		return false;
 	}
 
-	if (!DoLoadMaterials(Node, scene)) {
+	if (!DoLoadMaterials(scene)) {
 		AddLogf(Error, "Unable to load model materials: %s", GetName().c_str());
 		return false;
 	}
@@ -68,15 +89,12 @@ bool SimpleModelImpl::LoadFromXML(const xml_node Node) {
 	return true;
 }
 
-//------------------------------------------------------------------------
-
-bool SimpleModelImpl::DoLoadMaterials(xml_node Node, const aiScene* scene) {
+bool SimpleModelImpl::DoLoadMaterials( const aiScene* scene) {
 	for (unsigned i = 0; i < scene->mNumMaterials; i++) {
 		const aiMaterial* pMaterial = scene->mMaterials[i];
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) <= 0)
 			continue;
-
-		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial));
+		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial, scene));
 	}
 
 	return true;

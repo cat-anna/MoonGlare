@@ -7,6 +7,8 @@
 #include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
 
+#include <DataClasses/Models/SimpleModelImpl.h>
+
 #include <StarVFS/core/nStarVFS.h>
 
 namespace MoonGlare {
@@ -115,6 +117,11 @@ bool Manager::Initialize(Scripts::ScriptEngine *ScriptEngine) {
 
 bool Manager::Finalize() {
 	m_Fonts.clear();
+
+	for (auto &item : *m_Models.Lock()) {
+		item.second->Finalize();
+		item.second.reset();
+	}
 	m_Models.clear();
 
 	m_Modules.clear();
@@ -267,42 +274,21 @@ DataClasses::ModelPtr Manager::GetModel(const string& Name) {
 	auto models = m_Models.Lock();
 
 	auto it = models->find(Name);
-	ModelResPtr *ptr = nullptr;
-	if (it == models->end()) {
-		ptr = &models[Name];
-		ptr->SetValid(false);
-	} else {
-		ptr = &it->second;
-		if (ptr->IsLoaded())
-			return ptr->Get();
-
-		if (!ptr->IsValid()) {
+	if (it != models->end()) {
+		if (!it->second) {
 			AddLogf(Error, "Model '%s' is invalid.", Name.c_str());
 			return nullptr;
 		}
+		return it->second;
 	}
 	AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
 
-	FileSystem::XMLFile xml;
-	if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Models)) {
-		AddLogf(Error, "Unable to open master resource xml for model '%s'", Name.c_str());
+	auto model = std::make_shared<DataClasses::Models::SimpleModelImpl>(Name);
+	if (!model->Load(Name)) {
+		AddLogf(Error, "Unable to load model '%s'", Name.c_str());
 		return nullptr;
 	}
-	string Class = xml->document_element().attribute(xmlAttr_Class).as_string(ERROR_STR);
-	auto model = DataClasses::Models::ModelClassRegister::CreateShared(Class, Name);
-	if (!model) {
-		AddLogf(Error, "Unable to create model class '%s' for object '%s'", Class.c_str(), Name.c_str());
-		return nullptr;
-	}
-
-	if (!model->LoadFromXML(xml->document_element())) {
-		AddLogf(Error, "Unable to load model '%s' of class '%s'", Name.c_str(), Class.c_str());
-	//	delete ptr;
-		return nullptr;
-	}
-
-	ptr->Set(model, Class);
-	ptr->SetValid(true);
+	models[Name] = model;
 	NotifyResourcesChanged();
 	return model;
 }
@@ -316,6 +302,17 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 #ifdef DEBUG_DUMP
 
 struct Dumper {
+	template<class T>
+	static void DumpSharedRes(const T &t, const char* Name, std::ostream &out) {
+		out << Name << ":\n";
+		for (auto &it : t) {
+			char buf[128];
+			sprintf(buf, "%40s [class %-20s][Loaded: %s][use count: %d]\n",
+					it.first.c_str(), "-",(it.second ? "T" : "F"), it.second.use_count());
+			out << buf;
+		}
+		out << "\n";
+	}
 	template<class T>
 	static void DumpRes(const T &t, const char* Name, std::ostream &out) {
 		out << Name << ":\n";
@@ -342,7 +339,7 @@ struct Dumper {
 
 void Manager::DumpAllResources(std::ostream &out) {
 	Dumper::DumpRes<>(*m_Fonts.Lock(), "Fonts", out);
-	Dumper::DumpRes<>(*m_Models.Lock(), "Models", out);
+	Dumper::DumpSharedRes<>(*m_Models.Lock(), "Models", out);
 }
 
 #endif

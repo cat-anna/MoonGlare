@@ -31,8 +31,6 @@ void Interfaces::DumpLists(ostream &out) {
 		sprintf(buffer, "%30s  [class %s]\n", type.Alias.c_str(), (type.TypeInfo ? type.TypeInfo->GetName() : "?"));
 		out << buffer;
 	};
-	out << "\nModel class list\n";
-	DataClasses::Models::ModelClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nFont class list\n";
 	DataClasses::Fonts::FontClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nShaders class list\n";

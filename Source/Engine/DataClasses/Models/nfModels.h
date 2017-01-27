@@ -7,8 +7,6 @@ namespace DataClasses {
 		class iModel;
 		class iSimpleModel;
 		using ModelPtr = std::shared_ptr<iModel>;
-
-		using ModelClassRegister = Space::DynamicClassRegisterDeleter < iModel, ResourceFinalizer<iModel>, const string& >;
 	}
 	using Models::ModelPtr;
 }

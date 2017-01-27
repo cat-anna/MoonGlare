@@ -13,7 +13,7 @@
 #include "Resource.h"
 
 using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
-using ModelResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::ModelPtr>;
+using ModelResPtr = DataClasses::ModelPtr;
 
 //#include "Paths/iPath.h"
 //#include "Paths/PathRegister.h"

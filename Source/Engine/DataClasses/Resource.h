@@ -163,7 +163,7 @@ struct SmartResource : public ResourcePointerBase {
 
 	bool IsLoaded() const { return static_cast<bool>(m_Ptr); }
 	Smart_t Get() const { return m_Ptr; }
-	template<class T>void Set(T&& t, const string& Class) { m_Ptr = t; m_Info.Class = Class; SetValid(true); }
+	template<class T>void Set(T&& t, const string& Class = "") { m_Ptr = t; m_Info.Class = Class; SetValid(true); }
 	void ReleaseResource() { m_Ptr.reset();	}
 	unsigned UseCount() const { return m_Ptr.use_count(); }
 

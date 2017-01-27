@@ -18,9 +18,11 @@ public:
 	SimpleModelImpl(const string& Name);
  	virtual ~SimpleModelImpl();
 
+	bool Load(const std::string &Name);
 	virtual bool LoadFromXML(const xml_node Node) override;
 protected:
-	bool DoLoadMaterials(xml_node Node, const aiScene* scene);
+	bool DoLoadModel(const std::string &Name);
+	bool DoLoadMaterials(const aiScene* scene);
 	bool DoLoadMeshes(const aiScene* scene);
 private: 
 };

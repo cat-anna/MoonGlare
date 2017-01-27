@@ -15,15 +15,40 @@ namespace Models {
 
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ModelMaterial)
 
-ModelMaterial::ModelMaterial(iModel *Owner, const aiMaterial *Material) :
+ModelMaterial::ModelMaterial(iModel *Owner, const aiMaterial *Material, const aiScene *Scene) :
 				m_Owner(Owner), m_Material() {
 	aiString Path;
 	if (Material->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-//		AddLog(Error, "Unable to load material for model: " << m_Owner->Info());
+		AddLog(Error, "Unable to load material for model: " << m_Owner->GetName());
 	}
-	FileSystem::DirectoryReader reader(DataPath::Models, m_Owner->GetName());
-	reader.OpenTexture(m_Material.Texture, Path.data);
-	m_Material.Texture.SetRepeatEdges();
+	//AddLogf(Error, "tex:%s", Path.data);
+
+	if (Path.data[0] == '*') {
+		//internal texture
+		auto idx = strtoul(Path.data + 1, nullptr, 10);
+		if (idx >= Scene->mNumTextures) {
+			AddLogf(Error, "Invalid internal texture id!");
+			return;
+		}
+	
+		auto texptr = Scene->mTextures[idx];
+
+		if (texptr->mHeight == 0) {
+			//raw image bytes
+			if (!DataClasses::Texture::LoadTexture(m_Material.Texture, (char*) texptr->pcData, texptr->mWidth)) {
+				AddLogf(Error, "Texture load failed!");
+			}
+		} else {
+			AddLogf(Error, "NOT SUPPORTED!");
+
+		}
+		m_Material.BackColor = math::fvec3(1);
+		m_Material.Texture.SetRepeatEdges();
+	} else {
+		FileSystem::DirectoryReader reader(DataPath::Models, m_Owner->GetName());
+		reader.OpenTexture(m_Material.Texture, Path.data);
+		m_Material.Texture.SetRepeatEdges();
+	}
 }
 
 ModelMaterial::ModelMaterial(iModel* Owner, const xml_node MaterialDef, FileSystem::DirectoryReader reader) :
