@@ -182,7 +182,18 @@ void DumpMaterials(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		out << i << "\n";
 
 		static const std::vector<std::pair<aiTextureType, const char *>> TexTypes{
-			{aiTextureType_DIFFUSE, "Diffuse"},
+			{ aiTextureType_DIFFUSE, "Diffuse" },
+			{ aiTextureType_SPECULAR, "Specular" },
+			{ aiTextureType_AMBIENT, "Ambient" },
+			{ aiTextureType_EMISSIVE, "Emissive" },
+			{ aiTextureType_HEIGHT, "Height" },
+			{ aiTextureType_NORMALS, "Normals" },
+			{ aiTextureType_SHININESS, "Shiness" },
+			{ aiTextureType_OPACITY, "Opacity" },
+			{ aiTextureType_DISPLACEMENT, "Displacement" },
+			{ aiTextureType_LIGHTMAP, "Lightmap" },
+			{ aiTextureType_REFLECTION, "Reflection" },
+			{ aiTextureType_UNKNOWN, "Unknown" },
 		};
 
 		out << "\tTextures:\n";
