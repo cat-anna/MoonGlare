@@ -28,8 +28,15 @@ DefDone "SceneManager"
 Def {
     Name = "Renderer",
     Deps = {
-        "ResourceManager",
+        "AssetManager",
     }
+}
+
+Def {
+    Name = "AssetManager",
+    Deps = {
+            "LoadingBlenderFiles",
+    },
 }
 
 Def {

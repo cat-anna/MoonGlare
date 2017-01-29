@@ -14,7 +14,7 @@ group "Tools"
 	--	qtheaderpath(settings.qt.headers)"d:/Programowanie/Qt/5.5/msvc2013/"
 		qtprefix "Qt5"
 		qtmodules { "core", "gui", "widgets", "network" }
-		qtlibsuffix ""
+	--	qtlibsuffix ""
 
 		SetPCH { hdr = "Tools/MGEditor/pch.h", src = "pch.cpp", }
 
