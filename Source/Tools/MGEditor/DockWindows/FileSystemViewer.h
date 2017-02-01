@@ -14,6 +14,9 @@
 #include "../FileSystem.h"
 #include <iEditor.h>
 
+#include <Module.h>
+#include <iFileIconProvider.h>
+
 namespace Ui { class FilesystemViewer; }
 
 namespace MoonGlare {
@@ -35,13 +38,13 @@ class FileSystemViewer
 	, public QtShared::iEditor {
 	Q_OBJECT;
 public:
- 	FileSystemViewer(QWidget *parent = nullptr);
+ 	FileSystemViewer(QWidget *parent, QtShared::WeakModule module);
  	virtual ~FileSystemViewer();
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
-	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what);
+	virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what);
 protected:
 	void Clear();
 	void RefreshTreeView();
@@ -55,9 +58,12 @@ private:
 	std::unique_ptr<Ui::FilesystemViewer> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;
 	std::unordered_map<StarVFS::FileID, QStandardItem *> m_VFSItemMap;
-	std::unordered_map<std::string, QString> m_ExtIconMap;
 	Module::SharedDataModule m_Module;
 	SharedFileSystem m_FileSystem;
+	QtShared::WeakModule m_EditorModule;
+
+	std::shared_ptr<QtShared::FileIconProvider> m_FileIconProvider;
+	std::weak_ptr<QtShared::EditorProvider> m_EditorProvider;//TODO: workaround
 };
 
 } //namespace DockWindows 

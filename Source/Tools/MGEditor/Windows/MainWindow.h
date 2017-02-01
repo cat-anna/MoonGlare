@@ -7,6 +7,9 @@
 #include <iEditor.h>
 #include <ChangesManager.h>
 
+#include <Module.h>
+#include <MiscIfs.h>
+
 namespace Ui { class MainWindow; }
 
 namespace MoonGlare {
@@ -19,43 +22,45 @@ class FileSystem;
 using SharedFileSystem = std::shared_ptr<FileSystem>;
 
 struct SharedData {
-	std::unordered_map<std::string, std::string> m_FileIconMap;
 	std::unique_ptr<QtShared::ChangesManager> m_ChangesManager;
-
-	struct FileCreatorInfo {
-		QtShared::SharedDockWindowInfo m_DockEditor;
-		QtShared::FileCreationMethodInfo m_Info;
-	};
-	std::vector<std::shared_ptr<FileCreatorInfo>> m_FileCreators;
 
 	SharedData() {
 		m_ChangesManager = std::make_unique<QtShared::ChangesManager>();
 	}
 };
 
-class MainWindow 
+class MainWindow
 	: public QMainWindow
+	, public QtShared::iModule
 	, public QtShared::UserQuestions
-	, public QtShared::iSettingsUser {
+	, public QtShared::iSettingsUser
+	, public QtShared::MainWindowProvider
+	, public QtShared::QtWindowProvider<MainWindow> {
 	Q_OBJECT
 public:
-	MainWindow(QWidget *parent = 0);
+	MainWindow(QtShared::SharedModuleManager modmgr);
 	~MainWindow();
 	static MainWindow* Get();
 
 	SharedFileSystem GetFilesystem() { return m_FileSystem; }
 	SharedData* GetSharedData() { return &m_SharedData; }
-
 protected:
 	void closeEvent(QCloseEvent * event);
 	void showEvent(QShowEvent * event);
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+	
+	QWidget *GetMainWindowWidget() override { return this; }
+	MainWindow *GetWindow() override { return this; }
+	bool PostInit() override;
 private:
 	std::unique_ptr<Ui::MainWindow> m_Ui;
-	std::vector<QtShared::SharedDockWindowInfo> m_DockWindows;
-	std::unordered_map<std::string, QtShared::SharedDockWindowInfo> m_Editors;
+
+	std::shared_ptr<QtShared::EditorProvider> m_EditorProvider;
+
+//	std::vector<QtShared::SharedBaseDockWindowModule> m_DockWindows;
+	std::unordered_map<std::string, QtShared::SharedBaseDockWindowModule> m_Editors;
 	SharedData m_SharedData;
 
 	Module::SharedDataModule m_DataModule;
@@ -63,9 +68,10 @@ private:
 	void NewModule(const std::string& MasterFile);
 	void OpenModule(const std::string& MasterFile);
 	void CloseModule();
+
 public slots:
 	void OpenFileEditor(const std::string& FileURI);
-	void CreateFileEditor(const std::string& URI, std::shared_ptr<SharedData::FileCreatorInfo> info);
+//	void CreateFileEditor(const std::string& URI, std::shared_ptr<SharedData::FileCreatorInfo> info);
 protected slots:
 	void NewModuleAction();
 	void OpenModuleAction();

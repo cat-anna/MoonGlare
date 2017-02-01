@@ -13,35 +13,46 @@
 #include "../Windows/MainWindow.h"
 #include <FileSystem.h>
 
+#include <iFileIconProvider.h>
+
 namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
-struct SceneEditorInfo 
-		: public QtShared::DockWindowInfo
-		, public QtShared::iEditorInfo {
-	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<SceneEditor>(parent);
-	}
+struct SceneEditorModule
+	: public QtShared::BaseDockWindowModule
+	, public QtShared::iFileIconInfo
+	, public QtShared::iEditorInfo  {
 
-	SceneEditorInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
+	SceneEditorModule(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) {
 		SetSettingID("SceneEditor");
 		SetDisplayName(tr("Scene editor"));
 		SetShortcut("F3");
 	}
 
-	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
-		return std::vector<QtShared::EditableFieleInfo>{
-			QtShared::EditableFieleInfo{ "sdx", ICON_16_SCENEDESCR_RESOURCE, },
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
+		return std::make_shared<SceneEditor>(parent);
+	}
+
+	std::vector<FileIconInfo> GetFileIconInfo() const override {
+		return std::vector<FileIconInfo>{
+			FileIconInfo{ "sdx", ICON_16_SCENEDESCR_RESOURCE, },
 		};
 	}
-	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
-		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "sdx", ICON_16_SCENEDESCR_RESOURCE, "Scene...", "sdx", },
+
+	virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
+		return std::vector<FileHandleMethodInfo> {
+			FileHandleMethodInfo{ "sdx", ICON_16_SCENEDESCR_RESOURCE, "Scene...", "sdx", },
+		};
+	}
+
+	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
+		return std::vector<FileHandleMethodInfo> {
+			FileHandleMethodInfo{ "sdx", ICON_16_SCENEDESCR_RESOURCE, "Edit scene...", "sdx", },
 		};
 	}
 };
-QtShared::DockWindowClassRgister::Register<SceneEditorInfo> SceneEditorInfoReg("SceneEditor");
+QtShared::ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
 
 //----------------------------------------------------------------------------------
 
@@ -109,7 +120,7 @@ void SceneEditor::Clear() {
 
 //----------------------------------------------------------------------------------
 
-bool SceneEditor::Create(const std::string & LocationURI, const QtShared::FileCreationMethodInfo & what) {
+bool SceneEditor::Create(const std::string & LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo & what) {
 	if (!TryCloseData())
 		return false;
 

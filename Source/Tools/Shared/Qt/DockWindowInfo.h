@@ -1,19 +1,20 @@
-#ifndef DOCKWINDOWINFO_H
-#define DOCKWINDOWINFO_H
+#ifndef BaseDockWindowModule_H
+#define BaseDockWindowModule_H
 
 #include <DockWindow.h>
+#include "Module.h"
 
 namespace MoonGlare {
 namespace QtShared {
 
-class DockWindowInfo 
+class BaseDockWindowModule 
 		: public QObject
+		, public iModule
 		, public iSettingsUser {
 	Q_OBJECT;
-	//SPACERTTI_DECLARE_STATIC_CLASS(DockWindowInfo, Space::RTTI::RTTIObject);
 public:
-	DockWindowInfo(QWidget *Parent = nullptr);
-	virtual ~DockWindowInfo();
+	BaseDockWindowModule(SharedModuleManager modmgr);
+	virtual ~BaseDockWindowModule();
 
 	const QString& GetIconResName() const{ return m_IconResName; }
 	const QString& GetDisplayName() const { return m_DisplayName; }
@@ -41,7 +42,6 @@ protected:
 protected slots:
 	void WindowClosed(DockWindow* Sender);
 private:
-	QWidget *m_Parent;
 	QString m_IconResName;
 	QString m_DisplayName;
 	QString m_ShortCut;
@@ -49,8 +49,18 @@ private:
 	bool m_DisableMainMenu;
 };
 
-using DockWindowClassRgister = Space::DynamicClassRegister<DockWindowInfo, QWidget*>;
-using SharedDockWindowInfo = std::shared_ptr<DockWindowInfo>;
+template<typename DOCK>
+class DockWindowModule : public BaseDockWindowModule {
+public:
+	DockWindowModule(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) { }
+
+	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) {
+		return std::make_shared<DOCK>(parent, WeakModule(shared_from_this()));
+	}
+};
+
+
+using SharedBaseDockWindowModule = std::shared_ptr<BaseDockWindowModule>;
 
 } //namespace QtShared
 } //namespace MoonGlare

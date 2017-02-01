@@ -22,28 +22,33 @@ namespace Editor {
 namespace DockWindows {
 
 struct FileSystemViewerInfo 
-		: public QtShared::DockWindowInfo
-		, public QtShared::iEditorInfo {
-	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<FileSystemViewer>(parent);
-	}
-	FileSystemViewerInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
+	: public QtShared::DockWindowModule<FileSystemViewer>
+	, public QtShared::iEditorInfo {
+
+	FileSystemViewerInfo(SharedModuleManager modmgr) : DockWindowModule(std::move(modmgr)) {
 		SetSettingID("FileSystemViewerInfo");
 		SetDisplayName(tr("Filesystem"));
 		SetShortcut("F4");
 	}
-	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
-		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Folder", "{DIR}", },
+
+	virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
+		return std::vector<FileHandleMethodInfo> {
+			FileHandleMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Folder", "{DIR}", },
 		};
 	}
 };
-QtShared::DockWindowClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
+QtShared::ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
 
 //-----------------------------------------
 
-FileSystemViewer::FileSystemViewer(QWidget * parent) 
+FileSystemViewer::FileSystemViewer(QWidget * parent, QtShared::WeakModule module)
 	:  QtShared::DockWindow(parent) {
+
+	m_EditorModule = module;
+	auto mm = m_EditorModule.lock()->GetModuleManager();
+	m_FileIconProvider = mm->QuerryModule<QtShared::FileIconProvider>();
+	m_EditorProvider = mm->QuerryModule<QtShared::EditorProvider>();
+
 	SetSettingID("FileSystemViewer");
 	m_Ui = std::make_unique<Ui::FilesystemViewer>();
 	m_Ui->setupUi(this);
@@ -65,29 +70,11 @@ FileSystemViewer::FileSystemViewer(QWidget * parent)
 	m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	m_Ui->treeView->setColumnWidth(0, 200);
-
-	QtShared::FileIconProviderClassRegister::GetRegister()->Enumerate([this](auto &ci) {
-		auto ptr = ci.SharedCreate();
-
-		for (auto &it : ptr->GetFileIconInfo()) {
-			if (it.m_Icon.empty())
-				continue;
-
-			if (m_ExtIconMap.find(it.m_Ext) != m_ExtIconMap.end()) {
-				if (m_ExtIconMap[it.m_Ext] == it.m_Icon.c_str()) {
-					AddLogf(Warning, "Found Another definition for icon for %s", it.m_Ext.c_str());
-					continue;
-				}
-				AddLogf(Error, "Attempt to change icon for %s", it.m_Ext.c_str());
-				continue;
-			}
-			m_ExtIconMap[it.m_Ext] = it.m_Icon.c_str();
-			AddLogf(Info, "Registered file icon %s->%s", it.m_Ext.c_str(), it.m_Icon.c_str());
-		}
-	});
 }
 
 FileSystemViewer::~FileSystemViewer() {
+	m_EditorProvider.reset();
+	m_FileIconProvider.reset();
 	m_Ui.reset();
 }
 
@@ -101,7 +88,7 @@ bool FileSystemViewer::DoLoadSettings(const pugi::xml_node node) {
 	return true;
 }
 
-bool FileSystemViewer::Create(const std::string & LocationURI, const QtShared::FileCreationMethodInfo & what) {
+bool FileSystemViewer::Create(const std::string & LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo & what) {
 	QString qname;
 	if (!QuerryStringInput("Enter name:", qname))
 		return false;
@@ -120,13 +107,28 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 	bool folder = !index.data(FileSystemViewerRole::IsFile).toBool();
 	if (folder) {
 		auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
-		for (auto ptr : MainWindow::Get()->GetSharedData()->m_FileCreators) {
-			if (!ptr->m_DockEditor || !dynamic_cast<QtShared::iEditor*>(ptr->m_DockEditor->GetInstance().get()))
+		for (auto methodmodule : m_EditorProvider.lock()->GetCreateMethods()) {
+			if (!methodmodule.m_EditorFactory)
 				continue;
-			CreateMenu->addAction(QIcon(ptr->m_Info.m_Icon.c_str()), ptr->m_Info.m_Caption.c_str(), [this, ptr, index]() {
+
+			auto &method = methodmodule.m_FileHandleMethod;
+
+			CreateMenu->addAction(QIcon(method.m_Icon.c_str()), method.m_Caption.c_str(), [this, methodmodule, index]() {
 				auto qstr = index.data(FileSystemViewerRole::FileURI).toString();
 				std::string URI = qstr.toLocal8Bit().constData();
-				MainWindow::Get()->CreateFileEditor(URI, ptr);
+
+				QtShared::iEditorFactory::EditorRequestOptions ero;
+				auto editor = methodmodule.m_EditorFactory->GetEditor(methodmodule.m_FileHandleMethod, ero);
+				if (!editor) {
+					AddLogf(Error, "Failure during editor creation!");
+					ErrorMessage("Cannot create editor!");
+					return;
+				}
+
+				if (!editor->Create(URI, methodmodule.m_FileHandleMethod)) {
+					AddLogf(Error, "Failure during creation!");
+					ErrorMessage("Cannot create reqesterd file!");
+				}
 			});
 		}
 
@@ -192,8 +194,6 @@ void FileSystemViewer::RefreshTreeView() {
 	m_ViewModel->clear();
 	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("File"));
 
-	auto shdata = MainWindow::Get()->GetSharedData();
-
 	decltype(m_VFSItemMap) currmap;
 	auto svfs = m_FileSystem->GetVFS();
 
@@ -228,16 +228,7 @@ void FileSystemViewer::RefreshTreeView() {
 			auto ext = strrchr(h.GetName(), '.');
 			if (ext) {
 				++ext;
-				auto itlocal = m_ExtIconMap.find(ext);
-				if (itlocal != m_ExtIconMap.end()) {
-					item->setData(QIcon(itlocal->second), Qt::DecorationRole);
-				} else {
-					auto it = shdata->m_FileIconMap.find(ext);
-					if (it != shdata->m_FileIconMap.end()) {
-						item->setData(QIcon(it->second.c_str()), Qt::DecorationRole);
-					} else
-						item->setData(QIcon(), Qt::DecorationRole);
-				}
+				item->setData(QIcon(m_FileIconProvider->GetExtensionIcon(ext, "").c_str()), Qt::DecorationRole);
 			} else
 				item->setData(QIcon(), Qt::DecorationRole);
 		}

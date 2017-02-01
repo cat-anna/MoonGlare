@@ -13,13 +13,14 @@
 
 #include "SettingsWindow.h"
 
+
 namespace MoonGlare {
 namespace Editor {
 
 static MainWindow *_Instance = nullptr;
 
-MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
+MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
+	: QMainWindow(nullptr), iModule(std::move(modmgr))
 {
 	_Instance = this;
 	SetSettingID("MainWindow");
@@ -37,49 +38,57 @@ MainWindow::MainWindow(QWidget *parent)
 		sw.exec();
 	} );
 
-	m_DockWindows.reserve(256);//because why not
-	QtShared::DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
-		auto ptr = ci.SharedCreate(this);
-		m_DockWindows.push_back(ptr);
+	auto mm = GetModuleManager();
 
-		if (ptr->IsMainMenu()) {
-			m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
-			AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
-		}
+	//for (auto &item : m_ModuleManager->QuerryInterfaces<QtShared::iEditorInfo>()) {
+	//	if (!item.m_Interface->IsMultiInstanceAllowed()) {
+	//		//auto editor = item.second->CreateEditor(this, true);
+	//	}
+	//}
 
-		auto einfo = dynamic_cast<QtShared::iEditorInfo*>(ptr.get());
-		if (einfo) {
-			auto lst = einfo->GetSupportedFileTypes();
-			auto shd = GetSharedData();
-
-			for (auto &it : einfo->GetCreateFileMethods()) {
-				auto item = std::make_shared<SharedData::FileCreatorInfo>();
-				*item = SharedData::FileCreatorInfo{ ptr, it, };
-				AddLogf(Info, "Associated file creator: %s->%s", item->m_Info.m_Ext.c_str(), ci.Alias.c_str());
-				shd->m_FileCreators.emplace_back(std::move(item));
-			}
-
-			for (auto &item : lst) {
-				m_Editors[item.m_Ext] = ptr;
-				shd->m_FileIconMap[item.m_Ext] = item.m_Icon;
-				AddLogf(Info, "Associated editor: %s->%s", item.m_Ext.c_str(), ci.Alias.c_str());
-			}
-		}
-
-		ptr->LoadSettings();
-	});
-	m_DockWindows.shrink_to_fit();
-
-	LoadSettings();
+//	QtShared::DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
+//		auto ptr = ci.SharedCreate(this);
+//		m_DockWindows.emplace_back(ptr);
+//
+//		if (ptr->IsMainMenu()) {
+//			m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
+//			AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
+//		}
+//
+//		auto einfo = dynamic_cast<QtShared::iEditorInfo*>(ptr.get());
+//		if (einfo) {
+//			auto shd = GetSharedData();
+//			for (auto &it : einfo->GetCreateFileMethods()) {
+//				auto item = std::make_shared<SharedData::FileCreatorInfo>();
+//				*item = SharedData::FileCreatorInfo{ ptr, it, };
+//				m_Editors[it.m_Ext] = ptr;
+//				AddLogf(Info, "Associated file creator: %s->%s", item->m_Info.m_Ext.c_str(), ci.Alias.c_str());
+//				shd->m_FileCreators.emplace_back(std::move(item));
+//			}
+//		}
+//
+//		ptr->LoadSettings();
+//	});
 }
 
 MainWindow::~MainWindow() {
-	SaveSettings();
-	for (auto &it : m_DockWindows)
-		it->SaveSettings();
-	m_DockWindows.clear();
 	m_Ui.release();
 }
+
+bool MainWindow::PostInit() {
+	auto mm = GetModuleManager();
+	m_EditorProvider = mm->QuerryModule<QtShared::EditorProvider>();
+
+	for (auto &item : mm->QuerryInterfaces<QtShared::BaseDockWindowModule>()) {
+		if (item.m_Interface->IsMainMenu()) {
+			m_Ui->menuWindows->addAction(item.m_Interface->GetIcon(), item.m_Interface->GetDisplayName(), item.m_Interface.get(), SLOT(Show()), item.m_Interface->GetKeySequence());
+			AddLogf(Info, "Registered DockWindow: %s", item.m_Module->GetModuleName().c_str());
+		}
+	}
+
+	return true;
+}
+
 
 MainWindow* MainWindow::Get() {
 	return _Instance;
@@ -223,30 +232,45 @@ void MainWindow::OpenFileEditor(const std::string& FileURI) {
 	}
 	++ext;
 
-	auto it = m_Editors.find(ext);
-	if (it == m_Editors.end()) {
-		AddLog(Warning, "No associated editor with selected file type!");
-		ErrorMessage("No associated editor with selected file type!");
-		return;
-	}
+	try {
+		auto editorAction = m_EditorProvider->FindOpenEditor(ext);
 
-	auto dock = it->second;
-	auto inst = dock->GetInstance();
-	auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
-	if (!editor) {
-		AddLogf(Error, "Editing in not supported by %s", typeid(*inst).name());
-		ErrorMessage("Editing not supported!");
-		return;
-	}
+		if (editorAction.m_EditorFactory) {
+			QtShared::iEditorFactory::EditorRequestOptions ero;
+			auto editorptr = editorAction.m_EditorFactory->GetEditor(editorAction.m_FileHandleMethod, ero);
+			if (editorptr->OpenData(FileURI, editorAction.m_FileHandleMethod))
+				return;
+			throw false;
+		} else {
+			auto dockinfo = editorAction.m_Module->cast<QtShared::BaseDockWindowModule>();
+			if (!dockinfo)
+				throw false;
 
-	if (editor->OpenData(FileURI)) {
-		inst->show();
-	} else {
+			auto inst = dockinfo->GetInstance(this);
+			auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
+			if (!editor) {
+				AddLogf(Error, "Editing in not supported by %s", typeid(*inst).name());
+				ErrorMessage("Editing not supported!");
+				return;
+			}
+
+			if (editor->OpenData(FileURI)) {
+				inst->show();
+			} else {
+				throw false;
+			}
+		}
+	}
+	catch (bool) {
 		ErrorMessage("Failed to open file!");
 		AddLog(Error, "Failed to open file!");
 	}
+	catch (QtShared::EditorNotFoundException &) {
+		AddLog(Warning, "No associated editor with selected file type!");
+		ErrorMessage("No associated editor with selected file type!");
+	}
 }
-
+	/*
 void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
 	auto inst = info->m_DockEditor->GetInstance();
 	auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
@@ -263,6 +287,7 @@ void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<Share
 		AddLog(Error, "Failed to create file!");
 	}
 }
+*/
 
 } //namespace Editor
 } //namespace MoonGlare

@@ -9,37 +9,68 @@
 #ifndef iEditor_H
 #define iEditor_H
 
+#include "Module.h"
+
 namespace MoonGlare {
 namespace QtShared {
 
-struct EditableFieleInfo {
-	std::string m_Ext;
-	std::string m_Icon;
-};
-
-struct FileCreationMethodInfo {
-	std::string m_Ext;
-	std::string m_Icon;
-	std::string m_Caption;
-	std::string m_MethodID;
-};
+struct EditorNotFoundException { };
 
 struct iEditor;
-using SharediEditor = std::shared_ptr<iEditor>;
+using SharedEditor = std::shared_ptr<iEditor>;
 
 struct iEditorInfo {
-	virtual std::vector<EditableFieleInfo> GetSupportedFileTypes() const { return{}; }
-	virtual std::vector<FileCreationMethodInfo> GetCreateFileMethods() const { return{}; }
-	//virtual SharediEditor CreateEditor() { return nullptr; }
+	struct FileHandleMethodInfo {
+		std::string m_Ext;
+		std::string m_Icon;
+		std::string m_Caption;
+		std::string m_MethodID;
+	};
+
+	virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const { return{}; }
+	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const { return{}; }
+
+	//virtual bool IsMultiInstanceAllowed() const { return false; }
 protected:
 	virtual ~iEditorInfo() {};
 };
 
-//using EditorInfoClassRgister = Space::DynamicClassRegister<iEditorInfo>;
+struct iEditorFactory {
+	struct EditorRequestOptions {
+	};
+
+	virtual SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const {
+		return nullptr;
+	}
+protected:
+	virtual ~iEditorFactory() {};
+};
+
+struct EditorProvider :	iModule {
+	EditorProvider(SharedModuleManager modmgr);
+	bool PostInit() override;
+
+	struct EditorActionInfo {
+		SharedModule m_Module;
+		std::shared_ptr<iEditorFactory> m_EditorFactory;
+		iEditorInfo::FileHandleMethodInfo m_FileHandleMethod;
+	};
+
+	//SharedModule GetExtensionHandler(const std::string &ext) const;
+	const EditorActionInfo FindOpenEditor(std::string ext) throw (EditorNotFoundException);
+	
+	const std::vector<EditorActionInfo>& GetCreateMethods() const { return m_CreateMethods; }
+public:
+	std::vector<EditorActionInfo> m_CreateMethods;
+	//std::unordered_map<std::string, SharedModule> m_ExtensionHandlers;
+};
 
 struct iEditor {
-	virtual bool Create(const std::string &LocationURI,const FileCreationMethodInfo& what) { return false; }
+	virtual bool Create(const std::string &LocationURI,const iEditorInfo::FileHandleMethodInfo& method) { return false; }
+
 	virtual bool OpenData(const std::string &URI) { return false; }
+	virtual bool OpenData(const std::string &URI, const iEditorInfo::FileHandleMethodInfo& method) { return OpenData(URI); }
+
 	virtual bool SaveData() { return false; }
 	virtual bool TryCloseData() { return false; }
 protected:

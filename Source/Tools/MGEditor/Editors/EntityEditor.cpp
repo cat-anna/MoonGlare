@@ -17,34 +17,46 @@
 #include <TypeEditor/Structure.h>
 #include <TypeEditor/CustomType.h>
 
+#include <iFileIconProvider.h>
+
 namespace MoonGlare {
 namespace Editor {
 namespace EntityEditor {
 
-struct EntityEditorInfo 
-		: public QtShared::DockWindowInfo
-		, public QtShared::iEditorInfo {
-	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<EntityEditorWindow>(parent);
-	}
+struct EntityEditorModule
+	: public QtShared::BaseDockWindowModule
+	, public QtShared::iFileIconInfo 
+	, public QtShared::iEditorInfo {
 
-	EntityEditorInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
+	EntityEditorModule(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) {
 		SetSettingID("EntityEditorInfo");
 		SetDisplayName(tr("EntityEditor"));
 		SetShortcut("F2");
 	}
-	std::vector<QtShared::EditableFieleInfo> GetSupportedFileTypes() const override {
-		return std::vector<QtShared::EditableFieleInfo>{
-			QtShared::EditableFieleInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, },
+
+	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
+		return std::make_shared<EntityEditorWindow>(parent);
+	}
+
+	std::vector<FileIconInfo> GetFileIconInfo() const override {
+		return std::vector<FileIconInfo>{
+			FileIconInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, },
+		};
+	}		
+
+	virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
+		return std::vector<FileHandleMethodInfo> {
+			FileHandleMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Entity pattern...", "create", },
 		};
 	}
-	virtual std::vector<QtShared::FileCreationMethodInfo> GetCreateFileMethods() const override {
-		return std::vector<QtShared::FileCreationMethodInfo> {
-			QtShared::FileCreationMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Entity pattern...", "epx", },
+
+	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
+		return std::vector<FileHandleMethodInfo> {
+			FileHandleMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Edit entity pattern", "open", },
 		};
 	}
 };
-QtShared::DockWindowClassRgister::Register<EntityEditorInfo> EntityEditorInfoReg("EntityEditor");
+QtShared::ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("EntityEditor");
 
 //----------------------------------------------------------------------------------
 
@@ -95,7 +107,7 @@ void EntityEditorWindow::Clear() {
 
 //----------------------------------------------------------------------------------
 
-bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) {
+bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) {
 	QString qname;
 	if (!QuerryStringInput("Enter name:", qname))
 		return false;

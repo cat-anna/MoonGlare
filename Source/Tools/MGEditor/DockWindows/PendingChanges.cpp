@@ -12,22 +12,26 @@
 #include <icons.h>
 #include "../Windows/MainWindow.h"
 
+#include <Module.h>
+
 namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
-struct PendingChangesInfo : public QtShared::DockWindowInfo {
+struct PendingChangesInfo 
+	: public QtShared::BaseDockWindowModule {
+
 	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
 		return std::make_shared<PendingChanges>(parent);
 	}
 
-	PendingChangesInfo(QWidget *Parent): QtShared::DockWindowInfo(Parent) {
+	PendingChangesInfo(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) {
 		SetSettingID("PendingChanges");
 		SetDisplayName(tr("Pending changes"));
 		SetShortcut("F12");
 	}
 };
-QtShared::DockWindowClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
+QtShared::ModuleClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
 
 //----------------------------------------------------------------------------------
 

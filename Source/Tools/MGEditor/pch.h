@@ -3,6 +3,7 @@
 #include <Config/pch_common.h>
 
 #pragma warning (disable: 4251)
+#pragma warning( disable : 4290 )  
 
 #pragma warning (push, 0)
 
@@ -49,6 +50,11 @@
 #include <bullet3-master/src/btBulletCollisionCommon.h>
 //#include <bullet-2.82/src/btBulletDynamicsCommon.h>
 //#include <bullet-2.82/src/btBulletCollisionCommon.h>
+
+inline std::string ToLower(std::string str) {
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+	return std::move(str);
+}
 
 #pragma warning ( pop )
 

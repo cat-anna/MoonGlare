@@ -71,7 +71,7 @@ public:
 
 	class BaseEntity : public QtShared::DataModels::EditableEntity {};
 public slots:
-	virtual bool Create(const std::string &LocationURI, const QtShared::FileCreationMethodInfo& what) override;
+	virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) override;
 	virtual bool OpenData(const std::string &file) override;
 	virtual bool SaveData() override;
 	virtual bool TryCloseData() override;

@@ -11,5 +11,30 @@
 namespace MoonGlare {
 namespace QtShared {
 
+ModuleClassRgister::Register<EditorProvider> EditorProviderReg("EditorProvider");
+
+EditorProvider::EditorProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
+
+bool EditorProvider::PostInit() {
+	for (auto &item : GetModuleManager()->QuerryInterfaces<iEditorInfo>()) {
+		auto methodlist = item.m_Interface->GetCreateFileMethods();
+		m_CreateMethods.reserve(methodlist.size());
+		for (auto method : methodlist) {
+			m_CreateMethods.emplace_back(EditorActionInfo{ item.m_Module, item.m_Module->cast<iEditorFactory>(), method });
+		}
+	}
+	return true;
+}
+
+const EditorProvider::EditorActionInfo EditorProvider::FindOpenEditor(std::string ext) {
+	ext = ToLower(ext);
+	for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
+		for (auto &method : item.m_Interface->GetOpenFileMethods())
+			if (ToLower(method.m_Ext) == ext) {
+				return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
+			}
+	throw EditorNotFoundException();
+}
+
 } //namespace QtShared
 } //namespace MoonGlare

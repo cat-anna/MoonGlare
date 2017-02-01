@@ -64,7 +64,7 @@ struct UserQuestions {
 protected:
 	virtual ~UserQuestions() {}
 	virtual QWidget* GetParentWidget() { return dynamic_cast<QWidget*>(this); }
-	virtual QString GetTitle() const { return  "MoonGlare"; }
+	virtual QString GetTitle() const { return "MoonGlare"; }
 };
 
 } //namespace QtShared 

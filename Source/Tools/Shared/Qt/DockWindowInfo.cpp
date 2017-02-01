@@ -3,24 +3,30 @@
 #include "DockWindow.h"
 #include "DockWindowInfo.h"
 
+#include "Module.h"
+#include "MiscIfs.h"
+
 namespace MoonGlare {
 namespace QtShared {
 
-//SPACERTTI_IMPLEMENT_STATIC_CLASS(DockWindowInfo);
-
-DockWindowInfo::DockWindowInfo(QWidget *Parent) {
+BaseDockWindowModule::BaseDockWindowModule(SharedModuleManager modmgr): iModule(std::move(modmgr)) {
 	m_DisplayName = "{?}";
-	m_Parent = Parent;
 	m_DisableMainMenu = true;
 }
 
-DockWindowInfo::~DockWindowInfo() {
+BaseDockWindowModule::~BaseDockWindowModule() {
 	ReleaseInstance();
 }
 
-std::shared_ptr<DockWindow> DockWindowInfo::GetInstance(QWidget *parent) {
-	if (!parent)
-		parent = m_Parent;
+std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
+	if (!parent) {
+		//TODO: this is workaround
+		auto module = dynamic_cast<iModule*>(this);
+		if (module) {
+			auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
+			parent = provider->GetMainWindowWidget();
+		}
+	}
 	if (!m_Instance) {
 		m_Instance = CreateInstance(parent);
 		connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow*)), SLOT(WindowClosed(DockWindow*)));
@@ -29,28 +35,28 @@ std::shared_ptr<DockWindow> DockWindowInfo::GetInstance(QWidget *parent) {
 	return m_Instance;
 }
 
-void DockWindowInfo::ReleaseInstance() {
+void BaseDockWindowModule::ReleaseInstance() {
 	if (!m_Instance)
 		return;
 	m_Instance->SaveSettings();
 	m_Instance.reset();
 }
 
-void DockWindowInfo::WindowClosed(DockWindow* Sender) {
+void BaseDockWindowModule::WindowClosed(DockWindow* Sender) {
 	ReleaseInstance();
 }
 
-void DockWindowInfo::Show() {
-	GetInstance(m_Parent)->show();
+void BaseDockWindowModule::Show() {
+	GetInstance(nullptr)->show();
 }
 
-bool DockWindowInfo::DoSaveSettings(pugi::xml_node node) const {
-	XML::UniqeChild(node, "DockWindowInfo:Visible").text() = static_cast<bool>(m_Instance);
+bool BaseDockWindowModule::DoSaveSettings(pugi::xml_node node) const {
+	XML::UniqeChild(node, "BaseDockWindowModule:Visible").text() = static_cast<bool>(m_Instance);
 	return true;
 }
 
-bool DockWindowInfo::DoLoadSettings(const pugi::xml_node node) {
-	if (node.child("DockWindowInfo:Visible").text().as_bool())
+bool BaseDockWindowModule::DoLoadSettings(const pugi::xml_node node) {
+	if (node.child("BaseDockWindowModule:Visible").text().as_bool())
 		Show();
 	return false;
 }

@@ -9,6 +9,7 @@
 #include <icons.h>
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
+#include <Module.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
 #include <libs/LuaWrap/src/LuaException.h>
@@ -21,19 +22,28 @@ namespace MoonGlare {
 namespace Editor {
 namespace Processor {
 
+struct ScriptFileProcessorModule
+	: public QtShared::iModule
+	, public QtShared::iFileIconInfo {
+
+	ScriptFileProcessorModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
+
+	virtual std::vector<FileIconInfo> GetFileIconInfo() {
+		return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, };
+	}
+};
+QtShared::ModuleClassRgister::Register<ScriptFileProcessorModule> ScriptFileProcessorReg("ScriptFileProcessor");
+
 struct ScriptFileProcessorInfo
 	: public QtShared::iFileProcessorInfo
-	, public QtShared::iFileIconProvider 
 {
 	virtual QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
 		return std::make_shared<ScriptFileProcessor>(std::move(URI));
 	}
 
 	virtual std::vector<std::string> GetSupportedTypes() { return{ "lua", }; }
-	virtual std::vector<FileIconInfo> GetFileIconInfo() { return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, }; }
 };
 static QtShared::FileProcessorInfoClassRegister::Register<ScriptFileProcessorInfo> Reg0("ScriptFileProcessor");
-static QtShared::FileIconProviderClassRegister::Register<ScriptFileProcessorInfo> Reg1("ScriptFileProcessor");
 
 //----------------------------------------------------------------------------------
 

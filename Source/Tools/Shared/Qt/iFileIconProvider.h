@@ -6,25 +6,36 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef iFileIconProvider_H
-#define iFileIconProvider_H
+#ifndef iFileIconInfo_H
+#define iFileIconInfo_H
+
+#include "Module.h"
 
 namespace MoonGlare {
 namespace QtShared {
 
-class iFileIconProvider {
+class iFileIconInfo {
 public:
-	virtual ~iFileIconProvider() { }
+	virtual ~iFileIconInfo() { }
 
 	struct FileIconInfo {
 		std::string m_Ext;
 		std::string m_Icon;
 	};
 
-	virtual std::vector<FileIconInfo> GetFileIconInfo() { return{}; }
+	virtual std::vector<FileIconInfo> GetFileIconInfo() const { return{}; }
 };
 
-using FileIconProviderClassRegister = Space::DynamicClassRegister<iFileIconProvider>;
+class FileIconProvider : public iModule {
+public:
+	FileIconProvider(SharedModuleManager modmgr);
+	bool PostInit() override;
+
+	const std::string& GetExtensionIcon(const std::string &ext) const;
+	const std::string& GetExtensionIcon(const std::string &ext, const std::string& default) const;
+private:
+	std::unordered_map<std::string, std::string> m_FileIconMap;
+};
 
 } //namespace QtShared 
 } //namespace MoonGlare 

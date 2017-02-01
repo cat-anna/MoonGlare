@@ -34,5 +34,6 @@
     <file>icons/blue_up_arrow.png</file>
     <file>icons/blue_down_save.png</file>
     <file>icons/yellow_folder.png</file>
+	<file>icons/3d.png</file>
   </qresource>
 </RCC>

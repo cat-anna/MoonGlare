@@ -9,39 +9,12 @@
 #ifndef ScriptBase_H
 #define ScriptBase_H
 
-#include <DockWindow.h>
-#include "../Notifications.h"
 #include "../FileSystem.h"
-#include <ChangesManager.h>
 #include <iEditor.h>
-
-namespace Ui { class ScriptBase; }
 
 namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
-
-class ScriptBase
-	: public QtShared::DockWindow
-	, public QtShared::iEditor {
-	Q_OBJECT;
-public:
-	ScriptBase(QWidget *parent = nullptr);
- 	virtual ~ScriptBase();
-
-	virtual bool DoSaveSettings(pugi::xml_node node) const override;
-	virtual bool DoLoadSettings(const pugi::xml_node node) override;
-
-// iEditor
-	virtual bool Create(const std::string &LocationURI, const  QtShared::FileCreationMethodInfo& what) override;
-	//virtual bool OpenData(const std::string &URI) { return false; }
-	//virtual bool SaveData() { return false; }
-	//virtual bool TryCloseData() { return false; }
-protected:
-protected slots:
-
-private: 
-};
 
 } //namespace DockWindows 
 } //namespace Editor 

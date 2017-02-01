@@ -1,6 +1,7 @@
 #include PCH_HEADER
 #include "EditorSettings.h"
 #include "Windows/MainWindow.h"
+#include <Module.h>
 
 using OrbitLogger::LogCollector;
 using OrbitLogger::StdFileLoggerSink;
@@ -40,13 +41,20 @@ int main(int argc, char *argv[]) {
 	LogCollector::Start();
 	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/MGEditor.log"); });
 
+	using MoonGlare::Editor::MainWindow;
+
 	int r;
 	QApplication a(argc, argv);
 	qInstallMessageHandler(&QtLogSink);
+	MoonGlare::QtShared::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
+
 	{
-		MoonGlare::Editor::MainWindow w;
-		w.show();
+		auto modmgr = MoonGlare::QtShared::ModuleManager::CreateModuleManager();
+		modmgr->Initialize();
+		modmgr->QuerryModule<MainWindow>()->show();
 		r = a.exec();
+		modmgr->Finalize();
+		modmgr.reset();
 	}
 
 	MoonGlare::Editor::EditorSettings::getInstance().Save();
