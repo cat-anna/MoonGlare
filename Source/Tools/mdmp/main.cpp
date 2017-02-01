@@ -257,6 +257,27 @@ void DumpAnimations(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	if (!scene->HasAnimations())
 		return;
 	out << "ANIMATIONS[" << scene->mNumAnimations << "]:\n";
+	for (int i = 0; i < scene->mNumAnimations; ++i) {
+		auto anim = scene->mAnimations[i];
+
+		out << i << "\n";
+		out << "\tName: " << anim->mName.data << "\n";
+		out << "\tTicks: " << anim->mDuration << "\n";
+		out << "\tTicksPerSec: " << anim->mTicksPerSecond << "\n";
+		out << "\tChannels: " << anim->mNumChannels << "\n";
+		out << "\tMeshChannels: " << anim->mNumMeshChannels << "\n";
+
+		for (int j = 0; j < anim->mNumChannels; ++j) {
+			auto ch = anim->mChannels[j];
+			out << "\t > CHANNEL " << j << "\n";
+			out << "\t\tName: " << ch->mNodeName.data << "\n";
+			out << "\t\tNumPositionKeys: " << ch->mNumPositionKeys << "\n";
+			out << "\t\tNumRotationKeys: " << ch->mNumRotationKeys << "\n";
+			out << "\t\tNumScalingKeys: " << ch->mNumScalingKeys << "\n";
+			out << "\t\tPreState: " << (int) ch->mPreState << "\n";
+			out << "\t\tPostState: " << (int)ch->mPostState << "\n";
+		}
+	}
 }
 
 void DumpCameras(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
