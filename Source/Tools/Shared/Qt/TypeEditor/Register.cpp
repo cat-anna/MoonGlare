@@ -21,6 +21,8 @@
 #include <TextComponent.x2c.h>
 #include <Scene.x2c.h>
 
+#include <DirectAnimationComponent.x2c.h>
+
 #include "CustomType.h"
 #include "Structure.h"
 #include "ComponentInfo.h"
@@ -61,6 +63,7 @@ enum class ComponentOrder {
 	CameraComponent,
 	LightComponent,
 	MeshComponent,
+	DirectAnimation,
 
 	RectTransform,
 	ImageComponent,
@@ -128,7 +131,19 @@ struct MeshComponentDesc {
 	static constexpr ComponentOrder Order = ComponentOrder::MeshComponent;
 //	RegComponent<, EmptySettings >
 //("Mesh", "Mesh", ComponentID::Mesh, {});
+};		
+struct DirectAnimationComponentDesc {
+	using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
+	using Settings_t = EmptySettings;
+	static constexpr char *DisplayName = "DirectAnimation";
+	static constexpr char *Name = "DirectAnimation";
+	static constexpr ComponentID CID = ComponentID::DirectAnimation;
+	static constexpr ComponentID Depend = ComponentID::Transform;
+	static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
+	//	RegComponent<, EmptySettings >
+	//("Mesh", "Mesh", ComponentID::Mesh, {});
 };
+
 struct ScriptComponentDesc {
 	using Entry_t = ScriptComponent::ScriptEntry_t;
 	using Settings_t = EmptySettings;
@@ -211,7 +226,8 @@ struct Register {
 		RegComponent<LightComponentDesc>();
 		RegComponent<CameraComponentDesc>();
 		RegComponent<MeshComponentDesc>();
-
+		RegComponent<DirectAnimationComponentDesc>();
+		
 		RegComponent<BodyComponentDesc>();
 		RegComponent<BodyShapeComponentDesc>();
 

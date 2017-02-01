@@ -19,7 +19,7 @@ interface VSOutput {
 //-----------------------------------------------------------------------------------
 
 shader Geometry_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) {
-	gl_Position = WorldMatrix * vec4(Pos, 1.0);
+	gl_Position = (CameraMatrix * ModelMatrix) * vec4(Pos, 1.0);
     VSout.VertexUV0 = TexCoord;
 	VSout.VertexNormal = (ModelMatrix * vec4(Normal, 0.0)).xyz;
 	VSout.VertexWorldPos = (ModelMatrix * vec4(Pos, 1.0)).xyz;
@@ -47,7 +47,7 @@ vec2 CalcTexCoord(vec4 Pos) {
     return vec2(Pos) / ScreenSize;
 }
 
-//--------------------- 
+//---------------------
 
 uniform sampler2D PositionMap;
 uniform sampler2D ColorMap;

@@ -141,6 +141,10 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
 			dev.SetModelMatrix(it.first);
 			it.second->DoRender(dev);
 		}
+
+		using Renderer::RendererConf::CommandQueueID;
+		ri->m_CommandQueues[CommandQueueID::DefferedShadow].Execute();
+
 	}           
 	return true;     
 }
@@ -159,6 +163,9 @@ bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 		dev.SetModelMatrix(it.first);
 		it.second->DoRender(dev);
 	}
+
+	using Renderer::RendererConf::CommandQueueID;
+	ri->m_CommandQueues[CommandQueueID::DefferedGeometry].Execute();
 
 	return true;
 }

@@ -1,0 +1,46 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component.DirectAnimationComponent"
+
+Structure.new {
+	name = "DirectAnimationEntry",
+	description = "",
+	fields = {
+		{
+			name = "Visible",
+			description = "",
+			type = Types.bool,
+			default = true,
+		},
+		{
+			name = "AnimationFile",
+			description = "",
+			type = Types.string,
+			default = "",
+		},
+        {
+            name = "FirstFrame",
+            description = "",
+            type = u32,
+            default = 0,
+        },
+        {
+            name = "EndFrame",
+            description = "",
+            type = u32,
+            default = 30,
+        },
+        {
+            name = "FramesPerSecond",
+            description = "",
+            type = u32,
+            default = 30,
+        },
+        {
+            name = "Loop",
+            description = "",
+            type = bool,
+            default = false,
+        },
+	},
+}

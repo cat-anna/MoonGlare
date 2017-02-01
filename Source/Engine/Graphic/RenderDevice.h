@@ -55,7 +55,7 @@ public:
 		//CurrentShader()->SetGamma(m_gamma);
 		Shader->SetModelMatrix(m_ModelMatrix);
 		Shader->SetWorldMatrix(m_WorldMatrix);
-		Shader->SetWorldMatrix(m_WorldMatrix);
+		Shader->SetCameraMatrix(m_CameraMatrix);
 		if (m_CurrentCamera)
 			Shader->SetCameraPos(m_CurrentCamera->m_Position);
 	}
@@ -72,7 +72,13 @@ public:
 		sh->SetWorldMatrix(m_WorldMatrix);
 	}
 
-	void SetCameraMatrix(const math::mat4 &m) { m_CameraMatrix = m; }
+	void SetCameraMatrix(const math::mat4 &m) { 
+		m_CameraMatrix = m; 
+		auto sh = CurrentShader();
+		if (!sh)
+			return;
+		sh->SetCameraMatrix(m);
+	}
 	void ResetCameraMatrix() { if(m_CurrentCamera) SetCameraMatrix(m_CurrentCamera->GetProjectionMatrix()); }
 
 	const Environment *CurrentEnvironment() const { return m_CurrentEnvironment; }

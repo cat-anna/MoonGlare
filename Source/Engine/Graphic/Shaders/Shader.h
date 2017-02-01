@@ -20,6 +20,7 @@ public:
 	enum class ShaderParameters : unsigned {
 		WorldMatrix,
 		ModelMatrix,
+		CameraMatrix,
 		CameraPos,
 
 		Material_BackColor,
@@ -41,6 +42,8 @@ public:
 
 	void SetWorldMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::WorldMatrix), 1, GL_FALSE, &mat[0][0]); }
 	void SetModelMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::ModelMatrix), 1, GL_FALSE, &mat[0][0]); }
+	void SetCameraMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::CameraMatrix), 1, GL_FALSE, &mat[0][0]); }
+
 	void SetCameraPos(const glm::vec3 & pos) { glUniform3fv(Location(ShaderParameters::CameraPos), 1, &pos[0]); }
 
 	void SetBackColor(const math::vec3 &color) { glUniform3fv(Location(ShaderParameters::Material_BackColor), 1, &color[0]); }

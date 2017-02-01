@@ -19,7 +19,7 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 
 	vec2 ShadowPixelSize = vec2(1.0 / ShadowMapSize[0], 1.0 / ShadowMapSize[1]);
 
-	const int delta = 2;
+	const int delta = 1;
 	for(int i = -delta; i <= delta; ++i) {
 		for(int j = -delta; j <= delta; ++j) {
 				vec2 sampledelta = vec2(ShadowPixelSize[0] * i, ShadowPixelSize[1] * j);

@@ -6,19 +6,19 @@ uniform vec3 LightPosition;
 //---------------
 
 interface VSOutput {
-    vec2 VertexUV0; 
-    vec3 VertexNormal; 
+    vec2 VertexUV0;
+    vec3 VertexNormal;
 	vec3 VertexWorldPos;
 };
 
 //---------------
 
-shader Shadow_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) { 
-	gl_Position = WorldMatrix * vec4(Pos, 1.0);
+shader Shadow_vs(in vec3 Pos : 0, in vec2 TexCoord : 1, in vec3 Normal : 2, out VSOutput VSout) {
+	gl_Position = (CameraMatrix * ModelMatrix) * vec4(Pos, 1.0);
     VSout.VertexUV0 = TexCoord;
 //	VSout.VertexNormal = (ModelMatrix * vec4(Normal, 0.0)).xyz;
 //	VSout.VertexWorldPos = (ModelMatrix * vec4(Pos, 1.0)).xyz;
-}; 
+};
 
 shader Shadow_fs(in VSOutput FSin) {
 	//vec4 color = texture2D(Texture0, FSin.VertexUV0);
@@ -33,7 +33,7 @@ shader Shadow_fs(in VSOutput FSin) {
 	//NormalOut	=  vec3(distance(LightPosition, WorldPosOut) / 20.0);
 };
 
-//--------------- 
+//---------------
 
 program default {
 	vs(420) = Shadow_vs();

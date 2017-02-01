@@ -16,9 +16,10 @@ Shader::ShaderParamNames::ShaderParamNames() {
 #define _addx(N, W) at((unsigned)ShaderParameters::N) = W
 	_add(WorldMatrix);
 	_add(ModelMatrix);
+	_add(CameraMatrix);
 
 	_add(CameraPos);
-	 
+	
 	_addx(Material_BackColor, "Material.BackColor");
 	_addx(Material_AlphaThreshold, "Material.AlphaThreshold");
 
