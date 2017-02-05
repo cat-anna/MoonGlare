@@ -45,7 +45,9 @@ bool ComponentManager::Initialize(ciScene *scene) {
 
 	INITCHECK(m_EventDispatcher.Initialize(GetWorld()));
 					  
+#ifdef PERF_PERIODIC_PRINT
 	Space::MemZero(m_ComponentInfo);
+#endif
 	
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Initialize()) {
@@ -71,8 +73,10 @@ bool ComponentManager::Finalize() {
 //---------------------------------------------------------------------------------------
 
 bool ComponentManager::LoadComponents(pugi::xml_node node) {
+#ifdef PERF_PERIODIC_PRINT
 	Space::MemZero(m_ComponentInfo);
-	m_UsedCount = 0;	
+#endif
+	m_UsedCount = 0;
 	if (!node) {
 		AddLog(Warning, "Attempt to load components from invalid node!");
 		return true;

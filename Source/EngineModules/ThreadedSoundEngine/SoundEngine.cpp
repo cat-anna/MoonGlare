@@ -99,7 +99,6 @@ SoundEngine::~SoundEngine() {
 
 //----------------------------------------------------------------------------------
 
-#ifdef DEBUG_DUMP
 void SoundEngine::DumpContent(std::ostream &out) {
 	{
 		LOCK_MUTEX(m_MusicMutex);
@@ -126,7 +125,6 @@ void SoundEngine::DumpContent(std::ostream &out) {
 		out << "\n";
 	}
 }
-#endif
 
 //----------------------------------------------------------------------------------
 

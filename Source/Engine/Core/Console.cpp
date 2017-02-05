@@ -246,9 +246,8 @@ void Console::ProcessInput(unsigned key) {
 		if (text.empty())
 			return;
 		AddLine(text);
-		THROW_ASSERT(false, "Console::ProcessInput does not use new lua api!");
-	//	::Core::Scripts::ScriptProxy::ExecuteCode(Utils::Strings::tostring(text));
-
+		//THROW_ASSERT(false, "Console::ProcessInput does not use new lua api!");
+		GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
 		return;
 	}
 	default:

@@ -383,6 +383,7 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 	auto *list = buffer.Alloc<PayLoad_ListBase>();
 	u16 count = 0;
 
+#ifdef DEBUG_MEMORY
 	{
 		auto dbgmem = Config::Current::DebugMemoryInterface::GetFirstDebugMemoryInterface();
 		auto it = dbgmem.second;
@@ -408,6 +409,7 @@ bool Insider::EnumerateMemory(InsiderMessageBuffer& buffer) {
 			it = it->GetNext();
 		}
 	}
+#endif
 
 	list->Count = count;
 	hdr->MessageType = MessageTypes::MemoryStatusList;

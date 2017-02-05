@@ -74,3 +74,7 @@ using LockGuard = std::lock_guard < std::mutex >;
 #else
 #define ERROR_STR				"{?}"
 #endif
+
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif

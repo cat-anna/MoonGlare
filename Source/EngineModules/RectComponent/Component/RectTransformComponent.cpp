@@ -48,7 +48,9 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
 	root
 	.beginNamespace("Flags")
 		.beginNamespace("RectTransformComponent")
+#ifdef DEBUG
 			.addVariable("DebugDraw", &gRectTransformDebugDraw)
+#endif
 		.endNamespace()
 	.endNamespace();
 	;
@@ -141,9 +143,11 @@ bool RectTransformComponent::Finalize() {
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
+#ifdef DEBUG
 	if (gRectTransformDebugDraw) {
 		conf.CustomDraw.push_back(this);
 	}
+#endif
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;

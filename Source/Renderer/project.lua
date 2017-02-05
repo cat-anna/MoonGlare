@@ -1,5 +1,5 @@
 
-group ""
+group "EngineLibs"
 
 	project "Renderer"
 		kind "StaticLib"
@@ -21,33 +21,9 @@ group ""
 			".",
 			"%{cfg.objdir}",
 		}
-		--links {
-		--	"libSpace",
-		--	"OrbitLogger",
-		--	"StarVFS",
-		--	"lua51jit",
-		--	"freeimage",
-		--	"glfx",
-		--}
-
---		MoonGlare.X2CRule()
-		--local fs = os.matchfiles("../Shared/x2c/**")
-		--MoonGlare.X2C.Files(fs)
-		--files {
-		--	dir.bin .. "Engine/X2C.Process.lua",
-		--}
-		--local f = dir.bin .. "/Engine/X2C.Process.lua"
-		--os.execute("echo  > " .. f)
-
-		--for i,v in ipairs(fs) do
-		--	local p = path.getabsolute(v)
-		--	print(p)
-		--	os.execute("echo " .. p .. " >> " .. f)
-		--end
 
 		filter "configurations:Debug"
 			defines{
-
             }
 		filter "configurations:Release"
 			defines {
