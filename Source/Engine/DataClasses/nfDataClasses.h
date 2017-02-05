@@ -8,25 +8,6 @@
 #ifndef NFDATACLASSES_H_
 #define NFDATACLASSES_H_
 
-enum class DataPath {
-	Root,   
-
-	Models,
-	Fonts,
-	Shaders,
-	Scripts,
-	Sounds,
-	Music,
-	Texture,
-	XML,
-	Tables,
-	Objects,
-
-	URI,
-
-	MaxValue,
-};
-
 #define xmlAttr_Shared				"Shared"
 #define xmlAttr_Class				"Class"
 #define xmlAttr_Name				"Name"
