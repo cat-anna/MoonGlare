@@ -13,7 +13,11 @@
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/Engine.h>
 
+#include <Assets/AssetManager.h>
+
 #include <iApplication.h>
+
+#include <AssetConfiguration.x2c.h>
 
 namespace MoonGlare {
 namespace Application {
@@ -57,6 +61,12 @@ bool iApplication::Initialize() {
 
 	_init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
+	m_AssetManager = std::make_unique<Asset::AssetManager>();
+	if (!m_AssetManager->Initialize(x2c::Settings::AssetConfiguration_t())) {
+		AddLogf(Error, "Unable to initialize asset manager!");
+		return false;
+	}
+
 	auto ModManager = new ModulesManager();
 	::Settings->Load();
 	if (!ModManager->Initialize()) {
@@ -72,7 +82,7 @@ bool iApplication::Initialize() {
 	}
 
 	Graphic::Window::InitializeWindowSystem();
-	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true));
+	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
 
 	new MoonGlare::Core::Engine();
 
@@ -139,6 +149,10 @@ bool iApplication::Finalize() {
 	Graphic::Window::FinalzeWindowSystem();
 
 	_del_chk(ScriptEngine, "Finalization of script engine failed!");
+	if(!m_AssetManager->Finalize()) {
+		 AddLogf(Error, "AssetManager finalization failed"); 
+	}
+	m_AssetManager.reset();
 	_del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
 
 	AddLog(Debug, "Application finalized");

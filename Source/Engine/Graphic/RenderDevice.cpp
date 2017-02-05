@@ -18,8 +18,9 @@ RegisterApiDynamicInstance(Window, &WindowInstance, "Window");
 
 //float cRenderDevice::m_gamma = 0;
   
-cRenderDevice::cRenderDevice(WindowPtr Context) :
+cRenderDevice::cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager) :
 		cRootClass(),
+		m_AssetManager(AssetManager),
 		m_InitThreadId(),
 		m_Context(),
 		m_CurrentShader(),
@@ -36,7 +37,7 @@ cRenderDevice::cRenderDevice(WindowPtr Context) :
 	m_InitThreadId = std::this_thread::get_id();
 	ReadOpenGLInfo();
 
-	new ShaderManager();
+	new ShaderManager(m_AssetManager);
 }  
  
 cRenderDevice::~cRenderDevice() {

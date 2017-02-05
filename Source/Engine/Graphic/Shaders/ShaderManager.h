@@ -15,7 +15,7 @@ class ShaderCodeVector;
 class ShaderManager : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(ShaderManager, cRootClass);
 public:
-	ShaderManager();
+	ShaderManager(Asset::AssetManager *AssetManager);
 	virtual ~ShaderManager();
 
 	bool Initialize();
@@ -86,6 +86,7 @@ private:
 	};
 	
 	unsigned m_Flags;
+	Asset::Shader::Loader *m_ShaderLoader;
 	std::unordered_map<string, ShaderDefinition> m_Shaders;
 
 	Shader* LoadShader(ShaderDefinition &sd, const string &Name, ShaderCreateFunc CreateFunc, const string& Class);

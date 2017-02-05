@@ -6,7 +6,10 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
-#include "ShaderCode.h"
+#include "ShaderCode.h"			
+
+#include <Assets/AssetManager.h>
+#include <Assets/Shader/Loader.h>
 
 namespace Graphic {
 namespace Shaders {
@@ -15,10 +18,14 @@ using ShaderCreateFunc = ShaderManager::ShaderCreateFunc;
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ShaderManager);
 
-ShaderManager::ShaderManager(): 
+ShaderManager::ShaderManager(Asset::AssetManager *AssetManager):
 		cRootClass(), 
 		m_Flags(0) {
+	MoonGlareAssert(AssetManager);
+
 	SetThisAsInstance();
+
+	m_ShaderLoader = AssetManager->GetShaderLoader();
 }
 
 ShaderManager::~ShaderManager() {

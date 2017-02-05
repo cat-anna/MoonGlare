@@ -16,7 +16,7 @@ namespace Graphic {
 class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice(WindowPtr Context);
+	cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager);
 	virtual ~cRenderDevice();
 
 	std::unique_ptr<RenderInput> CreateRenderInput();
@@ -102,6 +102,7 @@ protected:
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;
 
+	Asset::AssetManager *m_AssetManager;
 	WindowPtr m_Context;
 	Shader *m_CurrentShader;
 	VirtualCamera *m_CurrentCamera;
