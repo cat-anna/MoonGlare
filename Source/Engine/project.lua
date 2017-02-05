@@ -34,6 +34,7 @@ group ""
 			"StarVFS",
 
             "Renderer",
+            "Assets",
 
 			"glfx",
 		}

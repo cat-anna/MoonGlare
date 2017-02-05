@@ -6,6 +6,8 @@ namespace MoonGlare::Debug::Insider {
 
 using namespace MoonGlare;
 
+#include <Assets/nfAssets.h>
+
 #include "Configuration.h"
 #include "WorldUser.h"
 
