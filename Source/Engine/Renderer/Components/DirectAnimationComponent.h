@@ -351,6 +351,13 @@ public:
 		case "Visible"_Hash32:
 			luarets = StackFunc::funcProp<bool>(lua, e, &MeshEntry::IsVisible, &MeshEntry::SetVisible, validx);
 			break;
+
+		case "FirstFrame"_Hash32:
+			luarets = StackFunc::func(lua, e->m_FirstFrame, validx);
+			break;
+		case "LastFrame"_Hash32:
+			luarets = StackFunc::func(lua, e->m_EndFrame, validx);
+			break;
 		default:
 			return false;
 		}

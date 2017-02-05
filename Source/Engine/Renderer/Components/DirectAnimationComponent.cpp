@@ -48,13 +48,15 @@ DirectAnimationComponent::~DirectAnimationComponent() {
 //------------------------------------------------------------------------------------------
 
 void DirectAnimationComponent::RegisterScriptApi(ApiInitializer & root) {
-	//root
-	//.beginClass<MeshEntry>("cMeshEntry")
+	root
+	.beginClass<DirectAnimationComponentEntry>("cDirectAnimationComponentEntry")
 	//	.addProperty("Visible", &MeshEntry::IsVisible, &MeshEntry::SetVisible)
 	//	.addProperty("MeshHandle", &MeshEntry::GetMeshHandle, &MeshEntry::SetMeshHandle)
 	//	.addFunction("SetModel", &MeshEntry::SetModel)
-	//.endClass()
-	//;
+		.addData("FirstFrame", &DirectAnimationComponentEntry::m_FirstFrame)
+		.addData("LastFrame", &DirectAnimationComponentEntry::m_EndFrame)
+	.endClass()
+	;
 }
 
 //------------------------------------------------------------------------------------------
@@ -148,7 +150,6 @@ void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 		if (item.m_Flags.m_Map.m_Playing) {
 			item.Calculate(FramePosition);//(item.m_LocalTime / 1.5f);
 		}
-
 
 		if (item.m_VAO.Handle() == 0)
 			continue;
@@ -426,16 +427,16 @@ bool DirectAnimationComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_Scene = scene;
 	entry.Load();
 
-	if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
+	entry.m_Owner = Owner;
+	if (!GetHandleTable()->Allocate(this, entry.m_Owner, entry.m_SelfHandle, index)) {
 		AddLogf(Error, "Failed to allocate handle!");
 		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
 		return false;
 	}
 	m_EntityMapper.SetHandle(entry.m_Owner, entry.m_SelfHandle);
-
 	entry.m_Flags.m_Map.m_Valid = true;
+
 	hout = entry.m_SelfHandle;
-	entry.m_Owner = Owner;
 	return true;
 }
 
