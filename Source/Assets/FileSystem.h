@@ -9,6 +9,8 @@
 #ifndef AssetFileSystem_H
 #define AssetFileSystem_H
 
+#include "../Engine/FileSystem.h"
+
 namespace MoonGlare::Asset {
 
 class FileSystem final {
@@ -18,6 +20,8 @@ public:
 
 	bool Initialize();
 	bool Finalize();
+
+	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 private: 
 };
 

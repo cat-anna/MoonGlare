@@ -7,17 +7,13 @@
 #include <pch.h>
 #include "FileSystem.h"
 
-#include "../Engine/FileSystem.h"
-
 namespace MoonGlare::Asset {
-
 
 FileSystem::FileSystem() {
 	//::MoonGlare::FileSystem::MoonGlareFileSystem::Instance();
 }
 
 FileSystem::~FileSystem() {
-
 }
 
 bool FileSystem::Initialize() {
@@ -26,6 +22,10 @@ bool FileSystem::Initialize() {
 
 bool FileSystem::Finalize() {
 	return true;
+}
+
+bool FileSystem::OpenFile(const string & FileName, DataPath origin, StarVFS::ByteTable & FileData) {
+	return MoonGlare::FileSystem::MoonGlareFileSystem::Instance()->OpenFile(FileName, origin, FileData);
 }
 
 } //namespace MoonGlare::Asset

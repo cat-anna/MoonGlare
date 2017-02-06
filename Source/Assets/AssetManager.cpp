@@ -29,7 +29,7 @@ bool AssetManager::Initialize(const x2c::Settings::AssetConfiguration_t & Config
 		return false;
 	}
 
-	m_ShaderLoader = std::make_unique<Shader::Loader>();
+	m_ShaderLoader = std::make_unique<Shader::Loader>(m_FileSystem.get());
 	if (!m_ShaderLoader->Initialize()) {
 		AddLogf(Error, "ShaderLoader initialization failed!");
 		m_ShaderLoader.reset();

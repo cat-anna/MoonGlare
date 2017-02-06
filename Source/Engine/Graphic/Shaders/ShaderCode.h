@@ -33,6 +33,16 @@ public:
 		at(m_FrontLocation).swap(sc);
 		++m_FrontLocation;
 	}
+
+	void push_copy_at_front(const char *code, size_t len) {
+		ShaderCode sc;
+		sc.reset(new char[len + 1]);
+		sc[len] = 0;
+		memcpy(sc.get(), code, len);
+		//emplace(begin() + m_FrontLocation, std::move(sc));
+		insert(begin(), std::move(sc));
+	}
+
 	string Linear() const {
 		std::stringstream ss;
 		for (auto &it : *this)

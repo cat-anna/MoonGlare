@@ -11,18 +11,31 @@
 
 namespace MoonGlare::Asset::Shader {
 
+enum class ShaderType : uint8_t {
+	Geometry,
+	Vertex,
+	Fragment,
+
+	MaxValue,
+};
+
+struct ShaderCode {
+	std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
+};
+
 class Loader final {
 public:
- 	Loader();
+ 	Loader(FileSystem *fs);
  	~Loader();
 
 	bool Initialize();
 	bool Finalize();
 
+	bool LoadCode(const std::string &Name, ShaderCode &Output);
 protected:
-	//TODO: add stuff there
+	FileSystem* GetFileSystem() { return m_FileSystem; }
 private: 
-	//TODO: add stuff there
+	FileSystem *m_FileSystem;
 };
 
 } //namespace MoonGlare::Asset::Shader 

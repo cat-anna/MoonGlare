@@ -19,8 +19,7 @@ using ShaderCreateFunc = ShaderManager::ShaderCreateFunc;
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ShaderManager);
 
 ShaderManager::ShaderManager(Asset::AssetManager *AssetManager):
-		cRootClass(), 
-		m_Flags(0) {
+		cRootClass() {
 	MoonGlareAssert(AssetManager);
 
 	SetThisAsInstance();
@@ -33,16 +32,14 @@ ShaderManager::~ShaderManager() {
 }
 
 bool ShaderManager::Initialize() {
-	SetReady(true);
+
+	GenerateShaderConfiguration();
+
 	return true;
 }
 
 bool ShaderManager::Finalize() {
-	if (!IsReady()) return true;
-
 	m_Shaders.clear();
-
-	SetReady(false);
 	return true;
 }
 
@@ -121,32 +118,33 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 		}
 	} 
 	
-	if(DoLoadDef) {
+	if (DoLoadDef) {
 		//Look for shader xml
 		FileSystem::XMLFile xml;
+		xml_node root;
+
 		if (!GetFileSystem()->OpenResourceXML(xml, OnlyName, DataPath::Shaders)) {
-			AddLogf(Error, "There is no shader named '%s'", OnlyName.c_str());
-			sd.Type = ShaderType::Invalid;
-			return nullptr;
-		}
-
-		const xml_node root = xml->document_element();
-		const char *type = root.attribute("Type").as_string(ERROR_STR);
-
-		sd.Type = ShaderType::Invalid;
-		if (!strcmpi("glfx", type)) {
-			sd.Type = ShaderType::glfx;
-		} else if (!strcmpi("glsl", type)) {
+			AddLogf(Warning, "There is no xml definition for shader shader named '%s' - using direct loader", OnlyName.c_str());
 			sd.Type = ShaderType::glsl;
-		}
+		} else {
+			root = xml->document_element();
+			const char *type = root.attribute("Type").as_string(ERROR_STR);
 
-		switch (sd.Type) {
-		case ShaderType::glfx:
-		case ShaderType::glsl:
-			break;
-		default:
-			AddLogf(Error, "Unknown type of shader '%s'", type);
-			return nullptr;
+			sd.Type = ShaderType::Invalid;
+			if (!strcmpi("glfx", type)) {
+				sd.Type = ShaderType::glfx;
+			} else if (!strcmpi("glsl", type)) {
+				sd.Type = ShaderType::glsl;
+			}
+
+			switch (sd.Type) {
+			case ShaderType::glfx:
+			case ShaderType::glsl:
+				break;
+			default:
+				AddLogf(Error, "Unknown type of shader '%s'", type);
+				return nullptr;
+			}
 		}
 
 		sd.Name = ShaderName;
@@ -180,7 +178,7 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 		ShaderProg = ConstructShaderGlfx(*parentsd, sd, ProgramName);
 		break;
 	case ShaderType::glsl:
-		ShaderProg = ConstructShaderGlsl(*parentsd, sd, ProgramName);
+		ShaderProg = sd.Handle;
 		break;
 	default:
 		LogInvalidEnum(sd.Type);
@@ -212,86 +210,134 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 //-------------------------------------------------------------------
 
 ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition &sd, const string &Name, const xml_node definition) {
-	std::vector<GLuint> LoadedShaders;
-
-	struct ShaderType {
-		const char * ext;
-		GLuint value;
+	using Asset::Shader::ShaderType;
+	struct ShaderTypeInfo {
+		ShaderType m_Type;
+		GLuint m_GLID;
+		const char *m_Name;
 	};
-	static const ShaderType ShaderTypes[] = {
-		{ "vs", GL_VERTEX_SHADER},
-		{ "fs", GL_FRAGMENT_SHADER},
-		{ "gs", GL_GEOMETRY_SHADER},
-		{ 0 }
+	static const std::array<ShaderTypeInfo, static_cast<size_t>(ShaderType::MaxValue)> ShaderTypes = {
+		ShaderTypeInfo{ ShaderType::Vertex, GL_VERTEX_SHADER, "vertex", },
+		ShaderTypeInfo{ ShaderType::Fragment, GL_FRAGMENT_SHADER, "fragment", },
+		ShaderTypeInfo{ ShaderType::Geometry, GL_GEOMETRY_SHADER, "geometry", },
 	};
 
-	try {
-		for (const ShaderType *type = ShaderTypes; type->ext; ++type) {
-
-			string FileName = sd.Name;
-			FileName += ".";
-			FileName += type->ext;
-			StarVFS::ByteTable data;
-			if (!GetFileSystem()->OpenFile(FileName, DataPath::Shaders, data)){
-				AddLogf(Hint, "Unable to load file '%s' for shader '%s' ", FileName.c_str(), sd.Name.c_str());
-				continue;
-			}
-			// Compile 
-			ShaderCodeVector CodeVec;
-			CodeVec.push_copy((char*)data.get(), data.byte_size());
-			PreproccesShaderCode(sd, CodeVec);
-			GLuint shader = glCreateShader(type->value);
-			glShaderSource(shader, CodeVec.len(), (const GLchar**)CodeVec.get(), NULL);
-			glCompileShader(shader);
-			// Check Shader
-			GLint Result = GL_FALSE;
-			int InfoLogLength;
-			glGetShaderiv(shader, GL_COMPILE_STATUS, &Result);
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &InfoLogLength);
-			if(InfoLogLength > 1) {
-				std::vector<char> ShaderErrorMessage(InfoLogLength+1);
-				glGetShaderInfoLog(shader, InfoLogLength, NULL, &ShaderErrorMessage[0]);
-				AddLogf(Error, "Unable to compile '%s' shader. Error message:\n%s", type->ext, &ShaderErrorMessage[0]);
-				throw (unsigned)shader;
-			}
-			LoadedShaders.push_back(shader);
-		}
-
-		//attach all shaders
-		GLuint ProgramID = glCreateProgram();
-		for(auto &i : LoadedShaders) glAttachShader(ProgramID, i);
-		//link program
-		glLinkProgram(ProgramID);
-		//check program for errors
-		GLint Result = GL_FALSE;
-		int InfoLogLength;
-		glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-		glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if(InfoLogLength > 1) {
-			std::vector<char> ProgramErrorMessage(InfoLogLength+1);
-			glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-			AddLogf(Error, "Unable to link %s program. Error message:\n%s", Name.c_str(),  &ProgramErrorMessage[0]);
-			glDeleteProgram(ProgramID);
-			throw false;
-		}
-
-		//delete all shders
-		for(auto &i : LoadedShaders) glDeleteShader(i);
-		sd.Handle = ProgramID;
-		return &sd;
-	} 
-	catch(bool){ }//just exit
-	catch(unsigned shader){//shader created, but not pushed into table, remove it
-		glDeleteShader(shader);
+	Asset::Shader::ShaderCode code;
+	if (!m_ShaderLoader->LoadCode(Name, code)) {
+		AddLogf(Error, "Unable to load code for shader %s", Name.c_str());
+		return nullptr;
 	}
-	catch (...) { } 
-	for(auto &i : LoadedShaders) glDeleteShader(i);
-	LoadedShaders.clear();
-	return 0;
-}
 
-GLuint ShaderManager::ConstructShaderGlsl(ShaderDefinition &parentsd, ShaderDefinition &sd, const string &Name) {
-	return sd.Handle;
+	static constexpr size_t MaxShaderLines = 8;
+	using ShaderCodeBuffer = std::array<const char *, MaxShaderLines>;
+
+	ShaderCodeBuffer Lines;
+	Lines.fill("\n");
+
+	char typedefbuf[64] = "//shader type def\n";
+	Lines[0] = "#version 420\n";
+	Lines[1] = "//defines begin\n";
+	Lines[2] = typedefbuf;
+	Lines[3] = m_ShaderConfigurationDefs.c_str();
+	//4
+	//5
+	Lines[6] = "//preprocesed code begin\n";
+
+	std::array<GLuint, static_cast<size_t>(ShaderType::MaxValue)> LoadedShaders;
+	LoadedShaders.fill(0);
+	unsigned LoadedCount = 0;
+	auto DeleteShaders = [&LoadedCount, &LoadedShaders] {
+		if (LoadedCount > 0) {
+			for (auto i : LoadedShaders)
+				glDeleteShader(i);
+		}
+	};
+
+	bool Success = true;
+
+	for (auto &shadertype : ShaderTypes) {
+		auto index = static_cast<unsigned>(shadertype.m_Type);
+
+		MoonGlareAssert(code.m_Code.size() > index);
+		MoonGlareAssert(LoadedShaders.size() > index);
+
+		if (code.m_Code[index].empty())
+			continue;
+
+		Lines.back() = code.m_Code[index].c_str();
+		sprintf_s(typedefbuf, "#define %s_main main\n", shadertype.m_Name);
+
+		GLuint shader = glCreateShader(shadertype.m_GLID);
+		LoadedShaders[index] = shader;
+
+#ifdef DEBUG_DUMP
+		{
+			std::ofstream of("logs/" + Name + "." + shadertype.m_Name + ".glsl", std::ios::out | std::ios::binary);
+			for (auto line : Lines)
+				of << line;
+			of.close();
+		}
+#endif
+
+		glShaderSource(shader, Lines.size(), (const GLchar**)&Lines[0], NULL);	//TODO: check what is last argument
+		glCompileShader(shader); //TODO: check what is return type
+
+		GLint Result = GL_FALSE;
+		int InfoLogLength = 0;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		
+		if (InfoLogLength <= 0) {
+			++LoadedCount;
+			continue; //compiled ok
+		}
+
+		Success = false;
+
+		std::string ShaderErrorMessage(InfoLogLength + 1, '\0');
+		glGetShaderInfoLog(shader, InfoLogLength, NULL, &ShaderErrorMessage[0]);
+		AddLogf(Error, "Unable to compile %s shader for %s. Error message:\n%s", shadertype.m_Name, Name.c_str(), ShaderErrorMessage.c_str());
+
+		break;
+	}
+
+	if (!Success) {
+		AddLogf(Error, "Shader compilation failed!");
+		DeleteShaders();
+		return nullptr;
+	}
+
+	//attach all shaders
+	GLuint ProgramID = glCreateProgram();
+
+	for(auto i : LoadedShaders) 
+		if(i != 0)
+			glAttachShader(ProgramID, i);
+
+	//link program
+	glLinkProgram(ProgramID);
+	
+	//check program for errors
+	GLint Result = GL_FALSE;
+	int InfoLogLength = 0;
+
+	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
+	if(InfoLogLength > 1) {
+		std::string ProgramErrorMessage(InfoLogLength+1, '\0');
+		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+		AddLogf(Error, "Unable to link %s program. Error message:\n%s", Name.c_str(),  &ProgramErrorMessage[0]);
+		AddLogf(Error, "Shader linking failed!");
+		glDeleteProgram(ProgramID);
+		DeleteShaders();
+		return nullptr;
+	}
+
+	DeleteShaders();
+
+	sd.Handle = ProgramID;
+	return &sd;
 }
 
 //-------------------------------------------------------------------
@@ -390,6 +436,24 @@ void ShaderManager::PreproccesShaderCode(ShaderDefinition &sd, ShaderCodeVector 
 			return PreproccesShaderCode(sd, CodeTable);
 		}
 	}
+}
+
+//-------------------------------------------------------------------
+
+void ShaderManager::GenerateShaderConfiguration() {
+	m_ShaderConfigurationDefs.clear();
+	
+//	auto define = [this] (const char *id, std::string value) {
+//		std::string def;
+//		def = "#define ";
+//		def += id;
+//		def += " ";
+//		def += value;
+//		def += "\n";
+//	
+//	};
+
+	//define("", )
 }
 
 //-------------------------------------------------------------------

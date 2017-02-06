@@ -15,6 +15,7 @@
 
 #include <string>
 #include <cstring>
+#include <regex>
 
 #include <iostream>
 #include <sstream>

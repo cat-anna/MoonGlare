@@ -13,7 +13,7 @@ class Loader;
 class FileSystem;
 class AssetManager;
 
-using UniqueAssetManager = std::unique_ptr<AssetManager>
+using UniqueAssetManager = std::unique_ptr<AssetManager>;
 
 } //namespace MoonGlare::Asset 
 

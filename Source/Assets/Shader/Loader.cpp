@@ -6,24 +6,83 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <pch.h>
+#include "../AssetManager.h"
+#include "../FileSystem.h"
 #include "Loader.h"
+
+#include "Preprocessor.h"
 
 namespace MoonGlare::Asset::Shader {
 
+Loader::Loader(FileSystem *fs):
+	m_FileSystem(fs) {
 
-Loader::Loader() {
-
+	MoonGlareAssert(fs);
 }
 
 Loader::~Loader() {
-
 }
 
 bool Loader::Initialize() {
-	return false;
+	return true;
 }
 
 bool Loader::Finalize() {
+	return true;
+}
+
+bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
+	struct ShaderFileInfo {
+		ShaderType m_Type;
+		const char *m_Ext;
+		const char *m_Name;
+	};
+
+	static const std::array<ShaderFileInfo, static_cast<size_t>(ShaderType::MaxValue)> ShaderFiles = {
+		ShaderFileInfo{ ShaderType::Vertex,   "vs", "vertex", },
+		ShaderFileInfo{ ShaderType::Fragment, "fs", "fragment", },
+		ShaderFileInfo{ ShaderType::Geometry, "gs", "geometry", },
+	};
+
+	unsigned LoadCount = 0;
+	bool Success = true;
+
+	Preprocessor preproc(GetFileSystem());
+
+	for (auto &shaderfile : ShaderFiles) {
+		string FileName;
+		FileName += Name;
+		FileName += ".";
+		FileName += shaderfile.m_Ext;
+
+		preproc.ClearOutput();
+		try {
+			preproc.PushFile(FileName);
+		} catch(Preprocessor::ParseException &e) {
+			if (e.m_IncludeLevel > 0) {
+				AddLogf(Error, "Failure during preprocessing of shader %s", Name.c_str());
+				Success = false;
+				break;
+			} else {
+				// no code for sub-shader
+				AddLogf(Warning, "No master file for %s shader %s", shaderfile.m_Name, Name.c_str());
+				continue;
+			}
+		}
+
+		std::string code;
+		preproc.GetOutput(code);
+
+		++LoadCount;
+
+		auto index = static_cast<unsigned>(shaderfile.m_Type);
+		Output.m_Code[index].swap(code);
+	}
+
+	if (Success)
+		return true;
+
+	Output.m_Code.fill(std::string());
 	return false;
 }
 
