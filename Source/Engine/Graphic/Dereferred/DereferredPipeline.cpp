@@ -37,7 +37,7 @@ bool DereferredPipeline::Initialize() {
 		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Light_directional", m_DirectionalLightShader)) throw 2;
 		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Light_spot", m_SpotLightShader)) throw 3;
 		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Stencil", m_StencilShader)) throw 4;
-		if (!GetShaderMgr()->GetSpecialShader("Shadows.default", m_ShadowMapShader)) throw 5;
+		if (!GetShaderMgr()->GetSpecialShader("ShadowMap", m_ShadowMapShader)) throw 5;
 
 	}
 	catch (int idx) {
