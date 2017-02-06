@@ -72,8 +72,8 @@ bool TextComponent::Initialize() {
 
 	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
 		if (!m_Shader) {
-			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI.Panel", m_Shader)) {
-				AddLogf(Error, "Failed to load GUI.Panel shader");
+			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI", m_Shader)) {
+				AddLogf(Error, "Failed to load GUI shader");
 			}
 		}
 	});
