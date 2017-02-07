@@ -14,8 +14,8 @@ namespace Forward {
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(ForwardPipeline);
 
 ForwardPipeline::ForwardPipeline() {
-	GetShaderMgr()->GetSpecialShader("D2Shader.default", m_GUIShader);
 	m_Shader = GetShaderMgr()->GetShader("Default");
+	GetShaderMgr()->GetSpecialShader("D2Shader", m_GUIShader);
 }
 
 ForwardPipeline::~ForwardPipeline() {
