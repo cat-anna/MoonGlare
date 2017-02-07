@@ -13,7 +13,7 @@
 namespace MoonGlare::Asset::Shader {
 
 const std::array<Preprocessor::PreprocessorToken, 1> Preprocessor::s_Tokens = {
-	PreprocessorToken{ std::regex(R"(^\s*#include\s+[<"]([A-Za-z0-9_\.]+)[">]\s*)"), &Preprocessor::IncludeToken },
+	PreprocessorToken{ std::regex(R"(^\s*#include\s+[<"]([/A-Za-z0-9_\.]+)[">]\s*)"), &Preprocessor::IncludeToken },
 };
 
 Preprocessor::Preprocessor(FileSystem *fs):

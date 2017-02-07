@@ -75,7 +75,7 @@ bool DirectAnimationComponent::Initialize() {
 		if (!(m_ShadowShader = Graphic::GetShaderMgr()->GetShader("ShadowMap"))) {
 			AddLogf(Error, "Failed to load ShadowMap shader");
 		}
-		if (!(m_GeometryShader = Graphic::GetShaderMgr()->GetShader("Dereferred.Geometry"))) {
+		if (!(m_GeometryShader = Graphic::GetShaderMgr()->GetShader("Deferred/Geometry"))) {
 			AddLogf(Error, "Failed to load Dereferred.Geometry shader");
 		}
 	});

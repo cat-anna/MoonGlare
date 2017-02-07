@@ -272,7 +272,9 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 
 #ifdef DEBUG_DUMP
 		{
-			std::ofstream of("logs/" + Name + "." + shadertype.m_Name + ".glsl", std::ios::out | std::ios::binary);
+			auto fname = Name + "." + shadertype.m_Name + ".glsl";
+			std::replace(fname.begin(), fname.end(), '/', '.');
+			std::ofstream of("logs/" + fname, std::ios::out | std::ios::binary);
 			for (auto line : Lines)
 				of << line;
 			of.close();

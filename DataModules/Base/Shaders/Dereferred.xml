@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<Shader Type="glfx" Name="Dereferred">
-	<glfx>Dereferred.glfx</glfx>
-</Shader>

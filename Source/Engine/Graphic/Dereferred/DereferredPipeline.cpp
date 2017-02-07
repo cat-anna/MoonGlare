@@ -31,16 +31,16 @@ bool DereferredPipeline::Initialize() {
 	try {
 
 		if (!m_Buffer.Reset()) throw "Unable to initialize render buffers!";
-	     
-		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Geometry", m_GeometryShader)) throw 0;
-		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Light_point", m_PointLightShader)) throw 1;
-		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Light_directional", m_DirectionalLightShader)) throw 2;
-		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Light_spot", m_SpotLightShader)) throw 3;
-		if (!GetShaderMgr()->GetSpecialShader("Dereferred.Stencil", m_StencilShader)) throw 4;
+
+		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
+		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightPoint", m_PointLightShader)) throw 1;
+		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightDirectional", m_DirectionalLightShader)) throw 2;
+		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightSpot", m_SpotLightShader)) throw 3;
+		if (!GetShaderMgr()->GetSpecialShader("Deferred/Stencil", m_StencilShader)) throw 4;
 		if (!GetShaderMgr()->GetSpecialShader("ShadowMap", m_ShadowMapShader)) throw 5;
 
 	}
-	catch (int idx) {
+	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
 		return false;
 	}

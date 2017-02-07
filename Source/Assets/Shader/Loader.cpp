@@ -49,25 +49,37 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
 
 	Preprocessor preproc(GetFileSystem());
 
-	for (auto &shaderfile : ShaderFiles) {
-		string FileName;
-		FileName += Name;
-		FileName += ".";
-		FileName += shaderfile.m_Ext;
-
+	auto TryLoad = [&preproc, &Name](std::string fn, const ShaderFileInfo& shaderfile) -> bool {
 		preproc.ClearOutput();
 		try {
-			preproc.PushFile(FileName);
-		} catch(Preprocessor::ParseException &e) {
+			preproc.PushFile(fn);
+		}
+		catch (Preprocessor::ParseException &e) {
 			if (e.m_IncludeLevel > 0) {
-				AddLogf(Error, "Failure during preprocessing of shader %s", Name.c_str());
-				Success = false;
-				break;
+				AddLogf(Error, "Failure during preprocessing file %s for shader %s", fn.c_str(), Name.c_str());
+				throw e;
 			} else {
 				// no code for sub-shader
-				AddLogf(Warning, "No master file for %s shader %s", shaderfile.m_Name, Name.c_str());
-				continue;
+				return false;
 			}
+		}
+		return true;
+	};
+
+	for (auto &shaderfile : ShaderFiles) {
+		try {
+			if (!TryLoad(Name + "." + shaderfile.m_Ext, shaderfile)) {
+				AddLogf(Warning, "No dedicated file for %s shader %s", shaderfile.m_Name, Name.c_str());
+				if (!TryLoad(Name + ".glsl", shaderfile)) {
+					AddLogf(Warning, "No master file for %s shader %s", shaderfile.m_Name, Name.c_str());
+					continue;
+				}
+			}
+		}
+		catch (Preprocessor::ParseException &e) {
+			AddLogf(Error, "File for %s shader %s", shaderfile.m_Name, Name.c_str());
+			Success = false;
+			break;
 		}
 
 		std::string code;
