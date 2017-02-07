@@ -35,8 +35,6 @@ group ""
 
             "Renderer",
             "Assets",
-
-			"glfx",
 		}
 
 		Features.ApplyAll(Engine.Features)

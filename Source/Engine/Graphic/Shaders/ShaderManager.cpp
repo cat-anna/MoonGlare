@@ -6,7 +6,6 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
-#include "ShaderCode.h"			
 
 #include <Assets/AssetManager.h>
 #include <Assets/Shader/Loader.h>
@@ -32,9 +31,7 @@ ShaderManager::~ShaderManager() {
 }
 
 bool ShaderManager::Initialize() {
-
 	GenerateShaderConfiguration();
-
 	return true;
 }
 
@@ -47,30 +44,13 @@ bool ShaderManager::Finalize() {
 
 #ifdef DEBUG_DUMP
 
-struct ShaderTypeNames {
-	ShaderTypeNames() {
-#define __set(NAME) m_names[(unsigned)ShaderManager::ShaderType::NAME] = #NAME
-		__set(glsl);
-		__set(glfx);
-		__set(glfx_root);
-		__set(Invalid);
-		__set(Unknown);
-#undef __set
-	}
-
-	const char* operator[](ShaderManager::ShaderType type) const { return m_names[(unsigned)type]; }
-private:
-	const char* m_names[(unsigned)ShaderManager::ShaderType::MaxValue];
-};
-
 void ShaderManager::DumpShaders(std::ostream &out) {
-	ShaderTypeNames names;
 	out << "Shaders:\n";
 	for (auto &it : m_Shaders) {
 		auto &sd = it.second;
 		char buf[128];
-		sprintf(buf, "%40s [type: %s]\n",
-				sd.Name.c_str(), names[sd.Type]);
+		sprintf(buf, "%40s\n",
+				sd.Name.c_str());
 		out << buf;
 	}
 	out << "\n";
@@ -81,113 +61,17 @@ void ShaderManager::DumpShaders(std::ostream &out) {
 //-------------------------------------------------------------------
 
 Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName, ShaderCreateFunc CreateFunc, const string& Class) {
-	if (sd.Type == ShaderType::Invalid) {
-		AddLogf(Error, "Unable to load invalid shader '%s'", ShaderName.c_str());
+
+	sd.Name = ShaderName;
+	if (!LoadShaderGlsl(sd, ShaderName)) {
+		AddLog(Error, "An error has occur during loading shader definition");
 		return nullptr;
 	}
 
-	const char *Name = ShaderName.c_str();
-	const char *dot = strchr(Name, '.');
-	unsigned len;
-	//get name of shader without submode
-	if (dot)
-		len = dot - Name;
-	else
-		len = ShaderName.length();
-
-	string OnlyName(Name, len);
-	bool DoLoadDef = true;
-
-	ShaderDefinition *parentsd = nullptr;
-
-	if (dot) {
-		//we are loading submode of shader. Look for parent
-		auto it = m_Shaders.find(OnlyName);
-		if (it == m_Shaders.end()) {
-			//do nothing
-		} else {
-			parentsd = &it->second;
-			if (parentsd->Type != ShaderType::glfx_root) {
-				//Only glfx supports preloading.
-				parentsd = nullptr;
-			} else {
-				//parrent definition is loaded
-				DoLoadDef = false;
-				sd.Type = ShaderType::glfx;
-			}
-		}
-	} 
-	
-	if (DoLoadDef) {
-		//Look for shader xml
-		FileSystem::XMLFile xml;
-		xml_node root;
-
-		if (!GetFileSystem()->OpenResourceXML(xml, OnlyName, DataPath::Shaders)) {
-			AddLogf(Warning, "There is no xml definition for shader shader named '%s' - using direct loader", OnlyName.c_str());
-			sd.Type = ShaderType::glsl;
-		} else {
-			root = xml->document_element();
-			const char *type = root.attribute("Type").as_string(ERROR_STR);
-
-			sd.Type = ShaderType::Invalid;
-			if (!strcmpi("glfx", type)) {
-				sd.Type = ShaderType::glfx;
-			} else if (!strcmpi("glsl", type)) {
-				sd.Type = ShaderType::glsl;
-			}
-
-			switch (sd.Type) {
-			case ShaderType::glfx:
-			case ShaderType::glsl:
-				break;
-			default:
-				AddLogf(Error, "Unknown type of shader '%s'", type);
-				return nullptr;
-			}
-		}
-
-		sd.Name = ShaderName;
-		switch (sd.Type) {
-		case ShaderType::glfx:
-			parentsd = LoadShaderGlfx(sd, OnlyName, root);
-			break;
-		case ShaderType::glsl:
-			parentsd = LoadShaderGlsl(sd, OnlyName, root);
-			break;
-		default:
-			break;
-		}
-
-		if (!parentsd) {
-			AddLog(Error, "An error has occur during loading shader definition");
-			sd.Type = ShaderType::Invalid;
-			return nullptr;
-		}
-	}
-
-	string ProgramName;
-	if (dot)
-		ProgramName = dot + 1;
-	else
-		ProgramName = "Default";
-
-	GLuint ShaderProg = 0;
-	switch (sd.Type) {
-	case ShaderType::glfx:
-		ShaderProg = ConstructShaderGlfx(*parentsd, sd, ProgramName);
-		break;
-	case ShaderType::glsl:
-		ShaderProg = sd.Handle;
-		break;
-	default:
-		LogInvalidEnum(sd.Type);
-		break;
-	}
-
+	GLuint ShaderProg = sd.Handle;
 	if (!ShaderProg) {
 		AddLogf(Error, "Unable to load shader '%s'", ShaderName.c_str());
-		return 0;
+		return nullptr;
 	}
 
 	Shader *s;
@@ -196,7 +80,13 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 	} else {
 		s = ShaderClassRegister::CreateClass(Class, ShaderProg, ShaderName);
 	}
-	if (!s) return nullptr;
+	if (!s) {
+		GetRenderDevice()->RequestContextManip([ShaderProg] () {
+			glDeleteProgram(ShaderProg);
+		});
+		return nullptr; //this leak loaded shader to opengl
+	}
+
 	string NewName = Class;
 	NewName += "_";
 	NewName += ShaderName;
@@ -209,7 +99,7 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 
 //-------------------------------------------------------------------
 
-ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition &sd, const string &Name, const xml_node definition) {
+ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition &sd, const string &Name) {
 	using Asset::Shader::ShaderType;
 	struct ShaderTypeInfo {
 		ShaderType m_Type;
@@ -344,104 +234,6 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 
 //-------------------------------------------------------------------
 
-ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlfx(ShaderDefinition &sd, const string &Name, const xml_node definition) {
-	const char* fname = definition.child("glfx").text().as_string(ERROR_STR);
-	StarVFS::ByteTable data;
-	if (!GetFileSystem()->OpenFile(fname, DataPath::Shaders, data)){
-		AddLogf(Error, "Unable to load file for shader '%s'", sd.Name.c_str());
-		return nullptr;
-	}
-
-	auto &parentsd = m_Shaders[Name];
-	parentsd.Type = ShaderType::glfx_root;
-	parentsd.Name = Name;
-	sd.Parent = &parentsd;
-
-	parentsd.Handle = glfxGenEffect();
-	ShaderCodeVector CodeVec;
-	CodeVec.push_copy((char*)data.get(), data.byte_size());
-	PreproccesShaderCode(parentsd, CodeVec);
-	if (!glfxParseEffectFromMemory(parentsd.Handle, CodeVec.Linear().c_str())) {
-		AddLogf(Error, "Unable to parse shader file for shader '%s'", Name.c_str());
-		AddLog(Error, "GLFX log: " << glfxGetEffectLog(parentsd.Handle));
-		glfxDeleteEffect(parentsd.Handle);
-		parentsd.Handle = 0;
-		return 0;
-	}
-	return &parentsd;
-}
-
-GLuint ShaderManager::ConstructShaderGlfx(ShaderDefinition &parentsd, ShaderDefinition &sd, const string &Name) {
-	int ShaderProg = glfxCompileProgram(parentsd.Handle, Name.c_str());
-	if (ShaderProg == -1) {
-		AddLogf(Error, "Unable to compile program '%s'", Name.c_str());
-		AddLog(Error, "GLFX log: " << glfxGetEffectLog(parentsd.Handle));
-		return 0;
-	}
-	return ShaderProg;
-}
-
-//-------------------------------------------------------------------
-
-void ShaderManager::PreproccesShaderCode(ShaderDefinition &sd, ShaderCodeVector &CodeTable) {
-	for (auto &it : CodeTable) {
-		for (char *cit = it.get(); *cit;) {
-			if (*cit != '#') {
-				++cit;
-				continue;
-			}
-			char *c_back = cit;
-			++cit;
-
-			if (strncmp(cit, "include", 7)) continue;
-			char *file_begin = 0;
-			char *file_end = 0;
-
-			try {
-				for (; *cit; ++cit) {
-					if (file_begin && file_end) break;
-					switch (*cit){
-						case '<':
-							file_begin = cit + 1;
-							continue;
-						case '>':
-							file_end = cit;
-							continue;
-						case '"':
-							if (!file_begin)file_begin = cit + 1;
-							else file_end = cit;
-							continue;
-						case '\0': throw false;
-						case '\n': throw 0u;
-						default:
-							continue;
-					}
-				}
-			}
-			catch (bool) {
-				break;
-			}
-			catch (unsigned) {
-			}
-
-			string filename = string(file_begin, file_end - file_begin);
-
-			for (; c_back <= file_end; ++c_back) *c_back = ' ';
-
-			StarVFS::ByteTable data;
-
-			if (!GetFileSystem()->OpenFile(filename, DataPath::Shaders, data)){
-				AddLogf(Error, "Unable to load include file '%s' for shader '%s'", filename.c_str(), sd.Name.c_str());
-				continue;
-			}
-			CodeTable.push_copy_front((char*)data.get(), data.byte_size());
-			return PreproccesShaderCode(sd, CodeTable);
-		}
-	}
-}
-
-//-------------------------------------------------------------------
-
 void ShaderManager::GenerateShaderConfiguration() {
 	m_ShaderConfigurationDefs.clear();
 	
@@ -460,24 +252,16 @@ void ShaderManager::GenerateShaderConfiguration() {
 
 //-------------------------------------------------------------------
 
-ShaderManager::ShaderDefinition::ShaderDefinition() : Name("?"), Handle(0), Type(ShaderType::Unknown), ShaderPtr(nullptr), Parent(nullptr) {}
+ShaderManager::ShaderDefinition::ShaderDefinition() : Name("?"), Handle(0), ShaderPtr(nullptr) {}
 
 ShaderManager::ShaderDefinition::~ShaderDefinition() { 
 	delete ShaderPtr;
 	ShaderPtr = nullptr;
-
-	if (Handle != 0)
-		switch (Type) {
-		case ShaderType::glfx_root:
-		case ShaderType::glfx:
-				glfxDeleteEffect(Handle);
-			break;
-		case ShaderType::glsl:
-			break;
-		default:
-			break;
-	}
-	Handle = 0;
+	
+	auto handle = this->Handle;
+	GetRenderDevice()->RequestContextManip([handle] () {
+		glDeleteProgram(handle);
+	}); 
 }
 
 } // namespace Shaders 
