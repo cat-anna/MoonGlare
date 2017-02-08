@@ -23,7 +23,7 @@ void BulletDebugDrawer::PrepareDebugDraw(cRenderDevice& dev) {
 //	m_LinePointsColors.clear();
 
 	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw.default", m_Shader)) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}

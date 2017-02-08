@@ -106,6 +106,8 @@ public:
 		glGenVertexArrays(1, &m_VAO);
 	}
 	GLuint Handle() const { return m_VAO; }
+	GLuint IndexValueType() const { return m_IndexValueType; }
+	GLuint ChannelHandle(GLuint Channel) const { return m_Buffers[Channel]; }
 protected:
 	GLuint GetChannel(GLuint Channel) {
 		ASSERT(Channel < MaxChannel);

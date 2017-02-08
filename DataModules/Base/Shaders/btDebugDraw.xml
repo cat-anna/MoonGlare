@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<Shader Type="glfx" Name="btDebugDraw">
-	<glfx>btDebugDraw.glfx</glfx>
-</Shader>

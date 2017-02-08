@@ -231,6 +231,9 @@ void Engine::DoRender(MoveConfig &conf) {
 	dev.BeginFrame();
 	dev.ClearBuffer();
 
+	using Renderer::RendererConf::CommandQueueID;
+	conf.m_RenderInput->m_CommandQueues[CommandQueueID::PrepareFrame].Execute();
+
 	if(conf.Camera)
 		dev.Bind(conf.Camera);
 	 
@@ -248,7 +251,8 @@ void Engine::DoRender(MoveConfig &conf) {
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
 
-	conf.m_RenderInput->m_CommandQueues.Execute();
+	using Renderer::RendererConf::CommandQueueID;
+	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
 
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);

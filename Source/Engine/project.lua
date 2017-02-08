@@ -32,11 +32,9 @@ group ""
 			"libSpace",
 			"OrbitLogger",
 			"StarVFS",
-            "Renderer",
 
-			"lua51jit",
-			"freeimage",
-			"glfx",
+            "Renderer",
+            "Assets",
 		}
 
 		Features.ApplyAll(Engine.Features)

@@ -37,6 +37,8 @@ enum class ComponentID : uint8_t {
 	Light = 0x22,
 	Camera = 0x23,
 
+	DirectAnimation = 0x2F,
+
 //Physics - 0x5X
 	Body = 0x50,
 	BodyShape = 0x51,

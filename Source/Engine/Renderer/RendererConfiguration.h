@@ -15,7 +15,10 @@ namespace Renderer {
 	};
 
 	enum class CommandQueueID {
+		PrepareFrame,
 		GUI,
+		DefferedShadow,
+		DefferedGeometry,
 
 		MaxValue,
 	};

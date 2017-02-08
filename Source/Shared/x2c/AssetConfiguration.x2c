@@ -1,0 +1,18 @@
+Import "Common.x2c"
+
+namespace "MoonGlare.x2c.Settings"
+
+Alias(Types.string, "ModulePath")
+Alias(Container.table(Local.ModulePath), "ModuleList")
+
+Structure.new {
+	name = "AssetConfiguration",
+	description = "",
+	fields = {
+		{
+            description = "",
+			name = "ModuleList",
+			type = Local.ModuleList,
+		},
+	},
+}

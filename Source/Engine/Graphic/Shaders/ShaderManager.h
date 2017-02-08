@@ -15,7 +15,7 @@ class ShaderCodeVector;
 class ShaderManager : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(ShaderManager, cRootClass);
 public:
-	ShaderManager();
+	ShaderManager(Asset::AssetManager *AssetManager);
 	virtual ~ShaderManager();
 
 	bool Initialize();
@@ -56,8 +56,6 @@ public:
 		return t != nullptr;
 	}
 
-	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
-
 	struct Flags {
 		enum {
 			Ready	= 0x01,
@@ -65,17 +63,11 @@ public:
 	};
 
 	void DumpShaders(std::ostream &out);
-
-	enum class ShaderType {
-		Unknown, glfx, glsl, Invalid, glfx_root, MaxValue,
-	};
 private:
 	struct ShaderDefinition {
-		string Name;
-		ShaderType Type;
+		std::string Name;
 		int Handle;
 		Shader* ShaderPtr;
-		ShaderDefinition *Parent;
 
 		ShaderDefinition& operator=(const ShaderDefinition&) = delete;
 		ShaderDefinition(const ShaderDefinition&) = delete;
@@ -85,20 +77,14 @@ private:
 		~ShaderDefinition();
 	};
 	
-	unsigned m_Flags;
+	Asset::Shader::Loader *m_ShaderLoader;
+	std::string m_ShaderConfigurationDefs;
 	std::unordered_map<string, ShaderDefinition> m_Shaders;
 
+	void GenerateShaderConfiguration();
+
 	Shader* LoadShader(ShaderDefinition &sd, const string &Name, ShaderCreateFunc CreateFunc, const string& Class);
-
-	ShaderDefinition* LoadShaderGlsl(ShaderDefinition &sd, const string &Name, const xml_node definition);
-	ShaderDefinition* LoadShaderGlfx(ShaderDefinition &sd, const string &Name, const xml_node definition);
-
-	GLuint ConstructShaderGlsl(ShaderDefinition &parentsd, ShaderDefinition &sd, const string &Name);
-	GLuint ConstructShaderGlfx(ShaderDefinition &parentsd, ShaderDefinition &sd, const string &Name);
-
-	void PreproccesShaderCode(ShaderDefinition &sd, ShaderCodeVector &CodeTable);
-
-	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
+	ShaderDefinition* LoadShaderGlsl(ShaderDefinition &sd, const string &Name);
 };
 
 } // namespace Shaders 

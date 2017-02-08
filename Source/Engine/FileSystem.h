@@ -9,6 +9,32 @@
 #ifndef FileSystem_H
 #define FileSystem_H
 
+enum class DataPath {
+	Root,
+
+	Models,
+	Fonts,
+	Shaders,
+	Scripts,
+	Sounds,
+	Music,
+	Texture,
+	XML,
+	Tables,
+	Objects,
+
+	URI,
+
+	MaxValue,
+};
+
+#ifdef _BUILDING_ASSETS_
+//ugly hack
+namespace Graphic {
+	struct Texture;
+}
+#endif
+
 namespace MoonGlare {
 namespace FileSystem {
 
@@ -90,6 +116,8 @@ private:
 	std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };
 
+#ifndef _BUILDING_ASSETS_
+
 class DirectoryReader : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
 public:
@@ -125,6 +153,8 @@ protected:
 	DataPath m_origin;
 	string m_OwnerName;
 };
+
+#endif
 
 struct DataPathsTable {
 	const string& operator[](DataPath p) const { return m_table[(unsigned)p]; }

@@ -16,7 +16,7 @@ namespace Graphic {
 class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice(WindowPtr Context);
+	cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager);
 	virtual ~cRenderDevice();
 
 	std::unique_ptr<RenderInput> CreateRenderInput();
@@ -55,7 +55,7 @@ public:
 		//CurrentShader()->SetGamma(m_gamma);
 		Shader->SetModelMatrix(m_ModelMatrix);
 		Shader->SetWorldMatrix(m_WorldMatrix);
-		Shader->SetWorldMatrix(m_WorldMatrix);
+		Shader->SetCameraMatrix(m_CameraMatrix);
 		if (m_CurrentCamera)
 			Shader->SetCameraPos(m_CurrentCamera->m_Position);
 	}
@@ -72,7 +72,13 @@ public:
 		sh->SetWorldMatrix(m_WorldMatrix);
 	}
 
-	void SetCameraMatrix(const math::mat4 &m) { m_CameraMatrix = m; }
+	void SetCameraMatrix(const math::mat4 &m) { 
+		m_CameraMatrix = m; 
+		auto sh = CurrentShader();
+		if (!sh)
+			return;
+		sh->SetCameraMatrix(m);
+	}
 	void ResetCameraMatrix() { if(m_CurrentCamera) SetCameraMatrix(m_CurrentCamera->GetProjectionMatrix()); }
 
 	const Environment *CurrentEnvironment() const { return m_CurrentEnvironment; }
@@ -96,6 +102,7 @@ protected:
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;
 
+	Asset::AssetManager *m_AssetManager;
 	WindowPtr m_Context;
 	Shader *m_CurrentShader;
 	VirtualCamera *m_CurrentCamera;

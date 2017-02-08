@@ -45,6 +45,8 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	Flags m_Flags;
+
+	Asset::UniqueAssetManager m_AssetManager;
 };
 
 } //namespace Application 

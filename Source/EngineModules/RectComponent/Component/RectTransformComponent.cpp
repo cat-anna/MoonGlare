@@ -48,7 +48,9 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
 	root
 	.beginNamespace("Flags")
 		.beginNamespace("RectTransformComponent")
+#ifdef DEBUG
 			.addVariable("DebugDraw", &gRectTransformDebugDraw)
+#endif
 		.endNamespace()
 	.endNamespace();
 	;
@@ -141,9 +143,11 @@ bool RectTransformComponent::Finalize() {
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
+#ifdef DEBUG
 	if (gRectTransformDebugDraw) {
 		conf.CustomDraw.push_back(this);
 	}
+#endif
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -347,7 +351,7 @@ bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, 
 
 void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw.default", m_Shader)) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
 			return;
 		}

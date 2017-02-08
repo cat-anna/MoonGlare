@@ -18,14 +18,12 @@
 //#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <GL/glfx.h>
 //std include
 
 #include <locale>
 #include <codecvt>
 
 #include <Config/pch_common.h>
-
 
 using std::istream;
 using std::ostream;

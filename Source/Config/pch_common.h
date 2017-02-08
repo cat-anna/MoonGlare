@@ -15,6 +15,7 @@
 
 #include <string>
 #include <cstring>
+#include <regex>
 
 #include <iostream>
 #include <sstream>
@@ -73,4 +74,8 @@ using LockGuard = std::lock_guard < std::mutex >;
 #define ERROR_STR				"{badstr in " __FUNCTION__ " at " AS_STRING(__LINE__) "}"
 #else
 #define ERROR_STR				"{?}"
+#endif
+
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
 #endif
