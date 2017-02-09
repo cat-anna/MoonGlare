@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/iApplication.h>
-#include <Engine/Core/Console.h>
 #include "GraphicSettings.h"
 
 #include <Core/InputProcessor.h>
@@ -289,9 +288,10 @@ void Window::CreateWindow() {
 #endif // 0
 
 	MakeCurrent();
+	ExitCharMode();
+
 	glfwSwapInterval(0);
 	glfwSetWindowUserPointer(m_Window, this);
-	glfwSetKeyCallback(m_Window, glfw_key_callback);
 	glfwSetWindowCloseCallback(m_Window, glfw_close_callback);
 	glfwSetMouseButtonCallback(m_Window, glfwMouseButtonCallback);
 	glfwSetWindowFocusCallback(m_Window, glfw_focus_callback);
@@ -301,25 +301,12 @@ void Window::CreateWindow() {
 	AddLogf(Debug, "Created window %dx%d", iw, ih);
 }
 
-void Window::key_callback(int key, bool Pressed) {
-	if (IsMainWindow() && IsConsoleActivated()){
-		if (!Pressed) return;
-		ProcessChar(key | 0x10000000);
-		return;
-	}
+void Window::ProcessKey(int key, bool Pressed) {
 	switch (key) {
-	case GLFW_KEY_GRAVE_ACCENT://` - 0xC0
-		if (!Pressed) return;
-		if (!::Settings->Engine.EnableConsole)
-			return;
-		SetConsoleActivated(true);
-		glfwSetCharCallback(m_Window, glfw_char_callback);
-		AddLog(Debug, "Console activated");
-		return;
 	case GLFW_KEY_PRINT_SCREEN:
 		if (!Pressed) return;
-		Graphic::GetRenderDevice()->DelayedContextManip([] {
-			auto size = Graphic::uvec2(Graphic::GetRenderDevice()->GetContext()->Size());
+		Graphic::GetRenderDevice()->DelayedContextManip([this] {
+			auto size = Size();
 			auto img = MoonGlare::DataClasses::Texture::AllocateImage(size, MoonGlare::DataClasses::Texture::BPP::RGB);
 			Graphic::GetRenderDevice()->ReadScreenPixels(img->image, size, img->value_type);
 
@@ -331,7 +318,8 @@ void Window::key_callback(int key, bool Pressed) {
 
 			MoonGlare::DataClasses::Texture::AsyncStoreImage(img, buf);
 		});
-		return;	case GLFW_KEY_ESCAPE:
+		return;	
+	case GLFW_KEY_ESCAPE:
 			if (!Pressed) return;
 			if (TestFlags(m_Flags, Flags::AllowMouseUnhook | Flags::MouseHooked)) {
 				ReleaseMouse();
@@ -343,40 +331,9 @@ void Window::key_callback(int key, bool Pressed) {
 			m_InputProcessor->SetKeyState(key, Pressed);
 		return;
 	}
-	//	AddLog(Hint, "Key: " << Key << "  hex: 0x" << std::hex << (unsigned)Key);
 }
 
-void Window::ProcessChar(unsigned Key) {
-	if (Key & 0x10000000){
-		Key &= ~0x10000000;
-		switch ((WindowInput::Key)Key) {
-		case WindowInput::Key::Escape:
-		case WindowInput::Key::GraveAccent:
-//			Core::GetEngine()->GetConsole()->GetInputLine().Clear();
-			SetConsoleActivated(false);
-			glfwSetCharCallback(m_Window, 0);
-			AddLog(Debug, "Console deactivated"); 
-			MoonGlare::Core::Console::Instance()->CancelInput();
-			return;
-		//case Keys::Enter:
-		//case Keys::ArrowUp:
-		//case Keys::ArrowDown:
-		//case Keys::ArrowLeft:
-		//case Keys::ArrowRight:
-		//case Keys::Delete:
-		//case Keys::Backspace:
-		default:
-			if (Key < 256) return; //skip glfw non functional key codes
-			return MoonGlare::Core::Console::Instance()->ProcessInput(Key);
-		}
-	}
-	switch (Key) {
-	case GLFW_KEY_GRAVE_ACCENT:
-		return;
-	}
-	return MoonGlare::Core::Console::Instance()->ProcessInput(Key);
-}
-
+//-------------------------------------------------------------------------------------------------
 // handling GLFW
 
 void Window::InitializeWindowSystem() {
@@ -412,6 +369,12 @@ void Window::Process() {
 	}
 }
 
+//-------------------------------------------------------------------------------------------------
+
+void Window::glfw_error_callback(int error, const char* description) {
+	AddLogf(Error, "GLFW error: code='%d' descr='%s'", error, description);
+}
+
 void Window::glfw_mousepos_callback(GLFWwindow *window, double x, double y) {
 	Window* w = ((Window*)glfwGetWindowUserPointer(window));
 	vec2 pos = vec2(x, y);
@@ -419,25 +382,27 @@ void Window::glfw_mousepos_callback(GLFWwindow *window, double x, double y) {
 	w->m_CursorPos = pos;
 }
 
-void Window::glfw_error_callback(int error, const char* description) {
-	AddLogf(Error, "GLFW error: code='%d' descr='%s'", error, description);
-}
-
 void Window::glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (action == GLFW_REPEAT || key == GLFW_KEY_UNKNOWN) {
-		//AddLogf(Debug, "glfw repeat: %d", key);
 		return;
 	}
 	Window* w = ((Window*)glfwGetWindowUserPointer(window));
-	//AddLog(Hint, "key: " << key << "  hex: 0x" << std::hex << (unsigned)key << " act:" << action);
-	w->key_callback(key, action == GLFW_PRESS);
+	w->ProcessKey(key, action == GLFW_PRESS);
 }
 
-void Window::glfw_char_callback(GLFWwindow* window, unsigned int key) {
+void Window::GLFWCharModeCharCallback(GLFWwindow* window, unsigned int key) {
 	Window* w = ((Window*)glfwGetWindowUserPointer(window));
-	//AddLog(Hint, "char: " << key << "  hex: 0x" << std::hex << (unsigned)key);
-	//if (w->IsEnableConsole())
-		w->ProcessChar(key);
+	if (w->m_InputProcessor)
+		w->m_InputProcessor->PushCharModeChar(key);
+}
+
+void Window::GLFWCharModeKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action == GLFW_REPEAT || key == GLFW_KEY_UNKNOWN) {
+		return;
+	}
+	Window* w = ((Window*) glfwGetWindowUserPointer(window));
+	if (w->m_InputProcessor)
+		w->m_InputProcessor->PushCharModeKey(key, action == GLFW_PRESS);
 }
 
 void Window::glfw_close_callback(GLFWwindow* window){
@@ -454,8 +419,8 @@ void Window::glfwMouseButtonCallback(GLFWwindow *window, int button, int action,
 		return;
 	}
 
-	auto MouseBtn = static_cast<WindowInput::MouseButton>(button);
-	WindowInput::ModsStatus mods{ (unsigned)rawmods };
+	//auto MouseBtn = static_cast<WindowInput::MouseButton>(button);
+	//WindowInput::ModsStatus mods{ (unsigned)rawmods };
 
 	if (w->m_InputProcessor)
 		w->m_InputProcessor->SetMouseButtonState(button, action == GLFW_PRESS);
@@ -495,6 +460,20 @@ unsigned Window::GetRefreshRate() const {
 	if (!monitor)
 		monitor = glfwGetPrimaryMonitor();
 	return glfwGetVideoMode(monitor)->refreshRate;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+void Window::EnterCharMode() {
+	m_CharMode = true;
+	glfwSetCharCallback(m_Window, GLFWCharModeCharCallback);
+	glfwSetKeyCallback(m_Window, GLFWCharModeKeyCallback);
+}
+
+void Window::ExitCharMode() {
+	m_CharMode = false;
+	glfwSetCharCallback(m_Window, nullptr);
+	glfwSetKeyCallback(m_Window, glfw_key_callback);
 }
 
 } //namespace Graphic 

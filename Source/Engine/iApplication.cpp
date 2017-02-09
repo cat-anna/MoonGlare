@@ -12,6 +12,8 @@
 #include <Engine/Core/Console.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/Engine.h>
+#include <Engine/Core/InputProcessor.h>
+#include <Engine/World.h>
 
 #include <Assets/AssetManager.h>
 
@@ -82,9 +84,9 @@ bool iApplication::Initialize() {
 	}
 
 	Graphic::Window::InitializeWindowSystem();
-	new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
+	auto Device = new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
 
-	new MoonGlare::Core::Engine();
+	auto Engine = new MoonGlare::Core::Engine();
 
 	if (Settings->Engine.EnableConsole)
 		_init_chk(new Console(), "Unable to initialize console!");
@@ -93,7 +95,10 @@ bool iApplication::Initialize() {
 	MoonGlare::Core::GetEngine()->Initialize();
 
 	//Temporary solution which probably will be used for eternity
-	Graphic::GetRenderDevice()->GetContext()->SetInputProcessor(MoonGlare::Core::GetEngine()->GetWorld()->GetInputProcessor());
+	auto Input = Engine->GetWorld()->GetInputProcessor();
+	auto Window = Device->GetContext().get();
+	Input->SetInputSource(Window);
+	Window->SetInputProcessor(Input);
 
 	AddLog(Debug, "Application initialized");
 #undef _init_chk

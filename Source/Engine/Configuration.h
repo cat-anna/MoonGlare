@@ -104,6 +104,7 @@ namespace MoonGlare {
 		struct Console {
 			enum {
 				MaxConsoleLines = 20,
+				ActivateKey = GLFW_KEY_GRAVE_ACCENT,
 			};
 		};
 

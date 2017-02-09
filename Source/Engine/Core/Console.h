@@ -18,8 +18,11 @@ public:
 	bool SetFont(DataClasses::FontPtr Font);
 	void SetMaxLines(unsigned Count) { m_MaxLines = Count; }
 
-	void ProcessInput(unsigned key);
-	void CancelInput();
+	void PushChar(unsigned key);
+	void PushKey(unsigned key);
+
+	void Deactivate();
+	void Activate();
 
 	bool RenderConsole(Graphic::cRenderDevice &dev);
 
@@ -45,6 +48,7 @@ public:
 	static void RegisterScriptApi(::ApiInitializer &api);
 protected:
 	unsigned m_Flags;
+	bool m_Active;
 	DataClasses::FontPtr m_Font;
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;

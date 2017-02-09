@@ -12,6 +12,8 @@
 #include "Core/Scene/ScenesManager.h"
 #include "Core/Hooks.h"
 
+#include "Core/Console.h"
+
 namespace MoonGlare {
 
 World::World()
@@ -143,6 +145,12 @@ bool World::Step(const Core::MoveConfig & config) {
 		AddLog(Error, "Failed to Step ScenesManager");
 	}
 	return true;
+}
+
+//------------------------------------------------------------------------------------------
+
+Core::Console * World::GetConsole() {
+	return MoonGlare::GetConsole();
 }
 
 } //namespace MoonGlare 

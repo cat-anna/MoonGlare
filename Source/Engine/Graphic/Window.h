@@ -13,7 +13,6 @@ namespace Graphic {
 class Window : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(Window, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
-	DISABLE_COPY();
 public:
  	Window(bool IsMainWindow = false);
  	~Window();
@@ -58,9 +57,6 @@ public:
 		enum {
 			Active					= 0x001,
 			MainWindow				= 0x002,
-
-			ConsoleActivated		= 0x010,
-
 			MouseHooked				= 0x100,
 			AllowMouseUnhook		= 0x200,
 		};								
@@ -68,9 +64,11 @@ public:
 
 	unsigned GetRefreshRate() const;
 
+	void EnterCharMode();
+	void ExitCharMode();
+
 	DefineFlagGetter(m_Flags, Flags::MainWindow, MainWindow);
 	DefineFlagGetter(m_Flags, Flags::Active, Active);
-	DefineFlagGetter(m_Flags, Flags::ConsoleActivated, ConsoleActivated);
 	DefineFlagGetter(m_Flags, Flags::MouseHooked, MouseHooked);
 	const uvec2& Size() const { return m_Size; }
 
@@ -87,16 +85,15 @@ public:
 protected:
 	void CreateWindow();
 	DefineFlagSetter(m_Flags, Flags::Active, Active);
-	DefineFlagSetter(m_Flags, Flags::ConsoleActivated, ConsoleActivated);
 	DefineFlagSetter(m_Flags, Flags::MouseHooked, MouseHooked);
 	DefineFlagSetter(m_Flags, Flags::MainWindow, MainWindow);
 	DefineFlag(m_Flags, Flags::AllowMouseUnhook, AllowMouseUnhook);
-	void key_callback(int key, bool Pressed);
-	void ProcessChar(unsigned Key);
+	void ProcessKey(int key, bool Pressed);
 private:
 	MoonGlare::Core::InputProcessor *m_InputProcessor;
 	GLFWwindow *m_Window;
 	unsigned m_Flags;
+	bool m_CharMode = false;
 	vec2 m_CursorPos, m_CursorDelta;
 	uvec2 m_Size;
 
@@ -106,8 +103,11 @@ private:
 	static void glfw_focus_callback(GLFWwindow* window, int focus);
 	static void glfw_mousepos_callback(GLFWwindow *window, double x, double y);
 	static void glfwMouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-	static void glfw_char_callback(GLFWwindow *window, unsigned int key);
 	static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	static void GLFWCharModeCharCallback(GLFWwindow* window, unsigned int key);
+	static void GLFWCharModeKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 	static bool _GLFWInitialized;
 };
 

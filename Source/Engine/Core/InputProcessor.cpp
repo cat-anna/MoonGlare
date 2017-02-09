@@ -9,6 +9,8 @@
 #include "InputProcessor.h"
 #include <Utils/LuaUtils.h>
 
+#include "Console.h"
+
 #include <Input.x2c.h>
 
 namespace MoonGlare {
@@ -80,6 +82,8 @@ bool InputProcessor::Initialize(World *world)  {
 
 	AddKeyboardSwitch("Escape", GLFW_KEY_ESCAPE);
 
+	m_Console = m_World->GetConsole();
+
 	return true;
 }
 
@@ -104,12 +108,82 @@ bool InputProcessor::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+bool InputProcessor::ProcessConsoleActivateKey() {
+	if (!m_Console || !m_Context)
+		return false;
+
+	if (!::Settings->Engine.EnableConsole)
+		return false;
+
+	m_ConsoleActive = !m_ConsoleActive;
+	if (m_ConsoleActive) {
+		m_CharMode = true;
+		m_Context->EnterCharMode();
+		m_Console->Activate();
+		AddLogf(Debug, "Console activated");
+	} else {
+		m_CharMode = false;
+		m_Context->ExitCharMode();
+		m_Console->Deactivate();
+		AddLogf(Debug, "Console deactivated");
+	}
+
+	return true;
+}
+
+
+void InputProcessor::PushCharModeChar(unsigned key) {
+	if (!m_CharMode)
+		return;
+
+	if (m_ConsoleActive && m_Console) {
+		using Key = ::Graphic::WindowInput::Key;
+		Key k = (Key) key;
+		if (k < ::Graphic::WindowInput::Key::FirstFunctionalKey)
+			m_Console->PushChar(key);
+		return;
+	}
+}
+
+void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
+	if (!m_CharMode)
+		return;
+
+	if (m_ConsoleActive && m_Console) {
+		if (Pressed) {
+			using Key = ::Graphic::WindowInput::Key;
+			Key k = (Key) key;
+			if (k == ::Graphic::WindowInput::Key::Escape) {
+				ProcessConsoleActivateKey();
+				return;
+			}
+
+			if (k > ::Graphic::WindowInput::Key::FirstFunctionalKey)
+				m_Console->PushKey(key);
+		}
+		return;
+	}
+}
+
+//---------------------------------------------------------------------------------------
+
 bool InputProcessor::Step(const Core::MoveConfig & config) {
 	++m_CurrentRevision;
 	return true;
 }
 
 //---------------------------------------------------------------------------------------
+
+void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
+	switch (KeyCode) {
+	case Configuration::Console::ActivateKey:
+		if (Pressed || ProcessConsoleActivateKey())
+			break;
+		[[fallthrough]]
+	default:
+		ProcessKeyState(KeyCode + InputKeyOffsets::Keyboard, Pressed);
+	}
+}
 
 void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
 	if (Id >= Configuration::Input::MaxKeyCode) {
@@ -411,7 +485,7 @@ AxisAction* InputProcessor::AllocMouseAxis(MouseAxisId maid, InputStateId isid, 
 	return &axis;
 }
 
-bool InputProcessor::AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey) {
+										 bool InputProcessor::AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey) {
 	THROW_ASSERT(PositiveKey < Configuration::Input::MaxKeyCode, "PositiveKey id overflow!");
 	THROW_ASSERT(NegativeKey < Configuration::Input::MaxKeyCode, "NegativeKey id overflow!");
 

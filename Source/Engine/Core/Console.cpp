@@ -5,8 +5,7 @@
 #include "Console.h"
 #include <Engine/Core/Engine.h>
 
-namespace MoonGlare {
-namespace Core {
+namespace MoonGlare::Core {
 
 class Console::ConsoleLine {
 public:
@@ -24,29 +23,34 @@ public:
 
 class Console::InputLine {
 public:
-	InputLine(Console *Owner): m_Text(), m_CaretPos(0), m_Owner(Owner), m_Line() { }
-	~InputLine() { }
-	DataClasses::FontInstance& GetLine() { return m_Line; };
-	const wstring& GetString() const { return m_Text; }
-	void SetString(const wstring &data){
+	InputLine(Console *Owner) : m_Text(), m_CaretPos(0), m_Owner(Owner), m_Line() {}
+	~InputLine() {}
+	DataClasses::FontInstance& GetLine() {
+		return m_Line;
+	};
+	const wstring& GetString() const {
+		return m_Text;
+	}
+	void SetString(const wstring &data) {
 		m_Text = data;
 		m_CaretPos = m_Text.length();
 	}
-	void Clear(){
+	void Clear() {
 		m_Text.clear();
 		m_CaretPos = 0;
-		if (m_Line) 
+		if (m_Line)
 			m_Line.reset();
+		Redraw();
 	}
 	void PutChar(unsigned key) {
 		typedef Graphic::WindowInput::Key Key;
-		switch ((Key)key) {
+		switch ((Key) key) {
 		case Key::ArrowLeft:
 			if (m_CaretPos < 1) return;
 			--m_CaretPos;
 			break;
 		case Key::ArrowRight:
-			if (m_CaretPos >= (int)m_Text.length()) return;
+			if (m_CaretPos >= (int) m_Text.length()) return;
 			++m_CaretPos;
 			break;
 		case Key::Backspace:
@@ -54,8 +58,8 @@ public:
 			m_Text.erase(m_CaretPos - 1, 1);
 			--m_CaretPos;
 			break;
-		case Key::Delete: 
-			if (m_CaretPos >= (int)m_Text.length()) return;
+		case Key::Delete:
+			if (m_CaretPos >= (int) m_Text.length()) return;
 			m_Text.erase(m_CaretPos, 1);
 			break;
 		case Key::Tab:
@@ -76,9 +80,13 @@ protected:
 	DataClasses::FontInstance m_Line;
 	Console *m_Owner;
 	void Redraw() {
-		wstring text = GetString();
-		text.insert(m_CaretPos, 1, '|');
-		m_Line = m_Owner->GetFont()->GenerateInstance(text.c_str(), 0);
+		auto font = m_Owner->GetFont();
+		if (!font)
+			return;
+		static const std::wstring Prompt = L"> ";
+		wstring text = Prompt + GetString();
+		text.insert(m_CaretPos + Prompt.length(), 1, '|');
+		m_Line = font->GenerateInstance(text.c_str(), 0);
 	}
 };
 
@@ -102,11 +110,10 @@ Console::Console() :
 		m_MaxLines(20), 
 		m_Lines(), 
 		m_InputLine(std::make_unique<InputLine>(this)), 
-		m_Flags(0) {
+		m_Flags(0),
+		m_Active(false) {
 	SetThisAsInstance();
-#ifdef DEBUG_LOG
 	SetVisible(true);
-#endif
 	SetHideOldLines(true);
 }
 
@@ -167,8 +174,14 @@ void Console::Clear() {
 	m_InputLine->Clear(); 
 }
 
-void Console::CancelInput() { 
+void Console::Deactivate() {
 	m_InputLine->Clear(); 
+	m_Active = false;
+}
+
+void Console::Activate() {
+	m_InputLine->Clear();
+	m_Active = true;
 }
 
 bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
@@ -199,6 +212,10 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 			it->Line->Render(dev);
 		}
 	}
+
+	if (!m_Active)
+		return true;
+
 	auto &input = m_InputLine->GetLine();
 	if (input) {
 		math::mat4 matrix;
@@ -237,23 +254,26 @@ void Console::AsyncLine(const string &Text, unsigned lineType) {
 	});
 }
 
-void Console::ProcessInput(unsigned key) {
-	typedef Graphic::WindowInput::Key Key;
-	switch ((Key)key) {
-	case Key::Enter: {
+void Console::PushChar(unsigned key) {
+	m_InputLine->PutChar(key);
+}
+
+void Console::PushKey(unsigned key) {
+	using Key = Graphic::WindowInput::Key;
+	switch ((Key) key) {
+	case Key::Enter:
+	{
 		wstring text = m_InputLine->GetString();
 		m_InputLine->Clear();
 		if (text.empty())
 			return;
 		AddLine(text);
-		//THROW_ASSERT(false, "Console::ProcessInput does not use new lua api!");
 		GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
 		return;
 	}
 	default:
-		return m_InputLine->PutChar(key);
+		m_InputLine->PutChar(key);
 	}
 }
 
-}//namespace Core
-}//namespace MoonGlare
+} //namespace MoonGlare::Core

@@ -37,6 +37,8 @@ public:
 	Core::Scene::ScenesManager *GetScenesManager() { return m_ScenesManager.get(); };
 
 	Core::Hooks* GetHooks() { return m_Hooks.get(); }
+
+	Core::Console* GetConsole();
 private: 
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;

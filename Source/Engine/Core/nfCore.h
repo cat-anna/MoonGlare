@@ -8,7 +8,8 @@ namespace Core {
 
 	class HandleTable;
 	class InputProcessor;
-	class Hooks;
+	class Hooks;	   
+	class Console;
 
 }//namespace Core
 }//namespace MoonGlare

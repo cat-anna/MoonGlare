@@ -84,17 +84,19 @@ enum class InputSwitchState {
 
 class InputProcessor final {
 public:
- 	InputProcessor();
- 	~InputProcessor();
+	InputProcessor();
+	~InputProcessor();
 
 	bool Initialize(World *world);
 	bool Finalize();
+	void SetInputSource(::Graphic::Window *Context) { m_Context = Context; }
 
 	bool Step(const Core::MoveConfig &config);
 
-	void SetKeyState(unsigned KeyCode, bool Pressed) {
-		ProcessKeyState(KeyCode + InputKeyOffsets::Keyboard, Pressed);
-	}
+	void PushCharModeChar(unsigned Key);
+	void PushCharModeKey(unsigned Key, bool Pressed);
+
+	void SetKeyState(unsigned KeyCode, bool Pressed);
 	void SetMouseButtonState(unsigned Button, bool Pressed) {
 		ProcessKeyState(Button + InputKeyOffsets::Mouse, Pressed);
 	}
@@ -133,7 +135,12 @@ protected:
 	Configuration::RuntimeRevision m_CurrentRevision;
 
 	std::unordered_map<std::string, InputStateId> m_InputNames;
-	World *m_World;
+	World *m_World = nullptr;
+	Console *m_Console = nullptr;
+	::Graphic::Window *m_Context = nullptr;
+
+	bool m_ConsoleActive = false;
+	bool m_CharMode = false;
 
 	void ProcessKeyState(unsigned Id, bool Pressed);
 	void ProcessMouseAxis(MouseAxisId Id, float Delta);
@@ -142,6 +149,8 @@ protected:
 	InputState* AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex);
 	KeyAction* AllocKeyAction(KeyId kid, InputStateId isid, bool Positive);
 	AxisAction* AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity);
+
+	bool ProcessConsoleActivateKey();
 private:
 	static int luaIndexInput(lua_State *lua);
 };
