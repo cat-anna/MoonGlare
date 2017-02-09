@@ -37,38 +37,6 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
 		SettingsWindow sw(this);
 		sw.exec();
 	} );
-
-	auto mm = GetModuleManager();
-
-	//for (auto &item : m_ModuleManager->QuerryInterfaces<QtShared::iEditorInfo>()) {
-	//	if (!item.m_Interface->IsMultiInstanceAllowed()) {
-	//		//auto editor = item.second->CreateEditor(this, true);
-	//	}
-	//}
-
-//	QtShared::DockWindowClassRgister::GetRegister()->Enumerate([this](auto &ci) {
-//		auto ptr = ci.SharedCreate(this);
-//		m_DockWindows.emplace_back(ptr);
-//
-//		if (ptr->IsMainMenu()) {
-//			m_Ui->menuWindows->addAction(ptr->GetIcon(), ptr->GetDisplayName(), ptr.get(), SLOT(Show()), ptr->GetKeySequence());
-//			AddLogf(Info, "Registered DockWindow: %s", ci.Alias.c_str());
-//		}
-//
-//		auto einfo = dynamic_cast<QtShared::iEditorInfo*>(ptr.get());
-//		if (einfo) {
-//			auto shd = GetSharedData();
-//			for (auto &it : einfo->GetCreateFileMethods()) {
-//				auto item = std::make_shared<SharedData::FileCreatorInfo>();
-//				*item = SharedData::FileCreatorInfo{ ptr, it, };
-//				m_Editors[it.m_Ext] = ptr;
-//				AddLogf(Info, "Associated file creator: %s->%s", item->m_Info.m_Ext.c_str(), ci.Alias.c_str());
-//				shd->m_FileCreators.emplace_back(std::move(item));
-//			}
-//		}
-//
-//		ptr->LoadSettings();
-//	});
 }
 
 MainWindow::~MainWindow() {
@@ -88,7 +56,6 @@ bool MainWindow::PostInit() {
 
 	return true;
 }
-
 
 MainWindow* MainWindow::Get() {
 	return _Instance;

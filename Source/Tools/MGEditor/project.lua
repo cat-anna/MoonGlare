@@ -42,6 +42,10 @@ group "Tools"
 			"StarVFS",
 		}
 
+        filter "action:vs*"
+            buildoptions  { "/bigobj", }
+
+
 --filter 'files:scripts/**.lua'
 --	buildmessage 'Compiling %{file.relpath} with bin2c'
 --	buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '

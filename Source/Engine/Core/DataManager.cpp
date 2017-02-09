@@ -145,13 +145,13 @@ bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
 	StarVFS::ByteTable data;
 	if (!Container->GetFileData(cfid, data)) {
 		AddLogf(Error, "Failed to read module meta-data from container '%s'", Container->GetContainerURI().c_str());
-		return true;
+		return false;
 	}
 
 	pugi::xml_document doc;
 	if (!doc.load_string((char*)data.get())) {
 		AddLogf(Error, "Failed to parse container meta-data xml '%s'", Container->GetContainerURI().c_str());
-		return true;
+		return false;
 	}
 
 	auto rootnode = doc.document_element();

@@ -76,19 +76,6 @@ struct RuntimeConfiguration {
 		XML::ReadTextIfPresent(node, "ConsoleFont", m_ConsoleFont);
 		return;
 	}
-
-	//		void Append(const ModuleSettings &cfg) {
-	//			if (!cfg.ConsoleFont.empty()) ConsoleFont = cfg.ConsoleFont;
-	//			if (!cfg.FirstScene.empty()) FirstScene = cfg.FirstScene;
-	//		}
-	//
-	//		//LoadMeta | SaveMeta
-	//		bool LoadMeta(const xml_node node) {
-	//			if (!node) return true;
-	//			XML::ReadTextIfPresent(node, "ConsoleFont", ConsoleFont);
-	//			XML::ReadTextIfPresent(node, "FirstScene", FirstScene);
-	//			return true;
-	//		}
 };
 
 class Manager : public cRootClass {
