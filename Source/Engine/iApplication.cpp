@@ -16,6 +16,7 @@
 #include <Engine/World.h>
 
 #include <Assets/AssetManager.h>
+#include <Renderer/Renderer.h>
 
 #include <iApplication.h>
 
@@ -83,11 +84,17 @@ bool iApplication::Initialize() {
 		return false;
 	}
 
+	m_Renderer = std::make_unique<Renderer::RendererFacade>();
+	if (!m_Renderer->Initialize()) {
+		AddLogf(Error, "Unable to initialize renderer");
+		return false;
+	}
+
 	Graphic::Window::InitializeWindowSystem();
 	auto Device = new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
 
     m_World = std::make_unique<World>();
-	auto Engine = new MoonGlare::Core::Engine(m_World.get());
+	auto Engine = new MoonGlare::Core::Engine(m_World.get(), m_Renderer.get());
 
 	if (Settings->Engine.EnableConsole)
 		_init_chk(new Console(), "Unable to initialize console!");
@@ -143,6 +150,11 @@ bool iApplication::Finalize() {
 
 	_finit_chk(MoonGlare::Core::Engine, "Engine finalization failed");
 	_finit_chk(Graphic::cRenderDevice, "Render device finalization failed");
+
+	if (m_Renderer && !m_Renderer->Finalize()) 
+		AddLogf(Error, "Unable to finalize renderer");
+	m_Renderer.reset();
+
 	_finit_chk(DataManager, "Data Manager finalization failed");
 	_finit_chk(ModulesManager, "Finalization of modules manager failed!");
 

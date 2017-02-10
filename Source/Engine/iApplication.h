@@ -48,6 +48,7 @@ protected:
     std::unique_ptr<World> m_World;
 
 	Asset::UniqueAssetManager m_AssetManager;
+	Renderer::UniqueRenderer m_Renderer;
 };
 
 } //namespace Application

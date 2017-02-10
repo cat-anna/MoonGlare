@@ -1,6 +1,5 @@
 #ifndef PCH_H
 #define PCH_H
-
 #pragma warning ( disable: 4005 )
 #pragma warning ( disable: 4800 )
 #pragma warning ( disable: 4100 )
@@ -65,6 +64,8 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
+#if 0
+ 
 #include "Utils/SetGet.h"
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
@@ -80,4 +81,5 @@ class cRootClass;
 
 #include "Error.h"
 
+#endif
 #endif

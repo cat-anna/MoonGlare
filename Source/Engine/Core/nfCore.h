@@ -58,6 +58,8 @@ protected:
 struct MoveConfig { 
 	float TimeDelta;
 
+	Renderer::Frame *m_Frame;
+
 	mutable Graphic::VirtualCamera *Camera = nullptr;
 	
 	mutable std::vector<iCustomDraw*> CustomDraw;

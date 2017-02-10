@@ -2,12 +2,13 @@
 #include <MoonGlare.h>
 
 #include "Engine.h"
-
 #include "Console.h"
 
 #include <Graphic/Dereferred/DereferredPipeline.h>
 
 #include <Renderer/RenderInput.h>
+#include <Renderer/Frame.h>
+#include <Source/Renderer/Renderer.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -17,7 +18,7 @@ RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
 RegisterDebugApi(EngineDebug, &Engine::RegisterDebugScriptApi, "Debug");
 
-Engine::Engine(World *world) :
+Engine::Engine(World *world, Renderer::RendererFacade *Renderer) :
 		cRootClass(),
 		m_Flags(0),
 		m_Running(false),
@@ -30,9 +31,11 @@ Engine::Engine(World *world) :
 		m_Dereferred(),
 		m_Forward(),
 
-        m_World(world)
+        m_World(world),
+		m_Renderer(Renderer)
 {
-    MoonGlareAssert(m_World);
+	MoonGlareAssert(m_World);
+	MoonGlareAssert(m_Renderer);
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
@@ -171,6 +174,7 @@ void Engine::EngineMain() {
 		m_ActionQueue.DispatchPendingActions();
 
 		++m_FrameCounter;
+		conf.m_Frame = m_Renderer->NextFrame();
 		float StartTime = static_cast<float>(glfwGetTime());
 
 		conf.TimeDelta = CurrentTime - LastMoveTime;
@@ -191,6 +195,8 @@ void Engine::EngineMain() {
 
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
+
+		m_Renderer->Submit(conf.m_Frame);
 
 		conf.m_SecondPeriod = CurrentTime - TitleRefresh >= 1.0;
 		if(conf.m_SecondPeriod) {

@@ -3,7 +3,7 @@
 #include <libSpace/src/Container/StaticVector.h>
 
 #include "Light.h"
-#include "VirtualCamera.h"
+#include <Renderer/VirtualCamera.h>
 
 #include "CommandQueue.h"
 #include "CommandQueueTable.h"

@@ -8,7 +8,7 @@ class Engine : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-    Engine(World *World);
+    Engine(World *World, Renderer::RendererFacade *Renderer);
     ~Engine();
 
 	bool Initialize();
@@ -50,6 +50,7 @@ protected:
 	Space::ActionQueue m_ActionQueue;
 
 	World *m_World;
+	Renderer::RendererFacade *m_Renderer = nullptr;
 
 	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 	std::unique_ptr<Graphic::Forward::ForwardPipeline> m_Forward;
