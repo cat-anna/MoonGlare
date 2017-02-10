@@ -261,7 +261,6 @@ void Window::CreateWindow() {
 		}
 	}
 
-
 	if (!w || !h) {
 		auto mon = glfwGetPrimaryMonitor();
 		auto mode = glfwGetVideoMode(mon);

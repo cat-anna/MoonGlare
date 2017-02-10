@@ -47,6 +47,53 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/seq.hpp>
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+
+#pragma warning ( push, 0 )
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#pragma warning ( pop )
+
+namespace emath {
+	using fvec2 = Eigen::Array2f;
+	using fvec3 = Eigen::Array3f;
+	using fvec4 = Eigen::Array4f;
+
+	using ivec2 = Eigen::Array2i;
+	using ivec3 = Eigen::Array3i;
+	using ivec4 = Eigen::Array4i;
+
+	using fmat3 = Eigen::Matrix3f;
+	using fmat4 = Eigen::Matrix4f;
+
+	template<class T, class S>
+	T MathCast(const S& s);
+
+	template<>
+	inline fmat4 MathCast(const glm::mat4 &s) {
+		return fmat4(&s[0][0]);
+	}
+	template<>
+	inline glm::fmat4 MathCast(const fmat4 &s) {
+		return *reinterpret_cast<const glm::fmat4*>(s.data());
+	}
+
+	template<>
+	inline fvec3 MathCast(const glm::fvec3 &s) {
+		return fvec3(s[0], s[1], s[2]);
+	}
+	template<>
+	inline fvec4 MathCast(const glm::fvec4 &s) {
+		return fvec4(s[0], s[1], s[2], s[3]);
+	}
+}
+
+
 using LockGuard = std::lock_guard < std::mutex >;
 #define MERGE_(a,b)  a##b
 #define LABEL_(a) MERGE_(unique_name_, a)

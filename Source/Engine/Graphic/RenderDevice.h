@@ -38,7 +38,7 @@ public:
 	void Bind(VirtualCamera *c) { 
 		m_CurrentCamera = c; 
 		if (c) {
-			SetCameraMatrix(c->GetProjectionMatrix());
+			SetCameraMatrix(c->m_ProjectionMatrix);
 		}
 	}
 	
@@ -74,6 +74,14 @@ public:
 
 	void SetCameraMatrix(const math::mat4 &m) { 
 		m_CameraMatrix = m; 
+		auto sh = CurrentShader();
+		if (!sh)
+			return;
+		sh->SetCameraMatrix(m);
+	}
+
+	void SetCameraMatrix(const emath::fmat4 &m) {
+		m_CameraMatrix = emath::MathCast<math::mat4>(m);
 		auto sh = CurrentShader();
 		if (!sh)
 			return;

@@ -43,8 +43,10 @@ public:
 	void SetWorldMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::WorldMatrix), 1, GL_FALSE, &mat[0][0]); }
 	void SetModelMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::ModelMatrix), 1, GL_FALSE, &mat[0][0]); }
 	void SetCameraMatrix(const glm::mat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::CameraMatrix), 1, GL_FALSE, &mat[0][0]); }
+	void SetCameraMatrix(const emath::fmat4 & mat) { glUniformMatrix4fv(Location(ShaderParameters::CameraMatrix), 1, GL_FALSE, (float*)&mat); }
 
 	void SetCameraPos(const glm::vec3 & pos) { glUniform3fv(Location(ShaderParameters::CameraPos), 1, &pos[0]); }
+	void SetCameraPos(const emath::fvec3 & pos) { glUniform3fv(Location(ShaderParameters::CameraPos), 1, &pos[0]); }
 
 	void SetBackColor(const math::vec3 &color) { glUniform3fv(Location(ShaderParameters::Material_BackColor), 1, &color[0]); }
 	void SetAlphaThreshold(float f) { glUniform1f(Location(ShaderParameters::Material_AlphaThreshold), f); }

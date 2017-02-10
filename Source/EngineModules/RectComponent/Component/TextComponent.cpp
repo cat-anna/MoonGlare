@@ -139,7 +139,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
-		m_Shader->SetWorldMatrix(Queue, key, entry.m_Matrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(entry.m_Matrix), m_RectTransform->GetCamera().GetProjectionMatrix());
 		m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 		entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);

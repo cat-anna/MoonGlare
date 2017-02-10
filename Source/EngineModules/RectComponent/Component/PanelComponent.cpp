@@ -162,7 +162,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		m_Shader->SetWorldMatrix(Queue, key, rtentry->m_GlobalMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), m_RectTransform->GetCamera().GetProjectionMatrix());
 		
 		m_Shader->SetPanelSize(Queue, key, rtentry->m_ScreenRect.GetSize());
 		m_Shader->SetBorder(Queue, key, item.m_Border);

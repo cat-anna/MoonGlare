@@ -122,7 +122,7 @@ Console::~Console() {
 
 //-------------------------------------------------------------------------------------------------
 
-struct Console::Internals {
+struct alignas(16) Console::Internals{
 	Graphic::VirtualCamera m_Camera;
 
 	Internals() {

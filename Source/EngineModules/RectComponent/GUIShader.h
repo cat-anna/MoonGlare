@@ -45,7 +45,7 @@ public:
 	//	arg->m_Matrix = mat;
 	//}
 
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat, const glm::mat4 &CameraMat) {
+	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 & ModelMat, const emath::fmat4 &CameraMat) {
 		auto loc = Location(ShaderParameters::WorldMatrix);
 		if (!IsValidLocation(loc))
 			return;

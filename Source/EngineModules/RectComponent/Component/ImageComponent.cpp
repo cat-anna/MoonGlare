@@ -145,7 +145,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		m_Shader->SetWorldMatrix(Queue, key, item.m_ImageMatrix, m_RectTransform->GetCamera().GetProjectionMatrix());
+		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(item.m_ImageMatrix), m_RectTransform->GetCamera().GetProjectionMatrix());
 		m_Shader->SetColor(Queue, key, item.m_Color);
 		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
 
