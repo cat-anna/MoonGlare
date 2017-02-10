@@ -6,6 +6,10 @@ group "EngineLibs"
 
 		SetPCH { hdr = "pch.h", src = "pch.cpp", }
 
+        forceincludes {
+            "pch.h",
+        }
+
 		defines {
 			"_BUILDING_ENGINE_",
 			"BT_EULER_DEFAULT_ZYX",

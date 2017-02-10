@@ -8,7 +8,7 @@ class Engine : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
-    Engine();
+    Engine(World *World);
     ~Engine();
 
 	bool Initialize();
@@ -28,9 +28,9 @@ public:
 	template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
 
 	/** Abort engine execution. Throws exception. No cleanup is done. */
-	void Abort();			
+	void Abort();
 	/** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
-	void Exit();				
+	void Exit();
 
 	static void ScriptApi(ApiInitializer &root);
 	static void RegisterDebugScriptApi(ApiInitializer &root);
@@ -43,13 +43,13 @@ public:
 
 	static string GetVersionString();
 
-	World* GetWorld() { return m_World.get(); }
+	World* GetWorld() { return m_World; }
 
 protected:
 	unsigned m_Flags;
 	Space::ActionQueue m_ActionQueue;
 
-	std::unique_ptr<World> m_World;
+	World *m_World;
 
 	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 	std::unique_ptr<Graphic::Forward::ForwardPipeline> m_Forward;
@@ -61,11 +61,11 @@ protected:
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
 
 	void ChangeSceneImpl();
-}; 
+};
 
 inline Engine* GetEngine() { return Engine::Instance(); }
 
 } //namespace Core
-} //namespace MoonGlare 
+} //namespace MoonGlare
 
 #endif // ENGINE_H

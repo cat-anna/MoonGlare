@@ -11,6 +11,8 @@ namespace Core {
 	class Hooks;	   
 	class Console;
 
+	class Engine;
+
 }//namespace Core
 }//namespace MoonGlare
 

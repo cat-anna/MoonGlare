@@ -19,7 +19,7 @@
 
 #include <iApplication.h>
 
-#include <AssetConfiguration.x2c.h>
+#include <AssetSettings.x2c.h>
 
 namespace MoonGlare {
 namespace Application {
@@ -64,7 +64,7 @@ bool iApplication::Initialize() {
 	_init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
 	m_AssetManager = std::make_unique<Asset::AssetManager>();
-	if (!m_AssetManager->Initialize(x2c::Settings::AssetConfiguration_t())) {
+	if (!m_AssetManager->Initialize(x2c::Settings::AssetSettings_t())) {
 		AddLogf(Error, "Unable to initialize asset manager!");
 		return false;
 	}
@@ -80,19 +80,20 @@ bool iApplication::Initialize() {
 
 	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
 		AddLogf(Error, "Unable to initialize data manager!");
-		return false; 
+		return false;
 	}
 
 	Graphic::Window::InitializeWindowSystem();
 	auto Device = new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
 
-	auto Engine = new MoonGlare::Core::Engine();
+    m_World = std::make_unique<World>();
+	auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
 	if (Settings->Engine.EnableConsole)
 		_init_chk(new Console(), "Unable to initialize console!");
 
 	Graphic::GetRenderDevice()->Initialize();
-	MoonGlare::Core::GetEngine()->Initialize();
+	Engine->Initialize();
 
 	//Temporary solution which probably will be used for eternity
 	auto Input = Engine->GetWorld()->GetInputProcessor();
@@ -155,7 +156,7 @@ bool iApplication::Finalize() {
 
 	_del_chk(ScriptEngine, "Finalization of script engine failed!");
 	if(!m_AssetManager->Finalize()) {
-		 AddLogf(Error, "AssetManager finalization failed"); 
+		 AddLogf(Error, "AssetManager finalization failed");
 	}
 	m_AssetManager.reset();
 	_del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
@@ -202,5 +203,5 @@ void iApplication::RegisterScriptApi(ApiInitializer &root) {
 RegisterApiDerivedClass(iApplication, &iApplication::RegisterScriptApi);
 RegisterApiInstance(iApplication, &iApplication::Instance, "Application");
 
-} //namespace Application 
-} //namespace MoonGlare 
+} //namespace Application
+} //namespace MoonGlare

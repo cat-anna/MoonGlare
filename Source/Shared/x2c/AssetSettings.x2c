@@ -6,7 +6,7 @@ Alias(Types.string, "ModulePath")
 Alias(Container.table(Local.ModulePath), "ModuleList")
 
 Structure.new {
-	name = "AssetConfiguration",
+	name = "AssetSettings",
 	description = "",
 	fields = {
 		{

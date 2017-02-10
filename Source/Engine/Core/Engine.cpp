@@ -17,7 +17,7 @@ RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
 RegisterDebugApi(EngineDebug, &Engine::RegisterDebugScriptApi, "Debug");
 
-Engine::Engine() :
+Engine::Engine(World *world) :
 		cRootClass(),
 		m_Flags(0),
 		m_Running(false),
@@ -28,11 +28,13 @@ Engine::Engine() :
 		m_FrameTimeSlice(1.0f),
 
 		m_Dereferred(),
-		m_Forward()
-{
-	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
+		m_Forward(),
 
-	m_World = std::make_unique < World >();
+        m_World(world)
+{
+    MoonGlareAssert(m_World);
+
+	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
 	SetThisAsInstance();
 	new JobQueue();
@@ -71,14 +73,13 @@ bool Engine::Finalize() {
 	if (!m_World->Finalize()) {
 		AddLogf(Error, "Failed to finalize world!");
 	}
-	m_World.reset();
 
 	return true;
 }
 
 bool Engine::PostSystemInit() {
 	GetDataMgr()->LoadGlobalData();
-	
+
 	if (!m_World->PostSystemInit()) {
 		AddLogf(Error, "World PostSystemInit failed!");
 		return false;
@@ -94,9 +95,9 @@ void Engine::ScriptApi(ApiInitializer &root){
 	.deriveClass<ThisClass, BaseClass>("cEngine")
 		.addFunction("GetFrameRate", &ThisClass::GetFrameRate)
 		.addFunction("GetInfoString", Utils::Template::InstancedStaticCall<ThisClass, string>::get<&ThisClass::GetVersionString>())
-		
+
 //		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
-		
+
 #ifdef DEBUG_SCRIPTAPI
 		.addFunction("SetFrameRate", &ThisClass::SetFrameRate)
 #endif
@@ -198,8 +199,8 @@ void Engine::EngineMain() {
 			m_FrameCounter = 0;
 			float sum = EndTime - StartTime;
 			//if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
-				sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f", 
-						CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames, 
+				sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
+						CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames,
 						(MoveTime - StartTime) * 1000.0f,
 						(SortTime - MoveTime) * 1000.0f,
 						(RenderTime - SortTime) * 1000.0f,
@@ -217,7 +218,7 @@ void Engine::EngineMain() {
 		AddLogf(Error, "Failure during PreSystemShutdown");
 		return;
 	}
-}         
+}
 
 //----------------------------------------------------------------------------------
 
@@ -227,7 +228,7 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	conf.m_RenderInput->OnBeginFrame(dev);
 	dev.DispatchContextManipRequests();
-	
+
 	dev.BeginFrame();
 	dev.ClearBuffer();
 
@@ -236,7 +237,7 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	if(conf.Camera)
 		dev.Bind(conf.Camera);
-	 
+
 	m_Dereferred->Execute(conf, dev);
 
 	m_Forward->BeginFrame(dev);
@@ -244,7 +245,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	dev.SetModelMatrix(math::mat4());
 	if (dev.CurrentEnvironment())
 		dev.CurrentEnvironment()->Render(dev);
-	  
+
 	m_Forward->BeginD2Render(dev);
 
 	glEnable(GL_BLEND);
@@ -259,10 +260,10 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	glDisable(GL_BLEND);
 
-#ifdef DEBUG   
+#ifdef DEBUG
 	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
-	glActiveTexture(GL_TEXTURE0);   
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 1);
 	m_Forward->EndFrame();
 
@@ -270,7 +271,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();
-} 
+}
 
 void Engine::DoMove(MoveConfig &conf) {
 	GetScriptEngine()->Step(conf);
@@ -280,7 +281,7 @@ void Engine::DoMove(MoveConfig &conf) {
 //----------------------------------------------------------------------------------
 
 void Engine::SetFrameRate(float value) {
-	if (value < 1.0f) 
+	if (value < 1.0f)
 		value = 1.0f;
 	else {
 		float refresh = (float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate();
@@ -329,4 +330,4 @@ string Engine::GetVersionString() {
 }
 
 } //namespace Core
-} //namespace MoonGlare 
+} //namespace MoonGlare

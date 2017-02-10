@@ -39,7 +39,8 @@ public:
 	Core::Hooks* GetHooks() { return m_Hooks.get(); }
 
 	Core::Console* GetConsole();
-private: 
+    Core::Engine* GetEngine();
+private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
 	std::unique_ptr<Core::Hooks> m_Hooks;
@@ -51,6 +52,6 @@ private:
 	Core::EntityManager m_EntityManager;
 };
 
-} //namespace MoonGlare 
+} //namespace MoonGlare
 
 #endif

@@ -19,7 +19,7 @@ group "EngineLibs"
 			"**",
 			"../Config/*.h",
 			"../Utils/**.h",
-            "../Shared/x2c/AssetConfiguration.x2c",
+            "../Shared/x2c/AssetSettings.x2c",
 		}
 		includedirs {
 			".",

@@ -13,6 +13,7 @@
 #include "Core/Hooks.h"
 
 #include "Core/Console.h"
+#include "Core/Engine.h"
 
 namespace MoonGlare {
 
@@ -149,8 +150,12 @@ bool World::Step(const Core::MoveConfig & config) {
 
 //------------------------------------------------------------------------------------------
 
-Core::Console * World::GetConsole() {
+Core::Console* World::GetConsole() {
 	return MoonGlare::GetConsole();
 }
 
-} //namespace MoonGlare 
+Core::Engine* World::GetEngine() {
+    return MoonGlare::Core::GetEngine();
+}
+
+} //namespace MoonGlare

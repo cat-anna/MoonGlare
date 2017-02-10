@@ -45,14 +45,15 @@ public:
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
 	Flags m_Flags;
+    std::unique_ptr<World> m_World;
 
 	Asset::UniqueAssetManager m_AssetManager;
 };
 
-} //namespace Application 
+} //namespace Application
 
 inline Application::iApplication* GetApplication() { return Application::iApplication::Instance(); }
 
-} //namespace MoonGlare 
+} //namespace MoonGlare
 
 #endif

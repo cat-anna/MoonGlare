@@ -9,9 +9,8 @@
 #ifndef AssetManager_H
 #define AssetManager_H
 
-
 namespace MoonGlare::x2c::Settings {
-	struct AssetConfiguration_t;
+	struct AssetSettings_t;
 }
 
 namespace MoonGlare::Asset {
@@ -27,7 +26,7 @@ public:
  	AssetManager();
  	~AssetManager();
 
-	bool Initialize(const x2c::Settings::AssetConfiguration_t &Configuration);
+	bool Initialize(const x2c::Settings::AssetSettings_t &Configuration);
 	bool Finalize();
 
 	Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }

@@ -20,7 +20,7 @@ AssetManager::AssetManager() {
 AssetManager::~AssetManager() {
 }
 
-bool AssetManager::Initialize(const x2c::Settings::AssetConfiguration_t & Configuration) {
+bool AssetManager::Initialize(const x2c::Settings::AssetSettings_t& Configuration) {
 
 	m_FileSystem = std::make_unique<FileSystem>();
 	if (!m_FileSystem->Initialize()) {

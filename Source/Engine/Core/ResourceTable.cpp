@@ -32,6 +32,7 @@ bool ResourceTable::Initialize() {
 }
 
 bool ResourceTable::Finalize() {
+	m_Array.fill(ResourceEntry());
 	return true;
 }
 
