@@ -82,11 +82,6 @@ bool iApplication::Initialize() {
 
 	_init_chk(new ScriptEngine(), "Unable to initialize script engine!");
 
-	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
-		AddLogf(Error, "Unable to initialize data manager!");
-		return false;
-	}
-
 	m_Renderer = std::make_unique<Renderer::RendererFacade>();
 
 	using Graphic::GraphicSettings;
@@ -102,6 +97,11 @@ bool iApplication::Initialize() {
 
 	auto window = std::make_unique<Graphic::Window>(m_Renderer->CurrentContext()->GetHandle(), true);
 	auto Device = new Graphic::cRenderDevice(std::move(window), m_AssetManager.get());
+
+	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
+		AddLogf(Error, "Unable to initialize data manager!");
+		return false;
+	}
 
 	m_World = std::make_unique<World>();
 	auto Engine = new MoonGlare::Core::Engine(m_World.get(), m_Renderer.get());
@@ -160,6 +160,7 @@ bool iApplication::Finalize() {
 	_del_chk(Console, "Console finalization failed");
 
 	_finit_chk(MoonGlare::Core::Engine, "Engine finalization failed");
+	_finit_chk(DataManager, "Data Manager finalization failed");
 	_finit_chk(Graphic::cRenderDevice, "Render device finalization failed");
 
 	Graphic::cRenderDevice::DeleteInstance();
@@ -168,7 +169,6 @@ bool iApplication::Finalize() {
 		AddLogf(Error, "Unable to finalize renderer");
 	m_Renderer.reset();
 
-	_finit_chk(DataManager, "Data Manager finalization failed");
 	_finit_chk(ModulesManager, "Finalization of modules manager failed!");
 
 	ModulesManager::DeleteInstance();
@@ -185,7 +185,6 @@ bool iApplication::Finalize() {
 	AddLog(Debug, "Application finalized");
 #undef _finit_chk
 #undef _del_chk
-
 	return true;
 }
 

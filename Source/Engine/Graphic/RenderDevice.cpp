@@ -51,7 +51,7 @@ bool cRenderDevice::Initialize() {
 
 bool cRenderDevice::Finalize() {
 	AddLog(Performance, "Frames drawn: " << m_FrameIndex);
-	return true;
+	return GetShaderMgr()->Finalize();
 }
 
 //----------------------------------------------------------------------------------

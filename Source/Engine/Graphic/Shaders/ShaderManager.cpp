@@ -252,16 +252,18 @@ void ShaderManager::GenerateShaderConfiguration() {
 
 //-------------------------------------------------------------------
 
-ShaderManager::ShaderDefinition::ShaderDefinition() : Name("?"), Handle(0), ShaderPtr(nullptr) {}
+ShaderManager::ShaderDefinition::ShaderDefinition() : Name("?"), Handle(-1), ShaderPtr(nullptr) {}
 
 ShaderManager::ShaderDefinition::~ShaderDefinition() { 
 	delete ShaderPtr;
 	ShaderPtr = nullptr;
 	
 	auto handle = this->Handle;
-	GetRenderDevice()->RequestContextManip([handle] () {
-		glDeleteProgram(handle);
-	}); 
+	if (handle >= 0) {
+		GetRenderDevice()->RequestContextManip([handle] () {
+			glDeleteProgram(handle);
+		});
+	}
 }
 
 } // namespace Shaders 

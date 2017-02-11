@@ -64,6 +64,8 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
+#include <Utils/PerfCounters.h>
+
 #if 0
  
 #include "Utils/SetGet.h"
@@ -77,7 +79,6 @@ class cRootClass;
 #include "d2math.h"
 #include "Utils/XMLUtils.h"
 #include "Utils/StreamUtils.h"
-#include <Utils/PerfCounters.h>
 
 #include "Error.h"
 

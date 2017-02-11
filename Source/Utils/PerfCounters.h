@@ -9,25 +9,43 @@ namespace PerformanceCounters {
 inline void PrintPerfCounter(unsigned __int64 Value, void *OwnerPtr, const char *OwnerName, const char *Name) {
 	//AddLogf(Performance, "Destroying counter %s. Owner %s (%x). Current value: %llu", Name, OwnerName, OwnerPtr, static_cast<unsigned long long>(Value));
 }
+template<typename Mode, typename OWNER>
+struct GetCouterOwnerName;
 
 template<class OWNER, class INFO>
 struct Counter {
+	std::atomic<uint64_t> Value = 0;
 	OWNER *Owner = nullptr;
-	unsigned __int64 Value = 0;
-	void increment(unsigned __int64 val = 1) { Value += val; }
-	void decrement(unsigned __int64 val = 1) { Value -= val; }
+	std::string OwnerName;
+	void increment(uint64_t val = 1) { Value += val; }
+	void decrement(uint64_t val = 1) { Value -= val; }
+
 	void SetOwner(OWNER *ptr) {
 		Owner = ptr;
+		OwnerName = GetCouterOwnerName<std::is_base_of<cRootClass, OWNER>::type, OWNER>::Get(ptr);
 	}
 	~Counter() {
-		const char *OwnerName;
-		if (Owner)
-			OwnerName = Owner->GetDynamicTypeInfo()->GetName();
-		else
-			OwnerName = OWNER::GetStaticTypeInfo()->GetName();
-		PrintPerfCounter(Value, Owner, OwnerName, INFO::Name());
+		PrintPerfCounter(Value, Owner, OwnerName.c_str(), INFO::Name());
 	}
 };
+
+template<typename OWNER>
+struct GetCouterOwnerName<std::true_type, OWNER> {
+	static std::string Get(OWNER *Owner) {
+		if (Owner)
+			return Owner->GetDynamicTypeInfo()->GetName();
+		else
+			return OWNER::GetStaticTypeInfo()->GetName();
+	}
+};
+
+template<typename OWNER>
+struct GetCouterOwnerName<std::false_type, OWNER> {
+	static std::string Get(OWNER *Owner) {
+		return typeid(OWNER).name();
+	}
+};
+
 }
 
 #define DeclarePerformanceCounter(NAME)			\

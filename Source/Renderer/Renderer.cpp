@@ -49,7 +49,7 @@ bool RendererFacade::Finalize() {
     }
     m_Device.reset();
 
-	if (m_Context && m_Context->Finalize()) {
+	if (m_Context && !m_Context->Finalize()) {
 		AddLogf(Error, "Context finalization failed!");
 	}
 	m_Context.reset();

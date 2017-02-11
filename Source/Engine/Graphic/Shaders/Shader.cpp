@@ -95,7 +95,7 @@ Shader::Shader(GLuint ShaderProgram, const string &ProgramName):
 }  
  
 Shader::~Shader() { 
-	glDeleteProgram(m_ShaderProgram); 
+	//glDeleteProgram(m_ShaderProgram); 
 }
 
 } // namespace Shaders 
