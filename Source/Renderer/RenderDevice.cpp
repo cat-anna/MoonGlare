@@ -14,42 +14,81 @@
 
 namespace MoonGlare::Renderer {
 
-RenderDevice::RenderDevice() {
+RenderDevice::RenderDevice() :
+		m_PendingFrame(nullptr) {
+
+	SetPerformanceCounterOwner(DroppedFrames);
+	SetPerformanceCounterOwner(FramesProcessed);
 }
 
 RenderDevice::~RenderDevice() {
 }
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
-	
 	CriticalCheck(glewInit() == GLEW_OK, "Unable to initialize GLEW!");
 	AddLog(Debug, "GLEW initialized");
 	AddLog(System, "GLEW version: " << (char*) glewGetString(GLEW_VERSION));
 
-	//	for (auto &buffer : m_Frames) {
-	//		buffer = std::make_unique<Frame>();
-	//		if (!buffer->Initialize(this, m_Device.get())) {
-	//			AddLogf(Error, "Frame buffer initialization failed!");
-	//			return false;
-	//		}
-	//	}
-
 	Device::ErrorHandler::RegisterErrorCallback();
 	Device::DeviceInfo::ReadInfo();
+
+	for (uint32_t idx = 0; idx < Conf::Count; ++idx) {
+		auto &buffer = m_Frames[idx];
+		buffer = std::make_unique<Frame>();
+		if (!buffer->Initialize(idx, this)) {
+			AddLogf(Error, "Frame buffer initialization failed!");
+			return false;
+		}
+	}
 
 	return true;
 }
 
 bool RenderDevice::Finalize() {
 
-	//	for (auto &buffer : m_Frames) {
-	//		if (!buffer->Finalize()) {
-	//			AddLogf(Error, "Frame buffer finalization failed!");
-	//		}
-	//		buffer.reset();
-	//	}
+	for (auto &buffer : m_Frames) {
+		if (!buffer->Finalize()) {
+			AddLogf(Error, "Frame buffer finalization failed!");
+		}
+		buffer.reset();
+	}
 
 	return true;
+}
+
+//----------------------------------------------------------------------------------
+
+Frame* RenderDevice::NextFrame() {
+	uint32_t index;
+	for (uint32_t idx = 0; idx < Conf::Count; ++idx) {
+		auto bit = 1 << idx;
+		if ((m_FreeFrameBuffers.fetch_and(~bit) & bit) == bit)
+			return m_Frames[idx].get();
+	}
+
+	return nullptr;
+}
+
+void RenderDevice::Submit(Frame *frame) {
+	auto prevframe = m_PendingFrame.exchange(frame);
+	if (prevframe) {
+		auto bit = 1 << prevframe->Index();
+		m_FreeFrameBuffers.fetch_or(bit);
+		IncrementPerformanceCounter(DroppedFrames);
+	}
+}								  
+
+//----------------------------------------------------------------------------------
+
+void RenderDevice::Step() {
+	auto frame = m_PendingFrame.exchange(nullptr);
+	if (!frame)
+		return;
+
+	auto bit = 1 << frame->Index();
+	m_FreeFrameBuffers.fetch_or(bit);
+
+	IncrementPerformanceCounter(FramesProcessed);
 }
 
 //----------------------------------------------------------------------------------

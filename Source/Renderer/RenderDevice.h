@@ -15,20 +15,26 @@ namespace MoonGlare::Renderer {
 class RendererFacade;
 
 class RenderDevice final {
+	using ThisClass = RenderDevice;
+	using Conf = Configuration::FrameBuffer;
 public:
  	RenderDevice();
  	~RenderDevice();
 
 	bool Initialize(RendererFacade *renderer);
 	bool Finalize ();
-
 	
 	Frame* NextFrame();
 	void Submit(Frame *frame);
-private:
 
-	std::array<std::unique_ptr<Frame>, Configuration::FrameBuffer::Count> m_Frames;
-	std::atomic<Frame*> m_NextFrame;
+	void Step();
+private:
+	std::array<std::unique_ptr<Frame>, Conf::Count> m_Frames;
+	std::atomic<uint32_t> m_FreeFrameBuffers;
+	std::atomic<Frame*> m_PendingFrame;
+
+	DeclarePerformanceCounter(DroppedFrames);
+	DeclarePerformanceCounter(FramesProcessed);
 };
 
 } //namespace MoonGlare::Renderer

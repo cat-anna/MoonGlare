@@ -66,21 +66,10 @@ bool RendererFacade::Finalize() {
 void RendererFacade::Start() {
     m_CanWork = true;
 
-    while(m_CanWork) {
-		Step();
-    }
 }
 
 void RendererFacade::Stop() {
     m_CanWork = false;
-}
-
-void RendererFacade::Step() {
-	//auto frame = m_NextFrame.exchange(nullptr);
-	//if (!frame)
-	//	return;
-
-	//tbd
 }
 
 //----------------------------------------------------------------------------------

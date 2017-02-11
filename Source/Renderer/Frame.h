@@ -16,12 +16,12 @@ public:
  	Frame();
  	~Frame();
 
-	bool Initialize(RendererFacade *renderer, RenderDevice *device);
+	bool Initialize(uint8_t mBufferIndex, RenderDevice *device);
 	bool Finalize();
 
-	void Submit();
-
+	uint8_t Index() const { return m_BufferIndex; }
 private: 
+	uint8_t m_BufferIndex;
 };
 
 } //namespace MoonGlare::Renderer 

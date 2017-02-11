@@ -22,11 +22,11 @@ public:
     /** Shall work on main thread; does not return until stopped */
     void Start();
     void Stop();
-	
-	void Step();
 
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
+
 	Context* CurrentContext() { return m_Context.get(); }
+	RenderDevice* GetDevice() { return m_Device.get(); }
 private:
     bool m_CanWork = false;
 

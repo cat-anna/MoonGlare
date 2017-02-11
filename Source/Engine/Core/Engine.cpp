@@ -8,7 +8,9 @@
 
 #include <Renderer/RenderInput.h>
 #include <Renderer/Frame.h>
+
 #include <Source/Renderer/Renderer.h>
+#include <Source/Renderer/RenderDevice.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -143,6 +145,8 @@ void Engine::EngineMain() {
 	float LastFrame = CurrentTime;
 	float LastMoveTime = CurrentTime;
 
+	auto Device = m_Renderer->GetDevice();
+
 	MoveConfig conf;
 	conf.m_RenderInput = dev.CreateRenderInput();
 
@@ -174,7 +178,7 @@ void Engine::EngineMain() {
 		m_ActionQueue.DispatchPendingActions();
 
 		++m_FrameCounter;
-		conf.m_Frame = m_Renderer->NextFrame();
+		conf.m_Frame = Device->NextFrame();
 		float StartTime = static_cast<float>(glfwGetTime());
 
 		conf.TimeDelta = CurrentTime - LastMoveTime;
@@ -191,12 +195,15 @@ void Engine::EngineMain() {
 
 		float RenderTime = static_cast<float>(glfwGetTime());
 
+
+		Device->Submit(conf.m_Frame);
+		Device->Step();
+
 		dev.EndFrame();
 
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
 
-		m_Renderer->Submit(conf.m_Frame);
 
 		conf.m_SecondPeriod = CurrentTime - TitleRefresh >= 1.0;
 		if(conf.m_SecondPeriod) {

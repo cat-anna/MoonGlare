@@ -16,7 +16,9 @@ Frame::Frame() {
 Frame::~Frame() {
 }
 
-bool Frame::Initialize(RendererFacade * renderer, RenderDevice * device) {
+bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device) {
+	m_BufferIndex = BufferIndex;
+
 	return true;
 }
 
