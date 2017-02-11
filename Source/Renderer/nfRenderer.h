@@ -14,5 +14,16 @@ using UniqueRenderer = std::unique_ptr<RendererFacade>;
 
 class Frame;
 class RenderDevice;
+class Context;
+
+struct alignas(16) VirtualCamera;
+
+struct ContextCreationInfo {
+	uint32_t m_Width = 800;
+	uint32_t m_Height = 600;
+	int32_t MonitorIndex = -1;
+	bool FullScreen = false;
+	const char *Title = "Window";
+};
 
 } //namespace MoonGlare::Renderer

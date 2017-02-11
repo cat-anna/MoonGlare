@@ -10,6 +10,7 @@
 
 #include "RenderDevice.h"
 #include "Frame.h"
+#include "Context.h"
 
 namespace MoonGlare::Renderer {
 
@@ -21,36 +22,41 @@ RendererFacade::~RendererFacade() {
 
 //----------------------------------------------------------------------------------
 
-bool RendererFacade::Initialize() {
-    m_Device = std::make_unique<RenderDevice>();
+bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo) {
+	if (!Context::InitializeSubSystem()) {
+		AddLogf(Error, "Context subsystem initialization failed!");
+		return false;
+	}
+
+	m_Context = std::make_unique<Context>();
+	if (!m_Context->Initialize(ctxifo, this, m_Device.get())) {
+		AddLogf(Error, "Context initialization failed!");
+		return false;
+	}
+	
+	m_Device = std::make_unique<RenderDevice>();
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");
         return false;
-    }
-
-    for(auto &buffer: m_Frames) {
-		buffer = std::make_unique<Frame>();
-        if(!buffer->Initialize(this, m_Device.get())) {
-            AddLogf(Error, "Frame buffer initialization failed!");
-            return false;
-        }
     }
 
     return true;
 }
 
 bool RendererFacade::Finalize() {
-    for(auto &buffer: m_Frames) {
-        if(!buffer->Finalize()) {
-            AddLogf(Error, "Frame buffer finalization failed!");
-        }
-		buffer.reset();
-    }
-
     if(m_Device && !m_Device->Finalize()) {
         AddLogf(Error, "Render device finalization failed!");
     }
     m_Device.reset();
+
+	if (m_Context && m_Context->Finalize()) {
+		AddLogf(Error, "Context finalization failed!");
+	}
+	m_Context.reset();
+
+	if (!Context::FinalizeSubSystem()) {
+		AddLogf(Error, "Context subsystem finalization failed!");
+	}
 
     return true;
 }
@@ -70,20 +76,12 @@ void RendererFacade::Stop() {
 }
 
 void RendererFacade::Step() {
-	auto frame = m_NextFrame.exchange(nullptr);
-	if (!frame)
-		return;
+	//auto frame = m_NextFrame.exchange(nullptr);
+	//if (!frame)
+	//	return;
 
-
+	//tbd
 }
-
-//----------------------------------------------------------------------------------
-
-Frame * RendererFacade::NextFrame() {
-	return nullptr;
-}
-
-void RendererFacade::Submit(Frame * frame) {}
 
 //----------------------------------------------------------------------------------
 

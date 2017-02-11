@@ -60,7 +60,7 @@ struct MoveConfig {
 
 	Renderer::Frame *m_Frame;
 
-	mutable Graphic::VirtualCamera *Camera = nullptr;
+	mutable Renderer::VirtualCamera *Camera = nullptr;
 	
 	mutable std::vector<iCustomDraw*> CustomDraw;
 

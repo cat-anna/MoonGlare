@@ -7,6 +7,10 @@
 
 #include "nfRenderer.h"
 #include "RenderDevice.h"
+#include "Frame.h"
+
+#include "Device/ErrorHandler.h"
+#include "Device/DeviceInfo.h"
 
 namespace MoonGlare::Renderer {
 
@@ -17,10 +21,34 @@ RenderDevice::~RenderDevice() {
 }
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
+	
+	CriticalCheck(glewInit() == GLEW_OK, "Unable to initialize GLEW!");
+	AddLog(Debug, "GLEW initialized");
+	AddLog(System, "GLEW version: " << (char*) glewGetString(GLEW_VERSION));
+
+	//	for (auto &buffer : m_Frames) {
+	//		buffer = std::make_unique<Frame>();
+	//		if (!buffer->Initialize(this, m_Device.get())) {
+	//			AddLogf(Error, "Frame buffer initialization failed!");
+	//			return false;
+	//		}
+	//	}
+
+	Device::ErrorHandler::RegisterErrorCallback();
+	Device::DeviceInfo::ReadInfo();
+
 	return true;
 }
 
 bool RenderDevice::Finalize() {
+
+	//	for (auto &buffer : m_Frames) {
+	//		if (!buffer->Finalize()) {
+	//			AddLogf(Error, "Frame buffer finalization failed!");
+	//		}
+	//		buffer.reset();
+	//	}
+
 	return true;
 }
 

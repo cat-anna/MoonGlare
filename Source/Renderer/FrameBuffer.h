@@ -16,7 +16,7 @@ public:
  	FrameBuffer() { }
 	~FrameBuffer() { }
 private:
-	std::array<uint8_t, Configuration::FrameBufferSize> m_Memory;
+	std::array<uint8_t, Configuration::FrameBuffer::MemorySize> m_Memory;
 };
 
 } //namespace MoonGlare::Renderer

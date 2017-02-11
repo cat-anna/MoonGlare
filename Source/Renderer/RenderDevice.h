@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "nfRenderer.h"
+#include "Configuration.Renderer.h"
+
 namespace MoonGlare::Renderer {
 
 class RendererFacade;
@@ -18,7 +21,14 @@ public:
 
 	bool Initialize(RendererFacade *renderer);
 	bool Finalize ();
+
+	
+	Frame* NextFrame();
+	void Submit(Frame *frame);
 private:
+
+	std::array<std::unique_ptr<Frame>, Configuration::FrameBuffer::Count> m_Frames;
+	std::atomic<Frame*> m_NextFrame;
 };
 
 } //namespace MoonGlare::Renderer

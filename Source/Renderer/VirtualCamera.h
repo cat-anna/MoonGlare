@@ -4,9 +4,7 @@
  *  Created on: 08-11-2013
  *      Author: Paweu
  */
-
-#ifndef VIRTUALCAMERA_H_
-#define VIRTUALCAMERA_H_
+#pragma once
 
 namespace MoonGlare::Renderer {
 
@@ -61,5 +59,3 @@ struct alignas(16) VirtualCamera {
 };
 
 } //namespace MoonGlare::Renderer 
-
-#endif // VIRTUALCAMERA_H_

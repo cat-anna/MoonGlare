@@ -16,7 +16,7 @@ public:
 	RendererFacade();
  	~RendererFacade();
 
-    bool Initialize();
+    bool Initialize(const ContextCreationInfo& ctxifo);
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */
@@ -25,14 +25,13 @@ public:
 	
 	void Step();
 
-	Frame* NextFrame();
-	void Submit(Frame *frame);
+//	Context* CreateContext(const ContextCreationInfo& ctxifo);
+	Context* CurrentContext() { return m_Context.get(); }
 private:
-	std::atomic<Frame*> m_NextFrame;
     bool m_CanWork = false;
 
-    std::array<std::unique_ptr<Frame>, Configuration::FramesCount> m_Frames;
-    std::unique_ptr<RenderDevice> m_Device;
+	std::unique_ptr<RenderDevice> m_Device;
+	std::unique_ptr<Context> m_Context;
 };
 
 } //namespace MoonGlare::Renderer

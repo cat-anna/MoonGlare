@@ -5,7 +5,6 @@ namespace MoonGlare {
 namespace Renderer {
 
 struct RenderInput;
-struct VirtualCamera;
 
 }
 }
@@ -13,7 +12,6 @@ struct VirtualCamera;
 namespace Graphic {
 
 	using ::MoonGlare::Renderer::RenderInput;
-	using ::MoonGlare::Renderer::VirtualCamera;
 
 	class cRenderDevice;
 	class LoadQueue;

@@ -14,11 +14,7 @@ class Window : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(Window, cRootClass);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
- 	Window(bool IsMainWindow = false);
- 	~Window();
-
-	static void InitializeWindowSystem();
-	static void FinalzeWindowSystem();
+	Window(GLFWwindow *w, bool IsMainWindow = false);
 
 	void Process();
 
@@ -97,7 +93,6 @@ private:
 	vec2 m_CursorPos, m_CursorDelta;
 	uvec2 m_Size;
 
-	static void glfw_error_callback(int error, const char* description);
 	static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void glfw_close_callback(GLFWwindow* window);
 	static void glfw_focus_callback(GLFWwindow* window, int focus);
@@ -107,8 +102,6 @@ private:
 
 	static void GLFWCharModeCharCallback(GLFWwindow* window, unsigned int key);
 	static void GLFWCharModeKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-	static bool _GLFWInitialized;
 };
 
 } //namespace Graphic 

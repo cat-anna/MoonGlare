@@ -39,27 +39,17 @@ SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Window)
 RegisterApiDerivedClass(Window, &Window::RegisterScriptApi);
 RegisterDebugApi(DbgWindow, &Window::RegisterDebugScriptApi, "Graphic");
 
-bool Window::_GLFWInitialized = false;
-
-Window::Window(bool IsMainWindow):
+Window::Window(GLFWwindow *w, bool IsMainWindow):
 		BaseClass(),
-		m_Window(0), 
+		m_Window(w), 
 		m_Flags(0), 
 		m_CursorPos(0), 
 		m_CursorDelta(0), 
 		m_Size(0),
 		m_InputProcessor(nullptr) {
-
-	InitializeWindowSystem();
-	THROW_ASSERT(_GLFWInitialized, "GLFW is not initialized. Cannot create window!");
 	CreateWindow();
-	//SetEnableConsole(::Settings->Window.EnableConsole);
 	SetAllowMouseUnhook(DEBUG_TRUE);
 	SetMainWindow(IsMainWindow);
-}
-
-Window::~Window() {
-	glfwDestroyWindow(m_Window);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -234,44 +224,6 @@ void Window::SetPosition(const math::uvec2 &pos) {
 //-------------------------------------------------------------------------------------------------
 
 void Window::CreateWindow() {
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#ifdef DEBUG
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-#endif
-	//glfwWindowHint(GLFW_SRGB_CAPABLE, GL_FALSE);
-
-	//auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
-	
-	unsigned w = GraphicSettings::Width::get();
-	unsigned h = GraphicSettings::Height::get();
-	int m = GraphicSettings::Monitor::get();
-	bool fullscreen = GraphicSettings::FullScreen::get();
-	GLFWmonitor *monitor = nullptr;
-
-	if (fullscreen) {
-		if (m < 0) {
-			monitor = glfwGetPrimaryMonitor();
-		} else {
-			int c;
-			auto mont = glfwGetMonitors(&c);
-			if (c > m)
-				monitor = mont[m];
-		}
-	}
-
-	if (!w || !h) {
-		auto mon = glfwGetPrimaryMonitor();
-		auto mode = glfwGetVideoMode(mon);
-		w = mode->width; h = mode->height;
-		GraphicSettings::Width::set(w);
-		GraphicSettings::Height::set(h);
-	}
-
-	m_Window = glfwCreateWindow(w, h, "MoonGlare engine window", monitor , 0);
-	CriticalCheck(m_Window, "Unable to create new window!");
-
 	int iw, ih;
 	glfwGetWindowSize(m_Window, &iw, &ih);
 	m_Size = uvec2(iw, ih);
@@ -335,28 +287,6 @@ void Window::ProcessKey(int key, bool Pressed) {
 //-------------------------------------------------------------------------------------------------
 // handling GLFW
 
-void Window::InitializeWindowSystem() {
-	if (_GLFWInitialized) return;
-	glfwSetErrorCallback(&glfw_error_callback);
-
-	CriticalCheck(glfwInit(), "Unable to initialize GLFW!");
-	AddLog(Debug, "GLFW initialized");
-	AddLog(System, "GLFW version: " << glfwGetVersionString());
-
-	_GLFWInitialized = true;
-
-	auto monitor = glfwGetPrimaryMonitor();
-	AddLogf(System, "Primary monitor: %s", glfwGetMonitorName(monitor));
-	AddLog(System, "Current mode: " << DumpGLFWMode(glfwGetVideoMode(monitor)));
-}
-
-void Window::FinalzeWindowSystem() {
-	if (!_GLFWInitialized) return;
-	glfwTerminate();
-	_GLFWInitialized = false;
-	AddLog(Debug, "GLFW finalized");
-}
-
 void Window::Process() {
 	if (m_InputProcessor)
 		m_InputProcessor->ClearStates();
@@ -369,10 +299,6 @@ void Window::Process() {
 }
 
 //-------------------------------------------------------------------------------------------------
-
-void Window::glfw_error_callback(int error, const char* description) {
-	AddLogf(Error, "GLFW error: code='%d' descr='%s'", error, description);
-}
 
 void Window::glfw_mousepos_callback(GLFWwindow *window, double x, double y) {
 	Window* w = ((Window*)glfwGetWindowUserPointer(window));

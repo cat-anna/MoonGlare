@@ -35,7 +35,7 @@ public:
 	void BindNullMaterial() { m_DefaultMaterial.Bind(m_CurrentShader); }
 
 	void Bind(const Material &Material) {  Material.Bind(m_CurrentShader);  }
-	void Bind(VirtualCamera *c) { 
+	void Bind(Renderer::VirtualCamera *c) {
 		m_CurrentCamera = c; 
 		if (c) {
 			SetCameraMatrix(c->m_ProjectionMatrix);
@@ -90,7 +90,7 @@ public:
 	void ResetCameraMatrix() { if(m_CurrentCamera) SetCameraMatrix(m_CurrentCamera->GetProjectionMatrix()); }
 
 	const Environment *CurrentEnvironment() const { return m_CurrentEnvironment; }
-	VirtualCamera *CurrentCamera() const { return m_CurrentCamera; }
+	Renderer::VirtualCamera *CurrentCamera() const { return m_CurrentCamera; }
 	Shader* CurrentShader() const { return m_CurrentShader; }
 	const WindowPtr& GetContext() const { return m_Context; }
 
@@ -113,15 +113,12 @@ protected:
 	Asset::AssetManager *m_AssetManager;
 	WindowPtr m_Context;
 	Shader *m_CurrentShader;
-	VirtualCamera *m_CurrentCamera;
+	Renderer::VirtualCamera *m_CurrentCamera;
 	const Environment *m_CurrentEnvironment;
 
 	Material m_DefaultMaterial;
 
 	math::mat4 m_ModelMatrix, m_WorldMatrix;
-private:
-	void ReadOpenGLInfo();
-	void RegisterDebugCallback();
 }; 
 
 } // namespace Graphic 

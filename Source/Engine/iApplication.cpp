@@ -17,10 +17,13 @@
 
 #include <Assets/AssetManager.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/Context.h>
 
 #include <iApplication.h>
 
 #include <AssetSettings.x2c.h>
+
+#include "Graphic/GraphicSettings.h"
 
 namespace MoonGlare {
 namespace Application {
@@ -85,19 +88,27 @@ bool iApplication::Initialize() {
 	}
 
 	m_Renderer = std::make_unique<Renderer::RendererFacade>();
-	if (!m_Renderer->Initialize()) {
+
+	using Graphic::GraphicSettings;
+	Renderer::ContextCreationInfo ctxifo;
+	ctxifo.m_Width = GraphicSettings::Width::get();
+	ctxifo.m_Height = GraphicSettings::Height::get();
+	ctxifo.MonitorIndex = GraphicSettings::Monitor::get();
+	ctxifo.FullScreen = GraphicSettings::FullScreen::get();
+	if (!m_Renderer->Initialize(ctxifo)) {
 		AddLogf(Error, "Unable to initialize renderer");
 		return false;
 	}
 
-	Graphic::Window::InitializeWindowSystem();
-	auto Device = new Graphic::cRenderDevice(std::make_unique<Graphic::Window>(true), m_AssetManager.get());
+	auto window = std::make_unique<Graphic::Window>(m_Renderer->CurrentContext()->GetHandle(), true);
+	auto Device = new Graphic::cRenderDevice(std::move(window), m_AssetManager.get());
 
-    m_World = std::make_unique<World>();
+	m_World = std::make_unique<World>();
 	auto Engine = new MoonGlare::Core::Engine(m_World.get(), m_Renderer.get());
 
-	if (Settings->Engine.EnableConsole)
+	if (Settings->Engine.EnableConsole) {
 		_init_chk(new Console(), "Unable to initialize console!");
+	}
 
 	Graphic::GetRenderDevice()->Initialize();
 	Engine->Initialize();
@@ -151,6 +162,8 @@ bool iApplication::Finalize() {
 	_finit_chk(MoonGlare::Core::Engine, "Engine finalization failed");
 	_finit_chk(Graphic::cRenderDevice, "Render device finalization failed");
 
+	Graphic::cRenderDevice::DeleteInstance();
+
 	if (m_Renderer && !m_Renderer->Finalize()) 
 		AddLogf(Error, "Unable to finalize renderer");
 	m_Renderer.reset();
@@ -161,10 +174,6 @@ bool iApplication::Finalize() {
 	ModulesManager::DeleteInstance();
 	MoonGlare::Core::Engine::DeleteInstance();
 	DataManager::DeleteInstance();
-
-	Graphic::cRenderDevice::DeleteInstance();
-
-	Graphic::Window::FinalzeWindowSystem();
 
 	_del_chk(ScriptEngine, "Finalization of script engine failed!");
 	if(!m_AssetManager->Finalize()) {
