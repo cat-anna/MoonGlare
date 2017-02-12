@@ -80,6 +80,46 @@ bool BitmapFont::DoFinalize(){
 
 //----------------------------------------------------------------
 
+BitmapFont::FontRect BitmapFont::TextSize(const wstring & text, const Descriptor * style, bool UniformPosition) const {
+
+//	Graphic::VAO::MeshData mesh;
+//
+//	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+//	float Aspect = ScreenSize[0] / ScreenSize[1];
+//
+//	float y = 0/*, z = Pos.z*/;
+	float h = static_cast<float>(m_BFD.CharWidth);
+	if (style && style->Size > 0) 
+		h = style->Size;
+	float w_mult = h / static_cast<float>(m_BFD.CharWidth);
+	unsigned fx = m_BFD.Width / m_BFD.CharWidth;
+	float x = 0.0f;
+
+	auto cstr = text.c_str();
+	while (*cstr) {
+		auto wc = *cstr;
+		++cstr;
+		char c = static_cast<char>(wc);
+
+		unsigned kid = static_cast<unsigned>(c) - m_BFD.BeginingKey;
+		if (kid > 255) 
+			kid = fx;
+
+		x += (m_BFD.KeyWidths[kid] + 1) * w_mult;
+	}
+
+//	if (UniformPosition)
+//		wr->m_size = math::vec2(x, h) / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
+//	else
+//		wr->m_size = math::vec2(x, h);
+
+	FontRect rect;
+	rect.m_CanvasSize = math::vec2(x, h);
+	rect.m_TextBlockSize = rect.m_CanvasSize;
+	rect.m_TextPosition = math::vec2(0, 0);
+	return rect;
+}
+
 FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
 	if (text.empty() || !IsReady()) {
 		return FontInstance(new EmptyWrapper());
@@ -116,9 +156,6 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	while (*cstr) {
 		auto wc = *cstr;
 		++cstr;
-
-		if (wc == L' ' && !*cstr) 
-			break; //ignore trailing space char
 
 		char c = static_cast<char>(wc);
 

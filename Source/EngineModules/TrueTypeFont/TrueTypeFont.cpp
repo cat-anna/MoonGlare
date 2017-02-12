@@ -81,6 +81,77 @@ bool TrueTypeFont::DoFinalize() {
 
 //----------------------------------------------------------------
 
+//  _                    _ 	___________________
+// | |                  | |					   |topline
+// | |_  __  __   __ _  | |	___________________|_______________	baseline
+// | __| \ \/ /  / _` | | |				  
+// | |_   >  <  | (_| | | |				
+//  \__| /_/\_\  \__, | |_|	____________________
+//                __/ |    					   |
+//               |___/     	___________________|bottomline
+//
+// |-----------------------| width
+
+TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descriptor * style, bool UniformPosition) const {
+
+	float topline = 0;
+	float bottomline = 0;
+	float width = 0;
+
+	float h;
+	if (style) {
+		h = style->Size;
+	} else {
+		h = m_CacheHight;
+	}
+
+	Graphic::vec3 char_scale(h / m_CacheHight);
+	const wstring::value_type *cstr = text.c_str();
+//	Graphic::vec2 pos(0);
+//	float hmax = h;
+//
+//	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+//	float Aspect = ScreenSize[0] / ScreenSize[1];
+
+	while (*cstr) {
+		wchar_t c = *cstr;
+		++cstr;
+
+		auto *g = GetGlyph(c);
+		if (!g)
+			continue;
+
+		auto BitmapSize = g->m_BitmapSize * char_scale.x;
+		auto CharPos = g->m_Position * char_scale.x;
+
+		topline = std::min(topline, CharPos.y);
+		bottomline = std::max(bottomline, CharPos.y + BitmapSize.y);
+
+//		auto subpos = pos + chpos;
+//		float bsy = bs.y;
+//
+//		if (UniformPosition) {
+//			subpos = subpos / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+//			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
+//		}
+//
+		width += g->m_Advance.x * char_scale.x;
+//		hmax = math::max(hmax, bsy);
+	}
+//	pos.y = hmax;
+//
+//	if (UniformPosition)
+//		wrapper->m_size = pos / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
+//	else
+//		wrapper->m_size = pos;
+
+	FontRect rect;
+	rect.m_CanvasSize = math::fvec2(width, -topline + bottomline);
+	rect.m_TextPosition = math::fvec2(0, -topline);
+	rect.m_TextBlockSize = math::fvec2(width, h);
+	return rect;
+}
+
 FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
 	if (text.empty() || !IsReady()) {
 		return FontInstance(new EmptyWrapper());
@@ -121,9 +192,6 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 	while (*cstr) {
 		wchar_t c = *cstr;
 		++cstr;
-
-		if (c == L' ' && !*cstr) 
-			break; //ignore trailing space char
 
 		auto *g = GetGlyph(c);
 		if (!g)

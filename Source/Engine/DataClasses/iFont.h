@@ -50,8 +50,13 @@ public:
 	iFont(const string& Name);
 	virtual ~iFont();
 
-	virtual FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, 
-										  bool UniformPosition = false) const = 0;
+	struct FontRect {
+		math::fvec2 m_CanvasSize;
+		math::fvec2 m_TextPosition;
+		math::fvec2 m_TextBlockSize;
+	};
+	virtual FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
+	virtual FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
 
 	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
 protected:

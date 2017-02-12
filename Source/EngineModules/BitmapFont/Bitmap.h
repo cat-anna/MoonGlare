@@ -40,6 +40,7 @@ public:
 	BitmapFont(const string& Name);
 	~BitmapFont();
 
+	FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 
 	float GetHeight() const { return (float)m_BFD.CharHeight; }
