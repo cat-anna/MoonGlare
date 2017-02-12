@@ -14,10 +14,10 @@
 #include "RectTransformComponent.h"
 #include "TextComponent.h"
 
-#include <Renderer/Commands/ControllCommands.h>
-#include <Renderer/Commands/ShaderCommands.h>
-#include <Renderer/Commands/TextureCommands.h>
-#include <Renderer/Commands/ArrayCommands.h>
+#include <Renderer/Commands/OpenGL/ControllCommands.h>
+#include <Renderer/Commands/OpenGL/ShaderCommands.h>
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 #include "../GUIShader.h"
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "OpenGLTypes.h"
+
 namespace MoonGlare::Renderer {
 
 class RendererFacade;
@@ -28,6 +30,8 @@ struct ContextCreationInfo {
 	const char *Title = "Window";
 };
 
-using TextureHandle = GLuint;
+namespace Commands {
+	class alignas(16) CommandQueue;
+}
 
 } //namespace MoonGlare::Renderer

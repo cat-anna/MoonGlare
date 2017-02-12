@@ -41,10 +41,10 @@ public:
 	}
 
 	template<RendererConf::CommandQueueID QID>
-	CommandQueue& Get() { return m_CommandQueues[static_cast<size_t>(QID)]; }
-	CommandQueue& operator[](Conf::CommandQueueID QID) { return m_CommandQueues[static_cast<size_t>(QID)]; }
+	Commands::CommandQueue& Get() { return m_CommandQueues[static_cast<size_t>(QID)]; }
+	Commands::CommandQueue& operator[](Conf::CommandQueueID QID) { return m_CommandQueues[static_cast<size_t>(QID)]; }
 private: 
-	std::array<CommandQueue, SIZE> m_CommandQueues;
+	std::array<Commands::CommandQueue, SIZE> m_CommandQueues;
 };
 
 } //namespace MoonGlare::Renderer

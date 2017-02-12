@@ -9,7 +9,7 @@
 
 #include "CommandQueueBase.h"
 
-namespace MoonGlare::Renderer {
+namespace MoonGlare::Renderer::Commands {
 
 //vitality and copying is forbidden
 //should be zeroed manually before first use!
@@ -123,4 +123,4 @@ private:
 
 static_assert((sizeof(CommandQueue) & 0xF) == 0, "Invalid size!");
 
-} //namespace MoonGlare::Renderer
+} //namespace MoonGlare::Renderer::Commands

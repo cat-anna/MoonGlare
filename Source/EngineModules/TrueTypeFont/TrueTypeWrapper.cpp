@@ -10,10 +10,10 @@
 #include "FreeTypeHelper.h"
 #include "TrueTypeWrapper.h"
 
-//#include <Renderer/Commands/ControllCommands.h>
-//#include <Renderer/Commands/ShaderCommands.h>
-#include <Renderer/Commands/TextureCommands.h>
-#include <Renderer/Commands/ArrayCommands.h>
+//#include <Renderer/Commands/OpenGL/ControllCommands.h>
+//#include <Renderer/Commands/OpenGL/ShaderCommands.h>
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
 namespace MoonGlare {
@@ -53,7 +53,7 @@ void TrueTypeWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
 	//m_VAO.RenderMesh(m_Meshes);
 }
 
-void TrueTypeWrapper::GenerateCommands(Renderer::CommandQueue & Queue, uint16_t key) {
+void TrueTypeWrapper::GenerateCommands(Renderer::Commands::CommandQueue & Queue, uint16_t key) {
 	if (m_Chars.empty())
 		return;
 

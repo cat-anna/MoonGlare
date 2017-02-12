@@ -25,7 +25,7 @@ public:
 	virtual void Render(Graphic::cRenderDevice &dev) override;
 	virtual void RenderMesh(Graphic::cRenderDevice &dev) override;
 
-	virtual void GenerateCommands(Renderer::CommandQueue &Queue, uint16_t key) override;
+	virtual void GenerateCommands(Renderer::Commands::CommandQueue &Queue, uint16_t key) override;
 protected:
 	Graphic::vec3 m_Color;
 	Graphic::VAO m_VAO;

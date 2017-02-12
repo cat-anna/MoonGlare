@@ -1,10 +1,8 @@
 #pragma once
 
-#include "../OpenGL/nfOpenGL.h"
+#include "../CommandQueueBase.h"
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Commands {
+namespace MoonGlare::Renderer::Commands{
 
 struct Texture2DBindArgument {
 	TextureHandle m_Texture;
@@ -25,6 +23,4 @@ struct Texture2DBindUnitArgument {
 };
 using Texture2DBindUnit = CommandTemplate<Texture2DBindUnitArgument>;
 
-} //namespace Commands
-} //namespace Renderer 
-} //namespace MoonGlare 
+} //namespace MoonGlare::Renderer::Commands

@@ -9,10 +9,10 @@
 
 #include "BucketCommandQueue.h"
 
-namespace MoonGlare::Renderer {
+namespace MoonGlare::Renderer::Commands {
 
 struct BaseBucket {
 	BucketCommandQueue *m_Queue;
 };		
 
-} //namespace MoonGlare::Renderer 
+} //namespace MoonGlare::Renderer::Commands 

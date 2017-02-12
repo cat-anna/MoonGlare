@@ -21,7 +21,7 @@ public:
 	virtual void RenderMesh(Graphic::cRenderDevice &dev) = 0;
 	const math::vec2& GetSize() const { return m_size; }
 
-	virtual void GenerateCommands(Renderer::CommandQueue &Queue, uint16_t key) { }
+	virtual void GenerateCommands(Renderer::Commands::CommandQueue &Queue, uint16_t key) { }
 
 	bool AllowSubPixels() const { return m_AllowSubPixels; }
 protected:

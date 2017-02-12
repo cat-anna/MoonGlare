@@ -22,7 +22,7 @@ public:
 	void SetTarget(TextureHandle handle) { m_TargetTexture = handle; }
 	void SetSize(emath::ivec2 Size)	{ m_Size = Size; }
 
-	CommandQueue& GetCommandQueue() { return m_CommandQueue; }
+	Commands::CommandQueue& GetCommandQueue() { return m_CommandQueue; }
 	template<typename CMD, typename ...ARGS>
 	typename CMD::Argument* PushCommand(ARGS&& ...args) {
 		return m_CommandQueue.PushCommand<CMD>(std::forward<ARGS>(args)...);
@@ -34,7 +34,7 @@ private:
 	emath::ivec2 m_Size;
 	GLuint m_Framebuffer;
 
-	CommandQueue m_CommandQueue;
+	Commands::CommandQueue m_CommandQueue;
 };
 
 static_assert((sizeof(TextureRenderTask) & 0xF) == 0, "Invalid size!");

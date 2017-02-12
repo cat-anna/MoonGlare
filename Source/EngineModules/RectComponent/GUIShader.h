@@ -28,10 +28,10 @@ public:
 	GLint m_PanelBorderLocation;
 	GLint m_TileModeLocation;
 
-	void Bind(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
+	void Bind(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
 		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
 	}
-	void Bind(Renderer::CommandQueue &Queue) {
+	void Bind(Renderer::Commands::CommandQueue &Queue) {
 		Renderer::RendererConf::CommandKey key{ 0 };
 		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
 	}
@@ -54,7 +54,7 @@ public:
 		arg->m_Location = loc;
 		arg->m_Matrix = CameraMat * ModelMat;
 	}
-	void SetColor(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
+	void SetColor(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
 		auto loc = Location("gBaseColor");
 		if (!IsValidLocation(loc))
 			return;
@@ -64,7 +64,7 @@ public:
 		arg->m_Vec = color;
 	}
 
-	void SetPanelSize(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const Point &Size) {
+	void SetPanelSize(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const Point &Size) {
 		if (IsValidLocation(m_PanelAspectLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
 			arg->m_Location = m_PanelAspectLocation;
@@ -77,14 +77,14 @@ public:
 			*((Point*)(&arg->m_Vec)) = Size;
 		}
 	}
-	void SetBorder(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, float Border) {
+	void SetBorder(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, float Border) {
 		if (IsValidLocation(m_PanelBorderLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
 			arg->m_Location = m_PanelBorderLocation;
 			arg->m_Float = Border;
 		}
 	}
-	void SetTileMode(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::ivec2 &mode) {
+	void SetTileMode(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::ivec2 &mode) {
 		if (IsValidLocation(m_TileModeLocation)) {
 			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>(key);
 			arg->m_Location = m_TileModeLocation;
@@ -103,11 +103,11 @@ public:
 	//		Queue.PushCommand<Renderer::Commands::VAORelease>();
 	//	}
 
-	void Enable(Renderer::CommandQueue &Queue, GLenum what) {
+	void Enable(Renderer::Commands::CommandQueue &Queue, GLenum what) {
 		Renderer::RendererConf::CommandKey key{ 0 };
 		Queue.PushCommand<Renderer::Commands::Enable>(key)->m_What = what;
 	}
-	void Disable(Renderer::CommandQueue &Queue, GLenum what) {
+	void Disable(Renderer::Commands::CommandQueue &Queue, GLenum what) {
 		Renderer::RendererConf::CommandKey key{ 0 };
 		Queue.PushCommand<Renderer::Commands::Disable>(key)->m_What = what;
 	}

@@ -17,10 +17,10 @@
 
 #include <DirectAnimationComponent.x2c.h>
 
-#include <Renderer/Commands/ControllCommands.h>
-#include <Renderer/Commands/ShaderCommands.h>
-#include <Renderer/Commands/TextureCommands.h>
-#include <Renderer/Commands/ArrayCommands.h>
+#include <Renderer/Commands/OpenGL/ControllCommands.h>
+#include <Renderer/Commands/OpenGL/ShaderCommands.h>
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 
 namespace MoonGlare {
 namespace Renderer {
@@ -87,7 +87,7 @@ bool DirectAnimationComponent::Finalize() {
 	return true;
 }
 
-void SetModelMatrix(::Graphic::Shader *Shader, Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat) {
+void SetModelMatrix(::Graphic::Shader *Shader, Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat) {
 	auto loc = Shader->Location(::Graphic::Shader::ShaderParameters::ModelMatrix);
 	if (!Shader->IsValidLocation(loc))
 		return;
@@ -97,7 +97,7 @@ void SetModelMatrix(::Graphic::Shader *Shader, Renderer::CommandQueue &Queue, Re
 	arg->m_Matrix = ModelMat;
 }
 
-void SetMaterialColor(::Graphic::Shader *Shader, Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
+void SetMaterialColor(::Graphic::Shader *Shader, Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
 	auto loc = Shader->Location(::Graphic::Shader::ShaderParameters::Material_BackColor);
 	if (!Shader->IsValidLocation(loc))
 		return;

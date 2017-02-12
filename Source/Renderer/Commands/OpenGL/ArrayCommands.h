@@ -1,12 +1,8 @@
 #pragma once
-#ifndef GLARRAYCOMMANDS_H_
-#define GLARRAYCOMMANDS_H_
 
-#include "../OpenGL/nfOpenGL.h"
+#include "../CommandQueueBase.h"
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Commands {
+namespace MoonGlare::Renderer::Commands{
 
 struct VAOBindArgument {
 	VAOHandle m_VAO;
@@ -89,9 +85,4 @@ struct VAODrawTrianglesBaseVertexArgument {
 };
 using VAODrawTrianglesBaseVertex = CommandTemplate<VAODrawTrianglesBaseVertexArgument>;
 
-
-} //namespace Commands
-} //namespace Renderer 
-} //namespace MoonGlare 
-
-#endif // NFRENDERER_H_
+} //namespace MoonGlare::Renderer::Commands

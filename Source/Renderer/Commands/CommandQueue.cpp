@@ -10,8 +10,7 @@
 
 #include "CommandQueue.h"
 
-namespace MoonGlare {
-namespace Renderer {
+namespace MoonGlare::Renderer::Commands {
 
 ::Space::RTTI::TypeInfoInitializer<CommandQueue> CommandQueueTypeInfo;
 
@@ -67,5 +66,4 @@ void CommandQueue::SortBegin(int first, int last) {
 	SortBegin(right, last);
 }
 
-} //namespace Renderer 
-} //namespace MoonGlare 
+} //namespace MoonGlare::Renderer::Commands 

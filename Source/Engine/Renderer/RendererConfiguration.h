@@ -13,7 +13,7 @@ namespace Renderer {
 		MaxValue,
 	};
 
-	using CommandKey = ::MoonGlare::Renderer::CommandKey;
+	using CommandKey = ::MoonGlare::Renderer::Commands::CommandKey;
 };
 
 } //namespace Configuration 

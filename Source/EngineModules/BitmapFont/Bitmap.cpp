@@ -10,10 +10,10 @@
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
 
-//#include <Renderer/Commands/ControllCommands.h>
-//#include <Renderer/Commands/ShaderCommands.h>
-#include <Renderer/Commands/TextureCommands.h>
-#include <Renderer/Commands/ArrayCommands.h>
+//#include <Renderer/Commands/OpenGL/ControllCommands.h>
+//#include <Renderer/Commands/OpenGL/ShaderCommands.h>
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
 namespace MoonGlare {
@@ -245,7 +245,7 @@ void BitmapFontWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
 	m_VAO.DrawElements(m_Mesh);
 }
 
-void BitmapFontWrapper::GenerateCommands(Renderer::CommandQueue & Queue, uint16_t key) {
+void BitmapFontWrapper::GenerateCommands(Renderer::Commands::CommandQueue & Queue, uint16_t key) {
 	if (m_VAO.Handle() == 0)
 		return;
 

@@ -7,12 +7,24 @@
 
 #pragma once
 
+#include "../OpenGLTypes.h"
 #include "../Configuration.Renderer.h"
 
-namespace MoonGlare::Renderer {
+namespace MoonGlare::Renderer::Commands {
 
 using CommandArgument = void*;
 using CommandFunction = void(*)(CommandArgument);
+
+template<typename CMDARG>
+struct CommandTemplate {
+	using Argument = CMDARG;
+	static size_t ArgumentSize() {
+		return sizeof(Argument);
+	}
+	static CommandFunction GetFunction() {
+		return reinterpret_cast<CommandFunction>(&Argument::Execute);
+	}
+};
 
 union CommandKey {
 	uint16_t m_UIntValue;
@@ -24,4 +36,4 @@ union CommandKey {
 
 static_assert(sizeof(CommandKey) == sizeof(CommandKey::m_UIntValue), "CommandKey has invalid size!");
 
-} //namespace MoonGlare::Renderer 
+} //namespace MoonGlare::Renderer::Commands 

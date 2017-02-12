@@ -1,12 +1,8 @@
 #pragma once
-#ifndef GLCONTROLLCOMMANDS_H_
-#define GLCONTROLLCOMMANDS_H_
 
-#include "../OpenGL/nfOpenGL.h"
+#include "../CommandQueueBase.h"
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Commands {
+namespace MoonGlare::Renderer::Commands{
 
 struct EnableArgument {
 	GLenum m_What;
@@ -24,8 +20,4 @@ struct DisableArgument {
 };
 using Disable = CommandTemplate<DisableArgument>;
 
-} //namespace Commands
-} //namespace Renderer 
-} //namespace MoonGlare 
-
-#endif // NFRENDERER_H_
+} //namespace MoonGlare::Renderer::Commands

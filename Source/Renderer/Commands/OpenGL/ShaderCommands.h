@@ -1,12 +1,8 @@
 #pragma once
-#ifndef GLSHADERCOMMANDS_H_
-#define GLSHADERCOMMANDS_H_
 
-#include "../OpenGL/nfOpenGL.h"
+#include "../CommandQueueBase.h"
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Commands {
+namespace MoonGlare::Renderer::Commands {
 
 struct ShaderBindArgument {
 	ShaderHandle m_Shader;
@@ -72,8 +68,4 @@ struct ShaderSetUniformFloatArgument {
 };
 using ShaderSetUniformFloat = CommandTemplate<ShaderSetUniformFloatArgument>;
 
-} //namespace Commands
-} //namespace Renderer 
-} //namespace MoonGlare 
-
-#endif // NFRENDERER_H_
+} //namespace MoonGlare::Renderer::Commands

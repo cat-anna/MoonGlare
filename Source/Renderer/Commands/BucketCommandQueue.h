@@ -11,7 +11,7 @@
 #include "../Configuration.Renderer.h"
 #include "CommandQueueBase.h"
 
-namespace MoonGlare::Renderer {
+namespace MoonGlare::Renderer::Commands {
 
 class alignas(16) BucketCommandQueue final {
 	using Conf = Configuration::CommandBucket;
@@ -194,4 +194,4 @@ static_assert((sizeof(BucketCommandQueue) & 0xF) == 0, "Invalid size!");
 //static_assert(std::is_pod<BucketCommandQueue>::value, "Mut be trivial!");
 //#TODO
 
-} //namespace MoonGlare::Renderer 
+} //namespace MoonGlare::Renderer::Commands 
