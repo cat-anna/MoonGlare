@@ -36,7 +36,6 @@ group "Tools"
 			"../Shared/Resources/",
 		}
 		links {
-			"lua51jit",
             "OrbitLogger",
 			"libSpace",
 			"StarVFS",

@@ -17,7 +17,6 @@
 //#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <GL/glfx.h>
 //std include
 #include <locale>
 #include <codecvt>
@@ -59,6 +58,10 @@ class cRootClass;
 #include <OrbitLogger/src/OrbitLogger.h>
 
 #include <libSpace/src/Space.h>
+
+#include <libSpace/src/Container/StaticVector.h>
+#include <libSpace/src/Memory/Memory.h>
+#include <libSpace/src/Memory/StackAllocator.h>
 
 #ifdef GLOBAL_CONFIGURATION_FILE
 #include GLOBAL_CONFIGURATION_FILE

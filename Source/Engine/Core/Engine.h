@@ -17,7 +17,6 @@ public:
 
 	void EngineMain();
 
-    void DoMove(MoveConfig &conf);
     void DoRender(MoveConfig &conf);
 
 	//void HandleSceneStateChange() { m_ActionQueue.Add([this]() { HandleSceneStateChangeImpl(); }); }

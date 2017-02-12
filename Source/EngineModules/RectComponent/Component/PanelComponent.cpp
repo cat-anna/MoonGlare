@@ -93,8 +93,6 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	size_t InvalidEntryCount = 0;
 
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
-	auto QueueSavePoint = Queue.GetSavePoint();
-	bool QueueDirty = false;
 	bool CanRender = false;
 
 	if (m_Shader) {
@@ -176,13 +174,6 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 		arg->m_NumIndices = 6;
 		arg->m_IndexValueType = GL_UNSIGNED_INT;
 
-		QueueDirty = true;
-	}
-
-	if (!QueueDirty)
-		Queue.Rollback(QueueSavePoint);
-	else {
-	//	m_Shader->VAORelease(Queue);
 	}
 
 	if (InvalidEntryCount > 0) {

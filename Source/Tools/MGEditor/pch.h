@@ -46,10 +46,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
-#include <bullet3-master/src/btBulletDynamicsCommon.h>
-#include <bullet3-master/src/btBulletCollisionCommon.h>
-//#include <bullet-2.82/src/btBulletDynamicsCommon.h>
-//#include <bullet-2.82/src/btBulletCollisionCommon.h>
+#include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/btBulletCollisionCommon.h>
 
 inline std::string ToLower(std::string str) {
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);

@@ -178,12 +178,14 @@ void Engine::EngineMain() {
 		m_ActionQueue.DispatchPendingActions();
 
 		++m_FrameCounter;
-		conf.m_Frame = Device->NextFrame();
+		conf.m_BufferFrame = Device->NextFrame();
 		float StartTime = static_cast<float>(glfwGetTime());
 
 		conf.TimeDelta = CurrentTime - LastMoveTime;
 		dev.GetContext()->Process();
-		DoMove(conf);
+
+		GetScriptEngine()->Step(conf);
+		GetWorld()->Step(conf);
 
 		float MoveTime = static_cast<float>(glfwGetTime());
 
@@ -191,19 +193,16 @@ void Engine::EngineMain() {
 
 		float SortTime = static_cast<float>(glfwGetTime());
 
+		Device->Submit(conf.m_BufferFrame);
+		Device->Step();
 		DoRender(conf);
 
 		float RenderTime = static_cast<float>(glfwGetTime());
-
-
-		Device->Submit(conf.m_Frame);
-		Device->Step();
 
 		dev.EndFrame();
 
 		float EndTime = static_cast<float>(glfwGetTime());
 		LastMoveTime = CurrentTime;
-
 
 		conf.m_SecondPeriod = CurrentTime - TitleRefresh >= 1.0;
 		if(conf.m_SecondPeriod) {
@@ -284,11 +283,6 @@ void Engine::DoRender(MoveConfig &conf) {
 	conf.m_RenderInput->OnEndFrame();
 
 	//dev.EndFrame();
-}
-
-void Engine::DoMove(MoveConfig &conf) {
-	GetScriptEngine()->Step(conf);
-	GetWorld()->Step(conf);
 }
 
 //----------------------------------------------------------------------------------
