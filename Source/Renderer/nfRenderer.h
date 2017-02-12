@@ -16,6 +16,8 @@ class Frame;
 class RenderDevice;
 class Context;
 
+class alignas(16) TextureRenderTask;
+
 struct alignas(16) VirtualCamera;
 
 struct ContextCreationInfo {
@@ -25,5 +27,7 @@ struct ContextCreationInfo {
 	bool FullScreen = false;
 	const char *Title = "Window";
 };
+
+using TextureHandle = GLuint;
 
 } //namespace MoonGlare::Renderer

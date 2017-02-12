@@ -10,14 +10,11 @@
 
 namespace MoonGlare::Renderer {
 
-Frame::Frame() {
-}
-
-Frame::~Frame() {
-}
-
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device) {
 	m_BufferIndex = BufferIndex;
+	m_RenderDevice = device;
+
+	m_Memory.GetStorage().MemZero();
 
 	return true;
 }
@@ -25,5 +22,18 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device) {
 bool Frame::Finalize() {
 	return true;
 }
+
+//----------------------------------------------------------------------------------
+
+void Frame::BeginFrame() {
+
+	m_QueuedTextureRender.ClearAllocation();
+	m_Memory.Clear();
+}
+
+void Frame::EndFrame() {
+}
+
+//----------------------------------------------------------------------------------
 
 } //namespace MoonGlare::Renderer 

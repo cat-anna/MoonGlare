@@ -6,24 +6,44 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef Frame_H
-#define Frame_H
+
+#include "Configuration.Renderer.h"
 
 namespace MoonGlare::Renderer {
 
-class Frame final {
+class alignas(16) Frame final {
 public:
- 	Frame();
- 	~Frame();
+	using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
 
-	bool Initialize(uint8_t mBufferIndex, RenderDevice *device);
+	template<typename T>
+	using ByteArray = Space::Memory::StaticMemory<T, Configuration::FrameBuffer::MemorySize>;
+	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
+
+	TextureRenderQueue& GetTextureRenderQueue() { return m_QueuedTextureRender; }
+	Allocator_t& GeMemory() { return m_Memory; }
+
+	void BeginFrame();
+	void EndFrame();
+
+	bool Submit(TextureRenderTask *trt) { return m_QueuedTextureRender.push(trt);}
+
+	bool Initialize(uint8_t BufferIndex, RenderDevice *device);
 	bool Finalize();
 
 	uint8_t Index() const { return m_BufferIndex; }
+	RenderDevice* GetDevice() const { return m_RenderDevice; }
 private: 
 	uint8_t m_BufferIndex;
+	//uint8_t p_padding24_1;
+	//uint32_t p_padding32_1;
+	//uint32_t p_padding32_2;
+	RenderDevice *m_RenderDevice;
+
+	TextureRenderQueue m_QueuedTextureRender;
+	Allocator_t m_Memory;
 };
 
-} //namespace MoonGlare::Renderer 
+static_assert((sizeof(Frame) & 0xF) == 0, "Invalid size!");
+//static_assert(std::is_pod<Frame>::value, "Must be a pod!");
 
-#endif
+} //namespace MoonGlare::Renderer 

@@ -32,7 +32,7 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 	Device::ErrorHandler::RegisterErrorCallback();
 	Device::DeviceInfo::ReadInfo();
 
-	for (uint32_t idx = 0; idx < Conf::Count; ++idx) {
+	for (uint8_t idx = 0; idx < Conf::Count; ++idx) {
 		auto &buffer = m_Frames[idx];
 		buffer = std::make_unique<Frame>();
 		if (!buffer->Initialize(idx, this)) {
@@ -41,10 +41,28 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 		}
 	}
 
+	if (!m_TextureIndexBuffer.Initialize()) {
+		AddLogf(Error, "TextureIndexBuffer initialization failed!");
+		return false;
+	}
+
+	m_UnusedTextureRender.fill(nullptr);
+	for (auto &item : m_TextureRenderTask) {
+		if (!item.Initialize()) {
+			AddLogf(Error, "TextureRenderTask initialization failed!");
+			return false;
+		}
+		m_UnusedTextureRender.push(&item);
+	}
+
 	return true;
 }
 
 bool RenderDevice::Finalize() {
+
+	if (!m_TextureIndexBuffer.Finalize()) {
+		AddLogf(Error, "m_TextureIndexBuffer finalization failed!");
+	}
 
 	for (auto &buffer : m_Frames) {
 		if (!buffer->Finalize()) {
@@ -59,11 +77,13 @@ bool RenderDevice::Finalize() {
 //----------------------------------------------------------------------------------
 
 Frame* RenderDevice::NextFrame() {
-	uint32_t index;
 	for (uint32_t idx = 0; idx < Conf::Count; ++idx) {
-		auto bit = 1 << idx;
-		if ((m_FreeFrameBuffers.fetch_and(~bit) & bit) == bit)
-			return m_Frames[idx].get();
+		auto bit = 1u << idx;
+		if ((m_FreeFrameBuffers.fetch_and(~bit) & bit) == bit) {
+			auto fr = m_Frames[idx].get();
+			fr->BeginFrame();
+			return fr;
+		}
 	}
 
 	return nullptr;
@@ -85,9 +105,23 @@ void RenderDevice::Step() {
 	if (!frame)
 		return;
 
+	ProcessFrame(frame);
+
 	auto bit = 1 << frame->Index();
 	m_FreeFrameBuffers.fetch_or(bit);
 
+}
+
+void RenderDevice::ProcessFrame(Frame *frame) {
+
+	auto &trtq = frame->GetTextureRenderQueue();
+	for (auto *task : trtq) {
+
+		task->Execute();
+		m_UnusedTextureRender.push(task);
+	}
+
+	frame->EndFrame();
 	IncrementPerformanceCounter(FramesProcessed);
 }
 
