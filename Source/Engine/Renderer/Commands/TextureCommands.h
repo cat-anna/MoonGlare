@@ -1,12 +1,9 @@
 #pragma once
-#ifndef GLTEXTURECOMMANDS_H_
-#define GLTEXTURECOMMANDS_H_
 
 #include "../OpenGL/nfOpenGL.h"
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
 namespace Commands {
 
 struct Texture2DBindArgument {
@@ -29,8 +26,5 @@ struct Texture2DBindUnitArgument {
 using Texture2DBindUnit = CommandTemplate<Texture2DBindUnitArgument>;
 
 } //namespace Commands
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
-
-#endif // NFRENDERER_H_

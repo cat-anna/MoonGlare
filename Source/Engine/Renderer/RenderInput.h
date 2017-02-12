@@ -5,7 +5,7 @@
 #include "Light.h"
 #include <Renderer/VirtualCamera.h>
 
-#include "CommandQueue.h"
+#include <Source/Renderer/Commands/CommandQueue.h>
 #include "CommandQueueTable.h"
 
 namespace MoonGlare {

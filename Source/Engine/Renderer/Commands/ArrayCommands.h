@@ -6,7 +6,6 @@
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
 namespace Commands {
 
 struct VAOBindArgument {
@@ -92,7 +91,6 @@ using VAODrawTrianglesBaseVertex = CommandTemplate<VAODrawTrianglesBaseVertexArg
 
 
 } //namespace Commands
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
 

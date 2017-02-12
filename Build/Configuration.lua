@@ -68,17 +68,17 @@ local function SetCommonConfig()
 	--	"BOOST_NO_AUTO_PTR",
 	}
 	libdirs {
-		"../../../../../LibsC",
+		"../../../../LibsC",
 		"assimp/lib",
 		"bullet3-master/lib/",
 	}
 	includedirs {
 		"../../../../LibsC",
+        dir.bin,
 		dir.base,
 		dir.src,
 		dir.libsrc,
 		dir.root .. "Libs",
-		"bullet3-master/src",
 		"Libs",
 	}
 

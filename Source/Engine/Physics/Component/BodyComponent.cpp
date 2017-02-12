@@ -111,7 +111,7 @@ bool BodyComponent::LoadComponentConfiguration(pugi::xml_node node) {
 //---------------------------------------------------------------------------------------
 
 void BodyComponent::Step(const Core::MoveConfig & conf) {
-	if (m_Array.Empty())
+	if (m_Array.empty())
 		return;
 
 	if (Config::Current::EnableFlags::PhysicsDebugDraw) {

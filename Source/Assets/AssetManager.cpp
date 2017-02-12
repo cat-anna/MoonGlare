@@ -10,7 +10,7 @@
 #include "FileSystem.h"
 #include "Shader/Loader.h"
 
-#include <AssetConfiguration.x2c.h>
+#include <AssetSettings.x2c.h>
 
 namespace MoonGlare::Asset {
 

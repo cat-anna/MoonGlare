@@ -6,7 +6,6 @@
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
 namespace Commands {
 
 struct EnableArgument {
@@ -26,7 +25,6 @@ struct DisableArgument {
 using Disable = CommandTemplate<DisableArgument>;
 
 } //namespace Commands
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
 

@@ -67,7 +67,7 @@ bool CameraComponent::Finalize() {
 //------------------------------------------------------------------------------------------
 
 void CameraComponent::Step(const Core::MoveConfig & conf) {
-	if (m_Array.Empty()) {
+	if (m_Array.empty()) {
 		return;
 	}
 

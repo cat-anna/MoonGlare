@@ -83,14 +83,32 @@ namespace emath {
 		return *reinterpret_cast<const glm::fmat4*>(s.data());
 	}
 
-	template<>
-	inline fvec3 MathCast(const glm::fvec3 &s) {
-		return fvec3(s[0], s[1], s[2]);
+#define GEN_2(SRC, DST) 										\
+	template<>inline DST ## 2 MathCast(const SRC ## 2 &s) {		\
+		return DST ## 2(s[0], s[1]);							\
 	}
-	template<>
-	inline fvec4 MathCast(const glm::fvec4 &s) {
-		return fvec4(s[0], s[1], s[2], s[3]);
+#define GEN_3(SRC, DST) 										\
+	template<>inline DST ## 3 MathCast(const SRC ## 3 &s) {		\
+		return DST ## 3(s[0], s[1], s[2]);						\
 	}
+#define GEN_4(SRC, DST) 										\
+	template<>inline DST ## 4  MathCast(const SRC ## 4 &s) {	\
+		return DST ## 4 (s[0], s[1], s[2], s[3]);				\
+	}
+
+#define GEN(SRC, DST) GEN_2(SRC, DST) GEN_3(SRC, DST) GEN_4(SRC, DST) 
+
+#pragma warning ( push, 0 )
+	GEN(glm::fvec, fvec);
+	GEN(glm::ivec, ivec);
+	GEN(glm::fvec, ivec);
+#pragma warning ( pop )
+
+#undef GEN
+#undef GEN_1
+#undef GEN_2
+#undef GEN_3
+#undef GEN_4
 }
 
 

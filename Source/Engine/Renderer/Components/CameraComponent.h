@@ -58,7 +58,7 @@ struct CameraComponentEntry {
 //static_assert(std::is_pod<LightComponentEntry>::value, "LightComponentEntry must be pod!");
 
 class CameraComponent 
-	: public TemplateStandardComponent<CameraComponentEntry, ComponentID::Camera, Configuration::Storage::CameraComponent> {
+	: public TemplateStandardComponent<CameraComponentEntry, ComponentID::Camera, MoonGlare::Configuration::Storage::CameraComponent> {
 public:
 	CameraComponent(ComponentManager *Owner);
 	virtual ~CameraComponent();

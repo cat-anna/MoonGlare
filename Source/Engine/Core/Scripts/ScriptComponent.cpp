@@ -80,7 +80,7 @@ bool ScriptComponent::Initialize() {
 	m_ScriptEngine = GetManager()->GetWorld()->GetScriptEngine();
 	THROW_ASSERT(m_ScriptEngine, "No script engine instance!");
 
-	m_Array.ForceMemZeroAndClear();
+	m_Array.MemZeroAndClear();
 
 	auto lua = m_ScriptEngine->GetLua();
 	LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
@@ -178,7 +178,7 @@ bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
 //-------------------------------------------------------------------------------------------------
 
 void ScriptComponent::Step(const MoveConfig & conf) {
-	if (m_Array.Empty()) {
+	if (m_Array.empty()) {
 		return;
 	}
 

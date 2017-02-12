@@ -58,7 +58,7 @@ protected:
 struct MoveConfig { 
 	float TimeDelta;
 
-	Renderer::Frame *m_Frame;
+	Renderer::Frame *m_BufferFrame;
 
 	mutable Renderer::VirtualCamera *Camera = nullptr;
 	

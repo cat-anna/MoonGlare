@@ -1,0 +1,43 @@
+Import "Common.x2c"
+Import "AssetSettings.x2c"
+
+namespace "MoonGlare.x2c.Settings"
+
+Structure.new {
+	name = "WindowSettings",
+	description = "",
+	fields = {
+		{
+            description = "",
+			name = "Width",
+			type = u32,
+		},
+		{
+            description = "",
+			name = "Height",
+			type = u32,
+		},
+		{
+            description = "",
+			name = "Fullscreen",
+			type = bool,
+		},
+		{
+            description = "",
+			name = "Monitor",
+			type = s32,
+		},
+	},
+}
+
+Structure.new {
+	name = "RendererSettings",
+	description = "",
+	fields = {
+		{
+            description = "",
+			name = "Window",
+			type = Local.WindowSettings,
+		},
+	},
+}

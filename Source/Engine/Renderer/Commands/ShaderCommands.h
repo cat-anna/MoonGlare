@@ -6,7 +6,6 @@
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
 namespace Commands {
 
 struct ShaderBindArgument {
@@ -74,7 +73,6 @@ struct ShaderSetUniformFloatArgument {
 using ShaderSetUniformFloat = CommandTemplate<ShaderSetUniformFloatArgument>;
 
 } //namespace Commands
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
 
