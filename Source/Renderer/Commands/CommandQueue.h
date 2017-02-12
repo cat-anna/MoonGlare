@@ -6,27 +6,26 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef CommandQueue_H
-#define CommandQueue_H
 
-#include "nfRenderer.h"
+#include "CommandQueueBase.h"
 
-namespace MoonGlare {
-namespace Renderer {
+namespace MoonGlare::Renderer {
 
 //vitality and copying is forbidden
 //should be zeroed manually before first use!
-struct CommandQueue final {
+class alignas(16) CommandQueue final {
+	using Conf = Configuration::CommandQueue;
+public:
 	CommandQueue() { ClearAllocation(); }
 	CommandQueue(const CommandQueue&) = delete;
 	CommandQueue(CommandQueue&&) = delete;
 	const CommandQueue& operator = (const CommandQueue&) = delete;
-	const CommandQueue& operator = (const CommandQueue&&) = delete;
+	const CommandQueue& operator = (CommandQueue&&) = delete;
  	~CommandQueue() { }
 
-	uint32_t CommandsCapacity() const { return RendererConf::CommandQueue::CommandLimit; }
+	uint32_t CommandsCapacity() const { return Conf::CommandLimit; }
 	uint32_t CommandsAllocated() const { return m_AllocatedCommands; }
-	uint32_t MemoryCapacity() const { return RendererConf::CommandQueue::ArgumentMemoryBuffer; }
+	uint32_t MemoryCapacity() const { return Conf::ArgumentMemoryBuffer; }
 	uint32_t MemoryAllocated() const { return m_AllocatedMemory; }
 
 	bool IsEmpty() const { return CommandsAllocated() == 0; }
@@ -60,7 +59,7 @@ struct CommandQueue final {
 	}
 
 	template<typename CMD>
-	typename CMD::Argument* PushCommand(RendererConf::CommandKey SortKey) {
+	typename CMD::Argument* PushCommand(CommandKey SortKey) {
 		auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
 		if (IsFull() || !argptr) {
 			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
@@ -97,7 +96,7 @@ struct CommandQueue final {
 	//unsafe; Rolling-back has to be used carefully
 	void Rollback(RollbackPoint point) { m_AllocatedCommands = point.m_CommandCount; m_AllocatedMemory = point.m_MemoryUsed; }
 private: 
-	template<typename T> using Array = std::array<T, RendererConf::CommandQueue::CommandLimit>;
+	template<typename T> using Array = std::array<T, Conf::CommandLimit>;
 
 	template<typename T>
 	T* AllocateMemory(uint32_t size) {
@@ -116,13 +115,12 @@ private:
 
 	Array<CommandFunction> m_CommandFunctions;
 	Array<void*> m_CommandArguments;
-	std::array<uint8_t, RendererConf::CommandQueue::ArgumentMemoryBuffer> m_Memory;
-	Array<RendererConf::CommandKey> m_SortKeys;
+	std::array<uint8_t, Conf::ArgumentMemoryBuffer> m_Memory;
+	Array<CommandKey> m_SortKeys;
 
 	void SortBegin(int first, int last);
 };
 
-} //namespace Renderer 
-} //namespace MoonGlare 
+static_assert((sizeof(CommandQueue) & 0xF) == 0, "Invalid size!");
 
-#endif
+} //namespace MoonGlare::Renderer

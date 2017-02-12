@@ -15,6 +15,12 @@ struct CommandBucket {
 	static constexpr uint32_t MaxCommands = 4096;
 
 	static constexpr uint32_t ArgumentMemoryBuffer = 512 * 1024;
+struct CommandQueue {
+	static constexpr uint32_t ArgumentMemoryBuffer = 1 * 128 * 1024; //1mb
+	static constexpr uint32_t CommandLimit = 4096;
+	static constexpr uint32_t BytesPerCommand = ArgumentMemoryBuffer / CommandLimit;
+};
+
 };
 
 } //namespace MoonGlare::Renderer::Configuration

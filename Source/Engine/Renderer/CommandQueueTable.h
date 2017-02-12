@@ -6,19 +6,21 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef CommandQueueTable_H
-#define CommandQueueTable_H
 
-namespace MoonGlare {
-namespace Renderer {
+#include "RendererConfiguration.h"
+
+namespace MoonGlare::Renderer {
 
 class CommandQueueTable {
+	struct Conf {
+		using CommandQueueID = ::MoonGlare::Configuration::Renderer::CommandQueueID;
+	};
 public:
 	CommandQueueTable() {};
 	~CommandQueueTable() {};
 
 	enum {
-		SIZE = static_cast<size_t>(RendererConf::CommandQueueID::MaxValue),
+		SIZE = static_cast<size_t>(Conf::CommandQueueID::MaxValue),
 	};
 
 	void Sort() {
@@ -40,12 +42,9 @@ public:
 
 	template<RendererConf::CommandQueueID QID>
 	CommandQueue& Get() { return m_CommandQueues[static_cast<size_t>(QID)]; }
-	CommandQueue& operator[](RendererConf::CommandQueueID QID) { return m_CommandQueues[static_cast<size_t>(QID)]; }
+	CommandQueue& operator[](Conf::CommandQueueID QID) { return m_CommandQueues[static_cast<size_t>(QID)]; }
 private: 
 	std::array<CommandQueue, SIZE> m_CommandQueues;
 };
 
-} //namespace Renderer 
-} //namespace MoonGlare 
-
-#endif
+} //namespace MoonGlare::Renderer

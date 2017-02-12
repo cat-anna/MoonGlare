@@ -15,7 +15,4 @@ struct BaseBucket {
 	BucketCommandQueue *m_Queue;
 };		
 
-
-
-
 } //namespace MoonGlare::Renderer 

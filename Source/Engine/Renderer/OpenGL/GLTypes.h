@@ -1,12 +1,9 @@
 #pragma once
-#ifndef GLTYPES_H_
-#define GLTYPES_H_
+
+#include <Source/Renderer/Commands/CommandQueueBase.h>
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
-
-using CommandFunction = void(*)(void *DataPtr);
 
 using ShaderHandle = GLuint;
 using ShadeUniformLocation = GLint;
@@ -17,13 +14,15 @@ using VAOHandle = GLuint;
 
 template<typename CMDARG>
 struct CommandTemplate {
-	static size_t ArgumentSize() { return sizeof(CMDARG); }
-	static CommandFunction GetFunction() { return reinterpret_cast<CommandFunction>(&CMDARG::Execute); }
 	using Argument = CMDARG;
+	static size_t ArgumentSize() {
+		return sizeof(Argument);
+	}
+	static CommandFunction GetFunction() {
+		return reinterpret_cast<CommandFunction>(&Argument::Execute);
+	}
 };
 
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
 
-#endif // NFRENDERER_H_

@@ -4,9 +4,6 @@
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
-
-} //namespace OpenGL
 } //namespace Renderer 
 } //namespace MoonGlare 
 

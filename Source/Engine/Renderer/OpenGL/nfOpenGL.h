@@ -4,12 +4,6 @@
 
 namespace MoonGlare {
 namespace Renderer {
-namespace OpenGL {
-
-} //namespace OpenGL
-
-using namespace OpenGL; // bad idea, but convinient
-//namespace Device = OpenGL;
 
 } //namespace Renderer 
 } //namespace MoonGlare 
