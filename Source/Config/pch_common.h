@@ -46,10 +46,33 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/seq.hpp>
+#include <boost/align.hpp>
+
+namespace mem {
+
+template<class T>
+using aligned_ptr = std::unique_ptr<T, boost::alignment::aligned_delete>;
+
+template<class T, class... Args>
+inline aligned_ptr<T> make_aligned(Args&&... args) {
+	auto p = boost::alignment::aligned_alloc(boost::alignment::alignment_of<T>::value, sizeof(T));
+	if (!p) {
+		throw std::bad_alloc();
+	}
+	try {
+		auto q = ::new(p) T(std::forward<Args>(args)...);
+		return aligned_ptr<T>(q);
+	}
+	catch (...) {
+		boost::alignment::aligned_free(p);
+		throw;
+	}
+}
+
+}
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-
 
 #pragma warning ( push, 0 )
 

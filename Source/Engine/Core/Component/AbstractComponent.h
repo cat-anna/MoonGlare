@@ -16,8 +16,9 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class AbstractComponent
-	: public Config::Current::DebugMemoryInterface {
+class alignas(16) AbstractComponent
+	: public Config::Current::DebugMemoryInterface 
+	, public ::Space::Memory::AlignedAllocator<16> {
 public:
 	AbstractComponent(ComponentManager *Owner);
 	virtual ~AbstractComponent();
@@ -62,7 +63,6 @@ private:
 	ComponentManager *m_Owner;
 	HandleTable *m_HandleTable;
 	void *m_padding1;
-	void *m_padding2;
 };
 
 template<typename ELEMENT, ComponentID CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>

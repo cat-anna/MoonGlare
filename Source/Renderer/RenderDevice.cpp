@@ -34,8 +34,8 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 
 	for (uint8_t idx = 0; idx < Conf::Count; ++idx) {
 		auto &buffer = m_Frames[idx];
-		buffer = std::make_unique<Frame>();
 		if (!buffer->Initialize(idx, this)) {
+		buffer = mem::make_aligned<Frame>();
 			AddLogf(Error, "Frame buffer initialization failed!");
 			return false;
 		}

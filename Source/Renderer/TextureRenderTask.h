@@ -30,9 +30,11 @@ public:
 
 	void Execute();
 private: 
-	TextureHandle m_TargetTexture;
+	TextureResourceHandle m_TargetTexture;
+	FramebufferHandle m_Framebuffer;
 	emath::ivec2 m_Size;
-	GLuint m_Framebuffer;
+	Frame* m_Frame;
+	void* padding[3];
 
 	Commands::CommandQueue m_CommandQueue;
 };

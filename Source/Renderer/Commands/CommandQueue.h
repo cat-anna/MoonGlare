@@ -121,6 +121,6 @@ private:
 	void SortBegin(int first, int last);
 };
 
-static_assert((sizeof(CommandQueue) & 0xF) == 0, "Invalid size!");
+static_assert((sizeof(CommandQueue) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer::Commands

@@ -16,7 +16,7 @@ namespace MoonGlare::Renderer {
 
 class RendererFacade;
 
-class RenderDevice final {
+class alignas(16) RenderDevice final {
 	using ThisClass = RenderDevice;
 	using Conf = Configuration::FrameBuffer;
 public:
@@ -33,9 +33,9 @@ public:
 
 	TextureRenderTask* AllocateTextureRenderTask() { return m_UnusedTextureRender.pop(nullptr); }
 private:
-	std::array<std::unique_ptr<Frame>, Conf::Count> m_Frames;
 	std::atomic<uint32_t> m_FreeFrameBuffers;
 	std::atomic<Frame*> m_PendingFrame;
+	std::array<mem::aligned_ptr<Frame>, Conf::Count> m_Frames;
 
 	Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
 	std::array<TextureRenderTask, Configuration::TextureRenderTask::Limit> m_TextureRenderTask;

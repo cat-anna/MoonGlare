@@ -34,16 +34,14 @@ public:
 	RenderDevice* GetDevice() const { return m_RenderDevice; }
 private: 
 	uint8_t m_BufferIndex;
-	//uint8_t p_padding24_1;
-	//uint32_t p_padding32_1;
-	//uint32_t p_padding32_2;
+	uint8_t padding8[3];
 	RenderDevice *m_RenderDevice;
 
 	TextureRenderQueue m_QueuedTextureRender;
 	Allocator_t m_Memory;
 };
 
-static_assert((sizeof(Frame) & 0xF) == 0, "Invalid size!");
+static_assert((sizeof(Frame) % 16) == 0, "Invalid size!");
 //static_assert(std::is_pod<Frame>::value, "Must be a pod!");
 
 } //namespace MoonGlare::Renderer 

@@ -12,7 +12,7 @@
 
 namespace MoonGlare::Renderer {
 
-class Context final {
+class /*alignas(16)*/ Context final {
 public:
  	Context();
  	~Context();
@@ -31,11 +31,14 @@ public:
 private: 
 	emath::ivec2 m_Size;
 	GLFWwindow *m_Window;
+	void *padding;
 
 	bool CreateWindow(ContextCreationInfo ctxifo);
 
 	static bool s_GLFWInitialized;
 	static void glfw_error_callback(int error, const char* description);
 };
+
+static_assert((sizeof(Context) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer 

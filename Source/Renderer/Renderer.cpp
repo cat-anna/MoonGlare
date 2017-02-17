@@ -28,13 +28,15 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo) {
 		return false;
 	}
 
-	m_Context = std::make_unique<Context>();
+	m_Context = mem::make_aligned<Context>();
 	if (!m_Context->Initialize(ctxifo, this, m_Device.get())) {
 		AddLogf(Error, "Context initialization failed!");
 		return false;
 	}
-	
-	m_Device = std::make_unique<RenderDevice>();
+
+	m_ResourceManager = mem::make_aligned<Resources::ResourceManager>();
+
+	m_Device = mem::make_aligned<RenderDevice>();
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");
         return false;

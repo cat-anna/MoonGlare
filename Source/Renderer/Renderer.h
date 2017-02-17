@@ -30,8 +30,9 @@ public:
 private:
     bool m_CanWork = false;
 
-	std::unique_ptr<RenderDevice> m_Device;
-	std::unique_ptr<Context> m_Context;
+	mem::aligned_ptr<RenderDevice> m_Device;
+	mem::aligned_ptr<Context> m_Context;
+	mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
 };
 
 } //namespace MoonGlare::Renderer

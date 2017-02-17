@@ -69,6 +69,8 @@ class cRootClass;
 
 #include <Utils/PerfCounters.h>
 
+#pragma warning (error: 4324)
+
 #if 0
  
 #include "Utils/SetGet.h"
