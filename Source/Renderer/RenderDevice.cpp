@@ -7,6 +7,7 @@
 
 #include "nfRenderer.h"
 #include "RenderDevice.h"
+#include "Renderer.h"
 #include "Frame.h"
 
 #include "Device/ErrorHandler.h"
@@ -14,17 +15,17 @@
 
 namespace MoonGlare::Renderer {
 
-RenderDevice::RenderDevice() :
-		m_PendingFrame(nullptr) {
-
-	SetPerformanceCounterOwner(DroppedFrames);
-	SetPerformanceCounterOwner(FramesProcessed);
+RenderDevice::RenderDevice() {
 }
 
 RenderDevice::~RenderDevice() {
 }
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
+	RendererAssert(renderer);
+
+	m_RendererFacade = renderer;
+
 	CriticalCheck(glewInit() == GLEW_OK, "Unable to initialize GLEW!");
 	AddLog(Debug, "GLEW initialized");
 	AddLog(System, "GLEW version: " << (char*) glewGetString(GLEW_VERSION));
@@ -33,9 +34,11 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 	Device::DeviceInfo::ReadInfo();
 
 	for (uint8_t idx = 0; idx < Conf::Count; ++idx) {
+		auto bit = 1u << idx;
+		m_FreeFrameBuffers.fetch_or(bit);
 		auto &buffer = m_Frames[idx];
-		if (!buffer->Initialize(idx, this)) {
 		buffer = mem::make_aligned<Frame>();
+		if (!buffer->Initialize(idx, this, renderer->GetResourceManager())) {
 			AddLogf(Error, "Frame buffer initialization failed!");
 			return false;
 		}
@@ -104,6 +107,9 @@ void RenderDevice::Step() {
 }
 
 void RenderDevice::ProcessFrame(Frame *frame) {
+	RendererAssert(frame);
+
+	frame->GetControllCommandQueue().Execute();
 
 	auto &trtq = frame->GetTextureRenderQueue();
 	for (auto *task : trtq) {

@@ -26,6 +26,16 @@ struct CommandQueue {
 struct IndexBuffer {
 	static constexpr uint32_t TextureBuffer = 256;
 };
+struct Resources {
+	template<size_t SIZE>
+	using BitmapAllocator = ::Space::Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
+
+	static constexpr uint32_t TextureLimit = 1024;
+	static constexpr uint32_t TextureInitial = 64;
+
+	static constexpr uint32_t VAOLimit = 1024;
+	static constexpr uint32_t VAOInitial = 64;
+};
 
 struct TextureRenderTask {
 	static constexpr uint32_t Limit = 64;

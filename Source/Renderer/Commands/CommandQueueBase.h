@@ -26,6 +26,30 @@ struct CommandTemplate {
 	}
 };
 
+template<typename HandleType>
+struct ResourceCommandInfo;
+
+template<typename HandleType>
+struct ResourceBindCommandBase {
+	using HandleArrayType = typename ResourceCommandInfo<HandleType>::HandleArrayType;
+	HandleArrayType m_HandleArray;
+	HandleType m_Handle;
+};
+
+template<>
+struct ResourceCommandInfo<TextureResourceHandle> {
+	using HandleArrayType = TextureHandle*;
+	using HandleType = TextureResourceHandle;
+};
+
+template<>
+struct ResourceCommandInfo<VAOResourceHandle> {
+	using HandleArrayType = GLuint*;
+};
+
+using TextureCommandBase = ResourceBindCommandBase<TextureResourceHandle>;
+using VAOBindCommandBase = ResourceBindCommandBase<VAOResourceHandle>;
+
 union CommandKey {
 	uint16_t m_UIntValue;
 	struct {

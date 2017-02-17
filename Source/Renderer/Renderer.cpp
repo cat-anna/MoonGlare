@@ -11,6 +11,7 @@
 #include "RenderDevice.h"
 #include "Frame.h"
 #include "Context.h"
+#include "Resources/ResourceManager.h"
 
 namespace MoonGlare::Renderer {
 
@@ -42,10 +43,20 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo) {
         return false;
     }
 
+	if (!m_ResourceManager->Initialize(this)) {
+		AddLogf(Error, "ResourceManager initialization failed!");
+		return false;
+	}
+
     return true;
 }
 
 bool RendererFacade::Finalize() {
+	if (m_ResourceManager && !m_ResourceManager->Finalize()) {
+		AddLogf(Error, "ResourceManager finalization failed!");
+	}
+	m_ResourceManager.reset();
+
     if(m_Device && !m_Device->Finalize()) {
         AddLogf(Error, "Render device finalization failed!");
     }
@@ -66,8 +77,8 @@ bool RendererFacade::Finalize() {
 //----------------------------------------------------------------------------------
 
 void RendererFacade::Start() {
-    m_CanWork = true;
-
+//    m_CanWork = true;
+	m_CanWork = false;  //hue hue
 }
 
 void RendererFacade::Stop() {

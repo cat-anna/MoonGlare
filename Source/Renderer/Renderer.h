@@ -25,8 +25,18 @@ public:
 
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
 
-	Context* CurrentContext() { return m_Context.get(); }
-	RenderDevice* GetDevice() { return m_Device.get(); }
+	Context* CurrentContext() {
+		RendererAssert(this);
+		return m_Context.get();
+	}
+	RenderDevice* GetDevice() {
+		RendererAssert(this);
+		return m_Device.get();
+	}
+	Resources::ResourceManager* GetResourceManager() {
+		RendererAssert(this);
+		return m_ResourceManager.get();
+	}
 private:
     bool m_CanWork = false;
 

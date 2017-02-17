@@ -37,10 +37,14 @@ public:
 
 	uint8_t Index() const { return m_BufferIndex; }
 	RenderDevice* GetDevice() const { return m_RenderDevice; }
+	Resources::ResourceManager* GetResourceManager() const { return m_ResourceManager; }
 private: 
 	uint8_t m_BufferIndex;
 	uint8_t padding8[3];
 	RenderDevice *m_RenderDevice;
+	Resources::ResourceManager *m_ResourceManager;
+	void *paddingptr;
+
 	Commands::CommandQueue m_ControllQueue;
 
 	TextureRenderQueue m_QueuedTextureRender;
