@@ -34,4 +34,16 @@ namespace Commands {
 	class alignas(16) CommandQueue;
 }
 
+namespace Resources {
+	class alignas(16) ResourceManager;
+	class alignas(16) TextureResource;
+}
+
+class CriticalException : public std::runtime_error {
+public:
+	CriticalException(std::string msg) : std::runtime_error(std::move(msg)){}
+};
+
+#define RendererAssert(COND) assert(COND)
+
 } //namespace MoonGlare::Renderer

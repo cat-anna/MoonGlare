@@ -19,8 +19,11 @@ public:
 	bool Initialize();
 	bool Finalize();
 
-	void SetTarget(TextureHandle handle) { m_TargetTexture = handle; }
-	void SetSize(emath::ivec2 Size)	{ m_Size = Size; }
+	void Begin();
+	void End();
+
+	void SetFrame(Frame *frame) { m_Frame = frame; }
+	void SetTarget(TextureResourceHandle &handle, emath::ivec2 Size);
 
 	Commands::CommandQueue& GetCommandQueue() { return m_CommandQueue; }
 	template<typename CMD, typename ...ARGS>

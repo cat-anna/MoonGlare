@@ -20,19 +20,24 @@ public:
 	using ByteArray = Space::Memory::StaticMemory<T, Configuration::FrameBuffer::MemorySize>;
 	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
 
-	TextureRenderQueue& GetTextureRenderQueue() { return m_QueuedTextureRender; }
 	Commands::CommandQueue& GetControllCommandQueue() {
 		RendererAssert(this);
 		return m_ControllQueue;
+	}
+	TextureRenderQueue& GetTextureRenderQueue() { 
+		RendererAssert(this);
+		return m_QueuedTextureRender; 
 	}
 	Allocator_t& GeMemory() { return m_Memory; }
 
 	void BeginFrame();
 	void EndFrame();
 
-	bool Submit(TextureRenderTask *trt) { return m_QueuedTextureRender.push(trt);}
+	bool Submit(TextureRenderTask *trt) { 
+		return m_QueuedTextureRender.push(trt);
+	}
 
-	bool Initialize(uint8_t BufferIndex, RenderDevice *device);
+	bool Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::ResourceManager *ResMgr);
 	bool Finalize();
 
 	uint8_t Index() const { return m_BufferIndex; }
