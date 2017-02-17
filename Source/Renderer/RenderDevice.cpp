@@ -41,11 +41,6 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 		}
 	}
 
-	if (!m_TextureIndexBuffer.Initialize()) {
-		AddLogf(Error, "TextureIndexBuffer initialization failed!");
-		return false;
-	}
-
 	m_UnusedTextureRender.fill(nullptr);
 	for (auto &item : m_TextureRenderTask) {
 		if (!item.Initialize()) {
@@ -59,10 +54,6 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 }
 
 bool RenderDevice::Finalize() {
-
-	if (!m_TextureIndexBuffer.Finalize()) {
-		AddLogf(Error, "m_TextureIndexBuffer finalization failed!");
-	}
 
 	for (auto &buffer : m_Frames) {
 		if (!buffer->Finalize()) {
