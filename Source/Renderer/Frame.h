@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Configuration.Renderer.h"
+#include "Commands/CommandQueue.h"
 
 namespace MoonGlare::Renderer {
 
@@ -20,6 +21,10 @@ public:
 	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
 
 	TextureRenderQueue& GetTextureRenderQueue() { return m_QueuedTextureRender; }
+	Commands::CommandQueue& GetControllCommandQueue() {
+		RendererAssert(this);
+		return m_ControllQueue;
+	}
 	Allocator_t& GeMemory() { return m_Memory; }
 
 	void BeginFrame();
@@ -36,6 +41,7 @@ private:
 	uint8_t m_BufferIndex;
 	uint8_t padding8[3];
 	RenderDevice *m_RenderDevice;
+	Commands::CommandQueue m_ControllQueue;
 
 	TextureRenderQueue m_QueuedTextureRender;
 	Allocator_t m_Memory;

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "../nfRenderer.h"
 #include "CommandQueueBase.h"
 
 namespace MoonGlare::Renderer::Commands {
@@ -36,6 +37,7 @@ public:
 		Execute();
 	}
 	void Execute(bool Clear = true) {
+		RendererAssert(this);
 		for (uint32_t it = 0; it < m_AllocatedCommands; ++it) {
 			auto f = m_CommandFunctions[it];
 			auto a = m_CommandArguments[it];
@@ -59,7 +61,7 @@ public:
 	}
 
 	template<typename CMD>
-	typename CMD::Argument* PushCommand(CommandKey SortKey) {
+	typename CMD::Argument* PushCommand(CommandKey SortKey = CommandKey()) {
 		auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
 		if (IsFull() || !argptr) {
 			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
@@ -77,6 +79,27 @@ public:
 
 		return argptr;
 	}
+
+	template<typename CMD, typename ... ARGS>
+	typename CMD::Argument* MakeCommand(ARGS&& ... args) {
+		auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
+		if (IsFull() || !argptr) {
+			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
+			return nullptr;
+		}
+
+		size_t index = m_AllocatedCommands;
+		++m_AllocatedCommands;
+
+		m_CommandFunctions[index] = CMD::GetFunction();
+		m_CommandArguments[index] = argptr;
+		//SortKey.m_Details.m_Order = (uint16_t)SortKey.m_Details.m_Ptr;
+		//SortKey.m_Details.m_Ptr = (uint32_t)argptr;
+		m_SortKeys[index] = CommandKey();
+
+		return new(argptr)CMD::Argument{ std::forward<ARGS>(args)... };
+	}
+
 
 //	template<typename CMD>
 //	typename CMD::Argument* PushCommand() { return PushCommand<CMD>(RendererConf::CommandKey{ 0 }); }
@@ -107,6 +130,8 @@ private:
 		m_AllocatedMemory += size;
 		return ptr;
 	}
+
+	//TODO make this class atomic
 	
 	uint32_t m_AllocatedCommands;
 	uint32_t m_AllocatedMemory;
