@@ -1,6 +1,5 @@
 #ifndef PCH_H
 #define PCH_H
-
 #pragma warning ( disable: 4005 )
 #pragma warning ( disable: 4800 )
 #pragma warning ( disable: 4100 )
@@ -18,12 +17,13 @@
 //#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <GL/glfx.h>
 //std include
 #include <locale>
 #include <codecvt>
 
 #include <Config/pch_common.h>
+
+#include <boost/optional.hpp>
 
 using std::istream;
 using std::ostream;
@@ -32,9 +32,9 @@ using wstring = std::wstring;//u16string
 
 #pragma warning ( push, 0 )
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>     
+#include <assimp/scene.h>          
+#include <assimp/postprocess.h>    
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -56,9 +56,57 @@ using namespace Space::Utils::HashLiterals;
 
 class cRootClass;
 
+
+#include <luaJiT-2.0.4/lua.hpp>
+#if defined(_USE_API_GENERATOR_)
+#include <ApiGen/ApiDefAutoGen.h>
+#elif defined(_DISABLE_SCRIPT_ENGINE_)
+#else
+#include <Libs/LuaBridge/LuaBridge.h>
+#endif
+
+namespace Core {
+class Console;
+#if defined(_USE_API_GENERATOR_)
+typedef ApiDefAutoGen::Namespace ApiInitializer;
+#elif defined(_DISABLE_SCRIPT_ENGINE_)
+struct DummyApiInitializer {
+	template <class ... Args1, class ... Args2> DummyApiInitializer& beginClass(Args2 ... args) { return *this; }
+	template <class ... Args1, class ... Args2> DummyApiInitializer& deriveClass(Args2 ... args) { return *this; }
+	template <class ... Args1, class ... Args2> DummyApiInitializer& endClass(Args2 ... args) { return *this; }
+	template <class ... Args1, class ... Args2> DummyApiInitializer& beginNamespace(Args2 ... args) { return *this; }
+	template <class ... Args1, class ... Args2> DummyApiInitializer& endNamespace(Args2 ... args) { return *this; }
+
+	template <class ... Args1, class ... Args2> DummyApiInitializer& addFunction(Args2 ... args) { return *this; }
+	template <class ... Args1, class ... Args2> DummyApiInitializer& addVariable(Args2 ... args) { return *this; }
+};
+typedef DummyApiInitializer ApiInitializer;
+#else
+typedef luabridge::Namespace ApiInitializer;
+#endif
+}
+
+using Core::ApiInitializer;
+
 #include "Config/Config.h"
+#include <StarVFS/core/nfStarVFS.h>
+#include <OrbitLogger/src/OrbitLogger.h>
 
 #include <libSpace/src/Space.h>
+#include <libSpace/src/Container/StaticVector.h>
+#include <libSpace/src/Memory/Memory.h>
+#include <libSpace/src/Memory/StackAllocator.h>
+#include <libSpace/src/Memory/BitampAllocator.h>
+
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif
+
+#include <Utils/PerfCounters.h>
+
+#pragma warning (error: 4324)
+
+#if 0
 
 #include "Utils/SetGet.h"
 #include "Utils/Memory/nMemory.h"
@@ -71,8 +119,8 @@ class cRootClass;
 #include "d2math.h"
 #include "Utils/XMLUtils.h"
 #include "Utils/StreamUtils.h"
-#include <Utils/PerfCounters.h>
 
 #include "Error.h"
 
+#endif
 #endif

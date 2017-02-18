@@ -23,6 +23,8 @@ struct ShaderCode {
 	std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
 };
 
+struct FileCache;
+
 class Loader final {
 public:
  	Loader(FileSystem *fs);
@@ -36,6 +38,7 @@ protected:
 	FileSystem* GetFileSystem() { return m_FileSystem; }
 private: 
 	FileSystem *m_FileSystem;
+	std::unique_ptr<FileCache> m_FileCache;
 };
 
 } //namespace MoonGlare::Asset::Shader 

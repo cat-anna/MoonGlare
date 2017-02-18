@@ -4,7 +4,6 @@
   * by Kalessin
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
 #include "AssetManager.h"
 
 #include "FileSystem.h"

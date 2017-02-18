@@ -5,6 +5,10 @@ group "EngineLibs"
 		kind "StaticLib"
 
 		SetPCH { hdr = "pch.h", src = "pch.cpp", }
+		
+        forceincludes {
+            "pch.h",
+        }
 
 		defines {
 			"_BUILDING_ENGINE_",

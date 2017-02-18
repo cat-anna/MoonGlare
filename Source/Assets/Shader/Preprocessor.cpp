@@ -4,7 +4,6 @@
   * by Kalessin
 */
 /*--END OF HEADER BLOCK--*/
-#include <pch.h>
 #include "../FileSystem.h"
 #include "Preprocessor.h"
 
@@ -12,12 +11,47 @@
 
 namespace MoonGlare::Asset::Shader {
 
+bool FileCache::ReadFile(const std::string &FName, const ReadBuffer *&out) {
+	auto it = m_LoadedFiles.find(FName);
+	if (it != m_LoadedFiles.end()) {
+		if (!it->second.is_initialized()) {
+			AddLogf(Warning, "Unable to load file '%s'", FName.c_str());
+			return false;
+		}
+		out = &it->second.get();
+		return true;
+	}
+
+	StarVFS::ByteTable data;
+	if (!GetFileSystem()->OpenFile(FName, DataPath::Shaders, data)) {
+		AddLogf(Warning, "Unable to load file '%s'", FName.c_str());
+		return false;
+	}
+
+	ReadBuffer buf;
+	std::stringstream ss;
+	ss << data.c_str();
+	while (ss) {
+		std::string line;
+		std::getline(ss, line);
+		buf.emplace_back(std::move(line));
+	}
+
+	m_LoadedFiles[FName] = std::move(buf);
+	out = &m_LoadedFiles[FName].get();
+
+	return true;
+}
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
 const std::array<Preprocessor::PreprocessorToken, 1> Preprocessor::s_Tokens = {
 	PreprocessorToken{ std::regex(R"(^\s*#include\s+[<"]([/A-Za-z0-9_\.]+)[">]\s*)"), &Preprocessor::IncludeToken },
 };
 
-Preprocessor::Preprocessor(FileSystem *fs):
-	m_FileSystem(fs) {
+Preprocessor::Preprocessor(FileCache *fc):
+	m_FileCache(fc) {
 }
 
 Preprocessor::~Preprocessor() {
@@ -55,25 +89,6 @@ void Preprocessor::Clear() {
 	m_Defines.clear();
 }
 
-bool Preprocessor::ReadFile(const std::string &FName, ReadBuffer &out) {
-	out.clear();
-	StarVFS::ByteTable data;
-	if (!GetFileSystem()->OpenFile(FName, DataPath::Shaders, data)) {
-		AddLogf(Error, "Unable to load file '%s' for shader '%s' ", FName.c_str(), FName.c_str());
-		return false;
-	}
-
-	std::stringstream ss;
-	ss << data.c_str();
-	while (ss) {
-		std::string line;
-		std::getline(ss, line);
-		out.emplace_back(std::move(line));
-	}
-
-	return true;
-}
-
 void Preprocessor::Process(const std::string &FName, int level) {
 	if (m_IncludedFiles.find(FName) != m_IncludedFiles.end()) {
 		m_OutputBuffer.pushf("//@ skip[%d] %s - included", level, FName.c_str());
@@ -82,8 +97,8 @@ void Preprocessor::Process(const std::string &FName, int level) {
 
 	m_IncludedFiles[FName] = true;
 		
-	ReadBuffer lines;
-	if (!ReadFile(FName, lines)) {
+	const ReadBuffer *lines;
+	if (!m_FileCache->ReadFile(FName, lines)) {
 		AddLogf(Error, "Unable to load file '%s'", FName.c_str());
 		throw ParseException{ FName , "Unable to load file", level };
 	}
@@ -92,9 +107,7 @@ void Preprocessor::Process(const std::string &FName, int level) {
 
 	unsigned linenum = 0;
 	try {
-		while (!lines.empty()) {
-			auto line = lines.front();
-			lines.pop_front();
+		for(const auto &line : *lines) {
 			++linenum;
 
 			bool handled = false;
@@ -132,7 +145,7 @@ void Preprocessor::GenerateDefines() {
 	}
 }
 
-void Preprocessor::IncludeToken(const std::string &FName, std::string & line, int level, std::smatch match) {
+void Preprocessor::IncludeToken(const std::string &FName, const std::string &line, int level, std::smatch match) {
 	std::string iName = match[1];
 	try {
 		m_OutputBuffer.pushf("//@ pause[%d] %s", level, FName.c_str());

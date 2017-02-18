@@ -6,14 +6,25 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef Preprocessor_H
-#define Preprocessor_H
+
+#include <boost/optional.hpp>
 
 namespace MoonGlare::Asset::Shader {
 
+struct FileCache {
+	using ReadBuffer = std::vector<std::string>;
+
+	FileCache(FileSystem *fs) :m_FileSystem(fs) {};
+
+	bool ReadFile(const std::string &FName, const ReadBuffer *&out);
+private:
+	std::unordered_map<std::string, boost::optional<ReadBuffer>> m_LoadedFiles;
+	FileSystem *m_FileSystem;
+};
+
 class Preprocessor final {
 public:
- 	Preprocessor(FileSystem *fs);
+ 	Preprocessor(FileCache *fs);
  	~Preprocessor();
 
 	struct ParseException {
@@ -36,8 +47,9 @@ public:
 	void DefineString(std::string id, const char* value) { DefineString(id, value); }
 	template<typename T> void DefineString(std::string id, T t) { DefineString(id, std::to_string(t)); }
 private: 
-	FileSystem *m_FileSystem;
+	using ReadBuffer = FileCache::ReadBuffer;
 
+	FileCache *m_FileCache;
 	std::unordered_map<std::string, std::string> m_Defines;
 	std::unordered_map<std::string, bool> m_IncludedFiles;
 
@@ -54,15 +66,13 @@ private:
 	};
 	OutputBuffer m_OutputBuffer;
 
-	using ReadBuffer = std::list<std::string>;
 
-	bool ReadFile(const std::string &FName, ReadBuffer &out);
 	void Process(const std::string &FName, int level);
 	void GenerateDefines();
 
-	using PreprocessorTokenHadler = void(Preprocessor::*)(const std::string &FName, std::string &line, int level, std::smatch match);
+	using PreprocessorTokenHadler = void(Preprocessor::*)(const std::string &FName, const std::string &line, int level, std::smatch match);
 
-	void IncludeToken(const std::string &FName, std::string &line, int level, std::smatch match);
+	void IncludeToken(const std::string &FName, const std::string &line, int level, std::smatch match);
 
 	struct PreprocessorToken {
 		std::regex m_RegExp;
@@ -72,5 +82,3 @@ private:
 };
 
 } //namespace MoonGlare::Asset::Shader 
-
-#endif

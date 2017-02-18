@@ -5,7 +5,6 @@
 */
 /*--END OF HEADER BLOCK--*/
 
-#include <pch.h>
 #include "../AssetManager.h"
 #include "../FileSystem.h"
 #include "Loader.h"
@@ -18,6 +17,8 @@ Loader::Loader(FileSystem *fs):
 	m_FileSystem(fs) {
 
 	MoonGlareAssert(fs);
+
+	m_FileCache = std::make_unique<FileCache>(fs);
 }
 
 Loader::~Loader() {
@@ -47,7 +48,7 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
 	unsigned LoadCount = 0;
 	bool Success = true;
 
-	Preprocessor preproc(GetFileSystem());
+	Preprocessor preproc(m_FileCache.get());
 
 	auto TryLoad = [&preproc, &Name](std::string fn, const ShaderFileInfo& shaderfile) -> bool {
 		preproc.ClearOutput();
