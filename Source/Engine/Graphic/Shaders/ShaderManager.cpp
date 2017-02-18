@@ -124,12 +124,13 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 	ShaderCodeBuffer Lines;
 	Lines.fill("\n");
 
+	char maindefbuf[64] = "//shader main def\n";
 	char typedefbuf[64] = "//shader type def\n";
 	Lines[0] = "#version 420\n";
 	Lines[1] = "//defines begin\n";
 	Lines[2] = typedefbuf;
-	Lines[3] = m_ShaderConfigurationDefs.c_str();
-	//4
+	Lines[3] = typedefbuf;
+	Lines[4] = m_ShaderConfigurationDefs.c_str();
 	//5
 	Lines[6] = "//preprocesed code begin\n";
 
@@ -156,6 +157,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 
 		Lines.back() = code.m_Code[index].c_str();
 		sprintf_s(typedefbuf, "#define %s_main main\n", shadertype.m_Name);
+		sprintf_s(maindefbuf, "#define shader_%s\n", shadertype.m_Name);
 
 		GLuint shader = glCreateShader(shadertype.m_GLID);
 		LoadedShaders[index] = shader;

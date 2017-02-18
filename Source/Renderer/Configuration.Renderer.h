@@ -2,8 +2,17 @@
 
 namespace MoonGlare::Renderer::Configuration {
 
+struct Requirement {
+	//ogl
+	static constexpr uint32_t OpenGLVersionMajor = 4;
+	static constexpr uint32_t OpenGLVersionMinor = 2;
+	
+	//system 
+	static constexpr uint32_t CPUCores = 2;
+};
+
 struct FrameBuffer {
-	static constexpr uint32_t MemorySize = 1 * 128 * 1024;
+	static constexpr uint32_t MemorySize = 1 * 32 * 1024;
 	static constexpr uint32_t Count = 3;
 
 	enum class Layers {
@@ -36,7 +45,7 @@ struct CommandBucket {
 };
 
 struct CommandQueue {
-	static constexpr uint32_t ArgumentMemoryBuffer = 1 * 128 * 1024; //1mb
+	static constexpr uint32_t ArgumentMemoryBuffer = 1 * 32 * 1024; 
 	static constexpr uint32_t CommandLimit = 4096;
 	static constexpr uint32_t BytesPerCommand = ArgumentMemoryBuffer / CommandLimit;
 };
@@ -50,8 +59,6 @@ struct Resources {
 
 	static constexpr uint32_t TextureLimit = 1024;
 	static constexpr uint32_t TextureInitial = 64;
-
-
 };
 
 struct VAO {

@@ -104,6 +104,7 @@ void TextureRenderTask::SetTarget(TextureResourceHandle &handle, emath::ivec2 Si
 	m_Size = Size;
 }
 
+#if 0
 void TextureRenderTask::Execute() {
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer);
 
@@ -150,6 +151,7 @@ void TextureRenderTask::Execute() {
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
+#endif
 
 //---------------------------------------------------------------------------------------
 

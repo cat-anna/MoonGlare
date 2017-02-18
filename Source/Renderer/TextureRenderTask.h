@@ -31,7 +31,6 @@ public:
 		return m_CommandQueue.PushCommand<CMD>(std::forward<ARGS>(args)...);
 	}
 
-	void Execute();
 private: 
 	TextureResourceHandle m_TargetTexture;
 	FramebufferHandle m_Framebuffer;

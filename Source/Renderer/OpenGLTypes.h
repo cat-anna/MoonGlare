@@ -41,7 +41,7 @@ using ShadeUniformLocation = GLint;
 //---------------------------------------------------------------------------------------
 
 template<typename T> struct GLTypeInfo {
-//	static_assert(false, "Unknown opengl type!");
+	static_assert(std::is_same<int, int>::value, "Unknown opengl type!");
 };
 
 template<typename T> struct GLTypeInfoCommon {

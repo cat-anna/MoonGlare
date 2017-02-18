@@ -4,19 +4,15 @@
 #include <Core/Console.h>
 
 static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Separate = false) {
-	//	void* ptr;
-	//	cObject *obj = 0;
 	for (int i = parambegin, n = lua_gettop(L); i <= n; i++) {
 		auto type = lua_type(L, i);
 		switch (type) {
-		case LUA_TNUMBER:
-		{
+		case LUA_TNUMBER: {
 			lua_Number v = lua_tonumber(L, i);
 			lg << v;
 			break;
 		}
-		case LUA_TSTRING:
-		{
+		case LUA_TSTRING: {
 			const char *s = lua_tostring(L, i);
 			lg << s;
 			break;
@@ -24,8 +20,7 @@ static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Se
 		case LUA_TBOOLEAN:
 			lg << std::boolalpha << (lua_toboolean(L, i) != 0);
 			break;
-		case LUA_TUSERDATA:
-		{
+		case LUA_TUSERDATA: {
 			unsigned *ptr = (unsigned*)lua_touserdata(L, i);
 			try {
 				cRootClass *obj = dynamic_cast<cRootClass*>((Space::RTTI::RTTIObject*)(void*)*(ptr + 1));
@@ -44,7 +39,7 @@ static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Se
 			lg << "[NULL]";
 			break;
 		case LUA_TFUNCTION:
-			lg << "[Function@" << lua_tocfunction(L, i) << "]";
+			lg << "[Function]";
 			break;
 		case LUA_TTABLE:
 			lg << "[TABLE]";
@@ -68,8 +63,7 @@ static int Lua_print(lua_State *L) {
 		case LUA_TNUMBER:
 			out << lua_tonumber(L, i);
 			break;
-		case LUA_TSTRING:
-		{
+		case LUA_TSTRING: {
 			const char *s = lua_tostring(L, i);
 			out << (s ? s : "{NULL}");
 			break;
@@ -78,8 +72,7 @@ static int Lua_print(lua_State *L) {
 			out << std::boolalpha << (lua_toboolean(L, i) != 0);
 			break;
 #ifdef DEBUG
-		case LUA_TUSERDATA:
-		{
+		case LUA_TUSERDATA: {
 			int top = lua_gettop(L);
 			lua_pushvalue(L, i);
 			lua_getglobal(L, "tostring");
@@ -95,7 +88,7 @@ static int Lua_print(lua_State *L) {
 			out << "[NULL]";
 			break;
 		case LUA_TFUNCTION:
-			out << "[Function@" << lua_tocfunction(L, i) << "]";
+			out << "[Function]";
 			break;
 		case LUA_TTABLE:
 			out << "[TABLE]";

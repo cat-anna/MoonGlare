@@ -8,9 +8,9 @@
 namespace PerformanceCounters {
 inline void PrintPerfCounter(unsigned __int64 Value, void *OwnerPtr, const char *OwnerName, const char *Name) {
 	if (OwnerPtr)
-		AddLogf(Performance, "Destroying counter %s. Owner %s (%p). Current value: %llu", Name, OwnerName, OwnerPtr, static_cast<unsigned long long>(Value));
+		AddLogf(Performance, "Destroying counter %s. Owner %s (%p). Value: %llu", Name, OwnerName, OwnerPtr, static_cast<uint64_t>(Value));
 	else
-		AddLogf(Performance, "Destroying counter %s. Owner %s. Current value: %llu", Name, OwnerName, static_cast<unsigned long long>(Value));
+		AddLogf(Performance, "Destroying counter %s. Owner %s. Value: %llu", Name, OwnerName, static_cast<uint64_t>(Value));
 }
 template<typename Mode, typename OWNER>
 struct GetCouterOwnerName;
