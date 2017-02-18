@@ -17,8 +17,7 @@ namespace Core {
 namespace Component {
 
 class alignas(16) AbstractComponent
-	: public Config::Current::DebugMemoryInterface 
-	, public ::Space::Memory::AlignedAllocator<16> {
+	: public Config::Current::DebugMemoryInterface {
 public:
 	AbstractComponent(ComponentManager *Owner);
 	virtual ~AbstractComponent();

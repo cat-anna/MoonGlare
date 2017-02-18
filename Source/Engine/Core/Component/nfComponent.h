@@ -19,7 +19,7 @@ namespace Core {
 namespace Component {
 
 class AbstractComponent;
-using UniqueAbstractComponent = std::unique_ptr<AbstractComponent>;
+using UniqueAbstractComponent = mem::aligned_ptr<AbstractComponent>;
 
 class ComponentManager;
 
