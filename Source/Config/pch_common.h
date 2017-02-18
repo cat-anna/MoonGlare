@@ -167,3 +167,5 @@ using LockGuard = std::lock_guard < std::mutex >;
 #ifdef GLOBAL_CONFIGURATION_FILE
 #include GLOBAL_CONFIGURATION_FILE
 #endif
+
+#include <libSpace/src/Memory/BitampAllocator.h>

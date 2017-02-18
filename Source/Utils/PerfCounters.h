@@ -7,7 +7,10 @@
 
 namespace PerformanceCounters {
 inline void PrintPerfCounter(unsigned __int64 Value, void *OwnerPtr, const char *OwnerName, const char *Name) {
-	AddLogf(Performance, "Destroying counter %s. Owner %s (%x). Current value: %llu", Name, OwnerName, OwnerPtr, static_cast<unsigned long long>(Value));
+	if (OwnerPtr)
+		AddLogf(Performance, "Destroying counter %s. Owner %s (%p). Current value: %llu", Name, OwnerName, OwnerPtr, static_cast<unsigned long long>(Value));
+	else
+		AddLogf(Performance, "Destroying counter %s. Owner %s. Current value: %llu", Name, OwnerName, static_cast<unsigned long long>(Value));
 }
 template<typename Mode, typename OWNER>
 struct GetCouterOwnerName;
@@ -16,7 +19,7 @@ template<class OWNER, class INFO>
 struct Counter {
 	std::atomic<uint64_t> Value = 0;
 	OWNER *Owner = nullptr;
-	std::string OwnerName;
+	std::string OwnerName = GetCouterOwnerName<std::is_base_of<cRootClass, OWNER>::type, OWNER>::Get(nullptr);
 	void increment(uint64_t val = 1) { Value += val; }
 	void decrement(uint64_t val = 1) { Value -= val; }
 

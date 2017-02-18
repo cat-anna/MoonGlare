@@ -28,7 +28,7 @@ public:
 		RendererAssert(this);
 		return m_QueuedTextureRender; 
 	}
-	Allocator_t& GeMemory() { return m_Memory; }
+	Allocator_t& GetMemory() { return m_Memory; }
 
 	void BeginFrame();
 	void EndFrame();
