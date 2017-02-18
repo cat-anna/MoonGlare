@@ -25,15 +25,21 @@ public:
 	bool Finalize();
 
 	bool Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out);
+	void Release(Commands::CommandQueue &queue, VAOResourceHandle &h);
 
 	bool Allocate(Frame *frame, VAOResourceHandle &out);
-	void Release(Frame *frame, VAOResourceHandle h);
+	void Release(Frame *frame, VAOResourceHandle &h);
 
 	VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
-	VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle h) {
+	VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle &h, bool AllowAllocation = false) {
+		if (AllowAllocation && h.m_TmpGuard != GuardValue) {
+			Allocate(q, h);
+		}
+
 		RendererAssert(h.m_TmpGuard == GuardValue);
 		RendererAssert(h.m_Index < Conf::VAOLimit);
+
 		return VAOBuilder {
 			&q,
 			&m_GLVAOBuffsers[h.m_Index],

@@ -74,6 +74,10 @@ struct VAOBuilder {
 			m_Queue->MakeCommand<Commands::ArrayBufferChannel>(Channel, ElementSize, TypeId<T>);
 	}
 
+	template <typename T, size_t ElemCount>
+	void SetIndex(InputChannels iChannel, const std::array<T, ElemCount> &table, bool Dynamic = false) {
+		SetIndex(iChannel, &table[0], table.size(), Dynamic);
+	}
 
 	template <typename T>
 	void SetIndex(InputChannels iChannel, const T* data, size_t ElementCount, bool Dynamic = false) {

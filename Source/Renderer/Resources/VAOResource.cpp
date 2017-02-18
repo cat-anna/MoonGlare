@@ -37,6 +37,11 @@ bool VAOResource::Allocate(Frame *frame, VAOResourceHandle &out) {
 	return Allocate(frame->GetControllCommandQueue(), out);
 }
 
+void VAOResource::Release(Frame *frame, VAOResourceHandle &h) {
+	RendererAssert(frame);
+	return Release(frame->GetControllCommandQueue(), h);
+}
+
 bool VAOResource::Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out) {
 	Bitmap::Index_t index;
 	if (m_AllocationBitmap.Allocate(index)) {
@@ -57,7 +62,7 @@ bool VAOResource::Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out
 	}
 }
 
-void VAOResource::Release(Frame *frame, VAOResourceHandle h) {
+void VAOResource::Release(Commands::CommandQueue &queue, VAOResourceHandle &h) {
 	RendererAssert(h.m_TmpGuard == GuardValue);
 	RendererAssert(h.m_Index < Conf::VAOLimit);
 
@@ -68,6 +73,7 @@ void VAOResource::Release(Frame *frame, VAOResourceHandle h) {
 		AddLogf(Debug, "VAO deallocation failed");
 		IncrementPerformanceCounter(FailedDellocations);
 	}
+	h.Reset();
 }
 
 } //namespace MoonGlare::Renderer::Resources 
