@@ -36,4 +36,34 @@ using FramebufferHandle = GLuint;
 using ShaderHandle = GLuint;
 using ShadeUniformLocation = GLint;
 
+//---------------------------------------------------------------------------------------
+
+template<typename T> struct GLTypeInfo {
+//	static_assert(false, "Unknown opengl type!");
+};
+
+template<typename T> struct GLTypeInfoCommon {
+	using Type = T;
+	static constexpr unsigned TypeSize = sizeof(T);
+};
+
+template<> struct GLTypeInfo<GLfloat> : public GLTypeInfoCommon<GLfloat> {
+	static constexpr GLenum TypeId = GL_FLOAT;
+};
+template<> struct GLTypeInfo<GLint> : public GLTypeInfoCommon<GLint> {
+	static constexpr GLenum TypeId = GL_INT;
+};
+template<> struct GLTypeInfo<GLuint> : public GLTypeInfoCommon<GLuint> {
+	static constexpr GLenum TypeId = GL_UNSIGNED_INT;
+};
+template<> struct GLTypeInfo<GLushort> : public GLTypeInfoCommon<GLushort> {
+	static constexpr GLenum TypeId = GL_UNSIGNED_SHORT;
+};
+template<> struct GLTypeInfo<GLubyte> : public GLTypeInfoCommon<GLubyte> {
+	static constexpr GLenum TypeId = GL_UNSIGNED_BYTE;
+};
+
+template<typename T>
+constexpr GLenum TypeId = GLTypeInfo<T>::TypeId;
+
 } //namespace MoonGlare::Renderer
