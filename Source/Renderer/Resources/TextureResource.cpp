@@ -42,7 +42,7 @@ bool TextureResource::Allocate(Commands::CommandQueue &queue, TextureResourceHan
 		if (m_GLHandle[index] == InvalidTextureHandle) {
 			IncrementPerformanceCounter(OpenGLAllocations);
 			auto arg = queue.PushCommand<Commands::TextureSingleAllocate>();
-			arg->m_OutPtr = &m_GLHandle[index];
+			arg->m_Out = &m_GLHandle[index];
 		}
 		out.m_Index = static_cast<TextureResourceHandle::Index_t>(index);
 		out.m_TmpGuard = GuardValue;

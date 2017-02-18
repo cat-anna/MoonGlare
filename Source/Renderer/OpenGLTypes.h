@@ -30,6 +30,8 @@ static constexpr TextureHandle InvalidTextureHandle = static_cast<TextureHandle>
 using VAOHandle = GLuint;
 static constexpr VAOHandle InvalidVAOHandle = static_cast<VAOHandle>(0);
 
+using BufferHandle = GLuint;
+static constexpr BufferHandle InvalidBufferHandle = static_cast<BufferHandle>(0);
 
 using FramebufferHandle = GLuint;
 

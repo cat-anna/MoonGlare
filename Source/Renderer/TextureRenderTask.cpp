@@ -41,8 +41,7 @@ bool TextureRenderTask::Finalize() {
 	return true;
 }
 
-void TextureRenderTask::Begin()
-{
+void TextureRenderTask::Begin() {
 	using namespace Commands;
 
 	TextureHandle *htable = m_Frame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
@@ -80,11 +79,9 @@ void TextureRenderTask::Begin()
 	
 	m_CommandQueue.MakeCommand<SetViewport>(0, 0, m_Size[0], m_Size[1]);
 	m_CommandQueue.MakeCommand<Clear>((GLbitfield)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	
 }
 
-void TextureRenderTask::End()
-{
+void TextureRenderTask::End() {
 	TextureHandle *htable = m_Frame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
 
 	m_CommandQueue.MakeCommand<Commands::FramebufferDrawBind>((FramebufferHandle)0);
@@ -97,8 +94,7 @@ void TextureRenderTask::End()
 	m_CommandQueue.MakeCommand<Commands::Texture2DParameterInt>((GLenum)GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void TextureRenderTask::SetTarget(TextureResourceHandle &handle, emath::ivec2 Size)
-{
+void TextureRenderTask::SetTarget(TextureResourceHandle &handle, emath::ivec2 Size)  {
 	if (handle.m_TmpGuard == 0) { 
 		if (!m_Frame->GetResourceManager()->GetTextureAllocator().Allocate(m_CommandQueue, handle)) {
 			AddLogf(Warning, "Texture allocation failed!");

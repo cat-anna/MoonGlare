@@ -10,11 +10,14 @@
 #include "../nfRenderer.h"
 #include "../Configuration.Renderer.h"
 
+#include "VAOBuilder.h"
+
 namespace MoonGlare::Renderer::Resources {
 
 class alignas(16) VAOResource {
 	using ThisClass = VAOResource;
-	using Conf = Configuration::Resources;
+	using ConfRes = Configuration::Resources;
+	using Conf = Configuration::VAO;
 
 	static constexpr VAOResourceHandle::Index_t GuardValue = 0xDEAD;
 public:
@@ -27,13 +30,25 @@ public:
 	void Release(Frame *frame, VAOResourceHandle h);
 
 	VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
+
+	VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle h) {
+		RendererAssert(h.m_TmpGuard == GuardValue);
+		RendererAssert(h.m_Index < Conf::VAOLimit);
+		return VAOBuilder {
+			&q,
+			&m_GLVAOBuffsers[h.m_Index],
+			&m_GLHandle[h.m_Index], 
+		};
+	}
 private: 
 	template<typename T>
 	using Array = std::array<T, Conf::VAOLimit>;
-	using Bitmap = Conf::BitmapAllocator<Conf::VAOLimit>;
+	using Bitmap = ConfRes::BitmapAllocator<Conf::VAOLimit>;
+	using VAOBuffers = Conf::VAOBuffers;
 
 	Bitmap m_AllocationBitmap;
 	Array<VAOHandle> m_GLHandle;
+	Array<VAOBuffers> m_GLVAOBuffsers;
 	ResourceManager *m_ResourceManager = nullptr;
 	void* padding;
 

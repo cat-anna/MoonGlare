@@ -9,7 +9,7 @@
 
 #include "../Frame.h"
 #include "../Commands/CommandQueue.h"
-#include "../Commands/OpenGL/TextureCommands.h"
+#include "../Commands/OpenGL/ArrayCommands.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -17,6 +17,7 @@ bool VAOResource::Initialize(ResourceManager *Owner) {
 	RendererAssert(Owner);
 
 	m_GLHandle.fill(InvalidVAOHandle);
+	m_GLVAOBuffsers.fill(VAOBuffers{ 0 });
 	m_AllocationBitmap.ClearAllocation();
 
 	if (Conf::VAOInitial > 0) {
@@ -41,8 +42,8 @@ bool VAOResource::Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out
 	if (m_AllocationBitmap.Allocate(index)) {
 		if (m_GLHandle[index] == InvalidVAOHandle) {
 			IncrementPerformanceCounter(OpenGLAllocations);
-			//auto arg = queue.PushCommand<Commands::TextureSingleAllocate>();
-			//arg->m_OutPtr = &m_GLHandle[index];
+			auto arg = queue.PushCommand<Commands::VAOSingleAllocate>();
+			arg->m_Out = &m_GLHandle[index];
 		}
 		out.m_Index = static_cast<VAOResourceHandle::Index_t>(index);
 		out.m_TmpGuard = GuardValue;

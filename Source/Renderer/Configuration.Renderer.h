@@ -33,8 +33,31 @@ struct Resources {
 	static constexpr uint32_t TextureLimit = 1024;
 	static constexpr uint32_t TextureInitial = 64;
 
+
+};
+
+struct VAO {
 	static constexpr uint32_t VAOLimit = 1024;
 	static constexpr uint32_t VAOInitial = 64;
+	static constexpr uint32_t MaxBuffersPerVAO = 8;
+
+	using VAOBuffers = std::array<BufferHandle, MaxBuffersPerVAO>;
+
+	using ChannelType = GLuint;
+
+	enum class InputChannels : ChannelType {
+		Vertex,
+		Texture0,
+		Normals,
+
+		//Color, //unused
+
+		Index = 4,
+
+		MaxValue,
+	};
+
+	static_assert(static_cast<uint32_t>(InputChannels::MaxValue) <= MaxBuffersPerVAO, "mismatched buffer count!");
 };
 
 struct TextureRenderTask {
