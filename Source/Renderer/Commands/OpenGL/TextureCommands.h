@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../CommandQueueBase.h"
+#include "Common.h"
 
 namespace MoonGlare::Renderer::Commands{
 
@@ -44,39 +45,22 @@ using Texture2DResourceBindUnit = CommandTemplate<Texture2DResourceBindUnitArgum
 
 //---------------------------------------------------------------------------------------
 
-struct TextureSingleAllocateArgument {
-	TextureHandle *m_OutPtr;
-	static void Execute(const TextureSingleAllocateArgument *arg) {
-		glGenTextures(1, arg->m_OutPtr);
+namespace detail {
+struct TextureAllocation {
+	using Handle_t = TextureHandle;
+	static void Allocate(GLsizei count, Handle_t *out) {
+		glGenTextures(count, out);
+	}
+	static void Release(GLsizei count, Handle_t *out) {
+		glDeleteTextures(count, out);
 	}
 };
-using TextureSingleAllocate = CommandTemplate<TextureSingleAllocateArgument>;
+}
 
-struct TextureBulkAllocateArgument {
-	TextureHandle *m_OutPtr;
-	GLsizei m_Count;
-	static void Execute(const TextureBulkAllocateArgument *arg) {
-		glGenTextures(arg->m_Count, arg->m_OutPtr);
-	}
-};
-using TextureBulkAllocate = CommandTemplate<TextureBulkAllocateArgument>;
-
-struct TextureSingleReleaseArgument {
-	TextureHandle *m_OutPtr;
-	static void Execute(const TextureSingleReleaseArgument *arg) {
-		glDeleteTextures(1, arg->m_OutPtr);
-	}
-};
-using TextureSingleRelease = CommandTemplate<TextureSingleReleaseArgument>;
-
-struct TextureBulkReleaseArgument {
-	TextureHandle *m_OutPtr;
-	GLsizei m_Count;
-	static void Execute(const TextureBulkReleaseArgument *arg) {
-		glDeleteTextures(arg->m_Count, arg->m_OutPtr);
-	}
-};
-using TextureBulkRelease = CommandTemplate<TextureBulkReleaseArgument>;
+using TextureSingleAllocate = CommandTemplate<detail::SingleAllocate <detail::TextureAllocation> >;
+using TextureSingleRelease = CommandTemplate<detail::SingleRelease <detail::TextureAllocation> >;
+using TextureBulkAllocate = CommandTemplate<detail::BulkAllocate <detail::TextureAllocation> >;
+using TextureBulkRelease = CommandTemplate<detail::BulkRelease <detail::TextureAllocation> >;
 
 //---------------------------------------------------------------------------------------
 

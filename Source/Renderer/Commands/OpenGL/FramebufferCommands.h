@@ -53,6 +53,4 @@ struct SetDrawBuffersArgument {
 };
 using SetDrawBuffers = CommandTemplate<SetDrawBuffersArgument>;
 
-
-
 } //namespace MoonGlare::Renderer::Commands
