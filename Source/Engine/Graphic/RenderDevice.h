@@ -19,7 +19,7 @@ public:
 	cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager);
 	virtual ~cRenderDevice();
 
-	std::unique_ptr<RenderInput> CreateRenderInput();
+	mem::aligned_ptr<RenderInput> CreateRenderInput();
 
 	bool Initialize(); 
 	bool Finalize();

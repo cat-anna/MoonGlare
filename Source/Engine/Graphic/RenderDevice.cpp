@@ -39,8 +39,8 @@ cRenderDevice::~cRenderDevice() {
 	ShaderManager::DeleteInstance();
 }
 
-std::unique_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
-	auto ptr = std::make_unique<RenderInput>();
+mem::aligned_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
+	auto ptr = mem::make_aligned<RenderInput>();
 	ptr->Initialize(math::fvec2(GetContextSize()));
 	return std::move(ptr);
 }

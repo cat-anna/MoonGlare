@@ -64,7 +64,7 @@ struct MoveConfig {
 	
 	mutable std::vector<iCustomDraw*> CustomDraw;
 
-	mutable std::unique_ptr<Renderer::RenderInput> m_RenderInput;
+	mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
 
 	bool m_SecondPeriod;
 };
