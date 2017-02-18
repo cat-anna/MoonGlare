@@ -28,6 +28,8 @@ public:
 	
 	Frame* NextFrame();
 	void Submit(Frame *frame);
+	void ReleaseFrame(Frame *frame);
+	Frame* PendingFrame();
 
 	void Step();
 

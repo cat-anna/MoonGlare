@@ -5,7 +5,6 @@ namespace Configuration {
 
 namespace Renderer {
 	enum class CommandQueueID {
-		PrepareFrame,
 		GUI,
 		DefferedShadow,
 		DefferedGeometry,

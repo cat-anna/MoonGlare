@@ -90,33 +90,39 @@ void RenderDevice::Submit(Frame *frame) {
 		m_FreeFrameBuffers.fetch_or(bit);
 		IncrementPerformanceCounter(DroppedFrames);
 	}
-}								  
+}
+
+void RenderDevice::ReleaseFrame(Frame *frame) {
+	RendererAssert(frame);
+
+	auto &trtq = frame->GetTextureRenderQueue();
+	for (auto *task : trtq) {
+		m_UnusedTextureRender.push(task);
+	}
+
+	auto bit = 1 << frame->Index();
+	m_FreeFrameBuffers.fetch_or(bit);
+}
+
+Frame *RenderDevice::PendingFrame() {
+	return m_PendingFrame.exchange(nullptr);
+}
 
 //----------------------------------------------------------------------------------
 
 void RenderDevice::Step() {
-	auto frame = m_PendingFrame.exchange(nullptr);
+	auto frame = PendingFrame();
 	if (!frame)
 		return;
 
 	ProcessFrame(frame);
-
-	auto bit = 1 << frame->Index();
-	m_FreeFrameBuffers.fetch_or(bit);
-
+	ReleaseFrame(frame);
 }
 
 void RenderDevice::ProcessFrame(Frame *frame) {
 	RendererAssert(frame);
 
-	frame->GetControllCommandQueue().Execute();
-
-	auto &trtq = frame->GetTextureRenderQueue();
-	for (auto *task : trtq) {
-
-		task->Execute();
-		m_UnusedTextureRender.push(task);
-	}
+	frame->GetCommandLayers().Execute();
 
 	frame->EndFrame();
 	IncrementPerformanceCounter(FramesProcessed);

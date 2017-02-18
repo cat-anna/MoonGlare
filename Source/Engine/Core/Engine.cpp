@@ -194,7 +194,6 @@ void Engine::EngineMain() {
 		float SortTime = static_cast<float>(glfwGetTime());
 
 		Device->Submit(conf.m_BufferFrame);
-		Device->Step();
 		DoRender(conf);
 
 		float RenderTime = static_cast<float>(glfwGetTime());
@@ -236,19 +235,21 @@ void Engine::EngineMain() {
 
 void Engine::DoRender(MoveConfig &conf) {
 	auto &dev = *Graphic::GetRenderDevice();
-	auto devsize = dev.GetContext()->Size();
+	auto Device = m_Renderer->GetDevice();
+
+	auto frame = Device->PendingFrame();
+	auto &cmdl = frame->GetCommandLayers();
+	using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
 	conf.m_RenderInput->OnBeginFrame(dev);
+
 	dev.DispatchContextManipRequests();
 
 	dev.BeginFrame();
 	dev.ClearBuffer();
 
-	using Renderer::RendererConf::CommandQueueID;
-	conf.m_RenderInput->m_CommandQueues[CommandQueueID::PrepareFrame].Execute();
-
-	if(conf.Camera)
-		dev.Bind(conf.Camera);
+	cmdl.Get<Layer::Controll>().Execute();
+	cmdl.Get<Layer::PreRender>().Execute();
 
 	m_Dereferred->Execute(conf, dev);
 
@@ -262,7 +263,9 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	if(ConsoleExists()) GetConsole()->RenderConsole(dev);
+
+	if(ConsoleExists()) 
+		GetConsole()->RenderConsole(dev);
 
 	using Renderer::RendererConf::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
@@ -270,19 +273,17 @@ void Engine::DoRender(MoveConfig &conf) {
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);
 
-	glDisable(GL_BLEND);
+//	Device->Step();
 
 #ifdef DEBUG
 	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 1);
-	m_Forward->EndFrame();
+
+	frame->EndFrame();
+	Device->ReleaseFrame(frame);
 
 	conf.CustomDraw.clear();
-	conf.m_RenderInput->OnEndFrame();
-
-	//dev.EndFrame();
+	conf.m_RenderInput->Clear();
 }
 
 //----------------------------------------------------------------------------------

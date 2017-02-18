@@ -53,7 +53,7 @@ struct RenderInput {
 	void OnBeginFrame(cRenderDevice &dev) {
 		dev.Bind(&m_Camera);
 	}
-	void OnEndFrame() {
+	void Clear() {
 		m_PointLights.ClearAllocation();
 		m_SpotLights.ClearAllocation();
 		m_DirectionalLights.ClearAllocation();

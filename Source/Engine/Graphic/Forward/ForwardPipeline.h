@@ -18,7 +18,6 @@ public:
  	virtual ~ForwardPipeline();
 
 	void BeginFrame(cRenderDevice& dev);
-	void EndFrame() { }
 	
 	bool Initialize();
 	bool Finalize();	
