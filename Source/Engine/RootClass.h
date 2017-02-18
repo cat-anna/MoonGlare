@@ -1,11 +1,4 @@
-#ifndef ROOTCLASSH
-#define ROOTCLASSH
-
-struct sFlagStruct {
-	char *Name;
-	unsigned Flag;
-	bool Default;
-};
+#pragma once
 
 class cRootClass : public Space::RTTI::RTTIObject {
 	SPACERTTI_DECLARE_CLASS(cRootClass, Space::RTTI::RTTIObject);
@@ -13,9 +6,6 @@ class cRootClass : public Space::RTTI::RTTIObject {
 public: 
 	virtual void WriteNameToXML(xml_node Node) const;
 	static void RegisterScriptApi(ApiInitializer &api);
-protected:
-	static void WriteFlagPack(xml_node Node, unsigned Flags, const sFlagStruct *FlagPack);
-	static void ReadFlagPack(const xml_node Node, unsigned &Flags, const sFlagStruct *FlagPack);
 };
 
 class NamedObject : public cRootClass {
@@ -32,5 +22,3 @@ public:
 private:
 	string m_Name;
 };
-
-#endif // CROOTCLASS_H_ 

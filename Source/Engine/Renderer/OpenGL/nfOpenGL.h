@@ -8,7 +8,6 @@ namespace Renderer {
 } //namespace Renderer 
 } //namespace MoonGlare 
 
-#include "GLDefs.h"
 #include "GLTypes.h"
 
 #endif // NFOPENGL_H_
