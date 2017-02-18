@@ -35,17 +35,28 @@ public:
 		Renderer::RendererConf::CommandKey key{ 0 };
 		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
 	}
-	//void SetModelMatrix(Renderer::CommandQueue &Queue, const glm::mat4 & mat) {
-	//	auto loc = Location(ShaderParameters::ModelMatrix);
-	//	if (!IsValidLocation(loc))
-	//		return;
-	//
-	//	auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>();
-	//	arg->m_Location = loc;
-	//	arg->m_Matrix = mat;
-	//}
 
-	void SetWorldMatrix(Renderer::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 & ModelMat, const emath::fmat4 &CameraMat) {
+	void SetModelMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 &ModelMat) {
+		auto loc = Location(ShaderParameters::ModelMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
+		arg->m_Location = loc;
+		arg->m_Matrix = ModelMat;
+	}
+
+	void SetCameraMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key,  const emath::fmat4 &CameraMat) {
+		auto loc = Location(ShaderParameters::CameraMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
+		arg->m_Location = loc;
+		arg->m_Matrix = CameraMat;
+	}
+
+	void SetWorldMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 & ModelMat, const emath::fmat4 &CameraMat) {
 		auto loc = Location(ShaderParameters::WorldMatrix);
 		if (!IsValidLocation(loc))
 			return;

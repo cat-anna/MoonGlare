@@ -37,7 +37,7 @@ union TextComponentEntryFlagsMap {
 	static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 };
 
-struct TextComponentEntry {
+struct alignas(16) TextComponentEntry {
 	Handle m_SelfHandle;
 	Entity m_OwnerEntity;
 	char padding[3];
@@ -47,6 +47,9 @@ struct TextComponentEntry {
 	std::string m_Text;
 	TextAlignMode m_AlignMode;
 
+	Renderer::TextureResourceHandle m_TexHandle;
+	Renderer::VAOResourceHandle m_VAORes;
+
 	//TODO: fontname property
 	//TODO: fontsize property
 	DEFINE_COMPONENT_PROPERTY(Color);
@@ -55,15 +58,18 @@ struct TextComponentEntry {
 	float GetFontSize() const { return m_FontStyle.Size; }
 	void SetFontSize(float v) { m_FontStyle.Size = v; SetDirty(); }
 
-	math::mat4 m_Matrix;
+	math::mat4 m_Matrix, m_translate;
 	DataClasses::FontPtr m_Font;
-	DataClasses::SharedFontInstance m_FontInstance;
+	DataClasses::FontInstance m_FontInstance;
 	DataClasses::Fonts::Descriptor m_FontStyle;
+	Graphic::VAO m_VAO;
 
 	void Reset() {
 		m_Flags.ClearAll();
 		m_Font.reset();
 		m_FontInstance.reset();
+		m_TexHandle.Reset();
+		m_VAORes.Reset();
 	}
 
 	void SetDirty() { m_Flags.m_Map.m_Dirty = true;  m_Flags.m_Map.m_TextDirty = true; }
@@ -86,7 +92,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	GUIShader *m_Shader;
+	GUIShader *m_Shader, *m_RtShader;
 	TextProcessor m_TextProcessor;
 };
 

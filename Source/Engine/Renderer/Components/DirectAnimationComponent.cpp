@@ -22,6 +22,8 @@
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 
+#include <Source/Renderer/Frame.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -109,7 +111,6 @@ void SetMaterialColor(::Graphic::Shader *Shader, Renderer::Commands::CommandQueu
 
 void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 	using Renderer::RendererConf::CommandQueueID;
-	auto &PrepareQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::PrepareFrame];
 	auto &ShadowQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedShadow];
 	auto &GeometryQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedGeometry];
 
@@ -221,17 +222,19 @@ void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 
 		Renderer::RendererConf::CommandKey key{ 0 };
 
-		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Buffer = item.m_VAO.ChannelHandle(item.m_VAO.CoordChannel);
+		auto &PrepareQueue = conf.m_BufferFrame->GetControllCommandQueue();
+
+		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Handle = item.m_VAO.ChannelHandle(item.m_VAO.CoordChannel);
 		auto data = PrepareQueue.PushCommand<Renderer::Commands::ArrayBufferDynamicData>(key);
 		data->m_DataPtr = frameverticles;
 		data->m_ByteCount = sizeof(item.m_Mesh[0]) * item.m_Mesh.size();
 
-		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Buffer = item.m_VAO.ChannelHandle(item.m_VAO.NormalChannel);
+		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Handle = item.m_VAO.ChannelHandle(item.m_VAO.NormalChannel);
 		data = PrepareQueue.PushCommand<Renderer::Commands::ArrayBufferDynamicData>(key);
 		data->m_DataPtr = framenormals;
 		data->m_ByteCount = sizeof(item.m_MeshNormals[0]) * item.m_Mesh.size();
 
-		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Buffer = 0;
+		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Handle = 0;
 
 		SetModelMatrix(m_GeometryShader, GeometryQueue, key, tcentry->m_GlobalMatrix);
 		SetModelMatrix(m_ShadowShader, ShadowQueue, key, tcentry->m_GlobalMatrix);
