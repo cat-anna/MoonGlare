@@ -6,12 +6,11 @@
 #include <Renderer/VirtualCamera.h>
 
 #include <Source/Renderer/Commands/CommandQueue.h>
-#include "CommandQueueTable.h"
+#include <Source/Renderer/Commands/CommandQueueLayers.h>
+
+#include "Renderer/RendererConfiguration.h"
 
 namespace MoonGlare {
-//namespace Graphic {
-//	class VAO;
-//}
 namespace GUI {
 	class Animation;
 	using SharedAnimation = std::shared_ptr < Animation >;
@@ -36,6 +35,7 @@ struct RenderInput {
 	std::vector<math::vec3> m_2DPoints; //rendered as lines
 	std::vector<math::vec3> m_2DColors; //one per line, shall be 2x smaller
 
+	using CommandQueueTable = Renderer::Commands::CommandQueueLayers<::MoonGlare::Configuration::Renderer::CommandQueueID>;
 	CommandQueueTable m_CommandQueues;
 
 	bool Initialize(const math::fvec2 &ScreenSize) {

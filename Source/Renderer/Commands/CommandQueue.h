@@ -17,13 +17,6 @@ namespace MoonGlare::Renderer::Commands {
 class alignas(16) CommandQueue final {
 	using Conf = Configuration::CommandQueue;
 public:
-	CommandQueue() { ClearAllocation(); }
-	CommandQueue(const CommandQueue&) = delete;
-	CommandQueue(CommandQueue&&) = delete;
-	const CommandQueue& operator = (const CommandQueue&) = delete;
-	const CommandQueue& operator = (CommandQueue&&) = delete;
- 	~CommandQueue() { }
-
 	uint32_t CommandsCapacity() const { return Conf::CommandLimit; }
 	uint32_t CommandsAllocated() const { return m_AllocatedCommands; }
 	uint32_t MemoryCapacity() const { return Conf::ArgumentMemoryBuffer; }
@@ -50,7 +43,11 @@ public:
 	void MemZero() { memset(this, 0, sizeof(*this)); }
 	void ClearAllocation() { 
 		m_AllocatedCommands = m_CommandsPreamble;
-		m_AllocatedMemory = m_MemoryPreamble; 
+		m_AllocatedMemory = m_MemoryPreamble;
+	}
+	void Clear() {
+		m_AllocatedCommands = m_CommandsPreamble = 0;
+		m_AllocatedMemory = m_MemoryPreamble = 0;
 	}
 
 	void Sort() {
@@ -147,5 +144,14 @@ private:
 };
 
 static_assert((sizeof(CommandQueue) % 16) == 0, "Invalid size!");
+
+struct ExecuteQueueArgument {
+	CommandQueue *m_Queue;
+	static void Execute(const ExecuteQueueArgument *arg) {
+		RendererAssert(arg->m_Queue);
+		arg->m_Queue->Execute();
+	}
+};
+using ExecuteQueue = CommandTemplate<ExecuteQueueArgument>;
 
 } //namespace MoonGlare::Renderer::Commands

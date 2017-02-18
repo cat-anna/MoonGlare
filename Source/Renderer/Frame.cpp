@@ -8,6 +8,8 @@
 #include "nfRenderer.h"
 #include "Frame.h"
 
+#include "TextureRenderTask.h"
+
 namespace MoonGlare::Renderer {
 
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::ResourceManager *ResMgr) {
@@ -19,9 +21,10 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::Res
 	m_RenderDevice = device;
 	m_ResourceManager = ResMgr;
 
-	m_Memory.GetStorage().MemZero();
-	m_ControllQueue.MemZero();
-
+	m_QueuedTextureRender.ClearAllocation();
+	m_CommandLayers.Clear();
+	m_Memory.Clear();
+	
 	return true;
 }
 
@@ -33,11 +36,18 @@ bool Frame::Finalize() {
 
 void Frame::BeginFrame() {
 	m_QueuedTextureRender.ClearAllocation();
-	m_ControllQueue.ClearAllocation();
+	m_CommandLayers.ClearAllocation();
 	m_Memory.Clear();
 }
 
 void Frame::EndFrame() {
+}
+
+//----------------------------------------------------------------------------------
+ 
+bool Frame::Submit(TextureRenderTask *trt) {
+	m_CommandLayers.Get<Conf::Layers::PreRender>().MakeCommand<Commands::ExecuteQueue>(&trt->GetCommandQueue());
+	return m_QueuedTextureRender.push(trt);
 }
 
 //----------------------------------------------------------------------------------

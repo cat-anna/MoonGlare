@@ -5,6 +5,24 @@ namespace MoonGlare::Renderer::Configuration {
 struct FrameBuffer {
 	static constexpr uint32_t MemorySize = 1 * 128 * 1024;
 	static constexpr uint32_t Count = 3;
+
+	enum class Layers {
+		Controll,
+
+		PreRender, //TextureRenderTask and friends
+
+		//ShadowMaps,
+
+		//Render
+
+		//Postprocess
+		//Finish,
+
+		//Console,
+		//GUI
+
+		MaxValue,
+	};
 };
 
 struct CommandBucket {

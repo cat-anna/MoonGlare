@@ -8,34 +8,41 @@
 #pragma once
 
 #include "Configuration.Renderer.h"
-#include "Commands/CommandQueue.h"
+#include "Commands/CommandQueueLayers.h"
 
 namespace MoonGlare::Renderer {
 
 class alignas(16) Frame final {
+	using Conf = Configuration::FrameBuffer;
 public:
 	using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
 
 	template<typename T>
-	using ByteArray = Space::Memory::StaticMemory<T, Configuration::FrameBuffer::MemorySize>;
+	using ByteArray = Space::Memory::StaticMemory<T, Conf::MemorySize>;
 	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
+	using CommandLayers = Commands::CommandQueueLayers<Conf::Layers>;
 
-	Commands::CommandQueue& GetControllCommandQueue() {
+	CommandLayers& GetCommandLayers() {
 		RendererAssert(this);
-		return m_ControllQueue;
+		return m_CommandLayers;
+	}
+	CommandLayers::Queue& GetControllCommandQueue() {
+		RendererAssert(this);
+		return m_CommandLayers.Get<Conf::Layers::Controll>();
 	}
 	TextureRenderQueue& GetTextureRenderQueue() { 
 		RendererAssert(this);
 		return m_QueuedTextureRender; 
 	}
-	Allocator_t& GetMemory() { return m_Memory; }
+	Allocator_t& GetMemory() { 
+		RendererAssert(this);
+		return m_Memory;
+	}
 
 	void BeginFrame();
 	void EndFrame();
 
-	bool Submit(TextureRenderTask *trt) { 
-		return m_QueuedTextureRender.push(trt);
-	}
+	bool Submit(TextureRenderTask *trt);
 
 	bool Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::ResourceManager *ResMgr);
 	bool Finalize();
@@ -50,7 +57,7 @@ private:
 	Resources::ResourceManager *m_ResourceManager;
 	void *paddingptr;
 
-	Commands::CommandQueue m_ControllQueue;
+	CommandLayers m_CommandLayers;
 
 	TextureRenderQueue m_QueuedTextureRender;
 	Allocator_t m_Memory;
