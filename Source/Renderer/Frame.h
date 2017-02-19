@@ -17,6 +17,8 @@ class alignas(16) Frame final {
 	using ConfCtx = Configuration::Context;
 public:
 	using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
+	using SubQueue = Commands::CommandQueue;
+	using SubQueueTable = Space::Container::StaticVector<SubQueue, Conf::SubQueueCount>;
 
 	template<typename T>
 	using ByteArray = Space::Memory::StaticMemory<T, Conf::MemorySize>;
@@ -51,10 +53,20 @@ public:
 		return m_Memory;
 	}
 
+	SubQueue* AllocateSubQueue() {
+		RendererAssert(this);
+		auto q = m_SubQueueTable.Allocate();
+		if (q)
+			q->ClearAllocation();
+		return q;
+	}
+
 	void BeginFrame();
 	void EndFrame();
 
 	bool Submit(TextureRenderTask *trt);
+	bool Submit(SubQueue *q, ConfCtx::Window WindowLayer, Commands::CommandKey Key = Commands::CommandKey());
+	bool Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key = Commands::CommandKey());
 
 	bool Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade);
 	bool Finalize();
@@ -71,6 +83,7 @@ private:
 
 	CommandLayers m_CommandLayers;
 	WindowLayers m_WindowLayers;
+	SubQueueTable m_SubQueueTable;
 
 	TextureRenderQueue m_QueuedTextureRender;
 	Allocator_t m_Memory;
