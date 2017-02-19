@@ -264,22 +264,32 @@ void Engine::DoRender(MoveConfig &conf) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(ConsoleExists()) 
-		GetConsole()->RenderConsole(dev);
+	{
+		auto console = m_World->GetConsole();
+		if (console) {
+			//console->RenderConsole(dev);
+			console->ProcessConsole(frame);
+		}
+	}
 
 	using Renderer::RendererConf::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
 
+//	Device->Step();
+	{
+		auto &l = frame->GetFirstWindowLayer();
+//		l.Sort();
+		l.Execute();
+	}
+
 	for (auto *it : conf.CustomDraw)
 		it->D2Draw(dev);
 
-//	Device->Step();
 
 #ifdef DEBUG
 	Config::Debug::ProcessTextureIntrospector(dev);
 #endif
 
-	frame->EndFrame();
 	Device->ReleaseFrame(frame);
 
 	conf.CustomDraw.clear();

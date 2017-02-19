@@ -25,6 +25,7 @@ public:
 	void Activate();
 
 	bool RenderConsole(Graphic::cRenderDevice &dev);
+	bool ProcessConsole(Renderer::Frame *frame);
 
 	void AddLine(const string &Text, unsigned lineType = 0);
 	void AddLine(const wstring &Text, unsigned lineType = 0);
@@ -37,13 +38,9 @@ public:
 	enum class Flags {
 		Visible,
 		HideOldLines,
-		Initialized,
 	};
 	DefineFlag(m_Flags, FlagBit(Flags::Visible), Visible);
 	DefineFlag(m_Flags, FlagBit(Flags::HideOldLines), HideOldLines);
-	DefineFlagGetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
-
-	DefineFlagGetter(m_Flags, FlagBit(Flags::Initialized) | FlagBit(Flags::Visible) , CanRender);
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 protected:
@@ -53,7 +50,8 @@ protected:
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
-	DefineFlagSetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
+	Graphic::Shaders::Shader *m_Shader = nullptr;
+	Graphic::Shaders::Shader *m_RtShader = nullptr;
 };
 
 }//namespace Core

@@ -5,17 +5,33 @@
 #include "Console.h"
 #include <Engine/Core/Engine.h>
 
+#include <Source/Renderer/Renderer.h>
+#include <Source/Renderer/Frame.h>
+#include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Resources/ResourceManager.h>
+
+#include <Source/Renderer/Commands/CommandQueue.h>
+#include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
+#include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
+
+#include "Graphic/Shaders/D2Shader.h"
+
 namespace MoonGlare::Core {
 
 class Console::ConsoleLine {
 public:
-	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), ShowTime(Time), Line() { };
+	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), ShowTime(Time), Line() { 
+	};
 	ConsoleLine(const ConsoleLine&) = delete;
 	~ConsoleLine() { }
 	unsigned type;
 	float ShowTime;
 	DataClasses::FontInstance Line;
 	wstring Text;
+
+	Renderer::TextureResourceHandle m_TextTexture{0};
+	Renderer::VAOResourceHandle m_TextVAO{0};
+	bool m_Ready = false;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -74,19 +90,24 @@ public:
 		}
 		Redraw();
 	}
-protected:
-	wstring m_Text;
-	int m_CaretPos;
-	DataClasses::FontInstance m_Line;
-	Console *m_Owner;
-	void Redraw() {
-		auto font = m_Owner->GetFont();
-		if (!font)
-			return;
+	
+	wstring DisplayText() const {
 		static const std::wstring Prompt = L"> ";
 		wstring text = Prompt + GetString();
 		text.insert(m_CaretPos + Prompt.length(), 1, '|');
-		m_Line = font->GenerateInstance(text.c_str(), 0);
+		return std::move(text);
+	}
+	
+	Renderer::TextureResourceHandle m_TextTexture{ 0 };
+	Renderer::VAOResourceHandle m_TextVAO{ 0 };
+protected:
+
+	DataClasses::FontInstance m_Line;
+	wstring m_Text;
+	int m_CaretPos;
+	Console *m_Owner;
+	void Redraw() {
+		m_Line.reset();
 	}
 };
 
@@ -123,20 +144,14 @@ Console::~Console() {
 //-------------------------------------------------------------------------------------------------
 
 bool Console::Initialize() {
-	if (IsInitialized())
-		return true;
 	if (!m_Font)
 		SetFont(GetDataMgr()->GetConsoleFont());
-	SetInitialized(true);
 	return true;
 }
 
 bool Console::Finalize() {
-	if (!IsInitialized())
-		return true;
 	Clear();
 	m_Font.reset();
-	SetInitialized(false);
 	return true;
 }
 
@@ -176,7 +191,7 @@ void Console::Activate() {
 }
 
 bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
-	if (!IsCanRender() || !m_Font)
+	if (!m_Font)
 		return false;
 
 	static Renderer::VirtualCamera Camera;
@@ -225,19 +240,177 @@ bool Console::RenderConsole(Graphic::cRenderDevice &dev) {
 	return true;
 }
 
+bool Console::ProcessConsole(Renderer::Frame *frame) {
+	if (!m_Shader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<Graphic::Shaders::Shader>("D2Shader", m_Shader)) {
+			AddLogf(Error, "Failed to load D2Shader shader");
+		}
+	}
+
+	if (!m_RtShader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<Graphic::Shaders::Shader>("rttest", m_RtShader)) {
+			AddLogf(Error, "Failed to load RtShader shader");
+		}
+	}
+
+	if (!m_Shader || !m_RtShader)
+		return false;
+
+	static Renderer::VirtualCamera Camera;
+	static bool initialized = false;
+	if (!initialized) {
+		initialized = true;
+		Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+	}
+
+	auto qptr = frame->AllocateSubQueue();
+	if (!qptr)
+		return false;
+	auto &q = *qptr;
+
+	using namespace ::MoonGlare::Renderer;
+
+	auto key = Commands::CommandKey();
+
+	m_Shader->Bind(q, key);
+	m_Shader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
+	q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+
+	auto PrepareTextTexture = [this, frame, key](const std::wstring &text, DataClasses::FontInstance& instance,
+								Renderer::TextureResourceHandle &Texture,
+								Renderer::VAOResourceHandle &VAO) -> bool{
+		DataClasses::Fonts::Descriptor dummy;
+		dummy.Color = math::vec3(1, 1, 1);// LineTypesColor[type];
+		instance = m_Font->GenerateInstance(text.c_str(), &dummy);
+
+		auto trt = frame->GetDevice()->AllocateTextureRenderTask();
+		if (!trt)
+			return false;
+
+		auto &fonti = instance;
+		auto tsize = m_Font->TextSize(text.c_str(), &dummy, false);
+
+		trt->SetFrame(frame);
+		trt->SetTarget(Texture, emath::MathCast<emath::ivec2>(tsize.m_CanvasSize));
+
+		trt->Begin();
+
+		auto &q = trt->GetCommandQueue();
+
+		m_RtShader->Bind(q, key);
+		m_RtShader->SetModelMatrix(q, key, emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));// emath::MathCast<emath::fmat4>(entry.m_Matrix));
+
+		Renderer::VirtualCamera Camera;
+		Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
+
+		m_RtShader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
+
+		//m_RtShader->SetColor(q, key, math::vec4(abs(sin(col)), abs(cos(col)), abs(sin(col)*cos(col)), 1)); //math::vec4(entry.m_FontStyle.Color, 1.0f));
+		//m_RtShader->SetTileMode(q, key, math::vec2(0, 0));
+		fonti->GenerateCommands(q, 0);
+
+		trt->End();
+
+		auto su = tsize.m_CanvasSize;
+		Graphic::QuadArray3 Vertexes{
+			Graphic::vec3(0, su[1], 0),
+			Graphic::vec3(su[0], su[1], 0),
+			Graphic::vec3(su[0], 0, 0),
+			Graphic::vec3(0, 0, 0),
+		};
+		float w1 = 0.0f;
+		float h1 = 0.0f;
+		float w2 = 1.0f;
+		float h2 = 1.0f;
+		Graphic::QuadArray2 TexUV{
+			Graphic::vec2(w1, h1),
+			Graphic::vec2(w2, h1),
+			Graphic::vec2(w2, h2),
+			Graphic::vec2(w1, h2),
+		};
+
+		{
+			auto &m = frame->GetMemory();
+			using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+			auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO, true);
+			vaob.BeginDataChange();
+
+			vaob.CreateChannel(ichannels::Vertex);
+			vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+
+			vaob.CreateChannel(ichannels::Texture0);
+			vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+
+			vaob.CreateChannel(ichannels::Index);
+			static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+			vaob.SetIndex(ichannels::Index, IndexTable);
+
+			vaob.EndDataChange();
+			vaob.UnBindVAO();
+		}
+
+		frame->Submit(trt);
+		return true;
+	};
+
+	auto PrintText = [this, &q, key, frame](const emath::fvec3 &position,
+					Renderer::TextureResourceHandle &Texture,
+					Renderer::VAOResourceHandle &VAO) {
+		Eigen::Affine3f a{ Eigen::Translation3f(position) };
+		m_Shader->SetModelMatrix(q, key, a.matrix());
+
+		auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
+		texres->m_Handle = Texture;
+		texres->m_HandleArray = frame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
+
+		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
+		q.PushCommand<Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;
+
+		auto arg = q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)GLTypeInfo<uint8_t>::TypeId);
+	};
+   
+	if (!m_Lines.empty()) {
+		if (IsHideOldLines())
+			if (glfwGetTime() >= m_Lines.front().ShowTime)
+				m_Lines.pop_front();
+
+		static constexpr float LineH = 15.0f;		
+		emath::fvec3 position(5, -10, 0);
+		
+		for (auto &line : m_Lines) {
+			position.y() += LineH;
+
+			if (!line.m_Ready) {
+				if (PrepareTextTexture(line.Text, line.Line, line.m_TextTexture, line.m_TextVAO))
+					line.m_Ready = true;
+			}
+
+			PrintText(position, line.m_TextTexture, line.m_TextVAO);
+		}
+	}
+
+	if (m_Active) {
+		auto &input = m_InputLine->GetLine();
+		if (input || PrepareTextTexture(m_InputLine->DisplayText(), input, m_InputLine->m_TextTexture, m_InputLine->m_TextVAO)) {
+			auto pos = emath::fvec3(5, m_MaxLines * 15 + 15 + 5, 0);
+			PrintText(pos, m_InputLine->m_TextTexture, m_InputLine->m_TextVAO);
+		}
+	}
+
+	frame->Submit(qptr, Renderer::Configuration::Context::Window::First);
+	return true;
+}
+
 void Console::Print(const char* Text, unsigned lineType) {
-	if (!IsCanRender()) return;
 	return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const string &Text, unsigned lineType) {
-	if (!IsCanRender()) return;
 	return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const wstring &Text, unsigned lineType) {
-	if (!IsCanRender()) return;
-
 	if (m_Lines.size() >= m_MaxLines)
 		m_Lines.pop_front();
 
