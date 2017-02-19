@@ -95,7 +95,7 @@ bool iApplication::Initialize() {
 		return false;
 	}
 
-	auto window = std::make_unique<Graphic::Window>(m_Renderer->CurrentContext()->GetHandle(), true);
+	auto window = std::make_unique<Graphic::Window>(m_Renderer->GetContext()->GetHandle(), true);
 	auto Device = new Graphic::cRenderDevice(std::move(window), m_AssetManager.get());
 
 	if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
@@ -107,7 +107,9 @@ bool iApplication::Initialize() {
 	auto Engine = new MoonGlare::Core::Engine(m_World.get(), m_Renderer.get());
 
 	if (Settings->Engine.EnableConsole) {
-		_init_chk(new Console(), "Unable to initialize console!");
+		auto c = new Console();
+		_init_chk(c, "Unable to initialize console!");
+		m_World->SetConsole(c);
 	}
 
 	Graphic::GetRenderDevice()->Initialize();

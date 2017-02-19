@@ -150,10 +150,6 @@ bool World::Step(const Core::MoveConfig & config) {
 
 //------------------------------------------------------------------------------------------
 
-Core::Console* World::GetConsole() {
-	return MoonGlare::GetConsole();
-}
-
 Core::Engine* World::GetEngine() {
     return MoonGlare::Core::GetEngine();
 }
