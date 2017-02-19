@@ -28,43 +28,6 @@ public:
 	GLint m_PanelBorderLocation;
 	GLint m_TileModeLocation;
 
-	void Bind(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key) {
-		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
-	}
-	void Bind(Renderer::Commands::CommandQueue &Queue) {
-		Renderer::RendererConf::CommandKey key{ 0 };
-		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
-	}
-
-	void SetModelMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 &ModelMat) {
-		auto loc = Location(ShaderParameters::ModelMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = ModelMat;
-	}
-
-	void SetCameraMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key,  const emath::fmat4 &CameraMat) {
-		auto loc = Location(ShaderParameters::CameraMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = CameraMat;
-	}
-
-	void SetWorldMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const emath::fmat4 & ModelMat, const emath::fmat4 &CameraMat) {
-		auto loc = Location(ShaderParameters::WorldMatrix);
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-		arg->m_Location = loc;
-		arg->m_Matrix = CameraMat * ModelMat;
-	}
 	void SetColor(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
 		auto loc = Location("gBaseColor");
 		if (!IsValidLocation(loc))

@@ -8,6 +8,9 @@
 #ifndef CSHADER_H_
 #define CSHADER_H_
 
+#include <Source/Renderer/Commands/CommandQueue.h>
+#include <Source/Renderer/Commands/OpenGL/ShaderCommands.h>
+
 namespace Graphic {
 namespace Shaders {
 
@@ -62,6 +65,53 @@ public:
 		ShaderParamNames();
 	};
 	static ShaderParamNames ParamNames;
+
+
+	void Bind(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key) {
+		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
+	}
+	void Bind(Renderer::Commands::CommandQueue &Queue) {
+		Renderer::Commands::CommandKey key{ 0 };
+		Queue.PushCommand<Renderer::Commands::ShaderBind>(key)->m_Shader = Handle();
+	}
+	void SetModelMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key, const emath::fmat4 &ModelMat) {
+		auto loc = Location(ShaderParameters::ModelMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
+		arg->m_Location = loc;
+		arg->m_Matrix = ModelMat;
+	}
+
+	void SetCameraMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key, const emath::fmat4 &CameraMat) {
+		auto loc = Location(ShaderParameters::CameraMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
+		arg->m_Location = loc;
+		arg->m_Matrix = CameraMat;
+	}
+
+	void SetWorldMatrix(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key, const emath::fmat4 & ModelMat, const emath::fmat4 &CameraMat) {
+		auto loc = Location(ShaderParameters::WorldMatrix);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
+		arg->m_Location = loc;
+		arg->m_Matrix = CameraMat * ModelMat;
+	}
+	void SetColor(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key, const math::vec4 &color) {
+		auto loc = Location(ShaderParameters::Material_BackColor);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
+		arg->m_Location = loc;
+		arg->m_Vec = color;
+	}
 private:
 	GLint m_ShaderParameters[(unsigned)ShaderParameters::MaxValue];
 	GLuint m_ShaderProgram;
