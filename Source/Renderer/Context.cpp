@@ -7,6 +7,10 @@
 
 #include "Context.h"
 
+#include "Commands/CommandQueue.h"
+#include "Commands/OpenGL/ControllCommands.h"
+#include "Commands/OpenGL/FramebufferCommands.h"
+
 namespace MoonGlare::Renderer {
 
 Context::Context() {
@@ -75,6 +79,20 @@ bool Context::Initialize(const ContextCreationInfo &ctxifo, RendererFacade *rend
 	glBindTexture(GL_TEXTURE_2D, 0);
 	unsigned char texd[] = { 255, 255, 255, };// 0, 255, 0, 0, 0, 255, 255, 255, 255 };
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, texd);
+
+	return true;
+}
+
+bool Context::InitializeWindowLayer(Commands::CommandQueue &q, Frame *frame) {
+	RendererAssert(frame);
+	
+	using namespace Commands;
+
+	//clear
+	//q.MakeCommand<SetViewport>((GLint)0, (GLint)0, (GLsizei)m_Size[0], (GLsizei)m_Size[1]);
+	//q.MakeCommand<FramebufferDrawBind>(InvalidFramebufferHandle);
+
+	//q.SetQueuePreamble();
 
 	return true;
 }

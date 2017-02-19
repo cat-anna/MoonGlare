@@ -12,7 +12,7 @@
 
 namespace MoonGlare::Renderer {
 
-class /*alignas(16)*/ Context final {
+class alignas(16) Context final {
 public:
  	Context();
  	~Context();
@@ -25,6 +25,7 @@ public:
 	void MakeCurrent();
 
 	bool Initialize(const ContextCreationInfo &ctxifo, RendererFacade *renderer, RenderDevice *device);
+	bool InitializeWindowLayer(Commands::CommandQueue &q, Frame* frame);
 	bool Finalize();
 
 	GLFWwindow* GetHandle() { return m_Window; }

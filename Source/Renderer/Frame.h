@@ -14,27 +14,39 @@ namespace MoonGlare::Renderer {
 
 class alignas(16) Frame final {
 	using Conf = Configuration::FrameBuffer;
+	using ConfCtx = Configuration::Context;
 public:
 	using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
 
 	template<typename T>
 	using ByteArray = Space::Memory::StaticMemory<T, Conf::MemorySize>;
 	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
-	using CommandLayers = Commands::CommandQueueLayers<Conf::Layers>;
+	using CommandLayers = Commands::CommandQueueLayers<Conf::Layer>;
+	using WindowLayers = Commands::CommandQueueLayers<ConfCtx::Window>;
 
-	CommandLayers& GetCommandLayers() {
-		RendererAssert(this);
-		return m_CommandLayers;
+	CommandLayers& GetCommandLayers() { 
+		RendererAssert(this); 
+		return m_CommandLayers; 
 	}
-	CommandLayers::Queue& GetControllCommandQueue() {
-		RendererAssert(this);
-		return m_CommandLayers.Get<Conf::Layers::Controll>();
+	CommandLayers::Queue& GetControllCommandQueue() { 
+		RendererAssert(this); 
+		return m_CommandLayers.Get<Conf::Layer::Controll>(); 
 	}
-	TextureRenderQueue& GetTextureRenderQueue() { 
-		RendererAssert(this);
-		return m_QueuedTextureRender; 
+
+	WindowLayers& GetWindowLayers() { 
+		RendererAssert(this); 
+		return m_WindowLayers; 
 	}
-	Allocator_t& GetMemory() { 
+	WindowLayers::Queue& GetFirstWindowLayer() {
+		RendererAssert(this);
+		return m_WindowLayers.Get<ConfCtx::Window::First>();
+	}
+
+	TextureRenderQueue& GetTextureRenderQueue() {
+		RendererAssert(this);
+		return m_QueuedTextureRender;
+	}
+	Allocator_t& GetMemory() {
 		RendererAssert(this);
 		return m_Memory;
 	}
@@ -44,13 +56,13 @@ public:
 
 	bool Submit(TextureRenderTask *trt);
 
-	bool Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::ResourceManager *ResMgr);
+	bool Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade);
 	bool Finalize();
 
 	uint8_t Index() const { return m_BufferIndex; }
 	RenderDevice* GetDevice() const { return m_RenderDevice; }
 	Resources::ResourceManager* GetResourceManager() const { return m_ResourceManager; }
-private: 
+private:
 	uint8_t m_BufferIndex;
 	uint8_t padding8[3];
 	RenderDevice *m_RenderDevice;
@@ -58,6 +70,7 @@ private:
 	void *paddingptr;
 
 	CommandLayers m_CommandLayers;
+	WindowLayers m_WindowLayers;
 
 	TextureRenderQueue m_QueuedTextureRender;
 	Allocator_t m_Memory;

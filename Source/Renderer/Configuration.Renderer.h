@@ -14,21 +14,28 @@ struct Requirement {
 struct FrameBuffer {
 	static constexpr uint32_t MemorySize = 1 * 32 * 1024;
 	static constexpr uint32_t Count = 3;
+	static constexpr uint32_t SubQueueCount = 64;
 
-	enum class Layers {
+	enum class Layer {
 		Controll,
-
 		PreRender, //TextureRenderTask and friends
-
 		//ShadowMaps,
+		//Render,
+		//DefferedGeometry,
+		//DefferedLighting,
+		//PostRender,
+		//Postprocess,
 
-		//Render
+		MaxValue,
+	};
+};
 
-		//Postprocess
-		//Finish,
-
-		//Console,
-		//GUI
+struct Context {
+	enum class Window {
+		First,
+		//Second,
+		//Third,
+		//Fourth,
 
 		MaxValue,
 	};

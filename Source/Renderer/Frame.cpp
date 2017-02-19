@@ -8,22 +8,30 @@
 #include "nfRenderer.h"
 #include "Frame.h"
 
+#include "Renderer.h"
+#include "Context.h"
+
 #include "TextureRenderTask.h"
 
 namespace MoonGlare::Renderer {
 
-bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, Resources::ResourceManager *ResMgr) {
+bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade) {
 	RendererAssert(BufferIndex < Configuration::FrameBuffer::Count);
 	RendererAssert(device);
-	RendererAssert(ResMgr);
+	RendererAssert(rfacade);
 	
 	m_BufferIndex = BufferIndex;
 	m_RenderDevice = device;
-	m_ResourceManager = ResMgr;
+	m_ResourceManager = rfacade->GetResourceManager();
 
 	m_QueuedTextureRender.ClearAllocation();
 	m_CommandLayers.Clear();
+	m_WindowLayers.Clear();
+
 	m_Memory.Clear();
+	auto ctx = rfacade->GetContext();
+	RendererAssert(ctx);
+	ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
 	
 	return true;
 }
@@ -46,7 +54,8 @@ void Frame::EndFrame() {
 //----------------------------------------------------------------------------------
  
 bool Frame::Submit(TextureRenderTask *trt) {
-	m_CommandLayers.Get<Conf::Layers::PreRender>().MakeCommand<Commands::ExecuteQueue>(&trt->GetCommandQueue());
+	RendererAssert(trt);
+	m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
 	return m_QueuedTextureRender.push(trt);
 }
 
