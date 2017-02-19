@@ -70,12 +70,11 @@ public:
 
 		m_CommandFunctions[index] = CMD::GetFunction();
 		m_CommandArguments[index] = argptr;
-		//SortKey.m_Details.m_Order = (uint16_t)SortKey.m_Details.m_Ptr;
-		//SortKey.m_Details.m_Ptr = (uint32_t)argptr;
 		m_SortKeys[index] = SortKey;
 
 		return argptr;
 	}
+
 
 	template<typename CMD, typename ... ARGS>
 	typename CMD::Argument* MakeCommand(ARGS&& ... args) {
@@ -90,16 +89,42 @@ public:
 
 		m_CommandFunctions[index] = CMD::GetFunction();
 		m_CommandArguments[index] = argptr;
-		//SortKey.m_Details.m_Order = (uint16_t)SortKey.m_Details.m_Ptr;
-		//SortKey.m_Details.m_Ptr = (uint32_t)argptr;
 		m_SortKeys[index] = CommandKey();
 
 		return new(argptr)CMD::Argument{ std::forward<ARGS>(args)... };
 	}
 
+	struct ExecuteQueueArgument {
+		CommandQueue *m_Queue;
+		static void Execute(const ExecuteQueueArgument *arg) {
+			RendererAssert(arg->m_Queue);
+			arg->m_Queue->Execute();
+		}
+	};
+	using ExecuteQueue = CommandTemplate<ExecuteQueueArgument>;
 
-//	template<typename CMD>
-//	typename CMD::Argument* PushCommand() { return PushCommand<CMD>(RendererConf::CommandKey{ 0 }); }
+	bool PushQueue(CommandQueue *queue, CommandKey key = CommandKey()) {
+		if (!queue) {
+			AddLogf(Warning, "Attempt to queue null queue!");
+			return false;
+		}
+		auto *argptr = AllocateMemory<ExecuteQueue::Argument>(ExecuteQueue::ArgumentSize());
+		if (IsFull() || !argptr) {
+			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(ExecuteQueue).name());
+			return false;
+		}
+
+		size_t index = m_AllocatedCommands;
+		++m_AllocatedCommands;
+
+		m_CommandFunctions[index] = ExecuteQueue::GetFunction();
+		m_CommandArguments[index] = argptr;
+		m_SortKeys[index] = key;
+
+		argptr->m_Queue = queue;
+
+		return true;
+	}
 
 	void SetQueuePreamble() {
 		m_CommandsPreamble = m_AllocatedCommands;
@@ -111,6 +136,7 @@ public:
 		uint32_t m_MemoryUsed;
 	};
 
+	//To be removed?
 	//unsafe; Rolling-back has to be used carefully
 	RollbackPoint GetSavePoint() const { return RollbackPoint{ m_AllocatedCommands, m_AllocatedMemory }; }
 	//unsafe; Rolling-back has to be used carefully
@@ -145,13 +171,6 @@ private:
 
 static_assert((sizeof(CommandQueue) % 16) == 0, "Invalid size!");
 
-struct ExecuteQueueArgument {
-	CommandQueue *m_Queue;
-	static void Execute(const ExecuteQueueArgument *arg) {
-		RendererAssert(arg->m_Queue);
-		arg->m_Queue->Execute();
-	}
-};
-using ExecuteQueue = CommandTemplate<ExecuteQueueArgument>;
+using ExecuteQueue = CommandQueue::ExecuteQueue;
 
 } //namespace MoonGlare::Renderer::Commands
