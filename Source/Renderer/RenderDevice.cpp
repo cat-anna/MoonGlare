@@ -15,12 +15,6 @@
 
 namespace MoonGlare::Renderer {
 
-RenderDevice::RenderDevice() {
-}
-
-RenderDevice::~RenderDevice() {
-}
-
 bool RenderDevice::Initialize(RendererFacade *renderer) {
 	RendererAssert(renderer);
 
@@ -94,6 +88,8 @@ void RenderDevice::Submit(Frame *frame) {
 
 void RenderDevice::ReleaseFrame(Frame *frame) {
 	RendererAssert(frame);
+	
+	frame->EndFrame();
 
 	auto &trtq = frame->GetTextureRenderQueue();
 	for (auto *task : trtq) {

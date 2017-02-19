@@ -25,7 +25,7 @@ public:
 
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
 
-	Context* CurrentContext() {
+	Context* GetContext() {
 		RendererAssert(this);
 		return m_Context.get();
 	}

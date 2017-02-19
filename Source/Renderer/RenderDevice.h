@@ -20,9 +20,6 @@ class alignas(16) RenderDevice final {
 	using ThisClass = RenderDevice;
 	using Conf = Configuration::FrameBuffer;
 public:
- 	RenderDevice();
- 	~RenderDevice();
-
 	bool Initialize(RendererFacade *renderer);
 	bool Finalize();
 	

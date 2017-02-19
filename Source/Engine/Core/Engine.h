@@ -59,8 +59,6 @@ protected:
 	unsigned m_LastFPS;				//!< FPS in previous second.
 	unsigned m_FrameCounter;		//!< Counter of fps in current second. Updated per cycle.
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
-
-	void ChangeSceneImpl();
 };
 
 inline Engine* GetEngine() { return Engine::Instance(); }

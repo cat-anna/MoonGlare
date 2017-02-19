@@ -34,6 +34,7 @@ using BufferHandle = GLuint;
 static constexpr BufferHandle InvalidBufferHandle = static_cast<BufferHandle>(0);
 
 using FramebufferHandle = GLuint;
+static constexpr FramebufferHandle InvalidFramebufferHandle = static_cast<FramebufferHandle>(0);
 
 using ShaderHandle = GLuint;
 using ShadeUniformLocation = GLint;
