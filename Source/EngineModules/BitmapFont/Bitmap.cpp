@@ -16,6 +16,11 @@
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
+#include <Renderer/Frame.h>
+#include <Renderer/RenderDevice.h>
+#include <Renderer/TextureRenderTask.h>
+#include <Renderer/Resources/ResourceManager.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace BitmapFont {
@@ -74,11 +79,7 @@ bool BitmapFont::DoInitialize(){
 	return true;
 }
 
-bool BitmapFont::DoFinalize(){
-	return BaseClass::DoFinalize();
-}
-
-//----------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 BitmapFont::FontRect BitmapFont::TextSize(const wstring & text, const Descriptor * style, bool UniformPosition) const {
 
@@ -217,6 +218,202 @@ FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor 
 	}
 
 	return FontInstance(wr);
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &foptions) {
+	if (text.empty())
+		return true;
+
+	static const std::array<uint8_t, 6> BaseIndex{ 0, 1, 2, 0, 2, 3, };
+
+	unsigned textlen = text.length();
+	unsigned VerticlesCount = textlen * 4;
+	unsigned IndexesCount = textlen * BaseIndex.size();
+
+	emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
+	emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
+	uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
+
+	float y = 0/*, z = Pos.z*/;
+	float h = static_cast<float>(m_BFD.CharWidth), w;
+	if (foptions.m_Size > 0) h = foptions.m_Size;
+	w = h;
+	float w_mult = w / static_cast<float>(m_BFD.CharWidth);
+	unsigned fx = m_BFD.Width / m_BFD.CharWidth;
+	float x = 0;
+	float Cx = m_BFD.Width / static_cast<float>(m_BFD.CharWidth);
+	float Cy = m_BFD.Height / static_cast<float>(m_BFD.CharHeight);
+	float dw = 1 / Cx;
+	float dh = 1 / Cy;
+
+
+	auto CurrentVertexQuad = Verticles;
+	auto CurrentTextureUV = TextureUV;
+	auto CurrentIndex = VerticleIndexes;
+
+	auto cstr = text.c_str();
+	while (*cstr) {
+		auto wc = *cstr;
+		++cstr;
+
+		char c = static_cast<char>(wc);
+
+		unsigned kid = static_cast<unsigned>(c) - m_BFD.BeginingKey;
+		if (kid > 255) kid = fx;
+		unsigned kol = kid % fx;
+		unsigned line = kid / fx;
+		float u = kol / Cx;
+		float v = 1.0f - (line / Cy);
+
+		CurrentVertexQuad[0] = emath::fvec3(x + w,	y,		0);
+		CurrentVertexQuad[1] = emath::fvec3(x,		y,		0);
+		CurrentVertexQuad[2] = emath::fvec3(x,		y + h,	0);
+		CurrentVertexQuad[3] = emath::fvec3(x + w,	y + h,	0);
+
+		CurrentTextureUV[0] = emath::fvec2(u + dw,	v);
+		CurrentTextureUV[1] = emath::fvec2(u,		v);
+		CurrentTextureUV[2] = emath::fvec2(u,		v - dh);
+		CurrentTextureUV[3] = emath::fvec2(u + dw,	v - dh);
+
+		size_t basevertex = CurrentVertexQuad - Verticles;
+		for (auto idx : BaseIndex) {
+			*CurrentIndex = idx + basevertex;
+			++CurrentIndex;
+		}
+
+		x += (m_BFD.KeyWidths[kid] + 1) * w_mult;
+
+		CurrentVertexQuad += 4;
+		CurrentTextureUV += 4;
+	}
+
+	Renderer::VAOResourceHandle vao{ 0 };
+	{
+		if (!frame->AllocateFrameResource(vao))
+			return false;
+
+		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, false);
+		vaob.BeginDataChange();
+
+		using ichannels = Renderer::Configuration::VAO::InputChannels;
+		vaob.CreateChannel(ichannels::Vertex);
+		vaob.SetChannelData<float, 3>(ichannels::Vertex, &Verticles[0][0], VerticlesCount);
+
+		vaob.CreateChannel(ichannels::Texture0);
+		vaob.SetChannelData<float, 2>(ichannels::Texture0, &TextureUV[0][0], VerticlesCount);
+
+		vaob.CreateChannel(ichannels::Index);
+		vaob.SetIndex(ichannels::Index, VerticleIndexes, IndexesCount);
+
+		vaob.EndDataChange();
+	}
+	using namespace ::MoonGlare::Renderer;
+	auto key = Commands::CommandKey();
+
+	q.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = m_Texture->Handle();
+	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
+	arg->m_NumIndices = IndexesCount;
+	arg->m_IndexValueType = Renderer::GLTypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
+
+	return true;
+}
+
+bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &foptions, FontRect &outTextRect, FontResources &resources) {
+
+	if (!m_RtShader) {
+		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<Graphic::Shaders::Shader>("Font/Simple", m_RtShader)) {
+			AddLogf(Error, "Failed to load RtShader shader");
+		}
+	}
+
+	if (!m_RtShader)
+		return false;
+
+	DataClasses::Fonts::Descriptor dummy;
+	dummy.Size = foptions.m_Size;
+
+	auto trt = frame->GetDevice()->AllocateTextureRenderTask();
+	if (!trt)
+		return false;
+
+//	auto &fonti = instance;
+	auto tsize = outTextRect = TextSize(text.c_str(), &dummy, false);
+
+	trt->SetFrame(frame);
+	trt->SetTarget(resources.m_Texture, emath::MathCast<emath::ivec2>(tsize.m_CanvasSize));
+
+	trt->Begin();
+
+	auto &q = trt->GetCommandQueue();
+
+	using namespace ::MoonGlare::Renderer;
+	using namespace ::MoonGlare::Renderer::Commands;
+	auto key = CommandKey();
+
+	m_RtShader->Bind(q, key);
+	m_RtShader->SetModelMatrix(q, key, emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));// emath::MathCast<emath::fmat4>(entry.m_Matrix));
+
+	VirtualCamera Camera;
+	Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
+
+	m_RtShader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
+
+	m_RtShader->SetColor(q, key, foptions.m_Color);
+	
+	if (!GenerateCommands(q, frame, text, foptions)) {
+		int i = 0;
+	}
+
+	trt->End();
+
+	auto su = tsize.m_CanvasSize;
+	Graphic::QuadArray3 Vertexes{
+		Graphic::vec3(0, su[1], 0),
+		Graphic::vec3(su[0], su[1], 0),
+		Graphic::vec3(su[0], 0, 0),
+		Graphic::vec3(0, 0, 0),
+	};
+	float w1 = 0.0f;
+	float h1 = 0.0f;
+	float w2 = 1.0f;
+	float h2 = 1.0f;
+	Graphic::QuadArray2 TexUV{
+		Graphic::vec2(w1, h1),
+		Graphic::vec2(w2, h1),
+		Graphic::vec2(w2, h2),
+		Graphic::vec2(w1, h2),
+	};
+
+	{
+		auto &m = frame->GetMemory();
+		using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, resources.m_VAO, true);
+		vaob.BeginDataChange();
+
+		vaob.CreateChannel(ichannels::Vertex);
+		vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+
+		vaob.CreateChannel(ichannels::Texture0);
+		vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+
+		vaob.CreateChannel(ichannels::Index);
+		static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+		vaob.SetIndex(ichannels::Index, IndexTable);
+
+		vaob.EndDataChange();
+		vaob.UnBindVAO();
+	}
+
+	frame->Submit(trt);
+	
+	//instance.release();
+
+	return true;
 }
 
 //----------------BitmapWrapper-------------------------------------------------------------

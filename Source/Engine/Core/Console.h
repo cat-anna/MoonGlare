@@ -24,8 +24,7 @@ public:
 	void Deactivate();
 	void Activate();
 
-	bool RenderConsole(Graphic::cRenderDevice &dev);
-	bool ProcessConsole(Renderer::Frame *frame);
+	bool ProcessConsole(const Core::MoveConfig &config);
 
 	void AddLine(const string &Text, unsigned lineType = 0);
 	void AddLine(const wstring &Text, unsigned lineType = 0);
@@ -51,7 +50,6 @@ protected:
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
 	Graphic::Shaders::Shader *m_Shader = nullptr;
-	Graphic::Shaders::Shader *m_RtShader = nullptr;
 };
 
 }//namespace Core

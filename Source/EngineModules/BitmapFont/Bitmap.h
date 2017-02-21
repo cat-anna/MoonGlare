@@ -45,6 +45,10 @@ public:
 
 	float GetHeight() const { return (float)m_BFD.CharHeight; }
 	const TextureFile& GetTexture() const { return m_Texture; }
+
+	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, FontRect &outTextRect, FontResources &resources) override;
+
+	bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options);
 protected:
 	class cBFDHeader {
 	public:
@@ -53,14 +57,14 @@ protected:
 		unsigned char BeginingKey, KeyWidths[256];
 	};
 
-	//cTexture *TexResource;
 	TextureFile m_Texture;
 	cBFDHeader m_BFD;
 	string m_TextureFile;
 	string m_BfdFile;
 
+	Graphic::Shaders::Shader *m_RtShader = nullptr;
+
 	virtual bool DoInitialize() override;
-	virtual bool DoFinalize() override;
 };
 
 } //namespace BitmapFont 

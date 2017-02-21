@@ -59,9 +59,24 @@ public:
 	virtual FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
 
 	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
-protected:
-	virtual bool DoInitialize();
-	virtual bool DoFinalize();
+
+	struct FontRenderRequest {
+		float m_Size;
+		emath::fvec4 m_Color;
+	};
+
+	struct FontResources {
+		Renderer::TextureResourceHandle m_Texture;
+		Renderer::VAOResourceHandle m_VAO;
+
+		template<typename T>
+		void Release(T *t) {
+			t->typename ReleaseResource(m_Texture);
+			t->typename ReleaseResource(m_VAO);
+		}
+	};
+
+	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, FontRect &outTextRect, FontResources &resources) { return false; };
 };
 
 //-----------------------------------------------------------------------------
