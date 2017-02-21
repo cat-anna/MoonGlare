@@ -59,7 +59,6 @@ class cRootClass;
 
 #include <libSpace/src/Space.h>
 
-#include <libSpace/src/Container/StaticVector.h>
 #include <libSpace/src/Memory/Memory.h>
 #include <libSpace/src/Memory/StackAllocator.h>
 #include <libSpace/src/Memory/BitampAllocator.h>

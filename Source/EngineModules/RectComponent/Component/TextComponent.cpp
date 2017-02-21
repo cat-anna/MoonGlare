@@ -106,8 +106,6 @@ bool TextComponent::Finalize() {
 void TextComponent::Step(const Core::MoveConfig & conf) {
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
 	bool CanRender = false;
-	static float col = 0;
-	col += conf.TimeDelta;
 
 	if (m_Shader) {
 		CanRender = true;

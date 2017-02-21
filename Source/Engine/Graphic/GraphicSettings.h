@@ -15,24 +15,16 @@ struct GraphicSettings {
 	struct FullScreen : public Settings_t::BaseSettingInfo<bool, FullScreen> {
 		using Type = bool;
 		static Type default() { return RELEASE_TRUE; }
-		//static Type get() { return Settings.Window.FullScreen; }
-		//static void set(Type v) { Settings.Window.FullScreen = v; }
 	};
 	struct Monitor : public Settings_t::BaseSettingInfo<int, Monitor> {
 		using Type = int;
 		static Type default() { return 0; }
-		//static Type get() { return Settings.Window.FullScreen; }
-		//static void set(Type v) { Settings.Window.FullScreen = v; }
 	};
 	struct Width : public Settings_t::BaseSettingInfo<unsigned, Width> {
 		static Type default() { return 0; }
-		//static Type get() { return Settings.Window.FullScreen; }
-		//static void set(Type v) { Settings.Window.FullScreen = v; }
 	};
 	struct Height : public Settings_t::BaseSettingInfo<unsigned, Height> {
 		static Type default() { return 0; }
-		//static Type get() { return Settings.Window.FullScreen; }
-		//static void set(Type v) { Settings.Window.FullScreen = v; }
 	};
 	struct Gamma : public Settings_t::BaseSettingInfo<float, Gamma> {
 		static Type default() { return 2.1f; }

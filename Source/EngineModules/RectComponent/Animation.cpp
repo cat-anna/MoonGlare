@@ -165,10 +165,6 @@ void Animation::UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &
 	}
 }
 
-void Animation::Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) const {
-	return Draw(static_cast<unsigned>(instance.Position));
-}
-
 const Graphic::VAO& Animation::GetFrameVAO(unsigned Frame) const {
 	if (Frame > m_EndFrame)
 		Frame = m_EndFrame;

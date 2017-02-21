@@ -169,3 +169,5 @@ using LockGuard = std::lock_guard < std::mutex >;
 #endif
 
 #include <libSpace/src/Memory/BitampAllocator.h>
+#include <libSpace/src/Container/StaticVector.h>
+#include <libSpace/src/Container/StaticAllocationBuffer.h>

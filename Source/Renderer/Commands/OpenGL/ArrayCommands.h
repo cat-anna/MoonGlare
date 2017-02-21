@@ -64,7 +64,7 @@ struct VAODrawTrianglesBaseVertexArgument {
 using VAODrawTrianglesBaseVertex = CommandTemplate<VAODrawTrianglesBaseVertexArgument>;
 
 //---------------------------------------------------------------------------------------
-//Buffer handlig
+//Buffer handling
 //---------------------------------------------------------------------------------------
 
 namespace detail {

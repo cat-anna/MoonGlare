@@ -45,10 +45,8 @@ protected:
 
 class iFont : public DataClasses::DataClass {
 	SPACERTTI_DECLARE_ABSTRACT_CLASS(iFont, DataClass);
-	DISABLE_COPY();
 public:
 	iFont(const string& Name);
-	virtual ~iFont();
 
 	struct FontRect {
 		math::fvec2 m_CanvasSize;

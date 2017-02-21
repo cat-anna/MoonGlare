@@ -33,8 +33,6 @@
 #include "Dereferred/nDereferred.h"
 #include "Forward/ForwardPipeline.h"
 
-#include "MatrixStack.h"
-
 using Graphic::cRenderDevice;
 
 namespace Graphic {

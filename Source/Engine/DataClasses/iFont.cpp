@@ -23,19 +23,6 @@ iFont::iFont(const string& Name):
 		BaseClass(Name) {
 }
 
-iFont::~iFont() {
-}
-
-//-----------------------------------------------------------------------------
-
-bool iFont::DoInitialize() {
-	return BaseClass::DoInitialize();
-}
-
-bool iFont::DoFinalize() {
-	return BaseClass::DoFinalize();
-}
-
 } //namespace Fonts
 } //namespace DataClasses
 } //namespace MoonGlare 

@@ -25,7 +25,6 @@ public:
 	AnimationInstance CreateInstance();
 	void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
 
-	void Draw(Graphic::MatrixStack &dev, AnimationInstance &instance) const;
 	void Draw(unsigned Frame) const;
 
 	const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
@@ -51,7 +50,6 @@ struct AnimationInstance {
 	float Position;
 
 	void Update(const Core::MoveConfig &conf) { if(Data) Data->UpdateInstance(conf, *this); }
-	void Draw(Graphic::MatrixStack &dev) { if(Data) Data->Draw(dev, *this); }
 };
 
 } //namespace GUI 
