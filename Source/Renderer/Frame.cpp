@@ -55,6 +55,8 @@ void Frame::BeginFrame() {
 	m_CommandLayers.ClearAllocation();
 	m_WindowLayers.ClearAllocation();
 
+	m_FrameResourceStorage.Clear();
+
 	m_Memory.Clear();
 }
 

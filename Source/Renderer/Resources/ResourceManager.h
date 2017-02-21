@@ -25,6 +25,20 @@ public:
 		RendererAssert(this);
 		return m_VAOResource;
 	}
+
+	void Release(Frame *frame, TextureResourceHandle &texres) {
+		GetTextureAllocator().Release(frame, texres);
+	}
+	void Release(Frame *frame, VAOResourceHandle &vaores) {
+		GetVAOResource().Release(frame, vaores);
+	}
+
+	bool Allocate(Frame *frame, TextureResourceHandle &resH) {
+		return GetTextureAllocator().Allocate(frame, resH);
+	}
+	bool Allocate(Frame *frame, VAOResourceHandle &resH) {
+		return GetVAOResource().Allocate(frame, resH);
+	}
 private: 
 	RendererFacade *m_RendererFacade = nullptr;
 	void* padding[3];

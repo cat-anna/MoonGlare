@@ -11,6 +11,11 @@ struct Requirement {
 	static constexpr uint32_t CPUCores = 2;
 };
 
+struct FrameResourceStorage {
+	static constexpr uint32_t TextureLimit = 64;
+	static constexpr uint32_t VAOLimit = 64;
+};
+
 struct FrameBuffer {
 	static constexpr uint32_t MemorySize = 1 * 32 * 1024;
 	static constexpr uint32_t Count = 3;
