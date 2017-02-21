@@ -43,4 +43,20 @@ struct SetViewportArgument {
 };
 using SetViewport = CommandTemplate<SetViewportArgument>;
 
+//---------------------------------------------------------------------------------------
+
+struct EnterWireFrameModeArgument {
+	static void Execute(const EnterWireFrameModeArgument *arg) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+};
+using EnterWireFrameMode = CommandTemplate<EnterWireFrameModeArgument>;
+
+struct LeaveWireFrameModeArgument {
+	static void Execute(const LeaveWireFrameModeArgument *arg) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+};
+using LeaveWireFrameMode = CommandTemplate<LeaveWireFrameModeArgument>;
+
 } //namespace MoonGlare::Renderer::Commands

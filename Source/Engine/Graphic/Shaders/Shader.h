@@ -108,9 +108,18 @@ public:
 		if (!IsValidLocation(loc))
 			return;
 
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec3>(key);
 		arg->m_Location = loc;
-		arg->m_Vec = color;
+		arg->m_Vec = math::fvec3(color);
+	}
+	void SetColor(Renderer::Commands::CommandQueue &Queue, Renderer::Commands::CommandKey key, const emath::fvec4 &color) {
+		auto loc = Location(ShaderParameters::Material_BackColor);
+		if (!IsValidLocation(loc))
+			return;
+
+		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec3>(key);
+		arg->m_Location = loc;
+		arg->m_Vec = math::fvec3(color[0], color[1], color[2]);
 	}
 private:
 	GLint m_ShaderParameters[(unsigned)ShaderParameters::MaxValue];

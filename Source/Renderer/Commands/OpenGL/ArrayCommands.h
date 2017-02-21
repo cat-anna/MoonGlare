@@ -63,6 +63,17 @@ struct VAODrawTrianglesBaseVertexArgument {
 };
 using VAODrawTrianglesBaseVertex = CommandTemplate<VAODrawTrianglesBaseVertexArgument>;
 
+struct VAODrawElementsArgument {
+	GLenum m_ElementMode;
+	unsigned m_NumIndices;
+	unsigned m_IndexValueType;
+
+	static void Execute(const VAODrawElementsArgument *arg) {
+		glDrawElements(arg->m_ElementMode, arg->m_NumIndices, arg->m_IndexValueType, 0);
+	}
+};
+using VAODrawElements = CommandTemplate<VAODrawElementsArgument>;
+
 //---------------------------------------------------------------------------------------
 //Buffer handling
 //---------------------------------------------------------------------------------------
