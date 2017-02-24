@@ -112,6 +112,8 @@ static int Lua_error(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Error, oss.str());
+	if (ConsoleExists())
+		GetConsole()->AsyncLine(oss.str(), 1);
 	return 0;
 }
 
@@ -119,6 +121,8 @@ static int Lua_warning(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Warning, oss.str());
+	if (ConsoleExists())
+		GetConsole()->AsyncLine(oss.str(), 2);
 	return 0;
 }
 
@@ -126,6 +130,8 @@ static int Lua_hint(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Hint, oss.str());
+	if (ConsoleExists())
+		GetConsole()->AsyncLine(oss.str(), 3);
 	return 0;
 }
 
@@ -134,6 +140,8 @@ static int Lua_debug(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Debug, oss.str());
+	if (ConsoleExists())
+		GetConsole()->AsyncLine(oss.str(), 3);
 	return 0;
 }
 #endif

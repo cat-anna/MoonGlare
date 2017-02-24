@@ -2,28 +2,6 @@
 
 namespace MoonGlare::Renderer {
 
-struct TextureResourceHandle {
-	using Index_t = uint16_t;
-	Index_t m_Index;
-	Index_t m_TmpGuard;
-
-	void Reset() {
-		memset(this, 0, sizeof(*this));
-	}
-};
-static_assert(std::is_pod<TextureResourceHandle>::value, "Must be pod type!");
-
-struct VAOResourceHandle {
-	using Index_t = uint16_t;
-	Index_t m_Index;
-	Index_t m_TmpGuard;
-
-	void Reset() {
-		memset(this, 0, sizeof(*this));
-	}
-};
-static_assert(std::is_pod<VAOResourceHandle>::value, "Must be pod type!");
-
 using TextureHandle = GLuint;
 static constexpr TextureHandle InvalidTextureHandle = static_cast<TextureHandle>(0);
 
@@ -37,9 +15,15 @@ using FramebufferHandle = GLuint;
 static constexpr FramebufferHandle InvalidFramebufferHandle = static_cast<FramebufferHandle>(0);
 
 using ShaderHandle = GLuint;
-using ShadeUniformLocation = GLint;
+static constexpr ShaderHandle InvalidShaderHandle = static_cast<ShaderHandle>(0);
 
-//---------------------------------------------------------------------------------------
+using ShaderUniformHandle = GLint;
+static constexpr ShaderUniformHandle InvalidShaderUniformHandle = static_cast<ShaderUniformHandle>(-1);
+
+using ShaderStageHandle = GLuint;
+static constexpr ShaderStageHandle InvalidShaderStageHandle = static_cast<ShaderStageHandle>(0);
+
+//-----------------------------------------------------------------------------
 
 template<typename T> struct GLTypeInfo {
 	static_assert(std::is_same<int, int>::value, "Unknown opengl type!");

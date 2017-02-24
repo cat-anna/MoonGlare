@@ -19,7 +19,6 @@ group "EngineLibs"
 		files {
 			"**",
 			"../Config/*.h",
-			"../Utils/**.h",
 		}
 		includedirs {
 			".",

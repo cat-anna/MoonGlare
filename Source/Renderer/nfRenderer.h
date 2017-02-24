@@ -8,6 +8,7 @@
 #pragma once
 
 #include "OpenGLTypes.h"
+#include "Handles.h"
 
 namespace MoonGlare::Renderer {
 
