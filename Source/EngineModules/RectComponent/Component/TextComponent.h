@@ -47,34 +47,29 @@ struct alignas(16) TextComponentEntry {
 	std::string m_Text;
 	TextAlignMode m_AlignMode;
 
-	Renderer::TextureResourceHandle m_TexHandle;
-	Renderer::VAOResourceHandle m_VAORes;
-
 	//TODO: fontname property
 	//TODO: fontsize property
 	DEFINE_COMPONENT_PROPERTY(Color);
 	DEFINE_COMPONENT_PROPERTY(Text);
 
-	float GetFontSize() const { return m_FontStyle.Size; }
-	void SetFontSize(float v) { m_FontStyle.Size = v; SetDirty(); }
+	float GetFontSize() const { return m_FontStyle.m_Size; }
+	void SetFontSize(float v) { m_FontStyle.m_Size = v; SetDirty(); }
 
 	math::mat4 m_Matrix, m_translate;
+
 	DataClasses::FontPtr m_Font;
-	DataClasses::FontInstance m_FontInstance;
-	DataClasses::Fonts::Descriptor m_FontStyle;
-	Graphic::VAO m_VAO;
+	DataClasses::Fonts::iFont::FontRenderRequest m_FontStyle;
+	DataClasses::Fonts::iFont::FontRect m_FontRect;
+	DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
 
 	void Reset() {
 		m_Flags.ClearAll();
 		m_Font.reset();
-		m_FontInstance.reset();
-		m_TexHandle.Reset();
-		m_VAORes.Reset();
 	}
 
 	void SetDirty() { m_Flags.m_Map.m_Dirty = true;  m_Flags.m_Map.m_TextDirty = true; }
 
-	void Update(RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
+	void Update(Renderer::Frame *frame, const DataClasses::Fonts::iFont::FontDeviceOptions &devopt, RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
@@ -92,8 +87,9 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	GUIShader *m_Shader, *m_RtShader;
+	GUIShader *m_Shader;
 	TextProcessor m_TextProcessor;
+	DataClasses::Fonts::iFont::FontDeviceOptions m_FontDeviceOptions;
 };
 
 } //namespace Component 

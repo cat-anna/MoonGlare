@@ -45,7 +45,6 @@ TextComponent::TextComponent(ComponentManager * Owner)
 		: TemplateStandardComponent(Owner) {
 	m_RectTransform = nullptr;
 	m_Shader = nullptr;
-	m_RtShader = nullptr;
 }
 
 TextComponent::~TextComponent() {
@@ -84,13 +83,10 @@ bool TextComponent::Initialize() {
 				AddLogf(Error, "Failed to load GUI shader");
 			}
 		}
-
-		if (!m_RtShader) {
-			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("rttest", m_RtShader)) {
-				AddLogf(Error, "Failed to load m_RtShader shader");
-			}
-		}
 	});
+
+	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
+	m_FontDeviceOptions.m_DeviceSize = emath::MathCast<emath::ivec2>(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
 	
 	m_TextProcessor.SetTables(GetDataMgr()->GetStringTables());
 
@@ -144,120 +140,26 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
 		if (entry.m_Flags.m_Map.m_Dirty || rtentry->m_Flags.m_Map.m_Changed) {
-			entry.Update(*rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);
-
-			if (m_RtShader) {
-				auto trt = conf.m_BufferFrame->GetDevice()->AllocateTextureRenderTask();
-				if (trt) {
-					auto s = emath::MathCast<emath::ivec2>(entry.m_FontInstance->GetSize());
-
-					std::string processed;
-					m_TextProcessor.Process(entry.m_Text, processed);
-					std::wstring txt = Utils::Strings::towstring(processed);
-
-					auto tsize = entry.m_Font->TextSize(txt, &entry.m_FontStyle, false);
-
-					trt->SetFrame(conf.m_BufferFrame);
-					trt->SetTarget(entry.m_TexHandle, emath::MathCast<emath::ivec2>(tsize.m_CanvasSize));
-
-					trt->Begin();
-
-					auto &q = trt->GetCommandQueue();
-
-					m_RtShader->Bind(q, key);
-					m_RtShader->SetModelMatrix(q, key, emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));// emath::MathCast<emath::fmat4>(entry.m_Matrix));
-
-					Renderer::VirtualCamera Camera;
-					Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
-
-					m_RtShader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
-
-			//		m_RtShader->SetColor(q, key, math::vec4(abs(sin(col)), abs(cos(col)), abs(sin(col)*cos(col)), 1)); //math::vec4(entry.m_FontStyle.Color, 1.0f));
-					//m_RtShader->SetTileMode(q, key, math::vec2(0, 0));
-					entry.m_FontInstance->GenerateCommands(q, rtentry->m_Z);
-
-					trt->End();
-
-					//auto su = entry.m_FontInstance->GetSize();
-					auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-					float Aspect = ScreenSize[0] / ScreenSize[1];
-					auto su = tsize.m_CanvasSize / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
-
-					Graphic::QuadArray3 Vertexes{
-						Graphic::vec3(0, su[1], 0),
-						Graphic::vec3(su[0], su[1], 0),
-						Graphic::vec3(su[0], 0, 0),
-						Graphic::vec3(0, 0, 0),
-					};
-					float w1 = 0.0f;
-					float h1 = 0.0f;
-					float w2 = 1.0f;
-					float h2 = 1.0f;
-					Graphic::QuadArray2 TexUV{
-						Graphic::vec2(w1, h1),
-						Graphic::vec2(w2, h1),
-						Graphic::vec2(w2, h2),
-						Graphic::vec2(w1, h2),
-					};
-
-					{
-						auto frame = conf.m_BufferFrame;
-						auto &m = frame->GetMemory();
-						using ichannels = Renderer::Configuration::VAO::InputChannels;
-
-						auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, entry.m_VAORes, true);
-
-						vaob.BeginDataChange();
-
-						vaob.CreateChannel(ichannels::Vertex);
-						vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
-						
-						vaob.CreateChannel(ichannels::Texture0);
-						vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
-						
-						//static const float normals[] = { 0 };
-						//vaob.CreateChannel(entry.m_VAO.NormalChannel);
-						//vaob.SetChannelData<float, 3>(entry.m_VAO.NormalChannel, normals, 0);
-						
-						vaob.CreateChannel(ichannels::Index);
-						static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
-						vaob.SetIndex(ichannels::Index, IndexTable);
-
-						vaob.EndDataChange();
-						vaob.UnBindVAO();
-					}
-
-					conf.m_BufferFrame->Submit(trt);
-				}
-			}
+			entry.Update(conf.m_BufferFrame, m_FontDeviceOptions, *rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);
 		}
 
-		if (!entry.m_FontInstance)
-			continue;
 		if (!CanRender)
 			continue;
 
-	//m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(entry.m_Matrix), m_RectTransform->GetCamera().GetProjectionMatrix());
-	//m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
-	//m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
-	//entry.m_FontInstance->GenerateCommands(Queue, rtentry->m_Z);
-		
-		if (m_RtShader && entry.m_VAORes.m_TmpGuard != 0) {
-			m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(entry.m_Matrix), m_RectTransform->GetCamera().GetProjectionMatrix());
-			m_Shader->SetColor(Queue, key, math::vec4(entry.m_FontStyle.Color, 1.0f));
+		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(entry.m_Matrix), m_RectTransform->GetCamera().GetProjectionMatrix());
+	
+		m_Shader->SetColor(Queue, key, math::vec4(1));
 
-			auto texres = Queue.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
-			texres->m_Handle = entry.m_TexHandle;
-			texres->m_HandleArray = conf.m_BufferFrame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
+		auto texres = Queue.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
+		texres->m_Handle = entry.m_FontResources.m_Texture;
+		texres->m_HandleArray = conf.m_BufferFrame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
 
-			auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(Queue, entry.m_VAORes);
-			//vaob.BindVAO();
-			Queue.PushCommand<Renderer::Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;
+		auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(Queue, entry.m_FontResources.m_VAO);
+		Queue.PushCommand<Renderer::Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;
 
-			auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
-			arg->m_NumIndices = 6;
-			arg->m_IndexValueType = Renderer::TypeId<uint8_t>;
-		}
+		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
+		arg->m_NumIndices = 6;
+		arg->m_IndexValueType = Renderer::TypeId<uint8_t>;
 	}
 
 	if (InvalidEntryCount > 0) {
@@ -298,8 +200,8 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	}
 
 	entry.m_AlignMode = te.m_TextAlignMode;
-	entry.m_FontStyle.Color = math::vec3(1, 1, 1);
-	entry.m_FontStyle.Size = te.m_FontSize;
+	entry.m_FontStyle.m_Color = emath::fvec4(1, 1, 1, 1);
+	entry.m_FontStyle.m_Size = te.m_FontSize;
 	entry.m_Text = te.m_Text;
 	entry.m_Flags.m_Map.m_Active = te.m_Active;
 
@@ -312,25 +214,16 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
 //---------------------------------------------------------------------------------------
 
-void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
-
+void TextComponentEntry::Update(Renderer::Frame *frame, const DataClasses::Fonts::iFont::FontDeviceOptions &devopt, RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
 	if (m_Flags.m_Map.m_TextDirty) {
 		std::string processed;
 		tproc.Process(m_Text, processed);
 		std::wstring txt = Utils::Strings::towstring(processed);
-
-		m_FontInstance = m_Font->GenerateInstance(txt.c_str(), &m_FontStyle, false);
-		m_Flags.m_Map.m_TextDirty = false;
+		m_Flags.m_Map.m_TextDirty = !m_Font->RenderText(txt, frame, m_FontStyle, devopt, m_FontRect, m_FontResources);
 	}
 
-	auto tsize = m_FontInstance->GetSize();
+	auto tsize = m_FontRect.m_TextBlockSize; 
 	auto psize = Parent.m_ScreenRect.GetSize();
-
-	if (Uniform) {
-		auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-		float Aspect = ScreenSize[0] / ScreenSize[1];
-		tsize = tsize / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
-	}
 
 	math::vec3 Pos(0);
 
@@ -374,7 +267,7 @@ void TextComponentEntry::Update(RectTransformComponentEntry & Parent, bool Unifo
 
 	m_translate = glm::translate(math::mat4(), Pos);
 	m_Matrix = Parent.m_GlobalMatrix * m_translate;
-	m_Flags.m_Map.m_Dirty = false;
+	m_Flags.m_Map.m_Dirty = m_Flags.m_Map.m_TextDirty;
 }
 
 } //namespace Component 

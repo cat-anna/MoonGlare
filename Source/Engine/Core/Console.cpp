@@ -224,7 +224,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 		texres->m_HandleArray = frame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
 
 		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
-		q.PushCommand<Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;
+		vaob.BindVAO();
 
 		auto arg = q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)GLTypeInfo<uint8_t>::TypeId);
 	};
@@ -249,10 +249,12 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 			position.y() += LineH;
 
 			if (!line.m_Ready) {
-				DataClasses::Fonts::iFont::FontRenderRequest req;
+				DataClasses::Fonts::iFont::FontRenderRequest req{ };
 				req.m_Color = LineTypesColor[line.type];
 				DataClasses::Fonts::iFont::FontRect rect;
-				m_Font->RenderText(line.Text, frame, req, rect, line.m_FontResources);
+				DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+
+				m_Font->RenderText(line.Text, frame, req, devop, rect, line.m_FontResources);
 				line.m_Ready = true;
 			}
 
@@ -265,7 +267,8 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 		if (m_InputLine->m_NeedRefresh) {
 			DataClasses::Fonts::iFont::FontRenderRequest req;
 			DataClasses::Fonts::iFont::FontRect rect;
-			m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, rect, m_InputLine->m_FontResources);
+			DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+			m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
 		}
 		if (m_InputLine->m_TextValid) {
 			auto pos = emath::fvec3(5, m_MaxLines * 15 + 15 + 5, 0);

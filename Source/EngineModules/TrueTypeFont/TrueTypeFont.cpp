@@ -10,6 +10,17 @@
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
 
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
+#include <Renderer/RenderInput.h>
+
+#include <Renderer/Frame.h>
+#include <Renderer/RenderDevice.h>
+#include <Renderer/TextureRenderTask.h>
+#include <Renderer/Resources/ResourceManager.h>
+
+#include <Renderer/SimpleFontShaderDescriptor.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
@@ -151,50 +162,166 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
 	return rect;
 }
 
-FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
-	if (text.empty() || !IsReady()) {
-		return FontInstance(new EmptyWrapper());
+bool TrueTypeFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
+	
+	using SimpleFontShaderDescriptor = Renderer::SimpleFontShaderDescriptor;
+
+	auto &shres = frame->GetResourceManager()->GetShaderResource();
+	if (!m_ShaderHandle) {
+		shres.Load<SimpleFontShaderDescriptor>(frame, m_ShaderHandle, "Font/Simple");
 	}
 
-	static Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+	auto trt = frame->GetDevice()->AllocateTextureRenderTask();
+	if (!trt)
+		return false;
 
-	auto wrapper = new TrueTypeWrapper();
-	wrapper->m_Chars.reserve(text.length());
-	float h;
-	if (style) {
-		wrapper->m_Color = style->Color;
-		h = style->Size;
-	} else {
-		wrapper->m_Color = Graphic::vec3(1);
-		h = m_CacheHight;
+	DataClasses::Fonts::Descriptor dummy;
+	dummy.Size = options.m_Size;
+	auto tsize = TextSize(text.c_str(), &dummy, false);
+
+	trt->SetFrame(frame);
+	trt->SetTarget(resources.m_Texture, emath::MathCast<emath::ivec2>(tsize.m_CanvasSize));
+	trt->Begin();
+
+	auto &q = trt->GetCommandQueue();
+
+	using namespace ::MoonGlare::Renderer;
+	using namespace ::MoonGlare::Renderer::Commands;
+	auto key = CommandKey();
+
+	auto shb = shres.GetBuilder<SimpleFontShaderDescriptor>(q, m_ShaderHandle);
+
+	using Uniform = SimpleFontShaderDescriptor::Uniform;
+	shb.Bind();
+	shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));
+
+	VirtualCamera Camera;
+	Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
+
+	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
+
+	auto c = options.m_Color;
+	shb.Set<Uniform::BackColor>(emath::fvec3(c[0], c[1], c[2]));
+
+	bool fullsucc = GenerateCommands(q, frame, text, options);
+
+	trt->End();
+
+	if (devopt.m_UseUniformMode) {
+		float Aspect = (float)devopt.m_DeviceSize[0] / (float)devopt.m_DeviceSize[1];
+		auto coeff = math::fvec2(1) / math::fvec2(devopt.m_DeviceSize[0], devopt.m_DeviceSize[1]) * math::fvec2(Aspect * 2.0f, 2.0f);
+		tsize.m_CanvasSize = tsize.m_CanvasSize * coeff;
+		tsize.m_TextBlockSize = tsize.m_TextBlockSize * coeff;
+		tsize.m_TextPosition = tsize.m_TextPosition * coeff;
 	}
 
-	Graphic::VertexVector Verticles;
-	Graphic::TexCoordVector TexCoords;
-	Graphic::NormalVector Normals;
-	Graphic::IndexVector Index;
+	outTextRect = tsize;
 
-	unsigned text_len = text.length();
-	Verticles.reserve(4 * text_len);
-	TexCoords.reserve(4 * text_len);
-	Index.reserve(6 * text_len);
-	wrapper->m_Chars.reserve(text_len);
+	auto su = tsize.m_CanvasSize;
+	Graphic::QuadArray3 Vertexes{
+		Graphic::vec3(0, su[1], 0),
+		Graphic::vec3(su[0], su[1], 0),
+		Graphic::vec3(su[0], 0, 0),
+		Graphic::vec3(0, 0, 0),
+	};
+	float w1 = 0.0f;
+	float h1 = 0.0f;
+	float w2 = 1.0f;
+	float h2 = 1.0f;
+	Graphic::QuadArray2 TexUV{
+		Graphic::vec2(w1, h1),
+		Graphic::vec2(w2, h1),
+		Graphic::vec2(w2, h2),
+		Graphic::vec2(w1, h2),
+	};
+
+	{
+		auto &m = frame->GetMemory();
+		using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, resources.m_VAO, true);
+		vaob.BeginDataChange();
+
+		vaob.CreateChannel(ichannels::Vertex);
+		vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+
+		vaob.CreateChannel(ichannels::Texture0);
+		vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+
+		vaob.CreateChannel(ichannels::Index);
+		static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+		vaob.SetIndex(ichannels::Index, IndexTable);
+
+		vaob.EndDataChange();
+		vaob.UnBindVAO();
+	}
+
+	frame->Submit(trt);
+
+	return fullsucc;
+}
+
+bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame * frame, const std::wstring &text, const FontRenderRequest & options) {
+	if (text.empty())
+		return true;
+
+	static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+
+	Renderer::VAOResourceHandle vao{ 0 };
+	if (!frame->AllocateFrameResource(vao))
+		return false;
+
+	unsigned textlen = text.length();
+	unsigned VerticlesCount = textlen * 4;
+	unsigned IndexesCount = textlen * BaseIndex.size();
+	emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
+	emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
+	uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
+
+	{
+		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, false);
+		vaob.BeginDataChange();
+
+		using ichannels = Renderer::Configuration::VAO::InputChannels;
+		vaob.CreateChannel(ichannels::Vertex);
+		vaob.SetChannelData<float, 3>(ichannels::Vertex, &Verticles[0][0], VerticlesCount);
+
+		vaob.CreateChannel(ichannels::Texture0);
+		vaob.SetChannelData<float, 2>(ichannels::Texture0, &TextureUV[0][0], VerticlesCount);
+
+		vaob.CreateChannel(ichannels::Index);
+		vaob.SetIndex(ichannels::Index, VerticleIndexes, IndexesCount);
+
+		vaob.EndDataChange();
+		vaob.BindVAO();
+	}
+
+	float y = 0;
+	float h = m_CacheHight;
+
+	if (options.m_Size > 0) 
+		h = options.m_Size;
 
 	Graphic::vec3 char_scale(h / m_CacheHight);
 	const wstring::value_type *cstr = text.c_str();
 	Graphic::vec2 pos(0);
 	float hmax = h;
 
-	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-	float Aspect = ScreenSize[0] / ScreenSize[1];
-
+	auto CurrentVertexQuad = Verticles;
+	auto CurrentTextureUV = TextureUV;
+	auto CurrentIndex = VerticleIndexes;
+	bool allglyphs = true;
 	while (*cstr) {
 		wchar_t c = *cstr;
 		++cstr;
 
 		auto *g = GetGlyph(c);
-		if (!g)
+		if (!g) {
+			allglyphs = false;
 			continue;
+		}
+
+		allglyphs = allglyphs && g->m_Ready;
 
 		auto bs = g->m_BitmapSize;
 		auto chpos = g->m_Position;
@@ -203,41 +330,40 @@ FontInstance TrueTypeFont::GenerateInstance(const wstring &text, const Descripto
 		auto subpos = pos + chpos;
 		float bsy = bs.y;
 
-		if (UniformPosition) {
-			subpos = subpos / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
-			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
-		}
-
 		if (c != L' ') {
-			wrapper->m_Chars.push_back(g);
-			auto base = Verticles.size();
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + bs.y, 0));
-			Verticles.push_back(Graphic::vec3(subpos.x + 0,		subpos.y + 0,	 0));
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + 0,	 0));
-			Verticles.push_back(Graphic::vec3(subpos.x + bs.x,	subpos.y + bs.y, 0));
-			auto &tc = g->m_TextureSize;
-			TexCoords.push_back(Graphic::vec2(0,	tc.y));
-			TexCoords.push_back(Graphic::vec2(0,	0));
-			TexCoords.push_back(Graphic::vec2(tc.x,	0));
-			TexCoords.push_back(Graphic::vec2(tc.x,	tc.y));
+			CurrentVertexQuad[0] = emath::fvec3(subpos.x + 0, subpos.y + bs.y, 0);
+			CurrentVertexQuad[1] = emath::fvec3(subpos.x + 0, subpos.y + 0, 0);
+			CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
+			CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
 
-			for (auto idx : BaseIndex)
-				Index.push_back(base + idx);
+			auto &tc = g->m_TextureSize;
+			CurrentTextureUV[0] = emath::fvec2(0, tc.y);
+			CurrentTextureUV[1] = emath::fvec2(0, 0);
+			CurrentTextureUV[2] = emath::fvec2(tc.x, 0);
+			CurrentTextureUV[3] = emath::fvec2(tc.x, tc.y);
+
+			size_t basevertex = CurrentVertexQuad - Verticles;
+			size_t baseIndex = CurrentIndex - VerticleIndexes;
+			for (auto idx : BaseIndex) {
+				*CurrentIndex = idx + basevertex;
+				++CurrentIndex;
+			}
+
+			q.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = g->m_Texture.Handle();
+			auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
+			arg->m_NumIndices = 6;
+			arg->m_BaseIndex = baseIndex * 2;
+			arg->m_IndexValueType = Renderer::GLTypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
+
+			CurrentVertexQuad += 4;
+			CurrentTextureUV += 4;
 		}
 
 		pos.x += g->m_Advance.x * char_scale.x;
 		hmax = math::max(hmax, bsy);
 	}
-	pos.y = hmax;
 
-	if (UniformPosition)
-		wrapper->m_size = pos / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
-	else
-		wrapper->m_size = pos;
-
-	wrapper->m_VAO.DelayInit(Verticles, TexCoords, Normals, Index);
-	
-	return FontInstance(wrapper);
+	return allglyphs;
 }
 
 //----------------------------------------------------------------

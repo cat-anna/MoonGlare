@@ -22,6 +22,10 @@ public:
  	virtual ~TrueTypeFont();
 
 	FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
+
+	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
+
+	bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options);
 protected:
 	bool DoInitialize() override;
 	bool DoFinalize() override;
@@ -31,6 +35,8 @@ private:
 	StarVFS::ByteTable m_FontFile;
 	FT_Face m_FontFace = nullptr; 
 	float m_CacheHight;
+
+	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
 
 	mutable FontGlyphMap m_GlyphCache;
 };

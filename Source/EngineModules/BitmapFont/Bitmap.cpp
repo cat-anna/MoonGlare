@@ -19,6 +19,8 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 
+#include <Renderer/SimpleFontShaderDescriptor.h>
+
 namespace MoonGlare {
 namespace Modules {
 namespace BitmapFont {
@@ -128,7 +130,8 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 
 	float y = 0/*, z = Pos.z*/;
 	float h = static_cast<float>(m_BFD.CharWidth), w;
-	if (foptions.m_Size > 0) h = foptions.m_Size;
+	if (foptions.m_Size > 0)
+		h = foptions.m_Size;
 	w = h;
 	float w_mult = w / static_cast<float>(m_BFD.CharWidth);
 	unsigned fx = m_BFD.Width / m_BFD.CharWidth;
@@ -137,7 +140,6 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	float Cy = m_BFD.Height / static_cast<float>(m_BFD.CharHeight);
 	float dw = 1 / Cx;
 	float dh = 1 / Cy;
-
 
 	auto CurrentVertexQuad = Verticles;
 	auto CurrentTextureUV = TextureUV;
@@ -210,16 +212,13 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	return true;
 }
 
-bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &foptions, FontRect &outTextRect, FontResources &resources) {
+bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &foptions, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources) {
+	using SimpleFontShaderDescriptor = Renderer::SimpleFontShaderDescriptor;
 
-	if (!m_RtShader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<Graphic::Shaders::Shader>("Font/Simple", m_RtShader)) {
-			AddLogf(Error, "Failed to load RtShader shader");
-		}
+	auto &shres = frame->GetResourceManager()->GetShaderResource();
+	if (!m_ShaderHandle) {
+		shres.Load<SimpleFontShaderDescriptor>(frame, m_ShaderHandle, "Font/Simple");
 	}
-
-	if (!m_RtShader)
-		return false;
 
 	DataClasses::Fonts::Descriptor dummy;
 	dummy.Size = foptions.m_Size;
@@ -228,8 +227,7 @@ bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, co
 	if (!trt)
 		return false;
 
-//	auto &fonti = instance;
-	auto tsize = outTextRect = TextSize(text.c_str(), &dummy, false);
+	auto tsize = TextSize(text.c_str(), &dummy, false);
 
 	trt->SetFrame(frame);
 	trt->SetTarget(resources.m_Texture, emath::MathCast<emath::ivec2>(tsize.m_CanvasSize));
@@ -242,21 +240,35 @@ bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, co
 	using namespace ::MoonGlare::Renderer::Commands;
 	auto key = CommandKey();
 
-	m_RtShader->Bind(q, key);
-	m_RtShader->SetModelMatrix(q, key, emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));// emath::MathCast<emath::fmat4>(entry.m_Matrix));
+	auto shb = shres.GetBuilder<SimpleFontShaderDescriptor>(q, m_ShaderHandle);
+	
+	using Uniform = SimpleFontShaderDescriptor::Uniform;
+	shb.Bind();
+	shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));
 
 	VirtualCamera Camera;
 	Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
 
-	m_RtShader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
+	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
 
-	m_RtShader->SetColor(q, key, foptions.m_Color);
-	
+	auto c = foptions.m_Color;
+	shb.Set<Uniform::BackColor>(emath::fvec3(c[0], c[1], c[2]));
+
 	if (!GenerateCommands(q, frame, text, foptions)) {
 		int i = 0;
 	}
 
 	trt->End();
+
+	if (devopt.m_UseUniformMode) {
+		float Aspect = (float)devopt.m_DeviceSize[0] / (float)devopt.m_DeviceSize[1];
+		auto coeff = math::fvec2(1) / math::fvec2(devopt.m_DeviceSize[0], devopt.m_DeviceSize[1]) * math::fvec2(Aspect * 2.0f, 2.0f);
+		tsize.m_CanvasSize = tsize.m_CanvasSize * coeff;
+		tsize.m_TextBlockSize = tsize.m_TextBlockSize * coeff;
+		tsize.m_TextPosition = tsize.m_TextPosition * coeff;
+	}
+
+	outTextRect = tsize;
 
 	auto su = tsize.m_CanvasSize;
 	Graphic::QuadArray3 Vertexes{
@@ -299,57 +311,7 @@ bool BitmapFont::RenderText(const std::wstring &text, Renderer::Frame *frame, co
 
 	frame->Submit(trt);
 	
-	//instance.release();
-
 	return true;
-}
-
-//----------------BitmapWrapper-------------------------------------------------------------
-
-SPACERTTI_IMPLEMENT_STATIC_CLASS(BitmapFontWrapper);
-
-BitmapFontWrapper::BitmapFontWrapper(const BitmapFont *font): 
-		BaseClass(),
-		m_Texture(font->GetTexture()) {
-	m_AllowSubPixels = false;
-}
-
-BitmapFontWrapper::~BitmapFontWrapper() {
-	m_VAO.Finalize();
-}
- 
-void BitmapFontWrapper::Render(Graphic::cRenderDevice &dev) {
-	dev.CurrentShader()->SetBackColor(m_Color);
-	m_Texture->Bind();
-	m_VAO.Bind();
-	m_VAO.DrawElements(m_Mesh);
-}
-
-void BitmapFontWrapper::RenderMesh(Graphic::cRenderDevice &dev) {
-	m_VAO.Bind();
-	m_VAO.DrawElements(m_Mesh);
-}
-
-void BitmapFontWrapper::GenerateCommands(Renderer::Commands::CommandQueue & Queue, uint16_t key) {
-	if (m_VAO.Handle() == 0)
-		return;
-
-	Renderer::RendererConf::CommandKey qkey{ key };
-
-	Queue.PushCommand<Renderer::Commands::Texture2DBind>(qkey)->m_Texture = m_Texture->Handle();
-	Queue.PushCommand<Renderer::Commands::VAOBind>(qkey)->m_VAO = m_VAO.Handle();
-
-	auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(qkey);
-	arg->m_NumIndices = m_Mesh.NumIndices;
-	arg->m_IndexValueType = GL_UNSIGNED_INT;
-}
-
-//----------------BitmapFont::cBFDHeader-------------------------------------------------------------
-
-BitmapFont::cBFDHeader::cBFDHeader(){
-	Width = Height = CharWidth = CharHeight = 0;
-	BeginingKey = 0;
-	memset(KeyWidths, 0, 256);
 }
 
 } //namespace BitmapFont 

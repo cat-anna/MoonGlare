@@ -12,5 +12,6 @@ layout(location = 0) out vec4 FragColor;
 void main() {
     FragColor = vec4(texture2D(Texture0, VertexUV0));
 	FragColor.xyz *= Material.BackColor;
-    FragColor.a = 1.0f;
+    //FragColor.x = 1;
+    //FragColor.a = 1.0f;
 };

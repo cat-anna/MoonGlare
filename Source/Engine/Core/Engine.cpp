@@ -186,6 +186,11 @@ void Engine::EngineMain() {
 
 		GetScriptEngine()->Step(conf);
 		GetWorld()->Step(conf);
+		{
+			auto console = m_World->GetConsole();
+			if (console) 
+				console->ProcessConsole(conf);
+		}
 
 		float MoveTime = static_cast<float>(glfwGetTime());
 
@@ -258,19 +263,10 @@ void Engine::DoRender(MoveConfig &conf) {
 	dev.SetModelMatrix(math::mat4());
 	if (dev.CurrentEnvironment())
 		dev.CurrentEnvironment()->Render(dev);
-
-	m_Forward->BeginD2Render(dev);
-
+	
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-	{
-		auto console = m_World->GetConsole();
-		if (console) {
-			//console->RenderConsole(dev);
-			console->ProcessConsole(frame);
-		}
-	}
 
 	using Renderer::RendererConf::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();

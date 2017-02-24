@@ -29,6 +29,11 @@ public:
 		emath::fvec4 m_Color;
 	};
 
+	struct FontDeviceOptions {
+		bool m_UseUniformMode;
+		emath::ivec2 m_DeviceSize;
+	};
+
 	struct FontResources {
 		Renderer::TextureResourceHandle m_Texture;
 		Renderer::VAOResourceHandle m_VAO;
@@ -40,7 +45,7 @@ public:
 		}
 	};
 
-	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, FontRect &outTextRect, FontResources &resources) { return false; };
+	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources) { return false; };
 };
 
 //-----------------------------------------------------------------------------
