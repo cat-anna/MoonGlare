@@ -9,23 +9,13 @@
 #ifndef Loader_H
 #define Loader_H
 
+#include <Source/Renderer/Resources/AssetLoaderInterface.h>
+
 namespace MoonGlare::Asset::Shader {
-
-enum class ShaderType : uint8_t {
-	Geometry,
-	Vertex,
-	Fragment,
-
-	MaxValue,
-};
-
-struct ShaderCode {
-	std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
-};
 
 struct FileCache;
 
-class Loader final {
+class Loader final : public Renderer::Resources::ShaderCodeLoader {
 public:
  	Loader(FileSystem *fs);
  	~Loader();
@@ -33,7 +23,7 @@ public:
 	bool Initialize();
 	bool Finalize();
 
-	bool LoadCode(const std::string &Name, ShaderCode &Output);
+	virtual bool LoadCode(const std::string &Name, ShaderCode &Output) override;
 protected:
 	FileSystem* GetFileSystem() { return m_FileSystem; }
 private: 

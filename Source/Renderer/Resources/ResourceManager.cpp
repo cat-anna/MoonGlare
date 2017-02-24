@@ -9,10 +9,12 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-bool ResourceManager::Initialize(RendererFacade *Renderer) {
+bool ResourceManager::Initialize(RendererFacade *Renderer, AssetLoader* Assets) {
 	RendererAssert(Renderer);
+	RendererAssert(Assets);
 
-	m_RendererFacade = nullptr;
+	m_RendererFacade = Renderer;
+	m_AssetLoader = Assets;
 
 	if (!m_TextureResource.Initialize(this)) {
 		AddLogf(Error, "TextureResource initialization failed!");

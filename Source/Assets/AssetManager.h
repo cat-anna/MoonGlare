@@ -6,8 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef AssetManager_H
-#define AssetManager_H
+
+#include <Source/Renderer/Resources/AssetLoaderInterface.h>
 
 namespace MoonGlare::x2c::Settings {
 	struct AssetSettings_t;
@@ -21,7 +21,7 @@ namespace Shader {
 
 class FileSystem;
 
-class AssetManager final {
+class AssetManager final : public Renderer::Resources::AssetLoader {
 public:
  	AssetManager();
  	~AssetManager();
@@ -30,11 +30,11 @@ public:
 	bool Finalize();
 
 	Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
-private: 
+	virtual Renderer::Resources::ShaderCodeLoader* GetShaderCodeLoader() const override;
+private:
 	std::unique_ptr<FileSystem> m_FileSystem;
 	std::unique_ptr<Shader::Loader> m_ShaderLoader;
 };
 
 } //namespace MoonGlare::Asset 
 
-#endif

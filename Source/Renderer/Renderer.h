@@ -9,6 +9,8 @@
 #include "Configuration.Renderer.h"
 #include "FrameBuffer.h"
 
+#include "Resources/AssetLoaderInterface.h"
+
 namespace MoonGlare::Renderer {
 
 class RendererFacade final {
@@ -16,7 +18,7 @@ public:
 	RendererFacade();
  	~RendererFacade();
 
-    bool Initialize(const ContextCreationInfo& ctxifo);
+    bool Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets);
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */

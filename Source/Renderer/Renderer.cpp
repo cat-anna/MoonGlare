@@ -23,7 +23,9 @@ RendererFacade::~RendererFacade() {
 
 //----------------------------------------------------------------------------------
 
-bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo) {
+bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets) {
+	RendererAssert(Assets);
+
 	if (!Context::InitializeSubSystem()) {
 		AddLogf(Error, "Context subsystem initialization failed!");
 		return false;
@@ -43,7 +45,7 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo) {
         return false;
     }
 
-	if (!m_ResourceManager->Initialize(this)) {
+	if (!m_ResourceManager->Initialize(this, Assets)) {
 		AddLogf(Error, "ResourceManager initialization failed!");
 		return false;
 	}

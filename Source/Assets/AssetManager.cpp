@@ -53,4 +53,8 @@ bool AssetManager::Finalize() {
 	return true;
 }
 
+Renderer::Resources::ShaderCodeLoader* AssetManager::GetShaderCodeLoader() const {
+	return m_ShaderLoader.get(); 
+}
+
 } //namespace MoonGlare::Asset

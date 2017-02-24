@@ -90,7 +90,7 @@ bool iApplication::Initialize() {
 	ctxifo.m_Height = GraphicSettings::Height::get();
 	ctxifo.MonitorIndex = GraphicSettings::Monitor::get();
 	ctxifo.FullScreen = GraphicSettings::FullScreen::get();
-	if (!m_Renderer->Initialize(ctxifo)) {
+	if (!m_Renderer->Initialize(ctxifo, m_AssetManager.get())) {
 		AddLogf(Error, "Unable to initialize renderer");
 		return false;
 	}

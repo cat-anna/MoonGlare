@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "AssetLoaderInterface.h"
+
 #include "TextureResource.h"
 #include "VAOResource.h"
 
@@ -14,7 +16,7 @@ namespace MoonGlare::Renderer::Resources {
 
 class alignas(16) ResourceManager final {
 public:
-	bool Initialize(RendererFacade *Renderer);
+	bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
 	bool Finalize();
 
 	TextureResource& GetTextureAllocator() {
@@ -32,7 +34,6 @@ public:
 	void Release(Frame *frame, VAOResourceHandle &vaores) {
 		GetVAOResource().Release(frame, vaores);
 	}
-
 	bool Allocate(Frame *frame, TextureResourceHandle &resH) {
 		return GetTextureAllocator().Allocate(frame, resH);
 	}
@@ -41,7 +42,8 @@ public:
 	}
 private: 
 	RendererFacade *m_RendererFacade = nullptr;
-	void* padding[3];
+	AssetLoader *m_AssetLoader = nullptr;
+	void* padding[2];
 	TextureResource m_TextureResource;
 	VAOResource m_VAOResource;
 };
