@@ -100,7 +100,8 @@ Shader* ShaderManager::LoadShader(ShaderDefinition &sd, const string &ShaderName
 //-------------------------------------------------------------------
 
 ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition &sd, const string &Name) {
-	using Asset::Shader::ShaderType;
+	using ShaderCode = Renderer::Resources::ShaderCodeLoader::ShaderCode;
+	using ShaderType = Renderer::Resources::ShaderCodeLoader::ShaderType;
 	struct ShaderTypeInfo {
 		ShaderType m_Type;
 		GLuint m_GLID;
@@ -112,7 +113,7 @@ ShaderManager::ShaderDefinition* ShaderManager::LoadShaderGlsl(ShaderDefinition 
 		ShaderTypeInfo{ ShaderType::Geometry, GL_GEOMETRY_SHADER, "geometry", },
 	};
 
-	Asset::Shader::ShaderCode code;
+	ShaderCode code;
 	if (!m_ShaderLoader->LoadCode(Name, code)) {
 		AddLogf(Error, "Unable to load code for shader %s", Name.c_str());
 		return nullptr;

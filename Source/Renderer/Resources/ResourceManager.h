@@ -11,6 +11,7 @@
 
 #include "TextureResource.h"
 #include "VAOResource.h"
+#include "ShaderResource.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -26,6 +27,10 @@ public:
 	VAOResource& GetVAOResource() {
 		RendererAssert(this);
 		return m_VAOResource;
+	}
+	ShaderResource& GetShaderResource() {
+		RendererAssert(this);
+		return m_ShaderResource;
 	}
 
 	void Release(Frame *frame, TextureResourceHandle &texres) {
@@ -46,6 +51,7 @@ private:
 	void* padding[2];
 	TextureResource m_TextureResource;
 	VAOResource m_VAOResource;
+	ShaderResource m_ShaderResource;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");

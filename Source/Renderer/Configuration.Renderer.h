@@ -97,6 +97,12 @@ struct VAO {
 	static_assert(static_cast<uint32_t>(InputChannels::MaxValue) <= MaxBuffersPerVAO, "mismatched buffer count!");
 };
 
+struct Shader {
+	static constexpr uint32_t Limit = 32;
+	static constexpr uint32_t UniformLimit = 16;
+	using UniformLocations = std::array<ShaderUniformHandle, UniformLimit>;
+};
+
 struct TextureRenderTask {
 	static constexpr uint32_t Limit = 64;
 };

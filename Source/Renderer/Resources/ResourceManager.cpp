@@ -26,10 +26,19 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, AssetLoader* Assets) 
 		return true;
 	}
 
+	if (!m_ShaderResource.Initialize(this, m_AssetLoader->GetShaderCodeLoader())) {
+		AddLogf(Error, "ShaderResource initialization failed!");
+		return true;
+	}
+
 	return true;
 }
 
 bool ResourceManager::Finalize() {
+	if (!m_ShaderResource.Finalize()) {
+		AddLogf(Error, "ShaderResource finalization failed!");
+	}
+
 	if (!m_VAOResource.Finalize()) {
 		AddLogf(Error, "VAOResource finalization failed!");
 	}
