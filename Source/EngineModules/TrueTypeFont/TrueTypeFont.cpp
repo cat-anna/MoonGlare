@@ -9,7 +9,6 @@
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
-#include "TrueTypeWrapper.h"
 
 namespace MoonGlare {
 namespace Modules {

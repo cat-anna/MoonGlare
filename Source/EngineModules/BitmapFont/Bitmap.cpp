@@ -10,8 +10,6 @@
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
 
-//#include <Renderer/Commands/OpenGL/ControllCommands.h>
-//#include <Renderer/Commands/OpenGL/ShaderCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
@@ -83,12 +81,6 @@ bool BitmapFont::DoInitialize(){
 
 BitmapFont::FontRect BitmapFont::TextSize(const wstring & text, const Descriptor * style, bool UniformPosition) const {
 
-//	Graphic::VAO::MeshData mesh;
-//
-//	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-//	float Aspect = ScreenSize[0] / ScreenSize[1];
-//
-//	float y = 0/*, z = Pos.z*/;
 	float h = static_cast<float>(m_BFD.CharWidth);
 	if (style && style->Size > 0) 
 		h = style->Size;
@@ -109,115 +101,11 @@ BitmapFont::FontRect BitmapFont::TextSize(const wstring & text, const Descriptor
 		x += (m_BFD.KeyWidths[kid] + 1) * w_mult;
 	}
 
-//	if (UniformPosition)
-//		wr->m_size = math::vec2(x, h) / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
-//	else
-//		wr->m_size = math::vec2(x, h);
-
 	FontRect rect;
 	rect.m_CanvasSize = math::vec2(x, h);
 	rect.m_TextBlockSize = rect.m_CanvasSize;
 	rect.m_TextPosition = math::vec2(0, 0);
 	return rect;
-}
-
-FontInstance BitmapFont::GenerateInstance(const wstring &text, const Descriptor *style, bool UniformPosition) const {
-	if (text.empty() || !IsReady()) {
-		return FontInstance(new EmptyWrapper());
-	}
-
-	int textlen = text.length();
-	std::vector<math::fvec3> Coords;
-	std::vector<math::fvec2> UVs;
-	std::vector<unsigned> Index;
-	Coords.reserve(textlen * 4);
-	UVs.reserve(textlen * 4);
-	Index.reserve(textlen * 6);
-
-	Graphic::VAO::MeshData mesh;
-
-	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-	float Aspect = ScreenSize[0] / ScreenSize[1];
-
-	float y = 0/*, z = Pos.z*/;
-	float h = static_cast<float>(m_BFD.CharWidth), w;
-	if (style && style->Size > 0) h = style->Size;
-	w = h;
-	float w_mult = w / static_cast<float>(m_BFD.CharWidth);
-	unsigned fx = m_BFD.Width / m_BFD.CharWidth; 
-	float x = 0;
-	float Cx = m_BFD.Width / static_cast<float>(m_BFD.CharWidth);
-	float Cy = m_BFD.Height / static_cast<float>(m_BFD.CharHeight);
-	float dw = 1 / Cx;
-	float dh = 1 / Cy;
-
-	static Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
-
-	auto cstr = text.c_str();
-	while (*cstr) {
-		auto wc = *cstr;
-		++cstr;
-
-		char c = static_cast<char>(wc);
-
-		unsigned kid = static_cast<unsigned>(c) - m_BFD.BeginingKey;
-		if (kid > 255) kid = fx;
-		unsigned kol = kid % fx;
-		unsigned line = kid / fx;
-		float u = kol / Cx;
-		float v = 1.0f - (line / Cy);
-
-		math::fvec3 vertex[] = {
-			math::fvec3(x + w,	y,		0),
-			math::fvec3(x,		y,		0),
-			math::fvec3(x,		y + h,	0),
-			math::fvec3(x + w,	y + h,	0),
-		};
-
-		math::fvec2 uv[] = {
-			math::fvec2(u + dw,	v),
-			math::fvec2(u,		v),
-			math::fvec2(u,		v - dh),
-			math::fvec2(u + dw,	v - dh),
-		};
-
-		size_t basevertex = Coords.size();
-		for (int i = 0; i < 4; ++i){
-			if (UniformPosition) {
-				Coords.push_back(vertex[i] / math::fvec3(ScreenSize, 1.0f) * math::fvec3(Aspect * 2.0f, 2.0f, 0.0f));
-			} else
-				Coords.push_back(vertex[i]);
-			UVs.push_back(uv[i]);
-		//	Index.push_back(Index.size());
-		}
-
-		for(auto idx: BaseIndex) 
-			Index.push_back(idx + basevertex);
-
-		x += (m_BFD.KeyWidths[kid] + 1) * w_mult;
-	}
-
-	auto wr = new BitmapFontWrapper(this);
-
-	if (UniformPosition) 
-		wr->m_size = math::vec2(x, h) / math::fvec2(ScreenSize) * math::fvec2(Aspect * 2.0f, 2.0f);
-	else
-		wr->m_size = math::vec2(x, h);
-
-	mesh.ElementMode = Graphic::Flags::fTriangles;
-	mesh.NumIndices = Index.size();
-	wr->m_Mesh = mesh;
-
-	Graphic::NormalVector Normals;
-	wr->m_VAO.DelayInit(Coords, UVs, Normals, Index);
-
-	if (style) {
-		wr->m_Color = style->Color;
-	} else {
-		wr->m_Color = Graphic::vec3(1);
-	}
-
-	return FontInstance(wr);
 }
 
 //-----------------------------------------------------------------------------

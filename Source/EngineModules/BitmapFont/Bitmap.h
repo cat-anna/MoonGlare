@@ -14,26 +14,6 @@ namespace BitmapFont {
 
 using namespace DataClasses::Fonts;
 
-class BitmapFontWrapper : public Wrapper {
-	SPACERTTI_DECLARE_STATIC_CLASS(BitmapFontWrapper, Wrapper);
-	DISABLE_COPY();
-	friend class BitmapFont;
-public:
-	BitmapFontWrapper(const BitmapFont *font);
-	~BitmapFontWrapper();
-
-	virtual void Render(Graphic::cRenderDevice &dev) override;
-	virtual void RenderMesh(Graphic::cRenderDevice &dev) override;
-
-	virtual void GenerateCommands(Renderer::Commands::CommandQueue &Queue, uint16_t key) override;
-protected:
-	Graphic::vec3 m_Color;
-	Graphic::VAO m_VAO;
-	Graphic::VAO::MeshData m_Mesh;
-	const TextureFile &m_Texture;
-	const BitmapFont *m_font;
-};
-
 class BitmapFont : public iFont {
 	SPACERTTI_DECLARE_CLASS(BitmapFont, iFont);
 public:
@@ -41,7 +21,6 @@ public:
 	~BitmapFont();
 
 	FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
-	FontInstance GenerateInstance(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 
 	float GetHeight() const { return (float)m_BFD.CharHeight; }
 	const TextureFile& GetTexture() const { return m_Texture; }
@@ -52,7 +31,11 @@ public:
 protected:
 	class cBFDHeader {
 	public:
-		cBFDHeader();
+		cBFDHeader() {
+			Width = Height = CharWidth = CharHeight = 0;
+			BeginingKey = 0;
+			memset(KeyWidths, 0, 256);
+		}
 		unsigned Width, Height, CharWidth, CharHeight;
 		unsigned char BeginingKey, KeyWidths[256];
 	};
