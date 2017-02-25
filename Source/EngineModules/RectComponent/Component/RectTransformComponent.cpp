@@ -18,6 +18,12 @@
 #include <ComponentCommon.x2c.h>
 #include <RectTransformComponent.x2c.h>
 
+#include <Renderer/Frame.h>
+#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Commands/OpenGL/TextureCommands.h>
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
+#include <Renderer/Commands/OpenGL/ControllCommands.h>
+
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
@@ -143,12 +149,6 @@ bool RectTransformComponent::Finalize() {
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
-#ifdef DEBUG
-	if (gRectTransformDebugDraw) {
-		conf.CustomDraw.push_back(this);
-	}
-#endif
-
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
@@ -195,6 +195,12 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		TrivialReleaseElement(LastInvalidEntry);
 	}
+
+#ifdef DEBUG
+	if (gRectTransformDebugDraw) {
+		D2Draw(conf);
+	}
+#endif
 
 	++m_CurrentRevision;
 	if (m_CurrentRevision < 1) {
@@ -349,7 +355,7 @@ bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, 
 
 //---------------------------------------------------------------------------------------
 
-void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
+void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 	if (!m_Shader) {
 		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
@@ -360,39 +366,71 @@ void RectTransformComponent::D2Draw(Graphic::cRenderDevice & dev) {
 	if (!m_Shader)
 		return;
 
-	auto cs = dev.CurrentShader();
+	auto frame = conf.m_BufferFrame;
 
-	dev.Bind(m_Shader);
-	dev.Bind(&m_Camera);
-	dev.SetModelMatrix(math::mat4());
-	dev.BindNullMaterial();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glEnable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	Renderer::VAOResourceHandle vao;
+	if (!frame->AllocateFrameResource(vao))
+		return;
+
+	auto &qgui = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
+
+	auto qptr = frame->AllocateSubQueue();
+	auto &q = *qptr;
+
+	Renderer::RendererConf::CommandKey basekey{ static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2 + 10000 };
+	qgui.PushQueue(qptr, basekey);
+
+	m_Shader->Bind(q, basekey);
+ 	m_Shader->SetWorldMatrix(q, basekey, emath::fmat4::Identity(), m_Camera.GetProjectionMatrix());
+	//m_Shader->SetColor(q, basekey, math::fvec4(1));
+	auto texres = q.MakeCommand<Renderer::Commands::Texture2DBind>(Renderer::InvalidTextureHandle);
+	q.MakeCommand<Renderer::Commands::Enable>((GLenum)GL_BLEND);
+	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_CULL_FACE);
+	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_DEPTH_TEST);
+	q.MakeCommand<Renderer::Commands::EnterWireFrameMode>();
+
+	auto *vertexes = frame->GetMemory().Allocate<math::fvec3>(4 * m_Array.Allocated());
+	auto *indextable = frame->GetMemory().Allocate<uint16_t>(5 * m_Array.Allocated());
+	size_t vertexindex = 0;
+	size_t indexindex = 0;
 
 	for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
 		auto &item = m_Array[i];
 		if (!item.m_Flags.m_Map.m_Valid) {
 			continue;
 		}
-
-		dev.CurrentShader()->SetBackColor(math::vec3(1, 1, 1));
-
+		
 		auto &r = item.m_ScreenRect;
-
-		glBegin(GL_LINE_STRIP);
-		glVertex3f(r.LeftTop.x, r.LeftTop.y, 0.0f);
-		glVertex3f(r.LeftTop.x, r.RightBottom.y, 0.0f);
-		glVertex3f(r.RightBottom.x, r.RightBottom.y, 0.0f);
-		glVertex3f(r.RightBottom.x, r.LeftTop.y, 0.0f);
-		glVertex3f(r.LeftTop.x, r.LeftTop.y, 0.0f);
-		glEnd();
+		indextable[indexindex++] = vertexindex;
+		vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.LeftTop.y, 0.0f);
+		indextable[indexindex++] = vertexindex;
+		vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.RightBottom.y, 0.0f);
+		indextable[indexindex++] = vertexindex;
+		vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.RightBottom.y, 0.0f);
+		indextable[indexindex++] = vertexindex;
+		vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.LeftTop.y, 0.0f);
 	}
 
-	dev.Bind(cs);
+	auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, true);
 
-	glPopAttrib();
+	vaob.BeginDataChange();
+	using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+	vaob.CreateChannel(ichannels::Vertex);
+	vaob.SetChannelData<float, 3>(ichannels::Vertex, &vertexes[0][0], vertexindex);
+
+	vaob.CreateChannel(ichannels::Texture0);
+	vaob.SetChannelData<float, 2>(ichannels::Texture0, nullptr, 0);
+
+	vaob.CreateChannel(ichannels::Index);
+	vaob.SetIndex(ichannels::Index, indextable, indexindex);
+
+	vaob.EndDataChange();
+
+	auto arg = q.MakeCommand<Renderer::Commands::VAODrawElements>((GLenum)GL_QUADS, indexindex, (unsigned)Renderer::GLTypeInfo<uint16_t>::TypeId);
+
+	vaob.UnBindVAO();
+	q.MakeCommand<Renderer::Commands::LeaveWireFrameMode>();
 }
 
 //---------------------------------------------------------------------------------------

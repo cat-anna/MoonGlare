@@ -88,8 +88,7 @@ using Core::Scripts::Component::ScriptComponent;
 
 class RectTransformComponent 
 	: public TemplateStandardComponent<RectTransformComponentEntry, ComponentID::RectTransform>
-	, public Core::Scripts::Component::ComponentEntryWrap<RectTransformComponent>
-	, public Core::iCustomDraw {
+	, public Core::Scripts::Component::ComponentEntryWrap<RectTransformComponent> {
 public:
 	static constexpr char *Name = "RectTransform";
 	static constexpr bool PublishID = true;
@@ -174,8 +173,7 @@ protected:
 
 //debug:
 protected:
-	// iCustomDraw
-	virtual void D2Draw(Graphic::cRenderDevice& dev) override;
+	void D2Draw(const Core::MoveConfig & conf);
 	Graphic::Shaders::Shader *m_Shader = nullptr;
 };
 
