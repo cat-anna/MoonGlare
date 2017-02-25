@@ -2,11 +2,6 @@
 #define FONT_H
 
 namespace MoonGlare {
-
-namespace Renderer {
-	struct CommandQueue;
-}
-
 namespace DataClasses {
 namespace Fonts {
 
@@ -20,9 +15,6 @@ public:
 		math::fvec2 m_TextPosition;
 		math::fvec2 m_TextBlockSize;
 	};
-	virtual FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
-
-	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
 
 	struct FontRenderRequest {
 		float m_Size;
@@ -45,7 +37,13 @@ public:
 		}
 	};
 
-	virtual bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources) { return false; };
+	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
+	virtual FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
+	
+	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
+protected:
+	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
+	virtual bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options) = 0;
 };
 
 //-----------------------------------------------------------------------------
