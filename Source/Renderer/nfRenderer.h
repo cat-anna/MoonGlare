@@ -40,9 +40,15 @@ namespace Resources {
 	class alignas(16) TextureResource;
 }
 
+
 class CriticalException : public std::runtime_error {
 public:
 	CriticalException(std::string msg) : std::runtime_error(std::move(msg)){}
+};
+
+class InitFailureException : public CriticalException {
+public:
+	InitFailureException(std::string msg) : CriticalException(std::move(msg)) {}
 };
 
 #define RendererAssert(COND) assert(COND)

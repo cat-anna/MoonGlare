@@ -18,8 +18,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 //std include
-#include <locale>
-#include <codecvt>
 
 #include <Config/pch_common.h>
 
