@@ -25,7 +25,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
-		shres.Load<SimpleFontShaderDescriptor>(frame, m_ShaderHandle, "Font/Simple");
+		shres.Load<SimpleFontShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Font/Simple");
 	}
 
 	auto trt = frame->GetDevice()->AllocateTextureRenderTask();

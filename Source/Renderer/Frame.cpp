@@ -32,7 +32,7 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
 
 	m_Memory.Clear();
 
-	for (auto q : m_SubQueueTable)
+	for (auto &q : m_SubQueueTable)
 		q.Clear();
 
 	auto ctx = rfacade->GetContext();

@@ -157,14 +157,31 @@ struct ConstructShaderArgument {
 		return arg->Run();
 	}
 };
-
 using ConstructShader = Commands::CommandTemplate<ConstructShaderArgument>;
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::LoadShader(Frame* frame, ShaderResourceHandle &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+bool ShaderResource::Reload(Commands::CommandQueue &queue, const std::string &Name) {
 	RendererAssert(this);
-	RendererAssert(frame);
+
+	for (size_t index = 0u; index < m_ShaderName.size(); ++index) {
+		if (m_ShaderName[index] == Name) {
+			return Reload(queue, index);
+		}
+	}
+
+	return false;
+}
+
+bool ShaderResource::Reload(Commands::CommandQueue &queue, uint32_t ifindex) {
+	RendererAssert(this);
+	return GenerateLoadCommand(queue, ifindex) && GenerateUnformDiscoverCommand(queue, ifindex);
+}
+
+//---------------------------------------------------------------------------------------
+
+bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHandle &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+	RendererAssert(this);
 	RendererAssert(ShaderIface);
 
 	auto ifindex = ShaderIface->InterfaceID();
@@ -181,16 +198,13 @@ bool ShaderResource::LoadShader(Frame* frame, ShaderResourceHandle &out, const s
 	m_ShaderUniform[ifindex].fill(InvalidShaderUniformHandle);
 	m_ShaderInterface[ifindex] = ShaderIface;
 
-	GenerateLoadCommand(frame, ifindex);
-	GenerateUnformDiscoverCommand(frame, ifindex);
-
 	out.m_TmpGuard = out.GuardValue;
 	out.m_Index = static_cast<uint16_t>(ifindex);
 
-	return true;
+	return Reload(queue, ifindex);
 }
 
-bool ShaderResource::GenerateLoadCommand(Frame* frame, uint32_t ifindex) {
+bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
 	RendererAssert(this);
 
 	ShaderCodeLoader::ShaderCode code;
@@ -199,8 +213,8 @@ bool ShaderResource::GenerateLoadCommand(Frame* frame, uint32_t ifindex) {
 		return false;
 	}
 
-	auto &q = frame->GetControllCommandQueue();
-	auto &m = frame->GetMemory();
+	auto &q = queue;
+	auto &m = queue.GetMemory();
 
 	auto *arg = q.PushCommand<ConstructShader>();
 
@@ -240,7 +254,7 @@ bool ShaderResource::GenerateLoadCommand(Frame* frame, uint32_t ifindex) {
 	return true;
 }
 
-bool ShaderResource::GenerateUnformDiscoverCommand(Frame *frame, uint32_t ifindex) {
+bool ShaderResource::GenerateUnformDiscoverCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
 	RendererAssert(this);
 	RendererAssert(m_ShaderInterface[ifindex]);
 
@@ -277,9 +291,8 @@ bool ShaderResource::GenerateUnformDiscoverCommand(Frame *frame, uint32_t ifinde
 	auto UniformCount = iface->UniformCount();
 	const auto **UniformName = iface->UniformName();
 
-
-	auto &q = frame->GetControllCommandQueue();
-	auto &m = frame->GetMemory();
+	auto &q = queue;
+	auto &m = queue.GetMemory();
 
 	auto *arg = q.PushCommand<GetShaderUnfiorms>();
 	arg->m_Count = iface->UniformCount();

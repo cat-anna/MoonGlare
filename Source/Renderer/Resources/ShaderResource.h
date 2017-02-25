@@ -77,9 +77,9 @@ public:
 	bool Finalize();
 
 	template<typename Descriptor_t>
-	bool Load(Frame* frame, ShaderResourceHandle &out, const std::string &ShaderName) {
+	bool Load(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName) {
 		RendererAssert(this);
-		return LoadShader(frame, out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
+		return LoadShader(q, out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
 	}
 
 	template<typename Descriptor_t>
@@ -96,7 +96,7 @@ public:
 		};
 	}
 
-	void Reload(Commands::CommandQueue &queue, const std::string &Name);
+	bool Reload(Commands::CommandQueue &queue, const std::string &Name);
 private:
 	template<typename T>
 	using Array = std::array<T, Conf::Limit>;
@@ -114,10 +114,11 @@ private:
 	void *_padding1;
 	void *_padding2;
 
-	bool LoadShader(Frame* frame, ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
+	bool LoadShader(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
+	bool Reload(Commands::CommandQueue &queue, uint32_t ifindex);
 
-	bool GenerateLoadCommand(Frame* frame, uint32_t ifindex);
-	bool GenerateUnformDiscoverCommand(Frame* frame, uint32_t ifindex);
+	bool GenerateLoadCommand(Commands::CommandQueue &q, uint32_t ifindex);
+	bool GenerateUnformDiscoverCommand(Commands::CommandQueue &q, uint32_t ifindex);
 };
 
 static_assert((sizeof(ShaderResource) % 16) == 0, "Invalid size!");

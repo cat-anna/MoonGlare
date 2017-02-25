@@ -17,10 +17,18 @@ namespace MoonGlare::Renderer::Commands {
 class alignas(16) CommandQueue final {
 	using Conf = Configuration::CommandQueue;
 public:
+	CommandQueue() = default;
+	CommandQueue(const CommandQueue&) = delete;
+	CommandQueue& operator=(const CommandQueue&) = delete;
+
+	template<typename T>
+	using ByteArray = Space::Memory::StaticMemory<T, Conf::ArgumentMemoryBuffer>;
+	using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
+
 	uint32_t CommandsCapacity() const { return Conf::CommandLimit; }
-	uint32_t CommandsAllocated() const { return m_AllocatedCommands; }
 	uint32_t MemoryCapacity() const { return Conf::ArgumentMemoryBuffer; }
-	uint32_t MemoryAllocated() const { return m_AllocatedMemory; }
+	uint32_t CommandsAllocated() const { return m_AllocatedCommands; }
+	uint32_t MemoryAllocated() const { return m_Memory.Allocated(); }
 
 	bool IsEmpty() const { return CommandsAllocated() == 0; }
 	bool IsFull() const { return CommandsAllocated() >= CommandsCapacity(); }
@@ -43,11 +51,12 @@ public:
 	void MemZero() { memset(this, 0, sizeof(*this)); }
 	void ClearAllocation() { 
 		m_AllocatedCommands = m_CommandsPreamble;
-		m_AllocatedMemory = m_MemoryPreamble;
+		m_Memory.PartialClear(m_MemoryPreamble);
 	}
 	void Clear() {
 		m_AllocatedCommands = m_CommandsPreamble = 0;
-		m_AllocatedMemory = m_MemoryPreamble = 0;
+		m_MemoryPreamble = 0;
+		m_Memory.Clear();
 	}
 
 	void Sort() {
@@ -74,7 +83,6 @@ public:
 
 		return argptr;
 	}
-
 
 	template<typename CMD, typename ... ARGS>
 	typename CMD::Argument* MakeCommand(ARGS&& ... args) {
@@ -128,42 +136,27 @@ public:
 
 	void SetQueuePreamble() {
 		m_CommandsPreamble = m_AllocatedCommands;
-		m_MemoryPreamble = m_AllocatedMemory;
+		m_MemoryPreamble = m_Memory.Allocated();
 	}
 
-	struct RollbackPoint {
-		uint32_t m_CommandCount;
-		uint32_t m_MemoryUsed;
-	};
-
-	//To be removed?
-	//unsafe; Rolling-back has to be used carefully
-	RollbackPoint GetSavePoint() const { return RollbackPoint{ m_AllocatedCommands, m_AllocatedMemory }; }
-	//unsafe; Rolling-back has to be used carefully
-	void Rollback(RollbackPoint point) { m_AllocatedCommands = point.m_CommandCount; m_AllocatedMemory = point.m_MemoryUsed; }
+	Allocator_t& GetMemory() { return m_Memory; }
 private: 
 	template<typename T> using Array = std::array<T, Conf::CommandLimit>;
-
+	
+	//TODO make this class atomic
 	template<typename T>
 	T* AllocateMemory(uint32_t size) {
-		if (m_AllocatedMemory + size >= MemoryCapacity())
-			return nullptr;
-
-		T *ptr = reinterpret_cast<T*>(&m_Memory[0] + m_AllocatedMemory);
-		m_AllocatedMemory += size;
+		T *ptr = reinterpret_cast<T*>(m_Memory.Allocate<char>(size));
 		return ptr;
 	}
 
-	//TODO make this class atomic
-	
 	uint32_t m_AllocatedCommands;
-	uint32_t m_AllocatedMemory;
 	uint32_t m_CommandsPreamble;
 	uint32_t m_MemoryPreamble;
 
 	Array<CommandFunction> m_CommandFunctions;
 	Array<void*> m_CommandArguments;
-	std::array<uint8_t, Conf::ArgumentMemoryBuffer> m_Memory;
+	Allocator_t m_Memory;
 	Array<CommandKey> m_SortKeys;
 
 	void SortBegin(int first, int last);
