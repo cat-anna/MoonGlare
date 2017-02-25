@@ -52,7 +52,6 @@ protected:
 	Renderer::RendererFacade *m_Renderer = nullptr;
 
 	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
-	std::unique_ptr<Graphic::Forward::ForwardPipeline> m_Forward;
 
 	volatile bool m_Running;		//!< Indicates whether engine is running
 	float m_FrameTimeSlice;			//!< Amount of ms per single frame. Equals to 16.(6) for 60PFSd

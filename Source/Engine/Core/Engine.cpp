@@ -31,7 +31,6 @@ Engine::Engine(World *world, Renderer::RendererFacade *Renderer) :
 		m_FrameTimeSlice(1.0f),
 
 		m_Dereferred(),
-		m_Forward(),
 
         m_World(world),
 		m_Renderer(Renderer)
@@ -59,10 +58,7 @@ bool Engine::Initialize() {
 	}
 
 	m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
-	m_Forward = std::make_unique<Graphic::Forward::ForwardPipeline>();
-
 	m_Dereferred->Initialize();
-	m_Forward->Initialize();
 
 	SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
 
@@ -71,7 +67,6 @@ bool Engine::Initialize() {
 
 bool Engine::Finalize() {
 	m_Dereferred.reset();
-	m_Forward.reset();
 
 	AddLog(Performance, "Frames skipped: " << m_SkippedFrames);
 
@@ -258,7 +253,9 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	m_Dereferred->Execute(conf, dev);
 
-	m_Forward->BeginFrame(dev);
+//	m_Forward->BeginFrame(dev);
+	glDepthMask(GL_TRUE);
+//	glEnable(GL_DEPTH_TEST);
 
 	dev.SetModelMatrix(math::mat4());
 	if (dev.CurrentEnvironment())
@@ -271,16 +268,16 @@ void Engine::DoRender(MoveConfig &conf) {
 	using Renderer::RendererConf::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
 
+//	m_Forward->BeginD2Render(dev);
+//	for (auto *it : conf.CustomDraw)
+//		it->D2Draw(dev);
+
 //	Device->Step();
 	{
 		auto &l = frame->GetFirstWindowLayer();
 //		l.Sort();
 		l.Execute();
 	}
-
-	for (auto *it : conf.CustomDraw)
-		it->D2Draw(dev);
-
 
 #ifdef DEBUG
 	Config::Debug::ProcessTextureIntrospector(dev);

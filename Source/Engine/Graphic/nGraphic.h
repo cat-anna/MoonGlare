@@ -31,7 +31,6 @@
 #include "RenderDevice.h"
 
 #include "Dereferred/nDereferred.h"
-#include "Forward/ForwardPipeline.h"
 
 using Graphic::cRenderDevice;
 
