@@ -253,13 +253,11 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	m_Dereferred->Execute(conf, dev);
 
-//	m_Forward->BeginFrame(dev);
 	glDepthMask(GL_TRUE);
-//	glEnable(GL_DEPTH_TEST);
 
-	dev.SetModelMatrix(math::mat4());
-	if (dev.CurrentEnvironment())
-		dev.CurrentEnvironment()->Render(dev);
+//	dev.SetModelMatrix(math::mat4());
+//	if (dev.CurrentEnvironment())
+//		dev.CurrentEnvironment()->Render(dev);
 	
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -267,10 +265,6 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	using Renderer::RendererConf::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
-
-//	m_Forward->BeginD2Render(dev);
-//	for (auto *it : conf.CustomDraw)
-//		it->D2Draw(dev);
 
 //	Device->Step();
 	{

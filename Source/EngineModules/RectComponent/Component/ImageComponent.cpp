@@ -89,7 +89,6 @@ bool ImageComponent::Finalize() {
 
 void ImageComponent::Step(const Core::MoveConfig & conf) {
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
-	auto QueueSavePoint = Queue.GetSavePoint();
 	bool QueueDirty = false;
 	bool CanRender = false;
 
@@ -155,15 +154,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 		arg->m_NumIndices = 6;
 		arg->m_IndexValueType = GL_UNSIGNED_INT;
-
-		QueueDirty = true;
 	}
-
-	//if (!QueueDirty)
-	//	Queue.Rollback(QueueSavePoint);
-//	else {
-		//	m_Shader->VAORelease(Queue);
-	//}
 
 	if (InvalidEntryCount > 0) {
 		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
