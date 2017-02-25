@@ -14,7 +14,7 @@
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
 
-#include "Graphic/Shaders/D2Shader.h"
+#include <Renderer/PassthroughShaderDescriptor.h>
 
 namespace MoonGlare::Core {
 
@@ -184,14 +184,13 @@ void Console::Activate() {
 bool Console::ProcessConsole(const Core::MoveConfig &config) {
 	Renderer::Frame *frame = config.m_BufferFrame;
 
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShaderType<Graphic::Shaders::Shader>("D2Shader", m_Shader)) {
-			AddLogf(Error, "Failed to load D2Shader shader");
-		}
-	}
+	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
+	using Uniform = PassthroughShaderDescriptor::Uniform;
 
-	if (!m_Shader)
-		return false;
+	auto &shres = frame->GetResourceManager()->GetShaderResource();
+	if (!m_ShaderHandle) {
+		shres.Load<PassthroughShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
+	}
 
 	static Renderer::VirtualCamera Camera;
 	static bool initialized = false;
@@ -209,15 +208,17 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 
 	auto key = Commands::CommandKey();
 
-	m_Shader->Bind(q, key);
-	m_Shader->SetCameraMatrix(q, key, Camera.GetProjectionMatrix());
+	auto shb = shres.GetBuilder<PassthroughShaderDescriptor>(q, m_ShaderHandle);
+	shb.Bind();
+	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
+	shb.Set<Uniform::BackColor>(emath::fvec4(1));
 	q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
 
-	auto PrintText = [this, &q, key, frame](const emath::fvec3 &position,
+	auto PrintText = [this, &q, key, frame, &shb](const emath::fvec3 &position,
 					Renderer::TextureResourceHandle &Texture,
 					Renderer::VAOResourceHandle &VAO) {
 		Eigen::Affine3f a{ Eigen::Translation3f(position) };
-		m_Shader->SetModelMatrix(q, key, a.matrix());
+		shb.Set<Uniform::ModelMatrix>(a.matrix());
 
 		auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
 		texres->m_Handle = Texture;

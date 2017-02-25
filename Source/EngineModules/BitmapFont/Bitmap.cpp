@@ -19,8 +19,6 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 
-#include <Renderer/SimpleFontShaderDescriptor.h>
-
 namespace MoonGlare {
 namespace Modules {
 namespace BitmapFont {

@@ -49,7 +49,7 @@ protected:
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
-	Graphic::Shaders::Shader *m_Shader = nullptr;
+	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
 };
 
 }//namespace Core

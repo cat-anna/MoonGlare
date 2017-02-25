@@ -2,7 +2,7 @@
 
 namespace MoonGlare::Renderer{
 
-struct SimpleFontShaderDescriptor {
+struct PassthroughShaderDescriptor {
 	enum class InLayout {
 		Position,
 		TextureUV,
@@ -21,9 +21,9 @@ struct SimpleFontShaderDescriptor {
 
 	constexpr static const char* GetName(Uniform u) {
 		switch (u) {
-		case Uniform::CameraMatrix: return "CameraMatrix";
-		case Uniform::ModelMatrix: return "ModelMatrix";
-		case Uniform::BackColor: return "Material.BackColor";
+		case Uniform::CameraMatrix: return "gCameraMatrix";
+		case Uniform::ModelMatrix: return "gModelMatrix";
+		case Uniform::BackColor: return "gBackColor";
 		default: return nullptr;
 		}
 	}

@@ -11,7 +11,7 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 
-#include <Renderer/SimpleFontShaderDescriptor.h>
+#include <Renderer/PassthroughShaderDescriptor.h>
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -21,11 +21,11 @@ SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iFont);
 
 bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
 
-	using SimpleFontShaderDescriptor = Renderer::SimpleFontShaderDescriptor;
+	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
-		shres.Load<SimpleFontShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Font/Simple");
+		shres.Load<PassthroughShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
 	}
 
 	auto trt = frame->GetDevice()->AllocateTextureRenderTask();
@@ -46,9 +46,9 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 	using namespace ::MoonGlare::Renderer::Commands;
 	auto key = CommandKey();
 
-	auto shb = shres.GetBuilder<SimpleFontShaderDescriptor>(q, m_ShaderHandle);
+	auto shb = shres.GetBuilder<PassthroughShaderDescriptor>(q, m_ShaderHandle);
 
-	using Uniform = SimpleFontShaderDescriptor::Uniform;
+	using Uniform = PassthroughShaderDescriptor::Uniform;
 	shb.Bind();
 	shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));
 
@@ -56,9 +56,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 	Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);
 
 	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
-
-	auto c = options.m_Color;
-	shb.Set<Uniform::BackColor>(emath::fvec3(c[0], c[1], c[2]));
+	shb.Set<Uniform::BackColor>(options.m_Color);
 
 	bool fullsucc = GenerateCommands(q, frame, text, options);
 

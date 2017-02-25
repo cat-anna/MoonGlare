@@ -11,6 +11,5 @@ namespace Shaders {
 #include "ShaderManager.h"
 
 #include "ShadowMapShader.h"
-#include "D2Shader.h"
 
 #endif // GRAPHIC_H_ 
