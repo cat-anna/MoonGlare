@@ -352,6 +352,44 @@ struct CFunc
   };
 
   //--------------------------------------------------------------------------
+    template <class MemFnPtr,
+              class ReturnType = typename FuncTraits <MemFnPtr>::ReturnType>
+  struct CallUpvalueMember
+  {
+    typedef typename FuncTraits <MemFnPtr>::ClassType T;
+    typedef typename FuncTraits <MemFnPtr>::Params Params;
+
+    static int f (lua_State* L)
+    {
+      assert (lua_isuserdata(L, lua_upvalueindex (1)));
+      T* const t = static_cast <T*> (lua_touserdata(L, lua_upvalueindex(1)));
+      MemFnPtr const& fnptr = *static_cast <MemFnPtr const*> (lua_touserdata (L, lua_upvalueindex (2)));
+      assert (fnptr != 0);
+      ArgList <Params, 1> args (L);
+      Stack <ReturnType>::push (L, FuncTraits <MemFnPtr>::call (t, fnptr, args));
+      return 1;
+    }
+  };
+
+	  template <class MemFnPtr>
+  struct CallUpvalueMember <MemFnPtr, void>
+  {
+    typedef typename FuncTraits <MemFnPtr>::ClassType T;
+    typedef typename FuncTraits <MemFnPtr>::Params Params;
+
+    static int f (lua_State* L)
+    {
+      assert (lua_isuserdata(L, lua_upvalueindex (1)));
+      T* const t = static_cast <T*> (lua_touserdata(L, lua_upvalueindex(1)));
+      MemFnPtr const& fnptr = *static_cast <MemFnPtr const*> (lua_touserdata (L, lua_upvalueindex (2)));
+      assert (fnptr != 0);
+      ArgList <Params, 1> args (L);
+      FuncTraits <MemFnPtr>::call (t, fnptr, args);
+      return 0;
+    }
+  };
+
+  //--------------------------------------------------------------------------
   /**
       lua_CFunction to call a class member lua_CFunction.
 

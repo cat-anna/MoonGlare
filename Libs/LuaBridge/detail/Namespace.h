@@ -1172,6 +1172,34 @@ public:
 	  return *this;
   }
 
+
+  template <class MemFn, typename T>
+  Namespace & addObjectFunction(char const* name, T *object, MemFn mf) {
+	  lua_pushlightuserdata(L, object);
+	  new (lua_newuserdata(L, sizeof(MemFn))) MemFn(mf);
+	  lua_pushcclosure(L, &CFunc::CallUpvalueMember<MemFn>::f, 2);
+	  rawsetfield(L, -2, name); // class table
+	  return *this;
+  }
+
+//  template<typename T, typename R, class ... ARGS>
+//  Namespace& addObjectFunction(char const* name, R(T::*fp)(ARGS ... args), T* object) {
+//	  //lua_pushcfunction(L, fp);
+//	  Stack<void*>::push(L, object);
+//
+////	  template <class MemFn>
+////	  Class <T>& addFunction(char const* name, MemFn mf) {
+//		  CFunc::CallMemberFunctionHelper <MemFn, FuncTraits <MemFn>::isConstMemberFunction>::add(L, name, mf);
+////		  return *this;
+////	  }
+//
+//
+//	  lua_pushcclosure(L, fp, 1);
+//	  rawsetfield(L, -2, name);
+//
+//	  return *this;
+//  }
+
   //----------------------------------------------------------------------------
   /**
       Open a new or existing class for registrations.
