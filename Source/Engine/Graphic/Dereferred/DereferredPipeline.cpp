@@ -27,9 +27,11 @@ DereferredPipeline::DereferredPipeline():
 DereferredPipeline::~DereferredPipeline() {
 } 
    
-bool DereferredPipeline::Initialize() { 
-	try {
+bool DereferredPipeline::Initialize(World *world) {
+	assert(world);
+	m_World = world;
 
+	try {
 		if (!m_Buffer.Reset()) throw "Unable to initialize render buffers!";
 
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
@@ -37,8 +39,10 @@ bool DereferredPipeline::Initialize() {
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightDirectional", m_DirectionalLightShader)) throw 2;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightSpot", m_SpotLightShader)) throw 3;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Stencil", m_StencilShader)) throw 4;
-		if (!GetShaderMgr()->GetSpecialShader("ShadowMap", m_ShadowMapShader)) throw 5;
 
+		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+
+		if (!shres.Load<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -133,12 +137,16 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
 			sm.New();
 		++index;
 
-		dev.SetCameraMatrix(light.m_ViewMatrix); 
+		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+		auto she = shres.GetExecutor<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle);
+		using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
+
 		sm.BindAndClear();
-		dev.Bind(m_ShadowMapShader); 
-		m_ShadowMapShader->SetLightPosition(light.m_Position);
+
+		she.Bind();
+		she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
 		for (auto it : ri->m_RenderList) {
-			dev.SetModelMatrix(it.first);
+			she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(it.first));
 			it.second->DoRender(dev);
 		}
 

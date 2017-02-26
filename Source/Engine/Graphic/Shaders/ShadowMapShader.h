@@ -11,17 +11,34 @@
 namespace Graphic {
 namespace Shaders {
 
-class ShadowMapShader : public Shader {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(ShadowMapShader, Shader);
-public:
- 	ShadowMapShader(GLuint ShaderProgram, const string &ProgramName);
- 	 ~ShadowMapShader();
+struct ShadowMapShaderDescriptor {
+	enum class InLayout {
+		Position,
+		TextureUV,
+		Normal,
+	};
+	enum class OutLayout {
+		FragColor,
+	};
+	enum class Uniform {
+		CameraMatrix,
+		ModelMatrix,
+		BackColor,
 
-	 void SetLightPosition(const math::vec3 &pos) {
-		 glUniform3fv(m_LightPositionLocation, 1, &pos[0]);
-	 }
-protected:
-	GLuint m_LightPositionLocation;
+	//	LightPosition,
+
+		MaxValue,
+	};
+
+	constexpr static const char* GetName(Uniform u) {
+		switch (u) {
+		case Uniform::CameraMatrix: return "CameraMatrix";
+		case Uniform::ModelMatrix: return "ModelMatrix";
+		case Uniform::BackColor: return "Material.BackColor";
+	//	case Uniform::LightPosition: return "LightPosition";
+		default: return nullptr;
+		}
+	}
 };
 
 } //namespace Shaders 

@@ -22,7 +22,7 @@ public:
  	DereferredPipeline();
  	virtual ~DereferredPipeline();
 
-	bool Initialize();
+	bool Initialize(World *world);
 	bool Finalize();
 
 	bool Execute(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
@@ -52,8 +52,8 @@ public:
 	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 private: 
 	unsigned m_Flags;
+	World *m_World = nullptr;
 	Shader *m_StencilShader;
-	Shaders::ShadowMapShader *m_ShadowMapShader;
 	GeometryPassShader *m_GeometryShader;
 	PointLightShader *m_PointLightShader;
 	DirectionalLightShader *m_DirectionalLightShader;
@@ -65,6 +65,8 @@ private:
 	Space::Container::StaticVector<PlaneShadowMap, 1024> m_PlaneShadowMapBuffer;
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
+
+	Renderer::ShaderResourceHandle m_ShaderShadowMapHandle{ 0 };
 
 	bool InitializeDirectionalQuad();
 };
