@@ -66,14 +66,8 @@ struct ScriptApi::ScriptApiImpl {
 
 	void ReloadShader(const char *name) {
 		RendererAssert(this);
-		auto qhandle = m_RendererFacade->GetDevice()->AllocateCtrlQueue();
-		if (!qhandle.m_Queue) {
-			DebugLogf(Error, "Reloading shader %s failed - queue allocation failed", name);
-			return;
-		}
 		DebugLogf(Warning, "Reloading shader %s", name);
-		m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(*qhandle.m_Queue, name);
-		m_RendererFacade->GetDevice()->Submit(qhandle);
+		m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
 	}
 
 protected:

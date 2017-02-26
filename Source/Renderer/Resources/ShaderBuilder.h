@@ -25,7 +25,6 @@ struct
 
 	void SelfTest() {
 		RendererAssert(this);
-		RendererAssert(m_Queue);
 		RendererAssert(m_UniformsPtr);
 		RendererAssert(m_HandlePtr);
 	}
@@ -51,6 +50,47 @@ struct
 	Conf::UniformLocations *m_UniformsPtr;
 	ShaderHandle* m_HandlePtr;
 	void* _padding;
+};
+
+template<typename Descriptor>
+struct
+	//alignas(16) 
+	ShaderExecutor {
+	//	static_assert(std::is_trivial<ShaderBuilder>::value, "must be trivial!");
+	//	static_assert((sizeof(ShaderBuilder) % 16) == 0, "Invalid size!");
+	using Conf = Configuration::Shader;
+
+	void SelfTest() {
+		RendererAssert(this);
+		RendererAssert(m_UniformsPtr);
+		RendererAssert(m_HandlePtr);
+	}
+
+	void Bind() {
+		SelfTest();
+		Run<Commands::ShaderResourceBind>(m_HandlePtr);
+	}
+	void UnBind() {
+		SelfTest();
+		Run<Commands::ShaderBind>(InvalidShaderHandle);
+	}
+
+	using Uniform = typename Descriptor::Uniform;
+	template<Uniform u, typename T>
+	void Set(const T &t) {
+		Run<Commands::ShaderResourcSetUniform<T>>(&(*m_UniformsPtr)[static_cast<uint32_t>(u)], t);
+	}
+
+	Conf::UniformLocations *m_UniformsPtr;
+	ShaderHandle* m_HandlePtr;
+	void* _padding0;
+	void* _padding1;
+private:
+	template<typename T, typename ... ARG>
+	void Run(ARG && ...arg) {
+		T::Argument a{ std::forward<ARG>(arg)... };
+		a.Execute(&a);
+	}
 };
 
 } //namespace MoonGlare::Renderer::Resources 

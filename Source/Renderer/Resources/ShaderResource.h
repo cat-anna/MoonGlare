@@ -34,7 +34,7 @@ private:
 
 template<typename desciptor>
 struct ShaderHandlerInterfaceImpl : public ShaderHandlerInterface {
-	static_assert(static_cast<uint32_t>(desciptor::Uniform::MaxValue) < Conf::UniformLimit, "Invalid count!");
+	static_assert(static_cast<uint32_t>(desciptor::Uniform::MaxValue) <= Conf::UniformLimit, "Invalid count!");
 
 	virtual uint32_t InterfaceID() const override  {
 		return s_InterfaceIndex;
@@ -77,6 +77,12 @@ public:
 	bool Finalize();
 
 	template<typename Descriptor_t>
+	bool Load(ShaderResourceHandle &out, const std::string &ShaderName) {
+		RendererAssert(this);
+		return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
+	}
+
+	template<typename Descriptor_t>
 	bool Load(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName) {
 		RendererAssert(this);
 		return LoadShader(q, out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
@@ -96,6 +102,20 @@ public:
 		};
 	}
 
+	template<typename Descriptor_t>
+	ShaderExecutor<Descriptor_t> GetExecutor(ShaderResourceHandle h) {
+		RendererAssert(this);
+
+		RendererAssert(h.m_TmpGuard == h.GuardValue);
+		RendererAssert(h.m_Index < Conf::Limit);
+
+		return ShaderExecutor<Descriptor_t> {
+			&m_ShaderUniform[h.m_Index],
+			&m_ShaderHandle[h.m_Index],
+		};
+	}
+
+	bool Reload(const std::string &Name);
 	bool Reload(Commands::CommandQueue &queue, const std::string &Name);
 private:
 	template<typename T>
@@ -114,6 +134,7 @@ private:
 	void *_padding1;
 	void *_padding2;
 
+	bool LoadShader(ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
 	bool LoadShader(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
 	bool Reload(Commands::CommandQueue &queue, uint32_t ifindex);
 

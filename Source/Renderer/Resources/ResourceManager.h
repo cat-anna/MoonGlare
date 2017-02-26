@@ -20,6 +20,8 @@ public:
 	bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
 	bool Finalize();
 
+	RendererFacade *GetRendererFacade() { return m_RendererFacade; }
+
 	TextureResource& GetTextureAllocator() {
 		RendererAssert(this); 
 		return m_TextureResource;

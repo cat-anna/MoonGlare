@@ -93,6 +93,12 @@ struct ShaderResourcSetUniformArgumentBase {
 	static void Set(ShaderUniformHandle h, const emath::fvec2 &v) {
 		glUniform2fv(h, 1, (const float*)&v);
 	}
+	static void Set(ShaderUniformHandle h, float v) {
+		glUniform1f(h, v);
+	}
+	static void Set(ShaderUniformHandle h, int v) {
+		glUniform1i(h, v);
+	}
 };
 
 template<typename T>

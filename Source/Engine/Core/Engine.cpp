@@ -57,7 +57,7 @@ bool Engine::Initialize() {
 	}
 
 	m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
-	m_Dereferred->Initialize();
+	m_Dereferred->Initialize(GetWorld());
 
 	SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
 

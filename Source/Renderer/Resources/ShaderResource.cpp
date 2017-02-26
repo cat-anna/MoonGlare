@@ -6,6 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "ShaderResource.h"
+#include "ResourceManager.h"
+#include "../Renderer.h"
+#include "../RenderDevice.h"
 
 #include "../Frame.h"
 #include "../Commands/CommandQueue.h"
@@ -161,6 +164,20 @@ using ConstructShader = Commands::CommandTemplate<ConstructShaderArgument>;
 
 //---------------------------------------------------------------------------------------
 
+bool ShaderResource::Reload(const std::string & Name) {
+	RendererAssert(this);
+	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
+	auto qhandle = dev->AllocateCtrlQueue();
+	if (!qhandle.m_Queue) {
+		DebugLogf(Error, "Reloading shader %s failed - queue allocation failed", Name.c_str());
+		return false;
+	}
+	DebugLogf(Warning, "Reloading shader %s", Name.c_str());
+	Reload(*qhandle.m_Queue, Name);
+	dev->Submit(qhandle);
+	return true;
+}
+
 bool ShaderResource::Reload(Commands::CommandQueue &queue, const std::string &Name) {
 	RendererAssert(this);
 
@@ -180,6 +197,20 @@ bool ShaderResource::Reload(Commands::CommandQueue &queue, uint32_t ifindex) {
 }
 
 //---------------------------------------------------------------------------------------
+
+bool ShaderResource::LoadShader(ShaderResourceHandle & out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+	RendererAssert(this);
+	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
+	auto qhandle = dev->AllocateCtrlQueue();
+	if (!qhandle.m_Queue) {
+		DebugLogf(Error, "Reloading shader %s failed - queue allocation failed", ShaderName.c_str());
+		return false;
+	}
+	DebugLogf(Warning, "Reloading shader %s", ShaderName.c_str());
+	LoadShader(*qhandle.m_Queue, out, ShaderName, ShaderIface);
+	dev->Submit(qhandle);
+	return true;
+}
 
 bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHandle &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
 	RendererAssert(this);
@@ -289,11 +320,8 @@ bool ShaderResource::GenerateUnformDiscoverCommand(Commands::CommandQueue &queue
 
 	auto iface = m_ShaderInterface[ifindex];
 
-	auto UniformCount = iface->UniformCount();
-	const auto **UniformName = iface->UniformName();
-
 	auto &q = queue;
-	auto &m = queue.GetMemory();
+//	auto &m = queue.GetMemory();
 
 	auto *arg = q.PushCommand<GetShaderUnfiorms>();
 	arg->m_Count = iface->UniformCount();
