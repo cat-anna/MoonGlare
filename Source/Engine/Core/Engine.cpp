@@ -247,6 +247,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	dev.BeginFrame();
 	dev.ClearBuffer();
 
+	Device->ProcessPendingCtrlQueues();
 	cmdl.Get<Layer::Controll>().Execute();
 	cmdl.Get<Layer::PreRender>().Execute();
 

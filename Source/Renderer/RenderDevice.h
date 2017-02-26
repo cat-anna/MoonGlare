@@ -28,7 +28,15 @@ public:
 	void ReleaseFrame(Frame *frame);
 	Frame* PendingFrame();
 
+	struct CtrlCommandQueue {
+		Commands::CommandQueue* m_Queue;
+		uint32_t m_Handle;
+	};
+	CtrlCommandQueue AllocateCtrlQueue();
+	void Submit(CtrlCommandQueue &queue);
+
 	void Step();
+	void ProcessPendingCtrlQueues();
 
 	TextureRenderTask* AllocateTextureRenderTask() {
 		RendererAssert(this);
@@ -42,10 +50,15 @@ private:
 	Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
 	std::array<TextureRenderTask, Configuration::TextureRenderTask::Limit> m_TextureRenderTask;
 
-	DeclarePerformanceCounter(DroppedFrames);
-	DeclarePerformanceCounter(FramesProcessed);
+	using ControllQueueBitmap = ::Space::Memory::LinearAtomicBitmapAllocator<32>;
+	ControllQueueBitmap m_AllocatedCtrlQueues;
+	std::atomic<uint32_t> m_SubmittedCtrlQueues = 0;
+	std::array<Commands::CommandQueue, ControllQueueBitmap::Capacity()> m_CtrlQueues;
 
 	RendererFacade *m_RendererFacade = nullptr;
+
+	DeclarePerformanceCounter(DroppedFrames);
+	DeclarePerformanceCounter(FramesProcessed);
 	
 	void ProcessFrame(Frame *frame);
 };
