@@ -10,4 +10,6 @@ void main() {
 //	Normal = normalize(Normal);
 	FragColor = vec4(Color, 1.0) * CalcPointLight(WorldPos, Normal);
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
+//    FragColor.xy=TexCoord;
+//    FragColor.a=1.0f;
 }

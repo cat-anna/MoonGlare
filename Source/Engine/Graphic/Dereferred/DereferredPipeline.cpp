@@ -23,7 +23,6 @@ SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(DereferredPipeline);
 DereferredPipeline::DereferredPipeline():
 		m_GeometryShader(0),
 		m_StencilShader(0),
-		m_PointLightShader(0),
 		m_Flags(0)
 {
 }   
@@ -39,7 +38,6 @@ bool DereferredPipeline::Initialize(World *world) {
 		if (!m_Buffer.Reset()) throw "Unable to initialize render buffers!";
 
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
-		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightPoint", m_PointLightShader)) throw 1;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightDirectional", m_DirectionalLightShader)) throw 2;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Stencil", m_StencilShader)) throw 4;
 
@@ -47,6 +45,7 @@ bool DereferredPipeline::Initialize(World *world) {
 
 		if (!shres.Load<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
 		if (!shres.Load<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw 11;
+		if (!shres.Load<PointLightShaderDescriptor>(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw 12;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -215,20 +214,53 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 		dev.SetModelMatrix(light.m_PositionMatrix);
 		m_Sphere->DoRender(dev);
 //light pass	  
-		dev.Bind(m_PointLightShader); 
-		m_Buffer.BeginLightingPass(); 
-		m_PointLightShader->Bind(light); 
+		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+		auto she = shres.GetExecutor<PointLightShaderDescriptor>(m_ShaderLightPointHandle);
+		using Uniform = PointLightShaderDescriptor::Uniform;
 
-		glEnable(GL_BLEND);    
-		glBlendEquation(GL_FUNC_ADD); 
-		glBlendFunc(GL_ONE, GL_ONE); 
+	//	dev.Bind(m_PointLightShader); 
+		she.Bind();
+
+		auto h = *she.m_HandlePtr;
+		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
+		glUniform2fv(glGetUniformLocation(h, "ScreenSize"), 1, &ScreenSize[0]);
+
+		she.Set<Uniform::CameraMatrix>(ri->m_Camera.GetProjectionMatrix());
+		she.Set<Uniform::CameraPos>(ri->m_Camera.m_Position);
+
+		m_Buffer.BeginLightingPass(); 
+
+	//	m_PointLightShader->Bind(light); 
+
+	//	she.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
+
+		she.Set<Uniform::Color>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Base.m_Color));
+		she.Set<Uniform::AmbientIntensity>(light.m_Base.m_AmbientIntensity);
+		she.Set<Uniform::DiffuseIntensity>(light.m_Base.m_DiffuseIntensity);
+
+	//	she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
+
+		she.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Position));
+
+		she.Set<Uniform::AttenuationLinear>(light.m_Attenuation.m_Linear);
+		she.Set<Uniform::AttenuationExp>(light.m_Attenuation.m_Exp);
+		she.Set<Uniform::AttenuationConstant>(light.m_Attenuation.m_Constant);
+		she.Set<Uniform::AttenuationMinThreshold>(light.m_Attenuation.m_Threshold);
+
+		glEnable(GL_BLEND);      
+		glBlendEquation(GL_FUNC_ADD);    
+		glBlendFunc(GL_ONE, GL_ONE);  
 		glDisable(GL_DEPTH_TEST); 
 		glStencilFunc(GL_NOTEQUAL, 0, 0xFF); 	 
-		glEnable(GL_CULL_FACE);  
-		glCullFace(GL_FRONT);  
+		glEnable(GL_CULL_FACE);    
+		glCullFace(GL_FRONT);    
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		           
-		dev.SetModelMatrix(light.m_PositionMatrix);
-		m_Sphere->DoRender(dev);  
+		//dev.SetModelMatrix(light.m_PositionMatrix);
+		she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_PositionMatrix));
+		m_Sphere->DoRender(dev);
 
 		glCullFace(GL_BACK);
 		glDisable(GL_BLEND); 
@@ -274,7 +306,6 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		glEnable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE); 
 		glClear(GL_STENCIL_BUFFER_BIT);
-		 
 		glStencilFunc(GL_ALWAYS, 0, 0);
 		glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP); 
 		glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
@@ -291,14 +322,9 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		auto she = shres.GetExecutor<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle);
 		using Uniform = SpotLightShaderDescriptor::Uniform;
 
-//		dev.Bind(m_SpotLightShader);
 		she.Bind();
 
 		auto h = *she.m_HandlePtr;
-		glUniform1i(glGetUniformLocation(h, "PositionMap"), SamplerIndex::Position);
-		glUniform1i(glGetUniformLocation(h, "ColorMap"), SamplerIndex::Diffuse);
-		glUniform1i(glGetUniformLocation(h, "NormalMap"), SamplerIndex::Normal);
-		glUniform1i(glGetUniformLocation(h, "PlaneShadowMap"), SamplerIndex::PlaneShadow);
 		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
 		glUniform2fv(glGetUniformLocation(h, "ScreenSize"), 1, &ScreenSize[0]);
 
@@ -307,41 +333,25 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 
 		m_Buffer.BeginLightingPass();   
 
-		//m_SpotLightShader->BindShadowMap(sm);
 		sm.BindAsTexture(SamplerIndex::PlaneShadow);
-		//SetShadowMapSize(sm.GetSize());
 		she.Set<Uniform::ShadowMapSize>(emath::MathCast<emath::fvec2>(sm.GetSize()));
 
 		she.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
-		//m_SpotLightShader->SetLightMatrix(light.m_ViewMatrix);
 
-		//m_SpotLightShader->Bind(light);
-
-		//glUniform3fv(m_ColorLocation, 1, &light.m_Color[0]);
 		she.Set<Uniform::Color>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Base.m_Color));
-		//glUniform1f(m_AmbientIntensityLocation, light.m_AmbientIntensity);
 		she.Set<Uniform::AmbientIntensity>(light.m_Base.m_AmbientIntensity);
-		//glUniform1f(m_DiffuseIntensityLocation, light.m_DiffuseIntensity);
 		she.Set<Uniform::DiffuseIntensity>(light.m_Base.m_DiffuseIntensity);
 
-		//glUniform1i(m_EnableShadowsLocation, light.m_Flags.m_CastShadows);
 		she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
-		//glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]);
 		she.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Position));
-		//glUniform3fv(m_DirectionLocation, 1, &light.m_Direction[0]);
 		she.Set<Uniform::Direction>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Direction));
 
-		//glUniform1f(m_CutOffLocation, light.m_CutOff);
 		she.Set<Uniform::CutOff>(light.m_CutOff);
 
-		//glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
 		she.Set<Uniform::AttenuationLinear>(light.m_Attenuation.m_Linear);
-		//glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
 		she.Set<Uniform::AttenuationExp>(light.m_Attenuation.m_Exp);
-		//glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
 		she.Set<Uniform::AttenuationConstant>(light.m_Attenuation.m_Constant);
-		//glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
 		she.Set<Uniform::AttenuationMinThreshold>(light.m_Attenuation.m_Threshold);
 
 		glEnable(GL_BLEND);      

@@ -11,6 +11,77 @@
 namespace Graphic {
 namespace Dereferred {
 
+struct PointLightShaderDescriptor {
+	enum class InLayout {
+		Position,
+	};
+	enum class OutLayout {
+		FragColor,
+	};
+	enum class Uniform {
+		CameraMatrix,
+		ModelMatrix,
+		CameraPos,
+
+		//ShadowMapSize,
+		//EnableShadows,
+
+		Color,
+		AmbientIntensity,
+		DiffuseIntensity,
+		Position,
+
+		AttenuationLinear,
+		AttenuationExp,
+		AttenuationConstant,
+		AttenuationMinThreshold,
+
+		//		ScreenSize,
+
+		MaxValue,
+	};
+	enum class Sampler {
+		Unused,
+		PositionMap,
+		ColorMap,
+		NormalMap,
+		MaxValue,
+	};
+
+	constexpr static const char* GetName(Uniform u) {
+		switch (u) {
+		case Uniform::CameraMatrix: return "CameraMatrix";
+		case Uniform::ModelMatrix: return "ModelMatrix";
+		case Uniform::CameraPos: return "CameraPos";
+
+		//case Uniform::ShadowMapSize: return "ShadowMapSize";
+		//case Uniform::EnableShadows: return "EnableShadowTest";
+
+		case Uniform::Color: return "PointLight.Base.Color";
+		case Uniform::AmbientIntensity: return "PointLight.Base.AmbientIntensity";
+		case Uniform::DiffuseIntensity: return "PointLight.Base.DiffuseIntensity";
+		case Uniform::Position: return "PointLight.Position";
+
+		case Uniform::AttenuationLinear: return "PointLight.Atten.Linear";
+		case Uniform::AttenuationExp: return "PointLight.Atten.Exp";
+		case Uniform::AttenuationConstant: return "PointLight.Atten.Constant";
+		case Uniform::AttenuationMinThreshold: return "PointLight.Atten.MinThreshold";
+
+//		case Uniform::ScreenSize: return "ScreenSize";
+		default: return nullptr;
+		}
+	}
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
+		case Sampler::PositionMap: return "PositionMap";
+		case Sampler::ColorMap: return "ColorMap";
+		case Sampler::NormalMap: return "NormalMap";
+		default: return nullptr;
+		}
+	}
+
+};
+
 class PointLightShader : public LightingPassShader {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(PointLightShader, LightingPassShader);
 public:
