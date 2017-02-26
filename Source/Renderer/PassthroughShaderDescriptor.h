@@ -18,12 +18,22 @@ struct PassthroughShaderDescriptor {
 
 		MaxValue,
 	};
+	enum class Sampler {
+		Texture0,
+		MaxValue,
+	};
 
 	constexpr static const char* GetName(Uniform u) {
 		switch (u) {
 		case Uniform::CameraMatrix: return "gCameraMatrix";
 		case Uniform::ModelMatrix: return "gModelMatrix";
 		case Uniform::BackColor: return "gBackColor";
+		default: return nullptr;
+		}
+	}
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
+		case Sampler::Texture0: return "Texture0";
 		default: return nullptr;
 		}
 	}

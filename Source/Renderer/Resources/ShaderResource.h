@@ -16,10 +16,14 @@
 namespace MoonGlare::Renderer::Resources {
 
 struct ShaderHandlerInterface {
+	virtual ~ShaderHandlerInterface() {}
 	virtual uint32_t InterfaceID() const = 0;
+
 	virtual uint32_t UniformCount() = 0;
 	virtual const char ** UniformName() = 0;
-	virtual ~ShaderHandlerInterface() {}
+
+	virtual const char ** SamplerName() = 0;
+	virtual uint32_t SamplerCount() = 0;
 protected:
 	using Conf = Configuration::Shader;
 	static uint32_t AllocateID() {
@@ -35,15 +39,15 @@ private:
 template<typename desciptor>
 struct ShaderHandlerInterfaceImpl : public ShaderHandlerInterface {
 	static_assert(static_cast<uint32_t>(desciptor::Uniform::MaxValue) <= Conf::UniformLimit, "Invalid count!");
-
 	virtual uint32_t InterfaceID() const override  {
 		return s_InterfaceIndex;
 	}
+	
 	virtual uint32_t UniformCount() override {
 		return static_cast<uint32_t>(desciptor::Uniform::MaxValue);
 	}
 	virtual const char ** UniformName() {
-		static std::array < const char*, static_cast<uint32_t>(desciptor::Uniform::MaxValue)> names;
+		static std::array<const char*, static_cast<uint32_t>(desciptor::Uniform::MaxValue)> names;
 		static bool init = false;
 
 		if (!init) {
@@ -55,6 +59,23 @@ struct ShaderHandlerInterfaceImpl : public ShaderHandlerInterface {
 
 		return &names[0];
 	}
+	virtual uint32_t SamplerCount() override {
+		return static_cast<uint32_t>(desciptor::Sampler::MaxValue);
+	}
+	virtual const char **SamplerName() {
+		static std::array<const char*, static_cast<uint32_t>(desciptor::Sampler::MaxValue)> names;
+		static bool init = false;
+
+		if (!init) {
+			for (auto i = 0u, j = SamplerCount(); i < j; ++i) {
+				names[i] = desciptor::GetSamplerName(static_cast<desciptor::Sampler>(i));
+			}
+			init = true;
+		}
+
+		return &names[0];
+	}
+	
 	static ShaderHandlerInterface* Instace() {
 		static ShaderHandlerInterfaceImpl impl;
 		return &impl;
@@ -139,9 +160,11 @@ private:
 	bool LoadShader(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
 	bool Reload(Commands::CommandQueue &queue, uint32_t ifindex);
 
+	bool ReleaseShader(Commands::CommandQueue &q, uint32_t ifindex);
 	bool GenerateLoadCommand(Commands::CommandQueue &q, uint32_t ifindex);
-	bool GenerateUnformDiscoverCommand(Commands::CommandQueue &q, uint32_t ifindex);
-};
+	bool InitializeUniforms(Commands::CommandQueue &q, uint32_t ifindex);
+	bool InitializeSamplers(Commands::CommandQueue &q, uint32_t ifindex);
+}; 
 
 static_assert((sizeof(ShaderResource) % 16) == 0, "Invalid size!");
 

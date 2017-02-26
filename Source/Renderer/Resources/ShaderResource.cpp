@@ -13,6 +13,7 @@
 #include "../Frame.h"
 #include "../Commands/CommandQueue.h"
 #include "../Commands/OpenGL/ArrayCommands.h"
+#include "../Commands/OpenGL/ShaderInitCommands.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -46,114 +47,6 @@ bool ShaderResource::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-struct ConstructShaderArgument {
-	using ShaderCode = ShaderCodeLoader::ShaderCode;
-	using ShaderType = ShaderCodeLoader::ShaderType;
-
-	static constexpr size_t MaxShaderLines = 8;
-	static constexpr size_t MaxShaderTypes = static_cast<size_t>(ShaderType::MaxValue);
-	using ShaderCodeBuffer = std::array<const char *, MaxShaderLines>;
-
-	template<typename T>
-	using Array = std::array<T, MaxShaderTypes>;
-
-	Array<bool> m_Valid;
-	Array<ShaderCodeBuffer> m_CodeArray;
-	const char* m_ShaderName;
-	ShaderHandle *m_ShaderOutput;
-
-	struct ShaderTypeInfo {
-		ShaderType m_Type;
-		GLuint m_GLID;
-		const char *m_Name;
-	};
-	static constexpr std::array<ShaderTypeInfo, MaxShaderTypes> ShaderTypes = {
-		ShaderTypeInfo{ ShaderType::Vertex, GL_VERTEX_SHADER, "vertex", },
-		ShaderTypeInfo{ ShaderType::Fragment, GL_FRAGMENT_SHADER, "fragment", },
-		ShaderTypeInfo{ ShaderType::Geometry, GL_GEOMETRY_SHADER, "geometry", },
-	};
-
-	void Run() const {
-		std::array<GLuint, MaxShaderTypes> LoadedShaders;
-		LoadedShaders.fill(InvalidShaderStageHandle);
-
-		unsigned LoadedCount = 0;
-		auto DeleteShaders = [&LoadedCount, &LoadedShaders] {
-			if (LoadedCount > 0) {
-				for (auto i : LoadedShaders)
-					glDeleteShader(i);
-			}
-		};
-
-		bool Success = true;
-
-		for (auto &shadertype : ShaderTypes) {
-			auto index = static_cast<unsigned>(shadertype.m_Type);
-
-			if (!m_Valid[index])
-				continue;
-
-			GLuint shader = glCreateShader(shadertype.m_GLID);
-			LoadedShaders[index] = shader;
-
-			glShaderSource(shader, m_CodeArray[index].size(), (const GLchar**)&m_CodeArray[index][0], NULL);	//TODO: check what is last argument
-			glCompileShader(shader);
-
-			GLint Result = GL_FALSE;
-			int InfoLogLength = 0;
-			glGetShaderiv(shader, GL_COMPILE_STATUS, &Result);
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &InfoLogLength);
-
-			if (InfoLogLength <= 0) {
-				++LoadedCount;
-				continue; //compiled ok
-			}
-
-			Success = false;
-
-			std::string ShaderErrorMessage(InfoLogLength + 1, '\0');
-			glGetShaderInfoLog(shader, InfoLogLength, NULL, &ShaderErrorMessage[0]);
-			AddLogf(Error, "Unable to compile %s shader for %s. Error message:\n%s", 
-				shadertype.m_Name, m_ShaderName, ShaderErrorMessage.c_str());
-
-			break;
-		}
-
-		if (!Success) {
-			AddLogf(Error, "Shader compilation failed!");
-			DeleteShaders();
-			return;
-		}
-
-		//attach all shaders
-		GLuint ProgramID = glCreateProgram();
-
-		for (auto i : LoadedShaders)
-			if (i != InvalidShaderStageHandle)
-				glAttachShader(ProgramID, i);
-
-		//link program
-		glLinkProgram(ProgramID);
-
-		//check program for errors
-		GLint Result = GL_FALSE;
-		int InfoLogLength = 0;
-
-		glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-		glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-
-		if (InfoLogLength > 1) {
-			std::string ProgramErrorMessage(InfoLogLength + 1, '\0');
-			glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-			AddLogf(Error, "Unable to link %s program. Error message:\n%s", m_ShaderName, &ProgramErrorMessage[0]);
-			AddLogf(Error, "Shader linking failed!");
-			glDeleteProgram(ProgramID);
-			DeleteShaders();
-			return;
-		}
-
-		DeleteShaders();
-		*m_ShaderOutput = ProgramID;
 bool ShaderResource::ReloadAll() {
 	RendererAssert(this);
 	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
@@ -163,18 +56,16 @@ bool ShaderResource::ReloadAll() {
 		return false;
 	}
 
-	static void Execute(const ConstructShaderArgument *arg) {
-		return arg->Run();
 	for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
 		if (m_ShaderLoaded[i]) {
 			DebugLogf(Warning, "Reloading shader %s", m_ShaderName[i].c_str());
 			Reload(*qhandle.m_Queue, i);
 		}
 	}
-};
-using ConstructShader = Commands::CommandTemplate<ConstructShaderArgument>;
 
-//---------------------------------------------------------------------------------------
+	dev->Submit(qhandle);
+	return true;
+}
 
 bool ShaderResource::Reload(const std::string &Name) {
 	RendererAssert(this);
@@ -205,7 +96,13 @@ bool ShaderResource::Reload(Commands::CommandQueue &queue, const std::string &Na
 
 bool ShaderResource::Reload(Commands::CommandQueue &queue, uint32_t ifindex) {
 	RendererAssert(this);
-	return GenerateLoadCommand(queue, ifindex) && GenerateUnformDiscoverCommand(queue, ifindex);
+	if (!m_ShaderLoaded[ifindex])
+		return false;
+	return 
+		ReleaseShader(queue, ifindex) &&
+		GenerateLoadCommand(queue, ifindex) &&
+		InitializeUniforms(queue, ifindex) &&
+		InitializeSamplers(queue, ifindex) ;
 }
 
 //---------------------------------------------------------------------------------------
@@ -248,6 +145,14 @@ bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHan
 	return Reload(queue, ifindex);
 }
 
+bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, uint32_t ifindex) {
+	RendererAssert(this);
+	auto *arg = q.PushCommand<Commands::ReleaseShaderResource>();
+	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
+	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+	return true;
+}
+
 bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
 	RendererAssert(this);
 
@@ -260,7 +165,7 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t
 	auto &q = queue;
 	auto &m = queue.GetMemory();
 
-	auto *arg = q.PushCommand<ConstructShader>();
+	auto *arg = q.PushCommand<Commands::ConstructShader>();
 
 	arg->m_Valid.fill(false);
 	arg->m_CodeArray;
@@ -298,50 +203,39 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t
 	return true;
 }
 
-bool ShaderResource::GenerateUnformDiscoverCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
+bool ShaderResource::InitializeUniforms(Commands::CommandQueue &q, uint32_t ifindex) {
 	RendererAssert(this);
 	RendererAssert(m_ShaderInterface[ifindex]);
 
-	struct GetShaderUnfiormsArgument {
-		const char **m_Names;
-		unsigned m_Count;
-		ShaderHandle *m_ShaderHandle;
-		Conf::UniformLocations *m_Locations;
-		const char *m_ShaderName;
-
-		void Run() const {
-			if (*m_ShaderHandle == InvalidShaderHandle)
-				return;
-
-			for (auto i = 0u; i < m_Count; ++i) {
-				auto loc = glGetUniformLocation(*m_ShaderHandle, m_Names[i]);
-				(*m_Locations)[i] = loc;
-#ifdef DEBUG
-				if (loc == InvalidShaderUniformHandle) {
-					AddLogf(Warning, "Unable to get location of parameter '%s' in shader '%s'", m_Names[i], m_ShaderName);
-				}
-#endif
-			}
-		}
-		static void Execute(const GetShaderUnfiormsArgument *arg) {
-			arg->Run();
-		}
-	};
-	using GetShaderUnfiorms = Commands::CommandTemplate<GetShaderUnfiormsArgument>;
-
-
 	auto iface = m_ShaderInterface[ifindex];
 
-	auto &q = queue;
-//	auto &m = queue.GetMemory();
-
-	auto *arg = q.PushCommand<GetShaderUnfiorms>();
+	auto *arg = q.PushCommand<Commands::GetShaderUnfiorms>();
 	arg->m_Count = iface->UniformCount();
 	arg->m_Names = iface->UniformName();
 	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
 	arg->m_Locations = &m_ShaderUniform[ifindex];
 	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
 		
+	return true;
+}
+
+bool ShaderResource::InitializeSamplers(Commands::CommandQueue & q, uint32_t ifindex) {
+	RendererAssert(this);
+	RendererAssert(m_ShaderInterface[ifindex]);
+
+	auto iface = m_ShaderInterface[ifindex];
+
+	auto cnt = iface->SamplerCount();
+
+	if (cnt <= 1)//single sampler, no need to do anything
+		return true;
+
+	auto *arg = q.PushCommand<Commands::InitShaderSamplers>();
+	arg->m_Count = cnt;
+	arg->m_Names = iface->SamplerName();
+	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
+	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+
 	return true;
 }
 

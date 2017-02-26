@@ -41,9 +41,14 @@ struct SpotLightShaderDescriptor {
 
 //		ScreenSize,
 
-	//	BackColor,
-		//	LightPosition,
-
+		MaxValue,
+	};
+	enum class Sampler {
+		Unused,
+		PositionMap,
+		ColorMap,
+		NormalMap,
+		PlaneShadowMap,
 		MaxValue,
 	};
 
@@ -71,6 +76,15 @@ struct SpotLightShaderDescriptor {
 		case Uniform::AttenuationMinThreshold: return "SpotLight.Atten.MinThreshold";
 
 //		case Uniform::ScreenSize: return "ScreenSize";
+		default: return nullptr;
+		}
+	}
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
+		case Sampler::PositionMap: return "PositionMap";
+		case Sampler::ColorMap: return "ColorMap";
+		case Sampler::NormalMap: return "NormalMap";
+		case Sampler::PlaneShadowMap: return "PlaneShadowMap";
 		default: return nullptr;
 		}
 	}
