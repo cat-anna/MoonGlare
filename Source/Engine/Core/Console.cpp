@@ -51,7 +51,7 @@ public:
 	void Clear() {
 		m_Text.clear();
 		m_CaretPos = 0;
-		m_NeedRefresh = true;
+		m_TextValid = false;
 	}
 	void PutChar(unsigned key) {
 		typedef Graphic::WindowInput::Key Key;
@@ -83,7 +83,7 @@ public:
 			++m_CaretPos;
 			break;
 		}
-		m_NeedRefresh = true;
+		m_TextValid = false;
 	}
 	
 	wstring DisplayText() const {
@@ -94,7 +94,6 @@ public:
 	}
 	
 	DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
-	bool m_NeedRefresh = false;
 	bool m_TextValid = false;
 protected:
 	wstring m_Text;
@@ -265,8 +264,9 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 	}
 
 	if (m_Active) {
-		if (m_InputLine->m_NeedRefresh) {
+		if (!m_InputLine->m_TextValid) {
 			DataClasses::Fonts::iFont::FontRenderRequest req;
+			req.m_Color = LineTypesColor[0];
 			DataClasses::Fonts::iFont::FontRect rect;
 			DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
 			m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
