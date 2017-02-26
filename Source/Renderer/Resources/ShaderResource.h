@@ -115,6 +115,7 @@ public:
 		};
 	}
 
+	bool ReloadAll();
 	bool Reload(const std::string &Name);
 	bool Reload(Commands::CommandQueue &queue, const std::string &Name);
 private:

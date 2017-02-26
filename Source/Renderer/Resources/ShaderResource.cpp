@@ -154,17 +154,29 @@ struct ConstructShaderArgument {
 
 		DeleteShaders();
 		*m_ShaderOutput = ProgramID;
+bool ShaderResource::ReloadAll() {
+	RendererAssert(this);
+	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
+	auto qhandle = dev->AllocateCtrlQueue();
+	if (!qhandle.m_Queue) {
+		DebugLogf(Error, "Reloading shaders failed - queue allocation failed");
+		return false;
 	}
 
 	static void Execute(const ConstructShaderArgument *arg) {
 		return arg->Run();
+	for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
+		if (m_ShaderLoaded[i]) {
+			DebugLogf(Warning, "Reloading shader %s", m_ShaderName[i].c_str());
+			Reload(*qhandle.m_Queue, i);
+		}
 	}
 };
 using ConstructShader = Commands::CommandTemplate<ConstructShaderArgument>;
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::Reload(const std::string & Name) {
+bool ShaderResource::Reload(const std::string &Name) {
 	RendererAssert(this);
 	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
 	auto qhandle = dev->AllocateCtrlQueue();

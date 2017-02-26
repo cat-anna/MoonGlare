@@ -59,6 +59,7 @@ struct ScriptApi::ScriptApiImpl {
 		.beginNamespace("Debug")
 			.beginNamespace("Renderer")
 				.addObjectFunction("ReloadShader", this, &ScriptApiImpl::ReloadShader)
+				.addObjectFunction("ReloadAllShaders", this, &ScriptApiImpl::ReloadAllShaders)
 			.endNamespace()
 		.endNamespace()
 		;
@@ -69,7 +70,11 @@ struct ScriptApi::ScriptApiImpl {
 		DebugLogf(Warning, "Reloading shader %s", name);
 		m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
 	}
-
+	void ReloadAllShaders() {
+		RendererAssert(this);
+		DebugLogf(Warning, "Reloading all shaders");
+		//m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
+	}
 protected:
 	RendererFacade* m_RendererFacade = nullptr;
 };

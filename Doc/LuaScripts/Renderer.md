@@ -4,3 +4,4 @@
 ## Debug api
 
 ### `Debug.Renderer.ReloadShader(shadername)`
+### `Debug.Renderer.ReloadAllShaders()`
