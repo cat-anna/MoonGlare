@@ -11,6 +11,10 @@
 
 #include <Renderer/RenderInput.h>
 
+#include <Renderer/Renderer.h>
+#include <Renderer/RenderDevice.h>
+#include <Renderer/Resources/ResourceManager.h>
+
 namespace Graphic {
 namespace Dereferred {
 
@@ -37,12 +41,12 @@ bool DereferredPipeline::Initialize(World *world) {
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightPoint", m_PointLightShader)) throw 1;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightDirectional", m_DirectionalLightShader)) throw 2;
-		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightSpot", m_SpotLightShader)) throw 3;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Stencil", m_StencilShader)) throw 4;
 
 		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
 
 		if (!shres.Load<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
+		if (!shres.Load<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw 11;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -283,12 +287,62 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		++index;
 
 //light pass
-		dev.Bind(m_SpotLightShader);
+		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+		auto she = shres.GetExecutor<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle);
+		using Uniform = SpotLightShaderDescriptor::Uniform;
+
+//		dev.Bind(m_SpotLightShader);
+		she.Bind();
+
+		auto h = *she.m_HandlePtr;
+		glUniform1i(glGetUniformLocation(h, "PositionMap"), SamplerIndex::Position);
+		glUniform1i(glGetUniformLocation(h, "ColorMap"), SamplerIndex::Diffuse);
+		glUniform1i(glGetUniformLocation(h, "NormalMap"), SamplerIndex::Normal);
+		glUniform1i(glGetUniformLocation(h, "PlaneShadowMap"), SamplerIndex::PlaneShadow);
+		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
+		glUniform2fv(glGetUniformLocation(h, "ScreenSize"), 1, &ScreenSize[0]);
+
+		she.Set<Uniform::CameraMatrix>(ri->m_Camera.GetProjectionMatrix());
+		she.Set<Uniform::CameraPos>(ri->m_Camera.m_Position);
+
 		m_Buffer.BeginLightingPass();   
 
-		m_SpotLightShader->BindShadowMap(sm);
-		m_SpotLightShader->SetLightMatrix(light.m_ViewMatrix);
-		m_SpotLightShader->Bind(light);
+		//m_SpotLightShader->BindShadowMap(sm);
+		sm.BindAsTexture(SamplerIndex::PlaneShadow);
+		//SetShadowMapSize(sm.GetSize());
+		she.Set<Uniform::ShadowMapSize>(emath::MathCast<emath::fvec2>(sm.GetSize()));
+
+		she.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
+		//m_SpotLightShader->SetLightMatrix(light.m_ViewMatrix);
+
+		//m_SpotLightShader->Bind(light);
+
+		//glUniform3fv(m_ColorLocation, 1, &light.m_Color[0]);
+		she.Set<Uniform::Color>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Base.m_Color));
+		//glUniform1f(m_AmbientIntensityLocation, light.m_AmbientIntensity);
+		she.Set<Uniform::AmbientIntensity>(light.m_Base.m_AmbientIntensity);
+		//glUniform1f(m_DiffuseIntensityLocation, light.m_DiffuseIntensity);
+		she.Set<Uniform::DiffuseIntensity>(light.m_Base.m_DiffuseIntensity);
+
+		//glUniform1i(m_EnableShadowsLocation, light.m_Flags.m_CastShadows);
+		she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
+
+		//glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]);
+		she.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Position));
+		//glUniform3fv(m_DirectionLocation, 1, &light.m_Direction[0]);
+		she.Set<Uniform::Direction>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Direction));
+
+		//glUniform1f(m_CutOffLocation, light.m_CutOff);
+		she.Set<Uniform::CutOff>(light.m_CutOff);
+
+		//glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
+		she.Set<Uniform::AttenuationLinear>(light.m_Attenuation.m_Linear);
+		//glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
+		she.Set<Uniform::AttenuationExp>(light.m_Attenuation.m_Exp);
+		//glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
+		she.Set<Uniform::AttenuationConstant>(light.m_Attenuation.m_Constant);
+		//glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
+		she.Set<Uniform::AttenuationMinThreshold>(light.m_Attenuation.m_Threshold);
 
 		glEnable(GL_BLEND);      
 		glBlendEquation(GL_FUNC_ADD);    
@@ -301,7 +355,9 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 		glActiveTexture(GL_TEXTURE0);   
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		dev.SetModelMatrix(light.m_PositionMatrix);
+		//dev.SetModelMatrix(light.m_PositionMatrix);
+		she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_PositionMatrix));
+
 		//m_Cone->DoRender(dev);
 		m_Sphere->DoRender(dev);
 

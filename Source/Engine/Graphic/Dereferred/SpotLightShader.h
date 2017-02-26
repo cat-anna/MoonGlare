@@ -11,30 +11,69 @@
 namespace Graphic {
 namespace Dereferred {
 
-class SpotLightShader : public LightingPassShader {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(SpotLightShader, LightingPassShader);
-public:
- 	SpotLightShader(GLuint ShaderProgram, const string &ProgramName);
- 	virtual ~SpotLightShader();
+struct SpotLightShaderDescriptor {
+	enum class InLayout {
+		Position,
+	};
+	enum class OutLayout {
+		FragColor,
+	};
+	enum class Uniform {
+		CameraMatrix,
+		ModelMatrix,
+		LightMatrix,
+		CameraPos,
 
-	void Bind(const ::MoonGlare::Renderer::Light::SpotLight &light) const {
-		BaseClass::BindLightBase(light.m_Base);
-		glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]);
-		glUniform3fv(m_DirectionLocation, 1, &light.m_Direction[0]);
-		glUniform1f(m_CutOffLocation, light.m_CutOff);
-		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
-		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
-		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
+		ShadowMapSize,
+
+		Color,
+		AmbientIntensity,
+		DiffuseIntensity,
+		EnableShadows,
+		Position,
+		Direction,
+		CutOff,
+
+		AttenuationLinear,
+		AttenuationExp,
+		AttenuationConstant,
+		AttenuationMinThreshold,
+
+//		ScreenSize,
+
+	//	BackColor,
+		//	LightPosition,
+
+		MaxValue,
+	};
+
+	constexpr static const char* GetName(Uniform u) {
+		switch (u) {
+		case Uniform::CameraMatrix: return "CameraMatrix";
+		case Uniform::ModelMatrix: return "ModelMatrix";
+		case Uniform::CameraPos: return "CameraPos";
+
+		case Uniform::LightMatrix: return "LightMatrix";
+
+		case Uniform::ShadowMapSize: return "ShadowMapSize";
+		case Uniform::EnableShadows: return "EnableShadowTest";
+
+		case Uniform::Color: return "SpotLight.Base.Color";
+		case Uniform::AmbientIntensity: return "SpotLight.Base.AmbientIntensity";
+		case Uniform::DiffuseIntensity: return "SpotLight.Base.DiffuseIntensity";
+		case Uniform::Position: return "SpotLight.Position";
+		case Uniform::Direction: return "SpotLight.Direction";
+		case Uniform::CutOff: return "SpotLight.CutOff";
+
+		case Uniform::AttenuationLinear: return "SpotLight.Atten.Linear";
+		case Uniform::AttenuationExp: return "SpotLight.Atten.Exp";
+		case Uniform::AttenuationConstant: return "SpotLight.Atten.Constant";
+		case Uniform::AttenuationMinThreshold: return "SpotLight.Atten.MinThreshold";
+
+//		case Uniform::ScreenSize: return "ScreenSize";
+		default: return nullptr;
+		}
 	}
-protected:
-	GLuint m_DirectionLocation;
-	GLuint m_CutOffLocation;
-	GLuint m_PositionLocation;
-	GLuint m_AttenuationLinearLocation;
-	GLuint m_AttenuationExpLocation;
-	GLuint m_AttenuationConstantLocation;
-	GLuint m_AttenuationMinThresholdLocation;
 };
 
 } //namespace Dereferred 

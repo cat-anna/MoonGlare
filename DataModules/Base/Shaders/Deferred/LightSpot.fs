@@ -14,6 +14,7 @@ void main() {
 	if(EnableShadowTest) {
 		FragColor.xyz *= PlanarShadowTest(WorldPos, Normal);
 	}
-    
+
 	FragColor.xyz *= CalcStaticShadow(WorldPos);
+//    FragColor.xy = TexCoord;
 }

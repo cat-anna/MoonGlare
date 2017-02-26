@@ -57,7 +57,6 @@ private:
 	GeometryPassShader *m_GeometryShader;
 	PointLightShader *m_PointLightShader;
 	DirectionalLightShader *m_DirectionalLightShader;
-	SpotLightShader *m_SpotLightShader;
 	
 	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
@@ -67,6 +66,7 @@ private:
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 
 	Renderer::ShaderResourceHandle m_ShaderShadowMapHandle{ 0 };
+	Renderer::ShaderResourceHandle m_ShaderLightSpotHandle{ 0 };
 
 	bool InitializeDirectionalQuad();
 };
