@@ -23,10 +23,9 @@ struct ShadowMapShaderDescriptor {
 	enum class Uniform {
 		CameraMatrix,
 		ModelMatrix,
-		BackColor,
-
-	//	LightPosition,
-
+		MaxValue,
+	};
+	enum class Sampler {
 		MaxValue,
 	};
 
@@ -34,8 +33,11 @@ struct ShadowMapShaderDescriptor {
 		switch (u) {
 		case Uniform::CameraMatrix: return "CameraMatrix";
 		case Uniform::ModelMatrix: return "ModelMatrix";
-		case Uniform::BackColor: return "Material.BackColor";
-	//	case Uniform::LightPosition: return "LightPosition";
+		default: return nullptr;
+		}
+	}
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
 		default: return nullptr;
 		}
 	}
