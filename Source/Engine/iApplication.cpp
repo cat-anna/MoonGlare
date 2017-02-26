@@ -18,6 +18,7 @@
 #include <Assets/AssetManager.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/Context.h>
+#include <Renderer/ScriptApi.h>
 
 #include <iApplication.h>
 

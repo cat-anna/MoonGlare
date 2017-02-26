@@ -8,7 +8,6 @@
 
 #include "Configuration.Renderer.h"
 #include "FrameBuffer.h"
-#include "ScriptApi.h"
 
 #include "Resources/AssetLoaderInterface.h"
 

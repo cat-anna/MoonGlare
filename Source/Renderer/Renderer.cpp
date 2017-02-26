@@ -12,6 +12,7 @@
 #include "Frame.h"
 #include "Context.h"
 #include "Resources/ResourceManager.h"
+#include "ScriptApi.h"
 
 namespace MoonGlare::Renderer {
 
