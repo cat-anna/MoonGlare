@@ -20,9 +20,8 @@ RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
 RegisterDebugApi(EngineDebug, &Engine::RegisterDebugScriptApi, "Debug");
 
-Engine::Engine(World *world, Renderer::RendererFacade *Renderer) :
+Engine::Engine(World *world) :
 		cRootClass(),
-		m_Flags(0),
 		m_Running(false),
 
 		m_LastFPS(0),
@@ -32,11 +31,11 @@ Engine::Engine(World *world, Renderer::RendererFacade *Renderer) :
 
 		m_Dereferred(),
 
-        m_World(world),
-		m_Renderer(Renderer)
+        m_World(world)
 {
 	MoonGlareAssert(m_World);
-	MoonGlareAssert(m_Renderer);
+
+	m_Renderer = m_World->GetRendererFacade();
 
 	::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 

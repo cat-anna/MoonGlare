@@ -8,6 +8,7 @@
 
 #include "Configuration.Renderer.h"
 #include "FrameBuffer.h"
+#include "ScriptApi.h"
 
 #include "Resources/AssetLoaderInterface.h"
 
@@ -39,12 +40,15 @@ public:
 		RendererAssert(this);
 		return m_ResourceManager.get();
 	}
+
+	ScriptApi* GetScriptApi();
 private:
     bool m_CanWork = false;
 
 	mem::aligned_ptr<RenderDevice> m_Device;
 	mem::aligned_ptr<Context> m_Context;
 	mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
+	std::unique_ptr<ScriptApi> m_ScriptApi;
 };
 
 } //namespace MoonGlare::Renderer

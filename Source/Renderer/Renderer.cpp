@@ -89,4 +89,12 @@ void RendererFacade::Stop() {
 
 //----------------------------------------------------------------------------------
 
+ScriptApi *RendererFacade::GetScriptApi() {
+	if (!m_ScriptApi)
+		m_ScriptApi = std::make_unique<ScriptApi>(this);
+	return m_ScriptApi.get();
+}
+
+//----------------------------------------------------------------------------------
+
 } //namespace MoonGlare::Renderer

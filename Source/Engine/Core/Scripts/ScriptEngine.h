@@ -8,7 +8,7 @@ namespace Scripts {
 class ScriptEngine final : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(ScriptEngine, cRootClass);
 public:
-	ScriptEngine();
+	ScriptEngine(World *world);
 	virtual ~ScriptEngine();
 
 	bool Initialize();
@@ -106,6 +106,7 @@ protected:
 	DeclarePerformanceCounter(ExecutionErrors);
 private:
 	lua_State *m_Lua = nullptr;
+	World *m_world;
 	mutable std::recursive_mutex m_Mutex;
 
 //old:

@@ -44,6 +44,10 @@ bool iApplication::PreSystemInit() {
 }
 
 bool iApplication::PostSystemInit() {
+	if (!Core::GetEngine()->PostSystemInit()) {
+		AddLogf(Error, "Engine core post system init action failed!");
+		return false;
+	}
 	return true;
 }
 
@@ -59,6 +63,8 @@ using DataManager = MoonGlare::Core::Data::Manager;
 #define _chk_ret(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); return false; } } while(false)
 
 bool iApplication::Initialize() {
+	m_World = std::make_unique<World>();
+
 	if (!PreSystemInit()) {
 		AddLogf(Error, "Pre system init action failed!");
 		return false;
@@ -80,9 +86,13 @@ bool iApplication::Initialize() {
 		return false;
 	}
 
-	_init_chk(new ScriptEngine(), "Unable to initialize script engine!");
+	auto scrEngine = new ScriptEngine(m_World.get());
+	_init_chk(scrEngine, "Unable to initialize script engine!");
 
 	m_Renderer = std::make_unique<Renderer::RendererFacade>();
+	m_World->SetRendererFacade(m_Renderer.get());
+
+	m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
 
 	using Graphic::GraphicSettings;
 	Renderer::ContextCreationInfo ctxifo;
@@ -103,8 +113,7 @@ bool iApplication::Initialize() {
 		return false;
 	}
 
-	m_World = std::make_unique<World>();
-	auto Engine = new MoonGlare::Core::Engine(m_World.get(), m_Renderer.get());
+	auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
 	if (Settings->Engine.EnableConsole) {
 		auto c = new Console();
@@ -126,11 +135,6 @@ bool iApplication::Initialize() {
 
 	if (!PostSystemInit()) {
 		AddLogf(Error, "Post system init action failed!");
-		return false;
-	}
-
-	if (!Core::GetEngine()->PostSystemInit()) {
-		AddLogf(Error, "Engine core post system init action failed!");
 		return false;
 	}
 
@@ -183,6 +187,8 @@ bool iApplication::Finalize() {
 	}
 	m_AssetManager.reset();
 	_del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
+
+	m_World.reset();
 
 	AddLog(Debug, "Application finalized");
 #undef _finit_chk

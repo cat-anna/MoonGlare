@@ -18,6 +18,7 @@ using UniqueRenderer = std::unique_ptr<RendererFacade>;
 class Frame;
 class RenderDevice;
 class Context;
+class ScriptApi;
 
 class alignas(16) TextureRenderTask;
 

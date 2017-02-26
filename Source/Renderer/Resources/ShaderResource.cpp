@@ -170,6 +170,7 @@ bool ShaderResource::Reload(Commands::CommandQueue &queue, const std::string &Na
 		}
 	}
 
+	DebugLogf(Error, "There is no loaded shader: %s", Name.c_str());
 	return false;
 }
 

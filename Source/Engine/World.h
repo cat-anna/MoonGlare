@@ -15,7 +15,7 @@
 
 namespace MoonGlare {
 
-class World {
+class World final {
 public:
  	World();
  	~World();
@@ -41,19 +41,23 @@ public:
 	Core::Console* GetConsole() { return m_Console; }
     Core::Engine* GetEngine();
 
+	void SetRendererFacade(Renderer::RendererFacade *c) { m_RendererFacade = c; }
+	Renderer::RendererFacade* GetRendererFacade() { return m_RendererFacade; }
+
 	void SetConsole(Core::Console *c) { m_Console = c; }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
 	std::unique_ptr<Core::Hooks> m_Hooks;
 
-	Core::Scripts::ScriptEngine *m_ScriptEngine;
-
 	Core::HandleTable m_HandleTable;
 	Core::ResourceTable m_ResourceTable;
 	Core::EntityManager m_EntityManager;
 
-	Core::Console *m_Console;//not owning
+	//not owning
+	Core::Console *m_Console = nullptr;
+	Renderer::RendererFacade *m_RendererFacade = nullptr;
+	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
 };
 
 } //namespace MoonGlare

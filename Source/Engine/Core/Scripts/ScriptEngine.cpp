@@ -13,12 +13,15 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScriptEngine)
 RegisterApiInstance(ScriptEngine, &ScriptEngine::Instance, "ScriptEngine");
 RegisterApiDerivedClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
 
-ScriptEngine::ScriptEngine() :
+ScriptEngine::ScriptEngine(World *world) :
 		cRootClass(),
 		m_CurrentGCStep(1),
 		m_CurrentGCRiseCounter(0),
 		m_LastMemUsage(0) {
 	SetThisAsInstance();
+
+	assert(world);
+	m_world = world;
 
 	SetPerformanceCounterOwner(ExecutionErrors);
 	SetPerformanceCounterOwner(ExecutionCount);
