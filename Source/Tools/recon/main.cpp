@@ -33,15 +33,18 @@ using namespace MoonGlare::Debug::InsiderApi;
 string _infile = "";
 string _Port = std::to_string(Configuration::recon_Port);
 string _Host = "localhost";
+std::vector<std::string> Lines4Send;
 
 struct Flags {
 	enum {
 		Buffer		= 1,
-		SendFile	= 2,
+		SendFile     = 2,
+		Lines    	= 4,
 	};
 };
 
 const Space::ProgramParameters::Parameter Parameters[] = {
+	{'l', 1, Flags::Lines, Lines4Send, "Send line(s) and exit", 0 },
  	{'b', 0, Flags::Buffer, 0, "Buffer whole stdin before send", 0},
 	{'f', 1, Flags::SendFile, _infile, "Send content of file and exit", 0 },
  	{'p', 1, 0, _Port, "Set port", 0},
@@ -100,6 +103,16 @@ int main(int argc, char** argv) {
 			strbase[len] = 0;
 			header->PayloadSize = strlen(strbase) + 1;
 			recon.Send(header);
+			return 0;
+		}
+
+		if (Params.Flags & Flags::Lines) {
+			for (auto &l : Lines4Send) {
+				header->PayloadSize = l.length() + 1;
+				memcpy(strbase, l.c_str(), l.length());
+				strbase[l.length()] = 0;
+				recon.Send(header);
+			}
 			return 0;
 		}
 
