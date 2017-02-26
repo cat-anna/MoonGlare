@@ -47,7 +47,6 @@ public:
 	void Bind(Shader *Shader) { 
 		if (!Shader)
 			return;
-		if (m_CurrentShader == Shader) return;
 		m_CurrentShader = Shader;
 		Shader->Bind();
 		if (m_CurrentEnvironment)
