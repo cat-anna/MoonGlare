@@ -79,29 +79,6 @@ struct PointLightShaderDescriptor {
 		default: return nullptr;
 		}
 	}
-
-};
-
-class PointLightShader : public LightingPassShader {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(PointLightShader, LightingPassShader);
-public:
- 	PointLightShader(GLuint ShaderProgram, const string &ProgramName);
- 	virtual ~PointLightShader();
-
-	void Bind(const ::MoonGlare::Renderer::Light::PointLight &light) const {
-		BaseClass::BindLightBase(light.m_Base);
-		glUniform3fv(m_PositionLocation, 1, &light.m_Position[0]); 
-		glUniform1f(m_AttenuationLinearLocation, light.m_Attenuation.m_Linear);
-		glUniform1f(m_AttenuationExpLocation, light.m_Attenuation.m_Exp);
-		glUniform1f(m_AttenuationConstantLocation, light.m_Attenuation.m_Constant);
-		glUniform1f(m_AttenuationMinThresholdLocation, light.m_Attenuation.m_Threshold);
-	}
-protected:
-	GLuint m_PositionLocation;
-	GLuint m_AttenuationLinearLocation;
-	GLuint m_AttenuationExpLocation;
-	GLuint m_AttenuationConstantLocation;
-	GLuint m_AttenuationMinThresholdLocation;
 };
 
 } //namespace Dereferred 

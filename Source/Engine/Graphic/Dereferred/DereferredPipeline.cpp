@@ -2,7 +2,6 @@
 #include <MoonGlare.h>
 
 #include "GeometryShader.h"
-#include "LightingShader.h"
 #include "PointLightShader.h"
 #include "DirectionalLightShader.h"
 #include "SpotLightShader.h"
@@ -38,14 +37,15 @@ bool DereferredPipeline::Initialize(World *world) {
 		if (!m_Buffer.Reset()) throw "Unable to initialize render buffers!";
 
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
-		if (!GetShaderMgr()->GetSpecialShader("Deferred/LightDirectional", m_DirectionalLightShader)) throw 2;
 		if (!GetShaderMgr()->GetSpecialShader("Deferred/Stencil", m_StencilShader)) throw 4;
 
 		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
 
 		if (!shres.Load<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
+
 		if (!shres.Load<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw 11;
 		if (!shres.Load<PointLightShaderDescriptor>(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw 12;
+		if (!shres.Load<DirectionalLightShaderDescriptor>(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw 13;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -273,11 +273,23 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 bool DereferredPipeline::RenderDirectionalLights(RenderInput *ri, cRenderDevice& dev) {
 	if (ri->m_DirectionalLights.empty()) return true;
 
-	dev.Bind(m_DirectionalLightShader);
-	//((Shader*)m_DirectionalLightShader)->Bind();
-	m_DirectionalLightShader->SetWorldMatrix(math::mat4());
+	auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+	auto she = shres.GetExecutor<DirectionalLightShaderDescriptor>(m_ShaderLightDirectionalHandle);
+	using Uniform = DirectionalLightShaderDescriptor::Uniform;
+
+	she.Bind();
+
+	she.Set<Uniform::CameraPos>(ri->m_Camera.m_Position);
+
+	she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
+	she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
+
+	auto h = *she.m_HandlePtr;
+	auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
+	glUniform2fv(glGetUniformLocation(h, "ScreenSize"), 1, &ScreenSize[0]);
+
 	m_Buffer.BeginLightingPass(); 
-	//dev.SetModelMatrix(math::mat4());
+	 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
@@ -285,7 +297,13 @@ bool DereferredPipeline::RenderDirectionalLights(RenderInput *ri, cRenderDevice&
 
 	m_DirectionalQuad.Bind();
 	for (auto &light : ri->m_DirectionalLights) {
-		m_DirectionalLightShader->Bind(light);
+
+		she.Set<Uniform::Color>(emath::MathCast<emath::fvec3>((math::vec3)light.m_Base.m_Color));
+		she.Set<Uniform::AmbientIntensity>(light.m_Base.m_AmbientIntensity);
+		she.Set<Uniform::DiffuseIntensity>(light.m_Base.m_DiffuseIntensity);
+		//	she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
+		//glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
+
 		m_DirectionalQuad.DrawElements(4, 0, 0, GL_QUADS);
 	}
 	m_DirectionalQuad.UnBind();

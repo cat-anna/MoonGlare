@@ -55,8 +55,6 @@ private:
 	World *m_World = nullptr;
 	Shader *m_StencilShader;
 	GeometryPassShader *m_GeometryShader;
-	DirectionalLightShader *m_DirectionalLightShader;
-	
 	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
 
@@ -67,6 +65,8 @@ private:
 	Renderer::ShaderResourceHandle m_ShaderShadowMapHandle{ 0 };
 	Renderer::ShaderResourceHandle m_ShaderLightSpotHandle{ 0 };
 	Renderer::ShaderResourceHandle m_ShaderLightPointHandle{ 0 };
+	Renderer::ShaderResourceHandle m_ShaderLightDirectionalHandle{ 0 };
+	//Renderer::ShaderResourceHandle m_ShaderGeometryHandle{ 0 };
 
 	bool InitializeDirectionalQuad();
 };

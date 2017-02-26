@@ -5,27 +5,65 @@
 */
 
 #pragma once
-#ifndef DirectionalLightShader_H
-#define DirectionalLightShader_H
 
-namespace Graphic {
-namespace Dereferred {
+namespace Graphic::Dereferred {
 
-class DirectionalLightShader : public LightingPassShader {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(DirectionalLightShader, LightingPassShader);
-public:
- 	DirectionalLightShader(GLuint ShaderProgram, const string &ProgramName);
- 	virtual ~DirectionalLightShader();
+struct DirectionalLightShaderDescriptor {
+	enum class InLayout {
+		Position,
+	};
+	enum class OutLayout {
+		FragColor,
+	};
+	enum class Uniform {
+		CameraMatrix,
+		ModelMatrix,
+		CameraPos,
 
-	void Bind(const ::MoonGlare::Renderer::Light::DirectionalLight &light) const {
-		BaseClass::BindLightBase(light.m_Base);
-		//glUniform3fv(m_DirectionLocation, 1, &light.Direction[0]); 
+		//ShadowMapSize,
+		//EnableShadows,
+
+		Color,
+		AmbientIntensity,
+		DiffuseIntensity,
+
+		//		ScreenSize,
+
+		MaxValue,
+	};
+	enum class Sampler {
+		Unused,
+		PositionMap,
+		ColorMap,
+		NormalMap,
+		MaxValue,
+	};
+
+	constexpr static const char* GetName(Uniform u) {
+		switch (u) {
+		case Uniform::CameraMatrix: return "CameraMatrix";
+		case Uniform::ModelMatrix: return "ModelMatrix";
+		case Uniform::CameraPos: return "CameraPos";
+
+			//case Uniform::ShadowMapSize: return "ShadowMapSize";
+			//case Uniform::EnableShadows: return "EnableShadowTest";
+
+		case Uniform::Color: return "DirectionalLight.Base.Color";
+		case Uniform::AmbientIntensity: return "DirectionalLight.Base.AmbientIntensity";
+		case Uniform::DiffuseIntensity: return "DirectionalLight.Base.DiffuseIntensity";
+
+			//		case Uniform::ScreenSize: return "ScreenSize";
+		default: return nullptr;
+		}
 	}
-protected:
-	GLuint m_DirectionLocation;
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
+		case Sampler::PositionMap: return "PositionMap";
+		case Sampler::ColorMap: return "ColorMap";
+		case Sampler::NormalMap: return "NormalMap";
+		default: return nullptr;
+		}
+	}
 };
-} //namespace Dereferred 
-} //namespace Graphic 
 
-#endif
-
+} //namespace Graphic::Dereferred 
