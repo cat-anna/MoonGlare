@@ -3,6 +3,8 @@
 #include <Engine/iApplication.h>
 #include "GameApplication.h"
 
+#include <Windows.h>
+
 //#include <libs/src/utils/ParamParser.cpp>
 using namespace std;
 using namespace MoonGlare::Application;
@@ -90,15 +92,23 @@ int main(int argc, char** argv) {
 		}
 		catch (const char * Msg) {
 			AddLogf(Error, "FATAL ERROR! '%s'", Msg);
+			MessageBoxA(nullptr, Msg, "Ciritcal error!", 0);
 		}
 		catch (const string & Msg) {
 			AddLogf(Error, "FATAL ERROR! '%s'", Msg.c_str());
+			MessageBoxA(nullptr, Msg.c_str(), "Ciritcal error!", 0);
+		}
+		catch (Renderer::RendererException &E) {
+			AddLog(Error, "Renderer exception! '" << E.what() << "'");
+			MessageBoxA(nullptr, E.what(), "Ciritcal error!", 0);
 		}
 		catch (std::exception &E) {
 			AddLog(Error, "FATAL ERROR! '" << E.what() << "'");
+			MessageBoxA(nullptr, E.what(), "Ciritcal error!", 0);
 		}
 		catch (...) {
 			AddLog(Error, "UNKNOWN FATAL ERROR!");
+			MessageBoxA(nullptr, "UNKNOWN FATAL ERROR!", "Ciritcal error!", 0);
 		}
 		iApplication::DeleteInstance();
 #ifdef DEBUG

@@ -42,9 +42,14 @@ namespace Resources {
 }
 
 
-class CriticalException : public std::runtime_error {
+class RendererException : public std::runtime_error {
 public:
-	CriticalException(std::string msg) : std::runtime_error(std::move(msg)){}
+	RendererException(std::string msg) : std::runtime_error(std::move(msg)) {}
+};
+
+class CriticalException : public RendererException {
+public:
+	CriticalException(std::string msg) : RendererException(std::move(msg)){}
 };
 
 class InitFailureException : public CriticalException {
