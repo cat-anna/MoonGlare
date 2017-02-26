@@ -17,6 +17,9 @@ struct FileCache {
 	FileCache(FileSystem *fs) :m_FileSystem(fs) {};
 
 	bool ReadFile(const std::string &FName, const ReadBuffer *&out);
+	void Clear() {
+		m_LoadedFiles.clear();
+	}
 private:
 	std::unordered_map<std::string, boost::optional<ReadBuffer>> m_LoadedFiles;
 	FileSystem *m_FileSystem;

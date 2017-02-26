@@ -48,6 +48,7 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
 	unsigned LoadCount = 0;
 	bool Success = true;
 
+	m_FileCache->Clear();
 	Preprocessor preproc(m_FileCache.get());
 
 	auto TryLoad = [&preproc, &Name](std::string fn, const ShaderFileInfo& shaderfile) -> bool {
