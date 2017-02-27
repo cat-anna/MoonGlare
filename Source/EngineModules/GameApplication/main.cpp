@@ -1,4 +1,8 @@
 #include <pch.h>
+
+#include <OrbitLogger/src/sink/FileSink.h>
+#include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
+
 #include <MoonGlare.h>
 #include <Engine/iApplication.h>
 #include "GameApplication.h"
@@ -66,13 +70,16 @@ int main(int argc, char** argv) {
 	using OrbitLogger::LogCollector;
 	using OrbitLogger::StdFileLoggerSink;
 	using OrbitLogger::StdNoDebugFileLoggerSink;
+	using OrbitLogger::MSVCDebuggerSink;
 
-	OrbitLogger::ThreadInfo::SetName("MAIN", true);
 	LogCollector::Start();
-	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.log"); });
-	LogCollector::OpenLogSink<StdFileLoggerSink>([](StdFileLoggerSink* sink) { sink->Open("logs/Engine.last.log", false); });
-	LogCollector::OpenLogSink<StdNoDebugFileLoggerSink>([](StdNoDebugFileLoggerSink* sink) { sink->Open("logs/Engine.filtered.log"); });
-	LogCollector::SetCaptureStdOutAndErr(OrbitLogger::LogChannels::StdOut, OrbitLogger::LogChannels::StdErr);
+	LogCollector::AddLogSink<StdFileLoggerSink>("logs/Engine.log");
+	LogCollector::AddLogSink<StdFileLoggerSink>("logs/Engine.last.log", false);
+	LogCollector::AddLogSink<StdNoDebugFileLoggerSink>("logs/Engine.filtered.log");
+	LogCollector::AddLogSink<MSVCDebuggerSink>();
+	
+	LogCollector::SetCaptureStdOut(OrbitLogger::LogChannels::StdOut);
+	LogCollector::SetCaptureStdErr(OrbitLogger::LogChannels::StdErr);
 	LogCollector::SetChannelName(OrbitLogger::LogChannels::StdOut, "SOUT");
 	LogCollector::SetChannelName(OrbitLogger::LogChannels::StdErr, "SERR");
 
