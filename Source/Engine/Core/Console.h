@@ -1,6 +1,8 @@
 #ifndef ConsoleH
 #define ConsoleH
 
+#include <Renderer/PassthroughShaderDescriptor.h>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -49,7 +51,7 @@ protected:
 	unsigned m_MaxLines;
 	std::list<ConsoleLine> m_Lines;
 	std::unique_ptr<InputLine> m_InputLine;
-	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
+	Renderer::ShaderResourceHandle<Renderer::PassthroughShaderDescriptor> m_ShaderHandle{ };
 };
 
 }//namespace Core

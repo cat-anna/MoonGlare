@@ -1,6 +1,6 @@
 #pragma once
 
-namespace MoonGlare::Renderer{
+namespace MoonGlare::Renderer {
 
 struct PassthroughShaderDescriptor {
 	enum class InLayout {

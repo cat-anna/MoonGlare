@@ -1,6 +1,8 @@
 #ifndef FONT_H
 #define FONT_H
 
+#include <Renderer/PassthroughShaderDescriptor.h>
+
 namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
@@ -42,7 +44,7 @@ public:
 	
 	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
 protected:
-	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
+	Renderer::ShaderResourceHandle<Renderer::PassthroughShaderDescriptor> m_ShaderHandle{ };
 	virtual bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options) = 0;
 };
 

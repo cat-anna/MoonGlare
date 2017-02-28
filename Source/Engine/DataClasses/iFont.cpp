@@ -11,8 +11,6 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 
-#include <Renderer/PassthroughShaderDescriptor.h>
-
 namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
@@ -25,7 +23,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
-		shres.Load<PassthroughShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
+		shres.Load(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
 	}
 
 	auto trt = frame->GetDevice()->AllocateTextureRenderTask();
@@ -46,7 +44,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 	using namespace ::MoonGlare::Renderer::Commands;
 	auto key = CommandKey();
 
-	auto shb = shres.GetBuilder<PassthroughShaderDescriptor>(q, m_ShaderHandle);
+	auto shb = shres.GetBuilder(q, m_ShaderHandle);
 
 	using Uniform = PassthroughShaderDescriptor::Uniform;
 	shb.Bind();

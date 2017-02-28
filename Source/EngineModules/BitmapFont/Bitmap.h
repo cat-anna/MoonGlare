@@ -42,8 +42,6 @@ protected:
 	string m_TextureFile;
 	string m_BfdFile;
 
-	Renderer::ShaderResourceHandle m_ShaderHandle{ 0 };
-
 	virtual bool DoInitialize() override;
 	virtual bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options) override;
 };

@@ -40,8 +40,8 @@ struct
 
 	using Uniform = typename Descriptor::Uniform;
 	template<Uniform u, typename T>
-	void Set(const T &t) {
-			auto arg = m_Queue->PushCommand<Commands::ShaderResourcSetUniform<T>>();
+	void Set(const T &t, Commands::CommandKey key = Commands::CommandKey()) {
+			auto arg = m_Queue->PushCommand<Commands::ShaderResourcSetUniform<T>>(key);
 			arg->m_Handle = &(*m_UniformsPtr)[static_cast<uint32_t>(u)];
 			arg->m_Value = t;
 		}
@@ -77,7 +77,8 @@ struct
 
 	using Uniform = typename Descriptor::Uniform;
 	template<Uniform u, typename T>
-	void Set(const T &t) {
+	void Set(const T &t, Commands::CommandKey key = Commands::CommandKey()) {
+		(void)key;
 		Run<Commands::ShaderResourcSetUniform<T>>(&(*m_UniformsPtr)[static_cast<uint32_t>(u)], t);
 	}
 

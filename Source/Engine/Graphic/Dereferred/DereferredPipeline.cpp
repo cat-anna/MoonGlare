@@ -1,12 +1,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include "GeometryShader.h"
-#include "PointLightShader.h"
-#include "DirectionalLightShader.h"
-#include "SpotLightShader.h"
-#include "StencilShader.h"
-
 #include "DereferredPipeline.h"
 
 #include <Renderer/RenderInput.h>
@@ -40,12 +34,14 @@ bool DereferredPipeline::Initialize(World *world) {
 
 		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
 
-		if (!shres.Load<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
+		if (!shres.Load(m_ShaderShadowMapHandle, "ShadowMap")) throw 10;
 
-		if (!shres.Load<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw 11;
-		if (!shres.Load<PointLightShaderDescriptor>(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw 12;
-		if (!shres.Load<DirectionalLightShaderDescriptor>(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw 13;
-		if (!shres.Load<StencilLightShaderDescriptor>(m_ShaderStencilHandle, "Deferred/Stencil")) throw 15;
+		if (!shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw 11;
+		if (!shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw 12;
+		if (!shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw 13;
+		if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw 15;
+
+		//if (!shres.Load<GeometryShaderDescriptor>(m_ShaderGeometryHandle, "Deferred/Geometry")) throw 15;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -141,7 +137,7 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
 		++index;
 
 		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-		auto she = shres.GetExecutor<Shaders::ShadowMapShaderDescriptor>(m_ShaderShadowMapHandle);
+		auto she = shres.GetExecutor(m_ShaderShadowMapHandle);
 		using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
 
 		sm.BindAndClear();
@@ -193,9 +189,9 @@ bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 bool DereferredPipeline::RenderLights(RenderInput *ri, cRenderDevice& dev) {
 	glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
-	RenderPointLights(ri, dev);
 	RenderDirectionalLights(ri, dev);
 	RenderSpotLights(ri, dev);
+	RenderPointLights(ri, dev);
 	return true;
 }
 
@@ -215,7 +211,7 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 		{
 			m_Buffer.BeginStencilPass();
 
-			auto she = shres.GetExecutor<StencilLightShaderDescriptor>(m_ShaderStencilHandle);
+			auto she = shres.GetExecutor(m_ShaderStencilHandle);
 			using Uniform = StencilLightShaderDescriptor::Uniform;
 
 			she.Bind();
@@ -235,7 +231,7 @@ bool DereferredPipeline::RenderPointLights(RenderInput *ri, cRenderDevice& dev) 
 		}
 //light pass	  
 		{
-			auto she = shres.GetExecutor<PointLightShaderDescriptor>(m_ShaderLightPointHandle);
+			auto she = shres.GetExecutor(m_ShaderLightPointHandle);
 			using Uniform = PointLightShaderDescriptor::Uniform;
 
 			//	dev.Bind(m_PointLightShader); 
@@ -295,7 +291,7 @@ bool DereferredPipeline::RenderDirectionalLights(RenderInput *ri, cRenderDevice&
 	if (ri->m_DirectionalLights.empty()) return true;
 
 	auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-	auto she = shres.GetExecutor<DirectionalLightShaderDescriptor>(m_ShaderLightDirectionalHandle);
+	auto she = shres.GetExecutor(m_ShaderLightDirectionalHandle);
 	using Uniform = DirectionalLightShaderDescriptor::Uniform;
 
 	she.Bind();
@@ -343,7 +339,7 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 //stencil pass
 		{
 			m_Buffer.BeginStencilPass();
-			auto she = shres.GetExecutor<StencilLightShaderDescriptor>(m_ShaderStencilHandle);
+			auto she = shres.GetExecutor(m_ShaderStencilHandle);
 			using Uniform = StencilLightShaderDescriptor::Uniform;
 
 			she.Bind();
@@ -367,7 +363,7 @@ bool DereferredPipeline::RenderSpotLights(RenderInput *ri, cRenderDevice& dev) {
 			auto &sm = m_PlaneShadowMapBuffer[index];
 			++index;
 
-			auto she = shres.GetExecutor<SpotLightShaderDescriptor>(m_ShaderLightSpotHandle);
+			auto she = shres.GetExecutor(m_ShaderLightSpotHandle);
 			using Uniform = SpotLightShaderDescriptor::Uniform;
 
 			she.Bind();

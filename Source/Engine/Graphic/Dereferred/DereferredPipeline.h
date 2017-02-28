@@ -11,6 +11,13 @@
 #include "DereferredFrameBuffer.h"
 #include "../PlaneShadowMap.h"
 
+#include "GeometryShader.h"
+#include "PointLightShader.h"
+#include "DirectionalLightShader.h"
+#include "SpotLightShader.h"
+#include "StencilShader.h"
+#include "../Shaders/ShadowMapShader.h"
+
 #include <libSpace/src/Container/StaticVector.h>
 
 namespace Graphic {
@@ -61,11 +68,11 @@ private:
 
 	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 
-	Renderer::ShaderResourceHandle m_ShaderShadowMapHandle{ 0 };
-	Renderer::ShaderResourceHandle m_ShaderLightSpotHandle{ 0 };
-	Renderer::ShaderResourceHandle m_ShaderLightPointHandle{ 0 };
-	Renderer::ShaderResourceHandle m_ShaderLightDirectionalHandle{ 0 };
-	Renderer::ShaderResourceHandle m_ShaderStencilHandle{ 0 };
+	Renderer::ShaderResourceHandle<Shaders::ShadowMapShaderDescriptor> m_ShaderShadowMapHandle{ };
+	Renderer::ShaderResourceHandle<SpotLightShaderDescriptor> m_ShaderLightSpotHandle{ };
+	Renderer::ShaderResourceHandle<PointLightShaderDescriptor> m_ShaderLightPointHandle{ };
+	Renderer::ShaderResourceHandle<DirectionalLightShaderDescriptor> m_ShaderLightDirectionalHandle{ };
+	Renderer::ShaderResourceHandle<StencilLightShaderDescriptor> m_ShaderStencilHandle{ };
 	//Renderer::ShaderResourceHandle m_ShaderGeometryHandle{ 0 };
 
 	bool InitializeDirectionalQuad();

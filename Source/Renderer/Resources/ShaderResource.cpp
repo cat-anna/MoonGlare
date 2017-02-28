@@ -107,7 +107,7 @@ bool ShaderResource::Reload(Commands::CommandQueue &queue, uint32_t ifindex) {
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::LoadShader(ShaderResourceHandle & out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+bool ShaderResource::LoadShader(ShaderResourceHandleBase & out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
 	RendererAssert(this);
 	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
 	auto qhandle = dev->AllocateCtrlQueue();
@@ -121,7 +121,7 @@ bool ShaderResource::LoadShader(ShaderResourceHandle & out, const std::string & 
 	return true;
 }
 
-bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHandle &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHandleBase &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
 	RendererAssert(this);
 	RendererAssert(ShaderIface);
 

@@ -14,8 +14,6 @@
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
 
-#include <Renderer/PassthroughShaderDescriptor.h>
-
 namespace MoonGlare::Core {
 
 class Console::ConsoleLine {
@@ -188,7 +186,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
-		shres.Load<PassthroughShaderDescriptor>(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
+		shres.Load(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
 	}
 
 	static Renderer::VirtualCamera Camera;
@@ -207,7 +205,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 
 	auto key = Commands::CommandKey();
 
-	auto shb = shres.GetBuilder<PassthroughShaderDescriptor>(q, m_ShaderHandle);
+	auto shb = shres.GetBuilder(q, m_ShaderHandle);
 	shb.Bind();
 	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
 	shb.Set<Uniform::BackColor>(emath::fvec4(1));

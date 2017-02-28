@@ -28,7 +28,7 @@ static_assert(std::is_pod<VAOResourceHandle>::value, "Must be pod type!");
 
 //-----------------------------------------------------------------------------
 
-struct ShaderResourceHandle {
+struct ShaderResourceHandleBase {
 	using Index_t = uint16_t;
 	static constexpr Index_t GuardValue = 0xae89;
 	Index_t m_TmpGuard;
@@ -42,6 +42,9 @@ struct ShaderResourceHandle {
 		return m_TmpGuard == GuardValue;
 	}
 };
-static_assert(std::is_pod<ShaderResourceHandle>::value, "Must be pod type!");
+static_assert(std::is_pod<ShaderResourceHandleBase>::value, "Must be pod type!");
+
+template<typename Descirptor>
+struct ShaderResourceHandle : public ShaderResourceHandleBase {};
 
 } //namespace MoonGlare::Renderer

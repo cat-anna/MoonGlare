@@ -7,7 +7,7 @@ layout(location = 1) in vec2 TexCoord;
 out vec2 VertexPosition;
 
 void main() {
-	vec4 vpos = WorldMatrix * vec4(Pos, 1.0);
+	vec4 vpos = (CameraMatrix * ModelMatrix) * vec4(Pos, 1.0);
 	gl_Position = vpos;
 	if ( gTileMode.x == 0 ){
 		VertexPosition.x = TexCoord.x;

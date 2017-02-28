@@ -84,6 +84,7 @@ struct ShaderResourcSetUniformArgumentBase {
 	static void Set(ShaderUniformHandle h, const emath::fmat4 &matrix) {
 		glUniformMatrix4fv(h, 1, GL_FALSE, (const float*)&matrix);
 	}
+
 	static void Set(ShaderUniformHandle h, const emath::fvec4 &v) {
 		glUniform4fv(h, 1, (const float*)&v);
 	}
@@ -93,6 +94,18 @@ struct ShaderResourcSetUniformArgumentBase {
 	static void Set(ShaderUniformHandle h, const emath::fvec2 &v) {
 		glUniform2fv(h, 1, (const float*)&v);
 	}
+
+
+	static void Set(ShaderUniformHandle h, const emath::ivec4 &v) {
+		glUniform4iv(h, 1, (const int*)&v);
+	}
+	static void Set(ShaderUniformHandle h, const emath::ivec3 &v) {
+		glUniform3iv(h, 1, (const int*)&v);
+	}
+	static void Set(ShaderUniformHandle h, const emath::ivec2 &v) {
+		glUniform2iv(h, 1, (const int*)&v);
+	}
+
 	static void Set(ShaderUniformHandle h, float v) {
 		glUniform1f(h, v);
 	}

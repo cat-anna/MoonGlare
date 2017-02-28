@@ -98,19 +98,19 @@ public:
 	bool Finalize();
 
 	template<typename Descriptor_t>
-	bool Load(ShaderResourceHandle &out, const std::string &ShaderName) {
+	bool Load(ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
 		RendererAssert(this);
 		return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
 	}
 
 	template<typename Descriptor_t>
-	bool Load(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName) {
+	bool Load(Commands::CommandQueue &q, ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
 		RendererAssert(this);
 		return LoadShader(q, out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
 	}
 
 	template<typename Descriptor_t>
-	ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandle h) {
+	ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandle<Descriptor_t> h) {
 		RendererAssert(this);
 
 		RendererAssert(h.m_TmpGuard == h.GuardValue);
@@ -124,7 +124,7 @@ public:
 	}
 
 	template<typename Descriptor_t>
-	ShaderExecutor<Descriptor_t> GetExecutor(ShaderResourceHandle h) {
+	ShaderExecutor<Descriptor_t> GetExecutor(ShaderResourceHandle<Descriptor_t> h) {
 		RendererAssert(this);
 
 		RendererAssert(h.m_TmpGuard == h.GuardValue);
@@ -156,8 +156,8 @@ private:
 	void *_padding1;
 	void *_padding2;
 
-	bool LoadShader(ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
-	bool LoadShader(Commands::CommandQueue &q, ShaderResourceHandle &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
+	bool LoadShader(ShaderResourceHandleBase &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
+	bool LoadShader(Commands::CommandQueue &q, ShaderResourceHandleBase &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
 	bool Reload(Commands::CommandQueue &queue, uint32_t ifindex);
 
 	bool ReleaseShader(Commands::CommandQueue &q, uint32_t ifindex);
