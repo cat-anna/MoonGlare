@@ -11,19 +11,24 @@
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
-#include "PanelComponent.h"
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/ShaderCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
+#include <Renderer/Resources/ResourceManager.h>
+#include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Frame.h>
+#include <Renderer/Renderer.h>
+
 #include <Renderer/RenderInput.h>
-#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <RectTransformComponent.x2c.h>
 #include <PanelComponent.x2c.h>
+
+#include "PanelComponent.h"
 
 namespace MoonGlare {
 namespace GUI {
@@ -40,7 +45,6 @@ PanelComponent::PanelComponent(ComponentManager *Owner)
 		: TemplateStandardComponent(Owner)
 {
 	m_RectTransform = nullptr;
-	m_Shader = nullptr;
 }
 
 PanelComponent::~PanelComponent() {
@@ -71,13 +75,11 @@ bool PanelComponent::Initialize() {
 		return false;
 	}
 
-	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
-		if (!m_Shader) {
-			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI", m_Shader)) {
-				AddLogf(Error, "Failed to load GUI shader");
-			}
-		}
-	});
+	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+	if (!shres.Load(m_ShaderHandle, "GUI")) {
+		AddLogf(Error, "Failed to load GUI shader");
+		return false;
+	}
 
 	return true;
 }
@@ -93,11 +95,11 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	size_t InvalidEntryCount = 0;
 
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
-	bool CanRender = false;
+	auto &q = Queue;
 
-	if (m_Shader) {
-		CanRender = true;
-	}
+	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
+	auto shb = shres.GetBuilder(q, m_ShaderHandle);
+	using Uniform = GUIShaderDescriptor::Uniform;
 
 	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &item = m_Array[i];
@@ -155,17 +157,17 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
 		}
 
-		if (!CanRender)
-			continue;
-
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), m_RectTransform->GetCamera().GetProjectionMatrix());
-		
-		m_Shader->SetPanelSize(Queue, key, rtentry->m_ScreenRect.GetSize());
-		m_Shader->SetBorder(Queue, key, item.m_Border);
-		m_Shader->SetColor(Queue, key, item.m_Color);
-		m_Shader->SetTileMode(Queue, key, item.m_TileMode);
+		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), key);
+		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
+		shb.Set<Uniform::TileMode>(emath::MathCast<emath::ivec2>(item.m_TileMode), key);
+
+		auto ps = rtentry->m_ScreenRect.GetSize();
+		shb.Set<Uniform::PanelSize>(emath::MathCast<emath::fvec2>(ps), key);
+		shb.Set<Uniform::PanelAspect>(ps[0] / ps[1], key);
+
+		shb.Set<Uniform::Border>(item.m_Border, key);
 
 		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
 		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();

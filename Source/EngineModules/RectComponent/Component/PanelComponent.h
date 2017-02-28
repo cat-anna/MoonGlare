@@ -14,6 +14,8 @@
 #include "../Margin.h"
 #include "../Animation.h"
 
+#include "../GUIShader.h"
+
 namespace MoonGlare {
 namespace GUI {
 namespace Component {
@@ -77,7 +79,7 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	GUIShader *m_Shader;
+	Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
 };
 
 } //namespace Component 

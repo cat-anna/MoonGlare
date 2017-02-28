@@ -12,23 +12,23 @@
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
-#include "TextComponent.h"
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/ShaderCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
+#include <Renderer/Resources/ResourceManager.h>
+#include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Frame.h>
+#include <Renderer/Renderer.h>
+
 #include <Renderer/RenderInput.h>
-#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <TextComponent.x2c.h>
 
-#include <Source/Renderer/RenderDevice.h>
-#include <Source/Renderer/Frame.h>
-
-#include <Source/Renderer/Resources/ResourceManager.h>
+#include "TextComponent.h"
 
 namespace MoonGlare {
 namespace GUI {
@@ -44,7 +44,6 @@ RegisterComponentID<TextComponent>TextComponentIDReg("Text", true, &TextComponen
 TextComponent::TextComponent(ComponentManager * Owner)
 		: TemplateStandardComponent(Owner) {
 	m_RectTransform = nullptr;
-	m_Shader = nullptr;
 }
 
 TextComponent::~TextComponent() {
@@ -77,13 +76,11 @@ bool TextComponent::Initialize() {
 		return false;
 	}
 
-	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
-		if (!m_Shader) {
-			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI", m_Shader)) {
-				AddLogf(Error, "Failed to load GUI shader");
-			}
-		}
-	});
+	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+	if (!shres.Load(m_ShaderHandle, "GUI")) {
+		AddLogf(Error, "Failed to load GUI shader");
+		return false;
+	}
 
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
 	m_FontDeviceOptions.m_DeviceSize = emath::MathCast<emath::ivec2>(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
@@ -101,14 +98,14 @@ bool TextComponent::Finalize() {
 
 void TextComponent::Step(const Core::MoveConfig & conf) {
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
-	bool CanRender = false;
-
-	if (m_Shader) {
-		CanRender = true;
-	}
+	auto &q = Queue;
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
+
+	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
+	auto shb = shres.GetBuilder(q, m_ShaderHandle);
+	using Uniform = GUIShaderDescriptor::Uniform;
 
 	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &entry = m_Array[i];
@@ -143,12 +140,9 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			entry.Update(conf.m_BufferFrame, m_FontDeviceOptions, *rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);
 		}
 
-		if (!CanRender)
-			continue;
-
-		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(entry.m_Matrix), m_RectTransform->GetCamera().GetProjectionMatrix());
-	
-		m_Shader->SetColor(Queue, key, math::vec4(1));
+		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(entry.m_Matrix), key);
+		shb.Set<Uniform::BaseColor>(emath::fvec4(1), key);
+		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
 		auto texres = Queue.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
 		texres->m_Handle = entry.m_FontResources.m_Texture;

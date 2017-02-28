@@ -5,17 +5,6 @@ namespace GUI {
 	using Point = ::glm::fvec2;
 	using UnsignedPoint = ::glm::uvec2;
 
-	class GUIShader;
-
-	class GUIEngine;
-	using GUIEnginePtr = std::unique_ptr < GUIEngine > ;
-
-	class iWidget;
-	struct WidgetDeleter {
-		void operator()(iWidget *w);
-	};
-	using Widget = std::unique_ptr < iWidget, WidgetDeleter > ;
-
 	class Mouse;
 	class Screen;
 
@@ -32,17 +21,8 @@ namespace GUI {
 	using SharedStyleSet = std::shared_ptr < StyleSet > ;
 	class StyleManager;
 
-	using WidgetClassRegister = Space::DynamicClassRegister < iWidget, iWidget* > ;
-
 	using MouseButton = ::Graphic::WindowInput::MouseButton;
 	using ModsStatus = ::Graphic::WindowInput::ModsStatus;
-
-	namespace Widgets {
-		class Image;
-		class Label;
-		class Panel;
-		class Table;
-	}
 
 	namespace Events {
 		struct Event;

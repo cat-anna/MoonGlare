@@ -11,18 +11,23 @@
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
-#include "ImageComponent.h"
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/ShaderCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
+#include <Renderer/Resources/ResourceManager.h>
+#include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Frame.h>
+#include <Renderer/Renderer.h>
+
 #include <Renderer/RenderInput.h>
-#include "../GUIShader.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <ImageComponent.x2c.h>
+
+#include "ImageComponent.h"
 
 namespace MoonGlare {
 namespace GUI {
@@ -39,7 +44,6 @@ ImageComponent::ImageComponent(ComponentManager *Owner)
 		: TemplateStandardComponent(Owner)
 {
 	m_RectTransform = nullptr;
-	m_Shader = nullptr;
 }
 
 ImageComponent::~ImageComponent() {
@@ -70,13 +74,11 @@ bool ImageComponent::Initialize() {
 		return false;
 	}
 
-	::Graphic::GetRenderDevice()->RequestContextManip([this]() {
-		if (!m_Shader) {
-			if (!Graphic::GetShaderMgr()->GetSpecialShaderType<GUIShader>("GUI", m_Shader)) {
-				AddLogf(Error, "Failed to load GUI shader");
-			}
-		}
-	});
+	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+	if (!shres.Load(m_ShaderHandle, "GUI")) {
+		AddLogf(Error, "Failed to load GUI shader");
+		return false;
+	}
 
 	return true;
 }
@@ -89,16 +91,19 @@ bool ImageComponent::Finalize() {
 
 void ImageComponent::Step(const Core::MoveConfig & conf) {
 	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
-	bool QueueDirty = false;
-	bool CanRender = false;
+	auto &q = Queue;
 
-	if (m_Shader) {
-		m_Shader->Enable(Queue, GL_BLEND);
-		m_Shader->Enable(Queue, GL_DEPTH_TEST);
-		m_Shader->Disable(Queue, GL_CULL_FACE);
-		m_Shader->Bind(Queue);
-		CanRender = true;
-	}
+	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
+	auto shb = shres.GetBuilder(q, m_ShaderHandle);
+	using Uniform = GUIShaderDescriptor::Uniform;
+
+	shb.Bind();
+	shb.Set<Uniform::CameraMatrix>(m_RectTransform->GetCamera().GetProjectionMatrix());
+
+	using namespace Renderer;
+	q.MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
+	q.MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
+	q.MakeCommand<Commands::Disable>((GLenum)GL_CULL_FACE);
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -135,18 +140,15 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		if (!item.m_Animation)
 			continue;
 
-		if (!CanRender)
-			continue;
-		
 		auto vao = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
 		if (vao == 0)
 			continue;
 
 		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
 
-		m_Shader->SetWorldMatrix(Queue, key, emath::MathCast<emath::fmat4>(item.m_ImageMatrix), m_RectTransform->GetCamera().GetProjectionMatrix());
-		m_Shader->SetColor(Queue, key, item.m_Color);
-		m_Shader->SetTileMode(Queue, key, math::vec2(0, 0));
+		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
+		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
+		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
 		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
 		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = vao;

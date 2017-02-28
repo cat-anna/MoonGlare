@@ -13,6 +13,8 @@
 #include <Core/Component/AbstractComponent.h>
 #include <TextProcessor.h>
 
+#include "../GUIShader.h"
+
 #include "../Enums.h"
 
 namespace MoonGlare {
@@ -87,8 +89,9 @@ public:
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
 	RectTransformComponent *m_RectTransform;
-	GUIShader *m_Shader;
 	TextProcessor m_TextProcessor;
+	
+	Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
 	DataClasses::Fonts::iFont::FontDeviceOptions m_FontDeviceOptions;
 };
 

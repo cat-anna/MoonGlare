@@ -12,78 +12,46 @@
 namespace MoonGlare {
 namespace GUI {
 
-class GUIShader : public ::Graphic::Shader {
-public:
-	GUIShader(GLuint ShaderProgram, const std::string &ProgramName) : ::Graphic::Shader(ShaderProgram, ProgramName) {
-		m_BaseColorLocation = Location("gBaseColor");
-		m_PanelAspectLocation = Location("gPanelAspect");
-		m_PanelSizeLocation = Location("gPanelSize");
-		m_PanelBorderLocation = Location("gPanelBorder");
-		m_TileModeLocation = Location("gTileMode");
-	}
+struct GUIShaderDescriptor {
+	enum class InLayout {
+		Position,
+	};
+	enum class OutLayout {
+		FragColor,
+	};
+	enum class Uniform {
+		CameraMatrix,
+		ModelMatrix,
+		BaseColor,
+		TileMode,
+		Border,
+		PanelSize,
+		PanelAspect,
+		MaxValue,
+	};
+	enum class Sampler {
+		Texture0,
+		MaxValue,
+	};
 
-	GLint m_BaseColorLocation;
-	GLint m_PanelAspectLocation;
-	GLint m_PanelSizeLocation;
-	GLint m_PanelBorderLocation;
-	GLint m_TileModeLocation;
+	constexpr static const char* GetName(Uniform u) {
+		switch (u) {
+		case Uniform::CameraMatrix: return "CameraMatrix";
+		case Uniform::ModelMatrix: return "ModelMatrix";
+		case Uniform::BaseColor: return "gBaseColor";
+		case Uniform::TileMode: return "gTileMode";
+		case Uniform::Border: return "gPanelBorder";
+		case Uniform::PanelSize: return "gPanelSize";
+		case Uniform::PanelAspect: return "gPanelAspect";
 
-	void SetColor(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
-		auto loc = Location("gBaseColor");
-		if (!IsValidLocation(loc))
-			return;
-
-		auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
-		arg->m_Location = loc;
-		arg->m_Vec = color;
-	}
-
-	void SetPanelSize(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const Point &Size) {
-		if (IsValidLocation(m_PanelAspectLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
-			arg->m_Location = m_PanelAspectLocation;
-			arg->m_Float = Size[0] / Size[1];
-		}
-
-		if (IsValidLocation(m_PanelSizeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec2>(key);
-			arg->m_Location = m_PanelSizeLocation;
-			*((Point*)(&arg->m_Vec)) = Size;
+		default: return nullptr;
 		}
 	}
-	void SetBorder(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, float Border) {
-		if (IsValidLocation(m_PanelBorderLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformFloat>(key);
-			arg->m_Location = m_PanelBorderLocation;
-			arg->m_Float = Border;
+	constexpr static const char* GetSamplerName(Sampler s) {
+		switch (s) {
+		case Sampler::Texture0: return "Texture0";
+		default: return nullptr;
 		}
-	}
-	void SetTileMode(Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::ivec2 &mode) {
-		if (IsValidLocation(m_TileModeLocation)) {
-			auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformIVec2>(key);
-			arg->m_Location = m_TileModeLocation;
-			*((glm::ivec2*)(&arg->m_Vec)) = mode;
-		}
-	}
-
-	//	void TextureBind(Renderer::CommandQueue &Queue, Renderer::TextureHandle handle) {
-	//		Queue.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = handle;
-	//	}
-
-	//	void VAOBind(Renderer::CommandQueue &Queue, Renderer::VAOHandle handle) {
-	//		Queue.PushCommand<Renderer::Commands::VAOBind>()->m_VAO = handle;
-	//	}
-	//	void VAORelease(Renderer::CommandQueue &Queue) {
-	//		Queue.PushCommand<Renderer::Commands::VAORelease>();
-	//	}
-
-	void Enable(Renderer::Commands::CommandQueue &Queue, GLenum what) {
-		Renderer::RendererConf::CommandKey key{ 0 };
-		Queue.PushCommand<Renderer::Commands::Enable>(key)->m_What = what;
-	}
-	void Disable(Renderer::Commands::CommandQueue &Queue, GLenum what) {
-		Renderer::RendererConf::CommandKey key{ 0 };
-		Queue.PushCommand<Renderer::Commands::Disable>(key)->m_What = what;
 	}
 };
 

@@ -383,7 +383,7 @@ void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 	m_Shader->Bind(q, basekey);
  	m_Shader->SetWorldMatrix(q, basekey, emath::fmat4::Identity(), m_Camera.GetProjectionMatrix());
 	//m_Shader->SetColor(q, basekey, math::fvec4(1));
-	auto texres = q.MakeCommand<Renderer::Commands::Texture2DBind>(Renderer::InvalidTextureHandle);
+	q.MakeCommand<Renderer::Commands::Texture2DBind>(Renderer::InvalidTextureHandle);
 	q.MakeCommand<Renderer::Commands::Enable>((GLenum)GL_BLEND);
 	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_CULL_FACE);
 	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_DEPTH_TEST);
@@ -391,8 +391,8 @@ void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 
 	auto *vertexes = frame->GetMemory().Allocate<math::fvec3>(4 * m_Array.Allocated());
 	auto *indextable = frame->GetMemory().Allocate<uint16_t>(5 * m_Array.Allocated());
-	size_t vertexindex = 0;
-	size_t indexindex = 0;
+	uint16_t vertexindex = 0;
+	uint16_t indexindex = 0;
 
 	for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
 		auto &item = m_Array[i];
@@ -427,7 +427,7 @@ void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 
 	vaob.EndDataChange();
 
-	auto arg = q.MakeCommand<Renderer::Commands::VAODrawElements>((GLenum)GL_QUADS, indexindex, (unsigned)Renderer::GLTypeInfo<uint16_t>::TypeId);
+	q.MakeCommand<Renderer::Commands::VAODrawElements>((GLenum)GL_QUADS, indexindex, (unsigned)Renderer::GLTypeInfo<uint16_t>::TypeId);
 
 	vaob.UnBindVAO();
 	q.MakeCommand<Renderer::Commands::LeaveWireFrameMode>();
