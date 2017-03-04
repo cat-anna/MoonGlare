@@ -183,6 +183,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 
 	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
 	using Uniform = PassthroughShaderDescriptor::Uniform;
+	using Sampler = PassthroughShaderDescriptor::Sampler;
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
@@ -216,10 +217,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
 					Renderer::VAOResourceHandle &VAO) {
 		Eigen::Affine3f a{ Eigen::Translation3f(position) };
 		shb.Set<Uniform::ModelMatrix>(a.matrix());
-
-		auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
-		texres->m_Handle = Texture;
-		texres->m_HandleArray = frame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
+		shb.Set<Sampler::DiffuseMap>(Texture, key);
 
 		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
 		vaob.BindVAO();

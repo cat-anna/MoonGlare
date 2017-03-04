@@ -16,11 +16,44 @@
 
 namespace MoonGlare::Renderer {
 
-struct ScriptApi::ScriptApiImpl {
-	ScriptApiImpl(RendererFacade * facade) : m_RendererFacade(facade){
-		RendererAssert(m_RendererFacade);
+struct ShaderApi {
+	void ReloadShader(const char *name) {
+		RendererAssert(this);
+		DebugLogf(Warning, "Reloading shader %s", name);
+		m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
+	}
+	void ReloadAllShaders() {
+		RendererAssert(this);
+		DebugLogf(Warning, "Reloading all shaders");
+		RendererAssert(false);
+		//m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
+	}
+	void DumpShaders() {
+		RendererAssert(this);
+		DebugLogf(Warning, "Dumping all shaders");
+		std::ostringstream ss;
+		Space::OFmtStream fss(ss);
+		m_RendererFacade->GetResourceManager()->GetShaderResource().Dump(fss);
+		DebugLog(Info, "Loaded shaders: \n" << ss.str());
 	}
 
+	RendererFacade* m_RendererFacade = nullptr;
+};
+
+//---------------------------------------------------------------------------------------
+
+struct TextureApi {
+
+	RendererFacade* m_RendererFacade = nullptr;
+};
+
+//---------------------------------------------------------------------------------------
+
+struct ScriptApi::ScriptApiImpl {
+	ScriptApiImpl(RendererFacade * facade) : m_RendererFacade(facade),
+			m_ShaderApi{ facade }, m_TextureApi{ facade } {
+		RendererAssert(m_RendererFacade);
+	}
 
 	void Install(lua_State *lua) throw(InitFailureException) {
 		RendererAssert(lua);
@@ -58,28 +91,20 @@ struct ScriptApi::ScriptApiImpl {
 		luabridge::getGlobalNamespace(lua)
 		.beginNamespace("Debug")
 			.beginNamespace("Renderer")
-				.addObjectFunction("ReloadShader", this, &ScriptApiImpl::ReloadShader)
-				.addObjectFunction("ReloadAllShaders", this, &ScriptApiImpl::ReloadAllShaders)
+				.addObjectFunction("ReloadShader", &m_ShaderApi, &ShaderApi::ReloadShader)
+				.addObjectFunction("ReloadAllShaders", &m_ShaderApi, &ShaderApi::ReloadAllShaders)
+				.addObjectFunction("DumpShaders", &m_ShaderApi, &ShaderApi::DumpShaders)
 			.endNamespace()
 		.endNamespace()
 		;
 	}
-
-	void ReloadShader(const char *name) {
-		RendererAssert(this);
-		DebugLogf(Warning, "Reloading shader %s", name);
-		m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
-	}
-	void ReloadAllShaders() {
-		RendererAssert(this);
-		DebugLogf(Warning, "Reloading all shaders");
-		//m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
-	}
 protected:
 	RendererFacade* m_RendererFacade = nullptr;
+	ShaderApi m_ShaderApi;
+	TextureApi m_TextureApi;
 };
 
-//----------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
 
 ScriptApi::ScriptApi(RendererFacade * facade) {
 	m_Impl = std::make_unique<ScriptApiImpl>(facade);

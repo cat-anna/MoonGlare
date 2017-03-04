@@ -120,6 +120,7 @@ public:
 			&q,
 			&m_ShaderUniform[h.m_Index],
 			&m_ShaderHandle[h.m_Index],
+			m_ResourceManager,
 		};
 	}
 
@@ -133,12 +134,14 @@ public:
 		return ShaderExecutor<Descriptor_t> {
 			&m_ShaderUniform[h.m_Index],
 			&m_ShaderHandle[h.m_Index],
+			m_ResourceManager,
 		};
 	}
 
 	bool ReloadAll();
 	bool Reload(const std::string &Name);
 	bool Reload(Commands::CommandQueue &queue, const std::string &Name);
+	void Dump(Space::OFmtStream &o);
 private:
 	template<typename T>
 	using Array = std::array<T, Conf::Limit>;

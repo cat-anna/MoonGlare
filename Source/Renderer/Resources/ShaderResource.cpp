@@ -153,6 +153,8 @@ bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, uint32_t ifindex) 
 	return true;
 }
 
+//---------------------------------------------------------------------------------------
+
 bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
 	RendererAssert(this);
 
@@ -237,6 +239,17 @@ bool ShaderResource::InitializeSamplers(Commands::CommandQueue & q, uint32_t ifi
 	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
 
 	return true;
+}
+
+//---------------------------------------------------------------------------------------
+
+void ShaderResource::Dump(Space::OFmtStream &o) {
+	for (unsigned index = 0u; index < m_ShaderName.size(); ++index) {
+		if (!m_ShaderLoaded[index].load())
+			continue;
+
+		o.line("%2u -> %s", index, m_ShaderName[index].c_str());
+	}
 }
 
 } //namespace MoonGlare::Renderer::Resources 

@@ -19,7 +19,7 @@ struct PassthroughShaderDescriptor {
 		MaxValue,
 	};
 	enum class Sampler {
-		Texture0,
+		DiffuseMap,
 		MaxValue,
 	};
 
@@ -33,7 +33,7 @@ struct PassthroughShaderDescriptor {
 	}
 	constexpr static const char* GetSamplerName(Sampler s) {
 		switch (s) {
-		case Sampler::Texture0: return "Texture0";
+		case Sampler::DiffuseMap: return "Texture0";
 		default: return nullptr;
 		}
 	}

@@ -30,7 +30,7 @@ struct GUIShaderDescriptor {
 		MaxValue,
 	};
 	enum class Sampler {
-		Texture0,
+		DiffuseMap,
 		MaxValue,
 	};
 
@@ -49,7 +49,7 @@ struct GUIShaderDescriptor {
 	}
 	constexpr static const char* GetSamplerName(Sampler s) {
 		switch (s) {
-		case Sampler::Texture0: return "Texture0";
+		case Sampler::DiffuseMap: return "Texture0";
 		default: return nullptr;
 		}
 	}
