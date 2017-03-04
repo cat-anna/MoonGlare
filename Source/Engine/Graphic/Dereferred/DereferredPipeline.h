@@ -16,7 +16,7 @@
 #include "DirectionalLightShader.h"
 #include "SpotLightShader.h"
 #include "StencilShader.h"
-#include "../Shaders/ShadowMapShader.h"
+#include "../ShadowMapShader.h"
 
 #include <libSpace/src/Container/StaticVector.h>
 
@@ -60,7 +60,6 @@ public:
 private: 
 	unsigned m_Flags;
 	World *m_World = nullptr;
-	GeometryPassShader *m_GeometryShader;
 	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
 

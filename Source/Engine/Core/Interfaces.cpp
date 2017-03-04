@@ -33,8 +33,6 @@ void Interfaces::DumpLists(ostream &out) {
 	};
 	out << "\nFont class list\n";
 	DataClasses::Fonts::FontClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nShaders class list\n";
-	Graphic::Shaders::ShaderClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\nSound types list\n";
 	Sound::SoundClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\n"; 

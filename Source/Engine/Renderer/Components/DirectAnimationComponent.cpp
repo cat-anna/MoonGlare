@@ -73,40 +73,20 @@ bool DirectAnimationComponent::Initialize() {
 		return false;
 	}
 
-	::Graphic::GetRenderDevice()->RequestContextManip([this] () {
-		if (!(m_ShadowShader = Graphic::GetShaderMgr()->GetShader("ShadowMap"))) {
-			AddLogf(Error, "Failed to load ShadowMap shader");
-		}
-		if (!(m_GeometryShader = Graphic::GetShaderMgr()->GetShader("Deferred/Geometry"))) {
-			AddLogf(Error, "Failed to load Dereferred.Geometry shader");
-		}
-	});
+//	::Graphic::GetRenderDevice()->RequestContextManip([this] () {
+//		if (!(m_ShadowShader = Graphic::GetShaderMgr()->GetShader("ShadowMap"))) {
+//			AddLogf(Error, "Failed to load ShadowMap shader");
+//		}
+//		if (!(m_GeometryShader = Graphic::GetShaderMgr()->GetShader("Deferred/Geometry"))) {
+//			AddLogf(Error, "Failed to load Dereferred.Geometry shader");
+//		}
+//	});
 	
 	return true;
 }
 
 bool DirectAnimationComponent::Finalize() {
 	return true;
-}
-
-void SetModelMatrix(::Graphic::Shader *Shader, Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const glm::mat4 & ModelMat) {
-	auto loc = Shader->Location(::Graphic::Shader::ShaderParameters::ModelMatrix);
-	if (!Shader->IsValidLocation(loc))
-		return;
-
-	auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformMatrix4>(key);
-	arg->m_Location = loc;
-	arg->m_Matrix = ModelMat;
-}
-
-void SetMaterialColor(::Graphic::Shader *Shader, Renderer::Commands::CommandQueue &Queue, Renderer::RendererConf::CommandKey key, const math::vec4 &color) {
-	auto loc = Shader->Location(::Graphic::Shader::ShaderParameters::Material_BackColor);
-	if (!Shader->IsValidLocation(loc))
-		return;
-
-	auto arg = Queue.PushCommand<Renderer::Commands::ShaderSetUniformVec4>(key);
-	arg->m_Location = loc;
-	arg->m_Vec = color;
 }
 
 void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
@@ -236,8 +216,8 @@ void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 
 		PrepareQueue.PushCommand<Renderer::Commands::BindArrayBuffer>(key)->m_Handle = 0;
 
-		SetModelMatrix(m_GeometryShader, GeometryQueue, key, tcentry->m_GlobalMatrix);
-		SetModelMatrix(m_ShadowShader, ShadowQueue, key, tcentry->m_GlobalMatrix);
+		//SetModelMatrix(m_GeometryShader, GeometryQueue, key, tcentry->m_GlobalMatrix);
+		//SetModelMatrix(m_ShadowShader, ShadowQueue, key, tcentry->m_GlobalMatrix);
 
 		GeometryQueue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
 		ShadowQueue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();

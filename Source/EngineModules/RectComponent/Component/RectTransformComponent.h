@@ -174,7 +174,6 @@ protected:
 //debug:
 protected:
 	void D2Draw(const Core::MoveConfig & conf);
-	Graphic::Shaders::Shader *m_Shader = nullptr;
 };
 
 } //namespace Component 

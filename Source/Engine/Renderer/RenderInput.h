@@ -49,10 +49,6 @@ struct RenderInput {
 		m_CommandQueues.MemZero();
 		return true;
 	}
-
-	void OnBeginFrame(cRenderDevice &dev) {
-		dev.Bind(&m_Camera);
-	}
 	void Clear() {
 		m_PointLights.ClearAllocation();
 		m_SpotLights.ClearAllocation();

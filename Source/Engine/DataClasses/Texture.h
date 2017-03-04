@@ -43,8 +43,6 @@ public:
 	static void AsyncStoreImage(SharedImage image, string file, ImageFormat format = ImageFormat::PNG);
 
 	static bool LoadTexture(Graphic::Texture &tex, const char* data, unsigned datalen, bool ApplyDefaultSettings = true);
-
-	static void CaptureScreenShot();
 protected:
 	static bool LoadImageMemory(const void* ImgData, unsigned ImgLen, ImageInfo& image);
 };

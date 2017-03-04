@@ -381,8 +381,8 @@ private:
 	
 	TransformComponent *m_TransformComponent;
 
-	::Graphic::Shader *m_ShadowShader = nullptr;
-	::Graphic::Shader *m_GeometryShader = nullptr;
+//	::Graphic::Shader *m_ShadowShader = nullptr;
+//	::Graphic::Shader *m_GeometryShader = nullptr;
 
 	void ReleaseElement(size_t Index);
 };

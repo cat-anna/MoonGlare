@@ -49,13 +49,13 @@ bool SkyCube::LoadMeta(const xml_node node, FileSystem::DirectoryReader &reader)
 //---------------------------------------------------------------------------------------
 
 void SkyCube::Render(cRenderDevice &dev) const {
-	dev.CurrentShader()->SetBackColor(m_BackColor);
-	m_VAO.Bind();
-	for (unsigned i = 0, j = m_Mesh.size(); i < j; ++i) {
-		m_Textures[i].Bind();
-		m_VAO.DrawElements(m_Mesh[i]);
-	}
-	m_VAO.UnBind();
+//	dev.CurrentShader()->SetBackColor(m_BackColor);
+//	m_VAO.Bind();
+//	for (unsigned i = 0, j = m_Mesh.size(); i < j; ++i) {
+//		m_Textures[i].Bind();
+//		m_VAO.DrawElements(m_Mesh[i]);
+//	}
+//	m_VAO.UnBind();
 }
 
 //---------------------------------------------------------------------------------------

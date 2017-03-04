@@ -18,8 +18,6 @@
 #include "SkyCube.h"
 #include "FrameBuffer.h"
 
-#include "Shaders/nShaders.h"
-
 #include "Material.h"
 #include "StaticFog.h"
 #include "Environment.h"
@@ -36,7 +34,6 @@ using Graphic::cRenderDevice;
 
 namespace Graphic {
 	inline cRenderDevice* GetRenderDevice() { return cRenderDevice::Instance(); }
-	inline Graphic::ShaderManager* GetShaderMgr() { return Graphic::ShaderManager::Instance(); }
 
 	template<GLenum v>
 	struct AutoGLEnabler {

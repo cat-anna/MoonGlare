@@ -240,8 +240,6 @@ void Engine::DoRender(MoveConfig &conf) {
 	auto &cmdl = frame->GetCommandLayers();
 	using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
-	conf.m_RenderInput->OnBeginFrame(dev);
-
 	dev.DispatchContextManipRequests();
 
 	dev.BeginFrame();

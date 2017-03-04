@@ -53,7 +53,7 @@ bool ciScene::SpawnChild(const std::string & URI, std::string Name, Entity & out
 void ciScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
 
-	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
+//	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
 	m_Environment.Initialize();
 
 	SendState(SceneState::Started);
@@ -66,7 +66,7 @@ void ciScene::EndScene() {
 
 	SendState(SceneState::Paused);
 
-	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
+//	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
 	m_Environment.Finalize();
 
 	SetReady(false);

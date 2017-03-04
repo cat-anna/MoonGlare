@@ -53,7 +53,7 @@ public:
 private:
 	//std::vector<math::fvec3> m_LinePointsColors;
 	//std::vector<math::fvec3> m_LinePoints;
-	Graphic::Shaders::Shader *m_Shader;
+	//Graphic::Shaders::Shader *m_Shader;
 	//Graphic::VAO m_VAO;
 
 	cRenderDevice *m_dev;

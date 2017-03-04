@@ -361,7 +361,6 @@ void Manager::DumpResources() {
 	if(sm)
 		sm->DumpAllDescriptors(file);
 
-	Graphic::GetShaderMgr()->DumpShaders(file);
 	GetSoundEngine()->DumpContent(file);
 	GetModulesManager()->DumpModuleList(file);
 

@@ -22,21 +22,14 @@ cRenderDevice::cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManage
 		cRootClass(),
 		m_AssetManager(AssetManager),
 		m_InitThreadId(),
-		m_Context(),
-		m_CurrentShader(),
-		m_CurrentEnvironment(0),
-		m_CurrentCamera(0),
-		m_DefaultMaterial() {
+		m_Context() {
 	SetThisAsInstance();
 	m_Context.swap(Context);
 
 	m_InitThreadId = std::this_thread::get_id();
-
-	new ShaderManager(m_AssetManager);
 }  
  
 cRenderDevice::~cRenderDevice() {
-	ShaderManager::DeleteInstance();
 }
 
 mem::aligned_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
@@ -46,12 +39,12 @@ mem::aligned_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
 }
 
 bool cRenderDevice::Initialize() {
-	return GetShaderMgr()->Initialize();
+	return true;
 }
 
 bool cRenderDevice::Finalize() {
 	AddLog(Performance, "Frames drawn: " << m_FrameIndex);
-	return GetShaderMgr()->Finalize();
+	return true;
 }
 
 //----------------------------------------------------------------------------------

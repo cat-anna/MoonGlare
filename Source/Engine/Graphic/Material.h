@@ -9,12 +9,6 @@ struct Material {
 	float AlphaThreshold = 0.2f;
 
 	Material() : Texture() { }
-
-	void Bind(Shader *s) const {
-		Texture.Bind();
-		s->SetBackColor(BackColor);
-		s->SetAlphaThreshold(AlphaThreshold);
-	}
 };
 
 } // namespace Graphic

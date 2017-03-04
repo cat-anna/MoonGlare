@@ -15,7 +15,6 @@ namespace Dereferred {
 SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(DereferredPipeline);
 
 DereferredPipeline::DereferredPipeline():
-		m_GeometryShader(0),
 		m_Flags(0)
 {
 }   
@@ -29,8 +28,6 @@ bool DereferredPipeline::Initialize(World *world) {
 
 	try {
 		if (!m_Buffer.Reset()) throw "Unable to initialize render buffers!";
-
-		if (!GetShaderMgr()->GetSpecialShader("Deferred/Geometry", m_GeometryShader)) throw 0;
 
 		auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
 
@@ -103,7 +100,6 @@ bool DereferredPipeline::Execute(const MoonGlare::Core::MoveConfig &conf, cRende
  
 void DereferredPipeline::BeginFrame(cRenderDevice& dev) { 
 	dev.ResetViewPort();
-	dev.ResetCameraMatrix();
 	m_Buffer.BeginFrame(); 
 } 
  

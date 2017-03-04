@@ -11,7 +11,6 @@
 namespace Physics {
 
 BulletDebugDrawer::BulletDebugDrawer() {
-	m_Shader = nullptr;
 	//m_LinePoints.reserve(1024 * 1024);
 	//m_LinePointsColors.reserve(1024 * 1024);
 	//m_ContactPoints.reserve(8 * 1024);
@@ -22,16 +21,16 @@ void BulletDebugDrawer::PrepareDebugDraw(cRenderDevice& dev) {
 	//	m_LinePoints.clear();
 //	m_LinePointsColors.clear();
 
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
-			AddLogf(Error, "Failed to load btDebgDraw shader");
-			return;
-		}
+	//if (!m_Shader) {
+		//if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
+		//	AddLogf(Error, "Failed to load btDebgDraw shader");
+		//	return;
+		//}
 		//		m_VAO.New();
-	}
-	dev.Bind(m_Shader);
-	dev.SetModelMatrix(math::mat4());
-	dev.BindNullMaterial();
+	//}
+//	dev.Bind(m_Shader);
+//	dev.SetModelMatrix(math::mat4());
+//	dev.BindNullMaterial();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 }
 
@@ -62,7 +61,7 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 	//	m_LinePoints.push_back(convert(to));
 	//	m_LinePointsColors.push_back(convert(color));
 	//	m_LinePointsColors.push_back(convert(color));
-	m_dev->CurrentShader()->SetBackColor(convert(color));
+//	m_dev->CurrentShader()->SetBackColor(convert(color));
 	glBegin(GL_LINES);
 	glVertex3fv((float*)&from);
 	glVertex3fv((float*)&to);
@@ -70,7 +69,7 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 }
 
 void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) {
-	m_dev->CurrentShader()->SetBackColor(convert(color));
+//	m_dev->CurrentShader()->SetBackColor(convert(color));
 	glBegin(GL_POINTS);
 	glVertex3fv((float*)&PointOnB);
 	glEnd();

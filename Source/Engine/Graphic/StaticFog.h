@@ -20,8 +20,6 @@ struct StaticFog {
 
 	float m_Density;
 
-	static void Bind(Shader* shader, const StaticFog *instance);
-
 	bool LoadMeta(const xml_node node);
 	bool SaveMeta(xml_node node) const;
 };

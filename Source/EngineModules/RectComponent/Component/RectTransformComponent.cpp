@@ -356,6 +356,7 @@ bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, 
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
+#if 0
 	if (!m_Shader) {
 		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
 			AddLogf(Error, "Failed to load btDebgDraw shader");
@@ -431,6 +432,7 @@ void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 
 	vaob.UnBindVAO();
 	q.MakeCommand<Renderer::Commands::LeaveWireFrameMode>();
+#endif
 }
 
 //---------------------------------------------------------------------------------------

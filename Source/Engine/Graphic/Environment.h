@@ -20,11 +20,6 @@ public:
 	//! Load metedata of environment from xml
 	bool LoadMeta(const xml_node node);
 
-	//! Bind environment settings to shader
-	void Bind(Shader *s) const {
-		s->Bind(&m_StaticFog);
-	}
-
 	//! Render environment
 	void Render(cRenderDevice &dev) const {
 		if (m_HaveSkyCube)

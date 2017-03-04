@@ -10,6 +10,7 @@
 
 namespace Graphic {
 
+#if 0
 void StaticFog::Bind(Shader* shader, const StaticFog *instance) {
 	if (!shader || !instance)
 		return;
@@ -23,6 +24,7 @@ void StaticFog::Bind(Shader* shader, const StaticFog *instance) {
 	glUniform1f(shader->Location("gStaticFog.End"), instance->m_End);
 	glUniform1f(shader->Location("gStaticFog.Density"), instance->m_Density);
 }
+#endif
 
 bool StaticFog::LoadMeta(const xml_node node) {
 	XML::Vector::Read(node, "Color", m_Color, math::vec3(0), XML::Captions::RGBA);
