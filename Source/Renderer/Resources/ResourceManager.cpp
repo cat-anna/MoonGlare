@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "ResourceManager.h"
+#include "../Renderer.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -16,10 +17,9 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, AssetLoader* Assets) 
 	m_RendererFacade = Renderer;
 	m_AssetLoader = Assets;
 
-	if (!m_TextureResource.Initialize(this)) {
-		AddLogf(Error, "TextureResource initialization failed!");
-		return true;
-	}
+	auto conf = m_RendererFacade->GetConfiguration();
+
+	m_TextureResource.Initialize(this, m_AssetLoader->GetTextureLoader());
 
 	if (!m_VAOResource.Initialize(this)) {
 		AddLogf(Error, "VAOResource initialization failed!");
@@ -31,10 +31,14 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, AssetLoader* Assets) 
 		return true;
 	}
 
+	m_MaterialManager.Initialize(this);
+
 	return true;
 }
 
 bool ResourceManager::Finalize() {
+	m_MaterialManager.Finalize();
+
 	if (!m_ShaderResource.Finalize()) {
 		AddLogf(Error, "ShaderResource finalization failed!");
 	}
@@ -43,12 +47,13 @@ bool ResourceManager::Finalize() {
 		AddLogf(Error, "VAOResource finalization failed!");
 	}
 
-	if (!m_TextureResource.Finalize()) {
-		AddLogf(Error, "TextureResource finalization failed!");
-	}
+	m_TextureResource.Finalize();
 
 	return true;
 }
 
-} //namespace MoonGlare::Renderer::Resources 
+const Configuration::RuntimeConfiguration * ResourceManager::GetConfiguration() const {
+	return m_RendererFacade->GetConfiguration();
+}
 
+} //namespace MoonGlare::Renderer::Resources 

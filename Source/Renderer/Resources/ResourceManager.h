@@ -12,6 +12,7 @@
 #include "TextureResource.h"
 #include "VAOResource.h"
 #include "ShaderResource.h"
+#include "MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -20,6 +21,7 @@ public:
 	bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
 	bool Finalize();
 
+	const Configuration::RuntimeConfiguration* GetConfiguration() const;
 	RendererFacade *GetRendererFacade() { return m_RendererFacade; }
 
 	TextureResource& GetTextureResource() {
@@ -33,6 +35,10 @@ public:
 	ShaderResource& GetShaderResource() {
 		RendererAssert(this);
 		return m_ShaderResource;
+	}
+	MaterialManager& GetMaterialManager() {
+		RendererAssert(this);
+		return m_MaterialManager;
 	}
 
 	void Release(Frame *frame, TextureResourceHandle &texres) {
@@ -54,6 +60,7 @@ private:
 	TextureResource m_TextureResource;
 	VAOResource m_VAOResource;
 	ShaderResource m_ShaderResource;
+	MaterialManager m_MaterialManager;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");
