@@ -8,34 +8,40 @@
 #pragma once
 
 #include "../nfRenderer.h"
+#include "AssetLoaderInterface.h"
 #include "../Configuration.Renderer.h"
 
 namespace MoonGlare::Renderer::Resources {
 
 class alignas(16) TextureResource {
 	using ThisClass = TextureResource;
-	using Conf = Configuration::Resources;
+	using Conf = Configuration::Texture;
+	using ConfRes = Configuration::Resources;
 
-	static constexpr TextureResourceHandle::Index_t GuardValue = 0xFADE;
 public:
-	bool Initialize(ResourceManager* Owner);
-	bool Finalize();
+	void Initialize(ResourceManager* Owner, TextureLoader *TexLoader);
+	void Finalize();
 
 	bool Allocate(Commands::CommandQueue &queue, TextureResourceHandle &out);
 
+	bool Allocate(TextureResourceHandle &out);
 	bool Allocate(Frame *frame, TextureResourceHandle &out);
 	void Release(Frame *frame, TextureResourceHandle h);
+
+	bool LoadTexture(TextureResourceHandle &out, const std::string &fPath, bool CanAllocate = true);
 
 	TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 private: 
 	template<typename T>
-	using Array = std::array<T, Conf::TextureLimit>;
-	using Bitmap = Conf::BitmapAllocator<Conf::TextureLimit>;
+	using Array = std::array<T, Conf::Limit>;
+	using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
 	Bitmap m_AllocationBitmap;
 	Array<TextureHandle> m_GLHandle;
+	//Array<Asset::FileHash> m_SourceHash;
 	ResourceManager *m_ResourceManager = nullptr;
-	void* padding;
+	TextureLoader *m_TexureLoader = nullptr;
+	const Configuration::Texture *m_Settings = nullptr;
 
 	DeclarePerformanceCounter(SuccessfulAllocations);
 	DeclarePerformanceCounter(SuccessfulDellocations);

@@ -22,7 +22,7 @@ public:
 
 	RendererFacade *GetRendererFacade() { return m_RendererFacade; }
 
-	TextureResource& GetTextureAllocator() {
+	TextureResource& GetTextureResource() {
 		RendererAssert(this); 
 		return m_TextureResource;
 	}
@@ -36,13 +36,13 @@ public:
 	}
 
 	void Release(Frame *frame, TextureResourceHandle &texres) {
-		GetTextureAllocator().Release(frame, texres);
+		GetTextureResource().Release(frame, texres);
 	}
 	void Release(Frame *frame, VAOResourceHandle &vaores) {
 		GetVAOResource().Release(frame, vaores);
 	}
 	bool Allocate(Frame *frame, TextureResourceHandle &resH) {
-		return GetTextureAllocator().Allocate(frame, resH);
+		return GetTextureResource().Allocate(frame, resH);
 	}
 	bool Allocate(Frame *frame, VAOResourceHandle &resH) {
 		return GetVAOResource().Allocate(frame, resH);

@@ -78,7 +78,7 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
 				}
 			}
 		}
-		catch (Preprocessor::ParseException &e) {
+		catch (Preprocessor::ParseException &) {
 			AddLogf(Error, "File for %s shader %s", shaderfile.m_Name, Name.c_str());
 			Success = false;
 			break;

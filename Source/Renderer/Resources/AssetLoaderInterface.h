@@ -21,11 +21,41 @@ public:
 	virtual bool LoadCode(const std::string &Name, ShaderCode &Output) { return false; };
 };
 
+class TextureLoader {
+public:
+	virtual ~TextureLoader() {}
+
+	enum class PixelType : uint16_t {
+		UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
+		Float = GL_FLOAT,
+	};
+
+	enum class PixelFormat : uint16_t {
+		RGB8 = GL_RGB, 
+		RGBA8 = GL_RGBA, 
+		GrayScale8 = GL_LUMINANCE, //?
+	};
+
+	using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
+
+	struct TexturePixelData {
+		void* m_Pixels;
+		unsigned m_PixelsByteSize;
+		PixelType m_PixelType;
+		PixelFormat m_PixelFormat;
+		emath::ivec2 m_PixelSize;
+		ImageUniquePtr m_ImageMemory;
+	};
+
+	virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) = 0;
+};
+
 class AssetLoader {
 public:
 	virtual ~AssetLoader() {}
 
 	virtual ShaderCodeLoader* GetShaderCodeLoader() const { return nullptr; }
+	virtual TextureLoader* GetTextureLoader() const { return nullptr; }
 };
 
 } //namespace MoonGlare::Renderer::Resources 

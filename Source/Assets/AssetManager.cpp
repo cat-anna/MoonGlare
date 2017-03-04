@@ -8,6 +8,7 @@
 
 #include "FileSystem.h"
 #include "Shader/Loader.h"
+#include "Texture/TextureLoader.h"
 
 #include <AssetSettings.x2c.h>
 
@@ -20,7 +21,6 @@ AssetManager::~AssetManager() {
 }
 
 bool AssetManager::Initialize(const x2c::Settings::AssetSettings_t& Configuration) {
-
 	m_FileSystem = std::make_unique<FileSystem>();
 	if (!m_FileSystem->Initialize()) {
 		AddLogf(Error, "FileSystem initialization failed!");
@@ -34,6 +34,9 @@ bool AssetManager::Initialize(const x2c::Settings::AssetSettings_t& Configuratio
 		m_ShaderLoader.reset();
 		return false;
 	}
+
+	m_TextureLoader = std::make_unique<Texture::Loader>(m_FileSystem.get());
+	m_TextureLoader->Initialize();
 
 	return true;
 }
@@ -55,6 +58,10 @@ bool AssetManager::Finalize() {
 
 Renderer::Resources::ShaderCodeLoader* AssetManager::GetShaderCodeLoader() const {
 	return m_ShaderLoader.get(); 
+}
+
+Renderer::Resources::TextureLoader * AssetManager::GetTextureLoader() const {
+	return m_TextureLoader.get();
 }
 
 } //namespace MoonGlare::Asset

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "nfAssets.h"
 #include <Source/Renderer/Resources/AssetLoaderInterface.h>
 
 namespace MoonGlare::x2c::Settings {
@@ -14,10 +15,6 @@ namespace MoonGlare::x2c::Settings {
 }
 
 namespace MoonGlare::Asset {
-
-namespace Shader {
-	class Loader;
-}
 
 class FileSystem;
 
@@ -30,10 +27,13 @@ public:
 	bool Finalize();
 
 	Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
+
 	virtual Renderer::Resources::ShaderCodeLoader* GetShaderCodeLoader() const override;
+	virtual Renderer::Resources::TextureLoader* GetTextureLoader() const override;
 private:
 	std::unique_ptr<FileSystem> m_FileSystem;
 	std::unique_ptr<Shader::Loader> m_ShaderLoader;
+	std::unique_ptr<Texture::Loader> m_TextureLoader;
 };
 
 } //namespace MoonGlare::Asset 
