@@ -72,7 +72,7 @@ private:
 	Renderer::ShaderResourceHandle<PointLightShaderDescriptor> m_ShaderLightPointHandle{ };
 	Renderer::ShaderResourceHandle<DirectionalLightShaderDescriptor> m_ShaderLightDirectionalHandle{ };
 	Renderer::ShaderResourceHandle<StencilLightShaderDescriptor> m_ShaderStencilHandle{ };
-	//Renderer::ShaderResourceHandle m_ShaderGeometryHandle{ 0 };
+	Renderer::ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{ };
 
 	bool InitializeDirectionalQuad();
 };

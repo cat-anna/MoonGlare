@@ -37,8 +37,7 @@ bool DereferredPipeline::Initialize(World *world) {
 		if (!shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw 12;
 		if (!shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw 13;
 		if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw 15;
-
-		//if (!shres.Load<GeometryShaderDescriptor>(m_ShaderGeometryHandle, "Deferred/Geometry")) throw 15;
+		if (!shres.Load(m_ShaderGeometryHandle, "Deferred/Geometry")) throw 16;
 	}
 	catch (int idx) {						 
 		AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -142,7 +141,14 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
 		she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
 		for (auto it : ri->m_RenderList) {
 			she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(it.first));
-			it.second->DoRenderMesh(dev);
+
+			const auto &meshes = it.second->GetMeshVector();
+			const auto &vao = it.second->GetVAO();
+
+			vao.Bind();
+			for (auto &mesh : meshes) {
+				vao.DrawElements(mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, mesh.ElementMode);
+			}
 		}
 
 		using Renderer::RendererConf::CommandQueueID;
@@ -153,14 +159,17 @@ bool DereferredPipeline::RenderSpotLightsShadows(RenderInput *ri, cRenderDevice&
  
 bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 
-	//auto &shres = m_World->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-	//auto she = shres.GetExecutor<GeometryShaderDescriptor>(m_ShaderGeometryHandle);
-	//using Uniform = GeometryShaderDescriptor::Uniform;
+	auto *res = m_World->GetRendererFacade()->GetResourceManager();
+	auto &shres = res->GetShaderResource();
+	auto she = shres.GetExecutor<GeometryShaderDescriptor>(m_ShaderGeometryHandle);
+	
+	using Uniform = GeometryShaderDescriptor::Uniform;
+	using Sampler = GeometryShaderDescriptor::Sampler;
 
-	//she.Bind();
-	//she.Set<Uniform::CameraMatrix>(ri->m_Camera.GetProjectionMatrix());
+	she.Bind();
+	she.Set<Uniform::CameraMatrix>(ri->m_Camera.GetProjectionMatrix());
 
-	dev.Bind(m_GeometryShader);
+//	dev.Bind(m_GeometryShader);
 
 	m_Buffer.BeginGeometryPass(); 
 	glDepthMask(GL_TRUE);
@@ -171,9 +180,43 @@ bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 	//dev.Bind(conf.Camera);
 	//dev.SetModelMatrix(math::mat4());
 	for (auto it : ri->m_RenderList) {
-		dev.SetModelMatrix(it.first);
-		//she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(it.first));
-		it.second->DoRender(dev);
+		//dev.SetModelMatrix(it.first);
+		she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(it.first));
+		//she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+		const auto &meshes = it.second->GetMeshVector();
+		const auto &vao = it.second->GetVAO();
+
+		vao.Bind();
+		for (auto &mesh : meshes) {
+			const auto *mat = mesh.Material;
+			if (mesh.m_Material.m_TmpGuard == mesh.m_Material.GuardValue) {
+				auto matptr = res->GetMaterialManager().GetMaterial(mesh.m_Material);
+				if (matptr) {
+					she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+					she.Set<Sampler::DiffuseMap>(matptr->m_DiffuseMap);
+				} else {
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, 0);
+					she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+				}
+			} else {
+				if (mat) {
+					auto &m = mat->GetMaterial();
+					she.Set<Uniform::DiffuseColor>(emath::MathCast<emath::fvec3>(m.BackColor));
+					m.Texture.Bind();
+				} else {
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, 0);
+					she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+				}
+				
+				//if (mat) 
+				//	dev.Bind(mat->GetMaterial());
+				//else
+				//	dev.BindNullMaterial();
+			}
+			vao.DrawElements(mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, mesh.ElementMode);
+		}
 	}
 
 	using Renderer::RendererConf::CommandQueueID;
