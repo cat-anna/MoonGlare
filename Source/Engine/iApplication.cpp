@@ -23,6 +23,7 @@
 #include <iApplication.h>
 
 #include <AssetSettings.x2c.h>
+#include <RendererSettings.x2c.h>
 
 #include "Graphic/GraphicSettings.h"
 
@@ -89,8 +90,9 @@ bool iApplication::Initialize() {
 
 	auto scrEngine = new ScriptEngine(m_World.get());
 	_init_chk(scrEngine, "Unable to initialize script engine!");
-
+	
 	m_Renderer = std::make_unique<Renderer::RendererFacade>();
+	LoadRendererConfiguration();
 	m_World->SetRendererFacade(m_Renderer.get());
 
 	m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
@@ -216,6 +218,12 @@ void iApplication::Exit() {
 
 const char* iApplication::ExeName() const {
 	return "";
+}
+
+//----------------------------------------------------------------------------------
+
+void iApplication::LoadRendererConfiguration() {
+	//x2c::Settings::RuntimeConfiguration_t &rcfg = *m_Renderer->GetConfiguration();
 }
 
 //----------------------------------------------------------------------------------

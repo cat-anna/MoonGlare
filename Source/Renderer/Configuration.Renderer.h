@@ -68,9 +68,34 @@ struct IndexBuffer {
 struct Resources {
 	template<size_t SIZE>
 	using BitmapAllocator = ::Space::Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
+};
 
-	static constexpr uint32_t TextureLimit = 1024;
-	static constexpr uint32_t TextureInitial = 64;
+//---------------------------------------------------------------------------------------
+
+struct Texture {
+	static constexpr uint32_t Limit = 1024;
+	static constexpr uint32_t Initial = 64;
+
+	enum class Filtering {
+		Nearest,
+		Linear,
+		Bilinear,
+		Trilinear,
+
+		MaxValue,
+		Default = Linear,
+	};
+
+	enum class Edges {
+		Repeat,
+		Clamp,
+	};
+
+	Filtering m_Filtering;
+
+	void ResetToDefault() {
+		m_Filtering = Filtering::Default;
+	}
 };
 
 struct VAO {
@@ -105,6 +130,21 @@ struct Shader {
 
 struct TextureRenderTask {
 	static constexpr uint32_t Limit = 64;
+};
+
+struct Material {
+	static constexpr uint32_t Limit = 1024;
+
+};
+
+//---------------------------------------------------------------------------------------
+
+struct RuntimeConfiguration {
+	Texture m_Texture;
+
+	void ResetToDefault() {
+		m_Texture.ResetToDefault();
+	}
 };
 
 } //namespace MoonGlare::Renderer::Configuration

@@ -41,6 +41,7 @@ public:
 	}
 
 	ScriptApi* GetScriptApi();
+	Configuration::RuntimeConfiguration* GetConfiguration() { return m_Configuration.get(); }
 private:
     bool m_CanWork = false;
 
@@ -48,6 +49,7 @@ private:
 	mem::aligned_ptr<Context> m_Context;
 	mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
 	std::unique_ptr<ScriptApi> m_ScriptApi;
+	std::unique_ptr<Configuration::RuntimeConfiguration> m_Configuration;
 };
 
 } //namespace MoonGlare::Renderer

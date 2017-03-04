@@ -1,7 +1,54 @@
 Import "Common.x2c"
 Import "AssetSettings.x2c"
 
-namespace "MoonGlare.x2c.Settings"
+namespace "MoonGlare.x2c.Settings.Renderer"
+
+--------------------------------------------------------------
+
+
+--------------------------------------------------------------
+
+Enum.import {
+	name = "TextureFiltering",
+	location = "MoonGlare::Renderer::Configuration::Texture::Filtering",
+	default = "Linear",
+	values = {
+        "Nearest",
+        "Linear",
+        "Bilinear",
+        "Trilinear",
+	}
+}
+
+Structure.import {
+    name = "Texture",
+    location = "MoonGlare::Renderer::Configuration::Texture",
+    description = "",
+    fields = {
+        {
+            description = "",
+            name = "Filtering",
+            type = Local.TextureFiltering,
+        },
+    },
+}
+
+--------------------------------------------------------------
+
+Structure.import {
+    name = "RuntimeConfiguration",
+    location = "MoonGlare::Renderer::Configuration::RuntimeConfiguration",
+    description = "",
+    fields = {
+        {
+            description = "",
+            name = "Texture",
+            type = Local.Texture,
+        },
+    },
+}
+
+--------------------------------------------------------------
 
 Structure.new {
 	name = "WindowSettings",
@@ -29,6 +76,8 @@ Structure.new {
 		},
 	},
 }
+
+--------------------------------------------------------------
 
 Structure.new {
 	name = "RendererSettings",

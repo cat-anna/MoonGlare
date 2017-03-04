@@ -31,6 +31,8 @@ public:
 	virtual void OnDeactivate();
 	virtual const char* ExeName() const;
 
+	virtual void LoadRendererConfiguration();
+
 	union Flags {
 		struct {
 			bool m_Active : 1;

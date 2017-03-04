@@ -27,6 +27,9 @@ RendererFacade::~RendererFacade() {
 bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets) {
 	RendererAssert(Assets);
 
+	m_Configuration = std::make_unique<Configuration::RuntimeConfiguration>();
+	m_Configuration->ResetToDefault();
+
 	if (!Context::InitializeSubSystem()) {
 		AddLogf(Error, "Context subsystem initialization failed!");
 		return false;

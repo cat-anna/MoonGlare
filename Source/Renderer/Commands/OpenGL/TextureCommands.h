@@ -107,4 +107,101 @@ using Texture2DParameter = CommandTemplate<Texture2DParameterArgument<ArgType>>;
 using Texture2DParameterInt = Texture2DParameter<GLint>;
 using Texture2DParameterFloat  = Texture2DParameter<GLfloat>;
 
+//---------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <GLenum TEXTUREMODE>
+struct TextureSettingsCommon {
+	static void GenerateMipmaps() {
+		glGenerateMipmap(TEXTUREMODE); 
+	}
+
+	static void SetNearestFiltering() {
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+
+	static void SetLinearFiltering() {
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	static void SetBilinearFiltering() {
+		GenerateMipmaps();
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	}
+
+	static void SetTrilinearFiltering() {
+		GenerateMipmaps();
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	}
+
+	static void SetClampToEdges() {
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(TEX_MODE, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	static void SetRepeatEdges() {
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(TEXTUREMODE, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		//glTexParameteri(TEX_MODE, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	}
+};
+
+struct Texture2DSetFilteringArgument;
+struct Texture2DSetEdgesArgument;
+}
+
+struct detail::Texture2DSetFilteringArgument {
+	using Common = TextureSettingsCommon<GL_TEXTURE_2D>;
+
+	Configuration::Texture::Filtering m_Filtering;
+
+	void Run() {
+		switch (m_Filtering) {
+		case Configuration::Texture::Filtering::Bilinear:
+			Common::SetBilinearFiltering();
+			break;
+		case Configuration::Texture::Filtering::Trilinear:
+			Common::SetTrilinearFiltering();
+			break;
+		case Configuration::Texture::Filtering::Linear:
+			Common::SetLinearFiltering();
+			break;
+		case Configuration::Texture::Filtering::Nearest:
+			Common::SetNearestFiltering();
+			break;
+		default:
+			AddLogf(Error, "Unknown filtering mode!");
+			Common::SetLinearFiltering();
+		}
+	}
+};
+using Texture2DSetFiltering = RunnableCommandTemplate<detail::Texture2DSetFilteringArgument>;
+
+struct detail::Texture2DSetEdgesArgument {
+	using Common = TextureSettingsCommon<GL_TEXTURE_2D>;
+
+	Configuration::Texture::Edges m_Edges;
+
+	void Run() {
+		switch (m_Edges) {
+		case Configuration::Texture::Edges::Repeat:
+			Common::SetRepeatEdges();
+			break;
+		case Configuration::Texture::Edges::Clamp:
+			Common::SetClampToEdges();
+			break;
+		default:
+			AddLogf(Error, "Unknown edges mode!");
+			Common::SetClampToEdges();
+		}
+	}
+};
+using Texture2DSetEdges = RunnableCommandTemplate<detail::Texture2DSetEdgesArgument>;
+
 } //namespace MoonGlare::Renderer::Commands
