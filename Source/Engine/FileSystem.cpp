@@ -202,8 +202,16 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 
 	std::string path;
 
+	if (!TranslateFileName(FileName, path, origin))
+		return false;
+
+	auto fid = m_StarVFS->FindFile(path.c_str());
+	return OpenFile(FileData, fid);
+}
+
+bool MoonGlareFileSystem::TranslateFileName(const std::string & FileName, std::string &path, DataPath origin) {
 	auto pos = FileName.find("://");
-	if (pos != std::string::npos) { 
+	if (pos != std::string::npos) {
 		auto hash = Space::Utils::MakeHash32(FileName.c_str(), pos);
 		pos += 3; //compensate '://'
 		switch (hash) {
@@ -216,16 +224,16 @@ bool MoonGlareFileSystem::OpenFile(const string& FileName, DataPath origin, Star
 			AddLogf(Error, "Unknown uri protocol: %s", FileName.c_str());
 			DataSubPaths.Translate(path, FileName, origin);
 		}
-	} else {
+	}
+	else {
 		if (origin == DataPath::URI) {
 			AddLogf(Error, "Invalid uri: %s", FileName.c_str());
 			return false;
 		}
 		DataSubPaths.Translate(path, FileName, origin);
 	}
-	
-	auto fid = m_StarVFS->FindFile(path.c_str());
-	return OpenFile(FileData, fid);
+
+	return true;
 }
 
 bool MoonGlareFileSystem::OpenXML(XMLFile &doc, StarVFS::FileID fid) {

@@ -26,6 +26,22 @@ struct CommandTemplate {
 	}
 };
 
+template<typename CMDARG>
+struct RunnableCommandTemplate  {
+	using Argument = CMDARG;
+	static size_t ArgumentSize() {
+		return sizeof(Argument);
+	}
+
+	static void Execute(CommandArgument* arg) {
+		Argument *argptr = reinterpret_cast<Argument*>(arg);
+		argptr->Run();
+	}
+	static CommandFunction GetFunction() {
+		return reinterpret_cast<CommandFunction>(&Execute);
+	}
+};
+
 template<typename HandleType>
 struct ResourceCommandInfo;
 

@@ -5,7 +5,7 @@ group "EngineLibs"
 		kind "StaticLib"
 
 		SetPCH { hdr = "pch.h", src = "pch.cpp", }
-		
+
         forceincludes {
             "pch.h",
         }
@@ -22,8 +22,8 @@ group "EngineLibs"
 		files {
 			"**",
 			"../Config/*.h",
-			"../Utils/**.h",
             "../Shared/x2c/AssetSettings.x2c",
+            "../Shared/x2c/Assets/*.x2c",
 		}
 		includedirs {
 			".",

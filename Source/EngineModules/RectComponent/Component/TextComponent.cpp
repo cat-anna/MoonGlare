@@ -105,7 +105,9 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 
 	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
 	auto shb = shres.GetBuilder(q, m_ShaderHandle);
+
 	using Uniform = GUIShaderDescriptor::Uniform;
+	using Sampler = GUIShaderDescriptor::Sampler;
 
 	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
 		auto &entry = m_Array[i];
@@ -143,10 +145,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(entry.m_Matrix), key);
 		shb.Set<Uniform::BaseColor>(emath::fvec4(1), key);
 		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
-
-		auto texres = Queue.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
-		texres->m_Handle = entry.m_FontResources.m_Texture;
-		texres->m_HandleArray = conf.m_BufferFrame->GetResourceManager()->GetTextureAllocator().GetHandleArrayBase();
+		shb.Set<Sampler::DiffuseMap>(entry.m_FontResources.m_Texture, key);
 
 		auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(Queue, entry.m_FontResources.m_VAO);
 		Queue.PushCommand<Renderer::Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;

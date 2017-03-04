@@ -65,6 +65,8 @@ public:
 	const char *GetFileName(StarVFS::FileID fid) const;
 	std::string GetFullFileName(StarVFS::FileID fid) const;
 
+	bool TranslateFileName(const std::string & FileName, std::string &path, DataPath origin);
+
 	/** Read raw file data */
 	bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
 	/** Read raw file data */
@@ -148,7 +150,11 @@ public:
 		else
 			return MoonGlareFileSystem::Instance()->OpenTexture(tex, (m_OwnerName + '/') += FileName, m_origin, ApplyDefaultSettings);
 	}
-	static void RegisterScriptApi(ApiInitializer &api);
+	std::string translate(const string& FileName) {
+		std::string out;
+		MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
+		return out;
+	}
 protected:
 	DataPath m_origin;
 	string m_OwnerName;

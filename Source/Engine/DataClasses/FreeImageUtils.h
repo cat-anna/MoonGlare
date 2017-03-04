@@ -4,7 +4,7 @@
 
 #include <FreeImage.h>
 
-void SwapRedAndBlue(FIBITMAP *dib){
+static void SwapRedAndBlue(FIBITMAP *dib){
 	unsigned height = FreeImage_GetHeight(dib);
 
 	unsigned linebytes = FreeImage_GetLine(dib);
@@ -16,10 +16,6 @@ void SwapRedAndBlue(FIBITMAP *dib){
 			std::swap(line[w + FI_RGBA_BLUE], line[w + FI_RGBA_RED]);
 		}
 	}
-}
-
-void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
-	AddLog(Error, "FreeImage [Format: " << FreeImage_GetFormatFromFIF(fif) << "] error: " << message);
 }
 
 #endif

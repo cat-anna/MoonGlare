@@ -17,12 +17,6 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Texture)
 
 Texture::Texture() : BaseClass() {
 	SetThisAsInstance();
-#ifndef _DISABLE_FREEIMAGE_LIB_
-	FreeImage_SetOutputMessage(FreeImageErrorHandler);
-#endif 
-#ifdef DEBUG
-	AddLog(System, "FreeImage version: " << FreeImage_GetVersion());
-#endif
 }
 
 Texture::~Texture() {
@@ -91,7 +85,6 @@ bool Texture::LoadTexture(Graphic::Texture &tex, const char* data, unsigned data
 	}
 	tex.SetSize(info->size);
 	Graphic::GetRenderDevice()->RequestContextManip([info, &tex, ApplyDefaultSettings]{
-		tex.New();
 		tex.SetTextureBits(info->image, info->size, info->BPPtype, info->value_type);
 		if (ApplyDefaultSettings)
 			tex.ApplyGlobalSettings();

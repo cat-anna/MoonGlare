@@ -151,7 +151,7 @@ void TextureInstrospectorApi(ApiInitializer &root) {
 RegisterApiNonClass(TextureDebug, &TextureInstrospectorApi);
 
 void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
-//#if 0
+#if 0
 	if (TextureInstrospector.TexIndex >= 0) {
 		dev.SetModelMatrix(math::mat4());
 		dev.CurrentShader()->SetBackColor(math::vec3(1));
@@ -188,7 +188,7 @@ void ProcessTextureIntrospector(Graphic::cRenderDevice &dev) {
 		glBindTexture(GL_TEXTURE_2D, TextureInstrospector.TexIndex);
 		TextureInstrospector.vao.DrawElements(4, 0, 0, GL_QUADS);
 	}
-//#endif
+#endif
 }
 #endif
 } //namespace Debug
