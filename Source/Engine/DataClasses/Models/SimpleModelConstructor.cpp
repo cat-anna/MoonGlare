@@ -7,11 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include "EditableSimpleModel.h"
 #include "SimpleModelConstructor.h"
-
-//#include <Core/Component/ComponentManager.h>
-//#include <Physics/Component/BodyShapeComponent.h>
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -48,7 +44,7 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 		return false;
 	}
 
-	auto esm = std::make_unique<EditableSimpleModel>("");
+	auto esm = std::make_unique<iModel>("");
 
 	Graphic::VertexVector Verticles;
 	Graphic::NormalVector Normals;
@@ -74,7 +70,7 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 			//matid = esm->AddMaterial(mat.GetMaterialNode(), ModelOrigin, m_Name);
 		}
 
-		EditableSimpleModel::MeshData md;
+		iModel::MeshData md;
 		md.BaseIndex = 0;
 		md.BaseVertex = Index.size();
 		md.ElementMode = Graphic::Flags::fTriangles;

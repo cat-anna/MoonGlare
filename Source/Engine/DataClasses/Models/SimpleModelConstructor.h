@@ -22,7 +22,7 @@ public:
 	typedef int MeshID;
 
 	struct Result {
-		std::unique_ptr<iSimpleModel> m_Model;
+		std::unique_ptr<iModel> m_Model;
 		std::unique_ptr<btBvhTriangleMeshShape> m_Shape;
 	};
 

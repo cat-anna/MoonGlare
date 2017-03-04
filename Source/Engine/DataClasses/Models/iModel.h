@@ -13,19 +13,34 @@ namespace DataClasses {
 namespace Models {
 
 class iModel : public DataClass {
-	SPACERTTI_DECLARE_ABSTRACT_CLASS(iModel, DataClass);
+	SPACERTTI_DECLARE_CLASS(iModel, DataClass);
 public:
-	iModel(const string& Name);
+	iModel(const string& Name = "");
 	virtual ~iModel();
 
-	virtual void DoRender(cRenderDevice &Dev) const = 0;
-	virtual void DoRenderMesh(cRenderDevice &Dev) const = 0;
+	struct MeshData : public Graphic::VAO::MeshData {
+		ModelMaterial *Material = nullptr;
+		Renderer::MaterialResourceHandle m_Material{ 0 };
+	};
+	typedef std::vector<MeshData> MeshDataVector;
+
+	void DoRender(cRenderDevice &Dev) const;
+	void DoRenderMesh(cRenderDevice &Dev) const;
 	
 //	virtual Physics::SharedShape ConstructShape(float ShapeScale) const;
 //	virtual const Physics::PhysicalProperties* GetPhysicalProperties() const;
-	
-	virtual bool LoadFromXML(const xml_node Node) = 0;
+	Graphic::VAO& GetVAO() { return m_VAO; }
+	MeshDataVector& GetMeshVector() { return m_Meshes; }
+	MaterialVector& GetMaterialVector() { return m_Materials; }
+
+	virtual bool LoadFromXML(const xml_node Node) {
+		return true;
+	}
 protected:
+	MaterialVector m_Materials;
+	MeshDataVector m_Meshes;
+	Graphic::VAO m_VAO;
+
 //	Physics::PhysicalProperties m_PhysicalProperties;
 
 	virtual bool DoInitialize() override;

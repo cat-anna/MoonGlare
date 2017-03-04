@@ -6,6 +6,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "SimpleModelImpl.h"
+#include "Core/Engine.h"
+
+#include <Renderer/Renderer.h>
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -89,12 +92,16 @@ bool SimpleModelImpl::DoLoadModel(const std::string & fName) {
 	return true;
 }
 
-bool SimpleModelImpl::DoLoadMaterials( const aiScene* scene) {
+bool SimpleModelImpl::DoLoadMaterials(const aiScene* scene) {
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *res = rf->GetResourceManager();
+
 	for (unsigned i = 0; i < scene->mNumMaterials; i++) {
 		const aiMaterial* pMaterial = scene->mMaterials[i];
 		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) <= 0)
 			continue;
-		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial, scene));
+		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial, scene, res));
 	}
 
 	return true;
@@ -130,8 +137,10 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 	for (unsigned i = 0; i < m_Meshes.size(); ++i) {
 		const aiMesh* mesh = scene->mMeshes[i];
 		MeshData& meshd = m_Meshes[i];
-		if (m_Materials.size() > mesh->mMaterialIndex)
+		if (m_Materials.size() > mesh->mMaterialIndex) {
 			meshd.Material = m_Materials[mesh->mMaterialIndex].get();
+			meshd.m_Material = meshd.Material->GetMaterialHandle();
+		}
 		else {
 			//if (!m_Materials.empty())
 			//	AddLogf(Warning, "Model [%s] has mesh[id:%d] with wrong material id: %d", Info().c_str(), i, mesh->mMaterialIndex);

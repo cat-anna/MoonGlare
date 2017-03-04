@@ -5,7 +5,6 @@ namespace MoonGlare {
 namespace DataClasses {
 	namespace Models {
 		class iModel;
-		class iSimpleModel;
 		using ModelPtr = std::shared_ptr<iModel>;
 	}
 	using Models::ModelPtr;
@@ -13,6 +12,5 @@ namespace DataClasses {
 } //namespace MoonGlare 
 
 using MoonGlare::DataClasses::Models::iModel;
-using MoonGlare::DataClasses::Models::iSimpleModel;
 
 #endif // NFMODELSH 

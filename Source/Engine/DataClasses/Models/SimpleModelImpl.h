@@ -12,8 +12,8 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
-class SimpleModelImpl : public iSimpleModel {
-	SPACERTTI_DECLARE_STATIC_CLASS(SimpleModelImpl, iSimpleModel);
+class SimpleModelImpl : public iModel {
+	SPACERTTI_DECLARE_STATIC_CLASS(SimpleModelImpl, iModel);
 public:
 	SimpleModelImpl(const string& Name);
  	virtual ~SimpleModelImpl();
