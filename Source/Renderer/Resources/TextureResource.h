@@ -33,6 +33,8 @@ public:
 		bool CanAllocate = true);
 
 	TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
+
+	emath::usvec2 GetSize(TextureResourceHandle h) const;
 private: 
 	template<typename T>
 	using Array = std::array<T, Conf::Limit>;
@@ -41,6 +43,7 @@ private:
 	Bitmap m_AllocationBitmap;
 	Array<TextureHandle> m_GLHandle;
 	//Array<Asset::FileHash> m_SourceHash;
+	Array<emath::usvec2> m_TextureSize;
 	ResourceManager *m_ResourceManager = nullptr;
 	TextureLoader *m_TexureLoader = nullptr;
 	const Configuration::Texture *m_Settings = nullptr;

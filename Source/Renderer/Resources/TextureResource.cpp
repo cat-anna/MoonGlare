@@ -142,6 +142,13 @@ bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string
 	return true;
 }
 
+emath::usvec2 TextureResource::GetSize(TextureResourceHandle h) const {
+	if (!h)
+		return {};
+
+	return m_TextureSize[h.m_Index];
+}
+
 //---------------------------------------------------------------------------------------
 
 } //namespace MoonGlare::Renderer::Resources 

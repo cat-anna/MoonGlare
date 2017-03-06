@@ -97,7 +97,7 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
 
 	out.m_PixelType = PixelType::UnsignedByte;
 	out.m_Pixels = FreeImage_GetBits(dib);
-	out.m_PixelSize = emath::ivec2(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib));
+	out.m_PixelSize = emath::usvec2(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib));
 	out.m_PixelsByteSize = out.m_PixelSize[0] * out.m_PixelSize[1] * (FreeImage_GetBPP(dib) / 8);
 
 	out.m_ImageMemory = ImageUniquePtr((void*)dib, &DibDeallocator);
