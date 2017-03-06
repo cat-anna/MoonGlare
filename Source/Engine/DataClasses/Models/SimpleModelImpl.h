@@ -22,8 +22,9 @@ public:
 	virtual bool LoadFromXML(const xml_node Node) override;
 protected:
 	bool DoLoadModel(const std::string &Name);
-	bool DoLoadMaterials(const aiScene* scene);
 	bool DoLoadMeshes(const aiScene* scene);
+
+	bool LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout);
 private: 
 };
 

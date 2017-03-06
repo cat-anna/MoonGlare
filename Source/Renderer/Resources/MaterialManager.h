@@ -5,17 +5,19 @@
 
 #include "../Material.h"
 
+#include "MaterialBuilder.h"
+
 namespace MoonGlare::Renderer::Resources {
 
-class 
-	alignas(16) 
-	MaterialManager final {
+class alignas(16) MaterialManager final {
 	using ThisClass = MaterialManager;
 	using Conf = Configuration::Material;
 	using ConfRes = Configuration::Resources;
 public:
 	void Initialize(ResourceManager* Owner);
 	void Finalize();
+
+	ResourceManager* GetResourceManager() { return m_ResourceManager; }
 
 	Material* GetMaterial(MaterialResourceHandle out);
 
@@ -24,6 +26,21 @@ public:
 
 	//bool Allocate(Frame *frame, MaterialResourceHandle &out);
 
+	MaterialBuilder GetMaterialBuilder(MaterialResourceHandle &h, bool AllowAllocation = false) {
+		if (AllowAllocation && h.m_TmpGuard != h.GuardValue) {
+			if (!Allocate(h)) {
+				RendererAssert(false);//TODO:
+			}
+		}
+
+		RendererAssert(h.m_TmpGuard == h.GuardValue);
+		RendererAssert(h.m_Index < Conf::Limit);
+
+		return MaterialBuilder {
+			&m_Materials[h.m_Index],
+			this,
+		};
+	}
 private: 
 	template<typename T>
 	using Array = std::array<T, Conf::Limit>;

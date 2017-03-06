@@ -23,7 +23,7 @@ public:
 	FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const override;
 
 	float GetHeight() const { return (float)m_BFD.CharHeight; }
-	const TextureFile& GetTexture() const { return m_Texture; }
+//	const TextureFile& GetTexture() const { return m_Texture; }
 
 protected:
 	class cBFDHeader {
@@ -37,7 +37,9 @@ protected:
 		unsigned char BeginingKey, KeyWidths[256];
 	};
 
-	TextureFile m_Texture;
+	Renderer::MaterialResourceHandle m_Material{ 0 };
+
+//	TextureFile m_Texture;
 	cBFDHeader m_BFD;
 	string m_TextureFile;
 	string m_BfdFile;

@@ -215,10 +215,11 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 		//TODO:??
 	}
 
-	if (!GetFileSystem()->OpenTexture(entry.m_Texture, pe.m_TextureURI)) {
-		AddLog(Error, "Unable to load texture file for panel!");
-		return false;
-	}
+	//TODO: Texture loading in PanelComponent
+	//if (!GetFileSystem()->OpenTexture(entry.m_Texture, pe.m_TextureURI)) {
+	//	AddLog(Error, "Unable to load texture file for panel!");
+	//	return false;
+	//}
 	
 	entry.m_Border = pe.m_Border;
 	entry.m_Color = pe.m_Color;

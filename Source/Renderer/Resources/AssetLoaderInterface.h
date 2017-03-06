@@ -43,7 +43,7 @@ public:
 		unsigned m_PixelsByteSize;
 		PixelType m_PixelType;
 		PixelFormat m_PixelFormat;
-		emath::ivec2 m_PixelSize;
+		emath::usvec2 m_PixelSize;
 		ImageUniquePtr m_ImageMemory;
 	};
 

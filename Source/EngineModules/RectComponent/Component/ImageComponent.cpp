@@ -150,7 +150,8 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
 		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
+		shb.SetMaterial(item.m_Animation->GetMaterial(), key);
+		//Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
 		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = vao;
 
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);

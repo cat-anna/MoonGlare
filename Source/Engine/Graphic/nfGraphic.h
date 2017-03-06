@@ -53,8 +53,6 @@ namespace Graphic {
 
 	template <GLenum TEX_MODE> class Texture_template;
 	typedef Texture_template<GL_TEXTURE_2D> Texture;
-	typedef Texture_template<GL_TEXTURE_3D> Texture3d;
-	typedef Texture_template<GL_TEXTURE_RECTANGLE> RectangleTexture;
 
 	namespace WindowInput {
 		enum class Key : unsigned {

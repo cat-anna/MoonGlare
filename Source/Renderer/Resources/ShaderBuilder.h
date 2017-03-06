@@ -61,7 +61,7 @@ struct
 	}
 
 	void SetMaterial(MaterialResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
-		auto *mat = this->m_ResourceManager->GetMaterialManager()->GetMaterial(h);
+		auto *mat = this->m_ResourceManager->GetMaterialManager().GetMaterial(h);
 		if (!mat) {
 			//TODO: do sth
 			return;
@@ -123,7 +123,7 @@ struct
 	}
 
 	void SetMaterial(MaterialResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
-		auto *mat = this->m_ResourceManager->GetMaterialManager()->GetMaterial(h);
+		auto *mat = this->m_ResourceManager->GetMaterialManager().GetMaterial(h);
 		if (!mat) {
 			//TODO: do sth
 			return;

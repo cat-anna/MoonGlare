@@ -306,7 +306,7 @@ bool DirectAnimationComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		uri += strrchr(Path.data, '\\') + 1;
 
 		auto mat = &entry.m_Materials[i];
-		GetFileSystem()->OpenTexture(mat->Texture, uri, DataPath::URI);
+	//	GetFileSystem()->OpenTexture(mat->Texture, uri, DataPath::URI);
 	//	mat->SetRepeatEdges();
 	}
 

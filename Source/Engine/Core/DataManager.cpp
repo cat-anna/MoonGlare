@@ -45,7 +45,6 @@ Manager::Manager() : cRootClass() {
 	OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 
 	m_Modules.reserve(StaticSettings::DataManager::MaxLoadableModules);
-	new DataClasses::Texture();
 	m_StringTables = std::make_unique<DataClasses::StringTable>();
 
 //	AddLog(FixMe, "DataManager is not threadsafe");
@@ -55,8 +54,6 @@ Manager::~Manager() {
 	Finalize();
 
 	m_StringTables.reset();
-
-	DataClasses::Texture::DeleteInstance();
 }
 
 //------------------------------------------------------------------------------------------

@@ -10,11 +10,9 @@
 namespace MoonGlare {
 namespace DataClasses {
 
-class Texture : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(Texture, cRootClass)
+class Texture {
 public:
-	Texture();
-	~Texture();
+	Texture() = delete;
 
 	enum class BPP {
 		RGB = 24,

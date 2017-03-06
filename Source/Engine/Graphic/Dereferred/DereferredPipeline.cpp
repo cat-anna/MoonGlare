@@ -188,7 +188,6 @@ bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 
 		vao.Bind();
 		for (auto &mesh : meshes) {
-			const auto *mat = mesh.Material;
 			if (mesh.m_Material.m_TmpGuard == mesh.m_Material.GuardValue) {
 				auto matptr = res->GetMaterialManager().GetMaterial(mesh.m_Material);
 				if (matptr) {
@@ -200,16 +199,6 @@ bool DereferredPipeline::RenderGeometry(RenderInput *ri, cRenderDevice& dev) {
 					she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
 				}
 			} else {
-				if (mat) {
-					auto &m = mat->GetMaterial();
-					she.Set<Uniform::DiffuseColor>(emath::MathCast<emath::fvec3>(m.BackColor));
-					m.Texture.Bind();
-				} else {
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, 0);
-					she.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-				}
-				
 				//if (mat) 
 				//	dev.Bind(mat->GetMaterial());
 				//else

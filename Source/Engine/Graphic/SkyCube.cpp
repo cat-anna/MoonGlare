@@ -27,23 +27,24 @@ bool SkyCube::LoadMeta(const xml_node node, FileSystem::DirectoryReader &reader)
 	//have to be consistent with Faces order
 	static const char *Names[] ={ "Left", "Right", "Front", "Back", "Top", "Bottom" };
 
-	for (unsigned i = 0; i < Faces::MaxValue; ++i) {
-		const char *file = node.child(Names[i]).text().as_string();
-		if (!file) {
-			AddLogf(Warning, "There is no texture file for sky cube face '%s'", Names[i]);
-			continue;
-		}
-		FileSystem::TextureFile tex;
-		if (!reader.OpenTexture(tex, file)) {
-			m_Textures[i].Free();
-			AddLogf(Error, "An error has occur during loading texture '%s' for sky cube face '%s'", file, Names[i]);
-			continue;
-		}
-		if (tex) {
-			tex->swap(m_Textures[i]);
-		}
-	}
-	return true;
+	//for (unsigned i = 0; i < Faces::MaxValue; ++i) {
+	//	const char *file = node.child(Names[i]).text().as_string();
+	//	if (!file) {
+	//		AddLogf(Warning, "There is no texture file for sky cube face '%s'", Names[i]);
+	//		continue;
+	//	}
+	//	FileSystem::TextureFile tex;
+	//	if (!reader.OpenTexture(tex, file)) {
+	//		m_Textures[i].Free();
+	//		AddLogf(Error, "An error has occur during loading texture '%s' for sky cube face '%s'", file, Names[i]);
+	//		continue;
+	//	}
+	//	if (tex) {
+	//		tex->swap(m_Textures[i]);
+	//	}
+	//}
+	//return true;
+	return false;
 }
 
 //---------------------------------------------------------------------------------------

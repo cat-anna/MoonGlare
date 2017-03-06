@@ -15,10 +15,7 @@
 using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
 using ModelResPtr = DataClasses::ModelPtr;
 
-//#include "Paths/iPath.h"
-//#include "Paths/PathRegister.h"
-
-#include "Models/nModels.h"
+#include "Models/iModel.h"
 
 #include "Texture.h"
 #include "StringTable.h"

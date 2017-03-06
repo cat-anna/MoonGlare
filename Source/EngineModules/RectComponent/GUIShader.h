@@ -28,6 +28,8 @@ struct GUIShaderDescriptor {
 		PanelSize,
 		PanelAspect,
 		MaxValue,
+
+		DiffuseColor = BaseColor,
 	};
 	enum class Sampler {
 		DiffuseMap,

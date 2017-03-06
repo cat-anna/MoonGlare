@@ -25,23 +25,22 @@ public:
 	AnimationInstance CreateInstance();
 	void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
 
-	void Draw(unsigned Frame) const;
-
 	const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
-	const TextureFile& GetTexture() const { return m_Texture; }
+	Renderer::MaterialResourceHandle GetMaterial()const { return m_Material; }
 
 	DefineRefGetterConst(FrameSize, math::vec2);
 protected:
+	Renderer::MaterialResourceHandle m_Material{ 0 };
+
+	math::fvec2 m_TextureSize;
 	string m_Name;
 	float m_Speed;
-	TextureFile m_Texture;
 	unsigned m_StartFrame, m_EndFrame;
 	math::vec2 m_FrameSize;
 	math::uvec2 m_FrameSpacing;
 	math::uvec2 m_FrameCount;
 	std::unique_ptr<Graphic::VAO[]> m_FrameTable;
 	bool m_DrawEnabled;
-
 	bool GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount);
 };
 

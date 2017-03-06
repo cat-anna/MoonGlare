@@ -6,9 +6,10 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include "SimpleModelImpl.h"
-#include "Core/Engine.h"
 
+#include "Core/Engine.h"
 #include <Renderer/Renderer.h>
+#include <Renderer/Resources/ResourceManager.h>
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -24,7 +25,6 @@ SimpleModelImpl::~SimpleModelImpl() {
 }
 
 //------------------------------------------------------------------------
-
 
 bool SimpleModelImpl::Load(const std::string &Name) {
 
@@ -79,11 +79,6 @@ bool SimpleModelImpl::DoLoadModel(const std::string & fName) {
 		return false;
 	}
 
-	if (!DoLoadMaterials(scene)) {
-		AddLogf(Error, "Unable to load model materials: %s", GetName().c_str());
-		return false;
-	}
-
 	if (!DoLoadMeshes(scene)) {
 		AddLogf(Error, "Unable to load model meshes: %s", GetName().c_str());
 		return false;
@@ -92,19 +87,62 @@ bool SimpleModelImpl::DoLoadModel(const std::string & fName) {
 	return true;
 }
 
-bool SimpleModelImpl::DoLoadMaterials(const aiScene* scene) {
-	auto *e = Core::GetEngine();
-	auto *rf = e->GetWorld()->GetRendererFacade();
-	auto *res = rf->GetResourceManager();
-
-	for (unsigned i = 0; i < scene->mNumMaterials; i++) {
-		const aiMaterial* pMaterial = scene->mMaterials[i];
-		if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) <= 0)
-			continue;
-		m_Materials.push_back(std::make_unique<ModelMaterial>(this, pMaterial, scene, res));
+bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
+	matout.Reset();
+	if (index >= scene->mNumMaterials) {
+		AddLogf(Error, "Invalid material index");
+		return false;
 	}
 
-	return true;
+	const aiMaterial* aiMat = scene->mMaterials[index];
+	if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) <= 0) {
+		AddLogf(Error, "No diffuse component");
+		return false;
+	}
+
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *resmgr = rf->GetResourceManager();
+	MoonGlare::Renderer::Material *material = nullptr;
+
+	aiString Path;
+	if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
+		AddLogf(Error, "Unable to load material");
+		return false;
+	}
+
+	if (Path.data[0] == '*') {
+		////internal texture
+		//auto idx = strtoul(Path.data + 1, nullptr, 10);
+		//if (idx >= Scene->mNumTextures) {
+		//	AddLogf(Error, "Invalid internal texture id!");
+		//	return;
+		//}
+		//
+		//auto texptr = Scene->mTextures[idx];
+		//
+		//if (texptr->mHeight == 0) {
+		//	//raw image bytes
+		//	if (!DataClasses::Texture::LoadTexture(m_Material.Texture, (char*)texptr->pcData, texptr->mWidth)) {
+		//		AddLogf(Error, "Texture load failed!");
+		//	}
+		//}
+		//else {
+		//	AddLogf(Error, "NOT SUPPORTED!");
+		//
+		//}
+		AddLogf(Error, "inner texture not supported yet");
+		return false;
+	}
+
+	{
+		FileSystem::DirectoryReader reader(DataPath::Models, GetName());
+		auto fpath = reader.translate(Path.data);
+
+		auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(matout, true);
+		matb.SetDiffuseMap("file://" + fpath);
+		matb.SetDiffuseColor(emath::fvec4(1));
+	}
 }
 
 bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
@@ -115,11 +153,8 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 
 	unsigned NumVertices = 0, NumIndices = 0;
 	m_Meshes.resize(scene->mNumMeshes);
-	//	DebugLogf("[%s]: model has %d meshes", Info().c_str(), scene->mNumMeshes);
-	// Count the number of vertices and indices
 	for (unsigned i = 0; i < m_Meshes.size(); i++) {
 		MeshData &meshd = m_Meshes[i];
-		//m_Meshes[i].MaterialIndex = pScene->mMeshes[i]->mMaterialIndex;
 		meshd.NumIndices = scene->mMeshes[i]->mNumFaces * 3;
 		meshd.BaseVertex = NumVertices;
 		meshd.BaseIndex = NumIndices;
@@ -134,18 +169,20 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 	texCords.reserve(NumVertices);
 	indices.reserve(NumIndices);
 
+	std::vector<Renderer::MaterialResourceHandle> Materials;
+	Materials.resize(scene->mNumMaterials, {});
+
 	for (unsigned i = 0; i < m_Meshes.size(); ++i) {
 		const aiMesh* mesh = scene->mMeshes[i];
 		MeshData& meshd = m_Meshes[i];
-		if (m_Materials.size() > mesh->mMaterialIndex) {
-			meshd.Material = m_Materials[mesh->mMaterialIndex].get();
-			meshd.m_Material = meshd.Material->GetMaterialHandle();
-		}
-		else {
-			//if (!m_Materials.empty())
-			//	AddLogf(Warning, "Model [%s] has mesh[id:%d] with wrong material id: %d", Info().c_str(), i, mesh->mMaterialIndex);
-			meshd.Material = 0;
-		}
+
+		auto matidx = mesh->mMaterialIndex;
+		if (!Materials[matidx]) {
+			if (!LoadMaterial(matidx, scene, Materials[matidx])) {
+				DebugLogf(Warning, "Failed to load matertial index %u", matidx);
+			}
+		} 
+		meshd.m_Material = Materials[matidx];
 
 		for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
 			aiVector3D &vertex = mesh->mVertices[j];
@@ -172,10 +209,6 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 			}
 		}
 	}
-
-//	if (m_ShapeConstructor) {
-//		m_ShapeConstructor->AddTriangles(verticles, indices);
-//	}
 
 	m_VAO.DelayInit(verticles, texCords, normals, indices);
 

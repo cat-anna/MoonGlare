@@ -290,35 +290,6 @@ bool MoonGlareFileSystem::OpenXML(XMLFile &doc, const string& FileName, DataPath
 	return static_cast<bool>(result);
 }
 
-//-------------------------------------------------------------------------------------------------
-
-bool MoonGlareFileSystem::OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings) {
-	StarVFS::ByteTable data;
-	if (!OpenFile(FileName, origin, data)) {
-		//already logged, no need for more
-		return false;
-	}
-	if (DataClasses::Texture::LoadTexture(tex, (char*)data.get(), data.byte_size(), ApplyDefaultSettings)) {
-		return true;
-	}
-	return false;
-}
-
-bool MoonGlareFileSystem::OpenTexture(TextureFile &tex, const string& FileName, DataPath origin, bool ApplyDefaultSettings) {
-	StarVFS::ByteTable data;
-	if (!OpenFile(FileName, origin, data)) {
-		tex.reset();
-		//already logged, no need for more
-		return false;
-	}
-	tex = std::make_unique<Graphic::Texture>();
-	if (DataClasses::Texture::LoadTexture(*tex.get(), (char*)data.get(), data.byte_size(), ApplyDefaultSettings)) {
-		return true;
-	}
-	tex.reset();
-	return false;
-}
-
 //----------------------------------------------------------------------------------
 
 void MoonGlareFileSystem::DumpStructure(std::ostream &out) const {

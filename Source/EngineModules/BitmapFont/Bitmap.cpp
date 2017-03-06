@@ -10,11 +10,14 @@
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
 
+#include "Core/Engine.h"
+
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/RenderInput.h>
 
 #include <Renderer/Frame.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
@@ -57,15 +60,27 @@ bool BitmapFont::DoInitialize(){
 	}
 	auto root = meta->document_element();
 
-	if (!GetFileSystem()->OpenTexture(m_Texture, root.child("Bitmap").text().as_string(ERROR_STR), DataPath::Fonts, false)) {
-		AddLog(Error, "Unable to load texture for bitmap font: " << m_TextureFile);
-		return false;
-	}
+	FileSystem::DirectoryReader reader(DataPath::Fonts);
+	auto fpath = reader.translate(root.child("Bitmap").text().as_string(ERROR_STR));
 
-	auto &texref = m_Texture;
-	Graphic::GetRenderDevice()->RequestContextManip([&texref] () {
-		texref->SetNearestFiltering();
-	});
+	//m_Material = 
+
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *resmgr = rf->GetResourceManager();
+
+	auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
+	matb.SetDiffuseColor(emath::fvec4(1));
+	matb.SetDiffuseMap("file://" + fpath);
+
+	//if (!GetFileSystem()->OpenTexture(m_Texture, root.child("Bitmap").text().as_string(ERROR_STR), DataPath::Fonts, false)) {
+	//	AddLog(Error, "Unable to load texture for bitmap font: " << m_TextureFile);
+	//	return false;
+	//}
+	//auto &texref = m_Texture;
+	//Graphic::GetRenderDevice()->RequestContextManip([&texref] () {
+	//	texref->SetNearestFiltering();
+	//});
 
 	StarVFS::ByteTable data;
 	if (!GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts, data)) {
@@ -200,7 +215,16 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	using namespace ::MoonGlare::Renderer;
 	auto key = Commands::CommandKey();
 
-	q.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = m_Texture->Handle();
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *resmgr = rf->GetResourceManager();
+
+	auto *mat = resmgr->GetMaterialManager().GetMaterial(m_Material);
+
+	auto texarg = q.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
+	texarg->m_Handle = mat->m_DiffuseMap;
+	texarg->m_HandleArray = resmgr->GetTextureResource().GetHandleArrayBase();
+		
 	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 	arg->m_NumIndices = IndexesCount;
 	arg->m_IndexValueType = Renderer::GLTypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;

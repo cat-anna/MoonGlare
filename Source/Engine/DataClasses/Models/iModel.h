@@ -19,7 +19,6 @@ public:
 	virtual ~iModel();
 
 	struct MeshData : public Graphic::VAO::MeshData {
-		ModelMaterial *Material = nullptr;
 		Renderer::MaterialResourceHandle m_Material{ 0 };
 	};
 	typedef std::vector<MeshData> MeshDataVector;
@@ -31,19 +30,16 @@ public:
 //	virtual const Physics::PhysicalProperties* GetPhysicalProperties() const;
 	Graphic::VAO& GetVAO() { return m_VAO; }
 	MeshDataVector& GetMeshVector() { return m_Meshes; }
-	MaterialVector& GetMaterialVector() { return m_Materials; }
 
 	virtual bool LoadFromXML(const xml_node Node) {
 		return true;
 	}
 protected:
-	MaterialVector m_Materials;
 	MeshDataVector m_Meshes;
 	Graphic::VAO m_VAO;
 
 //	Physics::PhysicalProperties m_PhysicalProperties;
 
-	virtual bool DoInitialize() override;
 	virtual bool DoFinalize() override;
 };
 

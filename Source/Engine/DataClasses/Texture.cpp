@@ -13,15 +13,6 @@
 namespace MoonGlare {
 namespace DataClasses {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Texture)
-
-Texture::Texture() : BaseClass() {
-	SetThisAsInstance();
-}
-
-Texture::~Texture() {
-}
-
 //----------------------------------------------------------------------------------
 
 Texture::SharedImage Texture::AllocateImage(const math::uvec2& size, BPP bpp) {

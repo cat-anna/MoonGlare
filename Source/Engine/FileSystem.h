@@ -77,10 +77,6 @@ public:
 	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin = DataPath::URI);
 	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
 	bool OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin = DataPath::URI);
-	/** Open texture */
-	bool OpenTexture(TextureFile &tex, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true);
-	/** Open texture */
-	bool OpenTexture(Graphic::Texture &tex, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true);
 	
 	bool OpenXML(XMLFile &doc, string ResName, const string& FileName, DataPath origin = DataPath::URI) {
 		return OpenXML(doc, (ResName += '/') += FileName, origin);
@@ -88,12 +84,7 @@ public:
 	bool OpenFile(string ResName, const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
 		return OpenFile((ResName += '/') += FileName, origin, FileData);
 	}
-	bool OpenTexture(TextureFile &tex, string ResName, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true) {
-		return OpenTexture(tex, (ResName += '/') += FileName, origin, ApplyDefaultSettings);
-	}
-	bool OpenTexture(Graphic::Texture &tex, string ResName, const string& FileName, DataPath origin = DataPath::URI, bool ApplyDefaultSettings = true) {
-		return OpenTexture(tex, (ResName += '/') += FileName, origin, ApplyDefaultSettings);
-	}
+
 	bool Initialize();
 	bool Finalize();
 
@@ -124,7 +115,7 @@ class DirectoryReader : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
 public:
 	DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
-	DirectoryReader(DataPath origin, const string& OwnerName) : m_origin(origin), m_OwnerName(OwnerName) { }
+	DirectoryReader(DataPath origin, const string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
 
 	bool OpenXML(XMLFile &xml, const string& FileName) {
 		if (m_OwnerName.empty())
@@ -138,21 +129,13 @@ public:
 		else
 			return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
 	}
-	bool OpenTexture(TextureFile &tex, const string& FileName, bool ApplyDefaultSettings = true) {
-		if (m_OwnerName.empty())
-			return MoonGlareFileSystem::Instance()->OpenTexture(tex, FileName, m_origin, ApplyDefaultSettings);
-		else
-			return MoonGlareFileSystem::Instance()->OpenTexture(tex, (m_OwnerName + '/') += FileName, m_origin, ApplyDefaultSettings);
-	}
-	bool OpenTexture(Graphic::Texture &tex, const string& FileName, bool ApplyDefaultSettings = true) {
-		if (m_OwnerName.empty())
-			return MoonGlareFileSystem::Instance()->OpenTexture(tex, FileName, m_origin, ApplyDefaultSettings);
-		else
-			return MoonGlareFileSystem::Instance()->OpenTexture(tex, (m_OwnerName + '/') += FileName, m_origin, ApplyDefaultSettings);
-	}
+	
 	std::string translate(const string& FileName) {
 		std::string out;
-		MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
+		if (m_OwnerName.empty())
+			MoonGlareFileSystem::Instance()->TranslateFileName(FileName, out, m_origin);
+		else
+			MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
 		return out;
 	}
 protected:

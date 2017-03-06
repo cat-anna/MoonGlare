@@ -9,6 +9,10 @@
 
 #include "SimpleModelConstructor.h"
 
+#include "Core/Engine.h"
+#include <Renderer/Renderer.h>
+#include <Renderer/Resources/ResourceManager.h>
+
 namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
@@ -55,19 +59,41 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 	Index.reserve(TotalCount * 3);
 
 	auto &MeshVec = esm->GetMeshVector();
-	auto &MaterialVec = esm->GetMaterialVector();
+
+	std::vector<Renderer::MaterialResourceHandle> Materials;
+	Materials.resize(m_Materials.size(), {});
+
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *resmgr = rf->GetResourceManager();
 
 	for(auto &i : m_Meshes) {
 		//int matid = -1;
-		ModelMaterial *mat = 0;
-		if(i->GetMaterialID() != -1){
-			const Material &pmat = *m_Materials[i->GetMaterialID()];
-			auto umat = std::make_unique<ModelMaterial>(esm.get(), pmat.m_Edges, pmat.m_TextureURI);
-			mat = umat.get();
+		Renderer::MaterialResourceHandle mathandle{};
+		auto matid = i->GetMaterialID();
+		if(matid != -1){
+			if (!Materials[matid]) {
+				const auto &pmat = m_Materials[matid];
 
-			MaterialVec.push_back(std::move(umat));
-			//auto &m = //Model *Owner, const xml_node MaterialDef, DataPath MaterialOrigin, const string &OriginName
-			//matid = esm->AddMaterial(mat.GetMaterialNode(), ModelOrigin, m_Name);
+				auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(Materials[matid], true);
+
+				auto cfg = Renderer::Configuration::TextureLoad::Default();
+				switch (::Space::Utils::MakeHash32(pmat->m_Edges.c_str())) {
+				case "Repeat"_Hash32:
+					cfg.m_Edges = Renderer::Configuration::Texture::Edges::Repeat;
+					break;
+				case "Clamp"_Hash32:
+					cfg.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+					break;
+				default:
+				case "Default"_Hash32:
+					cfg.m_Edges = Renderer::Configuration::Texture::Edges::Default;
+					break;
+				}
+				matb.SetDiffuseMap(pmat->m_TextureURI, cfg);
+				matb.SetDiffuseColor(emath::fvec4(1));
+			}
+			mathandle = Materials[matid];
 		}
 
 		iModel::MeshData md;
@@ -75,10 +101,9 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 		md.BaseVertex = Index.size();
 		md.ElementMode = Graphic::Flags::fTriangles;
 		md.NumIndices = i->GetVerticles().size();
-		md.Material = mat;
+		md.m_Material = mathandle;
 		MeshVec.push_back(md);
 
-		//esm->AddMesh(matid, 0/*Verticles.size()*/, Index.size(), i.GetVerticles().size());
 		for(int j = 0, k = i->GetVerticles().size(); j < k; ++j) {
 			Index.push_back(Verticles.size());
 			Verticles.push_back(i->GetVerticles()[j]);
@@ -108,7 +133,7 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 		};
 
 		out.m_Shape = std::make_unique<TriangleMeshShape>(mesh.release(), true);
-		//		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
+//		Physics::ShapeConstructorPtr c(new Physics::TriangleMeshShapeConstructor());
 //		c->AddTriangles(Verticles, Index);
 //		request.ShapeConstructor->swap(c);
 	}	

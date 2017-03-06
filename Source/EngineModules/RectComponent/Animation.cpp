@@ -10,6 +10,13 @@
 #include "nfGUI.h"
 #include "Animation.h"
 
+#include "Core/Engine.h"
+#include <Renderer/Frame.h>
+#include <Renderer/Renderer.h>
+#include <Renderer/RenderDevice.h>
+#include <Renderer/TextureRenderTask.h>
+#include <Renderer/Resources/ResourceManager.h>
+
 namespace MoonGlare {
 namespace GUI {
 
@@ -69,14 +76,19 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
 		m_StartFrame = m_EndFrame = 0;
 	}
 
-	if (!GetFileSystem()->OpenTexture(m_Texture, fileuri, DataPath::Texture, true)) {
-		AddLog(Error, "Unable to load texture file for animation!");
-		return false;
-	}
+	auto *e = Core::GetEngine();
+	auto *rf = e->GetWorld()->GetRendererFacade();
+	auto *resmgr = rf->GetResourceManager();
+
+	auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
+	matb.SetDiffuseColor(emath::fvec4(1));
+	matb.SetDiffuseMap(fileuri);
+	m_TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
+
 	if (Uniform) {
 		auto screen = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 		float Aspect = screen[0] / screen[1];
-		FrameSize = m_Texture->GetSize();
+		FrameSize = m_TextureSize;
 		FrameSize /= math::vec2(FrameStripCount);
 		FrameSize /= screen;
 		FrameSize.x *= Aspect;
@@ -84,7 +96,7 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
 		m_FrameSize = FrameSize;
 	} else {
 		if (FrameCount == 1 && (FrameSize[0] == 0 || FrameSize[1] == 0)) {
-			FrameSize = math::vec2(m_Texture->GetSize());
+			FrameSize = m_TextureSize;
 		}
 	}
 
@@ -105,7 +117,7 @@ bool Animation::GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount)
 	unsigned FrameCount = m_EndFrame - m_StartFrame + 1;
 	m_FrameTable.reset(new Graphic::VAO[FrameCount]);
 
-	math::vec2 texsize = m_Texture->GetSize();
+	math::vec2 texsize = m_TextureSize;
 
 	math::vec2 fu = math::vec2(1.0f) / FrameStripCount;
 
@@ -174,15 +186,14 @@ const Graphic::VAO& Animation::GetFrameVAO(unsigned Frame) const {
 	return m_FrameTable[Frame];
 }
 
-void Animation::Draw(unsigned Frame) const {
-	if (!m_DrawEnabled) return;
-	m_Texture->Bind();
-	auto &vao = GetFrameVAO(Frame);
-	vao.Bind();
-	vao.DrawElements(6, 0, 0, GL_TRIANGLES);
-	vao.UnBind();
-}
+//void Animation::Draw(unsigned Frame) const {
+//	if (!m_DrawEnabled) return;
+//	m_Texture->Bind();
+//	auto &vao = GetFrameVAO(Frame);
+//	vao.Bind();
+//	vao.DrawElements(6, 0, 0, GL_TRIANGLES);
+//	vao.UnBind();
+//}
 
 } //namespace GUI 
 } //namespace MoonGlare 
-

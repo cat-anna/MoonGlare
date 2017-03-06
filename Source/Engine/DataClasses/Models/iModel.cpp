@@ -15,7 +15,6 @@ SPACERTTI_IMPLEMENT_CLASS(iModel)
 
 iModel::iModel(const string& Name) :
 	BaseClass(Name), 
-	m_Materials(),
 	m_Meshes(),
 	m_VAO() {
 }
@@ -30,11 +29,6 @@ void iModel::DoRender(cRenderDevice &dev) const {
 	THROW_ASSERT(IsReady(), "Resource is not initialized!");
 	m_VAO.Bind();
 	for (auto &mesh : m_Meshes) {
-		const ModelMaterial *mat = mesh.Material;
-		//if (mat)
-		//	dev.Bind(mat->GetMaterial());
-		//else
-		//	dev.BindNullMaterial();
 		m_VAO.DrawElements(mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, mesh.ElementMode);
 	}
 	m_VAO.UnBind();
@@ -51,14 +45,9 @@ void iModel::DoRenderMesh(cRenderDevice &dev) const {
 
 //------------------------------------------------------------------------------------------------
 
-bool iModel::DoInitialize() {
-	return BaseClass::DoInitialize();
-}
-
 bool iModel::DoFinalize() {
 	m_VAO.Finalize();
 	m_Meshes.clear();
-	m_Materials.clear();
 	return BaseClass::DoFinalize();
 }
 
