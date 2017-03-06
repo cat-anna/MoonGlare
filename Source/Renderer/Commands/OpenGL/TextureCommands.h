@@ -150,10 +150,43 @@ struct TextureSettingsCommon {
 		glTexParameteri(TEXTUREMODE, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		//glTexParameteri(TEX_MODE, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	}
+
+	static void SetupEdges(Configuration::Texture::Edges Edges) {
+		switch (Edges) {
+		case Configuration::Texture::Edges::Repeat:
+			SetRepeatEdges();
+			break;
+		default:
+			AddLogf(Error, "Unknown edges mode!");
+		case Configuration::Texture::Edges::Default:
+		case Configuration::Texture::Edges::Clamp:
+			SetClampToEdges();
+		}
+	}
+
+	static void SetupFiltering(Configuration::Texture::Filtering Filtering) {
+		switch (Filtering) {
+		case Configuration::Texture::Filtering::Bilinear:
+			SetBilinearFiltering();
+			break;
+		case Configuration::Texture::Filtering::Trilinear:
+			SetTrilinearFiltering();
+			break;
+			break;
+		case Configuration::Texture::Filtering::Nearest:
+			SetNearestFiltering();
+		default:
+			AddLogf(Error, "Unknown filtering mode!");
+		case Configuration::Texture::Filtering::Default:
+		case Configuration::Texture::Filtering::Linear:
+			SetLinearFiltering();
+		}
+	}
 };
 
 struct Texture2DSetFilteringArgument;
 struct Texture2DSetEdgesArgument;
+struct Texture2DSetupArgument;
 }
 
 struct detail::Texture2DSetFilteringArgument {
@@ -162,23 +195,7 @@ struct detail::Texture2DSetFilteringArgument {
 	Configuration::Texture::Filtering m_Filtering;
 
 	void Run() {
-		switch (m_Filtering) {
-		case Configuration::Texture::Filtering::Bilinear:
-			Common::SetBilinearFiltering();
-			break;
-		case Configuration::Texture::Filtering::Trilinear:
-			Common::SetTrilinearFiltering();
-			break;
-		case Configuration::Texture::Filtering::Linear:
-			Common::SetLinearFiltering();
-			break;
-		case Configuration::Texture::Filtering::Nearest:
-			Common::SetNearestFiltering();
-			break;
-		default:
-			AddLogf(Error, "Unknown filtering mode!");
-			Common::SetLinearFiltering();
-		}
+		Common::SetupFiltering(m_Filtering);
 	}
 };
 using Texture2DSetFiltering = RunnableCommandTemplate<detail::Texture2DSetFilteringArgument>;
@@ -189,19 +206,21 @@ struct detail::Texture2DSetEdgesArgument {
 	Configuration::Texture::Edges m_Edges;
 
 	void Run() {
-		switch (m_Edges) {
-		case Configuration::Texture::Edges::Repeat:
-			Common::SetRepeatEdges();
-			break;
-		case Configuration::Texture::Edges::Clamp:
-			Common::SetClampToEdges();
-			break;
-		default:
-			AddLogf(Error, "Unknown edges mode!");
-			Common::SetClampToEdges();
-		}
+		Common::SetupEdges(m_Edges);
 	}
 };
 using Texture2DSetEdges = RunnableCommandTemplate<detail::Texture2DSetEdgesArgument>;
+
+struct detail::Texture2DSetupArgument {
+	using Common = TextureSettingsCommon<GL_TEXTURE_2D>;
+
+	Configuration::TextureLoad m_Config;
+
+	void Run() {
+		Common::SetupFiltering(m_Config.m_Filtering);
+		Common::SetupEdges(m_Config.m_Edges);
+	}
+};
+using Texture2DSetup = RunnableCommandTemplate<detail::Texture2DSetupArgument>;
 
 } //namespace MoonGlare::Renderer::Commands

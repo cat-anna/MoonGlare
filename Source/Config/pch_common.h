@@ -94,11 +94,19 @@ namespace emath {
 	using ivec3 = Eigen::Array3i;
 	using ivec4 = Eigen::Array4i;
 
+	using usvec2 = Eigen::Array<uint16_t, 2, 1>;
+	using usvec3 = Eigen::Array<uint16_t, 3, 1>;
+	using usvec4 = Eigen::Array<uint16_t, 4, 1>;
+
 	using fmat3 = Eigen::Matrix3f;
 	using fmat4 = Eigen::Matrix4f;
 
+
 	template<class T, class S>
-	T MathCast(const S& s);
+	T MathCast(const S& s) {
+		static_assert(std::is_same<int, int>::value, "invalid cast!");
+		throw false;
+	}
 
 	template<>
 	inline fmat4 MathCast(const glm::mat4 &s) {
@@ -128,6 +136,8 @@ namespace emath {
 	GEN(glm::fvec, fvec);
 	GEN(glm::ivec, ivec);
 	GEN(glm::fvec, ivec);
+	GEN(usvec, ivec);
+	GEN(usvec, glm::fvec);
 #pragma warning ( pop )
 
 #undef GEN

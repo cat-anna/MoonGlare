@@ -28,7 +28,9 @@ public:
 	bool Allocate(Frame *frame, TextureResourceHandle &out);
 	void Release(Frame *frame, TextureResourceHandle h);
 
-	bool LoadTexture(TextureResourceHandle &out, const std::string &fPath, bool CanAllocate = true);
+	bool LoadTexture(TextureResourceHandle &out, const std::string &fPath, 
+		Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
+		bool CanAllocate = true);
 
 	TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 private: 

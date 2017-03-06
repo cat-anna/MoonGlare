@@ -25,6 +25,7 @@ void TextureResource::Initialize(ResourceManager *Owner, TextureLoader *TexLoade
 	m_Settings = &Owner->GetConfiguration()->m_Texture;
 
 	m_GLHandle.fill(InvalidTextureHandle);
+	m_TextureSize.fill(emath::usvec2(0));
 	m_AllocationBitmap.ClearAllocation();
 
 	if (Conf::Initial > 0) {
@@ -90,7 +91,7 @@ void TextureResource::Release(Frame *frame, TextureResourceHandle h) {
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string &fPath, bool CanAllocate) {
+bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate) {
 	if (!out && !CanAllocate) {
 		return false;
 	}
@@ -126,8 +127,16 @@ bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string
 		return false;
 	}
 
-	q.MakeCommand<Commands::Texture2DSetFiltering>(m_Settings->m_Filtering);
-	q.MakeCommand<Commands::Texture2DSetEdges>(Conf::Edges::Repeat);
+	m_TextureSize[out.m_Index] = pixels->data.m_PixelSize;
+	//if (config.m_Edges == Conf::Edges::Default) {
+	//	config.m_Edges = Conf::Edges::Repeat;
+	//}
+
+	if (config.m_Filtering == Conf::Filtering::Default) {
+		config.m_Filtering = m_Settings->m_Filtering;
+	}
+
+	q.MakeCommand<Commands::Texture2DSetup>(config);
 
 	dev->Submit(qhandle);
 	return true;

@@ -83,18 +83,33 @@ struct Texture {
 		Trilinear,
 
 		MaxValue,
-		Default = Linear,
+		Default = MaxValue,
 	};
 
 	enum class Edges {
 		Repeat,
 		Clamp,
+		MaxValue,
+		Default = MaxValue,
 	};
 
 	Filtering m_Filtering;
 
 	void ResetToDefault() {
-		m_Filtering = Filtering::Default;
+		m_Filtering = Filtering::Bilinear;
+	}
+};
+
+struct TextureLoad {
+	using Conf = Texture;
+	Conf::Filtering m_Filtering;
+	Conf::Edges m_Edges;
+
+	static TextureLoad Default() {
+		return {
+			Conf::Filtering::Default,
+			Conf::Edges::Default,
+		};
 	}
 };
 
