@@ -169,7 +169,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 
 		shb.Set<Uniform::Border>(item.m_Border, key);
 
-		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
+//		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
 		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
 
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);

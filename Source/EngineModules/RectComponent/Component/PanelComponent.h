@@ -54,7 +54,7 @@ struct PanelComponentEntry {
 	//TODO: texture property
 
 	Graphic::VAO m_VAO;
-	TextureFile m_Texture;
+//	TextureFile m_Texture;
 
 	void Reset() {
 		m_TransformRevision = 0;

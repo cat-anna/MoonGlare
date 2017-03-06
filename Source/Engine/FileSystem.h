@@ -162,6 +162,5 @@ inline FileSystem::MoonGlareFileSystem* GetFileSystem() { return FileSystem::Moo
 } //namespace MoonGlare 
 
 using MoonGlare::FileSystem::XMLFile;
-using MoonGlare::FileSystem::TextureFile;
 
 #endif

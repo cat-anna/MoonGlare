@@ -73,15 +73,6 @@ bool BitmapFont::DoInitialize(){
 	matb.SetDiffuseColor(emath::fvec4(1));
 	matb.SetDiffuseMap("file://" + fpath);
 
-	//if (!GetFileSystem()->OpenTexture(m_Texture, root.child("Bitmap").text().as_string(ERROR_STR), DataPath::Fonts, false)) {
-	//	AddLog(Error, "Unable to load texture for bitmap font: " << m_TextureFile);
-	//	return false;
-	//}
-	//auto &texref = m_Texture;
-	//Graphic::GetRenderDevice()->RequestContextManip([&texref] () {
-	//	texref->SetNearestFiltering();
-	//});
-
 	StarVFS::ByteTable data;
 	if (!GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts, data)) {
 		AddLog(Error, "Unable to open the bfd file for font '" << GetName() << "'");

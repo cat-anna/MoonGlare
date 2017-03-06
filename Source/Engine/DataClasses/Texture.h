@@ -39,10 +39,6 @@ public:
 
 	static void StoreImage(SharedImage image, const string &file, ImageFormat format = ImageFormat::PNG);
 	static void AsyncStoreImage(SharedImage image, string file, ImageFormat format = ImageFormat::PNG);
-
-	static bool LoadTexture(Graphic::Texture &tex, const char* data, unsigned datalen, bool ApplyDefaultSettings = true);
-protected:
-	static bool LoadImageMemory(const void* ImgData, unsigned ImgLen, ImageInfo& image);
 };
 
 } // namespace DataClasses
