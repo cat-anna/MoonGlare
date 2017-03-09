@@ -15,18 +15,20 @@
 #include <Renderer/RenderInput.h>
 
 #include <Renderer/Frame.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Device/Types.h>
 
 namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
-	
+    
 SPACERTTI_IMPLEMENT_STATIC_CLASS(TrueTypeFont);
 
 TrueTypeFont::TrueTypeFont(const string& Name): 
-		BaseClass(Name) {
+        BaseClass(Name) {
 }
 
 TrueTypeFont::~TrueTypeFont() {
@@ -35,56 +37,56 @@ TrueTypeFont::~TrueTypeFont() {
 //----------------------------------------------------------------
 
 bool TrueTypeFont::DoInitialize() {
-	if (!BaseClass::DoInitialize())
-		return false;
+    if (!BaseClass::DoInitialize())
+        return false;
 
-	auto meta = OpenMetaData();
-	if (!meta) {
-		//silently ignore
-		return false;
-	}
-	auto root = meta->document_element();
+    auto meta = OpenMetaData();
+    if (!meta) {
+        //silently ignore
+        return false;
+    }
+    auto root = meta->document_element();
 
-	if (!GetFileSystem()->OpenFile(root.child("File").text().as_string(ERROR_STR), DataPath::Fonts, m_FontFile)) {
-		AddLog(Error, "Unable to open font file!");
-		return false;
-	}
+    if (!GetFileSystem()->OpenFile(root.child("File").text().as_string(ERROR_STR), DataPath::Fonts, m_FontFile)) {
+        AddLog(Error, "Unable to open font file!");
+        return false;
+    }
 
-	auto error = FT_New_Memory_Face(ftlib,
+    auto error = FT_New_Memory_Face(ftlib,
                             (const FT_Byte*)m_FontFile.get(),	/* first byte in memory */
                             m_FontFile.size(),							/* size in bytes        */
                             0,											/* face_index           */
                             &m_FontFace );
 
-	if (error) {
-		AddLogf(Error, "Unable to load font: '%s' error code: %d", GetName().c_str(), error);
-		return false;
-	}
+    if (error) {
+        AddLogf(Error, "Unable to load font: '%s' error code: %d", GetName().c_str(), error);
+        return false;
+    }
 
-	m_CacheHight = 32;
-	error = FT_Set_Char_Size(
-					m_FontFace,			/* handle to face object           */
-					0,					/* char_width in 1/64th of points  */
-		FT_F26Dot6(m_CacheHight*64.0f),	/* char_height in 1/64th of points */
-					96,				/* horizontal device resolution    */
-					96 );				/* vertical device resolution      */
+    m_CacheHight = 32;
+    error = FT_Set_Char_Size(
+                    m_FontFace,			/* handle to face object           */
+                    0,					/* char_width in 1/64th of points  */
+        FT_F26Dot6(m_CacheHight*64.0f),	/* char_height in 1/64th of points */
+                    96,				/* horizontal device resolution    */
+                    96 );				/* vertical device resolution      */
 
-	if (error) {
-		AddLogf(Error, "Unable to set font size: '%s' error code: %d", GetName().c_str(), error);
-		return Finalize();
-	}
+    if (error) {
+        AddLogf(Error, "Unable to set font size: '%s' error code: %d", GetName().c_str(), error);
+        return Finalize();
+    }
 
-	//todo: select unicode charmap
+    //todo: select unicode charmap
 
-	return true;
+    return true;
 }
 
 bool TrueTypeFont::DoFinalize() {
-	m_GlyphCache.clear();
-	FT_Done_Face(m_FontFace);
-	m_FontFace = nullptr;
-	m_FontFile.reset();
-	return BaseClass::DoFinalize();
+    m_GlyphCache.clear();
+    FT_Done_Face(m_FontFace);
+    m_FontFace = nullptr;
+    m_FontFile.reset();
+    return BaseClass::DoFinalize();
 }
 
 //----------------------------------------------------------------
@@ -102,38 +104,38 @@ bool TrueTypeFont::DoFinalize() {
 
 TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descriptor * style, bool UniformPosition) const {
 
-	float topline = 0;
-	float bottomline = 0;
-	float width = 0;
+    float topline = 0;
+    float bottomline = 0;
+    float width = 0;
 
-	float h;
-	if (style) {
-		h = style->Size;
-	} else {
-		h = m_CacheHight;
-	}
+    float h;
+    if (style) {
+        h = style->Size;
+    } else {
+        h = m_CacheHight;
+    }
 
-	Graphic::vec3 char_scale(h / m_CacheHight);
-	const wstring::value_type *cstr = text.c_str();
+    Graphic::vec3 char_scale(h / m_CacheHight);
+    const wstring::value_type *cstr = text.c_str();
 //	Graphic::vec2 pos(0);
 //	float hmax = h;
 //
 //	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 //	float Aspect = ScreenSize[0] / ScreenSize[1];
 
-	while (*cstr) {
-		wchar_t c = *cstr;
-		++cstr;
+    while (*cstr) {
+        wchar_t c = *cstr;
+        ++cstr;
 
-		auto *g = GetGlyph(c);
-		if (!g)
-			continue;
+        auto *g = GetGlyph(c, nullptr, nullptr);
+        if (!g)
+            continue;
 
-		auto BitmapSize = g->m_BitmapSize * char_scale.x;
-		auto CharPos = g->m_Position * char_scale.x;
+        auto BitmapSize = g->m_BitmapSize * char_scale.x;
+        auto CharPos = g->m_Position * char_scale.x;
 
-		topline = std::min(topline, CharPos.y);
-		bottomline = std::max(bottomline, CharPos.y + BitmapSize.y);
+        topline = std::min(topline, CharPos.y);
+        bottomline = std::max(bottomline, CharPos.y + BitmapSize.y);
 
 //		auto subpos = pos + chpos;
 //		float bsy = bs.y;
@@ -143,9 +145,9 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
 //			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
 //		}
 //
-		width += g->m_Advance.x * char_scale.x;
+        width += g->m_Advance.x * char_scale.x;
 //		hmax = math::max(hmax, bsy);
-	}
+    }
 //	pos.y = hmax;
 //
 //	if (UniformPosition)
@@ -235,7 +237,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
             CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
             CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
 
-			const auto &tc = g->m_TextureSize;
+            const auto &tc = g->m_TextureSize;
             CurrentTextureUV[0] = emath::fvec2(0, tc.y);
             CurrentTextureUV[1] = emath::fvec2(0, 0);
             CurrentTextureUV[2] = emath::fvec2(tc.x, 0);
@@ -248,12 +250,12 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
                 ++CurrentIndex;
             }
 
-			auto *resmgr = frame->GetResourceManager();
-			auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
+            auto *resmgr = frame->GetResourceManager();
+            auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
 
-			auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
-			texbind->m_Handle = mat->m_DiffuseMap;
-			texbind->m_HandleArray = resmgr->GetTextureResource().GetHandleArrayBase();
+            auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
+            texbind->m_Handle = mat->m_DiffuseMap;
+            texbind->m_HandleArray = resmgr->GetTextureResource().GetHandleArrayBase();
 
             auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
             arg->m_NumIndices = 6;
@@ -276,84 +278,88 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
 FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *q, Renderer::Frame * frame) const {
     auto &glyph = m_GlyphCache[codepoint];
 
-	if (glyph)
-		return glyph.get();
+    if (glyph && glyph->m_Loaded)
+        return glyph.get();
 
-	auto glyph_index = FT_Get_Char_Index(m_FontFace, codepoint);
-	auto load_flags = FT_LOAD_DEFAULT;// FT_LOAD_RENDER;
-	auto error = FT_Load_Glyph(
-					  m_FontFace,    /* handle to face object */
-					  glyph_index,   /* glyph index           */
-					  load_flags);   /* load flags, see below */
+    auto glyph_index = FT_Get_Char_Index(m_FontFace, codepoint);
+    auto load_flags = FT_LOAD_DEFAULT;// FT_LOAD_RENDER;
+    auto error = FT_Load_Glyph(
+                      m_FontFace,    /* handle to face object */
+                      glyph_index,   /* glyph index           */
+                      load_flags);   /* load flags, see below */
 
-	if (error) {
-		AddLogf(Error, "Unable to load glyph for char: 0x%x", codepoint);
-		return nullptr;
-	}
+    if (error) {
+        AddLogf(Error, "Unable to load glyph for char: 0x%x", codepoint);
+        return nullptr;
+    }
 
-	glyph = std::make_unique<FontGlyph>();
+    if(!glyph)
+        glyph = std::make_unique<FontGlyph>();
  
-	FT_Glyph ffglyph = nullptr;
-	if (FT_Get_Glyph(m_FontFace->glyph, &ffglyph)) {
-		AddLogf(Error, "Get glyph failed! codepoint: 0x%x", codepoint);
-		return nullptr;
-	}
+    FT_Glyph ffglyph = nullptr;
+    if (FT_Get_Glyph(m_FontFace->glyph, &ffglyph)) {
+        AddLogf(Error, "Get glyph failed! codepoint: 0x%x", (unsigned)codepoint);
+        return nullptr;
+    }
 
     // Convert The Glyph To A Bitmap.
     if(FT_Glyph_To_Bitmap( &ffglyph, ft_render_mode_normal, 0, 1 )) {
-		AddLogf(Error, "Glyph  render failed! codepoint: 0x%x", codepoint);
-		FT_Done_Glyph(ffglyph);
-		return nullptr;
-	}
+        AddLogf(Error, "Glyph  render failed! codepoint: 0x%x", (unsigned)codepoint);
+        FT_Done_Glyph(ffglyph);
+        return nullptr;
+    }
     FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ffglyph;
  
     // This Reference Will Make Accessing The Bitmap Easier.
     FT_Bitmap& bitmap=bitmap_glyph->bitmap;
 
-	glyph->m_BitmapSize = Graphic::vec2(bitmap.width, bitmap.rows);
-	glyph->m_Position = Graphic::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
-	glyph->m_Advance = Graphic::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
+    glyph->m_BitmapSize = Graphic::vec2(bitmap.width, bitmap.rows);
+    glyph->m_Position = Graphic::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
+    glyph->m_Advance = Graphic::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
 
-	//if texture exists
-	if (bitmap.width > 0 && bitmap.rows > 0) {
-		//translate it and upload to render device
-		unsigned width = math::next_power2(bitmap.width);
-		unsigned height = math::next_power2(bitmap.rows);
-		short *expanded_data = new short[width * height];
- 
-		for(unsigned j=0; j <height;j++) {
-			for(unsigned i=0; i < width; i++){
-				char value = (i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j]; 
-				short u = value | value << 8;
-				expanded_data[(i + j*width)] = u;// expanded_data[2 * (i + j*width) + 1] = value;
-			}
-		}
+    if (q && bitmap.width > 0 && bitmap.rows > 0) {
+        //translate it and upload to render device
+        unsigned short width = math::next_power2(bitmap.width);
+        unsigned short height = math::next_power2(bitmap.rows);
+        unsigned short *expanded_data = frame->GetMemory().Allocate<unsigned short>(width * height);
 
-		float x = (float)bitmap.width / (float)width;
-		float y = (float)bitmap.rows / (float)height;
-		glyph->m_TextureSize = Graphic::vec2(x, y);
+        for (unsigned j = 0; j < height; j++) {
+            for (unsigned i = 0; i < width; i++) {
+                char value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
+                unsigned short u = value | value << 8;
+                expanded_data[(i + j*width)] = u;
+            }
+        }
 
-		auto ptr = glyph.get();
-		Graphic::GetRenderDevice()->DelayedContextManip([expanded_data, width, height, ptr] {
-			ptr->m_Texture.New();
-			//ptr->m_Texture.SetLinearFiltering();
-			//ptr->m_Texture.SetClampToEdges();
-			ptr->m_Texture.SetTextureBits(expanded_data, Graphic::uvec2(width, height), Graphic::Flags::LuminanceAlpha, Graphic::Flags::fUnsignedChar);
-			ptr->m_Texture.ApplyGlobalSettings();
-			delete[] expanded_data;
-			ptr->m_Ready = true;
-		});
-	}
-#if 0
-	auto faceglyph = m_FontFace->glyph;
-	AddLogf(Hint, "char %c[0x%x]  size:(%ld; %ld)  pos:(%d; %d)   bsize(%d; %d)",
-				(unsigned)codepoint, (unsigned)codepoint,
-				faceglyph->advance.x, faceglyph->advance.y, 
-				bitmap_glyph->left, bitmap_glyph->top,
-				bitmap.width, bitmap.rows
-			);
-#endif
-	return glyph.get();
+        float x = (float)bitmap.width / (float)width;
+        float y = (float)bitmap.rows / (float)height;
+        glyph->m_TextureSize = Graphic::vec2(x, y);
+
+        auto *resmgr = frame->GetResourceManager();
+
+        auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(glyph->m_GlyphMaterial, true);
+        matb.SetDiffuseColor(emath::fvec4(1));
+
+        Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
+        tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Linear;
+        tload.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+
+        using namespace Renderer::Device;
+
+        auto size = emath::usvec2(width, height);
+        resmgr->GetTextureResource().SetTexturePixels(matb.m_MaterialPtr->m_DiffuseMap, *q, (const uint8_t*)expanded_data, size, tload, PixelFormat::LuminanceAlpha, true);
+
+        glyph->m_Loaded = true;
+        auto faceglyph = m_FontFace->glyph;
+        DebugLogf(Hint, "TTF[%s]: char %c[0x%x]  size:(%3d; %3d) pos:(%3d; %3d) bsize(%3d; %3d)",
+                GetName().c_str(),
+                (unsigned)codepoint, (unsigned)codepoint,
+                faceglyph->advance.x, faceglyph->advance.y, 
+                bitmap_glyph->left, bitmap_glyph->top,
+                bitmap.width, bitmap.rows
+            );
+    }
+    return glyph.get();
 }
 
 } //namespace TrueTypeFont 

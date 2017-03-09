@@ -5,8 +5,6 @@
 */
 /*--END OF HEADER BLOCK--*/
 
-#include "TextureResource.h"
-#include "ResourceManager.h"
 #include "../Frame.h"
 #include "../Renderer.h"
 #include "../RenderDevice.h"
@@ -14,6 +12,9 @@
 #include "../Commands/CommandQueue.h"
 #include "../Commands/OpenGL/TextureCommands.h"
 #include "../Commands/OpenGL/TextureInitCommands.h"
+
+#include "ResourceManager.h"
+#include "TextureResource.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -150,6 +151,35 @@ emath::usvec2 TextureResource::GetSize(TextureResourceHandle h) const {
 }
 
 //---------------------------------------------------------------------------------------
+
+bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize) {
+	if (!out && AllowAllocate) {
+		if (!Allocate(q, out)) {
+			DebugLogf(Error, "texture allocation - allocate failed");
+			return false;
+		}
+	}
+
+	auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
+	texres->m_Handle = out;
+	texres->m_HandleArray = GetHandleArrayBase();
+
+	m_TextureSize[out.m_Index] = size;
+	auto pixels = q.PushCommand<Commands::Texture2DSetPixelsArray>(key);
+	pixels->m_Size[0] = size[0];
+	pixels->m_Size[1] = size[1];
+	pixels->m_PixelData = Pixels;
+	pixels->m_BPP = static_cast<GLenum>(pxtype);
+	pixels->m_Type = static_cast<GLenum>(TypeValue);
+
+
+	if (config.m_Filtering == Conf::Filtering::Default) {
+		config.m_Filtering = m_Settings->m_Filtering;
+	}
+	q.PushCommand<Commands::Texture2DSetup>(key)->m_Config = config;
+
+	return true;
+}
 
 } //namespace MoonGlare::Renderer::Resources 
 		

@@ -70,14 +70,14 @@ namespace detail {
 //	//glTexParameteri(TEX_MODE, GL_TEXTURE_WRAP_R, GL_REPEAT);
 //}
 
-	struct Texture2DSetPixelsArgument;
+struct Texture2DSetPixelDataArgument;
+struct Texture2DSetPixelsArrayArgument;
 }
 
 //---------------------------------------------------------------------------------------
 
 
-struct detail::Texture2DSetPixelsArgument {
-	
+struct detail::Texture2DSetPixelDataArgument {
 	Resources::TextureLoader::TexturePixelData data;
 
 	void Run() {
@@ -88,8 +88,19 @@ struct detail::Texture2DSetPixelsArgument {
 		data.m_ImageMemory.reset();
 	}
 };
+using Texture2DSetPixelData = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelDataArgument>;
 
-using Texture2DSetPixels = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelsArgument>;
+struct detail::Texture2DSetPixelsArrayArgument {
+	unsigned short m_Size[2];
+	GLenum m_BPP;
+	GLenum m_Type;
+	const void *m_PixelData;
+		 
+	void Run() {
+		glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, m_BPP, m_Size[0], m_Size[1], /*border*/0, m_BPP, m_Type, m_PixelData);
+	}
+};
+using Texture2DSetPixelsArray = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelsArrayArgument>;
 
 //---------------------------------------------------------------------------------------
 

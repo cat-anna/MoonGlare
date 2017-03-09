@@ -33,6 +33,11 @@ public:
 		Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
 		bool CanAllocate = true);
 
+	template<typename T>
+	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
+		Configuration::TextureLoad loadcfg, Device::PixelFormat pxtype, bool AllowAllocate = true, Commands::CommandKey key = Commands::CommandKey()) {
+		return SetTexturePixels(out, q, Pixels, size, loadcfg, pxtype, AllowAllocate, key, Device::TypeInfo<T>::TypeId, sizeof(T));
+	}
 
 	Device::TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
@@ -49,6 +54,9 @@ private:
 	ResourceManager *m_ResourceManager = nullptr;
 	TextureLoader *m_TexureLoader = nullptr;
 	const Configuration::Texture *m_Settings = nullptr;
+
+	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,
+		Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize);
 
 	DeclarePerformanceCounter(SuccessfulAllocations);
 	DeclarePerformanceCounter(SuccessfulDellocations);

@@ -14,5 +14,3 @@ extern FT_Library ftlib;
 } //namespace TrueTypeFont 
 } //namespace Modules 
 } //namespace MoonGlare 
-
-#include "FontGlyph.h"
