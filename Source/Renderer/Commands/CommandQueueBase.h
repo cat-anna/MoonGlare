@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "../OpenGLTypes.h"
 #include "../Configuration.Renderer.h"
 
 namespace MoonGlare::Renderer::Commands {
@@ -54,7 +53,7 @@ struct ResourceBindCommandBase {
 
 template<>
 struct ResourceCommandInfo<TextureResourceHandle> {
-	using HandleArrayType = TextureHandle*;
+	using HandleArrayType = Device::TextureHandle*;
 	using HandleType = TextureResourceHandle;
 };
 

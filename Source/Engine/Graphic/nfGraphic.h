@@ -51,9 +51,6 @@ namespace Graphic {
 	using QuadArray3 = std::array<math::vec3, 4>;
 	using QuadArray2 = std::array<math::vec2, 4>;
 
-	template <GLenum TEX_MODE> class Texture_template;
-	typedef Texture_template<GL_TEXTURE_2D> Texture;
-
 	namespace WindowInput {
 		enum class Key : unsigned {
 			Enter				= GLFW_KEY_ENTER,

@@ -10,45 +10,45 @@
 
 namespace MoonGlare {
 namespace GUI {
-	
+
 class Animation : public cRootClass, public std::enable_shared_from_this<Animation> {
-	SPACERTTI_DECLARE_STATIC_CLASS(Animation, cRootClass);
+    SPACERTTI_DECLARE_STATIC_CLASS(Animation, cRootClass);
 public:
- 	Animation();
- 	~Animation();
+    Animation();
+    ~Animation();
 
-	DefineRefGetterConst(Name, string);
+    DefineRefGetterConst(Name, string);
 
-	bool LoadMeta(const xml_node node);
-	bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform);
+    bool LoadMeta(const xml_node node);
+    bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform);
 
-	AnimationInstance CreateInstance();
-	void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
+    AnimationInstance CreateInstance();
+    void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
 
-	const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
-	Renderer::MaterialResourceHandle GetMaterial()const { return m_Material; }
+    const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
+    Renderer::MaterialResourceHandle GetMaterial()const { return m_Material; }
 
-	DefineRefGetterConst(FrameSize, math::vec2);
+    DefineRefGetterConst(FrameSize, math::vec2);
 protected:
-	Renderer::MaterialResourceHandle m_Material{ 0 };
+    Renderer::MaterialResourceHandle m_Material{ 0 };
 
-	math::fvec2 m_TextureSize;
-	string m_Name;
-	float m_Speed;
-	unsigned m_StartFrame, m_EndFrame;
-	math::vec2 m_FrameSize;
-	math::uvec2 m_FrameSpacing;
-	math::uvec2 m_FrameCount;
-	std::unique_ptr<Graphic::VAO[]> m_FrameTable;
-	bool m_DrawEnabled;
-	bool GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount);
+    math::fvec2 m_TextureSize;
+    string m_Name;
+    float m_Speed;
+    unsigned m_StartFrame, m_EndFrame;
+    math::vec2 m_FrameSize;
+    math::uvec2 m_FrameSpacing;
+    math::uvec2 m_FrameCount;
+    std::unique_ptr<Graphic::VAO[]> m_FrameTable;
+    bool m_DrawEnabled;
+    bool GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount);
 };
 
 struct AnimationInstance {
-	SharedAnimation Data;
-	float Position;
+    SharedAnimation Data;
+    float Position;
 
-	void Update(const Core::MoveConfig &conf) { if(Data) Data->UpdateInstance(conf, *this); }
+    void Update(const Core::MoveConfig &conf) { if(Data) Data->UpdateInstance(conf, *this); }
 };
 
 } //namespace GUI 

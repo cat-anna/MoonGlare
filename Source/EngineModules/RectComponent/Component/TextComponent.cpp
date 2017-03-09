@@ -152,7 +152,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 
 		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 		arg->m_NumIndices = 6;
-		arg->m_IndexValueType = Renderer::TypeId<uint8_t>;
+		arg->m_IndexValueType = Renderer::Device::TypeInfo<uint8_t>::TypeId;
 	}
 
 	if (InvalidEntryCount > 0) {

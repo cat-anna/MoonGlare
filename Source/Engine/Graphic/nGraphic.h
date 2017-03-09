@@ -13,12 +13,10 @@
 
 #include "Window.h"
 
-#include "Texture.h"
 #include "VAO.h"
 #include "SkyCube.h"
 #include "FrameBuffer.h"
 
-#include "Material.h"
 #include "StaticFog.h"
 #include "Environment.h"
 

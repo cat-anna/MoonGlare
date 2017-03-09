@@ -48,7 +48,7 @@ using wstring = std::wstring;//u16string
 #define PUGIXML_NO_XPATH
 #define PUGIXML_HAS_LONG_LONG
 #define PUGIXML_NO_EXCEPTIONS
-#include <pugixml-1.6/src/pugixml.hpp>
+#include <pugixml.hpp>
 using pugi::xml_node;
 using pugi::xml_attribute;
 using pugi::xml_document;

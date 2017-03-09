@@ -6,7 +6,7 @@
 namespace MoonGlare::Renderer::Commands {
 
 struct VAOBindArgument {
-	VAOHandle m_VAO;
+	Device::VAOHandle m_VAO;
 	static void Execute(const VAOBindArgument *arg) {
 		glBindVertexArray(arg->m_VAO);
 	}
@@ -14,7 +14,7 @@ struct VAOBindArgument {
 using VAOBind = CommandTemplate<VAOBindArgument>;
 
 struct VAOBindResourceArgument {
-	VAOHandle *m_VAO;
+	Device::VAOHandle *m_VAO;
 	static void Execute(const VAOBindResourceArgument *arg) {
 		glBindVertexArray(*arg->m_VAO);
 	}
@@ -81,7 +81,7 @@ using VAODrawElements = CommandTemplate<VAODrawElementsArgument>;
 namespace detail {
 	template<GLenum target>
 	struct BufferHandling {
-		static void Bind(BufferHandle handle) {
+		static void Bind(Device::BufferHandle handle) {
 			glBindBuffer(target, handle);
 		}
 		static void Data(GLenum mode, GLsizeiptr bytecount, const void* data){
@@ -91,7 +91,7 @@ namespace detail {
 
 	template<typename Handler>
 	struct BindBufferArgument {
-		BufferHandle m_Handle;
+		Device::BufferHandle m_Handle;
 		static void Execute(const BindBufferArgument *arg) {
 			Handler::Bind(arg->m_Handle);
 		}
@@ -99,7 +99,7 @@ namespace detail {
 
 	template<typename Handler>
 	struct BindBufferResourceArgument {
-		BufferHandle *m_Handle;
+		Device::BufferHandle *m_Handle;
 		static void Execute(const BindBufferResourceArgument *arg) {
 			Handler::Bind(*arg->m_Handle);
 		}
@@ -164,7 +164,7 @@ using ArrayBufferNormalizedChannel = CommandTemplate<detail::BufferChannelArgume
 
 namespace detail {
 struct BufferAllocation {
-	using Handle_t = BufferHandle;
+	using Handle_t = Device::BufferHandle;
 	static void Allocate(GLsizei count, Handle_t *out) {
 		glGenBuffers(count, out);
 	}
@@ -185,7 +185,7 @@ using BufferBulkRelease = CommandTemplate<detail::BulkRelease <detail::BufferAll
 
 namespace detail {
 struct VAOAllocation {
-	using Handle_t = VAOHandle;
+	using Handle_t = Device::VAOHandle;
 	static void Allocate(GLsizei count, Handle_t *out) {
 		glGenVertexArrays(count, out);
 	}

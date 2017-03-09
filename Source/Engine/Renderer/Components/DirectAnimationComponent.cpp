@@ -224,8 +224,8 @@ void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 
 		for (auto &mesh : item.m_Meshes) {
 			//s->SetAlphaThreshold(AlphaT	
-			auto &mat = item.m_Materials[mesh.MaterialIndex];
-			GeometryQueue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = mat.Texture.Handle();
+//			auto &mat = item.m_Materials[mesh.MaterialIndex];
+//			GeometryQueue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = mat.Texture.Handle();
 			//SetMaterialColor(m_GeometryShader, GeometryQueue, key, math::vec4( mat.BackColor, 1));
 
 			auto arg = GeometryQueue.PushCommand<Renderer::Commands::VAODrawTrianglesBaseVertex>(key);
@@ -305,7 +305,7 @@ bool DirectAnimationComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 		uri.erase(uri.begin() + uri.rfind("/") + 1, uri.end());
 		uri += strrchr(Path.data, '\\') + 1;
 
-		auto mat = &entry.m_Materials[i];
+//		auto mat = &entry.m_Materials[i];
 	//	GetFileSystem()->OpenTexture(mat->Texture, uri, DataPath::URI);
 	//	mat->SetRepeatEdges();
 	}

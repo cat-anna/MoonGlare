@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Configuration.Renderer.h"
-#include "FrameBuffer.h"
 
 #include "Resources/AssetLoaderInterface.h"
 

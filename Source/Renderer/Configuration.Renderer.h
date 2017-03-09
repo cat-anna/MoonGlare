@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Handles.h"
+#include "Device/Types.h"
+
 namespace MoonGlare::Renderer::Configuration {
 
 struct Requirement {
@@ -17,7 +20,7 @@ struct FrameResourceStorage {
 };
 
 struct FrameBuffer {
-	static constexpr uint32_t MemorySize = 1 * 32 * 1024;
+	static constexpr uint32_t MemorySize = 1 * 128 * 1024;
 	static constexpr uint32_t Count = 3;
 	static constexpr uint32_t SubQueueCount = 64;
 
@@ -118,7 +121,7 @@ struct VAO {
 	static constexpr uint32_t VAOInitial = 64;
 	static constexpr uint32_t MaxBuffersPerVAO = 8;
 
-	using VAOBuffers = std::array<BufferHandle, MaxBuffersPerVAO>;
+	using VAOBuffers = std::array<Device::BufferHandle, MaxBuffersPerVAO>;
 
 	using ChannelType = GLuint;
 
@@ -140,7 +143,7 @@ struct VAO {
 struct Shader {
 	static constexpr uint32_t Limit = 32;
 	static constexpr uint32_t UniformLimit = 16;
-	using UniformLocations = std::array<ShaderUniformHandle, UniformLimit>;
+	using UniformLocations = std::array<Device::ShaderUniformHandle, UniformLimit>;
 };
 
 struct TextureRenderTask {

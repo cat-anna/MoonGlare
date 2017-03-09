@@ -17,13 +17,13 @@ namespace detail {
 //---------------------------------------------------------------------------------------
 
 struct detail::ReleaseShaderResourceArgument {
-	ShaderHandle *m_ShaderHandle;
+	Device::ShaderHandle *m_ShaderHandle;
 	const char* m_ShaderName;
 	static void Execute(const ReleaseShaderResourceArgument *arg) {
-		if (*arg->m_ShaderHandle != InvalidShaderHandle) {
+		if (*arg->m_ShaderHandle != Device::InvalidShaderHandle) {
 			DebugLogf(Info, "Released shader %u[%s]", arg->m_ShaderHandle, arg->m_ShaderName);
 			glDeleteProgram(*arg->m_ShaderHandle);
-			*arg->m_ShaderHandle == InvalidShaderHandle;
+			*arg->m_ShaderHandle == Device::InvalidShaderHandle;
 		}
 	}
 };
@@ -45,7 +45,7 @@ struct detail::ConstructShaderArgument {
 	Array<bool> m_Valid;
 	Array<ShaderCodeBuffer> m_CodeArray;
 	const char* m_ShaderName;
-	ShaderHandle *m_ShaderOutput;
+	Device::ShaderHandle *m_ShaderOutput;
 
 	struct ShaderTypeInfo {
 		ShaderType m_Type;
@@ -60,7 +60,7 @@ struct detail::ConstructShaderArgument {
 
 	void Run() const {
 		std::array<GLuint, MaxShaderTypes> LoadedShaders;
-		LoadedShaders.fill(InvalidShaderStageHandle);
+		LoadedShaders.fill(Device::InvalidShaderStageHandle);
 
 		unsigned LoadedCount = 0;
 		auto DeleteShaders = [&LoadedCount, &LoadedShaders] {
@@ -114,7 +114,7 @@ struct detail::ConstructShaderArgument {
 		GLuint ProgramID = glCreateProgram();
 
 		for (auto i : LoadedShaders)
-			if (i != InvalidShaderStageHandle)
+			if (i != Device::InvalidShaderStageHandle)
 				glAttachShader(ProgramID, i);
 
 		//link program
@@ -152,12 +152,12 @@ using ConstructShader = Commands::CommandTemplate<detail::ConstructShaderArgumen
 struct detail::GetShaderUnfiormsArgument {
 	const char **m_Names;
 	unsigned m_Count;
-	ShaderHandle *m_ShaderHandle;
+	Device::ShaderHandle *m_ShaderHandle;
 	Configuration::Shader::UniformLocations *m_Locations;
 	const char *m_ShaderName;
 
 	void Run() const {
-		if (*m_ShaderHandle == InvalidShaderHandle)
+		if (*m_ShaderHandle == Device::InvalidShaderHandle)
 			return;
 		glUseProgram(*m_ShaderHandle);
 		for (auto i = 0u; i < m_Count; ++i) {
@@ -166,7 +166,7 @@ struct detail::GetShaderUnfiormsArgument {
 				continue;
 			auto loc = glGetUniformLocation(*m_ShaderHandle, m_Names[i]);
 			(*m_Locations)[i] = loc;
-			if (loc == InvalidShaderUniformHandle) {
+			if (loc == Device::InvalidShaderUniformHandle) {
 				DebugLogf(Warning, "Unable to get location of parameter '%s' in shader '%s'", m_Names[i], m_ShaderName);
 			} else {
 				//DebugLogf(Hint, "Shader uniform location %s.%s -> %u", m_ShaderName, m_Names[i], loc);
@@ -184,11 +184,11 @@ using GetShaderUnfiorms = Commands::CommandTemplate<detail::GetShaderUnfiormsArg
 struct detail::InitShaderSamplersArgument {
 	const char **m_Names;
 	unsigned m_Count;
-	ShaderHandle *m_ShaderHandle;
+	Device::ShaderHandle *m_ShaderHandle;
 	const char *m_ShaderName;
 
 	void Run() const {
-		if (*m_ShaderHandle == InvalidShaderHandle)
+		if (*m_ShaderHandle == Device::InvalidShaderHandle)
 			return;
 
 		glUseProgram(*m_ShaderHandle);
@@ -198,11 +198,11 @@ struct detail::InitShaderSamplersArgument {
 				//sampler is not named, just skip
 				continue;
 			auto loc = glGetUniformLocation(*m_ShaderHandle, name);
-			if (loc != InvalidShaderUniformHandle) {
+			if (loc != Device::InvalidShaderUniformHandle) {
 				glUniform1i(loc, static_cast<GLint>(i));
 			}
 			else {
-				DebugLogf(Warning, "Unable to get location of samper '%s' in shader '%s'", name, m_ShaderName);
+				DebugLogf(Warning, "Unable to get location of sampler '%s' in shader '%s'", name, m_ShaderName);
 			}
 		}
 	}

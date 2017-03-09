@@ -9,13 +9,13 @@
 namespace Graphic {
 
 SkyCube::SkyCube() {
-	for (unsigned i = 0; i < Faces::MaxValue; ++i)
-		m_Textures[i].Free();
+//	for (unsigned i = 0; i < Faces::MaxValue; ++i)
+//		m_Textures[i].Free();
 }
 
 SkyCube::~SkyCube() {
-	for (unsigned i = 0; i < Faces::MaxValue; ++i)
-		m_Textures[i].Free();
+//	for (unsigned i = 0; i < Faces::MaxValue; ++i)
+//		m_Textures[i].Free();
 }
 
 //---------------------------------------------------------------------------------------

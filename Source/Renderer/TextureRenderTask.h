@@ -33,7 +33,7 @@ public:
 
 private: 
 	TextureResourceHandle m_TargetTexture;
-	FramebufferHandle m_Framebuffer;
+	Device::FramebufferHandle m_Framebuffer;
 	emath::ivec2 m_Size;
 	Frame* m_Frame;
 	void* padding[3];

@@ -35,7 +35,7 @@ struct VAOBuilder {
 	}
 	void UnBindVAO() {
 		SelfTest();
-		m_Queue->MakeCommand<Commands::VAOBind>(InvalidVAOHandle);
+		m_Queue->MakeCommand<Commands::VAOBind>(Device::InvalidVAOHandle);
 	}
 
 	void BeginDataChange() {
@@ -49,7 +49,7 @@ struct VAOBuilder {
 		auto Channel = static_cast<ChannelType>(iChannel);
 		SelfTest();
 		RendererAssert(Channel < m_BuffersPtr->size());
-		if ((*m_BuffersPtr)[Channel] == InvalidBufferHandle)
+		if ((*m_BuffersPtr)[Channel] == Device::InvalidBufferHandle)
 			m_Queue->MakeCommand<Commands::BufferSingleAllocate>(&(*m_BuffersPtr)[Channel]);
 	}
 
@@ -67,9 +67,9 @@ struct VAOBuilder {
 			m_Queue->MakeCommand<Commands::ArrayBufferStaticData>(bytecount, (const void*)data);
 
 		if (Normalized)
-			m_Queue->MakeCommand<Commands::ArrayBufferNormalizedChannel>(Channel, ElementSize, TypeId<T>);
+			m_Queue->MakeCommand<Commands::ArrayBufferNormalizedChannel>(Channel, ElementSize, Device::TypeId<T>);
 		else
-			m_Queue->MakeCommand<Commands::ArrayBufferChannel>(Channel, ElementSize, TypeId<T>);
+			m_Queue->MakeCommand<Commands::ArrayBufferChannel>(Channel, ElementSize, Device::TypeId<T>);
 	}
 
 	template <typename T, size_t ElemCount>
@@ -94,7 +94,7 @@ struct VAOBuilder {
 
 	Commands::CommandQueue *m_Queue;
 	VAOBuffers *m_BuffersPtr;
-	VAOHandle* m_HandlePtr;
+	Device::VAOHandle* m_HandlePtr;
 	void* _padding;
 };
 static_assert(std::is_trivial<VAOBuilder>::value, "must be trivial!");

@@ -30,7 +30,7 @@ public:
 	bool Allocate(Frame *frame, VAOResourceHandle &out);
 	void Release(Frame *frame, VAOResourceHandle &h);
 
-	VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
+	Device::VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
 	VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle &h, bool AllowAllocation = false) {
 		if (AllowAllocation && h.m_TmpGuard != GuardValue) {
@@ -53,7 +53,7 @@ private:
 	using VAOBuffers = Conf::VAOBuffers;
 
 	Bitmap m_AllocationBitmap;
-	Array<VAOHandle> m_GLHandle;
+	Array<Device::VAOHandle> m_GLHandle;
 	Array<VAOBuffers> m_GLVAOBuffsers;
 	ResourceManager *m_ResourceManager = nullptr;
 	void* padding;

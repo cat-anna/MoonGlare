@@ -147,7 +147,7 @@ private:
 	using Array = std::array<T, Conf::Limit>;
 
 	Array<std::atomic<bool>> m_ShaderLoaded;
-	Array<ShaderHandle> m_ShaderHandle;
+	Array<Device::ShaderHandle> m_ShaderHandle;
 	Array<Conf::UniformLocations> m_ShaderUniform;
 	Array<std::string> m_ShaderName;
 	Array<ShaderHandlerInterface*> m_ShaderInterface;

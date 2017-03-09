@@ -39,7 +39,6 @@ namespace MoonGlare {
 namespace FileSystem {
 
 using XMLFile = std::unique_ptr<pugi::xml_document>;
-using TextureFile = std::unique_ptr < Graphic::Texture > ;
 
 struct FileInfo {
 	std::string m_FileName;

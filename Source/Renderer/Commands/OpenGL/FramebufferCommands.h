@@ -17,7 +17,7 @@ using CheckDrawFramebuffer = CommandTemplate<CheckDrawFramebufferArgument>;
 //---------------------------------------------------------------------------------------
 
 struct FramebufferBindArgument {
-	FramebufferHandle m_handle;
+	Device::FramebufferHandle m_handle;
 	static void Execute(const FramebufferBindArgument *arg) {
 		glBindFramebuffer(GL_FRAMEBUFFER, arg->m_handle);
 	}
@@ -25,7 +25,7 @@ struct FramebufferBindArgument {
 using FramebufferBind = CommandTemplate<FramebufferBindArgument>;
 
 struct FramebufferDrawBindArgument {
-	FramebufferHandle m_handle;
+	Device::FramebufferHandle m_handle;
 	static void Execute(const FramebufferDrawBindArgument *arg) {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, arg->m_handle);
 	}

@@ -16,7 +16,7 @@ namespace MoonGlare::Renderer::Resources {
 bool VAOResource::Initialize(ResourceManager *Owner) {
 	RendererAssert(Owner);
 
-	m_GLHandle.fill(InvalidVAOHandle);
+	m_GLHandle.fill(Device::InvalidVAOHandle);
 	m_GLVAOBuffsers.fill(VAOBuffers{ 0 });
 	m_AllocationBitmap.ClearAllocation();
 
@@ -45,7 +45,7 @@ void VAOResource::Release(Frame *frame, VAOResourceHandle &h) {
 bool VAOResource::Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out) {
 	Bitmap::Index_t index;
 	if (m_AllocationBitmap.Allocate(index)) {
-		if (m_GLHandle[index] == InvalidVAOHandle) {
+		if (m_GLHandle[index] == Device::InvalidVAOHandle) {
 			IncrementPerformanceCounter(OpenGLAllocations);
 			auto arg = queue.PushCommand<Commands::VAOSingleAllocate>();
 			arg->m_Out = &m_GLHandle[index];

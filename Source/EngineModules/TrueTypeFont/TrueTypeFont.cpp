@@ -153,122 +153,128 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
 //	else
 //		wrapper->m_size = pos;
 
-	FontRect rect;
-	rect.m_CanvasSize = math::fvec2(width, -topline + bottomline);
-	rect.m_TextPosition = math::fvec2(0, -topline);
-	rect.m_TextBlockSize = math::fvec2(width, h);
-	return rect;
+    FontRect rect;
+    rect.m_CanvasSize = math::fvec2(width, -topline + bottomline);
+    rect.m_TextPosition = math::fvec2(0, -topline);
+    rect.m_TextBlockSize = math::fvec2(width, h);
+    return rect;
 }
 
 bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame * frame, const std::wstring &text, const FontRenderRequest & options) {
-	if (text.empty())
-		return true;
+    if (text.empty())
+        return true;
 
-	static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+    static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
 
-	Renderer::VAOResourceHandle vao{ 0 };
-	if (!frame->AllocateFrameResource(vao))
-		return false;
+    Renderer::VAOResourceHandle vao{ 0 };
+    if (!frame->AllocateFrameResource(vao))
+        return false;
 
-	unsigned textlen = text.length();
-	unsigned VerticlesCount = textlen * 4;
-	unsigned IndexesCount = textlen * BaseIndex.size();
-	emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
-	emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
-	uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
+    unsigned textlen = text.length();
+    unsigned VerticlesCount = textlen * 4;
+    unsigned IndexesCount = textlen * BaseIndex.size();
+    emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
+    emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
+    uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
 
-	{
-		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, false);
-		vaob.BeginDataChange();
+    {
+        auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, false);
+        vaob.BeginDataChange();
 
-		using ichannels = Renderer::Configuration::VAO::InputChannels;
-		vaob.CreateChannel(ichannels::Vertex);
-		vaob.SetChannelData<float, 3>(ichannels::Vertex, &Verticles[0][0], VerticlesCount);
+        using ichannels = Renderer::Configuration::VAO::InputChannels;
+        vaob.CreateChannel(ichannels::Vertex);
+        vaob.SetChannelData<float, 3>(ichannels::Vertex, &Verticles[0][0], VerticlesCount);
 
-		vaob.CreateChannel(ichannels::Texture0);
-		vaob.SetChannelData<float, 2>(ichannels::Texture0, &TextureUV[0][0], VerticlesCount);
+        vaob.CreateChannel(ichannels::Texture0);
+        vaob.SetChannelData<float, 2>(ichannels::Texture0, &TextureUV[0][0], VerticlesCount);
 
-		vaob.CreateChannel(ichannels::Index);
-		vaob.SetIndex(ichannels::Index, VerticleIndexes, IndexesCount);
+        vaob.CreateChannel(ichannels::Index);
+        vaob.SetIndex(ichannels::Index, VerticleIndexes, IndexesCount);
 
-		vaob.EndDataChange();
-		vaob.BindVAO();
-	}
+        vaob.EndDataChange();
+        vaob.BindVAO();
+    }
 
-	float y = 0;
-	float h = m_CacheHight;
+    float y = 0;
+    float h = m_CacheHight;
 
-	if (options.m_Size > 0) 
-		h = options.m_Size;
+    if (options.m_Size > 0) 
+        h = options.m_Size;
 
-	Graphic::vec3 char_scale(h / m_CacheHight);
-	const wstring::value_type *cstr = text.c_str();
-	Graphic::vec2 pos(0);
-	float hmax = h;
+    Graphic::vec3 char_scale(h / m_CacheHight);
+    const wstring::value_type *cstr = text.c_str();
+    Graphic::vec2 pos(0);
+    float hmax = h;
 
-	auto CurrentVertexQuad = Verticles;
-	auto CurrentTextureUV = TextureUV;
-	auto CurrentIndex = VerticleIndexes;
-	bool allglyphs = true;
-	while (*cstr) {
-		wchar_t c = *cstr;
-		++cstr;
+    auto CurrentVertexQuad = Verticles;
+    auto CurrentTextureUV = TextureUV;
+    auto CurrentIndex = VerticleIndexes;
+    bool allglyphs = true;
+    while (*cstr) {
+        wchar_t c = *cstr;
+        ++cstr;
 
-		auto *g = GetGlyph(c);
-		if (!g) {
-			allglyphs = false;
-			continue;
-		}
+        auto *g = GetGlyph(c, &q, frame);
+        if (!g) {
+            allglyphs = false;
+            continue;
+        }
 
-		allglyphs = allglyphs && g->m_Ready;
+        allglyphs = allglyphs && g->m_Loaded;
 
-		auto bs = g->m_BitmapSize;
-		auto chpos = g->m_Position;
-		chpos *= char_scale.x;
-		bs *= char_scale.x;
-		auto subpos = pos + chpos;
-		float bsy = bs.y;
+        auto bs = g->m_BitmapSize;
+        auto chpos = g->m_Position;
+        chpos *= char_scale.x;
+        bs *= char_scale.x;
+        auto subpos = pos + chpos;
+        float bsy = bs.y;
 
-		if (c != L' ') {
-			CurrentVertexQuad[0] = emath::fvec3(subpos.x + 0, subpos.y + bs.y, 0);
-			CurrentVertexQuad[1] = emath::fvec3(subpos.x + 0, subpos.y + 0, 0);
-			CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
-			CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
+        if (c != L' ') {
+            CurrentVertexQuad[0] = emath::fvec3(subpos.x + 0, subpos.y + bs.y, 0);
+            CurrentVertexQuad[1] = emath::fvec3(subpos.x + 0, subpos.y + 0, 0);
+            CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
+            CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
 
-			auto &tc = g->m_TextureSize;
-			CurrentTextureUV[0] = emath::fvec2(0, tc.y);
-			CurrentTextureUV[1] = emath::fvec2(0, 0);
-			CurrentTextureUV[2] = emath::fvec2(tc.x, 0);
-			CurrentTextureUV[3] = emath::fvec2(tc.x, tc.y);
+			const auto &tc = g->m_TextureSize;
+            CurrentTextureUV[0] = emath::fvec2(0, tc.y);
+            CurrentTextureUV[1] = emath::fvec2(0, 0);
+            CurrentTextureUV[2] = emath::fvec2(tc.x, 0);
+            CurrentTextureUV[3] = emath::fvec2(tc.x, tc.y);
 
-			size_t basevertex = CurrentVertexQuad - Verticles;
-			size_t baseIndex = CurrentIndex - VerticleIndexes;
-			for (auto idx : BaseIndex) {
-				*CurrentIndex = idx + basevertex;
-				++CurrentIndex;
-			}
+            size_t basevertex = CurrentVertexQuad - Verticles;
+            size_t baseIndex = CurrentIndex - VerticleIndexes;
+            for (auto idx : BaseIndex) {
+                *CurrentIndex = idx + basevertex;
+                ++CurrentIndex;
+            }
 
-			q.PushCommand<Renderer::Commands::Texture2DBind>()->m_Texture = g->m_Texture.Handle();
-			auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
-			arg->m_NumIndices = 6;
-			arg->m_BaseIndex = baseIndex * 2;
-			arg->m_IndexValueType = Renderer::GLTypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
+			auto *resmgr = frame->GetResourceManager();
+			auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
 
-			CurrentVertexQuad += 4;
-			CurrentTextureUV += 4;
-		}
+			auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
+			texbind->m_Handle = mat->m_DiffuseMap;
+			texbind->m_HandleArray = resmgr->GetTextureResource().GetHandleArrayBase();
 
-		pos.x += g->m_Advance.x * char_scale.x;
-		hmax = math::max(hmax, bsy);
-	}
+            auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
+            arg->m_NumIndices = 6;
+            arg->m_BaseIndex = baseIndex * 2;
+            arg->m_IndexValueType = Renderer::Device::TypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
 
-	return allglyphs;
+            CurrentVertexQuad += 4;
+            CurrentTextureUV += 4;
+        }
+
+        pos.x += g->m_Advance.x * char_scale.x;
+        hmax = math::max(hmax, bsy);
+    }
+
+    return allglyphs;
 }
 
 //----------------------------------------------------------------
 
-FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint) const {
-	auto &glyph = m_GlyphCache[codepoint];
+FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *q, Renderer::Frame * frame) const {
+    auto &glyph = m_GlyphCache[codepoint];
 
 	if (glyph)
 		return glyph.get();

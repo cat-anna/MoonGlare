@@ -54,7 +54,7 @@ struct DirectAnimationComponentEntry {
 		uint32_t VertexCount;
 	};
 
-	std::array< Graphic::Material, 8> m_Materials;
+//	std::array< Graphic::Material, 8> m_Materials;
 
 	using MeshDataVector = std::vector<MeshData>;
 	MeshDataVector m_Meshes;

@@ -6,7 +6,7 @@
 namespace MoonGlare::Renderer::Commands{
 
 struct Texture2DBindArgument {
-	TextureHandle m_Texture;
+	Device::TextureHandle m_Texture;
 	static void Execute(const Texture2DBindArgument *arg) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, arg->m_Texture);
@@ -15,7 +15,7 @@ struct Texture2DBindArgument {
 using Texture2DBind = CommandTemplate<Texture2DBindArgument>;
 
 struct Texture2DBindUnitArgument {
-	TextureHandle m_Texture;
+	Device::TextureHandle m_Texture;
 	unsigned m_UnitIndex;
 	static void Execute(const Texture2DBindUnitArgument *arg) {
 		glActiveTexture(GL_TEXTURE0 + arg->m_UnitIndex);
@@ -47,7 +47,7 @@ using Texture2DResourceBindUnit = CommandTemplate<Texture2DResourceBindUnitArgum
 
 namespace detail {
 struct TextureAllocation {
-	using Handle_t = TextureHandle;
+	using Handle_t = Device::TextureHandle;
 	static void Allocate(GLsizei count, Handle_t *out) {
 		glGenTextures(count, out);
 	}
@@ -172,9 +172,9 @@ struct TextureSettingsCommon {
 		case Configuration::Texture::Filtering::Trilinear:
 			SetTrilinearFiltering();
 			break;
-			break;
 		case Configuration::Texture::Filtering::Nearest:
 			SetNearestFiltering();
+			break;
 		default:
 			AddLogf(Error, "Unknown filtering mode!");
 		case Configuration::Texture::Filtering::Default:

@@ -76,7 +76,7 @@ struct
 
 	Commands::CommandQueue *m_Queue;
 	Conf::UniformLocations *m_UniformsPtr;
-	ShaderHandle* m_HandlePtr;
+	Device::ShaderHandle* m_HandlePtr;
 	ResourceManager* m_ResourceManager;
 };
 
@@ -137,7 +137,7 @@ struct
 	}
 
 	Conf::UniformLocations *m_UniformsPtr;
-	ShaderHandle* m_HandlePtr;
+	Device::ShaderHandle* m_HandlePtr;
 	ResourceManager* m_ResourceManager;
 	//void* _padding1;
 private:

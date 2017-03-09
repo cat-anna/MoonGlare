@@ -26,10 +26,10 @@ bool ShaderResource::Initialize(ResourceManager *Owner, ShaderCodeLoader *CodeLo
 	m_ResourceManager = Owner;
 	m_ShaderCodeLoader = CodeLoader;
 
-	m_ShaderHandle.fill(InvalidShaderHandle);
+	m_ShaderHandle.fill(Device::InvalidShaderHandle);
 	m_ShaderInterface.fill(nullptr);
 	Conf::UniformLocations locs;
-	locs.fill(InvalidShaderUniformHandle);
+	locs.fill(Device::InvalidShaderUniformHandle);
 	m_ShaderUniform.fill(locs);
 	m_ShaderName.fill(std::string());
 
@@ -135,8 +135,8 @@ bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHan
 	}
 
 	m_ShaderName[ifindex] = ShaderName;
-	m_ShaderHandle[ifindex] = InvalidShaderHandle;
-	m_ShaderUniform[ifindex].fill(InvalidShaderUniformHandle);
+	m_ShaderHandle[ifindex] = Device::InvalidShaderHandle;
+	m_ShaderUniform[ifindex].fill(Device::InvalidShaderUniformHandle);
 	m_ShaderInterface[ifindex] = ShaderIface;
 
 	out.m_TmpGuard = out.GuardValue;

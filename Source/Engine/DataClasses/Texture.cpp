@@ -50,5 +50,14 @@ void Texture::AsyncStoreImage(SharedImage image, string file, ImageFormat format
 	});
 }
 
+void Texture::ImageInfo::Unload() {
+#ifndef _DISABLE_FREEIMAGE_LIB_
+	if(!FIImage) return;
+	FreeImage_Unload((FIBITMAP*)FIImage);
+	FIImage = 0;
+	image = 0;
+#endif
+}
+
 } // namespace DataClasses
 } //namespace MoonGlare 

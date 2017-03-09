@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Device/Types.h"
+
 namespace MoonGlare::Renderer::Resources {
 
 class ShaderCodeLoader {
@@ -30,11 +32,7 @@ public:
 		Float = GL_FLOAT,
 	};
 
-	enum class PixelFormat : uint16_t {
-		RGB8 = GL_RGB, 
-		RGBA8 = GL_RGBA, 
-		GrayScale8 = GL_LUMINANCE, //?
-	};
+	using PixelFormat = Device::PixelFormat;
 
 	using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 

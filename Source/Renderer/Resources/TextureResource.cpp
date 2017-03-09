@@ -24,7 +24,7 @@ void TextureResource::Initialize(ResourceManager *Owner, TextureLoader *TexLoade
 	m_TexureLoader = TexLoader;
 	m_Settings = &Owner->GetConfiguration()->m_Texture;
 
-	m_GLHandle.fill(InvalidTextureHandle);
+	m_GLHandle.fill(Device::InvalidTextureHandle);
 	m_TextureSize.fill(emath::usvec2(0));
 	m_AllocationBitmap.ClearAllocation();
 
@@ -59,7 +59,7 @@ bool TextureResource::Allocate(Frame *frame, TextureResourceHandle &out) {
 bool TextureResource::Allocate(Commands::CommandQueue &queue, TextureResourceHandle &out) {
 	Bitmap::Index_t index;
 	if (m_AllocationBitmap.Allocate(index)) {
-		if (m_GLHandle[index] == InvalidTextureHandle) {
+		if (m_GLHandle[index] == Device::InvalidTextureHandle) {
 			IncrementPerformanceCounter(OpenGLAllocations);
 			auto arg = queue.PushCommand<Commands::TextureSingleAllocate>();
 			arg->m_Out = &m_GLHandle[index];
@@ -118,7 +118,7 @@ bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string
 	texres->m_Handle = out;
 	texres->m_HandleArray = GetHandleArrayBase();
 
-	auto pixels = q.PushCommand<Commands::Texture2DSetPixels>();
+	auto pixels = q.PushCommand<Commands::Texture2DSetPixelData>();
 	memset(pixels, 0, sizeof(*pixels));
 
 	if (!m_TexureLoader->LoadTexture(fPath, pixels->data)) {

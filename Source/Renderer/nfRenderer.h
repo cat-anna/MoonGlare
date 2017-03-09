@@ -9,7 +9,7 @@
 
 #include <Assets/nfAssets.h>
 
-#include "OpenGLTypes.h"
+#include "Device/Types.h"
 #include "Handles.h"
 
 namespace MoonGlare::Renderer {

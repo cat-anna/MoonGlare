@@ -218,7 +218,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 		
 	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 	arg->m_NumIndices = IndexesCount;
-	arg->m_IndexValueType = Renderer::GLTypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
+	arg->m_IndexValueType = Renderer::Device::TypeInfo<std::remove_reference_t<decltype(*VerticleIndexes)>>::TypeId;
 
 	return true;
 }

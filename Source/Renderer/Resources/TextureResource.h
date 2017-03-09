@@ -8,8 +8,9 @@
 #pragma once
 
 #include "../nfRenderer.h"
-#include "AssetLoaderInterface.h"
 #include "../Configuration.Renderer.h"
+#include "AssetLoaderInterface.h"
+#include "../Commands/CommandQueue.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -32,7 +33,8 @@ public:
 		Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
 		bool CanAllocate = true);
 
-	TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
+
+	Device::TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
 	emath::usvec2 GetSize(TextureResourceHandle h) const;
 private: 
@@ -41,7 +43,7 @@ private:
 	using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
 	Bitmap m_AllocationBitmap;
-	Array<TextureHandle> m_GLHandle;
+	Array<Device::TextureHandle> m_GLHandle;
 	//Array<Asset::FileHash> m_SourceHash;
 	Array<emath::usvec2> m_TextureSize;
 	ResourceManager *m_ResourceManager = nullptr;

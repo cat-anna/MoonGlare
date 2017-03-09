@@ -108,7 +108,7 @@ MoonGlareFileSystem::StarVFSCallback::BeforeContainerMountResult MoonGlareFileSy
 	//TODO: ?	
 
 	return StarVFSCallback::BeforeContainerMountResult::Mount;
-}
+} 
 
 void MoonGlareFileSystem::AfterContainerMounted(StarVFS::Containers::iContainer *ptr) {
 	ASSERT(ptr);
