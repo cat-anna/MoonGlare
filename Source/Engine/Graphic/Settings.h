@@ -4,16 +4,6 @@
 namespace Graphic {
 namespace Settings {
 
-enum class FinteringMode {
-	Nearest, 
-	Linear,
-	Bilinear,
-	Trilinear,
-
-	Value_Max,
-	Value_Min = Nearest,
-};
-
 enum class ShadowQuality {
 	Disabled,
 	Low,

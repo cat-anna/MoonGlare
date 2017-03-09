@@ -38,14 +38,11 @@ public:
 
 	//dynamic configuration
 
-	using FinteringMode = Graphic::Settings::FinteringMode;
 	using ShadowQuality = Graphic::Settings::ShadowQuality;
 
 	struct Graphic {
-		FinteringMode Filtering;
 		ShadowQuality Shadows;
 		template <class T> void Serialize(T & s) {
-			s.Value(Filtering, "Filtering", FinteringMode::Bilinear);
 			s.Value(Shadows, "Shadows", ShadowQuality::Medium);
 		}
 	} Graphic;

@@ -66,13 +66,6 @@ struct SettingsImpl {
 
 	struct InternalSettings {
 		struct Graphic {
-			struct TextureFiltering {
-				using Type = int;
-				using EnumType = Settings_t::FinteringMode;
-				static Type default() { return static_cast<int>(EnumType::Bilinear); }
-				static Type get() { return static_cast<int>(Settings.Graphic.Filtering); }
-				static void set(Type f) { Settings.Graphic.Filtering = EnumCastClamp<EnumType>(f); }
-			};
 			struct ShadowQuality {
 				using Type = int;
 				using EnumType = Settings_t::ShadowQuality;
@@ -101,7 +94,6 @@ struct SettingsImpl {
 	}
 
 	SettingsImpl() {
-		RegisterBuffered<InternalSettings::Graphic::TextureFiltering>("Graphic.TextureFiltering", SettingsGroup::None);
 		RegisterBuffered<InternalSettings::Graphic::ShadowQuality>("Graphic.ShadowsQuality", SettingsGroup::None);
 		RegisterBuffered<InternalSettings::Localization::Code>("Localization.Code", SettingsGroup::Localization);
 	
