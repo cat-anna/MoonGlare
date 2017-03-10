@@ -261,7 +261,7 @@ void Engine::DoRender(MoveConfig &conf) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-	using Renderer::RendererConf::CommandQueueID;
+	using Configuration::Renderer::CommandQueueID;
 	conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
 
 //	Device->Step();

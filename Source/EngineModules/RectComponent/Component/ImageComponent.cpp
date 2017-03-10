@@ -90,7 +90,7 @@ bool ImageComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void ImageComponent::Step(const Core::MoveConfig & conf) {
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[Configuration::Renderer::CommandQueueID::GUI];
 	auto &q = Queue;
 
 	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
@@ -144,7 +144,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 		if (vao == 0)
 			continue;
 
-		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
+		Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
 		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
 		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);

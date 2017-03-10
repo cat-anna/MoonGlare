@@ -16,9 +16,4 @@ namespace Renderer {
 };
 
 } //namespace Configuration 
-
-namespace Renderer {
-	namespace RendererConf = ::MoonGlare::Configuration::Renderer;
-}
-
 } //namespace MoonGlare 

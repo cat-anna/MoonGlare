@@ -5,8 +5,6 @@
 */
 
 #pragma once
-#ifndef GeometryPassShader_H
-#define GeometryPassShader_H
 
 namespace Graphic {
 namespace Dereferred {
@@ -50,5 +48,3 @@ struct GeometryShaderDescriptor {
 
 } //namespace Dereferred
 } //namespace Graphic 
-
-#endif

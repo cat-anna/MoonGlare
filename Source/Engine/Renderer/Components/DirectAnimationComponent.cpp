@@ -41,7 +41,6 @@ DirectAnimationComponent::DirectAnimationComponent(ComponentManager * Owner)
 	//	counter.Capacity = m_Array.Capacity();
 	//	counter.ElementSize = sizeof(MeshEntry);
 	//});
-
 }
 
 DirectAnimationComponent::~DirectAnimationComponent() {
@@ -90,7 +89,8 @@ bool DirectAnimationComponent::Finalize() {
 }
 
 void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
-	using Renderer::RendererConf::CommandQueueID;
+#if 0
+	using Configuration::Renderer::CommandQueueID;
 	auto &ShadowQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedShadow];
 	auto &GeometryQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedGeometry];
 
@@ -244,6 +244,7 @@ void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
 		AddLogf(Performance, "DirectAnimationComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		ReleaseElement(LastInvalidEntry);
 	}
+#endif
 }
 
 bool DirectAnimationComponent::Load(xml_node node, Entity Owner, Handle &hout) {	

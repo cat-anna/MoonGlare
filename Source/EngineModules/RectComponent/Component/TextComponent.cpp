@@ -97,7 +97,7 @@ bool TextComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void TextComponent::Step(const Core::MoveConfig & conf) {
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[Configuration::Renderer::CommandQueueID::GUI];
 	auto &q = Queue;
 
 	size_t LastInvalidEntry = 0;
@@ -136,7 +136,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		if (!entry.m_Flags.m_Map.m_Active)
 			continue;
 
-		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
+		Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
 		if (entry.m_Flags.m_Map.m_Dirty || rtentry->m_Flags.m_Map.m_Changed) {
 			entry.Update(conf.m_BufferFrame, m_FontDeviceOptions, *rtentry, m_RectTransform->IsUniformMode(), m_TextProcessor);

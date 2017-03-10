@@ -11,4 +11,4 @@ class RenderDevice;
 } //namespace Renderer 
 } //namespace MoonGlare 
 
-#include "OpenGL/nfOpenGL.h"
+#include "OpenGL/GLTypes.h"

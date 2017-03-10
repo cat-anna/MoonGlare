@@ -14,30 +14,30 @@ namespace MoonGlare::Renderer {
 
 class alignas(16) Context final {
 public:
- 	Context();
- 	~Context();
+    Context();
+    ~Context();
 
-	static bool InitializeSubSystem();
-	static bool FinalizeSubSystem();
+    static bool InitializeSubSystem();
+    static bool FinalizeSubSystem();
 
-	emath::ivec2 Size() const { return m_Size; }
+    emath::ivec2 Size() const { return m_Size; }
 
-	void MakeCurrent();
+    void MakeCurrent();
 
-	bool Initialize(const ContextCreationInfo &ctxifo, RendererFacade *renderer, RenderDevice *device);
-	bool InitializeWindowLayer(Commands::CommandQueue &q, Frame* frame);
-	bool Finalize();
+    bool Initialize(const ContextCreationInfo &ctxifo, RendererFacade *renderer, RenderDevice *device);
+    bool InitializeWindowLayer(Commands::CommandQueue &q, Frame* frame);
+    bool Finalize();
 
-	GLFWwindow* GetHandle() { return m_Window; }
+    GLFWwindow* GetHandle() { return m_Window; }
 private: 
-	emath::ivec2 m_Size;
-	GLFWwindow *m_Window;
-	void *padding;
+    emath::ivec2 m_Size;
+    GLFWwindow *m_Window;
+    void *padding;
 
-	bool CreateWindow(ContextCreationInfo ctxifo);
+    bool CreateWindow(ContextCreationInfo ctxifo);
 
-	static bool s_GLFWInitialized;
-	static void glfw_error_callback(int error, const char* description);
+    static bool s_GLFWInitialized;
+    static void glfw_error_callback(int error, const char* description);
 };
 
 static_assert((sizeof(Context) % 16) == 0, "Invalid size!");

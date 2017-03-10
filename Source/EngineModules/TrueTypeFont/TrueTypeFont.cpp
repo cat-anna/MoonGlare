@@ -319,8 +319,8 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
 
     if (q && bitmap.width > 0 && bitmap.rows > 0) {
         //translate it and upload to render device
-        unsigned short width = math::next_power2(bitmap.width);
-        unsigned short height = math::next_power2(bitmap.rows);
+        unsigned int width = math::next_power2(bitmap.width);
+        unsigned int height = math::next_power2(bitmap.rows);
         unsigned short *expanded_data = frame->GetMemory().Allocate<unsigned short>(width * height);
 
         for (unsigned j = 0; j < height; j++) {

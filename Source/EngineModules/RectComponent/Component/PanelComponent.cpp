@@ -94,7 +94,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
 
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
+	auto &Queue = conf.m_RenderInput->m_CommandQueues[Configuration::Renderer::CommandQueueID::GUI];
 	auto &q = Queue;
 
 	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
@@ -157,7 +157,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 			item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
 		}
 
-		Renderer::RendererConf::CommandKey key{ rtentry->m_Z };
+		Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
 		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), key);
 		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);

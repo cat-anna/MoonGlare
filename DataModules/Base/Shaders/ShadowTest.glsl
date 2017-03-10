@@ -8,7 +8,6 @@ uniform bool EnableShadowTest;
 uniform sampler2D PlaneShadowMap;
 
 float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
-
 	vec4 UVinShadowMap = (LightMatrix * vec4(WorldPos, 1.0));
 	vec3 ShadowCoord = UVinShadowMap.xyz / UVinShadowMap.w;
 	ShadowCoord = (ShadowCoord+1)/2;
