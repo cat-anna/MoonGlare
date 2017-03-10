@@ -114,9 +114,9 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	if (m_Array.empty())
 		return;
 
-	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
-		conf.CustomDraw.push_back(this);
-	}
+	//if (Config::Current::EnableFlags::PhysicsDebugDraw) {
+	//	conf.CustomDraw.push_back(this);
+	//}
 	
 	if(!Config::Current::EnableFlags::Physics)
 		return;

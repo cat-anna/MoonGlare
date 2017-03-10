@@ -18,54 +18,36 @@
 #include "StencilShader.h"
 #include "../ShadowMapShader.h"
 
-#include <libSpace/src/Container/StaticVector.h>
+#include <Renderer/Resources/ResourceManager.h>
 
 namespace Graphic {
 namespace Dereferred {
 
-class DereferredPipeline : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(DereferredPipeline, cRootClass);
+class DereferredPipeline {
 public:
- 	DereferredPipeline();
- 	virtual ~DereferredPipeline();
+	void Initialize(World *world);
+	void Finalize();
 
-	bool Initialize(World *world);
-	bool Finalize();
+	DefferedSink* GetDefferedSink() const { return m_DefferedSink.get(); }
 
 	bool Execute(const MoonGlare::Core::MoveConfig &conf, cRenderDevice& dev);
 
-	void BeginFrame(cRenderDevice& dev);
-	bool RenderShadows(RenderInput *ri, cRenderDevice& dev);
-	bool RenderGeometry(RenderInput *ri, cRenderDevice& dev);
-	bool RenderLights(RenderInput *ri, cRenderDevice& dev);
+	bool RenderGeometry(const MoonGlare::Core::MoveConfig &conf, RenderInput *ri, cRenderDevice& dev);
 
-	//bool RenderPointLightsShadows(Core::ciScene *scene, Light::PointLightList &lights, cRenderDevice& dev);
-	bool RenderSpotLightsShadows(RenderInput *ri, cRenderDevice& dev);
+	bool RenderSpotLightsShadows(const MoonGlare::Core::MoveConfig &conf, RenderInput *ri, cRenderDevice& dev);
 
 	bool RenderPointLights(RenderInput *ri, cRenderDevice& dev);
 	bool RenderDirectionalLights(RenderInput *ri, cRenderDevice& dev);
 	bool RenderSpotLights(RenderInput *ri, cRenderDevice& dev);
 
-	void FinalPass(const uvec2 &size);
-	void EndFrame();
 	DereferredFrameBuffer m_Buffer;
-
-	struct Flags {
-		enum {
-			Ready		= 1,
-		};
-	};
-
-	DefineFlagGetter(m_Flags, Flags::Ready, Ready);
 private: 
-	unsigned m_Flags;
 	World *m_World = nullptr;
 	MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
 	VAO m_DirectionalQuad;
+	std::unique_ptr<DefferedSink> m_DefferedSink;
 
 	Space::Container::StaticVector<PlaneShadowMap, 1024> m_PlaneShadowMapBuffer;
-
-	DefineFlagSetter(m_Flags, Flags::Ready, Ready);
 
 	Renderer::ShaderResourceHandle<Shaders::ShadowMapShaderDescriptor> m_ShaderShadowMapHandle{ };
 	Renderer::ShaderResourceHandle<SpotLightShaderDescriptor> m_ShaderLightSpotHandle{ };
@@ -75,6 +57,38 @@ private:
 	Renderer::ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{ };
 
 	bool InitializeDirectionalQuad();
+};
+
+//------------------------------------------------------------------------------------------
+
+struct DefferedSink {
+	void Reset(Renderer::Frame *frame);
+	void Initialize(Renderer::RendererFacade *Renderer);
+
+	struct RObj {
+		DefferedSink *m_sink = nullptr;
+
+		RObj& Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, 
+			unsigned BaseVertex, unsigned ElementsType) {
+			m_sink->Mesh(material, NumIndices, BaseIndex, BaseVertex, ElementsType);
+			return *this;
+		}
+	};
+
+
+	RObj Begin(const math::mat4 &ModelMatrix, const Graphic::VAO &vao);
+protected:
+	Renderer::Commands::CommandQueue *m_GeometryQueue = nullptr;	
+	Renderer::Commands::CommandQueue *m_LightQueue = nullptr;
+	Renderer::Frame *m_frame = nullptr;
+	Renderer::Resources::ShaderBuilder<GeometryShaderDescriptor> m_GeometryShader;
+	Renderer::Resources::ShaderBuilder<Shaders::ShadowMapShaderDescriptor> m_ShadowShader;
+	Renderer::RendererFacade *m_Renderer = nullptr;
+	Renderer::ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{ };
+	Renderer::ShaderResourceHandle<Shaders::ShadowMapShaderDescriptor> m_ShaderShadowMapHandle{};
+
+
+	void Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, unsigned BaseVertex, unsigned ElementsType);
 };
 
 } //namespace Dereferred

@@ -61,8 +61,6 @@ struct MoveConfig {
 
 	mutable Renderer::VirtualCamera *Camera = nullptr;
 	
-	mutable std::vector<iCustomDraw*> CustomDraw;
-
 	mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
 
 	bool m_SecondPeriod;

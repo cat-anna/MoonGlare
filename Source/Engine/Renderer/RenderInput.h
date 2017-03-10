@@ -19,7 +19,7 @@ namespace MoonGlare {
 namespace Renderer {
 
 struct RenderInput {
-	std::vector<std::pair<math::mat4, DataClasses::ModelPtr>> m_RenderList;
+	Graphic::Dereferred::DefferedSink *m_DefferedSink = nullptr;
 
 	Space::Container::StaticVector<Light::PointLight, 128> m_PointLights;
 	Space::Container::StaticVector<Light::SpotLight, 128> m_SpotLights;
@@ -31,7 +31,6 @@ struct RenderInput {
 	CommandQueueTable m_CommandQueues;
 
 	bool Initialize(const math::fvec2 &ScreenSize) {
-		m_RenderList.reserve(2048); 
 		m_PointLights.ClearAllocation();
 		m_SpotLights.ClearAllocation();
 		m_DirectionalLights.ClearAllocation();
@@ -43,7 +42,6 @@ struct RenderInput {
 		m_PointLights.ClearAllocation();
 		m_SpotLights.ClearAllocation();
 		m_DirectionalLights.ClearAllocation();
-		m_RenderList.clear();
 		m_CommandQueues.ClearAllocation();
 	}
 };

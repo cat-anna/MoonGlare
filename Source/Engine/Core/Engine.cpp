@@ -143,6 +143,7 @@ void Engine::EngineMain() {
 
 	MoveConfig conf;
 	conf.m_RenderInput = dev.CreateRenderInput();
+	conf.m_RenderInput->m_DefferedSink = m_Dereferred->GetDefferedSink();
 
 	while (m_Running) {
 		CurrentTime = static_cast<float>(glfwGetTime());
@@ -173,6 +174,7 @@ void Engine::EngineMain() {
 
 		++m_FrameCounter;
 		conf.m_BufferFrame = Device->NextFrame();
+		conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
 		float StartTime = static_cast<float>(glfwGetTime());
 
 		conf.TimeDelta = CurrentTime - LastMoveTime;
@@ -277,7 +279,6 @@ void Engine::DoRender(MoveConfig &conf) {
 
 	Device->ReleaseFrame(frame);
 
-	conf.CustomDraw.clear();
 	conf.m_RenderInput->Clear();
 }
 

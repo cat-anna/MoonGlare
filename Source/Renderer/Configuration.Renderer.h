@@ -29,8 +29,8 @@ struct FrameBuffer {
 		PreRender, //TextureRenderTask and friends
 		//ShadowMaps,
 		//Render,
-		//DefferedGeometry,
-		//DefferedLighting,
+		DefferedGeometry,
+		DefferedLighting,
 		//PostRender,
 		//Postprocess,
 

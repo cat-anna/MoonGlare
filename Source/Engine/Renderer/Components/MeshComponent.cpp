@@ -15,6 +15,9 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
+#include <Engine/Graphic/nGraphic.h>
+#include <Engine/Graphic/Dereferred/DereferredPipeline.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -121,8 +124,14 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 			}
 		}
 
-		if (item.m_Flags.m_Map.m_MeshValid) {
-			RInput->m_RenderList.emplace_back(std::make_pair(tcentry->m_GlobalMatrix, item.m_Model));
+		if (!item.m_Flags.m_Map.m_MeshValid) {
+			continue;
+		}
+
+		auto &vao = item.m_Model->GetVAO();
+		auto r = RInput->m_DefferedSink->Begin(tcentry->m_GlobalMatrix, vao);
+		for (auto &mesh : item.m_Model->GetMeshVector()) {
+			r.Mesh(mesh.m_Material, mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, vao.IndexValueType());
 		}
 	}
 

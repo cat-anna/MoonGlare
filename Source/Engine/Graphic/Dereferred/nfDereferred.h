@@ -18,6 +18,8 @@ struct SamplerIndex {
 	};
 };
 
+struct DefferedSink;
+
 } // namespace Dereferred
 } // namespace Graphic
 

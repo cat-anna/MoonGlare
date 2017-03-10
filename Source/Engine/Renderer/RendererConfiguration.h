@@ -6,8 +6,6 @@ namespace Configuration {
 namespace Renderer {
 	enum class CommandQueueID {
 		GUI,
-		DefferedShadow,
-		DefferedGeometry,
 
 		MaxValue,
 	};
