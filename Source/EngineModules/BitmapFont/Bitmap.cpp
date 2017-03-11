@@ -173,7 +173,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 
 		size_t basevertex = CurrentVertexQuad - Verticles;
 		for (auto idx : BaseIndex) {
-			*CurrentIndex = idx + basevertex;
+			*CurrentIndex = static_cast<uint16_t>(idx + basevertex);
 			++CurrentIndex;
 		}
 

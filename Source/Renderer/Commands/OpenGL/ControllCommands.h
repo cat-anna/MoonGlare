@@ -32,6 +32,29 @@ using Clear = CommandTemplate<ClearArgument>;
 
 //---------------------------------------------------------------------------------------
 
+struct BlendArgument {
+	GLenum m_Equation;
+	GLenum m_SFactor;
+	GLenum m_DFactor;
+	static void Execute(const BlendArgument *arg) {
+		glBlendEquation(arg->m_Equation);
+		glBlendFunc(arg->m_SFactor, arg->m_DFactor);
+	}
+};
+using Blend = CommandTemplate<BlendArgument>;
+
+//---------------------------------------------------------------------------------------
+
+struct DepthMaskArgument {
+	GLboolean m_Value;
+	static void Execute(const DepthMaskArgument *arg) {
+		glDepthMask(arg->m_Value);
+	}
+};
+using DepthMask = CommandTemplate<DepthMaskArgument>;
+
+//---------------------------------------------------------------------------------------
+
 struct SetViewportArgument {
 	GLint m_X;
 	GLint m_Y;
@@ -43,6 +66,18 @@ struct SetViewportArgument {
 };
 using SetViewport = CommandTemplate<SetViewportArgument>;
 
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
+struct CullFaceArgument {
+	GLenum m_Mode;
+	static void Execute(const CullFaceArgument *arg) {
+		glCullFace(arg->m_Mode);
+	}
+};
+using CullFace = CommandTemplate<CullFaceArgument>;
+
+//---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
 struct EnterWireFrameModeArgument {
@@ -58,5 +93,29 @@ struct LeaveWireFrameModeArgument {
 	}
 };
 using LeaveWireFrameMode = CommandTemplate<LeaveWireFrameModeArgument>;
+
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
+struct StencilFuncArgument {
+	GLenum m_Func;
+	GLint m_Ref;
+	GLuint m_Mask;
+	static void Execute(const StencilFuncArgument *arg) {
+		glStencilFunc(arg->m_Func, arg->m_Ref, arg->m_Mask);
+	}
+};
+using StencilFunc = CommandTemplate<StencilFuncArgument>;
+
+struct StencilOpSeparateArgument {
+	GLenum m_Face;
+	GLenum m_sfail;
+	GLenum m_dpfail;
+	GLenum m_dppass;
+	static void Execute(const StencilOpSeparateArgument *arg) {
+		glStencilOpSeparate(arg->m_Face, arg->m_sfail, arg->m_dpfail, arg->m_dppass);
+	}
+};
+using StencilOpSeparate = CommandTemplate<StencilOpSeparateArgument>;
 
 } //namespace MoonGlare::Renderer::Commands

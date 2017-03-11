@@ -19,6 +19,9 @@
 #include <ComponentCommon.x2c.h>
 #include <CameraComponent.x2c.h>
 
+#include <Engine/Graphic/nGraphic.h>
+#include <Engine/Graphic/Dereferred/DereferredPipeline.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -27,8 +30,8 @@ namespace Component {
 RegisterComponentID<CameraComponent> CameraComponentReg("Camera", true, &CameraComponent::RegisterScriptApi);
 
 CameraComponent::CameraComponent(ComponentManager *Owner)
-		: TemplateStandardComponent(Owner) 
-		, m_TransformComponent(nullptr) {
+        : TemplateStandardComponent(Owner) 
+        , m_TransformComponent(nullptr) {
 }
 
 CameraComponent::~CameraComponent() {
@@ -38,145 +41,147 @@ CameraComponent::~CameraComponent() {
 //------------------------------------------------------------------------------------------
 
 void CameraComponent::RegisterScriptApi(ApiInitializer & root) {
-	root
-		.beginClass<CameraComponentEntry>("cCameraComponentEntry")
-			.addProperty("Active", &CameraComponentEntry::GetActive, &CameraComponentEntry::SetActive)
-		.endClass()
-		;
+    root
+        .beginClass<CameraComponentEntry>("cCameraComponentEntry")
+            .addProperty("Active", &CameraComponentEntry::GetActive, &CameraComponentEntry::SetActive)
+        .endClass()
+        ;
 }
 
 //------------------------------------------------------------------------------------------
 
 bool CameraComponent::Initialize() {
-	m_Array.fill(CameraComponentEntry());
-	//	m_Array.MemZeroAndClear();
+    m_Array.fill(CameraComponentEntry());
+    //	m_Array.MemZeroAndClear();
 
-	m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
-	if (!m_TransformComponent) {
-		AddLog(Error, "Failed to get RectTransformComponent instance!");
-		return false;
-	}
+    m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
+    if (!m_TransformComponent) {
+        AddLog(Error, "Failed to get RectTransformComponent instance!");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool CameraComponent::Finalize() {
-	return true;
+    return true;
 }
 
 //------------------------------------------------------------------------------------------
 
 void CameraComponent::Step(const Core::MoveConfig & conf) {
-	if (m_Array.empty()) {
-		return;
-	}
+    if (m_Array.empty()) {
+        return;
+    }
 
-	auto *RInput = conf.m_RenderInput.get();
+    auto *RInput = conf.m_RenderInput.get();
 
-	size_t LastInvalidEntry = 0;
-	size_t InvalidEntryCount = 0;
+    size_t LastInvalidEntry = 0;
+    size_t InvalidEntryCount = 0;
 
-	size_t ActiveId = 0xFFFF;
-	bool GotActive = false;
+    size_t ActiveId = 0xFFFF;
+    bool GotActive = false;
 
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
-		auto &item = m_Array[i];
-		if (!item.m_Flags.m_Map.m_Valid) {
-			//mark and ignore
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+    for (size_t i = 0; i < m_Array.Allocated(); ++i) {
+        auto &item = m_Array[i];
+        if (!item.m_Flags.m_Map.m_Valid) {
+            //mark and ignore
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		if (!GetHandleTable()->IsValid(item.m_SelfHandle)) {
-			AddLogf(Error, "CameraComponent: invalid entity at index %d", i);
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
-		if (!item.m_Flags.m_Map.m_Active) {
-			//camera is not active, continue
-			continue;
-		}
+        if (!GetHandleTable()->IsValid(item.m_SelfHandle)) {
+            AddLogf(Error, "CameraComponent: invalid entity at index %d", i);
+            item.m_Flags.m_Map.m_Valid = false;
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
+        if (!item.m_Flags.m_Map.m_Active) {
+            //camera is not active, continue
+            continue;
+        }
 
-		if (GotActive) {
-			if (item.m_Flags.m_Map.m_ActiveChanged) {
-				m_Array[ActiveId].m_Flags.m_Map.m_Active = false;
-				item.m_Flags.m_Map.m_ActiveChanged = false;
-			} else {
-				AddLog(Warning, "There is active camera, disabling");
-				item.m_Flags.m_Map.m_Active = false;
-				continue;
-			}
-		}
+        if (GotActive) {
+            if (item.m_Flags.m_Map.m_ActiveChanged) {
+                m_Array[ActiveId].m_Flags.m_Map.m_Active = false;
+                item.m_Flags.m_Map.m_ActiveChanged = false;
+            } else {
+                AddLog(Warning, "There is active camera, disabling");
+                item.m_Flags.m_Map.m_Active = false;
+                continue;
+            }
+        }
 
-		GotActive = true;
-		ActiveId = i;
+        GotActive = true;
+        ActiveId = i;
 
-		auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
-		if (!tcentry) {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			//mark and continue but set valid to false to avoid further checks
-			continue;
-		}
+        auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
+        if (!tcentry) {
+            item.m_Flags.m_Map.m_Valid = false;
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            //mark and continue but set valid to false to avoid further checks
+            continue;
+        }
 
-		auto &tr = tcentry->m_GlobalTransform;
-		auto q = tr.getRotation();
-		auto p = convert(tr.getOrigin());
-		auto d = convert(quatRotate(q, Physics::vec3(0, 0, 1)));
+        auto &tr = tcentry->m_GlobalTransform;
+        auto q = tr.getRotation();
+        auto p = convert(tr.getOrigin());
+        auto d = convert(quatRotate(q, Physics::vec3(0, 0, 1)));
 
-		RInput->m_Camera.m_Position =  emath::MathCast<emath::fvec3>(p);
-		RInput->m_Camera.m_Direction = emath::MathCast<emath::fvec3>(d);
+        RInput->m_Camera.m_Position =  emath::MathCast<emath::fvec3>(p);
+        RInput->m_Camera.m_Direction = emath::MathCast<emath::fvec3>(d);
 
-		//RInput->m_Camera.UpdateMatrix();
-		auto view = glm::lookAt(p, p + d, math::vec3(0, 1, 0));
-		RInput->m_Camera.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
-	}
+        //RInput->m_Camera.UpdateMatrix();
+        auto view = glm::lookAt(p, p + d, math::vec3(0, 1, 0));
+        RInput->m_Camera.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
 
-	if (InvalidEntryCount > 0) {
-		AddLogf(Performance, "CameraComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		TrivialReleaseElement(LastInvalidEntry);
-	}
+        RInput->m_DefferedSink->m_Camera = RInput->m_Camera;
+    }
+
+    if (InvalidEntryCount > 0) {
+        AddLogf(Performance, "CameraComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+        TrivialReleaseElement(LastInvalidEntry);
+    }
 }
 
 bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
-	x2c::Component::CameraComponent::CameraEntry_t ce;
-	ce.ResetToDefault();
-	if (!ce.Read(node)) {
-		AddLogf(Error, "Failed to read CameraComponent entry!");
-		return false;
-	}
+    x2c::Component::CameraComponent::CameraEntry_t ce;
+    ce.ResetToDefault();
+    if (!ce.Read(node)) {
+        AddLogf(Error, "Failed to read CameraComponent entry!");
+        return false;
+    }
 
-	Handle &h = hout;
-	HandleIndex index;
-	if (!m_Array.Allocate(index)) {
-		AddLog(Error, "Failed to allocate index");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
+    Handle &h = hout;
+    HandleIndex index;
+    if (!m_Array.Allocate(index)) {
+        AddLog(Error, "Failed to allocate index");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
 
-	auto &entry = m_Array[index];
-	entry.m_Flags.ClearAll();
-	if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
-		AddLog(Error, "Failed to allocate handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
+    auto &entry = m_Array[index];
+    entry.m_Flags.ClearAll();
+    if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
+        AddLog(Error, "Failed to allocate handle");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
 
-	if (!m_TransformComponent->GetInstanceHandle(Owner, entry.m_TransformHandle)) {
-		AddLog(Error, "Cannot get handle to TransformComponent instance!");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
+    if (!m_TransformComponent->GetInstanceHandle(Owner, entry.m_TransformHandle)) {
+        AddLog(Error, "Cannot get handle to TransformComponent instance!");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
 
-	entry.m_SelfHandle = h;
-	entry.m_Owner = Owner;
+    entry.m_SelfHandle = h;
+    entry.m_Owner = Owner;
 
-	entry.m_Flags.m_Map.m_Orthogonal = ce.m_Orthogonal;
-	entry.m_FoV = ce.m_FoV;
+    entry.m_Flags.m_Map.m_Orthogonal = ce.m_Orthogonal;
+    entry.m_FoV = ce.m_FoV;
 
 //	void VirtualCamera::SetDefaultPerspective() {
 //		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
@@ -187,41 +192,41 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 //		SetOrthogonal(ScreenSize[0], ScreenSize[1]);
 //	}
 
-	entry.m_Flags.m_Map.m_Active = ce.m_Active;
-	m_EntityMapper.SetHandle(Owner, h);
+    entry.m_Flags.m_Map.m_Active = ce.m_Active;
+    m_EntityMapper.SetHandle(Owner, h);
 
-	entry.ResetProjectionMatrix();
+    entry.ResetProjectionMatrix();
 
-	entry.m_Flags.m_Map.m_Valid = true;
-	return true;
+    entry.m_Flags.m_Map.m_Valid = true;
+    return true;
 }
 
 bool CameraComponent::Create(Entity Owner, Handle & hout) {
-	return false;
+    return false;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void CameraComponentEntry::ResetProjectionMatrix() {
-	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
-	float Aspect = ScreenSize[0] / ScreenSize[1];
-	if (m_Flags.m_Map.m_Orthogonal) {
-		m_ProjectionMatrix = glm::ortho(0.0f, Aspect, 1.0f, 0.0f);
+    auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+    float Aspect = ScreenSize[0] / ScreenSize[1];
+    if (m_Flags.m_Map.m_Orthogonal) {
+        m_ProjectionMatrix = glm::ortho(0.0f, Aspect, 1.0f, 0.0f);
 
-		//	void VirtualCamera::SetOrthogonal(float Width, float Height) {
-		//		m_UseViewMatrix = false;
-		//		UpdateMatrix();
-		//		m_WorldMatrix = m_ProjectionMatrix;
-		//	}
-	} else {
-		float Near = 0.1f, Far = 1.0e4f;// TODO;
-		m_ProjectionMatrix = glm::perspective(glm::radians(m_FoV), Aspect, Near, Far);
+        //	void VirtualCamera::SetOrthogonal(float Width, float Height) {
+        //		m_UseViewMatrix = false;
+        //		UpdateMatrix();
+        //		m_WorldMatrix = m_ProjectionMatrix;
+        //	}
+    } else {
+        float Near = 0.1f, Far = 1.0e4f;// TODO;
+        m_ProjectionMatrix = glm::perspective(glm::radians(m_FoV), Aspect, Near, Far);
 
-		//	void VirtualCamera::SetPerspective(float Aspect, float FoV, float Near, float Far) {
-		//		m_UseViewMatrix = true;
-		//		UpdateMatrix();
-		//	}
-	}
+        //	void VirtualCamera::SetPerspective(float Aspect, float FoV, float Near, float Far) {
+        //		m_UseViewMatrix = true;
+        //		UpdateMatrix();
+        //	}
+    }
 }
 
 } //namespace Component 

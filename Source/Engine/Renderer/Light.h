@@ -92,9 +92,12 @@ struct SpotLight {
 };
 static_assert(std::is_pod<SpotLight>::value, "SpotLight shall be POD!");
 
-struct DirectionalLight {
-	LightBase m_Base;
-};
+//struct DirectionalLight {
+//	LightBase m_Base;
+//};
+
+using DirectionalLight = LightBase;
+
 static_assert(std::is_pod<DirectionalLight>::value, "DirectionalLight shall be POD!");
 
 } //namespace Light 

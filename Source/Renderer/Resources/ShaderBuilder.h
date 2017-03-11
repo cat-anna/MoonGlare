@@ -59,6 +59,12 @@ struct
 		texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
 		texres->m_HandleArray = m_ResourceManager->GetTextureResource().GetHandleArrayBase();
 	}
+	template<Sampler SamplerUnit>
+	void Set(Device::TextureHandle h, Commands::CommandKey key = Commands::CommandKey()) {
+		auto texres = m_Queue->PushCommand<Renderer::Commands::Texture2DBindUnit>(key);
+		texres->m_Texture = h;
+		texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
+	}
 
 	void SetMaterial(MaterialResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
 		auto *mat = this->m_ResourceManager->GetMaterialManager().GetMaterial(h);

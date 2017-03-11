@@ -32,15 +32,6 @@ using Graphic::cRenderDevice;
 
 namespace Graphic {
 	inline cRenderDevice* GetRenderDevice() { return cRenderDevice::Instance(); }
-
-	template<GLenum v>
-	struct AutoGLEnabler {
-		AutoGLEnabler() { glEnable(v); }
-		~AutoGLEnabler() { glDisable(v); }
-	};
-
-	using StencilTestEnabler = AutoGLEnabler < GL_STENCIL_TEST > ;
-	using DepthTestEnabler = AutoGLEnabler < GL_DEPTH_TEST > ;
 }
 
 #endif /* GRAPHIC_H_ */

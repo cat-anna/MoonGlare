@@ -246,7 +246,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
             size_t basevertex = CurrentVertexQuad - Verticles;
             size_t baseIndex = CurrentIndex - VerticleIndexes;
             for (auto idx : BaseIndex) {
-                *CurrentIndex = idx + basevertex;
+                *CurrentIndex = static_cast<uint16_t>(idx + basevertex);
                 ++CurrentIndex;
             }
 

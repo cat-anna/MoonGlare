@@ -27,7 +27,7 @@ struct DirectionalLightShaderDescriptor {
 		AmbientIntensity,
 		DiffuseIntensity,
 
-		//		ScreenSize,
+		ScreenSize,
 
 		MaxValue,
 	};
@@ -52,7 +52,7 @@ struct DirectionalLightShaderDescriptor {
 		case Uniform::AmbientIntensity: return "DirectionalLight.Base.AmbientIntensity";
 		case Uniform::DiffuseIntensity: return "DirectionalLight.Base.DiffuseIntensity";
 
-			//		case Uniform::ScreenSize: return "ScreenSize";
+		case Uniform::ScreenSize: return "ScreenSize";
 		default: return nullptr;
 		}
 	}

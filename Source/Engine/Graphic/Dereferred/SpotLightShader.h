@@ -39,7 +39,7 @@ struct SpotLightShaderDescriptor {
 		AttenuationConstant,
 		AttenuationMinThreshold,
 
-//		ScreenSize,
+		ScreenSize,
 
 		MaxValue,
 	};
@@ -75,7 +75,7 @@ struct SpotLightShaderDescriptor {
 		case Uniform::AttenuationConstant: return "SpotLight.Atten.Constant";
 		case Uniform::AttenuationMinThreshold: return "SpotLight.Atten.MinThreshold";
 
-//		case Uniform::ScreenSize: return "ScreenSize";
+		case Uniform::ScreenSize: return "ScreenSize";
 		default: return nullptr;
 		}
 	}
