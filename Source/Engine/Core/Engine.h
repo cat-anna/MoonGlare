@@ -50,7 +50,6 @@ protected:
 	volatile bool m_Running;		//!< Indicates whether engine is running
 	float m_FrameTimeSlice;			//!< Amount of ms per single frame. Equals to 16.(6) for 60PFSd
 	unsigned m_LastFPS;				//!< FPS in previous second.
-	unsigned m_FrameCounter;		//!< Counter of fps in current second. Updated per cycle.
 	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
 };
 

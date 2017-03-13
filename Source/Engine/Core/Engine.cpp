@@ -25,7 +25,6 @@ Engine::Engine(World *world) :
         m_Running(false),
 
         m_LastFPS(0),
-        m_FrameCounter(0),
         m_SkippedFrames(0),
         m_FrameTimeSlice(1.0f),
 
@@ -133,11 +132,6 @@ void Engine::EngineMain() {
     m_Running = true;
 
     Graphic::cRenderDevice &dev = *Graphic::GetRenderDevice();
-    float CurrentTime = static_cast<float>(glfwGetTime());
-    float TitleRefresh = 0.0f;
-    float LastFrame = CurrentTime;
-    float LastMoveTime = CurrentTime;
-
     auto Device = m_Renderer->GetDevice();
 
     MoveConfig conf;
@@ -145,9 +139,19 @@ void Engine::EngineMain() {
     conf.m_RenderInput->m_DefferedSink = m_Dereferred->GetDefferedSink();
     conf.m_ScreenSize = dev.GetContextSize();
 
+    using clock = std::chrono::steady_clock;
+    auto tdiff = [](clock::time_point t1, clock::time_point t2) {
+        return std::chrono::duration<float>(t2 - t1).count();
+    };
+
+    unsigned FrameCounter = 0;
+    clock::time_point LastFrame = clock::now();
+    clock::time_point CurrentTime = LastFrame;
+    clock::time_point LastMoveTime = LastFrame;
+    clock::time_point TitleRefresh = LastFrame;
     while (m_Running) {
-        CurrentTime = static_cast<float>(glfwGetTime());
-        float FrameTimeDelta = CurrentTime - LastFrame;
+        auto CurrentTime = clock::now();
+        float FrameTimeDelta = tdiff(LastFrame, CurrentTime);
         if (FrameTimeDelta < m_FrameTimeSlice) {
             //std::this_thread::sleep_for(std::chrono::microseconds(100));
             continue;
@@ -171,32 +175,28 @@ void Engine::EngineMain() {
 #endif
         m_ActionQueue.DispatchPendingActions();
 
-        ++m_FrameCounter;
+        ++FrameCounter;
         conf.m_BufferFrame = Device->NextFrame();
         conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
 
         auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
         using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
-        float StartTime = static_cast<float>(glfwGetTime());
-
-        conf.TimeDelta = CurrentTime - LastMoveTime;
-        dev.GetContext()->Process();
-
-        GetScriptEngine()->Step(conf);
-        GetWorld()->Step(conf);
+        auto StartTime = clock::now();
         {
+            conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
+            dev.GetContext()->Process();
+            GetScriptEngine()->Step(conf);
+            GetWorld()->Step(conf);
             auto console = m_World->GetConsole();
             if (console) 
                 console->ProcessConsole(conf);
         }
-
-        float MoveTime = static_cast<float>(glfwGetTime());
-
-        cmdl.Get<Layer::GUI>().Sort();
-
-        float SortTime = static_cast<float>(glfwGetTime());
-
+        auto MoveTime = clock::now();
+        {
+            cmdl.Get<Layer::GUI>().Sort();
+        }
+        auto SortTime = clock::now();
         Device->Submit(conf.m_BufferFrame);
         {
             auto frame = Device->PendingFrame();
@@ -218,27 +218,27 @@ void Engine::EngineMain() {
             Device->ReleaseFrame(frame);
         }
 
-        float RenderTime = static_cast<float>(glfwGetTime());
-
-        dev.EndFrame();
-
-        float EndTime = static_cast<float>(glfwGetTime());
+        auto RenderTime = clock::now();
+        {
+            dev.EndFrame();
+        }
+        auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
 
-        conf.m_SecondPeriod = CurrentTime - TitleRefresh >= 1.0;
+        conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
         if(conf.m_SecondPeriod) {
             TitleRefresh = CurrentTime;
-            m_LastFPS = m_FrameCounter;
-            m_FrameCounter = 0;
-            float sum = EndTime - StartTime;
+            m_LastFPS = FrameCounter;
+            FrameCounter = 0;
+            float sum = tdiff(StartTime, EndTime);
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
                 sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
                         CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames,
-                        (MoveTime - StartTime) * 1000.0f,
-                        (SortTime - MoveTime) * 1000.0f,
-                        (RenderTime - SortTime) * 1000.0f,
-                        (EndTime - RenderTime) * 1000.0f,
+                        tdiff(StartTime, MoveTime) * 1000.0f,
+                        tdiff(MoveTime, SortTime) * 1000.0f,
+                        tdiff(SortTime, RenderTime) * 1000.0f,
+                        tdiff(RenderTime, EndTime) * 1000.0f,
                         (sum) * 1000.0f,
                         (sum / m_FrameTimeSlice) * 100.0f
                         );
