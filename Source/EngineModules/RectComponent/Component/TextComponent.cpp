@@ -97,7 +97,8 @@ bool TextComponent::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void TextComponent::Step(const Core::MoveConfig & conf) {
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[Configuration::Renderer::CommandQueueID::GUI];
+    auto &layers = conf.m_BufferFrame->GetCommandLayers();
+    auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::GUI>();
 	auto &q = Queue;
 
 	size_t LastInvalidEntry = 0;

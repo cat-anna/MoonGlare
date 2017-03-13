@@ -42,9 +42,9 @@ RegisterComponentID<PanelComponent> PanelComponentIDReg("Panel", true, &PanelCom
 //---------------------------------------------------------------------------------------
 
 PanelComponent::PanelComponent(ComponentManager *Owner) 
-		: TemplateStandardComponent(Owner)
+        : TemplateStandardComponent(Owner)
 {
-	m_RectTransform = nullptr;
+    m_RectTransform = nullptr;
 }
 
 PanelComponent::~PanelComponent() {
@@ -53,183 +53,184 @@ PanelComponent::~PanelComponent() {
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::RegisterScriptApi(ApiInitializer & root) {
-	root
-		.beginClass<PanelComponentEntry>("cPanelComponentEntry")
-			.addProperty("Color", &PanelComponentEntry::GetColor, &PanelComponentEntry::SetColor)
-			.addProperty("Border", &PanelComponentEntry::GetBorder, &PanelComponentEntry::SetBorder)
-			.addProperty("TileMode", &PanelComponentEntry::GetTileMode, &PanelComponentEntry::SetTileMode)
-		.endClass()
-		;
+    root
+        .beginClass<PanelComponentEntry>("cPanelComponentEntry")
+            .addProperty("Color", &PanelComponentEntry::GetColor, &PanelComponentEntry::SetColor)
+            .addProperty("Border", &PanelComponentEntry::GetBorder, &PanelComponentEntry::SetBorder)
+            .addProperty("TileMode", &PanelComponentEntry::GetTileMode, &PanelComponentEntry::SetTileMode)
+        .endClass()
+        ;
 }
 
 //---------------------------------------------------------------------------------------
 
 bool PanelComponent::Initialize() {
-	//memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
+    //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
 //	m_Array.fill(PanelComponentEntry());
-	m_Array.ClearAllocation();
+    m_Array.ClearAllocation();
 
-	m_RectTransform = GetManager()->GetComponent<RectTransformComponent>();
-	if (!m_RectTransform) {
-		AddLog(Error, "Failed to get RectTransformComponent instance!");
-		return false;
-	}
+    m_RectTransform = GetManager()->GetComponent<RectTransformComponent>();
+    if (!m_RectTransform) {
+        AddLog(Error, "Failed to get RectTransformComponent instance!");
+        return false;
+    }
 
-	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-	if (!shres.Load(m_ShaderHandle, "GUI")) {
-		AddLogf(Error, "Failed to load GUI shader");
-		return false;
-	}
+    auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+    if (!shres.Load(m_ShaderHandle, "GUI")) {
+        AddLogf(Error, "Failed to load GUI shader");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool PanelComponent::Finalize() {
-	return true;
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 void PanelComponent::Step(const Core::MoveConfig & conf) {
-	size_t LastInvalidEntry = 0;
-	size_t InvalidEntryCount = 0;
+    size_t LastInvalidEntry = 0;
+    size_t InvalidEntryCount = 0;
 
-	auto &Queue = conf.m_RenderInput->m_CommandQueues[Configuration::Renderer::CommandQueueID::GUI];
-	auto &q = Queue;
+    auto &layers = conf.m_BufferFrame->GetCommandLayers();
+    auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::GUI>();
+    auto &q = Queue;
 
-	auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
-	auto shb = shres.GetBuilder(q, m_ShaderHandle);
-	using Uniform = GUIShaderDescriptor::Uniform;
+    auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
+    auto shb = shres.GetBuilder(q, m_ShaderHandle);
+    using Uniform = GUIShaderDescriptor::Uniform;
 
-	for (size_t i = 0; i < m_Array.Allocated(); ++i) {
-		auto &item = m_Array[i];
+    for (size_t i = 0; i < m_Array.Allocated(); ++i) {
+        auto &item = m_Array[i];
 
-		if (!item.m_Flags.m_Map.m_Valid) {
-			//mark and continue
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+        if (!item.m_Flags.m_Map.m_Valid) {
+            //mark and continue
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
+            item.m_Flags.m_Map.m_Valid = false;
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
-		if (!rtentry) {
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+        auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
+        if (!rtentry) {
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		if (!item.m_Flags.m_Map.m_Active)
-			continue;
+        if (!item.m_Flags.m_Map.m_Active)
+            continue;
 
-		if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
-		} else {
+        if (item.m_TransformRevision == rtentry->m_Revision && !item.m_Flags.m_Map.m_Dirty) {
+        } else {
 
-			item.m_Flags.m_Map.m_Dirty = false;
-			item.m_TransformRevision = rtentry->m_Revision;
+            item.m_Flags.m_Map.m_Dirty = false;
+            item.m_TransformRevision = rtentry->m_Revision;
 
-			auto size = rtentry->m_ScreenRect.GetSize();
+            auto size = rtentry->m_ScreenRect.GetSize();
 
-			Graphic::VertexVector Vertexes{
-				Graphic::vec3(0, size[1], 0),
-				Graphic::vec3(size[0], size[1], 0),
-				Graphic::vec3(size[0], 0, 0),
-				Graphic::vec3(0, 0, 0),
-			};
-			Graphic::NormalVector Normals;
-			float w1 = 0.0f;
-			float h1 = 0.0f;
-			float w2 = 1.0f;
-			float h2 = 1.0f;
-			Graphic::TexCoordVector TexUV{
-				Graphic::vec2(w1, h1),
-				Graphic::vec2(w2, h1),
-				Graphic::vec2(w2, h2),
-				Graphic::vec2(w1, h2),
-			};
-			Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
-			item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
-		}
+            Graphic::VertexVector Vertexes{
+                Graphic::vec3(0, size[1], 0),
+                Graphic::vec3(size[0], size[1], 0),
+                Graphic::vec3(size[0], 0, 0),
+                Graphic::vec3(0, 0, 0),
+            };
+            Graphic::NormalVector Normals;
+            float w1 = 0.0f;
+            float h1 = 0.0f;
+            float w2 = 1.0f;
+            float h2 = 1.0f;
+            Graphic::TexCoordVector TexUV{
+                Graphic::vec2(w1, h1),
+                Graphic::vec2(w2, h1),
+                Graphic::vec2(w2, h2),
+                Graphic::vec2(w1, h2),
+            };
+            Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
+            item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
+        }
 
-		Renderer::Commands::CommandKey key{ rtentry->m_Z };
+        Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
-		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), key);
-		shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
-		shb.Set<Uniform::TileMode>(emath::MathCast<emath::ivec2>(item.m_TileMode), key);
+        shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(rtentry->m_GlobalMatrix), key);
+        shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
+        shb.Set<Uniform::TileMode>(emath::MathCast<emath::ivec2>(item.m_TileMode), key);
 
-		auto ps = rtentry->m_ScreenRect.GetSize();
-		shb.Set<Uniform::PanelSize>(emath::MathCast<emath::fvec2>(ps), key);
-		shb.Set<Uniform::PanelAspect>(ps[0] / ps[1], key);
+        auto ps = rtentry->m_ScreenRect.GetSize();
+        shb.Set<Uniform::PanelSize>(emath::MathCast<emath::fvec2>(ps), key);
+        shb.Set<Uniform::PanelAspect>(ps[0] / ps[1], key);
 
-		shb.Set<Uniform::Border>(item.m_Border, key);
+        shb.Set<Uniform::Border>(item.m_Border, key);
 
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
-		Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
+        Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
 
-		auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
-		arg->m_NumIndices = 6;
-		arg->m_IndexValueType = GL_UNSIGNED_INT;
+        auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
+        arg->m_NumIndices = 6;
+        arg->m_IndexValueType = GL_UNSIGNED_INT;
 
-	}
+    }
 
-	if (InvalidEntryCount > 0) {
-		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		TrivialReleaseElement(LastInvalidEntry);
-	}
+    if (InvalidEntryCount > 0) {
+        AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+        TrivialReleaseElement(LastInvalidEntry);
+    }
 }
 
 //---------------------------------------------------------------------------------------
 
 bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
-	size_t index;
-	if (!m_Array.Allocate(index)) {
-		AddLogf(Error, "Failed to allocate index!");
-		return false;
-	}
-	auto &entry = m_Array[index];
-	entry.Reset();
-	if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-		AddLog(Error, "Failed to allocate handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
-	hout = entry.m_SelfHandle;
-	entry.m_OwnerEntity = Owner;
+    size_t index;
+    if (!m_Array.Allocate(index)) {
+        AddLogf(Error, "Failed to allocate index!");
+        return false;
+    }
+    auto &entry = m_Array[index];
+    entry.Reset();
+    if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
+        AddLog(Error, "Failed to allocate handle");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
+    hout = entry.m_SelfHandle;
+    entry.m_OwnerEntity = Owner;
 
-	x2c::Component::PanelComponent::PanelEntry_t pe;
-	pe.ResetToDefault();
-	if (!pe.Read(node)) {
-		AddLog(Error, "Failed to read ImageEntry!");
-		return false;
-	}
+    x2c::Component::PanelComponent::PanelEntry_t pe;
+    pe.ResetToDefault();
+    if (!pe.Read(node)) {
+        AddLog(Error, "Failed to read ImageEntry!");
+        return false;
+    }
 
-	auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
-	if (rtentry) {
-	} else {
-		//TODO:??
-	}
+    auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
+    if (rtentry) {
+    } else {
+        //TODO:??
+    }
 
-	//TODO: Texture loading in PanelComponent
-	//if (!GetFileSystem()->OpenTexture(entry.m_Texture, pe.m_TextureURI)) {
-	//	AddLog(Error, "Unable to load texture file for panel!");
-	//	return false;
-	//}
-	
-	entry.m_Border = pe.m_Border;
-	entry.m_Color = pe.m_Color;
-	entry.m_TileMode = pe.m_TileMode;
-	entry.m_Flags.m_Map.m_Active = pe.m_Active;
+    //TODO: Texture loading in PanelComponent
+    //if (!GetFileSystem()->OpenTexture(entry.m_Texture, pe.m_TextureURI)) {
+    //	AddLog(Error, "Unable to load texture file for panel!");
+    //	return false;
+    //}
+    
+    entry.m_Border = pe.m_Border;
+    entry.m_Color = pe.m_Color;
+    entry.m_TileMode = pe.m_TileMode;
+    entry.m_Flags.m_Map.m_Active = pe.m_Active;
 
-	entry.m_Flags.m_Map.m_Valid = true;
-	entry.m_Flags.m_Map.m_Dirty = true;
-	m_EntityMapper.SetComponentMapping(entry);
-	return true;
+    entry.m_Flags.m_Map.m_Valid = true;
+    entry.m_Flags.m_Map.m_Dirty = true;
+    m_EntityMapper.SetComponentMapping(entry);
+    return true;
 }
 
 //---------------------------------------------------------------------------------------

@@ -17,20 +17,16 @@ class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
 	cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager);
-	virtual ~cRenderDevice();
 
 	mem::aligned_ptr<RenderInput> CreateRenderInput();
 
-	bool Initialize(); 
 	bool Finalize();
-	void CheckError() const;
 
 	void BeginFrame() { ++m_FrameIndex; }
 	void EndFrame() { GetContext()->SwapBuffers(); }
 	uint64_t FrameIndex() const { return m_FrameIndex; }
 
 	void ResetViewPort() { GetContext()->ResetViewPort(); }
-	void ClearBuffer() { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
 		 
 	static float m_gamma;
 

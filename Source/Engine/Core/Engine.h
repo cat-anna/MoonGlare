@@ -17,7 +17,7 @@ public:
 
 	void EngineMain();
 
-    void DoRender(MoveConfig &conf);
+    void DoRender();
 
 	//void HandleSceneStateChange() { m_ActionQueue.Add([this]() { HandleSceneStateChangeImpl(); }); }
 	/** pushes new scene onto stack, switches to it, and returns it */
@@ -36,9 +36,6 @@ public:
 
 	void SetFrameRate(float value);
 	unsigned GetFrameRate() const { return m_LastFPS; }
-
-	/** Execute new thread watched by engine */
-	std::thread StartThread(std::function<void()> ThreadMain);
 
 	static string GetVersionString();
 

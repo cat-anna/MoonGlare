@@ -173,6 +173,10 @@ void Engine::EngineMain() {
         ++m_FrameCounter;
         conf.m_BufferFrame = Device->NextFrame();
         conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
+
+        auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
+        using Layer = Renderer::Frame::CommandLayers::LayerEnum;
+
         float StartTime = static_cast<float>(glfwGetTime());
 
         conf.TimeDelta = CurrentTime - LastMoveTime;
@@ -188,12 +192,12 @@ void Engine::EngineMain() {
 
         float MoveTime = static_cast<float>(glfwGetTime());
 
-        conf.m_RenderInput->m_CommandQueues.Sort();
+        cmdl.Get<Layer::GUI>().Sort();
 
         float SortTime = static_cast<float>(glfwGetTime());
 
         Device->Submit(conf.m_BufferFrame);
-        DoRender(conf);
+        DoRender();
 
         float RenderTime = static_cast<float>(glfwGetTime());
 
@@ -233,7 +237,7 @@ void Engine::EngineMain() {
 
 //----------------------------------------------------------------------------------
 
-void Engine::DoRender(MoveConfig &conf) {
+void Engine::DoRender() {
     auto &dev = *Graphic::GetRenderDevice();
     auto Device = m_Renderer->GetDevice();
 
@@ -244,34 +248,23 @@ void Engine::DoRender(MoveConfig &conf) {
     dev.DispatchContextManipRequests();
     dev.BeginFrame();
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     Device->ProcessPendingCtrlQueues();
     cmdl.Get<Layer::Controll>().Execute();
     cmdl.Get<Layer::PreRender>().Execute();
 
     {//m_Dereferred->Execute(conf, dev);
-        auto &layers = conf.m_BufferFrame->GetCommandLayers();
-
-        layers.Get<Renderer::Configuration::FrameBuffer::Layer::ShadowMaps>().Execute();
-        layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedGeometry>().Execute();
-
+        cmdl.Get<Layer::ShadowMaps>().Execute();
+        cmdl.Get<Layer::DefferedGeometry>().Execute();
         m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
     }
 
     dev.ResetViewPort();
-    glDepthMask(GL_TRUE);
-
-//	dev.SetModelMatrix(math::mat4());
-//	if (dev.CurrentEnvironment())
-//		dev.CurrentEnvironment()->Render(dev);
     
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    cmdl.Get<Layer::GUI>().Execute();
 
-    using Configuration::Renderer::CommandQueueID;
-    conf.m_RenderInput->m_CommandQueues[CommandQueueID::GUI].Execute();
-
-//	Device->Step();
+    //	Device->Step();
     {
         auto &l = frame->GetFirstWindowLayer();
 //		l.Sort();
@@ -283,8 +276,6 @@ void Engine::DoRender(MoveConfig &conf) {
 //#endif
 
     Device->ReleaseFrame(frame);
-
-    conf.m_RenderInput->Clear();
 }
 
 //----------------------------------------------------------------------------------
@@ -300,32 +291,6 @@ void Engine::SetFrameRate(float value) {
 
     m_FrameTimeSlice = 1.0f / value;
     AddLogf(Debug, "Frame rate limit set to %d (%.5f ms per frame)", (unsigned)value, m_FrameTimeSlice * 1000.0f);
-}
-
-//----------------------------------------------------------------------------------
-
-std::thread Engine::StartThread(std::function<void()> ThreadMain) {
-    return std::thread([ThreadMain]() {
-        try {
-            ThreadMain();
-            return;
-        }
-        catch (const char * Msg){
-            AddLogf(Error, "FATAL ERROR! '%s'", Msg);
-        }
-        catch (const string & Msg){
-            AddLogf(Error, "FATAL ERROR! '%s'", Msg.c_str());
-        }
-        catch (std::exception &E){
-            AddLog(Error, "FATAL ERROR! '" << E.what() << "'");
-        }
-        catch (...){
-            AddLog(Error, "UNKNOWN FATAL ERROR!");
-        }
-        try {
-            GetEngine()->Abort();
-        } catch (...) { }
-    });
 }
 
 //----------------------------------------------------------------------------------

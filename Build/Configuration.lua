@@ -69,8 +69,6 @@ local function SetCommonConfig()
 	}
 	libdirs {
 		"../../../../LibsC",
-		"assimp/lib",
-		"bullet3-master/lib/",
 	}
 	includedirs {
 		"../../../../LibsC",

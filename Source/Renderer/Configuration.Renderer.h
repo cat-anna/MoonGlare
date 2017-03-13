@@ -34,6 +34,8 @@ struct FrameBuffer {
         //PostRender,
         //Postprocess,
 
+        GUI, //temporary
+
         MaxValue,
     };
 };

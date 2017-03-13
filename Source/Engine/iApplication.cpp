@@ -124,7 +124,6 @@ bool iApplication::Initialize() {
 		m_World->SetConsole(c);
 	}
 
-	Graphic::GetRenderDevice()->Initialize();
 	Engine->Initialize();
 
 	//Temporary solution which probably will be used for eternity
