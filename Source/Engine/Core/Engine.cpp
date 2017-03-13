@@ -143,6 +143,7 @@ void Engine::EngineMain() {
     MoveConfig conf;
     conf.m_RenderInput = dev.CreateRenderInput();
     conf.m_RenderInput->m_DefferedSink = m_Dereferred->GetDefferedSink();
+    conf.m_ScreenSize = dev.GetContextSize();
 
     while (m_Running) {
         CurrentTime = static_cast<float>(glfwGetTime());
@@ -251,18 +252,10 @@ void Engine::DoRender() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Device->ProcessPendingCtrlQueues();
-    cmdl.Get<Layer::Controll>().Execute();
-    cmdl.Get<Layer::PreRender>().Execute();
 
-    {//m_Dereferred->Execute(conf, dev);
-        cmdl.Get<Layer::ShadowMaps>().Execute();
-        cmdl.Get<Layer::DefferedGeometry>().Execute();
-        m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
-    }
+    cmdl.Execute();
 
-    dev.ResetViewPort();
-    
-    cmdl.Get<Layer::GUI>().Execute();
+    m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
 
     //	Device->Step();
     {

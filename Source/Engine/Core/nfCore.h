@@ -4,25 +4,25 @@
 namespace MoonGlare {
 namespace Core {
 
-	struct MoveConfig;
+    struct MoveConfig;
 
-	class HandleTable;
-	class InputProcessor;
-	class Hooks;	   
-	class Console;
+    class HandleTable;
+    class InputProcessor;
+    class Hooks;	   
+    class Console;
 
-	class Engine;
+    class Engine;
 
 }//namespace Core
 }//namespace MoonGlare
 
 namespace Core {
-	using ::MoonGlare::Core::MoveConfig;
+    using ::MoonGlare::Core::MoveConfig;
 }
 
 namespace Graphic {
 namespace Light {
-	struct LightConfigurationVector;
+    struct LightConfigurationVector;
 }
 }
 
@@ -49,21 +49,23 @@ const Version::Info& GetMoonGlareEngineVersion();
 class TextProcessor;
 
 struct iCustomDraw {
-	virtual void DefferedDraw(Graphic::cRenderDevice& dev) { }
+    virtual void DefferedDraw(Graphic::cRenderDevice& dev) { }
 protected:
-	virtual ~iCustomDraw() { }
+    virtual ~iCustomDraw() { }
 };
 
 struct MoveConfig { 
-	float TimeDelta;
+    float TimeDelta;
 
-	Renderer::Frame *m_BufferFrame;
+    math::uvec2 m_ScreenSize; //temporary
 
-	mutable Renderer::VirtualCamera *Camera = nullptr;
-	
-	mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
+    Renderer::Frame *m_BufferFrame;
 
-	bool m_SecondPeriod;
+    mutable Renderer::VirtualCamera *Camera = nullptr;
+    
+    mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
+
+    bool m_SecondPeriod;
 };
 
 }//namespace Core

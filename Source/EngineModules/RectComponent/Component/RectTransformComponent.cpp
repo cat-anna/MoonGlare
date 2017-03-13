@@ -39,7 +39,7 @@ static bool gRectTransformDebugDraw = false;
 //---------------------------------------------------------------------------------------
 
 RectTransformComponent::RectTransformComponent(ComponentManager *Owner)
-	: TemplateStandardComponent(Owner) {
+    : TemplateStandardComponent(Owner) {
 }
 
 RectTransformComponent::~RectTransformComponent() {
@@ -51,476 +51,476 @@ void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
 }
 
 void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
-	root
-	.beginNamespace("Flags")
-		.beginNamespace("RectTransformComponent")
+    root
+    .beginNamespace("Flags")
+        .beginNamespace("RectTransformComponent")
 #ifdef DEBUG
-			.addVariable("DebugDraw", &gRectTransformDebugDraw)
+            .addVariable("DebugDraw", &gRectTransformDebugDraw)
 #endif
-		.endNamespace()
-	.endNamespace();
-	;
+        .endNamespace()
+    .endNamespace();
+    ;
 }
 
 //---------------------------------------------------------------------------------------
 
 int RectTransformComponent::FindChild(lua_State *lua) {
-	void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
-	RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
+    void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
+    RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
 
-	lua_getfield(lua, 1, "Handle");
-	Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
-	lua_pop(lua, 1);
+    lua_getfield(lua, 1, "Handle");
+    Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
+    lua_pop(lua, 1);
 
-	auto pos = luabridge::Stack<math::vec2>::get(lua, 2);
+    auto pos = luabridge::Stack<math::vec2>::get(lua, 2);
 
-	Entity e;
-	if (!This->FindChildByPosition(Owner, pos, e)) {
-		lua_pushnil(lua);
-		return 1;
-	}
+    Entity e;
+    if (!This->FindChildByPosition(Owner, pos, e)) {
+        lua_pushnil(lua);
+        return 1;
+    }
 
-	if (!This->m_ScriptComponent->GetObjectRootInstance(lua, e)) {
-		lua_pushnil(lua);
-	}
-	return 1;
+    if (!This->m_ScriptComponent->GetObjectRootInstance(lua, e)) {
+        lua_pushnil(lua);
+    }
+    return 1;
 }
 
 //---------------------------------------------------------------------------------------
 
 bool RectTransformComponent::Initialize() {
-	memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
-	m_CurrentRevision = 1;
+    memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
+    m_CurrentRevision = 1;
 
-	m_ScriptComponent = GetManager()->GetComponent<ScriptComponent>();
-	if (!m_ScriptComponent) {
-		AddLog(Error, "Failed to get ScriptComponent instance!");
-		return false;
-	}
+    m_ScriptComponent = GetManager()->GetComponent<ScriptComponent>();
+    if (!m_ScriptComponent) {
+        AddLog(Error, "Failed to get ScriptComponent instance!");
+        return false;
+    }
 
-	m_Array.ClearAllocation();
-	size_t index;
-	if (!m_Array.Allocate(index)) {
-		AddLogf(Error, "Failed to allocate index!");
-		return false;
-	}
+    m_Array.ClearAllocation();
+    size_t index;
+    if (!m_Array.Allocate(index)) {
+        AddLogf(Error, "Failed to allocate index!");
+        return false;
+    }
 
-	auto &RootEntry = m_Array[index];
-	RootEntry.m_Flags.ClearAll();
-	RootEntry.m_Flags.m_Map.m_Valid = true;
-	RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
+    auto &RootEntry = m_Array[index];
+    RootEntry.m_Flags.ClearAll();
+    RootEntry.m_Flags.m_Map.m_Valid = true;
+    RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
 
-	m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+    m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
 
-	if (m_Flags.m_Map.m_UniformMode) {
-		float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
-		RootEntry.m_ScreenRect.LeftTop = Point(-Aspect, -1.0f);
-		RootEntry.m_ScreenRect.RightBottom = -RootEntry.m_ScreenRect.LeftTop;
-	} else {
-		RootEntry.m_ScreenRect.LeftTop = Point(0,0);
-		RootEntry.m_ScreenRect.RightBottom = m_ScreenSize;
-	}
+    if (m_Flags.m_Map.m_UniformMode) {
+        float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
+        RootEntry.m_ScreenRect.LeftTop = Point(-Aspect, -1.0f);
+        RootEntry.m_ScreenRect.RightBottom = -RootEntry.m_ScreenRect.LeftTop;
+    } else {
+        RootEntry.m_ScreenRect.LeftTop = Point(0,0);
+        RootEntry.m_ScreenRect.RightBottom = m_ScreenSize;
+    }
 
-	RootEntry.m_Revision = 1;
-	RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
-	RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
-	RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
-	RootEntry.m_LocalMatrix = math::mat4();
+    RootEntry.m_Revision = 1;
+    RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
+    RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
+    RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
+    RootEntry.m_LocalMatrix = math::mat4();
 
-	auto &rb = RootEntry.m_ScreenRect;
-	m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y, -100.0f, 100.0f);
+    auto &rb = RootEntry.m_ScreenRect;
+    m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y, -100.0f, 100.0f);
 
-	if (!GetHandleTable()->Allocate(this, RootEntry.m_OwnerEntity, RootEntry.m_SelfHandle, index)) {
-		AddLog(Error, "Failed to allocate root handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
-	m_EntityMapper.SetComponentMapping(RootEntry);
+    if (!GetHandleTable()->Allocate(this, RootEntry.m_OwnerEntity, RootEntry.m_SelfHandle, index)) {
+        AddLog(Error, "Failed to allocate root handle");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
+    m_EntityMapper.SetComponentMapping(RootEntry);
 
-	return true;
+    return true;
 }
 
 bool RectTransformComponent::Finalize() {
-	return true;
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
-	auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
+    auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
 
-	size_t LastInvalidEntry = 0;
-	size_t InvalidEntryCount = 0;
+    size_t LastInvalidEntry = 0;
+    size_t InvalidEntryCount = 0;
 
-	for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
-		auto &item = m_Array[i];
+    for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
+        auto &item = m_Array[i];
 
-		if (!item.m_Flags.m_Map.m_Valid) {
-			//mark and continue
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+        if (!item.m_Flags.m_Map.m_Valid) {
+            //mark and continue
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
+        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
+            item.m_Flags.m_Map.m_Valid = false;
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+        }
 
-		Entity ParentEntity;
-		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
-			auto *ParentEntry = GetEntry(ParentEntity);
+        Entity ParentEntity;
+        if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
+            auto *ParentEntry = GetEntry(ParentEntity);
 
-			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
-				//nothing to do, nothing changed;
-				item.m_Flags.m_Map.m_Changed = false;
-			} else {
-				item.Recalculate(*ParentEntry);
-				item.m_Revision = m_CurrentRevision;
-				item.m_Flags.m_Map.m_Changed = true;
-			}
-			//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
-		} else {
-			item.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-			//mark and continue but set valid to false to avoid further processing
-		}
-	}
+            if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
+                //nothing to do, nothing changed;
+                item.m_Flags.m_Map.m_Changed = false;
+            } else {
+                item.Recalculate(*ParentEntry);
+                item.m_Revision = m_CurrentRevision;
+                item.m_Flags.m_Map.m_Changed = true;
+            }
+            //	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
+        } else {
+            item.m_Flags.m_Map.m_Valid = false;
+            LastInvalidEntry = i;
+            ++InvalidEntryCount;
+            continue;
+            //mark and continue but set valid to false to avoid further processing
+        }
+    }
 
-	if (InvalidEntryCount > 0) {
-		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-		TrivialReleaseElement(LastInvalidEntry);
-	}
+    if (InvalidEntryCount > 0) {
+        AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+        TrivialReleaseElement(LastInvalidEntry);
+    }
 
 #ifdef DEBUG
-	if (gRectTransformDebugDraw) {
-		D2Draw(conf);
-	}
+    if (gRectTransformDebugDraw) {
+        D2Draw(conf);
+    }
 #endif
 
-	++m_CurrentRevision;
-	if (m_CurrentRevision < 1) {
-		m_CurrentRevision = 1;
-	}
+    ++m_CurrentRevision;
+    if (m_CurrentRevision < 1) {
+        m_CurrentRevision = 1;
+    }
 }
 
 //---------------------------------------------------------------------------------------
 
 bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
-	size_t index;
-	if (!m_Array.Allocate(index)) {
-		AddLogf(Error, "Failed to allocate index!");
-		return false;
-	}
-	auto &entry = m_Array[index];
-	entry.m_Flags.ClearAll();
-	if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-		AddLog(Error, "Failed to allocate handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
-	hout = entry.m_SelfHandle;
-	entry.m_OwnerEntity = Owner;
+    size_t index;
+    if (!m_Array.Allocate(index)) {
+        AddLogf(Error, "Failed to allocate index!");
+        return false;
+    }
+    auto &entry = m_Array[index];
+    entry.m_Flags.ClearAll();
+    if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
+        AddLog(Error, "Failed to allocate handle");
+        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
+        return false;
+    }
+    hout = entry.m_SelfHandle;
+    entry.m_OwnerEntity = Owner;
 
-	Entity Parent;
-	if (!GetManager()->GetWorld()->GetEntityManager()->GetParent(Owner, Parent)) {
-		AddLog(Error, "Failed to get Parent!");
-		return false;
-	}
+    Entity Parent;
+    if (!GetManager()->GetWorld()->GetEntityManager()->GetParent(Owner, Parent)) {
+        AddLog(Error, "Failed to get Parent!");
+        return false;
+    }
 
-	auto ParentEntry = GetEntry(Parent);
-	if (!ParentEntry) {
-		AddLog(Error, "Failed to get ParentEntry!");
-		return false;
-	}
+    auto ParentEntry = GetEntry(Parent);
+    if (!ParentEntry) {
+        AddLog(Error, "Failed to get ParentEntry!");
+        return false;
+    }
 
-	entry.m_Flags.m_Map.m_Dirty = true;
+    entry.m_Flags.m_Map.m_Dirty = true;
 
-	x2c::Component::RectTransformComponent::RectTransformEntry_t rte;
-	rte.ResetToDefault();
-	if (!rte.Read(node)) {
-		AddLog(Error, "Failed to read RectTransfromEntry!");
-		return false;
-	}
+    x2c::Component::RectTransformComponent::RectTransformEntry_t rte;
+    rte.ResetToDefault();
+    if (!rte.Read(node)) {
+        AddLog(Error, "Failed to read RectTransfromEntry!");
+        return false;
+    }
 
-	entry.m_AlignMode = rte.m_AlignMode;
+    entry.m_AlignMode = rte.m_AlignMode;
 
-	entry.m_ScreenRect.LeftTop = rte.m_Position;
-	entry.m_ScreenRect.RightBottom = rte.m_Position + rte.m_Size;
+    entry.m_ScreenRect.LeftTop = rte.m_Position;
+    entry.m_ScreenRect.RightBottom = rte.m_Position + rte.m_Size;
 
-	entry.m_Margin = rte.m_Margin;
-	entry.m_Position = rte.m_Position;
-	entry.m_Size = rte.m_Size;
+    entry.m_Margin = rte.m_Margin;
+    entry.m_Position = rte.m_Position;
+    entry.m_Size = rte.m_Size;
 
-	int32_t rawz = static_cast<uint32_t>(rte.m_Z);
-	rawz += static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2;
-	entry.m_Z = static_cast<uint16_t>( rawz );
+    int32_t rawz = static_cast<uint32_t>(rte.m_Z);
+    rawz += static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2;
+    entry.m_Z = static_cast<uint16_t>( rawz );
 
-	if (rte.m_UniformMode != m_Flags.m_Map.m_UniformMode) {
-		auto &root = GetRootEntry();
-		if (m_Flags.m_Map.m_UniformMode) {
-			//convert from pixel to uniform
-			if (entry.m_AlignMode != AlignMode::Table) {
-				auto half = root.m_Size / 2.0f;
-				entry.m_Position = entry.m_Position / m_ScreenSize;// -half;
-				entry.m_Size = entry.m_Size / m_ScreenSize * root.m_Size;
-			}
-			entry.m_Margin = entry.m_Margin / m_ScreenSize * root.m_Size;
-		} else {
-			//convert from uniform to pixel
-			//NOT TESTED; MAY NOT WORK
-			float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
-			auto half = Point(Aspect, 1.0f);
-			if (entry.m_AlignMode != AlignMode::Table) {
-				entry.m_Position = entry.m_Position * m_ScreenSize + half;
-				entry.m_Size = entry.m_Size * m_ScreenSize;
-			}
-			entry.m_Margin *= m_ScreenSize;
-		}
-	} 
+    if (rte.m_UniformMode != m_Flags.m_Map.m_UniformMode) {
+        auto &root = GetRootEntry();
+        if (m_Flags.m_Map.m_UniformMode) {
+            //convert from pixel to uniform
+            if (entry.m_AlignMode != AlignMode::Table) {
+                auto half = root.m_Size / 2.0f;
+                entry.m_Position = entry.m_Position / m_ScreenSize;// -half;
+                entry.m_Size = entry.m_Size / m_ScreenSize * root.m_Size;
+            }
+            entry.m_Margin = entry.m_Margin / m_ScreenSize * root.m_Size;
+        } else {
+            //convert from uniform to pixel
+            //NOT TESTED; MAY NOT WORK
+            float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
+            auto half = Point(Aspect, 1.0f);
+            if (entry.m_AlignMode != AlignMode::Table) {
+                entry.m_Position = entry.m_Position * m_ScreenSize + half;
+                entry.m_Size = entry.m_Size * m_ScreenSize;
+            }
+            entry.m_Margin *= m_ScreenSize;
+        }
+    } 
 
-	entry.Recalculate(*ParentEntry);
-	entry.m_Revision = m_CurrentRevision;
+    entry.Recalculate(*ParentEntry);
+    entry.m_Revision = m_CurrentRevision;
 
-	entry.m_Flags.m_Map.m_Valid = true;
-	m_EntityMapper.SetComponentMapping(entry);
-	return true;
+    entry.m_Flags.m_Map.m_Valid = true;
+    m_EntityMapper.SetComponentMapping(entry);
+    return true;
 }
 
 bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
-	x2c::Component::RectTransformComponent::RectTransformEntry_t rts;
-	rts.ResetToDefault();
-	if (!rts.Read(node)) {
-		AddLog(Error, "Failed to read settings!");
-		return false;
-	}
+    x2c::Component::RectTransformComponent::RectTransformEntry_t rts;
+    rts.ResetToDefault();
+    if (!rts.Read(node)) {
+        AddLog(Error, "Failed to read settings!");
+        return false;
+    }
 
-	m_Flags.m_Map.m_UniformMode = rts.m_UniformMode;
-	
-	return true;
+    m_Flags.m_Map.m_UniformMode = rts.m_UniformMode;
+    
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, Entity &eout) {
-	auto ParentEntry = GetEntry(Parent);
-	if (!ParentEntry) {
-		AddLogf(Error, "Attempt to find child by position of null parent!");
-		return false;
-	}
+    auto ParentEntry = GetEntry(Parent);
+    if (!ParentEntry) {
+        AddLogf(Error, "Attempt to find child by position of null parent!");
+        return false;
+    }
 
-	pos += GetRootEntry().m_ScreenRect.LeftTop;
+    pos += GetRootEntry().m_ScreenRect.LeftTop;
 
-	if (!ParentEntry->m_ScreenRect.IsPointInside(pos))
-		return false;
+    if (!ParentEntry->m_ScreenRect.IsPointInside(pos))
+        return false;
 
-	auto em = GetManager()->GetWorld()->GetEntityManager();
-	struct T {
-		static bool f(Core::EntityManager *em, RectTransformComponent *rtc, Entity Owner, const math::vec2 &pos, Entity &eout) {
-			if (!em->IsValid(Owner))
-				return false;
-			
-			auto entry = rtc->GetEntry(Owner);
+    auto em = GetManager()->GetWorld()->GetEntityManager();
+    struct T {
+        static bool f(Core::EntityManager *em, RectTransformComponent *rtc, Entity Owner, const math::vec2 &pos, Entity &eout) {
+            if (!em->IsValid(Owner))
+                return false;
+            
+            auto entry = rtc->GetEntry(Owner);
 
-			if (entry) {
-				if (!entry->m_ScreenRect.IsPointInside(pos))
-					return false;
-			}
+            if (entry) {
+                if (!entry->m_ScreenRect.IsPointInside(pos))
+                    return false;
+            }
 
-			Entity child;
-			if (!em->GetFistChild(Owner, child)) {
-				eout = Owner;
-				return true;
-			}
+            Entity child;
+            if (!em->GetFistChild(Owner, child)) {
+                eout = Owner;
+                return true;
+            }
 
-			do {
-				if (f(em, rtc, child, pos, eout)) {
-					return true;
-				}
-			} while (em->GetNextSibling(child, child));
+            do {
+                if (f(em, rtc, child, pos, eout)) {
+                    return true;
+                }
+            } while (em->GetNextSibling(child, child));
 
-			eout = Owner;
-			return true;
-		}
-	};
-	auto Owner = ParentEntry->m_OwnerEntity;
-	if (!em->GetFistChild(Owner, Owner))
-		return false;
-	return T::f(em, this, Owner, pos, eout);
+            eout = Owner;
+            return true;
+        }
+    };
+    auto Owner = ParentEntry->m_OwnerEntity;
+    if (!em->GetFistChild(Owner, Owner))
+        return false;
+    return T::f(em, this, Owner, pos, eout);
 }
 
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponent::D2Draw(const Core::MoveConfig & conf) {
 #if 0
-	if (!m_Shader) {
-		if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
-			AddLogf(Error, "Failed to load btDebgDraw shader");
-			return;
-		}
-	}
+    if (!m_Shader) {
+        if (!Graphic::GetShaderMgr()->GetSpecialShader("btDebugDraw", m_Shader)) {
+            AddLogf(Error, "Failed to load btDebgDraw shader");
+            return;
+        }
+    }
 
-	if (!m_Shader)
-		return;
+    if (!m_Shader)
+        return;
 
-	auto frame = conf.m_BufferFrame;
+    auto frame = conf.m_BufferFrame;
 
-	Renderer::VAOResourceHandle vao;
-	if (!frame->AllocateFrameResource(vao))
-		return;
+    Renderer::VAOResourceHandle vao;
+    if (!frame->AllocateFrameResource(vao))
+        return;
 
-	auto &qgui = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
+    auto &qgui = conf.m_RenderInput->m_CommandQueues[Renderer::RendererConf::CommandQueueID::GUI];
 
-	auto qptr = frame->AllocateSubQueue();
-	auto &q = *qptr;
+    auto qptr = frame->AllocateSubQueue();
+    auto &q = *qptr;
 
-	Renderer::RendererConf::CommandKey basekey{ static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2 + 10000 };
-	qgui.PushQueue(qptr, basekey);
+    Renderer::RendererConf::CommandKey basekey{ static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) / 2 + 10000 };
+    qgui.PushQueue(qptr, basekey);
 
-	m_Shader->Bind(q, basekey);
- 	m_Shader->SetWorldMatrix(q, basekey, emath::fmat4::Identity(), m_Camera.GetProjectionMatrix());
-	//m_Shader->SetColor(q, basekey, math::fvec4(1));
-	q.MakeCommand<Renderer::Commands::Texture2DBind>(Renderer::InvalidTextureHandle);
-	q.MakeCommand<Renderer::Commands::Enable>((GLenum)GL_BLEND);
-	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_CULL_FACE);
-	q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_DEPTH_TEST);
-	q.MakeCommand<Renderer::Commands::EnterWireFrameMode>();
+    m_Shader->Bind(q, basekey);
+    m_Shader->SetWorldMatrix(q, basekey, emath::fmat4::Identity(), m_Camera.GetProjectionMatrix());
+    //m_Shader->SetColor(q, basekey, math::fvec4(1));
+    q.MakeCommand<Renderer::Commands::Texture2DBind>(Renderer::InvalidTextureHandle);
+    q.MakeCommand<Renderer::Commands::Enable>((GLenum)GL_BLEND);
+    q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_CULL_FACE);
+    q.MakeCommand<Renderer::Commands::Disable>((GLenum)GL_DEPTH_TEST);
+    q.MakeCommand<Renderer::Commands::EnterWireFrameMode>();
 
-	auto *vertexes = frame->GetMemory().Allocate<math::fvec3>(4 * m_Array.Allocated());
-	auto *indextable = frame->GetMemory().Allocate<uint16_t>(5 * m_Array.Allocated());
-	uint16_t vertexindex = 0;
-	uint16_t indexindex = 0;
+    auto *vertexes = frame->GetMemory().Allocate<math::fvec3>(4 * m_Array.Allocated());
+    auto *indextable = frame->GetMemory().Allocate<uint16_t>(5 * m_Array.Allocated());
+    uint16_t vertexindex = 0;
+    uint16_t indexindex = 0;
 
-	for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
-		auto &item = m_Array[i];
-		if (!item.m_Flags.m_Map.m_Valid) {
-			continue;
-		}
-		
-		auto &r = item.m_ScreenRect;
-		indextable[indexindex++] = vertexindex;
-		vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.LeftTop.y, 0.0f);
-		indextable[indexindex++] = vertexindex;
-		vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.RightBottom.y, 0.0f);
-		indextable[indexindex++] = vertexindex;
-		vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.RightBottom.y, 0.0f);
-		indextable[indexindex++] = vertexindex;
-		vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.LeftTop.y, 0.0f);
-	}
+    for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
+        auto &item = m_Array[i];
+        if (!item.m_Flags.m_Map.m_Valid) {
+            continue;
+        }
+        
+        auto &r = item.m_ScreenRect;
+        indextable[indexindex++] = vertexindex;
+        vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.LeftTop.y, 0.0f);
+        indextable[indexindex++] = vertexindex;
+        vertexes[vertexindex++] = math::vec3(r.LeftTop.x, r.RightBottom.y, 0.0f);
+        indextable[indexindex++] = vertexindex;
+        vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.RightBottom.y, 0.0f);
+        indextable[indexindex++] = vertexindex;
+        vertexes[vertexindex++] = math::vec3(r.RightBottom.x, r.LeftTop.y, 0.0f);
+    }
 
-	auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, true);
+    auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, true);
 
-	vaob.BeginDataChange();
-	using ichannels = Renderer::Configuration::VAO::InputChannels;
+    vaob.BeginDataChange();
+    using ichannels = Renderer::Configuration::VAO::InputChannels;
 
-	vaob.CreateChannel(ichannels::Vertex);
-	vaob.SetChannelData<float, 3>(ichannels::Vertex, &vertexes[0][0], vertexindex);
+    vaob.CreateChannel(ichannels::Vertex);
+    vaob.SetChannelData<float, 3>(ichannels::Vertex, &vertexes[0][0], vertexindex);
 
-	vaob.CreateChannel(ichannels::Texture0);
-	vaob.SetChannelData<float, 2>(ichannels::Texture0, nullptr, 0);
+    vaob.CreateChannel(ichannels::Texture0);
+    vaob.SetChannelData<float, 2>(ichannels::Texture0, nullptr, 0);
 
-	vaob.CreateChannel(ichannels::Index);
-	vaob.SetIndex(ichannels::Index, indextable, indexindex);
+    vaob.CreateChannel(ichannels::Index);
+    vaob.SetIndex(ichannels::Index, indextable, indexindex);
 
-	vaob.EndDataChange();
+    vaob.EndDataChange();
 
-	q.MakeCommand<Renderer::Commands::VAODrawElements>((GLenum)GL_QUADS, indexindex, (unsigned)Renderer::GLTypeInfo<uint16_t>::TypeId);
+    q.MakeCommand<Renderer::Commands::VAODrawElements>((GLenum)GL_QUADS, indexindex, (unsigned)Renderer::GLTypeInfo<uint16_t>::TypeId);
 
-	vaob.UnBindVAO();
-	q.MakeCommand<Renderer::Commands::LeaveWireFrameMode>();
+    vaob.UnBindVAO();
+    q.MakeCommand<Renderer::Commands::LeaveWireFrameMode>();
 #endif
 }
 
 //---------------------------------------------------------------------------------------
 
 void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Parent) {
-	const auto &parentmargin = Parent.m_Margin;
-	const auto parentsize = Parent.m_ScreenRect.GetSize();
+    const auto &parentmargin = Parent.m_Margin;
+    const auto parentsize = Parent.m_ScreenRect.GetSize();
 
-	bool doslice = true;
+    bool doslice = true;
 
-	switch (m_AlignMode) {
-	case AlignMode::None:
-		break;
+    switch (m_AlignMode) {
+    case AlignMode::None:
+        break;
 
-	case AlignMode::Top:
-		m_Position = parentmargin.LeftTopMargin();
-		m_Size.x = parentsize.x - parentmargin.VerticalMargin();
-		break;
-	case AlignMode::Bottom:
-		m_Size.x = parentsize.x - parentmargin.VerticalMargin();
-		m_Position = Point(parentmargin.Left, parentsize.y - parentmargin.Top - m_Size.y);
-		break;
-	case AlignMode::Left:
-		m_Position = parentmargin.LeftTopMargin();
-		m_Size.y = parentsize.y - parentmargin.VerticalMargin();
-		break;
-	case AlignMode::Right:
-		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top);
-		m_Size.y = parentsize.y - parentmargin.VerticalMargin();
-		break;
+    case AlignMode::Top:
+        m_Position = parentmargin.LeftTopMargin();
+        m_Size.x = parentsize.x - parentmargin.VerticalMargin();
+        break;
+    case AlignMode::Bottom:
+        m_Size.x = parentsize.x - parentmargin.VerticalMargin();
+        m_Position = Point(parentmargin.Left, parentsize.y - parentmargin.Top - m_Size.y);
+        break;
+    case AlignMode::Left:
+        m_Position = parentmargin.LeftTopMargin();
+        m_Size.y = parentsize.y - parentmargin.VerticalMargin();
+        break;
+    case AlignMode::Right:
+        m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top);
+        m_Size.y = parentsize.y - parentmargin.VerticalMargin();
+        break;
 
-	case AlignMode::LeftTop:
-		m_Position = parentmargin.LeftTopMargin();
-		break;
-	case AlignMode::LeftBottom:
-		m_Position = Point(parentmargin.Left, parentsize.y - parentmargin.Bottom - m_Size.y);
-		break;
-	case AlignMode::RightTop:
-		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top);
-		break;
-	case AlignMode::RightBottom:
-		m_Position = parentsize - parentmargin.RightBottomMargin() - m_Size;
-		break;
+    case AlignMode::LeftTop:
+        m_Position = parentmargin.LeftTopMargin();
+        break;
+    case AlignMode::LeftBottom:
+        m_Position = Point(parentmargin.Left, parentsize.y - parentmargin.Bottom - m_Size.y);
+        break;
+    case AlignMode::RightTop:
+        m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top);
+        break;
+    case AlignMode::RightBottom:
+        m_Position = parentsize - parentmargin.RightBottomMargin() - m_Size;
+        break;
 
-	case AlignMode::LeftMiddle: 
-		m_Position = Point(parentmargin.Left, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
-		break;
-	case AlignMode::RightMiddle: 
-		m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin() - m_Size.y) / 2.0f);
-		break;
-	case AlignMode::MiddleTop: 
-		m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentmargin.Top);
-		break;
-	case AlignMode::MiddleBottom: 
-		m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentsize.y - parentmargin.Top - m_Size.y);
-		break;
+    case AlignMode::LeftMiddle: 
+        m_Position = Point(parentmargin.Left, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin()) / 2.0f);
+        break;
+    case AlignMode::RightMiddle: 
+        m_Position = Point(parentsize.x - parentmargin.Right - m_Size.x, parentmargin.Top + (parentsize.y - parentmargin.VerticalMargin() - m_Size.y) / 2.0f);
+        break;
+    case AlignMode::MiddleTop: 
+        m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentmargin.Top);
+        break;
+    case AlignMode::MiddleBottom: 
+        m_Position = Point(parentmargin.Left + (parentsize.x - parentmargin.HorizontalMargin() - m_Size.x) / 2.0f, parentsize.y - parentmargin.Top - m_Size.y);
+        break;
 
-	case AlignMode::FillParent:
-		m_Position = parentmargin.LeftTopMargin();
-		m_Size = Point(parentsize.x - parentmargin.HorizontalMargin(), parentsize.y - parentmargin.VerticalMargin());
-		break;
+    case AlignMode::FillParent:
+        m_Position = parentmargin.LeftTopMargin();
+        m_Size = Point(parentsize.x - parentmargin.HorizontalMargin(), parentsize.y - parentmargin.VerticalMargin());
+        break;
 
-	case AlignMode::Center: {
-		auto halfparent = parentsize / 2.0f;
-		auto halfsize = m_Size / 2.0f;
-		m_Position = halfparent - halfsize;
-		break;
-	}
-	case AlignMode::Table: {
-		auto cell = (parentsize - (parentmargin.TotalMargin())) / m_Size;
-		auto cellpos = parentmargin.LeftTopMargin() + cell * m_Position;
-		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, cellpos, cell);
-		m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(cellpos, 0));
-		doslice = false;
-		break;
-	}
+    case AlignMode::Center: {
+        auto halfparent = parentsize / 2.0f;
+        auto halfsize = m_Size / 2.0f;
+        m_Position = halfparent - halfsize;
+        break;
+    }
+    case AlignMode::Table: {
+        auto cell = (parentsize - (parentmargin.TotalMargin())) / m_Size;
+        auto cellpos = parentmargin.LeftTopMargin() + cell * m_Position;
+        m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, cellpos, cell);
+        m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(cellpos, 0));
+        doslice = false;
+        break;
+    }
 
-	default:
-		LogInvalidEnum(m_AlignMode);
-		return;
-	}
+    default:
+        LogInvalidEnum(m_AlignMode);
+        return;
+    }
 
-	if (doslice) {
-		m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
-		m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_Position, 0));
-	}
+    if (doslice) {
+        m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
+        m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_Position, 0));
+    }
 
-	m_GlobalMatrix = Parent.m_GlobalMatrix * m_LocalMatrix;
+    m_GlobalMatrix = Parent.m_GlobalMatrix * m_LocalMatrix;
 }
 
 } //namespace Component 

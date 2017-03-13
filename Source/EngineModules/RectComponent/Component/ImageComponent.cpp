@@ -102,6 +102,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
     shb.Set<Uniform::CameraMatrix>(m_RectTransform->GetCamera().GetProjectionMatrix());
 
     using namespace Renderer;
+    q.MakeCommand<Commands::SetViewport>(0, 0, (int)conf.m_ScreenSize[0], (int)conf.m_ScreenSize[1]);
     q.MakeCommand<Commands::DepthMask>((GLboolean)GL_TRUE);
     q.MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
     q.MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
