@@ -17,8 +17,6 @@ public:
 
 	void EngineMain();
 
-    void DoRender();
-
 	//void HandleSceneStateChange() { m_ActionQueue.Add([this]() { HandleSceneStateChangeImpl(); }); }
 	/** pushes new scene onto stack, switches to it, and returns it */
 	//ciScene* PushScene(const string& Name);

@@ -198,7 +198,25 @@ void Engine::EngineMain() {
         float SortTime = static_cast<float>(glfwGetTime());
 
         Device->Submit(conf.m_BufferFrame);
-        DoRender();
+        {
+            auto frame = Device->PendingFrame();
+            auto &cmdl = frame->GetCommandLayers();
+            using Layer = Renderer::Frame::CommandLayers::LayerEnum;
+
+            dev.DispatchContextManipRequests();
+            dev.BeginFrame();
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            Device->ProcessPendingCtrlQueues();
+
+            cmdl.Execute();
+            m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
+            //	Device->Step();
+            frame->GetFirstWindowLayer().Execute();
+
+            Device->ReleaseFrame(frame);
+        }
 
         float RenderTime = static_cast<float>(glfwGetTime());
 
@@ -234,41 +252,6 @@ void Engine::EngineMain() {
         AddLogf(Error, "Failure during PreSystemShutdown");
         return;
     }
-}
-
-//----------------------------------------------------------------------------------
-
-void Engine::DoRender() {
-    auto &dev = *Graphic::GetRenderDevice();
-    auto Device = m_Renderer->GetDevice();
-
-    auto frame = Device->PendingFrame();
-    auto &cmdl = frame->GetCommandLayers();
-    using Layer = Renderer::Frame::CommandLayers::LayerEnum;
-
-    dev.DispatchContextManipRequests();
-    dev.BeginFrame();
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    Device->ProcessPendingCtrlQueues();
-
-    cmdl.Execute();
-
-    m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
-
-    //	Device->Step();
-    {
-        auto &l = frame->GetFirstWindowLayer();
-//		l.Sort();
-        l.Execute();
-    }
-
-//#ifdef DEBUG
-//    Config::Debug::ProcessTextureIntrospector(dev);
-//#endif
-
-    Device->ReleaseFrame(frame);
 }
 
 //----------------------------------------------------------------------------------
