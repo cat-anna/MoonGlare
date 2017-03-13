@@ -33,10 +33,10 @@ Engine::Engine(World *world) :
         m_World(world)
 {
     MoonGlareAssert(m_World);
+    
+    ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
     m_Renderer = m_World->GetRendererFacade();
-
-    ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
     SetThisAsInstance();
     new JobQueue();
@@ -48,42 +48,36 @@ Engine::~Engine() {
 
 //----------------------------------------------------------------------------------
 
-bool Engine::Initialize() {
-
+void Engine::Initialize() {
     if (!m_World->Initialize(GetScriptEngine())) {
         AddLogf(Error, "Failed to initialize world!");
-        return false;
+        throw "Failed to initialize world!";
     }
 
     m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
     m_Dereferred->Initialize(GetWorld());
 
     SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
-
-    return true;
 }
 
-bool Engine::Finalize() {
+void Engine::Finalize() {
     m_Dereferred.reset();
 
     AddLog(Performance, "Frames skipped: " << m_SkippedFrames);
 
     if (!m_World->Finalize()) {
         AddLogf(Error, "Failed to finalize world!");
+        throw "Failed to finalize world!";
     }
-
-    return true;
 }
 
-bool Engine::PostSystemInit() {
+void Engine::PostSystemInit() {
     GetDataMgr()->LoadGlobalData();
 
     if (!m_World->PostSystemInit()) {
         AddLogf(Error, "World PostSystemInit failed!");
-        return false;
+        throw "World PostSystemInit failed!";
     }
-
-    return true;
 }
 
 //----------------------------------------------------------------------------------
@@ -152,27 +146,13 @@ void Engine::EngineMain() {
     while (m_Running) {
         auto CurrentTime = clock::now();
         float FrameTimeDelta = tdiff(LastFrame, CurrentTime);
-        if (FrameTimeDelta < m_FrameTimeSlice) {
-            //std::this_thread::sleep_for(std::chrono::microseconds(100));
+        if (FrameTimeDelta < m_FrameTimeSlice) 
             continue;
-        }
-
-        if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f) {
-            //LastFrame = CurrentTime;
+        if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f) 
             ++m_SkippedFrames;
-            //std::this_thread::sleep_for(std::chrono::microseconds(500));
-            //std::this_thread::yield();
-            //continue;
-        }
 
         LastFrame = CurrentTime;
-#if 0
-        if(m_Flags & AppFlag_Inactive){
-            std::this_thread::yield();
-            LastMoveTime = CurrentTime;
-            continue;
-        }
-#endif
+
         m_ActionQueue.DispatchPendingActions();
 
         ++FrameCounter;

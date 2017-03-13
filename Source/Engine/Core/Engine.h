@@ -5,52 +5,48 @@ namespace MoonGlare {
 namespace Core {
 
 class Engine : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
+    SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
+    DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
     Engine(World *World);
     ~Engine();
 
-	bool Initialize();
-	bool Finalize();
-	bool PostSystemInit();
+    void Initialize();
+    void Finalize();
+    void PostSystemInit();
 
-	void EngineMain();
+    void EngineMain();
 
-	//void HandleSceneStateChange() { m_ActionQueue.Add([this]() { HandleSceneStateChangeImpl(); }); }
-	/** pushes new scene onto stack, switches to it, and returns it */
-	//ciScene* PushScene(const string& Name);
+    /** Add action which has to be called between engine steps */
+    template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
 
-	/** Add action which has to be called between engine steps */
-	template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
+    /** Abort engine execution. Throws exception. No cleanup is done. */
+    void Abort();
+    /** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
+    void Exit();
 
-	/** Abort engine execution. Throws exception. No cleanup is done. */
-	void Abort();
-	/** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
-	void Exit();
+    static void ScriptApi(ApiInitializer &root);
+    static void RegisterDebugScriptApi(ApiInitializer &root);
 
-	static void ScriptApi(ApiInitializer &root);
-	static void RegisterDebugScriptApi(ApiInitializer &root);
+    void SetFrameRate(float value);
+    unsigned GetFrameRate() const { return m_LastFPS; }
 
-	void SetFrameRate(float value);
-	unsigned GetFrameRate() const { return m_LastFPS; }
+    static string GetVersionString();
 
-	static string GetVersionString();
-
-	World* GetWorld() { return m_World; }
+    World* GetWorld() { return m_World; }
 
 protected:
-	Space::ActionQueue m_ActionQueue;
+    Space::ActionQueue m_ActionQueue;
 
-	World *m_World = nullptr;
-	Renderer::RendererFacade *m_Renderer = nullptr;
+    World *m_World = nullptr;
+    Renderer::RendererFacade *m_Renderer = nullptr;
 
-	std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
+    std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 
-	volatile bool m_Running;		//!< Indicates whether engine is running
-	float m_FrameTimeSlice;			//!< Amount of ms per single frame. Equals to 16.(6) for 60PFSd
-	unsigned m_LastFPS;				//!< FPS in previous second.
-	unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
+    volatile bool m_Running;		//!< Indicates whether engine is running
+    float m_FrameTimeSlice;			//!< Amount of ms per single frame. Equals to 16.(6) for 60PFSd
+    unsigned m_LastFPS;				//!< FPS in previous second.
+    unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
 };
 
 inline Engine* GetEngine() { return Engine::Instance(); }
