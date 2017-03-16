@@ -30,21 +30,21 @@ class alignas(16) TextureRenderTask;
 struct alignas(16) VirtualCamera;
 
 struct ContextCreationInfo {
-	uint32_t m_Width = 800;
-	uint32_t m_Height = 600;
-	int32_t MonitorIndex = -1;
-	bool FullScreen = false;
-	const char *Title = "Window";
+    uint32_t m_Width = 800;
+    uint32_t m_Height = 600;
+    int32_t MonitorIndex = -1;
+    bool FullScreen = false;
+    const char *Title = "Window";
 };
 
 namespace Commands {
-	class alignas(16) CommandQueue;
+    class alignas(16) CommandQueue;
 }
 
 namespace Resources {
-	class alignas(16) ResourceManager;
-	class alignas(16) TextureResource;
-	class alignas(16) MaterialManager;
+    class alignas(16) ResourceManager;
+    class alignas(16) TextureResource;
+    class alignas(16) MaterialManager;
 }
 
 } //namespace MoonGlare::Renderer

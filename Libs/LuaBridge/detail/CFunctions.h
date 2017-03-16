@@ -371,7 +371,7 @@ struct CFunc
     }
   };
 
-	  template <class MemFnPtr>
+  template <class MemFnPtr>
   struct CallUpvalueMember <MemFnPtr, void>
   {
     typedef typename FuncTraits <MemFnPtr>::ClassType T;
@@ -387,6 +387,18 @@ struct CFunc
       FuncTraits <MemFnPtr>::call (t, fnptr, args);
       return 0;
     }
+  };
+
+  template <class T>
+  struct CallUpvalueMemberCFunction {
+      static int f(lua_State* L) {
+          assert(lua_isuserdata(L, lua_upvalueindex(1)));
+          T* const t = static_cast <T*> (lua_touserdata(L, lua_upvalueindex(1)));
+          typedef int (T::*MFP)(lua_State* L);
+          MFP const& fnptr = *static_cast <MFP const*> (lua_touserdata(L, lua_upvalueindex(2)));
+          assert(fnptr != 0);
+          return (t->*fnptr) (L);
+      }
   };
 
   //--------------------------------------------------------------------------

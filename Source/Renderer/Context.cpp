@@ -30,9 +30,17 @@ static bool IsModeEnabled(const GLFWvidmode* mode) {
     return true;
 }
 
-static std::string DumpGLFWMode(const GLFWvidmode* mode) {
+static std::string DumpMode(const GLFWvidmode* mode) {
     char buf[128];
-    sprintf(buf, "%dx%d@%dHz bits:%dx%dx%d ratio:%f", mode->width, mode->height, mode->refreshRate, mode->redBits, mode->blueBits, mode->greenBits, (float)mode->width / (float)mode->height);
+    float aspect = (float)mode->width / (float)mode->height;
+    sprintf(buf, "%dx%d@%dHz bits:%dx%dx%d ratio:%f", mode->width, mode->height, mode->refreshRate, mode->redBits, mode->blueBits, mode->greenBits, aspect);
+    return buf;
+}
+
+static std::string DumpMode(Context::VideoMode mode) {
+    char buf[128];
+    float aspect = (float)mode.m_Width / (float)mode.m_Height;
+    sprintf(buf, "%dx%d@%dHz ratio:%f", mode.m_Width, mode.m_Height, mode.m_RefreshRate, aspect);
     return buf;
 }
 
@@ -94,7 +102,7 @@ int Context::GetMonitorCount() {
     return count;
 }
 
-std::vector<GLFWvidmode> Context::GetMonitorModes(int MonitorIndex) {
+std::vector<Context::VideoMode> Context::GetMonitorModes(int MonitorIndex) {
     if (!s_GLFWInitialized)
         throw "GetMonitorModes: GLFW is not initialized!";
 
@@ -108,13 +116,18 @@ std::vector<GLFWvidmode> Context::GetMonitorModes(int MonitorIndex) {
     int modecount;
     const GLFWvidmode* modes = glfwGetVideoModes(monitor, &modecount);
 
-    std::vector<GLFWvidmode> ret;
+    std::vector<VideoMode> ret;
     ret.reserve(modecount);
 
     for (int j = 0; j < modecount; ++j) {
-        auto mode = modes + j;
-        if (IsModeEnabled(mode))
-            ret.emplace_back(*mode);
+        auto glfwmode = modes + j;
+        if (IsModeEnabled(glfwmode)) {
+            VideoMode mode;
+            mode.m_Width = glfwmode->width;
+            mode.m_Height = glfwmode->height;
+            mode.m_RefreshRate = glfwmode->refreshRate;
+            ret.emplace_back(mode);
+        }
     }
 
     return std::move(ret);
@@ -138,7 +151,7 @@ void Context::DumpMonitors() {
         auto cmode = glfwGetVideoMode(monitor);
 
         AddLogf(System, "%-6s %d: Physical size:[%4dx%-4dmm] Current mode:[%30s] Name:[%s]",
-            (primary ? "P" : ""), i, widthMM, heightMM, DumpGLFWMode(cmode).c_str(), name);
+            (primary ? "P" : ""), i, widthMM, heightMM, DumpMode(cmode).c_str(), name);
     }
     AddLogf(System, "Video modes:");
 
@@ -148,7 +161,7 @@ void Context::DumpMonitors() {
         auto modes = GetMonitorModes(i);
         int modeindex = 0;
         for (const auto &mode: modes) {
-            AddLogf(System, "    %d.%2d: %s", i, modeindex, DumpGLFWMode(&mode).c_str());
+            AddLogf(System, "    %d.%2d: %s", i, modeindex, DumpMode(mode).c_str());
             ++modeindex;
         }
     }

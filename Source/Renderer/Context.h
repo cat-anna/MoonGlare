@@ -17,6 +17,13 @@ class
     Context final {
     using Conf = Configuration::Context;
 public:
+    struct VideoMode {
+        int m_Width;
+        int m_Height;
+        int m_RefreshRate;
+        int _padding;
+    };
+
     Context();
     ~Context();
 
@@ -24,7 +31,7 @@ public:
     static bool FinalizeSubSystem();
 
     static int GetMonitorCount();
-    static std::vector<GLFWvidmode> GetMonitorModes(int MonitorIndex);
+    static std::vector<VideoMode> GetMonitorModes(int MonitorIndex);
     static void DumpMonitors();
 
     emath::ivec2 Size() const { return m_Size; }

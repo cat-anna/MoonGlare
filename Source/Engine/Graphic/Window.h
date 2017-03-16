@@ -15,16 +15,8 @@ class Window : public cRootClass {
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	Window(GLFWwindow *w);
-
 	unsigned GetRefreshRate() const;
-
 	const uvec2& Size() const { return m_Size; }
-
-	GLFWvidmode GetCurrentMode() const;
-	int GetMonitors(lua_State *lua);
-	int GetMonitorModes(lua_State *lua);
-
-	static void RegisterScriptApi(::ApiInitializer &api);
 private:
 	GLFWwindow *m_Window;
 	uvec2 m_Size;

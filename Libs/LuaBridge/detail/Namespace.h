@@ -1172,7 +1172,6 @@ public:
 	  return *this;
   }
 
-
   template <class MemFn, typename T>
   Namespace & addObjectFunction(char const* name, T *object, MemFn mf) {
 	  lua_pushlightuserdata(L, object);
@@ -1180,6 +1179,14 @@ public:
 	  lua_pushcclosure(L, &CFunc::CallUpvalueMember<MemFn>::f, 2);
 	  rawsetfield(L, -2, name); // class table
 	  return *this;
+  }
+  template <typename T>
+  Namespace & addObjectCFunction(char const* name, T *object, int(T::*fp)(lua_State*)) {
+      lua_pushlightuserdata(L, object);
+      new (lua_newuserdata(L, sizeof(fp))) decltype(fp)(fp);
+      lua_pushcclosure(L, &CFunc::CallUpvalueMemberCFunction<T>::f, 2);
+      rawsetfield(L, -2, name); // class table
+      return *this;
   }
 
 //  template<typename T, typename R, class ... ARGS>
