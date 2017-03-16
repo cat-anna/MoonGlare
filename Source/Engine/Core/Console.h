@@ -20,7 +20,6 @@ public:
 	bool SetFont(DataClasses::FontPtr Font);
 	void SetMaxLines(unsigned Count) { m_MaxLines = Count; }
 
-	void PushChar(unsigned key);
 	void PushKey(unsigned key);
 
 	void Deactivate();

@@ -16,6 +16,11 @@
 #include "ResourceManager.h"
 #include "TextureResource.h"
 
+#include <Renderer/Frame.h>
+#include <Renderer/Renderer.h>
+#include <Renderer/RenderDevice.h>
+#include <Renderer/Resources/ResourceManager.h>
+
 namespace MoonGlare::Renderer::Resources {
 
 void TextureResource::Initialize(ResourceManager *Owner, TextureLoader *TexLoader) {
@@ -171,7 +176,6 @@ bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::Co
 	pixels->m_PixelData = Pixels;
 	pixels->m_BPP = static_cast<GLenum>(pxtype);
 	pixels->m_Type = static_cast<GLenum>(TypeValue);
-
 
 	if (config.m_Filtering == Conf::Filtering::Default) {
 		config.m_Filtering = m_Settings->m_Filtering;

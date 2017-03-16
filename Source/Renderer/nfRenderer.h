@@ -12,6 +12,9 @@
 #include "Device/Types.h"
 #include "Handles.h"
 
+#include "Exceptions.h"
+#include "RendererInterfaces.h"
+
 namespace MoonGlare::Renderer {
 
 class RendererFacade;
@@ -43,22 +46,5 @@ namespace Resources {
 	class alignas(16) TextureResource;
 	class alignas(16) MaterialManager;
 }
-
-class RendererException : public std::runtime_error {
-public:
-	RendererException(std::string msg) : std::runtime_error(std::move(msg)) {}
-};
-
-class CriticalException : public RendererException {
-public:
-	CriticalException(std::string msg) : RendererException(std::move(msg)){}
-};
-
-class InitFailureException : public CriticalException {
-public:
-	InitFailureException(std::string msg) : CriticalException(std::move(msg)) {}
-};
-
-#define RendererAssert(COND) assert(COND)
 
 } //namespace MoonGlare::Renderer

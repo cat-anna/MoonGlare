@@ -58,18 +58,18 @@ using aligned_ptr = std::unique_ptr<T, boost::alignment::aligned_delete>;
 
 template<class T, class... Args>
 inline aligned_ptr<T> make_aligned(Args&&... args) {
-	auto p = boost::alignment::aligned_alloc(boost::alignment::alignment_of<T>::value, sizeof(T));
-	if (!p) {
-		throw std::bad_alloc();
-	}
-	try {
-		auto q = ::new(p) T(std::forward<Args>(args)...);
-		return aligned_ptr<T>(q);
-	}
-	catch (...) {
-		boost::alignment::aligned_free(p);
-		throw;
-	}
+    auto p = boost::alignment::aligned_alloc(boost::alignment::alignment_of<T>::value, sizeof(T));
+    if (!p) {
+        throw std::bad_alloc();
+    }
+    try {
+        auto q = ::new(p) T(std::forward<Args>(args)...);
+        return aligned_ptr<T>(q);
+    }
+    catch (...) {
+        boost::alignment::aligned_free(p);
+        throw;
+    }
 }
 
 }
@@ -86,58 +86,59 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
 #pragma warning ( pop )
 
 namespace emath {
-	using fvec2 = Eigen::Array2f;
-	using fvec3 = Eigen::Array3f;
-	using fvec4 = Eigen::Array4f;
+    using fvec2 = Eigen::Array2f;
+    using fvec3 = Eigen::Array3f;
+    using fvec4 = Eigen::Array4f;
 
-	using ivec2 = Eigen::Array2i;
-	using ivec3 = Eigen::Array3i;
-	using ivec4 = Eigen::Array4i;
+    using ivec2 = Eigen::Array2i;
+    using ivec3 = Eigen::Array3i;
+    using ivec4 = Eigen::Array4i;
 
-	using usvec2 = Eigen::Array<uint16_t, 2, 1>;
-	using usvec3 = Eigen::Array<uint16_t, 3, 1>;
-	using usvec4 = Eigen::Array<uint16_t, 4, 1>;
+    using usvec2 = Eigen::Array<uint16_t, 2, 1>;
+    using usvec3 = Eigen::Array<uint16_t, 3, 1>;
+    using usvec4 = Eigen::Array<uint16_t, 4, 1>;
 
-	using fmat3 = Eigen::Matrix3f;
-	using fmat4 = Eigen::Matrix4f;
+    using fmat3 = Eigen::Matrix3f;
+    using fmat4 = Eigen::Matrix4f;
 
 
-	template<class T, class S>
-	T MathCast(const S& s) {
-		static_assert(std::is_same<int, int>::value, "invalid cast!");
-		throw false;
-	}
+    template<class T, class S>
+    T MathCast(const S& s) {
+        static_assert(std::is_same<int, int>::value, "invalid cast!");
+        throw false;
+    }
 
-	template<>
-	inline fmat4 MathCast(const glm::mat4 &s) {
-		return fmat4(&s[0][0]);
-	}
-	template<>
-	inline glm::fmat4 MathCast(const fmat4 &s) {
-		return *reinterpret_cast<const glm::fmat4*>(s.data());
-	}
+    template<>
+    inline fmat4 MathCast(const glm::mat4 &s) {
+        return fmat4(&s[0][0]);
+    }
+    template<>
+    inline glm::fmat4 MathCast(const fmat4 &s) {
+        return *reinterpret_cast<const glm::fmat4*>(s.data());
+    }
 
 #define GEN_2(SRC, DST) 										\
-	template<>inline DST ## 2 MathCast(const SRC ## 2 &s) {		\
-		return DST ## 2(s[0], s[1]);							\
-	}
+    template<>inline DST ## 2 MathCast(const SRC ## 2 &s) {		\
+        return DST ## 2(s[0], s[1]);							\
+    }
 #define GEN_3(SRC, DST) 										\
-	template<>inline DST ## 3 MathCast(const SRC ## 3 &s) {		\
-		return DST ## 3(s[0], s[1], s[2]);						\
-	}
+    template<>inline DST ## 3 MathCast(const SRC ## 3 &s) {		\
+        return DST ## 3(s[0], s[1], s[2]);						\
+    }
 #define GEN_4(SRC, DST) 										\
-	template<>inline DST ## 4  MathCast(const SRC ## 4 &s) {	\
-		return DST ## 4 (s[0], s[1], s[2], s[3]);				\
-	}
+    template<>inline DST ## 4  MathCast(const SRC ## 4 &s) {	\
+        return DST ## 4 (s[0], s[1], s[2], s[3]);				\
+    }
 
 #define GEN(SRC, DST) GEN_2(SRC, DST) GEN_3(SRC, DST) GEN_4(SRC, DST) 
 
 #pragma warning ( push, 0 )
-	GEN(glm::fvec, fvec);
-	GEN(glm::ivec, ivec);
-	GEN(glm::fvec, ivec);
-	GEN(usvec, ivec);
-	GEN(usvec, glm::fvec);
+    GEN(glm::fvec, fvec);
+    GEN(fvec, glm::fvec);
+    GEN(glm::ivec, ivec);
+    GEN(glm::fvec, ivec);
+    GEN(usvec, ivec);
+    GEN(usvec, glm::fvec);
 #pragma warning ( pop )
 
 #undef GEN
@@ -146,7 +147,6 @@ namespace emath {
 #undef GEN_3
 #undef GEN_4
 }
-
 
 using LockGuard = std::lock_guard < std::mutex >;
 #define MERGE_(a,b)  a##b

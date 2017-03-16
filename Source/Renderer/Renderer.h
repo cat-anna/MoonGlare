@@ -21,8 +21,9 @@ public:
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */
-    void Start();
+    void EnterLoop();
     void Stop();
+    bool CanWork() const { return m_CanWork; }
 
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
 
@@ -39,6 +40,11 @@ public:
         return m_ResourceManager.get();
     }
 
+    template<typename T>
+    void SetStopObserver(T&& t) {
+        m_StopObserver = std::forward<T>(t);
+    }
+
     ScriptApi* GetScriptApi();
     Configuration::RuntimeConfiguration* GetConfiguration() { return m_Configuration.get(); }
 private:
@@ -49,6 +55,8 @@ private:
     mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
     std::unique_ptr<ScriptApi> m_ScriptApi;
     std::unique_ptr<Configuration::RuntimeConfiguration> m_Configuration;
+
+    std::function<void()> m_StopObserver;
 };
 
 } //namespace MoonGlare::Renderer

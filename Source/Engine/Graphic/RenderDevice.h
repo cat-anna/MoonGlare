@@ -23,12 +23,7 @@ public:
 	bool Finalize();
 
 	void BeginFrame() { ++m_FrameIndex; }
-	void EndFrame() { GetContext()->SwapBuffers(); }
 	uint64_t FrameIndex() const { return m_FrameIndex; }
-
-	void ResetViewPort() { GetContext()->ResetViewPort(); }
-		 
-	static float m_gamma;
 
 	const WindowPtr& GetContext() const { return m_Context; }
 

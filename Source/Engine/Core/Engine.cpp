@@ -11,6 +11,7 @@
 
 #include <Source/Renderer/Renderer.h>
 #include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Context.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -121,12 +122,11 @@ void Engine::EngineMain() {
         return;
     }
 
-    Graphic::GetRenderDevice()->GetContext()->GrabMouse();
-
     m_Running = true;
 
     Graphic::cRenderDevice &dev = *Graphic::GetRenderDevice();
     auto Device = m_Renderer->GetDevice();
+    auto Ctx = m_Renderer->GetContext();
 
     MoveConfig conf;
     conf.m_RenderInput = dev.CreateRenderInput();
@@ -165,7 +165,7 @@ void Engine::EngineMain() {
         auto StartTime = clock::now();
         {
             conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
-            dev.GetContext()->Process();
+            Ctx->Process();
             GetScriptEngine()->Step(conf);
             GetWorld()->Step(conf);
             auto console = m_World->GetConsole();
@@ -200,7 +200,7 @@ void Engine::EngineMain() {
 
         auto RenderTime = clock::now();
         {
-            dev.EndFrame();
+            Ctx->Flush();
         }
         auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
@@ -223,7 +223,7 @@ void Engine::EngineMain() {
                         (sum / m_FrameTimeSlice) * 100.0f
                         );
                 AddLogf(Performance, Buffer);
-                dev.GetContext()->SetTitle(Buffer);
+                Ctx->SetTitle(Buffer);
             //}
         }
     }

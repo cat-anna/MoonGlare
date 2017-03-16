@@ -17,8 +17,6 @@ struct GraphicSettingsInitializer {
 	GraphicSettingsInitializer() {
 		::Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<GraphicSettings::FullScreen>>("Graphic.FullScreen", true, SettingsGroup::None);
 		::Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<GraphicSettings::Monitor>>("Graphic.Monitor", true, SettingsGroup::None);
-		::Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<GraphicSettings::Width>>("Graphic.Width", true, SettingsGroup::None);
-		::Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<GraphicSettings::Height>>("Graphic.Height", true, SettingsGroup::None);
 	}
 };
 

@@ -298,10 +298,6 @@ void Console::AsyncLine(const string &Text, unsigned lineType) {
 	});
 }
 
-void Console::PushChar(unsigned key) {
-	m_InputLine->PutChar(key);
-}
-
 void Console::PushKey(unsigned key) {
 	using Key = Graphic::WindowInput::Key;
 	switch ((Key) key) {

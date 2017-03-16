@@ -20,15 +20,6 @@ struct GraphicSettings {
 		using Type = int;
 		static Type default() { return 0; }
 	};
-	struct Width : public Settings_t::BaseSettingInfo<unsigned, Width> {
-		static Type default() { return 0; }
-	};
-	struct Height : public Settings_t::BaseSettingInfo<unsigned, Height> {
-		static Type default() { return 0; }
-	};
-	struct Gamma : public Settings_t::BaseSettingInfo<float, Gamma> {
-		static Type default() { return 2.1f; }
-	};
 };
 
 } //namespace Graphic 

@@ -13,44 +13,44 @@ namespace MoonGlare {
 namespace Application {
 
 class iApplication : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
+    SPACERTTI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
+    DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
- 	iApplication();
- 	virtual ~iApplication();
+    iApplication();
+    virtual ~iApplication();
 
-	virtual bool Initialize();
-	virtual bool Execute();
-	virtual bool Finalize();
+    virtual bool Initialize();
+    virtual bool Execute();
+    virtual bool Finalize();
 
-	virtual bool PreSystemInit();
-	virtual bool PostSystemInit();
+    virtual bool PreSystemInit();
+    virtual bool PostSystemInit();
 
-	virtual void Exit();
-	virtual void OnActivate();
-	virtual void OnDeactivate();
-	virtual const char* ExeName() const;
+    virtual void Exit();
+    virtual void OnActivate();
+    virtual void OnDeactivate();
+    virtual const char* ExeName() const;
 
-	virtual void LoadRendererConfiguration();
+    virtual void LoadRendererConfiguration();
 
-	union Flags {
-		struct {
-			bool m_Active : 1;
-			bool m_Restart : 1;
-		};
-		uint32_t m_UintValue;
-	};
-	bool IsActive() const { return m_Flags.m_Active; }
-	bool DoRestart() const { return m_Flags.m_Restart; }
-	void SetRestart(bool v) { m_Flags.m_Restart = v; }
+    union Flags {
+        struct {
+            bool m_Active : 1;
+            bool m_Restart : 1;
+        };
+        uint32_t m_UintValue;
+    };
+    bool IsActive() const { return m_Flags.m_Active; }
+    bool DoRestart() const { return m_Flags.m_Restart; }
+    void SetRestart(bool v) { m_Flags.m_Restart = v; }
 
-	static void RegisterScriptApi(ApiInitializer &api);
+    static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	Flags m_Flags;
+    Flags m_Flags;
     std::unique_ptr<World> m_World;
 
-	Asset::UniqueAssetManager m_AssetManager;
-	Renderer::UniqueRenderer m_Renderer;
+    Asset::UniqueAssetManager m_AssetManager;
+    Renderer::UniqueRenderer m_Renderer;
 };
 
 } //namespace Application

@@ -25,78 +25,76 @@ RendererFacade::~RendererFacade() {
 //----------------------------------------------------------------------------------
 
 bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets) {
-	RendererAssert(Assets);
+    RendererAssert(Assets);
 
-	m_Configuration = std::make_unique<Configuration::RuntimeConfiguration>();
-	m_Configuration->ResetToDefault();
+    m_Configuration = std::make_unique<Configuration::RuntimeConfiguration>();
+    m_Configuration->ResetToDefault();
 
-	if (!Context::InitializeSubSystem()) {
-		AddLogf(Error, "Context subsystem initialization failed!");
-		return false;
-	}
+    if (!Context::InitializeSubSystem()) {
+        AddLogf(Error, "Context subsystem initialization failed!");
+        return false;
+    }
 
-	m_Context = mem::make_aligned<Context>();
-	if (!m_Context->Initialize(ctxifo, this, m_Device.get())) {
-		AddLogf(Error, "Context initialization failed!");
-		return false;
-	}
+    m_Context = mem::make_aligned<Context>();
+    m_Device = mem::make_aligned<RenderDevice>();
+    m_ResourceManager = mem::make_aligned<Resources::ResourceManager>();
 
-	m_ResourceManager = mem::make_aligned<Resources::ResourceManager>();
+    m_Context->Initialize(ctxifo, this, m_Device.get());
 
-	m_Device = mem::make_aligned<RenderDevice>();
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");
         return false;
     }
 
-	if (!m_ResourceManager->Initialize(this, Assets)) {
-		AddLogf(Error, "ResourceManager initialization failed!");
-		return false;
-	}
+    if (!m_ResourceManager->Initialize(this, Assets)) {
+        AddLogf(Error, "ResourceManager initialization failed!");
+        return false;
+    }
 
     return true;
 }
 
 bool RendererFacade::Finalize() {
-	if (m_ResourceManager && !m_ResourceManager->Finalize()) {
-		AddLogf(Error, "ResourceManager finalization failed!");
-	}
-	m_ResourceManager.reset();
+    if (m_ResourceManager && !m_ResourceManager->Finalize()) {
+        AddLogf(Error, "ResourceManager finalization failed!");
+    }
+    m_ResourceManager.reset();
 
     if(m_Device && !m_Device->Finalize()) {
         AddLogf(Error, "Render device finalization failed!");
     }
     m_Device.reset();
 
-	if (m_Context && !m_Context->Finalize()) {
-		AddLogf(Error, "Context finalization failed!");
-	}
-	m_Context.reset();
+    if (m_Context)
+        m_Context->Finalize();
+    m_Context.reset();
 
-	if (!Context::FinalizeSubSystem()) {
-		AddLogf(Error, "Context subsystem finalization failed!");
-	}
+    if (!Context::FinalizeSubSystem()) {
+        AddLogf(Error, "Context subsystem finalization failed!");
+    }
 
     return true;
 }
 
 //----------------------------------------------------------------------------------
 
-void RendererFacade::Start() {
+void RendererFacade::EnterLoop() {
 //    m_CanWork = true;
-	m_CanWork = false;  //hue hue
+    m_CanWork = false;  //hue hue
 }
 
 void RendererFacade::Stop() {
     m_CanWork = false;
+    if (m_StopObserver)
+        m_StopObserver();
 }
 
 //----------------------------------------------------------------------------------
 
 ScriptApi *RendererFacade::GetScriptApi() {
-	if (!m_ScriptApi)
-		m_ScriptApi = std::make_unique<ScriptApi>(this);
-	return m_ScriptApi.get();
+    if (!m_ScriptApi)
+        m_ScriptApi = std::make_unique<ScriptApi>(this);
+    return m_ScriptApi.get();
 }
 
 //----------------------------------------------------------------------------------

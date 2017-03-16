@@ -19,159 +19,170 @@ using InputStateId = uint8_t;
 static_assert(1 << (sizeof(InputStateId) * 8) >= Configuration::Input::MaxInputStates, "To small InputStateId base type");
 
 union InputStateValue {
-	bool m_Boolean;
-	float m_Float;
+    bool m_Boolean;
+    float m_Float;
 };
 
 struct InputState {
-	enum class Type {
-		Invalid,
-		Switch,
-		FloatAxis,
-	};
+    enum class Type {
+        Invalid,
+        Switch,
+        FloatAxis,
+    };
 
-	struct {
-		bool m_Valid : 1;
-	} m_Flags;
-	InputStateValue m_Value;
-	Type m_Type;
-	unsigned m_ActiveKeyId;
-	Configuration::RuntimeRevision m_Revision;
+    struct {
+        bool m_Valid : 1;
+    } m_Flags;
+    InputStateValue m_Value;
+    Type m_Type;
+    unsigned m_ActiveKeyId;
+    Configuration::RuntimeRevision m_Revision;
 };
 
 struct KeyAction {
-	struct {
-		bool m_Valid : 1;
-		bool m_Positive : 1;
-	} m_Flags;
-	InputStateId m_Id;
-	InputStateValue m_Value;
+    struct {
+        bool m_Valid : 1;
+        bool m_Positive : 1;
+    } m_Flags;
+    InputStateId m_Id;
+    InputStateValue m_Value;
 };
 
 enum class MouseAxisId {
-	X,
-	Y,
-	ScrollX,
-	ScrollY,
-	Unknown,
-	MaxValue = Unknown,
+    X,
+    Y,
+    ScrollX,
+    ScrollY,
+    Unknown,
+    MaxValue = Unknown,
 };
 static_assert(static_cast<int>(MouseAxisId::MaxValue) == Configuration::Input::MaxMouseAxes, "Invalid mouse axes settings!");
 
 struct AxisAction {
-	struct {
-		bool m_Valid : 1;
-	} m_Flags;
-	InputStateId m_Id;
-	float m_Sensitivity;
+    struct {
+        bool m_Valid : 1;
+    } m_Flags;
+    InputStateId m_Id;
+    float m_Sensitivity;
 };
 
 struct InputKeyOffsets {
-	enum e : unsigned {
-		Keyboard = 0,
-		Mouse = Configuration::Input::MaxKeyCode - Configuration::Input::MaxMouseButton,
-	};
+    enum e : unsigned {
+        Keyboard = 0,
+        Mouse = Configuration::Input::MaxKeyCode - Configuration::Input::MaxMouseButton,
+    };
 };
 
 enum class InputSwitchState {
-	Off,
-	Pressed,
-	On,
-	Released,
+    Off,
+    Pressed,
+    On,
+    Released,
 };
 
 //---------------------------------------------------------------------------------------
 
-class InputProcessor final {
+class InputProcessor final : public Renderer::Interfaces::ContextInputHandler {
 public:
-	InputProcessor();
-	~InputProcessor();
+    InputProcessor();
+    ~InputProcessor();
 
-	bool Initialize(World *world);
-	bool Finalize();
-	void SetInputSource(::Graphic::Window *Context) { m_Context = Context; }
+    bool Initialize(World *world);
+    bool Finalize();
+    void SetInputSource(Renderer::Context *Context) { m_Context = Context; }
 
-	bool Step(const Core::MoveConfig &config);
+    bool Step(const Core::MoveConfig &config);
 
-	void PushCharModeChar(unsigned Key);
-	void PushCharModeKey(unsigned Key, bool Pressed);
+    void PushCharModeKey(unsigned Key, bool Pressed);
 
-	void SetKeyState(unsigned KeyCode, bool Pressed);
-	void SetMouseButtonState(unsigned Button, bool Pressed) {
-		ProcessKeyState(Button + InputKeyOffsets::Mouse, Pressed);
-	}
-	void SetMouseDelta(const math::vec2 &delta) {
-		ProcessMouseAxis(MouseAxisId::X, delta[0]);
-		ProcessMouseAxis(MouseAxisId::Y, delta[1]);
-	}
-	void SetMouseScrollDelta(const math::vec2 &delta) {
-		ProcessMouseAxis(MouseAxisId::ScrollX, delta[0]);
-		ProcessMouseAxis(MouseAxisId::ScrollY, delta[1]);
-	}
-	void ClearStates();
+    void SetKeyState(unsigned KeyCode, bool Pressed);
+    void SetMouseButtonState(unsigned Button, bool Pressed) {
+        ProcessKeyState(Button + InputKeyOffsets::Mouse, Pressed);
+    }
+    void SetMouseDelta(const emath::fvec2 &delta) {
+        ProcessMouseAxis(MouseAxisId::X, delta.x());
+        ProcessMouseAxis(MouseAxisId::Y, delta.y());
+    }
+    void SetMouseScrollDelta(const emath::fvec2 &delta) {
+        ProcessMouseAxis(MouseAxisId::ScrollX, delta.x());
+        ProcessMouseAxis(MouseAxisId::ScrollY, delta.y());
+    }
+    void ClearStates();
 
-	bool Save(pugi::xml_node node) const;
-	bool Load(const pugi::xml_node node);
+    bool Save(pugi::xml_node node) const;
+    bool Load(const pugi::xml_node node);
 
-	void Clear();
-	void ResetToInternalDefault();
+    void Clear();
+    void ResetToInternalDefault();
 
-	bool AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey);
-	bool AddKeyboardSwitch(const char *Name, KeyId Key);
-	bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensitivity);
+    bool AddKeyboardAxis(const char *Name, KeyId PositiveKey, KeyId NegativeKey);
+    bool AddKeyboardSwitch(const char *Name, KeyId Key);
+    bool AddMouseAxis(const char *Name, MouseAxisId axis, float Sensitivity);
 
-	bool RegisterKeySwitch(const char* Name, const char* KeyName);
-	bool RegisterKeyboardAxis(const char* Name, const char* PositiveKeyName, const char* NegativeKeyName);
+    bool RegisterKeySwitch(const char* Name, const char* KeyName);
+    bool RegisterKeyboardAxis(const char* Name, const char* PositiveKeyName, const char* NegativeKeyName);
 
-	static void RegisterScriptApi(ApiInitializer &root);
+    static void RegisterScriptApi(ApiInitializer &root);
+
+    //Renderer::Interfaces::ContextInputHandler
+    virtual void OnKey(int Key, bool Pressed) override;
+    virtual void OnChar(unsigned CharOrKey, bool Pressed) override;
+    virtual void OnScroll(const emath::fvec2 &delta) override;
+    virtual void OnMouseButton(int Button, bool State) override;
+    virtual void MouseDelta(const emath::fvec2 &delta) override;
+    virtual bool CanDropFocus() override;
+    virtual void OnFocusChange(bool State) override;
+    virtual bool CanReleaseMouse() override;
+    virtual void OnMouseHookChange(bool State) override;
+    virtual bool ShouldClose(bool Focus, bool MouseHook) override;
 protected:
-	using InputStateArray = Space::Container::StaticVector<InputState, Configuration::Input::MaxInputStates>;
-	using KeyMapArray = std::array<KeyAction, Configuration::Input::MaxKeyCode>;
-	using MouseAxesArray = std::array<AxisAction, Configuration::Input::MaxMouseAxes>;
+    using InputStateArray = Space::Container::StaticVector<InputState, Configuration::Input::MaxInputStates>;
+    using KeyMapArray = std::array<KeyAction, Configuration::Input::MaxKeyCode>;
+    using MouseAxesArray = std::array<AxisAction, Configuration::Input::MaxMouseAxes>;
 
-	InputStateArray m_InputStates;
-	MouseAxesArray m_MouseAxes;
-	KeyMapArray m_Keys;
-	Configuration::RuntimeRevision m_CurrentRevision;
+    InputStateArray m_InputStates;
+    MouseAxesArray m_MouseAxes;
+    KeyMapArray m_Keys;
+    Configuration::RuntimeRevision m_CurrentRevision;
 
-	std::unordered_map<std::string, InputStateId> m_InputNames;
-	World *m_World = nullptr;
-	Console *m_Console = nullptr;
-	::Graphic::Window *m_Context = nullptr;
+    std::unordered_map<std::string, InputStateId> m_InputNames;
+    World *m_World = nullptr;
+    Console *m_Console = nullptr;
+    Renderer::Context *m_Context = nullptr;
 
-	bool m_ConsoleActive = false;
-	bool m_CharMode = false;
+    bool m_ConsoleActive = false;
+    bool m_CharMode = false;
 
-	void ProcessKeyState(unsigned Id, bool Pressed);
-	void ProcessMouseAxis(MouseAxisId Id, float Delta);
-	bool GetInputStateName(InputStateId isid, std::string &out) const;
+    void ProcessKeyState(unsigned Id, bool Pressed);
+    void ProcessMouseAxis(MouseAxisId Id, float Delta);
+    bool GetInputStateName(InputStateId isid, std::string &out) const;
 
-	InputState* AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex);
-	KeyAction* AllocKeyAction(KeyId kid, InputStateId isid, bool Positive);
-	AxisAction* AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity);
+    InputState* AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex);
+    KeyAction* AllocKeyAction(KeyId kid, InputStateId isid, bool Positive);
+    AxisAction* AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity);
 
-	bool ProcessConsoleActivateKey();
+    bool ProcessConsoleActivateKey();
 private:
-	static int luaIndexInput(lua_State *lua);
+    static int luaIndexInput(lua_State *lua);
 };
 
 //---------------------------------------------------------------------------------------
 
 struct KeyNamesTable {
-	KeyNamesTable();
-	const char *Get(KeyId kid) const {
-		if (kid >= m_Array.size())
-			return nullptr;
-		return m_Array[kid];
-	}
-	bool Find(const char *Name, KeyId &out) const {
-		for (KeyId kid = 0; kid < m_Array.size(); ++kid)
-			if (m_Array[kid] && stricmp(Name, m_Array[kid]) == 0)
-				return out = kid, true;
-		return false;
-	}
+    KeyNamesTable();
+    const char *Get(KeyId kid) const {
+        if (kid >= m_Array.size())
+            return nullptr;
+        return m_Array[kid];
+    }
+    bool Find(const char *Name, KeyId &out) const {
+        for (KeyId kid = 0; kid < m_Array.size(); ++kid)
+            if (m_Array[kid] && stricmp(Name, m_Array[kid]) == 0)
+                return out = kid, true;
+        return false;
+    }
 private:
-	std::array<const char *, Configuration::Input::MaxKeyCode> m_Array;
+    std::array<const char *, Configuration::Input::MaxKeyCode> m_Array;
 };
 
 extern const KeyNamesTable g_KeyNamesTable;

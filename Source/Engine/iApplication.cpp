@@ -47,6 +47,7 @@ bool iApplication::PreSystemInit() {
 
 bool iApplication::PostSystemInit() {
     Core::GetEngine()->PostSystemInit();
+    m_Renderer->GetContext()->HookMouse();
     return true;
 }
 
@@ -96,8 +97,8 @@ bool iApplication::Initialize() {
 
     using Graphic::GraphicSettings;
     Renderer::ContextCreationInfo ctxifo;
-    ctxifo.m_Width = GraphicSettings::Width::get();
-    ctxifo.m_Height = GraphicSettings::Height::get();
+    //ctxifo.m_Width  = GraphicSettings::Width::get();
+    //ctxifo.m_Height = GraphicSettings::Height::get();
     ctxifo.MonitorIndex = GraphicSettings::Monitor::get();
     ctxifo.FullScreen = GraphicSettings::FullScreen::get();
     if (!m_Renderer->Initialize(ctxifo, m_AssetManager.get())) {
@@ -105,7 +106,7 @@ bool iApplication::Initialize() {
         return false;
     }
 
-    auto window = std::make_unique<Graphic::Window>(m_Renderer->GetContext()->GetHandle(), true);
+    auto window = std::make_unique<Graphic::Window>(m_Renderer->GetContext()->GetHandle());
     auto Device = new Graphic::cRenderDevice(std::move(window), m_AssetManager.get());
 
     if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
@@ -125,12 +126,14 @@ bool iApplication::Initialize() {
 
     //Temporary solution which probably will be used for eternity
     auto Input = Engine->GetWorld()->GetInputProcessor();
-    auto Window = Device->GetContext().get();
-    Input->SetInputSource(Window);
-    Window->SetInputProcessor(Input);
+    auto rctx = m_Renderer->GetContext();
+    rctx->SetInputHandler(Input);
+    Input->SetInputSource(rctx);
 
     AddLog(Debug, "Application initialized");
 #undef _init_chk
+
+    m_Renderer->SetStopObserver([Engine]() { Engine->Exit(); });
 
     if (!PostSystemInit()) {
         AddLogf(Error, "Post system init action failed!");
