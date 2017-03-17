@@ -28,8 +28,6 @@
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
 
-#include "Graphic/GraphicSettings.h"
-
 namespace MoonGlare {
 namespace Application {
 
@@ -102,9 +100,6 @@ using FileSystem::MoonGlareFileSystem;
 using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
-#define _chk(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
-#define _chk_ret(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); return false; } } while(false)
-
 void iApplication::Initialize() {
     LoadSettings();
 
@@ -155,7 +150,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
-    if (Settings->Engine.EnableConsole) {
+    if (m_Configuration->m_Core.m_EnableConsole) {
         auto c = new Console();
         _init_chk(c, "Unable to initialize console!");
         m_World->SetConsole(c);
@@ -183,7 +178,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 }
 
 void iApplication::Execute() {
-    bool Success = false;
     try {
         Initialize();
         MoonGlare::Core::GetEngine()->EngineMain();

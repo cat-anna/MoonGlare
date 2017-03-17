@@ -115,9 +115,6 @@ bool InputProcessor::ProcessConsoleActivateKey() {
     if (!m_Console || !m_Context)
         return false;
 
-    if (!::Settings->Engine.EnableConsole)
-        return false;
-
     m_ConsoleActive = !m_ConsoleActive;
     if (m_ConsoleActive) {
         m_CharMode = true;

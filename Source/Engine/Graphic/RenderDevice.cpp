@@ -13,8 +13,6 @@ namespace Graphic {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
 RegisterDebugApi(Graphic, &cRenderDevice::RegisterDebugScriptApi, "Graphic");
-inline Window* WindowInstance() { return GetRenderDevice()->GetContext().get(); }
-RegisterApiDynamicInstance(Window, &WindowInstance, "Window");
 
 //float cRenderDevice::m_gamma = 0;
   

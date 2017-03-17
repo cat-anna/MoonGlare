@@ -6,17 +6,10 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/Core/Engine.h>
-#include <Engine/iApplication.h>
-
-#include <Core/InputProcessor.h>
 
 namespace Graphic {
 
-SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(Window)
-
 Window::Window(GLFWwindow *w):
-        BaseClass(),
         m_Window(w), 
         m_Size(0) {
     int iw, ih;

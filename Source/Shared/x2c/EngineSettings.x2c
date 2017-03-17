@@ -5,40 +5,41 @@ Import "RendererSettings.x2c"
 namespace "MoonGlare.x2c.Settings"
 
 Structure.new {
-	name = "ConsoleSettings",
-	description = "",
-	fields = {
-		{
+    name = "CoreSettings",
+    description = "",
+    fields = {
+        {
             description = "",
-			name = "Enabled",
-			type = bool,
-		},
-	},
+            name = "EnableConsole",
+            type = bool,
+            default = "DEBUG_TRUE",
+        },
+    },
 }
 
 Structure.new {
-	name = "EngineSettings",
-	description = "",
-	fields = {
-		{
-            description = "",
-			name = "Assets",
-			type = Local.AssetSettings,
-		},
+    name = "EngineSettings",
+    description = "",
+    fields = {
         {
             description = "",
-			name = "Console",
-			type = Local.ConsoleSettings,
-		},
+            name = "Assets",
+            type = Local.AssetSettings,
+        },
         {
             description = "",
-			name = "Renderer",
-			type = Local.Renderer.RuntimeConfiguration,
-		},
+            name = "Core",
+            type = Local.CoreSettings,
+        },
+        {
+            description = "",
+            name = "Renderer",
+            type = Local.Renderer.RuntimeConfiguration,
+        },
         {
             description = "",
             name = "Display",
             type = Local.Renderer.Display,
         },
-	},
+    },
 }
