@@ -23,8 +23,6 @@ using namespace MoonGlare;
 #include "RootClass.h"
 #include "FileSystem.h"
 
-#include "Core/Scripts/ScriptEvents.h"
-
 #include "DataClasses/DataClass.h"
 
 #include "World.h"

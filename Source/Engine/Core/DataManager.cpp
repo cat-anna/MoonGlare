@@ -11,6 +11,8 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
+#define xmlstr_Module_xml			"Module.xml"
+
 namespace MoonGlare {
 namespace Core {
 namespace Data {

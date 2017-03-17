@@ -8,14 +8,6 @@
 #ifndef NSCRIPTS_H_
 #define NSCRIPTS_H_
 
-namespace Core {
-namespace Scripts {
-	class iScriptEvents;
-} //namespace Scripts
-} //namespace Core
-
-using ::Core::Scripts::iScriptEvents;
-
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {

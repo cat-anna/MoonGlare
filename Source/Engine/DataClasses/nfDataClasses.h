@@ -15,12 +15,8 @@
 #define xmlAttr_SubXML				"File"
 #define xmlAttr_File				"File"
 #define xmlAttr_Type				"Type"
-#define xmlAttr_Type				"Type"
 #define xmlAttr_Value				"Value"
-#define xmlAttr_AutoDetect			"AutoDetect"
 #define xmlAttr_Id					"Id"
-
-#define xmlNode_ScriptEvents		"Events"
 
 #define InternalStringTable			"MoonGlare"
 #define MenusStringTable			"Menus"
@@ -39,9 +35,6 @@ namespace DataClasses {
 	};
 
 	namespace Fonts {
-		class Wrapper;
-		using FontInstance = std::unique_ptr < Wrapper >;
-		using SharedFontInstance = std::shared_ptr < Wrapper > ;
 		class iFont;
 		using FontPtr = std::shared_ptr < iFont > ;
 
@@ -65,20 +58,9 @@ namespace DataClasses {
 		};
 	}
 	using Fonts::FontPtr;
-	using Fonts::FontInstance;
-	using Fonts::SharedFontInstance;
-
-	//namespace Paths {
-	//	class iPath;
-	//	class PathRegister;
-	//
-	//	using iPathSharedPtr = std::shared_ptr < iPath > ;
-	//	using iPathWeakPtr = std::weak_ptr < iPath > ;
-	//}
 
 	class DataClass;
 	class StringTable;
-
 }
 } //namespace MoonGlare 
 

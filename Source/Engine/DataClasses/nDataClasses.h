@@ -20,7 +20,4 @@ using ModelResPtr = DataClasses::ModelPtr;
 #include "Texture.h"
 #include "StringTable.h"
 
-//module
-#include "DataModule.h"
-
 #endif // DATACLASSES_H_

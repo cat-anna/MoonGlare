@@ -14,11 +14,8 @@ namespace Graphic {
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
 RegisterDebugApi(Graphic, &cRenderDevice::RegisterDebugScriptApi, "Graphic");
 
-//float cRenderDevice::m_gamma = 0;
-  
-cRenderDevice::cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager) :
+cRenderDevice::cRenderDevice(WindowPtr Context) :
         cRootClass(),
-        m_AssetManager(AssetManager),
         m_InitThreadId(),
         m_Context() {
     SetThisAsInstance();

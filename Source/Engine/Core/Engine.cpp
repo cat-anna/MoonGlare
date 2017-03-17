@@ -140,6 +140,7 @@ void Engine::EngineMain() {
 
     unsigned FrameCounter = 0;
     clock::time_point LastFrame = clock::now();
+    clock::time_point BeginTime = LastFrame;
     clock::time_point CurrentTime = LastFrame;
     clock::time_point LastMoveTime = LastFrame;
     clock::time_point TitleRefresh = LastFrame;
@@ -214,7 +215,7 @@ void Engine::EngineMain() {
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
                 sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
-                        CurrentTime, m_LastFPS, dev.FrameIndex(), m_SkippedFrames,
+                        tdiff(BeginTime, CurrentTime), m_LastFPS, dev.FrameIndex(), m_SkippedFrames,
                         tdiff(StartTime, MoveTime) * 1000.0f,
                         tdiff(MoveTime, SortTime) * 1000.0f,
                         tdiff(SortTime, RenderTime) * 1000.0f,

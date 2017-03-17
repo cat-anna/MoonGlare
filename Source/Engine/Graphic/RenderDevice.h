@@ -10,13 +10,10 @@
 
 namespace Graphic {
 
-/**
-	This class represents (more or less) current state of opengl context
-*/
 class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice(WindowPtr Context, Asset::AssetManager *AssetManager);
+	cRenderDevice(WindowPtr Context);
 
 	mem::aligned_ptr<RenderInput> CreateRenderInput();
 
@@ -43,10 +40,7 @@ protected:
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;
 
-	Asset::AssetManager *m_AssetManager;
 	WindowPtr m_Context;
-
-	math::mat4 m_ModelMatrix, m_WorldMatrix;
 }; 
 
 } // namespace Graphic 
