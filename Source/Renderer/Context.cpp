@@ -225,14 +225,14 @@ bool Context::CreateWindow(ContextCreationInfo ctxifo) {
 
     GLFWmonitor *monitor = nullptr;
 
-    if (ctxifo.FullScreen) {
-        if (ctxifo.MonitorIndex < 0) {
+    if (ctxifo.m_FullScreen) {
+        if (ctxifo.m_Monitor < 0) {
             monitor = glfwGetPrimaryMonitor();
         } else {
             int c;
             auto mont = glfwGetMonitors(&c);
-            if (c > ctxifo.MonitorIndex)
-                monitor = mont[ctxifo.MonitorIndex];
+            if (c > ctxifo.m_Monitor)
+                monitor = mont[ctxifo.m_Monitor];
         }
     }
 
@@ -243,7 +243,7 @@ bool Context::CreateWindow(ContextCreationInfo ctxifo) {
         ctxifo.m_Height = mode->height;
     }
 
-    m_Window = glfwCreateWindow(ctxifo.m_Width, ctxifo.m_Height, ctxifo.Title, monitor, 0);
+    m_Window = glfwCreateWindow(ctxifo.m_Width, ctxifo.m_Height, ctxifo.m_Title, monitor, 0);
     CriticalCheck(m_Window, "Unable to create new window!");
     MakeCurrent();
 

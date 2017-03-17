@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 			auto app = new GameApplication(argc, argv);
 
 			Result = false;
-			Result = app->Execute();
+			app->Execute();
 
 			doRestart = app->DoRestart();
 		}

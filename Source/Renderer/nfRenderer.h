@@ -32,9 +32,9 @@ struct alignas(16) VirtualCamera;
 struct ContextCreationInfo {
     uint32_t m_Width = 800;
     uint32_t m_Height = 600;
-    int32_t MonitorIndex = -1;
-    bool FullScreen = false;
-    const char *Title = "Window";
+    int32_t m_Monitor = -1;
+    bool m_FullScreen = false;
+    const char *m_Title = "";
 };
 
 namespace Commands {

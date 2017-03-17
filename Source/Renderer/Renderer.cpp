@@ -17,6 +17,7 @@
 namespace MoonGlare::Renderer {
 
 RendererFacade::RendererFacade() {
+    SetConfiguration(nullptr);
 }
 
 RendererFacade::~RendererFacade() {
@@ -24,11 +25,21 @@ RendererFacade::~RendererFacade() {
 
 //----------------------------------------------------------------------------------
 
+void RendererFacade::SetConfiguration(const Configuration::RuntimeConfiguration *Configuration) {
+    if (m_Device) {
+        throw "Cannot change configuration after initialization!";
+    }
+    if (!Configuration) {
+        static Configuration::RuntimeConfiguration rtcfg;
+        rtcfg.ResetToDefault();
+        m_Configuration = &rtcfg;
+    } else {
+        m_Configuration = Configuration;
+    }
+}
+
 bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets) {
     RendererAssert(Assets);
-
-    m_Configuration = std::make_unique<Configuration::RuntimeConfiguration>();
-    m_Configuration->ResetToDefault();
 
     if (!Context::InitializeSubSystem()) {
         AddLogf(Error, "Context subsystem initialization failed!");

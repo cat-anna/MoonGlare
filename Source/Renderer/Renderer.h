@@ -17,6 +17,7 @@ public:
     RendererFacade();
     ~RendererFacade();
 
+    void SetConfiguration(const Configuration::RuntimeConfiguration *Configuration);
     bool Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets);
     bool Finalize();
 
@@ -46,7 +47,7 @@ public:
     }
 
     ScriptApi* GetScriptApi();
-    Configuration::RuntimeConfiguration* GetConfiguration() { return m_Configuration.get(); }
+    const Configuration::RuntimeConfiguration* GetConfiguration() { return m_Configuration; }
 private:
     bool m_CanWork = false;
 
@@ -54,7 +55,7 @@ private:
     mem::aligned_ptr<Context> m_Context;
     mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
     std::unique_ptr<ScriptApi> m_ScriptApi;
-    std::unique_ptr<Configuration::RuntimeConfiguration> m_Configuration;
+    const Configuration::RuntimeConfiguration *m_Configuration;
 
     std::function<void()> m_StopObserver;
 };

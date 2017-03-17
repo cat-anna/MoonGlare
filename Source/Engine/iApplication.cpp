@@ -6,6 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <pch.h>
+#include <boost/filesystem.hpp>
+
 #include <MoonGlare.h>
 
 #include <Engine/Core/DataManager.h>
@@ -24,6 +26,7 @@
 
 #include <AssetSettings.x2c.h>
 #include <RendererSettings.x2c.h>
+#include <EngineSettings.x2c.h>
 
 #include "Graphic/GraphicSettings.h"
 
@@ -34,6 +37,10 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(iApplication);
 
 iApplication::iApplication() : BaseClass() {
     m_Flags.m_UintValue = 0;
+
+    m_Configuration = std::make_unique<x2c::Settings::EngineSettings_t>();
+    m_ConfigurationFileName = "MoonGlare.Settings.xml";
+
     SetThisAsInstance();
 }
 
@@ -53,6 +60,42 @@ bool iApplication::PostSystemInit() {
 
 //---------------------------------------------------------------------------------------
 
+void iApplication::LoadSettings() {
+    if (m_Flags.m_Initialized) {
+        throw "Cannot load settings after initialization!";
+    }
+    m_Configuration->ResetToDefault();
+
+    if (!boost::filesystem::is_regular_file(m_ConfigurationFileName.data())) {
+        m_Flags.m_SettingsLoaded = true;
+        m_Flags.m_SettingsChanged = true;
+        AddLogf(Warning, "Settings not loaded. File is not valid");
+        return;
+    }
+
+    m_Configuration->ReadFile(m_ConfigurationFileName.data());
+
+    m_Flags.m_SettingsLoaded = true;
+    m_Flags.m_SettingsChanged = false;
+}
+
+void iApplication::SaveSettings() {
+    if (!m_Flags.m_SettingsLoaded) {
+        AddLogf(Error, "Settings not loaded!");
+        return;
+    }
+    if (!m_Flags.m_SettingsChanged) {
+        AddLogf(Warning, "Settings not saved. There is no changes");
+        return;
+    }
+
+    m_Configuration->WriteFile(m_ConfigurationFileName.data());
+
+    m_Flags.m_SettingsChanged = false;
+}
+
+//---------------------------------------------------------------------------------------
+
 using Modules::ModulesManager;
 using MoonGlare::Core::Console;
 using FileSystem::MoonGlareFileSystem;
@@ -62,40 +105,44 @@ using DataManager = MoonGlare::Core::Data::Manager;
 #define _chk(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _chk_ret(WHAT, ERRSTR, ...) do { if(!(WHAT)) { AddLogf(Error, ERRSTR, __VA_ARGS__); return false; } } while(false)
 
-bool iApplication::Initialize() {
+void iApplication::Initialize() {
+    LoadSettings();
+
     m_World = std::make_unique<World>();
 
     if (!PreSystemInit()) {
         AddLogf(Error, "Pre system init action failed!");
-        return false;
+        throw "Pre system init action failed";
     }
-#define _init_chk(WHAT, ERRSTR, ...) do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); return false; } } while(false)
+#define _init_chk(WHAT, ERRSTR, ...) \
+do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRSTR; } } while(false)
 
     _init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
     m_AssetManager = std::make_unique<Asset::AssetManager>();
     if (!m_AssetManager->Initialize(x2c::Settings::AssetSettings_t())) {
         AddLogf(Error, "Unable to initialize asset manager!");
-        return false;
+        throw "Unable to initialize asset manager!";
     }
 
     auto ModManager = new ModulesManager();
     ::Settings->Load();
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
-        return false;
+        throw "Unable to initialize modules manager";
     }
 
     auto scrEngine = new ScriptEngine(m_World.get());
     _init_chk(scrEngine, "Unable to initialize script engine!");
     
     m_Renderer = std::make_unique<Renderer::RendererFacade>();
-    LoadRendererConfiguration();
     m_World->SetRendererFacade(m_Renderer.get());
 
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
+    m_Renderer->SetConfiguration(&m_Configuration->m_Renderer);
+    if (!m_Renderer->Initialize(m_Configuration->m_Display, m_AssetManager.get())) {
         AddLogf(Error, "Unable to initialize renderer");
-        return false;
+        throw "Unable to initialize renderer";
     }
 
     auto window = std::make_unique<Graphic::Window>(m_Renderer->GetContext()->GetHandle());
@@ -103,7 +150,7 @@ bool iApplication::Initialize() {
 
     if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");
-        return false;
+        throw "Unable to initialize data manager";
     }
 
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
@@ -129,29 +176,26 @@ bool iApplication::Initialize() {
 
     if (!PostSystemInit()) {
         AddLogf(Error, "Post system init action failed!");
-        return false;
+        throw "Post system init action failed!";
     }
 
-    return true;
+    m_Flags.m_Initialized = true;
 }
 
-bool iApplication::Execute() {
+void iApplication::Execute() {
     bool Success = false;
-    if (!Initialize()) {
-        AddLogf(Error, "Unable to initialize application!");
-    } else {
+    try {
+        Initialize();
         MoonGlare::Core::GetEngine()->EngineMain();
-        Success = true;
     }
-
-    if (!Finalize()) {
-        AddLogf(Error, "Unable to finalize application!");
+    catch (...) {
+        Finalize();
+        throw;
     }
-
-    return Success;
+    Finalize();
 }
 
-bool iApplication::Finalize() {
+void iApplication::Finalize() {
 #define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::InstanceExists()) break; if(!WHAT::Instance()->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
 
@@ -187,7 +231,8 @@ bool iApplication::Finalize() {
     AddLog(Debug, "Application finalized");
 #undef _finit_chk
 #undef _del_chk
-    return true;
+    SaveSettings();
+    m_Flags.m_Initialized = false;
 }
 
 //---------------------------------------------------------------------------------------
@@ -209,12 +254,6 @@ void iApplication::Exit() {
 
 const char* iApplication::ExeName() const {
     return "";
-}
-
-//----------------------------------------------------------------------------------
-
-void iApplication::LoadRendererConfiguration() {
-    //x2c::Settings::RuntimeConfiguration_t &rcfg = *m_Renderer->GetConfiguration();
 }
 
 //----------------------------------------------------------------------------------

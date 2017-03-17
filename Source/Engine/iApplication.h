@@ -9,6 +9,10 @@
 #ifndef iApplication_H
 #define iApplication_H
 
+namespace MoonGlare::x2c::Settings {
+struct EngineSettings_t;
+}
+
 namespace MoonGlare {
 namespace Application {
 
@@ -19,9 +23,14 @@ public:
     iApplication();
     virtual ~iApplication();
 
-    virtual bool Initialize();
-    virtual bool Execute();
-    virtual bool Finalize();
+    void LoadSettings();
+    void SaveSettings();
+    void SettingsChanged() { m_Flags.m_SettingsChanged = true; }
+    x2c::Settings::EngineSettings_t* GetConfiguration() { return m_Configuration.get(); }
+
+    virtual void Initialize();
+    virtual void Execute();
+    virtual void Finalize();
 
     virtual bool PreSystemInit();
     virtual bool PostSystemInit();
@@ -31,26 +40,30 @@ public:
     virtual void OnDeactivate();
     virtual const char* ExeName() const;
 
-    virtual void LoadRendererConfiguration();
-
-    union Flags {
-        struct {
-            bool m_Active : 1;
-            bool m_Restart : 1;
-        };
-        uint32_t m_UintValue;
-    };
     bool IsActive() const { return m_Flags.m_Active; }
     bool DoRestart() const { return m_Flags.m_Restart; }
     void SetRestart(bool v) { m_Flags.m_Restart = v; }
 
     static void RegisterScriptApi(ApiInitializer &api);
 protected:
+    union Flags {
+        struct {
+            bool m_Initialized : 1;
+            bool m_SettingsLoaded : 1;
+            bool m_SettingsChanged : 1;
+            bool m_Active : 1;
+            bool m_Restart : 1;
+        };
+        uint32_t m_UintValue;
+    };
     Flags m_Flags;
     std::unique_ptr<World> m_World;
 
     Asset::UniqueAssetManager m_AssetManager;
     Renderer::UniqueRenderer m_Renderer;
+
+    std::string_view m_ConfigurationFileName;
+    std::unique_ptr<x2c::Settings::EngineSettings_t> m_Configuration;
 };
 
 } //namespace Application
