@@ -12,7 +12,6 @@ namespace Graphic {
 
 class Window : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_NOCREATOR(Window, cRootClass);
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	Window(GLFWwindow *w);
 	unsigned GetRefreshRate() const;

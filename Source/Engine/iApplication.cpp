@@ -94,14 +94,6 @@ bool iApplication::Initialize() {
     m_World->SetRendererFacade(m_Renderer.get());
 
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
-
-    using Graphic::GraphicSettings;
-    Renderer::ContextCreationInfo ctxifo;
-    //ctxifo.m_Width  = GraphicSettings::Width::get();
-    //ctxifo.m_Height = GraphicSettings::Height::get();
-    ctxifo.MonitorIndex = GraphicSettings::Monitor::get();
-    ctxifo.FullScreen = GraphicSettings::FullScreen::get();
-    if (!m_Renderer->Initialize(ctxifo, m_AssetManager.get())) {
         AddLogf(Error, "Unable to initialize renderer");
         return false;
     }

@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/iApplication.h>
-#include "GraphicSettings.h"
 
 #include <Core/InputProcessor.h>
 
