@@ -36,7 +36,6 @@ public:
 protected:
 	unsigned m_Flags;
 
-	virtual void WriteNameToXML(xml_node Node) const;
 	virtual bool ReadNameFromXML(const xml_node Node);
 
 	virtual bool DoInitialize();

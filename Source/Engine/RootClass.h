@@ -4,7 +4,6 @@ class cRootClass : public Space::RTTI::RTTIObject {
 	SPACERTTI_DECLARE_CLASS(cRootClass, Space::RTTI::RTTIObject);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public: 
-	virtual void WriteNameToXML(xml_node Node) const;
 	static void RegisterScriptApi(ApiInitializer &api);
 };
 

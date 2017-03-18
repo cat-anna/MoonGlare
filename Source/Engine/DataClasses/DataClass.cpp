@@ -104,11 +104,6 @@ bool DataClass::DoFinalize() {
 
 //---------------------------------------------------------------------------------------------------
 
-void DataClass::WriteNameToXML(xml_node Node) const {
-	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
-	Node.append_attribute("Name") = GetName().c_str();
-}
-
 bool DataClass::ReadNameFromXML(const xml_node Node) {
 	SetName(Node.attribute("Name").as_string(""));
 	if (GetName().empty()) {

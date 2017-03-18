@@ -12,10 +12,6 @@ void cRootClass::RegisterScriptApi(ApiInitializer &api) {
 	.endClass();
 }
 
-void cRootClass::WriteNameToXML(xml_node Node) const {
-	Node.append_attribute("Class") = GetDynamicTypeInfo()->GetName();
-}
-
 //----------------------------------------------------------------------------------
 
 SPACERTTI_IMPLEMENT_CLASS(NamedObject);
