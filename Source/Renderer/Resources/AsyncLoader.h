@@ -9,25 +9,29 @@
 
 #include "../Configuration.Renderer.h"
 
+#include "iAsyncLoader.h"
+
 namespace MoonGlare::Renderer::Resources {
 
-class AsyncLoader {
+class AsyncLoader final : public iAsyncLoader {
     using ThisClass = AsyncLoader;
     using Conf = Configuration::Resources;
 public:
- 	AsyncLoader(ResourceManager *Owner, Asset::AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration);
- 	~AsyncLoader();
+    AsyncLoader(ResourceManager *Owner, Asset::AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration);
+    ~AsyncLoader();
+
+    //iAsyncLoader
+    bool AnyJobPending() override;
+    bool AllResoucecsLoaded() override;
 
     unsigned JobsPending() const;
-    bool AnyJobPending();
-    bool AllResoucecsLoaded();
 
     void SubmitTextureLoad(std::string URI, TextureResourceHandle handle,
         Device::TextureHandle *glHandlePtr,
         emath::usvec2 *OutSize,
         Configuration::TextureLoad settings);
     void SubmitShaderLoad(ShaderResourceHandleBase handle);
-private: 
+private:
     bool m_CanWork = false;
     std::condition_variable m_Lock;
     std::thread m_Thread;
@@ -65,15 +69,9 @@ private:
 
     enum class ProcessorResult {
         Success,
-        NothingToBeDone,
         CriticalError,
         QueueFull,
-    };
-
-    enum class TaskResult {
-        Success,
-        CriticalError,
-        QueueFull,
+        NothingDone,
         Retry,
     };
 
@@ -84,18 +82,25 @@ private:
         Device::TextureHandle *m_DeviceHandle;
         Configuration::TextureLoad m_Settings;
     };
-    boost::lockfree::spsc_queue<TextureLoadTask, boost::lockfree::capacity<1024>> m_TextureQueue;
-    TaskResult LoadTexture(TextureLoadTask *tlt, QueueData *queue) const;
-    ProcessorResult ProcessTextureQueue(QueueData *queue);
+    ProcessorResult ProcessTask(QueueData *queue, TextureLoadTask &tlt);
 //--
     struct ShaderLoadTask {
         ShaderResourceHandleBase m_Handle;
     };
-    boost::lockfree::spsc_queue<ShaderLoadTask, boost::lockfree::capacity<16>> m_ShaderQueue;
-    ProcessorResult ProcessShaderQueue(QueueData *queue);
+    ProcessorResult ProcessTask(QueueData *queue, ShaderLoadTask &slt);
 //--
 
-    std::array<decltype(&ProcessTextureQueue), 2> m_QueueProcesors;
+    using AnyTask = std::variant <
+        TextureLoadTask,
+        ShaderLoadTask
+    >;
+
+    std::list<AnyTask> m_Queue;
+    mutable std::mutex m_QueueMutex;
+    void QueuePush(AnyTask at) {
+        LOCK_MUTEX(m_QueueMutex);
+        m_Queue.emplace_back(std::move(at));
+    }
 
     DeclarePerformanceCounter(JobsDone);
 

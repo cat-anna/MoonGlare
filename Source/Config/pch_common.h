@@ -12,6 +12,7 @@
 #include <stack>
 #include <array>
 #include <bitset>
+#include <variant>
 
 #include <string>
 #include <cstring>
@@ -41,6 +42,7 @@
 
 #include <locale>
 #include <codecvt>
+
 
 using StringVector = std::vector < std::string >;
 using StringDeque = std::deque < std::string >;

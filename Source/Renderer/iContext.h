@@ -19,4 +19,4 @@ public:
     virtual void SetTitle(const char* Title) = 0;
 };
 
-} //namespace MoonGlare::Renderer:
+} //namespace MoonGlare::Renderer

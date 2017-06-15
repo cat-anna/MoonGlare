@@ -30,9 +30,6 @@ AsyncLoader::AsyncLoader(ResourceManager *Owner, Asset::AssetLoader *Loader, con
     m_SubmitedQueue = &m_QueueTable[1];
     m_SubmitedQueue->m_ccq.m_Commited = true;
 
-    m_QueueProcesors[0] = &AsyncLoader::ProcessShaderQueue;
-    m_QueueProcesors[1] = &AsyncLoader::ProcessTextureQueue;
-
     m_CanWork = true;
     m_Thread = std::thread([this]() { 
         ::OrbitLogger::ThreadInfo::SetName("RALD");
@@ -49,20 +46,16 @@ AsyncLoader::~AsyncLoader() {
 //---------------------------------------------------------------------------------------
 
 unsigned AsyncLoader::JobsPending() const {
-    return
-        m_TextureQueue.read_available() +
-        m_ShaderQueue.read_available();
+    LOCK_MUTEX(m_QueueMutex);
+    return m_Queue.size();
 }
 
 bool AsyncLoader::AnyJobPending() {
-    return
-        !m_TextureQueue.empty() ||
-        !m_ShaderQueue.empty();
+    return JobsPending()> 0;
 }
 
 bool AsyncLoader::AllResoucecsLoaded() {
-    return !AnyJobPending() &&
-        !m_QueueDirty;
+    return JobsPending() == 0 && !m_QueueDirty;
 } 
 
 //---------------------------------------------------------------------------------------
@@ -88,38 +81,52 @@ void AsyncLoader::ThreadMain() {
             continue;
         }
         else {
-            ProcessorResult result = ProcessorResult::Success;
+            ProcessorResult result = ProcessorResult::NothingDone;
 
-            for (auto proc : m_QueueProcesors) {
-                assert(proc);
-                result = (this->*proc)(m_PendingQueue);
-                if (result != ProcessorResult::NothingToBeDone) {
-                    ++JobCounter;
-                    IncrementPerformanceCounter(JobsDone);
-                    break;
+            AnyTask at;
+            bool have = false;
+            {
+                LOCK_MUTEX(m_QueueMutex);
+                if (!m_Queue.empty()) {
+                    at.swap(m_Queue.front());
+                    m_Queue.pop_front();
+                    have = true;
                 }
+            }
+
+            if (have) {
+                result = std::visit([this](auto& item) {
+                    return ProcessTask(m_PendingQueue, item);
+                }, at);
+
+                ++JobCounter;
+                IncrementPerformanceCounter(JobsDone);
             }
 
             switch (result) {
             case ProcessorResult::Success:
                 m_QueueDirty = true;
-            default:
                 break;
-
+            case ProcessorResult::Retry:
+                DebugLogf(Info, "Retrying job");
+                QueuePush(std::move(at));
+                break;
             case ProcessorResult::CriticalError:
                 //not handled here
                 DebugLogf(Error, "Error during processing task!");
                 break;
-
-            case ProcessorResult::NothingToBeDone:
+            case ProcessorResult::NothingDone:
                 if (!m_QueueDirty) {
                     std::mutex mutex;
                     std::unique_lock<std::mutex> lock(mutex);
                     m_Lock.wait_for(lock, 100ms);
                     break;
                 }
-//                [[fallthrough]]
+                //[[fallthrough]]
             case ProcessorResult::QueueFull:
+                if (have) {
+                    QueuePush(std::move(at));
+                }
                 if (m_QueueDirty) {
                     m_PendingQueue->m_Finished = true;
                 }
@@ -127,7 +134,11 @@ void AsyncLoader::ThreadMain() {
                     AddLogf(Error, "Queue full and not dirty!");
                 }
                 break;
+            default:
+                LogInvalidEnum(result);
+                break;
             }
+
         }
     }
 }
@@ -151,60 +162,27 @@ void AsyncLoader::SubmitTextureLoad(std::string URI, TextureResourceHandle handl
         data.m_ImageMemory.reset();
     }
 
-    m_TextureQueue.push(TextureLoadTask{ std::move(URI), handle, glHandlePtr, settings });
+    QueuePush(TextureLoadTask{ std::move(URI), handle, glHandlePtr, settings });
     m_Lock.notify_one();
 }
 
-AsyncLoader::ProcessorResult AsyncLoader::ProcessTextureQueue(QueueData *queue) {
-    ProcessorResult result = ProcessorResult::Success;
-
-    bool consumed = m_TextureQueue.consume_one([&](const TextureLoadTask &tlt) {
-        auto loadret = LoadTexture(&const_cast<TextureLoadTask&>(tlt), m_PendingQueue);
-        switch (loadret) {
-        case TaskResult::Success:
-            return;
-        case TaskResult::CriticalError:
-            result = ProcessorResult::CriticalError;
-            return;
-
-        case TaskResult::QueueFull:
-            DebugLogf(Info, "Queue full during texture Load");
-            result = ProcessorResult::QueueFull;
-            m_TextureQueue.push(tlt);
-            return;
-        case TaskResult::Retry:
-            DebugLogf(Info, "Retry during texture Load");
-            m_TextureQueue.push(tlt);
-            return;
-        default:
-            break;
-        }
-    });
-
-    if (!consumed)
-        result = ProcessorResult::NothingToBeDone;
-    return result;
-}
-
-AsyncLoader::TaskResult AsyncLoader::LoadTexture(TextureLoadTask *tlt, QueueData* queue) const {
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, TextureLoadTask &tlt) {
     auto Loader = m_AssetLoader->GetTextureLoader();
 
     RendererAssert(Loader);
-    RendererAssert(queue);
-
     auto &q = queue->m_Queue;
 
-    if (*tlt->m_DeviceHandle == Device::InvalidTextureHandle)
-        q.MakeCommand<Commands::TextureSingleAllocate>(tlt->m_DeviceHandle);
+    if (*tlt.m_DeviceHandle == Device::InvalidTextureHandle)
+        q.MakeCommand<Commands::TextureSingleAllocate>(tlt.m_DeviceHandle);
 
     auto texres = q.PushCommand<Commands::Texture2DResourceBind>();
-    texres->m_HandlePtr = tlt->m_DeviceHandle;
+    texres->m_HandlePtr = tlt.m_DeviceHandle;
 
     auto pixels = q.PushCommand<Commands::Texture2DSetPixelData>();
     memset(pixels, 0, sizeof(*pixels));
-    if (!Loader->LoadTexture(tlt->m_URI, pixels->data)) {
-        AddLogf(Error, "Texture load failed: %s", tlt->m_URI.c_str());
-        return TaskResult::CriticalError;
+    if (!Loader->LoadTexture(tlt.m_URI, pixels->data)) {
+        AddLogf(Error, "Texture load failed: %s", tlt.m_URI.c_str());
+        return ProcessorResult::CriticalError;
     }
 
     using TexConf = Configuration::Texture;
@@ -213,39 +191,33 @@ AsyncLoader::TaskResult AsyncLoader::LoadTexture(TextureLoadTask *tlt, QueueData
     //	config.m_Edges = Conf::Edges::Repeat;
     //}
 
-    if (tlt->m_Settings.m_Filtering == TexConf::Filtering::Default) {
-        tlt->m_Settings.m_Filtering = m_Configuration->m_Texture.m_Filtering;
+    if (tlt.m_Settings.m_Filtering == TexConf::Filtering::Default) {
+        tlt.m_Settings.m_Filtering = m_Configuration->m_Texture.m_Filtering;
     }
 
-    q.MakeCommand<Commands::Texture2DSetup>(tlt->m_Settings);
+    q.MakeCommand<Commands::Texture2DSetup>(tlt.m_Settings);
 
-    return TaskResult::Success;
+    return ProcessorResult::Success;
 }
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
 void AsyncLoader::SubmitShaderLoad(ShaderResourceHandleBase handle) {
-    m_ShaderQueue.push(ShaderLoadTask{ handle });
+    QueuePush(ShaderLoadTask{ handle });
     m_Lock.notify_one();
 }
 
-AsyncLoader::ProcessorResult AsyncLoader::ProcessShaderQueue(QueueData *queue) {
-    bool success = true;
-    bool consumed = m_ShaderQueue.consume_one([&](const ShaderLoadTask &slt) {
-        auto &shres = m_ResourceManager->GetShaderResource();
-        success = shres.GenerateReload(queue->m_Queue, queue->m_Memory.m_Allocator, slt.m_Handle);
-    });
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, ShaderLoadTask &slt) {
+    auto &shres = m_ResourceManager->GetShaderResource();
+    bool success = shres.GenerateReload(queue->m_Queue, queue->m_Memory.m_Allocator, slt.m_Handle);
 
     if (success) {
-        if (!consumed)
-           return ProcessorResult::NothingToBeDone;
+        return ProcessorResult::Success;
     }
     else {
         return ProcessorResult::CriticalError;
     }
-
-    return ProcessorResult::Success;
 }
 
 //---------------------------------------------------------------------------------------
