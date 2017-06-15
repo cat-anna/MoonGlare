@@ -61,7 +61,8 @@ bool AsyncLoader::AnyJobPending() {
 }
 
 bool AsyncLoader::AllResoucecsLoaded() {
-    return !AnyJobPending() && !m_QueueDirty;
+    return !AnyJobPending() &&
+        !m_QueueDirty;
 } 
 
 //---------------------------------------------------------------------------------------
