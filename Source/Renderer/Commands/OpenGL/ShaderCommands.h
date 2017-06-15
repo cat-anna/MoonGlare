@@ -129,5 +129,31 @@ using ShaderResourceBind = CommandTemplate<detail::ShaderResourceBindArgument>;
 template<typename T>
 using ShaderResourcSetUniform = CommandTemplate<detail::ShaderResourcSetUniformArgument<T>>;
 
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+#if 0
+namespace detail {
+
+template<typename ShDesc>
+struct ShaderBindMaterialResourceArgument {
+	using Conf = Configuration::Shader;
+
+	Material *m_Material;
+	Conf::UniformLocations *m_UniformsPtr;
+
+	void Run() const {
+
+	}
+
+	static void Execute(const ShaderBindMaterialResourceArgument *arg) {
+		arg->Run();
+	}
+};
+
+}
+
+template<typename T>
+using ShaderBindMaterialResource = CommandTemplate<detail::ShaderBindMaterialResourceArgument<T>>;
+#endif
 
 } //namespace MoonGlare::Renderer::Commands

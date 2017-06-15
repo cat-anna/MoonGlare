@@ -158,19 +158,19 @@ void Engine::EngineMain() {
 
         ++FrameCounter;
         conf.m_BufferFrame = Device->NextFrame();
-        conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
 
         auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
         using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
         auto StartTime = clock::now();
         {
+            conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
             conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
             Ctx->Process();
             GetScriptEngine()->Step(conf);
             GetWorld()->Step(conf);
             auto console = m_World->GetConsole();
-            if (console) 
+            if (console)
                 console->ProcessConsole(conf);
         }
         auto MoveTime = clock::now();

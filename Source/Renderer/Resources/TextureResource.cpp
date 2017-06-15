@@ -15,6 +15,7 @@
 
 #include "ResourceManager.h"
 #include "TextureResource.h"
+#include "AsyncLoader.h"
 
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
@@ -24,19 +25,19 @@
 namespace MoonGlare::Renderer::Resources {
 
 void TextureResource::Initialize(ResourceManager *Owner, TextureLoader *TexLoader) {
-	RendererAssert(Owner);
-	RendererAssert(TexLoader);
-	m_ResourceManager = Owner;
-	m_TexureLoader = TexLoader;
-	m_Settings = &Owner->GetConfiguration()->m_Texture;
+    RendererAssert(Owner);
+    RendererAssert(TexLoader);
+    m_ResourceManager = Owner;
+    m_TexureLoader = TexLoader;
+    m_Settings = &Owner->GetConfiguration()->m_Texture;
 
-	m_GLHandle.fill(Device::InvalidTextureHandle);
-	m_TextureSize.fill(emath::usvec2(0));
-	m_AllocationBitmap.ClearAllocation();
+    m_GLHandle.fill(Device::InvalidTextureHandle);
+    m_TextureSize.fill(emath::usvec2(0));
+    m_AllocationBitmap.ClearAllocation();
 
-	if (Conf::Initial > 0) {
-		//TBD!!!
-	}
+    if (Conf::Initial > 0) {
+        //TBD!!!
+    }
 }
 
 void TextureResource::Finalize() {
@@ -44,146 +45,108 @@ void TextureResource::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::Allocate(TextureResourceHandle &out) {
-	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
-	auto qhandle = dev->AllocateCtrlQueue();
-	if (!qhandle.m_Queue) {
-		DebugLogf(Error, "texture allocation - queue allocation failed");
-		return false;
-	}
-
-	Allocate(*qhandle.m_Queue, out);
-
-	dev->Submit(qhandle);
-}
-
 bool TextureResource::Allocate(Frame *frame, TextureResourceHandle &out) {
-	RendererAssert(frame);
-	return Allocate(frame->GetControllCommandQueue(), out);
+    RendererAssert(frame);
+    return Allocate(&frame->GetControllCommandQueue(), out);
 }
 
-bool TextureResource::Allocate(Commands::CommandQueue &queue, TextureResourceHandle &out) {
-	Bitmap::Index_t index;
-	if (m_AllocationBitmap.Allocate(index)) {
-		if (m_GLHandle[index] == Device::InvalidTextureHandle) {
-			IncrementPerformanceCounter(OpenGLAllocations);
-			auto arg = queue.PushCommand<Commands::TextureSingleAllocate>();
-			arg->m_Out = &m_GLHandle[index];
-		}
-		out.m_Index = static_cast<TextureResourceHandle::Index_t>(index);
-		out.m_TmpGuard = out.GuardValue;
-		IncrementPerformanceCounter(SuccessfulAllocations);
-		return true;
-	}
-	else {
-		AddLogf(Debug, "Texture allocation failed");
-		IncrementPerformanceCounter(FailedAllocations);
-		return false;
-	}
+bool TextureResource::Allocate(Commands::CommandQueue *queue, TextureResourceHandle &out) {
+    Bitmap::Index_t index;
+    if (m_AllocationBitmap.Allocate(index)) {
+        if (queue && m_GLHandle[index] == Device::InvalidTextureHandle) {
+            IncrementPerformanceCounter(OpenGLAllocations);
+            auto arg = queue->PushCommand<Commands::TextureSingleAllocate>();
+            arg->m_Out = &m_GLHandle[index];
+        }
+        out.m_Index = static_cast<TextureResourceHandle::Index_t>(index);
+        out.m_TmpGuard = out.GuardValue;
+        IncrementPerformanceCounter(SuccessfulAllocations);
+        return true;
+    }
+    else {
+        AddLogf(Debug, "Texture allocation failed");
+        IncrementPerformanceCounter(FailedAllocations);
+        return false;
+    }
 }
 
 void TextureResource::Release(Frame *frame, TextureResourceHandle h) {
-	RendererAssert(h.m_TmpGuard == h.GuardValue);
-	RendererAssert(h.m_Index < Conf::Limit);
+    RendererAssert(h.m_TmpGuard == h.GuardValue);
+    RendererAssert(h.m_Index < Conf::Limit);
 
-	if (m_AllocationBitmap.Release(h.m_Index)) {
-		IncrementPerformanceCounter(SuccessfulDellocations);
-	}
-	else {
-		AddLogf(Debug, "Texture deallocation failed");
-		IncrementPerformanceCounter(FailedDellocations);
-	}
+    if (m_AllocationBitmap.Release(h.m_Index)) {
+        IncrementPerformanceCounter(SuccessfulDellocations);
+    }
+    else {
+        AddLogf(Debug, "Texture deallocation failed");
+        IncrementPerformanceCounter(FailedDellocations);
+    }
 }
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::LoadTexture(TextureResourceHandle & out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate) {
-	if (!out && !CanAllocate) {
-		return false;
-	}
+bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate) {
+    if (!out && !CanAllocate) {
+        return false;
+    }
 
-	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
-	auto qhandle = dev->AllocateCtrlQueue();
-	if (!qhandle.m_Queue) {
-		DebugLogf(Error, "texture allocation - queue allocation failed");
-		return false;
-	}
+    if (!out && CanAllocate) {
+        if (!Allocate((Commands::CommandQueue*)nullptr, out)) {
+            DebugLogf(Error, "texture allocation - allocate failed");
+            return false;
+        }
+    } 
 
+    auto *rawptr = &m_GLHandle[out.m_Index];
+    auto loader = m_ResourceManager->GetLoader();
+    auto *size = &m_TextureSize[out.m_Index];
 
-	auto &q = *qhandle.m_Queue;
+    loader->SubmitTextureLoad(
+        fPath,//?
+        out,
+        rawptr,
+        size,
+        config
+    );
 
-	if (!out && CanAllocate) {
-		if (!Allocate(q, out)) {
-			DebugLogf(Error, "texture allocation - allocate failed");
-			dev->Submit(qhandle);
-			return false;
-		}
-	} 
-
-	auto texres = q.PushCommand<Commands::Texture2DResourceBind>();
-	texres->m_Handle = out;
-	texres->m_HandleArray = GetHandleArrayBase();
-
-	auto pixels = q.PushCommand<Commands::Texture2DSetPixelData>();
-	memset(pixels, 0, sizeof(*pixels));
-
-	if (!m_TexureLoader->LoadTexture(fPath, pixels->data)) {
-		AddLogf(Error, "Texture load failed: %s", fPath.c_str());
-		dev->Submit(qhandle);//may cause crash!!!
-		return false;
-	}
-
-	m_TextureSize[out.m_Index] = pixels->data.m_PixelSize;
-	//if (config.m_Edges == Conf::Edges::Default) {
-	//	config.m_Edges = Conf::Edges::Repeat;
-	//}
-
-	if (config.m_Filtering == Conf::Filtering::Default) {
-		config.m_Filtering = m_Settings->m_Filtering;
-	}
-
-	q.MakeCommand<Commands::Texture2DSetup>(config);
-
-	dev->Submit(qhandle);
-	return true;
+    return true;
 }
 
 emath::usvec2 TextureResource::GetSize(TextureResourceHandle h) const {
-	if (!h)
-		return {};
+    if (!h)
+        return {};
 
-	return m_TextureSize[h.m_Index];
+    return m_TextureSize[h.m_Index];
 }
 
 //---------------------------------------------------------------------------------------
 
 bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize) {
-	if (!out && AllowAllocate) {
-		if (!Allocate(q, out)) {
-			DebugLogf(Error, "texture allocation - allocate failed");
-			return false;
-		}
-	}
+    if (!out && AllowAllocate) {
+        if (!Allocate(&q, out)) {
+            DebugLogf(Error, "texture allocation - allocate failed");
+            return false;
+        }
+    }
 
-	auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
-	texres->m_Handle = out;
-	texres->m_HandleArray = GetHandleArrayBase();
+    auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
+    texres->m_HandlePtr = GetHandleArrayBase() + out.m_Index;
 
-	m_TextureSize[out.m_Index] = size;
-	auto pixels = q.PushCommand<Commands::Texture2DSetPixelsArray>(key);
-	pixels->m_Size[0] = size[0];
-	pixels->m_Size[1] = size[1];
-	pixels->m_PixelData = Pixels;
-	pixels->m_BPP = static_cast<GLenum>(pxtype);
-	pixels->m_Type = static_cast<GLenum>(TypeValue);
+    m_TextureSize[out.m_Index] = size;
+    auto pixels = q.PushCommand<Commands::Texture2DSetPixelsArray>(key);
+    pixels->m_Size[0] = size[0];
+    pixels->m_Size[1] = size[1];
+    pixels->m_PixelData = Pixels;
+    pixels->m_BPP = static_cast<GLenum>(pxtype);
+    pixels->m_Type = static_cast<GLenum>(TypeValue);
 
-	if (config.m_Filtering == Conf::Filtering::Default) {
-		config.m_Filtering = m_Settings->m_Filtering;
-	}
-	q.PushCommand<Commands::Texture2DSetup>(key)->m_Config = config;
+    if (config.m_Filtering == Conf::Filtering::Default) {
+        config.m_Filtering = m_Settings->m_Filtering;
+    }
+    q.PushCommand<Commands::Texture2DSetup>(key)->m_Config = config;
 
-	return true;
+    return true;
 }
 
 } //namespace MoonGlare::Renderer::Resources 
-		
+        

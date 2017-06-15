@@ -35,39 +35,42 @@ static constexpr ShaderStageHandle InvalidShaderStageHandle = static_cast<Shader
 //-----------------------------------------------------------------------------
 
 enum class PixelFormat : uint16_t {
-	RGB8 = GL_RGB,
-	RGBA8 = GL_RGBA,
-	GrayScale8 = GL_LUMINANCE, //?
-	LuminanceAlpha = GL_LUMINANCE_ALPHA,
+    RGB8 = GL_RGB,
+    RGBA8 = GL_RGBA,
+    GrayScale8 = GL_LUMINANCE, //?
+    LuminanceAlpha = GL_LUMINANCE_ALPHA,
 };
 
-
+enum class ValueFormat : uint16_t {
+    UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
+    Float = GL_FLOAT,
+};
 
 //-----------------------------------------------------------------------------
 
 template<typename T> struct TypeInfo {
-	static_assert(std::is_same<int, int>::value, "Unknown opengl type!");
+    static_assert(std::is_same<int, int>::value, "Unknown opengl type!");
 };
 
 template<typename T> struct TypeInfoCommon {
-	using Type = T;
-	static constexpr unsigned TypeSize = sizeof(T);
+    using Type = T;
+    static constexpr unsigned TypeSize = sizeof(T);
 };
 
 template<> struct TypeInfo<GLfloat> : public TypeInfoCommon<GLfloat> {
-	static constexpr GLenum TypeId = GL_FLOAT;
+    static constexpr GLenum TypeId = GL_FLOAT;
 };
 template<> struct TypeInfo<GLint> : public TypeInfoCommon<GLint> {
-	static constexpr GLenum TypeId = GL_INT;
+    static constexpr GLenum TypeId = GL_INT;
 };
 template<> struct TypeInfo<GLuint> : public TypeInfoCommon<GLuint> {
-	static constexpr GLenum TypeId = GL_UNSIGNED_INT;
+    static constexpr GLenum TypeId = GL_UNSIGNED_INT;
 };
 template<> struct TypeInfo<GLushort> : public TypeInfoCommon<GLushort> {
-	static constexpr GLenum TypeId = GL_UNSIGNED_SHORT;
+    static constexpr GLenum TypeId = GL_UNSIGNED_SHORT;
 };
 template<> struct TypeInfo<GLubyte> : public TypeInfoCommon<GLubyte> {
-	static constexpr GLenum TypeId = GL_UNSIGNED_BYTE;
+    static constexpr GLenum TypeId = GL_UNSIGNED_BYTE;
 };
 
 template<typename T>

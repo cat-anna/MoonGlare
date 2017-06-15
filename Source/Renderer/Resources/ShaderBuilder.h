@@ -50,14 +50,16 @@ struct
 		auto arg = m_Queue->PushCommand<Commands::ShaderResourcSetUniform<T>>(key);
 		arg->m_Handle = &(*m_UniformsPtr)[static_cast<uint32_t>(u)];
 		arg->m_Value = t;
+        if (*arg->m_Handle == -1) {
+            int i = 0;
+        }
 	}
 
 	template<Sampler SamplerUnit>
 	void Set(TextureResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
 		auto texres = m_Queue->PushCommand<Renderer::Commands::Texture2DResourceBindUnit>(key);
-		texres->m_Handle = h;
 		texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
-		texres->m_HandleArray = m_ResourceManager->GetTextureResource().GetHandleArrayBase();
+		texres->m_HandlePtr = m_ResourceManager->GetTextureResource().GetHandleArrayBase() + h.m_Index;
 	}
 	template<Sampler SamplerUnit>
 	void Set(Device::TextureHandle h, Commands::CommandKey key = Commands::CommandKey()) {

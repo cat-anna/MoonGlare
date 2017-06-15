@@ -47,8 +47,7 @@ struct ResourceCommandInfo;
 template<typename HandleType>
 struct ResourceBindCommandBase {
 	using HandleArrayType = typename ResourceCommandInfo<HandleType>::HandleArrayType;
-	HandleArrayType m_HandleArray;
-	HandleType m_Handle;
+	HandleArrayType m_HandlePtr;
 };
 
 template<>

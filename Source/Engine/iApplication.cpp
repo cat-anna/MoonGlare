@@ -114,8 +114,9 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     _init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
+    static x2c::Settings::AssetSettings_t as;
     m_AssetManager = std::make_unique<Asset::AssetManager>();
-    if (!m_AssetManager->Initialize(x2c::Settings::AssetSettings_t())) {
+    if (!m_AssetManager->Initialize(&as)) {
         AddLogf(Error, "Unable to initialize asset manager!");
         throw "Unable to initialize asset manager!";
     }

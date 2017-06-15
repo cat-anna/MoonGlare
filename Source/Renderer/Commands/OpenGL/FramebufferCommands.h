@@ -46,7 +46,7 @@ using FramebufferReadBind = CommandTemplate<FramebufferReadBindArgument>;
 struct SetFramebufferDrawTextureArgument : public TextureCommandBase {
     GLenum m_ColorAttachment;
     static void Execute(const SetFramebufferDrawTextureArgument *arg) {
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, arg->m_ColorAttachment, arg->m_HandleArray[arg->m_Handle.m_Index], 0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, arg->m_ColorAttachment, *arg->m_HandlePtr, 0);
     }
 };
 using SetFramebufferDrawTexture = CommandTemplate<SetFramebufferDrawTextureArgument>;

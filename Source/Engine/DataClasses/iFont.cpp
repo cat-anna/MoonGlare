@@ -23,7 +23,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
 	if (!m_ShaderHandle) {
-		shres.Load(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
+		shres.Load(m_ShaderHandle, "Passthrough");
 	}
 
 	auto trt = frame->GetDevice()->AllocateTextureRenderTask();

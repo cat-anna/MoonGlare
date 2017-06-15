@@ -14,6 +14,12 @@ public:
 	bool SetDiffuseMap(const std::string &URI);
 	bool SetDiffuseMap(const std::string &URI, Configuration::TextureLoad loadcfg);
 
+	//template<typename T>
+	//void SetDiffuseMapPixels(Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
+	//	Configuration::TextureLoad loadcfg, Device::PixelType pxtype, Commands::CommandKey key = Commands::CommandKey()) {
+	//}
+	//(expanded_data, emath::usvec2(width, height), tload, Renderer::Device::PixelType::LuminanceAlpha);
+
 	Material* m_MaterialPtr;
 	MaterialManager *m_Manager;
 };

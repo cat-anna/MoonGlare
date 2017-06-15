@@ -6,8 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef OpenGLInfo_H
-#define OpenGLInfo_H
 
 namespace MoonGlare::Renderer::Device {
 
@@ -15,6 +13,4 @@ struct DeviceInfo {
 	static void ReadInfo();
 };
 
-} //namespace MoonGlare::Renderer::OpenGL 
-
-#endif
+} //namespace MoonGlare::Renderer::Device

@@ -51,8 +51,7 @@ void TextureRenderTask::Begin() {
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_BLEND);
 
     auto bind = m_CommandQueue.PushCommand<Texture2DResourceBind>();
-    bind->m_HandleArray = htable;
-    bind->m_Handle = m_TargetTexture;
+    bind->m_HandlePtr = htable + m_TargetTexture.m_Index;
 
     auto teximg = m_CommandQueue.PushCommand<Texture2DImage>();
     teximg->m_Format = GL_RGBA;
@@ -68,8 +67,7 @@ void TextureRenderTask::Begin() {
     m_CommandQueue.MakeCommand<Texture2DParameterInt>((GLenum)GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     auto sfb = m_CommandQueue.MakeCommand<SetFramebufferDrawTexture>();
-    sfb->m_HandleArray = htable;
-    sfb->m_Handle = m_TargetTexture;
+    sfb->m_HandlePtr = htable + m_TargetTexture.m_Index;
     sfb->m_ColorAttachment = GL_COLOR_ATTACHMENT0;
 
     static const GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0, };
@@ -82,13 +80,12 @@ void TextureRenderTask::Begin() {
 }
 
 void TextureRenderTask::End() {
-	Device::TextureHandle *htable = m_Frame->GetResourceManager()->GetTextureResource().GetHandleArrayBase();
+    Device::TextureHandle *htable = m_Frame->GetResourceManager()->GetTextureResource().GetHandleArrayBase();
 
     m_CommandQueue.MakeCommand<Commands::FramebufferDrawBind>(Device::InvalidFramebufferHandle);
 
     auto bind = m_CommandQueue.PushCommand<Commands::Texture2DResourceBind>();
-    bind->m_HandleArray = htable;
-    bind->m_Handle = m_TargetTexture;
+    bind->m_HandlePtr = htable + m_TargetTexture.m_Index;
 
     m_CommandQueue.MakeCommand<Commands::Texture2DParameterInt>((GLenum)GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     m_CommandQueue.MakeCommand<Commands::Texture2DParameterInt>((GLenum)GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -96,7 +93,7 @@ void TextureRenderTask::End() {
 
 void TextureRenderTask::SetTarget(TextureResourceHandle &handle, emath::ivec2 Size)  {
     if (handle.m_TmpGuard == 0) { 
-        if (!m_Frame->GetResourceManager()->GetTextureResource().Allocate(m_CommandQueue, handle)) {
+        if (!m_Frame->GetResourceManager()->GetTextureResource().Allocate(&m_CommandQueue, handle)) {
             AddLogf(Warning, "Texture allocation failed!");
         }
     }

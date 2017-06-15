@@ -50,6 +50,7 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/seq.hpp>
 #include <boost/align.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 
 namespace mem {
 

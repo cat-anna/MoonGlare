@@ -15,241 +15,225 @@
 #include "../Commands/OpenGL/ArrayCommands.h"
 #include "../Commands/OpenGL/ShaderInitCommands.h"
 
+#include "AsyncLoader.h"
+
 namespace MoonGlare::Renderer::Resources {
 
 uint32_t ShaderHandlerInterface::s_InterfaceIndexAlloc = 0;
 
 bool ShaderResource::Initialize(ResourceManager *Owner, ShaderCodeLoader *CodeLoader) {
-	RendererAssert(Owner);
-	RendererAssert(CodeLoader);
+    RendererAssert(Owner);
+    RendererAssert(CodeLoader);
 
-	m_ResourceManager = Owner;
-	m_ShaderCodeLoader = CodeLoader;
+    m_ResourceManager = Owner;
+    m_ShaderCodeLoader = CodeLoader;
 
-	m_ShaderHandle.fill(Device::InvalidShaderHandle);
-	m_ShaderInterface.fill(nullptr);
-	Conf::UniformLocations locs;
-	locs.fill(Device::InvalidShaderUniformHandle);
-	m_ShaderUniform.fill(locs);
-	m_ShaderName.fill(std::string());
+    m_ShaderHandle.fill(Device::InvalidShaderHandle);
+    m_ShaderInterface.fill(nullptr);
+    Conf::UniformLocations locs;
+    locs.fill(Device::InvalidShaderUniformHandle);
+    m_ShaderUniform.fill(locs);
+    m_ShaderName.fill(std::string());
+    for(auto &item: m_ShaderLoaded)
+        item = false;
 
-	m_ShaderConfigurationDefs = 
+    m_ShaderConfigurationDefs = 
 R"(
 //no custom defs yet
 )";
 
-	return true;
+    return true;
 }
 
 bool ShaderResource::Finalize() {
-	return true;
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::ReloadAll() {
-	RendererAssert(this);
-	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
-	auto qhandle = dev->AllocateCtrlQueue();
-	if (!qhandle.m_Queue) {
-		DebugLogf(Error, "Reloading shaders failed - queue allocation failed");
-		return false;
-	}
+void ShaderResource::ReloadAll() {
+    RendererAssert(this);
 
-	for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
-		if (m_ShaderLoaded[i]) {
-			DebugLogf(Warning, "Reloading shader %s", m_ShaderName[i].c_str());
-			Reload(*qhandle.m_Queue, i);
-		}
-	}
-
-	dev->Submit(qhandle);
-	return true;
+    auto loader = m_ResourceManager->GetLoader();
+    for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
+        if (m_ShaderLoaded[i]) {
+            DebugLogf(Warning, "Reloading shader %s", m_ShaderName[i].c_str());
+            ShaderResourceHandleBase h;
+            h.m_TmpGuard = h.GuardValue;
+            h.m_Index = i;
+            loader->SubmitShaderLoad(h);
+        }
+    }
 }
 
 bool ShaderResource::Reload(const std::string &Name) {
-	RendererAssert(this);
-	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
-	auto qhandle = dev->AllocateCtrlQueue();
-	if (!qhandle.m_Queue) {
-		DebugLogf(Error, "Reloading shader %s failed - queue allocation failed", Name.c_str());
-		return false;
-	}
-	DebugLogf(Warning, "Reloading shader %s", Name.c_str());
-	Reload(*qhandle.m_Queue, Name);
-	dev->Submit(qhandle);
-	return true;
+    for (auto index = 0u; index < m_ShaderName.size(); ++index) {
+        if (m_ShaderName[index] == Name) {
+            ShaderResourceHandleBase h;
+            h.m_TmpGuard = h.GuardValue;
+            h.m_Index = index;
+            auto loader = m_ResourceManager->GetLoader();
+            loader->SubmitShaderLoad(h);
+            return true;
+        }
+    }
+    return false;
 }
 
-bool ShaderResource::Reload(Commands::CommandQueue &queue, const std::string &Name) {
-	RendererAssert(this);
-
-	for (size_t index = 0u; index < m_ShaderName.size(); ++index) {
-		if (m_ShaderName[index] == Name) {
-			return Reload(queue, index);
-		}
-	}
-
-	DebugLogf(Error, "There is no loaded shader: %s", Name.c_str());
-	return false;
+bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, ShaderResourceHandleBase handle) {
+    RendererAssert(this);
+    if (handle.m_TmpGuard != handle.GuardValue) {
+        AddLogf(Error, "Invalid handle!");
+        return false; 
+    }
+    return GenerateReload(queue, Memory, handle.m_Index);
 }
 
-bool ShaderResource::Reload(Commands::CommandQueue &queue, uint32_t ifindex) {
-	RendererAssert(this);
-	if (!m_ShaderLoaded[ifindex])
-		return false;
-	return 
-		ReleaseShader(queue, ifindex) &&
-		GenerateLoadCommand(queue, ifindex) &&
-		InitializeUniforms(queue, ifindex) &&
-		InitializeSamplers(queue, ifindex) ;
+bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex) {
+    RendererAssert(this);
+    if (!m_ShaderLoaded[ifindex])
+        return false;
+    return 
+        ReleaseShader(queue, Memory, ifindex) &&
+        GenerateLoadCommand(queue, Memory, ifindex) &&
+        InitializeUniforms(queue, Memory, ifindex) &&
+        InitializeSamplers(queue, Memory, ifindex) ;
 }
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::LoadShader(ShaderResourceHandleBase & out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
-	RendererAssert(this);
-	auto dev = m_ResourceManager->GetRendererFacade()->GetDevice();
-	auto qhandle = dev->AllocateCtrlQueue();
-	if (!qhandle.m_Queue) {
-		DebugLogf(Error, "Reloading shader %s failed - queue allocation failed", ShaderName.c_str());
-		return false;
-	}
-	DebugLogf(Warning, "Reloading shader %s", ShaderName.c_str());
-	LoadShader(*qhandle.m_Queue, out, ShaderName, ShaderIface);
-	dev->Submit(qhandle);
-	return true;
-}
+bool ShaderResource::LoadShader(ShaderResourceHandleBase &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+    RendererAssert(this);
+    RendererAssert(ShaderIface);
 
-bool ShaderResource::LoadShader(Commands::CommandQueue &queue, ShaderResourceHandleBase &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
-	RendererAssert(this);
-	RendererAssert(ShaderIface);
+    auto ifindex = ShaderIface->InterfaceID();
 
-	auto ifindex = ShaderIface->InterfaceID();
+    bool isalloc = false;
+    if (!m_ShaderLoaded[ifindex].compare_exchange_strong(isalloc, true)) {
+        out.m_TmpGuard = out.GuardValue;
+        out.m_Index = static_cast<uint16_t>(ifindex);
+        return true;
+    }
 
-	bool isalloc = false;
-	if (!m_ShaderLoaded[ifindex].compare_exchange_strong(isalloc, true)) {
-		out.m_TmpGuard = out.GuardValue;
-		out.m_Index = static_cast<uint16_t>(ifindex);
-		return true;
-	}
+    m_ShaderName[ifindex] = ShaderName;
+    m_ShaderHandle[ifindex] = Device::InvalidShaderHandle;
+    m_ShaderUniform[ifindex].fill(Device::InvalidShaderUniformHandle);
+    m_ShaderInterface[ifindex] = ShaderIface;
 
-	m_ShaderName[ifindex] = ShaderName;
-	m_ShaderHandle[ifindex] = Device::InvalidShaderHandle;
-	m_ShaderUniform[ifindex].fill(Device::InvalidShaderUniformHandle);
-	m_ShaderInterface[ifindex] = ShaderIface;
+    out.m_TmpGuard = out.GuardValue;
+    out.m_Index = static_cast<uint16_t>(ifindex);
 
-	out.m_TmpGuard = out.GuardValue;
-	out.m_Index = static_cast<uint16_t>(ifindex);
+    auto loader = m_ResourceManager->GetLoader();
+    loader->SubmitShaderLoad(out);
 
-	return Reload(queue, ifindex);
-}
-
-bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, uint32_t ifindex) {
-	RendererAssert(this);
-	auto *arg = q.PushCommand<Commands::ReleaseShaderResource>();
-	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
-	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
-	return true;
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, uint32_t ifindex) {
-	RendererAssert(this);
-
-	ShaderCodeLoader::ShaderCode code;
-	if (!m_ShaderCodeLoader->LoadCode(m_ShaderName[ifindex], code)) {
-		RendererAssert(false);
-		return false;
-	}
-
-	auto &q = queue;
-	auto &m = queue.GetMemory();
-
-	auto *arg = q.PushCommand<Commands::ConstructShader>();
-
-	arg->m_Valid.fill(false);
-	arg->m_CodeArray;
-	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
-	arg->m_ShaderOutput = &m_ShaderHandle[ifindex];
-
-	for (const auto &shadertype : arg->ShaderTypes) {
-		auto index = static_cast<unsigned>(shadertype.m_Type);
-
-		auto &Lines = arg->m_CodeArray[index];
-		Lines.fill("\n");
-
-		if (code.m_Code[index].empty())
-			continue;
-
-		char buf[64];
-
-		Lines[0] = "#version 420\n";
-		Lines[1] = "//defines begin\n";
-
-		sprintf_s(buf, "#define %s_main main\n", shadertype.m_Name);
-		Lines[2] = m.CloneString(buf);
-
-		sprintf_s(buf, "#define shader_%s\n", shadertype.m_Name);
-		Lines[3] = m.CloneString(buf);
-
-		Lines[4] = m_ShaderConfigurationDefs.c_str();
-		//5
-		Lines[6] = "//preprocesed code begin\n";
-		Lines[7] = m.CloneString(code.m_Code[index]);
-
-		arg->m_Valid[index] = true;
-	}
-
-	return true;
+bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
+    RendererAssert(this);
+    auto *arg = q.PushCommand<Commands::ReleaseShaderResource>();
+    arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
+    arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+    return true;
 }
 
-bool ShaderResource::InitializeUniforms(Commands::CommandQueue &q, uint32_t ifindex) {
-	RendererAssert(this);
-	RendererAssert(m_ShaderInterface[ifindex]);
+bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex) {
+    RendererAssert(this);
 
-	auto iface = m_ShaderInterface[ifindex];
+    ShaderCodeLoader::ShaderCode code;
+    if (!m_ShaderCodeLoader->LoadCode(m_ShaderName[ifindex], code)) {
+        RendererAssert(false);
+        return false;
+    }
 
-	auto *arg = q.PushCommand<Commands::GetShaderUnfiorms>();
-	arg->m_Count = iface->UniformCount();
-	arg->m_Names = iface->UniformName();
-	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
-	arg->m_Locations = &m_ShaderUniform[ifindex];
-	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
-		
-	return true;
+    auto &q = queue;
+    auto &m = Memory;
+
+    auto *arg = q.PushCommand<Commands::ConstructShader>();
+
+    arg->m_Valid.fill(false);
+    arg->m_CodeArray;
+    arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+    arg->m_ShaderOutput = &m_ShaderHandle[ifindex];
+
+    for (const auto &shadertype : arg->ShaderTypes) {
+        auto index = static_cast<unsigned>(shadertype.m_Type);
+
+        auto &Lines = arg->m_CodeArray[index];
+        Lines.fill("\n");
+
+        if (code.m_Code[index].empty())
+            continue;
+
+        char buf[64];
+
+        Lines[0] = "#version 420\n";
+        Lines[1] = "//defines begin\n";
+
+        sprintf_s(buf, "#define %s_main main\n", shadertype.m_Name);
+        Lines[2] = m.CloneString(buf);
+
+        sprintf_s(buf, "#define shader_%s\n", shadertype.m_Name);
+        Lines[3] = m.CloneString(buf);
+
+        Lines[4] = m_ShaderConfigurationDefs.c_str();
+        //5
+        Lines[6] = "//preprocesed code begin\n";
+        Lines[7] = m.CloneString(code.m_Code[index]);
+
+        arg->m_Valid[index] = true;
+    }
+
+    return true;
 }
 
-bool ShaderResource::InitializeSamplers(Commands::CommandQueue & q, uint32_t ifindex) {
-	RendererAssert(this);
-	RendererAssert(m_ShaderInterface[ifindex]);
+bool ShaderResource::InitializeUniforms(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
+    RendererAssert(this);
+    RendererAssert(m_ShaderInterface[ifindex]);
 
-	auto iface = m_ShaderInterface[ifindex];
+    auto iface = m_ShaderInterface[ifindex];
 
-	auto cnt = iface->SamplerCount();
+    auto *arg = q.PushCommand<Commands::GetShaderUnfiorms>();
+    arg->m_Count = iface->UniformCount();
+    arg->m_Names = iface->UniformName();
+    arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
+    arg->m_Locations = &m_ShaderUniform[ifindex];
+    arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+        
+    return true;
+}
 
-	if (cnt <= 1)//single sampler, no need to do anything
-		return true;
+bool ShaderResource::InitializeSamplers(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
+    RendererAssert(this);
+    RendererAssert(m_ShaderInterface[ifindex]);
 
-	auto *arg = q.PushCommand<Commands::InitShaderSamplers>();
-	arg->m_Count = cnt;
-	arg->m_Names = iface->SamplerName();
-	arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
-	arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+    auto iface = m_ShaderInterface[ifindex];
 
-	return true;
+    auto cnt = iface->SamplerCount();
+
+    if (cnt <= 1)//single sampler, no need to do anything
+        return true;
+
+    auto *arg = q.PushCommand<Commands::InitShaderSamplers>();
+    arg->m_Count = cnt;
+    arg->m_Names = iface->SamplerName();
+    arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
+    arg->m_ShaderName = m_ShaderName[ifindex].c_str();
+
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 void ShaderResource::Dump(Space::OFmtStream &o) {
-	for (unsigned index = 0u; index < m_ShaderName.size(); ++index) {
-		if (!m_ShaderLoaded[index].load())
-			continue;
+    for (unsigned index = 0u; index < m_ShaderName.size(); ++index) {
+        if (!m_ShaderLoaded[index].load())
+            continue;
 
-		o.line("%2u -> %s", index, m_ShaderName[index].c_str());
-	}
+        o.line("%2u -> %s", index, m_ShaderName[index].c_str());
+    }
 }
 
 } //namespace MoonGlare::Renderer::Resources 

@@ -11,7 +11,7 @@
 #include <Source/Renderer/Resources/AssetLoaderInterface.h>
 
 namespace MoonGlare::x2c::Settings {
-	struct AssetSettings_t;
+    struct AssetSettings_t;
 }
 
 namespace MoonGlare::Asset {
@@ -20,20 +20,22 @@ class FileSystem;
 
 class AssetManager final : public Renderer::Resources::AssetLoader {
 public:
- 	AssetManager();
- 	~AssetManager();
+    AssetManager();
+    ~AssetManager();
 
-	bool Initialize(const x2c::Settings::AssetSettings_t &Configuration);
-	bool Finalize();
+    bool Initialize(const x2c::Settings::AssetSettings_t *Configuration);
+    bool Finalize();
 
-	Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
+    Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
 
-	virtual Renderer::Resources::ShaderCodeLoader* GetShaderCodeLoader() const override;
-	virtual Renderer::Resources::TextureLoader* GetTextureLoader() const override;
+    virtual Renderer::Resources::ShaderCodeLoader* GetShaderCodeLoader() const override;
+    virtual Renderer::Resources::TextureLoader* GetTextureLoader() const override;
 private:
-	std::unique_ptr<FileSystem> m_FileSystem;
-	std::unique_ptr<Shader::Loader> m_ShaderLoader;
-	std::unique_ptr<Texture::Loader> m_TextureLoader;
+    std::unique_ptr<FileSystem> m_FileSystem;
+    std::unique_ptr<Shader::Loader> m_ShaderLoader;
+    std::unique_ptr<Texture::Loader> m_TextureLoader;
+
+    const x2c::Settings::AssetSettings_t *m_Configuration = nullptr;
 };
 
 } //namespace MoonGlare::Asset 

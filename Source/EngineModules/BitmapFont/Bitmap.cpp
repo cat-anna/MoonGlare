@@ -213,8 +213,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	auto *mat = resmgr->GetMaterialManager().GetMaterial(m_Material);
 
 	auto texarg = q.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
-	texarg->m_Handle = mat->m_DiffuseMap;
-	texarg->m_HandleArray = resmgr->GetTextureResource().GetHandleArrayBase();
+	texarg->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.m_Index;
 		
 	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 	arg->m_NumIndices = IndexesCount;

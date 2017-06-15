@@ -6,54 +6,50 @@ namespace MoonGlare::Renderer::Resources {
 
 class ShaderCodeLoader {
 public:
-	virtual ~ShaderCodeLoader() {}
+    virtual ~ShaderCodeLoader() {}
 
-	enum class ShaderType : uint8_t {
-		Geometry,
-		Vertex,
-		Fragment,
+    enum class ShaderType : uint8_t {
+        Geometry,
+        Vertex,
+        Fragment,
 
-		MaxValue,
-	};
+        MaxValue,
+    };
 
-	struct ShaderCode {
-		std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
-	};
+    struct ShaderCode {
+        std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
+    };
 
-	virtual bool LoadCode(const std::string &Name, ShaderCode &Output) { return false; };
+    virtual bool LoadCode(const std::string &Name, ShaderCode &Output) { return false; };
 };
 
 class TextureLoader {
 public:
-	virtual ~TextureLoader() {}
+    virtual ~TextureLoader() {}
 
-	enum class PixelType : uint16_t {
-		UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
-		Float = GL_FLOAT,
-	};
+    using PixelType = Device::ValueFormat;
+    using PixelFormat = Device::PixelFormat;
 
-	using PixelFormat = Device::PixelFormat;
+    using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 
-	using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
+    struct TexturePixelData {
+        void* m_Pixels;
+        unsigned m_PixelsByteSize;
+        PixelType m_PixelType;
+        PixelFormat m_PixelFormat;
+        emath::usvec2 m_PixelSize;
+        ImageUniquePtr m_ImageMemory;
+    };
 
-	struct TexturePixelData {
-		void* m_Pixels;
-		unsigned m_PixelsByteSize;
-		PixelType m_PixelType;
-		PixelFormat m_PixelFormat;
-		emath::usvec2 m_PixelSize;
-		ImageUniquePtr m_ImageMemory;
-	};
-
-	virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) = 0;
+    virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) = 0;
 };
 
 class AssetLoader {
 public:
-	virtual ~AssetLoader() {}
+    virtual ~AssetLoader() {}
 
-	virtual ShaderCodeLoader* GetShaderCodeLoader() const { return nullptr; }
-	virtual TextureLoader* GetTextureLoader() const { return nullptr; }
+    virtual ShaderCodeLoader* GetShaderCodeLoader() const { return nullptr; }
+    virtual TextureLoader* GetTextureLoader() const { return nullptr; }
 };
 
 } //namespace MoonGlare::Renderer::Resources 

@@ -12,6 +12,7 @@
 #include "Frame.h"
 #include "Context.h"
 #include "Resources/ResourceManager.h"
+#include "Resources/AsyncLoader.h"
 #include "ScriptApi.h"
 
 namespace MoonGlare::Renderer {
@@ -106,6 +107,10 @@ ScriptApi *RendererFacade::GetScriptApi() {
     if (!m_ScriptApi)
         m_ScriptApi = std::make_unique<ScriptApi>(this);
     return m_ScriptApi.get();
+}
+
+bool RendererFacade::AllResourcesLoaded() {
+    return GetResourceManager()->GetLoader()->AllResoucecsLoaded();
 }
 
 //----------------------------------------------------------------------------------

@@ -58,12 +58,6 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
         m_UnusedTextureRender.push(&item);
     }
 
-    m_SubmittedCtrlQueues.store(0);
-    m_AllocatedCtrlQueues.ClearAllocation();
-    for (auto & item : m_CtrlQueues) {
-        item.Clear();
-    }
-
     return true;
 }
 
@@ -144,38 +138,11 @@ void RenderDevice::ProcessFrame(Frame *frame) {
 
 //----------------------------------------------------------------------------------
 
-RenderDevice::CtrlCommandQueue RenderDevice::AllocateCtrlQueue() {
-    uint32_t index;
-    if (!m_AllocatedCtrlQueues.Allocate(index)) {
-        return CtrlCommandQueue{
-            nullptr,
-            0,
-        };
-    }
-    m_CtrlQueues[index].ClearAllocation();
-    return CtrlCommandQueue {
-        &m_CtrlQueues[index],
-        index,
-    };
-}
-
-void RenderDevice::Submit(CtrlCommandQueue &queue) {
-    if (queue.m_Handle > m_CtrlQueues.size()) {
-        RendererAssert(false);
-    }
-
-    m_SubmittedCtrlQueues.fetch_or(1 << queue.m_Handle);
-}
-
 void RenderDevice::ProcessPendingCtrlQueues() {
-    while (m_SubmittedCtrlQueues.load() != 0) {
-        for (size_t bit = 0; bit < 32; ++bit) {
-            auto mask = 1 << bit;
-            if ((m_SubmittedCtrlQueues.fetch_and(~mask) & mask) != 0) {
-                m_CtrlQueues[bit].Execute();
-                m_AllocatedCtrlQueues.Release(bit);
-            }
-        }
+    auto *ccq = m_CommitCommandQueue.exchange(nullptr);
+    if (ccq) {
+        ccq->m_Queue->Execute();
+        ccq->m_Commited = true;
     }
 }
 

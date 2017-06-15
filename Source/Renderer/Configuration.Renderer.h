@@ -73,6 +73,9 @@ struct IndexBuffer {
 struct Resources {
     template<size_t SIZE>
     using BitmapAllocator = ::Space::Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
+
+    static constexpr uint32_t AsyncQueueCount = 2;
+    static constexpr uint32_t QueueMemory = 10 * 1024 * 1024;
 };
 
 //---------------------------------------------------------------------------------------
@@ -81,7 +84,7 @@ struct Texture {
     static constexpr uint32_t Limit = 1024;
     static constexpr uint32_t Initial = 64;
 
-    enum class Filtering {
+    enum class Filtering : uint8_t {
         Nearest,
         Linear,
         Bilinear,
@@ -91,11 +94,15 @@ struct Texture {
         Default = MaxValue,
     };
 
-    enum class Edges {
+    enum class Edges : uint8_t {
         Repeat,
         Clamp,
         MaxValue,
         Default = MaxValue,
+    };
+
+    enum class ChannelSwizzle : uint8_t {
+        R, G, B, A,
     };
 
     Filtering m_Filtering;
@@ -110,13 +117,37 @@ struct TextureLoad {
     Conf::Filtering m_Filtering;
     Conf::Edges m_Edges;
 
+    union Swizzle {
+        struct {
+            Conf::ChannelSwizzle R : 2;
+            Conf::ChannelSwizzle G : 2;
+            Conf::ChannelSwizzle B : 2;
+            Conf::ChannelSwizzle A : 2;
+        };
+        uint8_t m_UIntValue;
+    } m_Swizzle;
+    static_assert(sizeof(Swizzle) == sizeof(uint8_t), "Invalid size!");
+
+    union Flags {
+        struct {
+            bool m_Swizzle : 1;
+        };
+        uint8_t m_UIntValue;
+    } m_Flags;
+
+    static_assert(sizeof(Flags) == sizeof(uint8_t), "Invalid size!");
+
     static TextureLoad Default() {
         return {
             Conf::Filtering::Default,
             Conf::Edges::Default,
+            0,
+            0,
         };
     }
 };
+static_assert(sizeof(TextureLoad) == sizeof(uint32_t), "Invalid size");//allowed to be 64bits if necessary
+static_assert(std::is_pod<TextureLoad>::value, "Must be pod");
 
 struct TextureRenderTask {
     static constexpr uint32_t Limit = 64;

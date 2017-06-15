@@ -16,51 +16,58 @@
 
 namespace MoonGlare::Renderer::Resources {
 
+class AsyncLoader;
+
 class alignas(16) ResourceManager final {
 public:
-	bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
-	bool Finalize();
+    ResourceManager();
+    ~ResourceManager();
 
-	const Configuration::RuntimeConfiguration* GetConfiguration() const;
-	RendererFacade *GetRendererFacade() { return m_RendererFacade; }
+    bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
+    bool Finalize();
 
-	TextureResource& GetTextureResource() {
-		RendererAssert(this); 
-		return m_TextureResource;
-	}
-	VAOResource& GetVAOResource() {
-		RendererAssert(this);
-		return m_VAOResource;
-	}
-	ShaderResource& GetShaderResource() {
-		RendererAssert(this);
-		return m_ShaderResource;
-	}
-	MaterialManager& GetMaterialManager() {
-		RendererAssert(this);
-		return m_MaterialManager;
-	}
+    const Configuration::RuntimeConfiguration* GetConfiguration() const;
+    RendererFacade *GetRendererFacade() { return m_RendererFacade; }
+    AsyncLoader* GetLoader() { return m_AsyncLoader.get(); }
 
-	void Release(Frame *frame, TextureResourceHandle &texres) {
-		GetTextureResource().Release(frame, texres);
-	}
-	void Release(Frame *frame, VAOResourceHandle &vaores) {
-		GetVAOResource().Release(frame, vaores);
-	}
-	bool Allocate(Frame *frame, TextureResourceHandle &resH) {
-		return GetTextureResource().Allocate(frame, resH);
-	}
-	bool Allocate(Frame *frame, VAOResourceHandle &resH) {
-		return GetVAOResource().Allocate(frame, resH);
-	}
+    TextureResource& GetTextureResource() {
+        RendererAssert(this); 
+        return m_TextureResource;
+    }
+    VAOResource& GetVAOResource() {
+        RendererAssert(this);
+        return m_VAOResource;
+    }
+    ShaderResource& GetShaderResource() {
+        RendererAssert(this);
+        return m_ShaderResource;
+    }
+    MaterialManager& GetMaterialManager() {
+        RendererAssert(this);
+        return m_MaterialManager;
+    }
+
+    void Release(Frame *frame, TextureResourceHandle &texres) {
+        GetTextureResource().Release(frame, texres);
+    }
+    void Release(Frame *frame, VAOResourceHandle &vaores) {
+        GetVAOResource().Release(frame, vaores);
+    }
+    bool Allocate(Frame *frame, TextureResourceHandle &resH) {
+        return GetTextureResource().Allocate(frame, resH);
+    }
+    bool Allocate(Frame *frame, VAOResourceHandle &resH) {
+        return GetVAOResource().Allocate(frame, resH);
+    }
 private: 
-	RendererFacade *m_RendererFacade = nullptr;
-	AssetLoader *m_AssetLoader = nullptr;
-	void* padding[2];
-	TextureResource m_TextureResource;
-	VAOResource m_VAOResource;
-	ShaderResource m_ShaderResource;
-	MaterialManager m_MaterialManager;
+    RendererFacade *m_RendererFacade = nullptr;
+    AssetLoader *m_AssetLoader = nullptr;
+    std::unique_ptr<AsyncLoader> m_AsyncLoader;
+    void* padding;
+    TextureResource m_TextureResource;
+    VAOResource m_VAOResource;
+    ShaderResource m_ShaderResource;
+    MaterialManager m_MaterialManager;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");

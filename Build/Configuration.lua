@@ -159,6 +159,8 @@ local function SetCommonConfig()
 		warnings "Default"
 		runtime "Release"
 
+    MoonGlare.X2CRule()
+
 	filter { }
 end
 

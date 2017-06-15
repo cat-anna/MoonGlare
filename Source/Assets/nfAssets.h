@@ -22,3 +22,4 @@ using FileHash = uint32_t;
 
 } //namespace MoonGlare::Asset 
 
+#define AssetsAssert(...) assert(__VA_ARGS__)

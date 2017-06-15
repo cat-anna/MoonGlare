@@ -101,6 +101,17 @@ Def {
 -----------------------------------------------------------
 
 Target {
+    Name = "Modules",
+    Deps = {
+        Def "SettingsProvider",
+        Def "StringFormatter",
+        Def "StringTables",
+    }
+}
+
+-----------------------------------------------------------
+
+Target {
 	Name = "Improvements",
 	Deps = {
 		Def "GLFXRemoval",

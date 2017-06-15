@@ -18,18 +18,18 @@ namespace MoonGlare::Core {
 
 class Console::ConsoleLine {
 public:
-	ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), 
-		ShowTime(Time){ 
-	};
-	ConsoleLine(const ConsoleLine&) = delete;
-	~ConsoleLine() { }
-	unsigned type;
-	float ShowTime;
-	wstring Text;
+    ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), 
+        ShowTime(Time){ 
+    };
+    ConsoleLine(const ConsoleLine&) = delete;
+    ~ConsoleLine() { }
+    unsigned type;
+    float ShowTime;
+    wstring Text;
 
-	DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
+    DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
 
-	bool m_Ready = false;
+    bool m_Ready = false;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -37,66 +37,66 @@ public:
 
 class Console::InputLine {
 public:
-	InputLine(Console *Owner) : m_Text(), m_CaretPos(0), m_Owner(Owner) {}
-	~InputLine() {}
-	const wstring& GetString() const {
-		return m_Text;
-	}
-	void SetString(const wstring &data) {
-		m_Text = data;
-		m_CaretPos = m_Text.length();
-	}
-	void Clear() {
-		m_Text.clear();
-		m_CaretPos = 0;
-		m_TextValid = false;
-	}
-	void PutChar(unsigned key) {
-		typedef Graphic::WindowInput::Key Key;
-		switch ((Key) key) {
-		case Key::ArrowLeft:
-			if (m_CaretPos < 1) return;
-			--m_CaretPos;
-			break;
-		case Key::ArrowRight:
-			if (m_CaretPos >= (int) m_Text.length()) return;
-			++m_CaretPos;
-			break;
-		case Key::Backspace:
-			if (m_CaretPos < 1) return;
-			m_Text.erase(m_CaretPos - 1, 1);
-			--m_CaretPos;
-			break;
-		case Key::Delete:
-			if (m_CaretPos >= (int) m_Text.length()) return;
-			m_Text.erase(m_CaretPos, 1);
-			break;
-		case Key::Tab:
-			AddLog(Debug, "Tab pressed");
-			break;
-		default:
-			if (key > 255) return;
-			if (!isprint(key)) return;
-			m_Text.insert(m_CaretPos, 1, static_cast<char>(key));
-			++m_CaretPos;
-			break;
-		}
-		m_TextValid = false;
-	}
-	
-	wstring DisplayText() const {
-		static const std::wstring Prompt = L"> ";
-		wstring text = Prompt + GetString();
-		text.insert(m_CaretPos + Prompt.length(), 1, '|');
-		return std::move(text);
-	}
-	
-	DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
-	bool m_TextValid = false;
+    InputLine(Console *Owner) : m_Text(), m_CaretPos(0), m_Owner(Owner) {}
+    ~InputLine() {}
+    const wstring& GetString() const {
+        return m_Text;
+    }
+    void SetString(const wstring &data) {
+        m_Text = data;
+        m_CaretPos = m_Text.length();
+    }
+    void Clear() {
+        m_Text.clear();
+        m_CaretPos = 0;
+        m_TextValid = false;
+    }
+    void PutChar(unsigned key) {
+        typedef Graphic::WindowInput::Key Key;
+        switch ((Key) key) {
+        case Key::ArrowLeft:
+            if (m_CaretPos < 1) return;
+            --m_CaretPos;
+            break;
+        case Key::ArrowRight:
+            if (m_CaretPos >= (int) m_Text.length()) return;
+            ++m_CaretPos;
+            break;
+        case Key::Backspace:
+            if (m_CaretPos < 1) return;
+            m_Text.erase(m_CaretPos - 1, 1);
+            --m_CaretPos;
+            break;
+        case Key::Delete:
+            if (m_CaretPos >= (int) m_Text.length()) return;
+            m_Text.erase(m_CaretPos, 1);
+            break;
+        case Key::Tab:
+            AddLog(Debug, "Tab pressed");
+            break;
+        default:
+            if (key > 255) return;
+            if (!isprint(key)) return;
+            m_Text.insert(m_CaretPos, 1, static_cast<char>(key));
+            ++m_CaretPos;
+            break;
+        }
+        m_TextValid = false;
+    }
+    
+    wstring DisplayText() const {
+        static const std::wstring Prompt = L"> ";
+        wstring text = Prompt + GetString();
+        text.insert(m_CaretPos + Prompt.length(), 1, '|');
+        return std::move(text);
+    }
+    
+    DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
+    bool m_TextValid = false;
 protected:
-	wstring m_Text;
-	int m_CaretPos;
-	Console *m_Owner;
+    wstring m_Text;
+    int m_CaretPos;
+    Console *m_Owner;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -107,23 +107,23 @@ RegisterApiDerivedClass(Console, &Console::RegisterScriptApi);
 RegisterApiInstance(Console, &Console::Instance, "Console");
 
 const emath::fvec4 LineTypesColor[] = {
-		{ 1.0f, 1.0f, 1.0f, 1.0f, }, //CC_Line_None
-		{ 1.0f, 0.5f, 0.5f, 1.0f, }, //CC_Line_Error
-		{ 0.8f, 0.8f, 0.0f, 1.0f, }, //CC_Line_Warning
-		{ 0.6f, 1.0f, 0.6f, 1.0f, }, //CC_Line_Hint
-		{ 0.8f, 0.8f, 0.8f, 1.0f, }, //Console
+        { 1.0f, 1.0f, 1.0f, 1.0f, }, //CC_Line_None
+        { 1.0f, 0.5f, 0.5f, 1.0f, }, //CC_Line_Error
+        { 0.8f, 0.8f, 0.0f, 1.0f, }, //CC_Line_Warning
+        { 0.6f, 1.0f, 0.6f, 1.0f, }, //CC_Line_Hint
+        { 0.8f, 0.8f, 0.8f, 1.0f, }, //Console
 };
 
 Console::Console() :
-		m_Font(0), 
-		m_MaxLines(20), 
-		m_Lines(), 
-		m_InputLine(std::make_unique<InputLine>(this)), 
-		m_Flags(0),
-		m_Active(false) {
-	SetThisAsInstance();
-	SetVisible(true);
-	SetHideOldLines(true);
+        m_Font(0), 
+        m_MaxLines(20), 
+        m_Lines(), 
+        m_InputLine(std::make_unique<InputLine>(this)), 
+        m_Flags(0),
+        m_Active(false) {
+    SetThisAsInstance();
+    SetVisible(true);
+    SetHideOldLines(true);
 }
 
 Console::~Console() {
@@ -132,188 +132,194 @@ Console::~Console() {
 //-------------------------------------------------------------------------------------------------
 
 bool Console::Initialize() {
-	if (!m_Font)
-		SetFont(GetDataMgr()->GetConsoleFont());
-	return true;
+    if (!m_Font)
+        SetFont(GetDataMgr()->GetConsoleFont());
+
+    auto &shres = GetEngine()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+    shres.Load(m_ShaderHandle, "Passthrough");
+
+    return true;
 }
 
 bool Console::Finalize() {
-	Clear();
-	m_Font.reset();
-	return true;
+    Clear();
+    m_Font.reset();
+    return true;
 }
 
 void Console::RegisterScriptApi(::ApiInitializer &api) {
-	api
-	.deriveClass<ThisClass, BaseClass>("cConsole")
-		.addFunction("Clear", &Console::Clear)
-		.addFunction("Print", &Console::Print)
-		.addFunction("SetVisible", &ThisClass::SetVisible)
-	.endClass();
+    api
+    .deriveClass<ThisClass, BaseClass>("cConsole")
+        .addFunction("Clear", &Console::Clear)
+        .addFunction("Print", &Console::Print)
+        .addFunction("SetVisible", &ThisClass::SetVisible)
+    .endClass();
 }
 
 //-------------------------------------------------------------------------------------------------
 
 bool Console::SetFont(DataClasses::FontPtr Font) {
-	Clear();
-	if (!Font) {
-		return false;
-	}
-	m_Font = Font;
-	return true;
+    Clear();
+    if (!Font) {
+        return false;
+    }
+    m_Font = Font;
+    return true;
 }
 
 void Console::Clear() {
-	m_Lines.clear();
-	m_InputLine->Clear(); 
+    m_Lines.clear();
+    m_InputLine->Clear(); 
 }
 
 void Console::Deactivate() {
-	m_InputLine->Clear(); 
-	m_Active = false;
+    m_InputLine->Clear(); 
+    m_Active = false;
 }
 
 void Console::Activate() {
-	m_InputLine->Clear();
-	m_Active = true;
+    m_InputLine->Clear();
+    m_Active = true;
 }
 
 bool Console::ProcessConsole(const Core::MoveConfig &config) {
-	Renderer::Frame *frame = config.m_BufferFrame;
+    if (m_Lines.empty() && !m_Active) {
+        //console has nothing to process
+        return true;
+    }
 
-	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
-	using Uniform = PassthroughShaderDescriptor::Uniform;
-	using Sampler = PassthroughShaderDescriptor::Sampler;
+    Renderer::Frame *frame = config.m_BufferFrame;
 
-	auto &shres = frame->GetResourceManager()->GetShaderResource();
-	if (!m_ShaderHandle) {
-		shres.Load(frame->GetControllCommandQueue(), m_ShaderHandle, "Passthrough");
-	}
+    using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
+    using Uniform = PassthroughShaderDescriptor::Uniform;
+    using Sampler = PassthroughShaderDescriptor::Sampler;
 
-	static Renderer::VirtualCamera Camera;
-	static bool initialized = false;
-	if (!initialized) {
-		initialized = true;
-		Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
-	}
+    auto &shres = frame->GetResourceManager()->GetShaderResource();
 
-	auto qptr = frame->AllocateSubQueue();
-	if (!qptr)
-		return false;
-	auto &q = *qptr;
+    static Renderer::VirtualCamera Camera;
+    static bool initialized = false;
+    if (!initialized) {
+        initialized = true;
+        Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+    }
 
-	using namespace ::MoonGlare::Renderer;
+    auto qptr = frame->AllocateSubQueue();
+    if (!qptr)
+        return false;
+    auto &q = *qptr;
 
-	auto key = Commands::CommandKey();
+    using namespace ::MoonGlare::Renderer;
 
-	auto shb = shres.GetBuilder(q, m_ShaderHandle);
-	shb.Bind();
-	shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
-	shb.Set<Uniform::BackColor>(emath::fvec4(1));
-	q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+    auto key = Commands::CommandKey();
 
-	auto PrintText = [this, &q, key, frame, &shb](const emath::fvec3 &position,
-					Renderer::TextureResourceHandle &Texture,
-					Renderer::VAOResourceHandle &VAO) {
-		Eigen::Affine3f a{ Eigen::Translation3f(position) };
-		shb.Set<Uniform::ModelMatrix>(a.matrix());
-		shb.Set<Sampler::DiffuseMap>(Texture, key);
+    auto shb = shres.GetBuilder(q, m_ShaderHandle);
+    shb.Bind();
+    shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
+    shb.Set<Uniform::BackColor>(emath::fvec4(1));
+    q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
 
-		auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
-		vaob.BindVAO();
+    auto PrintText = [this, &q, key, frame, &shb](const emath::fvec3 &position,
+                    Renderer::TextureResourceHandle &Texture,
+                    Renderer::VAOResourceHandle &VAO) {
+        Eigen::Affine3f a{ Eigen::Translation3f(position) };
+        shb.Set<Uniform::ModelMatrix>(a.matrix());
+        shb.Set<Sampler::DiffuseMap>(Texture, key);
 
-		auto arg = q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)Device::TypeInfo<uint8_t>::TypeId);
-	};
+        auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
+        vaob.BindVAO();
+
+        auto arg = q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)Device::TypeInfo<uint8_t>::TypeId);
+    };
    
-	if (!m_Lines.empty()) {
-		if ((IsHideOldLines() && glfwGetTime() >= m_Lines.front().ShowTime) || m_Lines.size() > m_MaxLines) {
-			auto &line = m_Lines.front();
+    if (!m_Lines.empty()) {
+        if ((IsHideOldLines() && glfwGetTime() >= m_Lines.front().ShowTime) || m_Lines.size() > m_MaxLines) {
+            auto &line = m_Lines.front();
 
-			line.m_FontResources.Release(frame);
-			m_Lines.pop_front();
-		}
+            line.m_FontResources.Release(frame);
+            m_Lines.pop_front();
+        }
 
-		static constexpr float LineH = 15.0f;		
-		emath::fvec3 position(5, -10, 0);
-		
-		unsigned idx = 0u;
-		for (auto &line : m_Lines) {
-			++idx;
-			if (idx >= m_MaxLines)
-				break;
+        static constexpr float LineH = 15.0f;		
+        emath::fvec3 position(5, -10, 0);
+        
+        unsigned idx = 0u;
+        for (auto &line : m_Lines) {
+            ++idx;
+            if (idx >= m_MaxLines)
+                break;
 
-			position.y() += LineH;
+            position.y() += LineH;
 
-			if (!line.m_Ready) {
-				DataClasses::Fonts::iFont::FontRenderRequest req{ };
-				req.m_Color = LineTypesColor[line.type];
-				DataClasses::Fonts::iFont::FontRect rect;
-				DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+            if (!line.m_Ready) {
+                DataClasses::Fonts::iFont::FontRenderRequest req{ };
+                req.m_Color = LineTypesColor[line.type];
+                DataClasses::Fonts::iFont::FontRect rect;
+                DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
 
-				m_Font->RenderText(line.Text, frame, req, devop, rect, line.m_FontResources);
-				line.m_Ready = true;
-			}
+                m_Font->RenderText(line.Text, frame, req, devop, rect, line.m_FontResources);
+                line.m_Ready = true;
+            }
 
-			PrintText(position, 
-				line.m_FontResources.m_Texture, line.m_FontResources.m_VAO);
-		}
-	}
+            PrintText(position, 
+                line.m_FontResources.m_Texture, line.m_FontResources.m_VAO);
+        }
+    }
 
-	if (m_Active) {
-		if (!m_InputLine->m_TextValid) {
-			DataClasses::Fonts::iFont::FontRenderRequest req;
-			req.m_Color = LineTypesColor[0];
-			DataClasses::Fonts::iFont::FontRect rect;
-			DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
-			m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
-		}
-		if (m_InputLine->m_TextValid) {
-			auto pos = emath::fvec3(5, m_MaxLines * 15 + 15 + 5, 0);
-			PrintText(pos,
-				m_InputLine->m_FontResources.m_Texture, m_InputLine->m_FontResources.m_VAO);
-		}
-	}
+    if (m_Active) {
+        if (!m_InputLine->m_TextValid) {
+            DataClasses::Fonts::iFont::FontRenderRequest req;
+            req.m_Color = LineTypesColor[0];
+            DataClasses::Fonts::iFont::FontRect rect;
+            DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+            m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
+        }
+        if (m_InputLine->m_TextValid) {
+            auto pos = emath::fvec3(5, m_MaxLines * 15 + 15 + 5, 0);
+            PrintText(pos,
+                m_InputLine->m_FontResources.m_Texture, m_InputLine->m_FontResources.m_VAO);
+        }
+    }
 
-	frame->Submit(qptr, Renderer::Configuration::Context::Window::First);
-	return true;
+    frame->Submit(qptr, Renderer::Configuration::Context::Window::First);
+    return true;
 }
 
 void Console::Print(const char* Text, unsigned lineType) {
-	return AddLine(Utils::Strings::towstring(Text), lineType);
+    return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const string &Text, unsigned lineType) {
-	return AddLine(Utils::Strings::towstring(Text), lineType);
+    return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
 void Console::AddLine(const wstring &Text, unsigned lineType) {
-	m_Lines.emplace_back((float)glfwGetTime() + 60, lineType);
-	auto &line = m_Lines.back();
-	line.Text = Text;
+    m_Lines.emplace_back((float)glfwGetTime() + 60, lineType);
+    auto &line = m_Lines.back();
+    line.Text = Text;
 }
 
 void Console::AsyncLine(const string &Text, unsigned lineType) {
-	Core::GetEngine()->PushSynchronizedAction([=]() {
-		AddLine(Text, lineType);
-	});
+    Core::GetEngine()->PushSynchronizedAction([=]() {
+        AddLine(Text, lineType);
+    });
 }
 
 void Console::PushKey(unsigned key) {
-	using Key = Graphic::WindowInput::Key;
-	switch ((Key) key) {
-	case Key::Enter:
-	{
-		wstring text = m_InputLine->GetString();
-		m_InputLine->Clear();
-		if (text.empty())
-			return;
-		AddLine(text);
-		GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
-		return;
-	}
-	default:
-		m_InputLine->PutChar(key);
-	}
+    using Key = Graphic::WindowInput::Key;
+    switch ((Key) key) {
+    case Key::Enter:
+    {
+        wstring text = m_InputLine->GetString();
+        m_InputLine->Clear();
+        if (text.empty())
+            return;
+        AddLine(text);
+        GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
+        return;
+    }
+    default:
+        m_InputLine->PutChar(key);
+    }
 }
 
 } //namespace MoonGlare::Core

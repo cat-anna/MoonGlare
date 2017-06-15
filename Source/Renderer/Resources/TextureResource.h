@@ -23,9 +23,8 @@ public:
 	void Initialize(ResourceManager* Owner, TextureLoader *TexLoader);
 	void Finalize();
 
-	bool Allocate(Commands::CommandQueue &queue, TextureResourceHandle &out);
+	bool Allocate(Commands::CommandQueue *queue, TextureResourceHandle &out);
 
-	bool Allocate(TextureResourceHandle &out);
 	bool Allocate(Frame *frame, TextureResourceHandle &out);
 	void Release(Frame *frame, TextureResourceHandle h);
 
