@@ -6,38 +6,32 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef StringTable_H
-#define StringTable_H
 
-namespace MoonGlare {
-namespace DataClasses {
+namespace MoonGlare::DataClasses {
 
-class StringTable : public cRootClass {
-	SPACERTTI_DECLARE_STATIC_CLASS(StringTable, cRootClass)
+class StringTable {
 public:
- 	StringTable();
- 	virtual ~StringTable();
+    StringTable(FileSystem::iFileSystem *fs);
+    virtual ~StringTable();
 
-	const string& GetString(const string& id, const string& Table);
+    const string& GetString(const string& id, const string& Table);
 
-	void Clear();
-	//static void RegisterScriptApi(ApiInitializer &api);
+    void Clear();
+    //static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	struct StringTableInfo {
-		StringStringMap StringMap;
-		XMLFile XMLTableTranslation;
-		XMLFile XMLTable;
-	};
+    FileSystem::iFileSystem *fileSystem;
+    struct StringTableInfo {
+        StringStringMap StringMap;
+        XMLFile XMLTableTranslation;
+        XMLFile XMLTable;
+    };
 
-	using StringTableMap = std::unordered_map < string, StringTableInfo > ;
-	StringTableMap m_TableMap;
+    using StringTableMap = std::unordered_map < string, StringTableInfo > ;
+    StringTableMap m_TableMap;
 
-	void InitInternalTable();
+    void InitInternalTable();
 
-	bool Load(const string& TableName);
+    bool Load(const string& TableName);
 };
 
-} //namespace DataClasses 
-} //namespace MoonGlare 
-
-#endif
+} //namespace MoonGlare::DataClasses

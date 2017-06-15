@@ -7,15 +7,15 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 #include "StringTable.h"
+#include "iFileSystem.h"
 
-namespace MoonGlare {
-namespace DataClasses {
+namespace MoonGlare::DataClasses {
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(StringTable)
-//RegisterApiDerivedClass(StringTable, &StringTable::RegisterScriptApi);
+StringTable::StringTable(FileSystem::iFileSystem *fs) {
+    MoonGlareAssert(fs);
+    fileSystem = fs;
 
-StringTable::StringTable() {
-	Clear();
+    Clear();
 }
 
 StringTable::~StringTable() {
@@ -37,40 +37,40 @@ StringTable::~StringTable() {
 //------------------------------------------------------------------------------------------
 
 void StringTable::InitInternalTable() {
-	auto &mgt = m_TableMap["MoonGlare"].StringMap;
+    auto &mgt = m_TableMap["MoonGlare"].StringMap;
 
-	mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionStringFull();
-	mgt["BuildDate"] = Core::GetMoonGlareEngineVersion().BuildDate;
-	mgt["Version"] = Core::GetMoonGlareEngineVersion().VersionString();
+    mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionStringFull();
+    mgt["BuildDate"] = Core::GetMoonGlareEngineVersion().BuildDate;
+    mgt["Version"] = Core::GetMoonGlareEngineVersion().VersionString();
 }
 
 bool StringTable::Load(const string& TableName) {
-	XMLFile TableFile, TableTranslationFile;
-	char buf[256];
-	sprintf(buf, "%s.%s.xml", TableName.c_str(), ::Settings->Localization.Code.c_str());
-	if (!GetFileSystem()->OpenXML(TableTranslationFile, buf, DataPath::Tables)) {
-		AddLogf(Warning, "Unable to load translation string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
-	}
-	sprintf(buf, "%s.xml", TableName.c_str());
-	if (!GetFileSystem()->OpenXML(TableFile, buf, DataPath::Tables)) {
-		AddLogf(Debug, "Unable to load string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
-	}
-	 
-	if (!TableFile && !TableTranslationFile) {
-		AddLogf(Error, "Unable to load string table xml files! Table: '%s'", TableName.c_str());
-		return false;
-	}
+    XMLFile TableFile, TableTranslationFile;
+    char buf[256];
+    sprintf(buf, "file:///Tables/%s.%s.xml", TableName.c_str(), ::Settings->Localization.Code.c_str());
+    if (!fileSystem->OpenXML(TableTranslationFile, buf)) {
+        AddLogf(Warning, "Unable to load translation string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
+    }
+    sprintf(buf, "file:///Tables/%s.xml", TableName.c_str());
+    if (fileSystem->OpenXML(TableFile, buf)) {
+        AddLogf(Debug, "Unable to load string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
+    }
+     
+    if (!TableFile && !TableTranslationFile) {
+        AddLogf(Error, "Unable to load string table xml files! Table: '%s'", TableName.c_str());
+        return false;
+    }
 
-	auto &table = m_TableMap[TableName];
-	table.XMLTable.swap(TableFile);
-	table.XMLTableTranslation.swap(TableTranslationFile);
-	table.StringMap.clear();
-	return true;
+    auto &table = m_TableMap[TableName];
+    table.XMLTable.swap(TableFile);
+    table.XMLTableTranslation.swap(TableTranslationFile);
+    table.StringMap.clear();
+    return true;
 }
 
 void StringTable::Clear() {
-	m_TableMap.clear();
-	InitInternalTable();
+    m_TableMap.clear();
+    InitInternalTable();
 }
 
 //------------------------------------------------------------------------------------------
@@ -80,42 +80,41 @@ static const string __NoString("{String does not exists}");
 static const string __EmptyString("");
 
 const string& StringTable::GetString(const string& id, const string& Table) {
-	if (id.empty()) {
-		return __EmptyString;
-	}
-	auto tableit = m_TableMap.find(Table);
-	if (tableit == m_TableMap.end()) {
-		if (!Load(Table)) {
-			AddLogf(Error, "Unable to load table string '%s' to read string '%s'", Table.c_str(), id.c_str());
-			return __NoTable;
-		}
-		return GetString(id, Table);
-	}
+    if (id.empty()) {
+        return __EmptyString;
+    }
+    auto tableit = m_TableMap.find(Table);
+    if (tableit == m_TableMap.end()) {
+        if (!Load(Table)) {
+            AddLogf(Error, "Unable to load table string '%s' to read string '%s'", Table.c_str(), id.c_str());
+            return __NoTable;
+        }
+        return GetString(id, Table);
+    }
 
-	auto &tableinfo = tableit->second;
-	auto stringit = tableinfo.StringMap.find(id);
-	if (stringit == tableinfo.StringMap.end()) {
-		string Result;
-		auto LookupTable = [&id, &Result](XMLFile &file)->bool {
-			if (!file) return false;
-			auto tablenode = file->document_element();
-			auto stringnode = tablenode.find_child_by_attribute("Id", id.c_str());
-			if (!stringnode) return false;
+    auto &tableinfo = tableit->second;
+    auto stringit = tableinfo.StringMap.find(id);
+    if (stringit == tableinfo.StringMap.end()) {
+        string Result;
+        auto LookupTable = [&id, &Result](XMLFile &file)->bool {
+            if (!file) return false;
+            auto tablenode = file->document_element();
+            auto stringnode = tablenode.find_child_by_attribute("Id", id.c_str());
+            if (!stringnode) return false;
 
-			Result = stringnode.text().as_string(__NoString.c_str());
-			return true;
-		};
-		do {
-			if (LookupTable(tableinfo.XMLTableTranslation)) break;
-			if (LookupTable(tableinfo.XMLTable)) break;
-			AddLogf(Error, "String '%s' does not exists in table '%s'", id.c_str(), Table.c_str());
-			Result = __NoString;
-		} while (0);
-		tableinfo.StringMap[id] = std::move(Result);
-		return tableinfo.StringMap[id];
-	}
-	return stringit->second;
+            Result = stringnode.text().as_string(__NoString.c_str());
+            return true;
+        };
+        do {
+            if (LookupTable(tableinfo.XMLTableTranslation)) break;
+            if (LookupTable(tableinfo.XMLTable)) break;
+            AddLogf(Error, "String '%s' does not exists in table '%s'", id.c_str(), Table.c_str());
+            Result = __NoString;
+        } while (0);
+        tableinfo.StringMap[id] = std::move(Result);
+        return tableinfo.StringMap[id];
+    }
+    return stringit->second;
 }
 
-} //namespace DataClasses 
-} //namespace MoonGlare 
+} //namespace MoonGlare::DataClasses

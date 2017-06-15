@@ -3,6 +3,8 @@
 namespace MoonGlare {
 
 class iConsole {
+protected:
+    virtual ~iConsole() {};
 public:
     enum class LineType {
         Regular,       
@@ -13,7 +15,6 @@ public:
         Hint,
     };
 
-    virtual ~iConsole() {};
 
     virtual void PushKey(unsigned key) = 0;
 

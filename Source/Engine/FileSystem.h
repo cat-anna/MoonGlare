@@ -7,146 +7,140 @@
 
 #pragma once
 
+#include "iFileSystem.h"
+
 enum class DataPath {
-	Root,
+    Root,
 
-	Models,
-	Fonts,
-	Shaders,
-	Scripts,
-	Sounds,
-	Music,
-	Texture,
-	XML,
-	Tables,
-	Objects,
+    Models,
+    Fonts,
+    Shaders,
+    Scripts,
+    Sounds,
+    Music,
+    Texture,
+    XML,
+    Objects,
 
-	URI,
+    URI,
 
-	MaxValue,
+    MaxValue,
 };
 
 #ifdef _BUILDING_ASSETS_
 //ugly hack
 namespace Graphic {
-	struct Texture;
+    struct Texture;
 }
 #endif
 
 namespace MoonGlare {
 namespace FileSystem {
 
-using XMLFile = std::unique_ptr<pugi::xml_document>;
-
-struct FileInfo {
-	std::string m_FileName;
-	std::string m_RelativeFileName;
-	StarVFS::FileID m_FID;
-	bool m_IsFolder;
-};
-using FileInfoTable = std::vector<FileInfo>;
-
 //-------------------------------------------------------------------------------------------------
 
 /** File system is not yes fully thread-safe! */
-class MoonGlareFileSystem : public Space::RTTI::RTTIObject {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, Space::RTTI::RTTIObject)
+class MoonGlareFileSystem : public Space::RTTI::RTTIObject, public iFileSystem {
+    SPACERTTI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, Space::RTTI::RTTIObject)
 public:
- 	MoonGlareFileSystem();
- 	virtual ~MoonGlareFileSystem();
+    MoonGlareFileSystem();
+    virtual ~MoonGlareFileSystem();
 
-	bool LoadContainer(const std::string &URI);
+    // iFileSystem
+    bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive);
+    bool OpenFile(StarVFS::ByteTable &FileData, const std::string& uri) override {
+        return OpenFile(uri, DataPath::URI, FileData);
+    }
+    bool OpenXML(XMLFile &doc, const std::string& uri) override {
+        return OpenXML(doc, uri, DataPath::URI);
+    }
 
-	void FindFiles(const char *ext, StarVFS::DynamicFIDTable &out);
+    bool LoadContainer(const std::string &URI);
 
-	const char *GetFileName(StarVFS::FileID fid) const;
-	std::string GetFullFileName(StarVFS::FileID fid) const;
+    void FindFiles(const char *ext, StarVFS::DynamicFIDTable &out);
 
-	bool TranslateFileName(const std::string & FileName, std::string &path, DataPath origin);
+    const char *GetFileName(StarVFS::FileID fid) const;
+    std::string GetFullFileName(StarVFS::FileID fid) const;
 
-	/** Read raw file data */
-	bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
-	/** Read raw file data */
-	bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
-	/** Open an xml document */
-	bool OpenXML(XMLFile &doc, StarVFS::FileID fid);
-	/** Open an xml document */
-	bool OpenXML(XMLFile &doc, const std::string& FileName, DataPath origin = DataPath::URI);
-	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
-	bool OpenResourceXML(XMLFile &doc, const std::string& Name, DataPath origin = DataPath::URI);
-	
-	bool OpenXML(XMLFile &doc, std::string ResName, const std::string& FileName, DataPath origin = DataPath::URI) {
-		return OpenXML(doc, (ResName += '/') += FileName, origin);
-	}
-	bool OpenFile(std::string ResName, const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
-		return OpenFile((ResName += '/') += FileName, origin, FileData);
-	}
+    bool TranslateFileName(const std::string & FileName, std::string &path, DataPath origin);
 
-	bool Initialize();
-	bool Finalize();
+    bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
+    bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
+    bool OpenXML(XMLFile &doc, StarVFS::FileID fid);
+    bool OpenXML(XMLFile &doc, const std::string& FileName, DataPath origin);
+    bool OpenResourceXML(XMLFile &doc, const std::string& Name, DataPath origin = DataPath::URI);
+    
+    bool OpenXML(XMLFile &doc, std::string ResName, const std::string& FileName, DataPath origin = DataPath::URI) {
+        return OpenXML(doc, (ResName += '/') += FileName, origin);
+    }
+    bool OpenFile(std::string ResName, const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
+        return OpenFile((ResName += '/') += FileName, origin, FileData);
+    }
 
-	bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive);
-	bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
-	bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
+    bool Initialize();
+    bool Finalize();
 
-	static void RegisterDebugScriptApi(ApiInitializer &api);
-	void DumpStructure(std::ostream &out) const;
+    bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
+    bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
+
+    static void RegisterDebugScriptApi(ApiInitializer &api);
+    void DumpStructure(std::ostream &out) const;
 private:
-	struct StarVFSCallback : public StarVFS::StarVFSCallback {
-		virtual BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) override { return m_Owner->BeforeContainerMount(ptr, MountPoint); }
-		virtual void AfterContainerMounted(StarVFS::Containers::iContainer *ptr) override { return m_Owner->AfterContainerMounted(ptr); }
-		StarVFSCallback(MoonGlareFileSystem *Owner) : m_Owner(Owner) {}
-		MoonGlareFileSystem *m_Owner;
-	};
+    struct StarVFSCallback : public StarVFS::StarVFSCallback {
+        virtual BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint) override { return m_Owner->BeforeContainerMount(ptr, MountPoint); }
+        virtual void AfterContainerMounted(StarVFS::Containers::iContainer *ptr) override { return m_Owner->AfterContainerMounted(ptr); }
+        StarVFSCallback(MoonGlareFileSystem *Owner) : m_Owner(Owner) {}
+        MoonGlareFileSystem *m_Owner;
+    };
 
-	StarVFSCallback::BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint);
-	void AfterContainerMounted(StarVFS::Containers::iContainer *ptr);
+    StarVFSCallback::BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint);
+    void AfterContainerMounted(StarVFS::Containers::iContainer *ptr);
 
-	StarVFSCallback m_StarVFSCallback;
-	std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
+    StarVFSCallback m_StarVFSCallback;
+    std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };
 
 #ifndef _BUILDING_ASSETS_
 
 class DirectoryReader : public cRootClass {
-	SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
+    SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
 public:
-	DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
-	DirectoryReader(DataPath origin, const std::string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
+    DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
+    DirectoryReader(DataPath origin, const std::string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
 
-	bool OpenXML(XMLFile &xml, const std::string& FileName) {
-		if (m_OwnerName.empty())
-			return MoonGlareFileSystem::Instance()->OpenXML(xml, FileName, m_origin);
-		else
-			return MoonGlareFileSystem::Instance()->OpenXML(xml, (m_OwnerName + '/') += FileName, m_origin);
-	}
-	bool OpenFile(const std::string& FileName, StarVFS::ByteTable &FileData) {
-		if (m_OwnerName.empty())
-			return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin, FileData);
-		else
-			return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
-	}
-	
-	std::string translate(const std::string& FileName) {
-		std::string out;
-		if (m_OwnerName.empty())
-			MoonGlareFileSystem::Instance()->TranslateFileName(FileName, out, m_origin);
-		else
-			MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
-		return out;
-	}
+    bool OpenXML(XMLFile &xml, const std::string& FileName) {
+        if (m_OwnerName.empty())
+            return MoonGlareFileSystem::Instance()->OpenXML(xml, FileName, m_origin);
+        else
+            return MoonGlareFileSystem::Instance()->OpenXML(xml, (m_OwnerName + '/') += FileName, m_origin);
+    }
+    bool OpenFile(const std::string& FileName, StarVFS::ByteTable &FileData) {
+        if (m_OwnerName.empty())
+            return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin, FileData);
+        else
+            return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
+    }
+    
+    std::string translate(const std::string& FileName) {
+        std::string out;
+        if (m_OwnerName.empty())
+            MoonGlareFileSystem::Instance()->TranslateFileName(FileName, out, m_origin);
+        else
+            MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
+        return out;
+    }
 protected:
-	DataPath m_origin;
+    DataPath m_origin;
     std::string m_OwnerName;
 };
 
 #endif
 
 struct DataPathsTable {
-	const std::string& operator[](DataPath p) const { return m_table[(unsigned)p]; }
-	DataPathsTable();
-	void Translate(std::string& out, const std::string& in, DataPath origin) const;
-	void Translate(std::string& out, DataPath origin) const;
+    const std::string& operator[](DataPath p) const { return m_table[(unsigned)p]; }
+    DataPathsTable();
+    void Translate(std::string& out, const std::string& in, DataPath origin) const;
+    void Translate(std::string& out, DataPath origin) const;
 private:
     std::string m_table[(unsigned)DataPath::MaxValue];
 };

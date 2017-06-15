@@ -26,7 +26,6 @@ DataPathsTable::DataPathsTable() {
     _set(Sounds);
     _set(Music);
     _set(Texture);
-    _set(Tables);
     _set(Objects);
     _set(XML);
 #undef _at

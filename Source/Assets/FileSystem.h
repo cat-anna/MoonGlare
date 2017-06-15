@@ -15,13 +15,13 @@ namespace MoonGlare::Asset {
 
 class FileSystem final {
 public:
- 	FileSystem();
- 	~FileSystem();
+    FileSystem();
+    ~FileSystem();
 
-	void Initialize();
-	void Finalize();
+    void Initialize();
+    void Finalize();
 
-	bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
+    bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 private: 
 };
 
