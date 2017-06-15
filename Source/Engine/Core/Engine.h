@@ -26,7 +26,6 @@ public:
     void Exit();
 
     static void ScriptApi(ApiInitializer &root);
-    static void RegisterDebugScriptApi(ApiInitializer &root);
 
     void SetFrameRate(float value);
     unsigned GetFrameRate() const { return m_LastFPS; }

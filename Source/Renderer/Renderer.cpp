@@ -26,6 +26,12 @@ RendererFacade::~RendererFacade() {
 
 //----------------------------------------------------------------------------------
 
+iContext* RendererFacade::GetContext() {
+    return m_Context.get();
+}
+
+//----------------------------------------------------------------------------------
+
 void RendererFacade::SetConfiguration(const Configuration::RuntimeConfiguration *Configuration) {
     if (m_Device) {
         throw "Cannot change configuration after initialization!";

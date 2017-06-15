@@ -69,21 +69,4 @@ class cRootClass;
 
 #pragma warning (error: 4324)
 
-#if 0
- 
-#include "Utils/SetGet.h"
-#include "Utils/Memory/nMemory.h"
-#include "Utils/Memory.h"
-#include "Utils/StringUtils.h"
-#include "Version.h"
-#include "Utils/TemplateUtils.h"
-#include "MathConstants.h"
-#include "xMath.h"
-#include "d2math.h"
-#include "Utils/XMLUtils.h"
-#include "Utils/StreamUtils.h"
-
-#include "Error.h"
-
-#endif
 #endif

@@ -63,7 +63,7 @@ struct ContextApi {
     }
 
     int GetMonitorCount() {
-        return m_RendererFacade->GetContext()->GetMonitorCount();
+        return m_RendererFacade->GetContextImpl()->GetMonitorCount();
     }
     int GetMonitorModes(lua_State *lua) {
         int monitorid = lua_tointeger(lua, -1);
@@ -74,7 +74,7 @@ struct ContextApi {
         if (monitorid < 0 || monitorid > c)
             return 0;
 
-        auto modes = m_RendererFacade->GetContext()->GetMonitorModes(monitorid);
+        auto modes = m_RendererFacade->GetContextImpl()->GetMonitorModes(monitorid);
         const GLFWvidmode* currmode = glfwGetVideoMode(mont[monitorid]);
 
         lua_createtable(lua, 0, 0);

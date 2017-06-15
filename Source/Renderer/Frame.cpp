@@ -35,7 +35,7 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
 	for (auto &q : m_SubQueueTable)
 		q.Clear();
 
-	auto ctx = rfacade->GetContext();
+	auto ctx = rfacade->GetContextImpl();
 	RendererAssert(ctx);
 	ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
 	

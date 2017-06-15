@@ -9,12 +9,13 @@
 
 #include "nfRenderer.h"
 #include "Configuration.Renderer.h"
+#include "iContext.h"
 
 namespace MoonGlare::Renderer {
 
 class 
     //alignas(16)
-    Context final : public Interfaces::IContext {
+    Context final : public iContext {
     using Conf = Configuration::Context;
 public:
     struct VideoMode {
@@ -40,7 +41,7 @@ public:
     void HookMouse() override;
     void ReleaseMouse() override;
     emath::ivec2 GetSize() const override;
-    void SetInputHandler(Interfaces::ContextInputHandler *iph) override;
+    void SetInputHandler(iContextInputHandler *iph) override;
     void SetPosition(const emath::ivec2 &pos) override ;
     void SetTitle(const char* Title) override;
 
@@ -63,7 +64,7 @@ private:
     GLFWwindow *m_Window = nullptr;
     RenderDevice *m_Device = nullptr;
     RendererFacade *m_Renderer = nullptr;
-    Interfaces::ContextInputHandler *m_InputHandler = nullptr;
+    iContextInputHandler *m_InputHandler = nullptr;
 
     bool m_CharMode : 1;
     bool m_MouseHooked : 1;
@@ -82,7 +83,6 @@ private:
     static void GLFW_CharModeCharCallback(GLFWwindow* window, unsigned int key);
     static void GLFW_CharModeKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
 };
 
 //static_assert((sizeof(Context) % 16) == 0, "Invalid size!");

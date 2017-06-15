@@ -9,13 +9,19 @@
 #include "Configuration.Renderer.h"
 
 #include <Assets/AssetLoaderInterface.h>
+#include "iRendererFacade.h"
+
+#include "iContext.h"
 
 namespace MoonGlare::Renderer {
 
-class RendererFacade final {
+class RendererFacade final : public iRendererFacade {
 public:
     RendererFacade();
     ~RendererFacade();
+
+    //iRendererFacade
+    iContext* GetContext() override;
 
     void SetConfiguration(const Configuration::RuntimeConfiguration *Configuration);
     bool Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets);
@@ -28,10 +34,11 @@ public:
 
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
 
-    Context* GetContext() {
+    Context* GetContextImpl() {
         RendererAssert(this);
         return m_Context.get();
     }
+
     RenderDevice* GetDevice() {
         RendererAssert(this);
         return m_Device.get();

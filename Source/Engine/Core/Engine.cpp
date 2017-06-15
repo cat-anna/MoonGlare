@@ -19,7 +19,6 @@ namespace Core {
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
 RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
 RegisterApiInstance(Engine, &Engine::Instance, "Engine");
-RegisterDebugApi(EngineDebug, &Engine::RegisterDebugScriptApi, "Debug");
 
 Engine::Engine(World *world) :
         cRootClass(),
@@ -98,12 +97,6 @@ void Engine::ScriptApi(ApiInitializer &root){
     ;
 }
 
-#ifdef DEBUG_SCRIPTAPI
-
-void Engine::RegisterDebugScriptApi(ApiInitializer &root){ }
-
-#endif
-
 //----------------------------------------------------------------------------------
 
 void Engine::Exit() {
@@ -126,7 +119,7 @@ void Engine::EngineMain() {
 
     Graphic::cRenderDevice &dev = *Graphic::GetRenderDevice();
     auto Device = m_Renderer->GetDevice();
-    auto Ctx = m_Renderer->GetContext();
+    auto Ctx = m_Renderer->GetContextImpl();
 
     MoveConfig conf;
     conf.m_RenderInput = dev.CreateRenderInput();
@@ -144,6 +137,7 @@ void Engine::EngineMain() {
     clock::time_point CurrentTime = LastFrame;
     clock::time_point LastMoveTime = LastFrame;
     clock::time_point TitleRefresh = LastFrame;
+
     while (m_Running) {
         auto CurrentTime = clock::now();
         float FrameTimeDelta = tdiff(LastFrame, CurrentTime);

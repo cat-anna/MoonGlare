@@ -1,8 +1,8 @@
 #pragma once
 
-namespace MoonGlare::Renderer::Interfaces {
+namespace MoonGlare::Renderer {
 
-class ContextInputHandler {
+class iContextInputHandler {
 public:
     virtual void OnKey(int Key, bool Pressed) = 0;
     virtual void OnChar(unsigned int CharOrKey, bool Pressed) = 0;
@@ -20,19 +20,4 @@ public:
     virtual bool ShouldClose(bool Focus, bool MouseHook) = 0;
 };
 
-class IContext {
-public:
-    virtual void EnterCharMode()   = 0;
-    virtual void ExitCharMode()    = 0;
-    virtual void HookMouse()       = 0;
-    virtual void ReleaseMouse()    = 0;
-
-    virtual emath::ivec2 GetSize() const = 0;
-
-    virtual void SetInputHandler(ContextInputHandler *iph) = 0;
-
-    virtual void SetPosition(const emath::ivec2 &pos) = 0;
-    virtual void SetTitle(const char* Title) = 0;
-};
-
-} //namespace MoonGlare::Renderer::Interfaces
+} //namespace MoonGlare::Renderer

@@ -66,7 +66,7 @@ emath::ivec2 Context::GetSize()const {
     return m_Size;
 }
 
-void Context::SetInputHandler(Interfaces::ContextInputHandler *iph) {
+void Context::SetInputHandler(iContextInputHandler *iph) {
     m_InputHandler = iph;
 }
 
