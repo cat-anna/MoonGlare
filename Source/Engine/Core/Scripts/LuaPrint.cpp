@@ -1,7 +1,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 
-#include <Core/Console.h>
+#include <iConsole.h>
 
 static void LuaToLog(lua_State *L, std::ostream &lg, int parambegin = 1, bool Separate = false) {
 	for (int i = parambegin, n = lua_gettop(L); i <= n; i++) {
@@ -102,8 +102,8 @@ static int Lua_print(lua_State *L) {
 		}
 	}
 	string str = out.str();
-	if (ConsoleExists())
-		GetConsole()->AsyncLine(str);
+//	if (ConsoleExists())
+//		GetConsole()->AsyncLine(str);
 	AddLog(Info, str);
 	return 0;
 }
@@ -112,8 +112,8 @@ static int Lua_error(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Error, oss.str());
-	if (ConsoleExists())
-		GetConsole()->AsyncLine(oss.str(), 1);
+//	if (ConsoleExists())
+//		GetConsole()->AsyncLine(oss.str(), 1);
 	return 0;
 }
 
@@ -121,8 +121,8 @@ static int Lua_warning(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Warning, oss.str());
-	if (ConsoleExists())
-		GetConsole()->AsyncLine(oss.str(), 2);
+//	if (ConsoleExists())
+//		GetConsole()->AsyncLine(oss.str(), 2);
 	return 0;
 }
 
@@ -130,8 +130,8 @@ static int Lua_hint(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Hint, oss.str());
-	if (ConsoleExists())
-		GetConsole()->AsyncLine(oss.str(), 3);
+//	if (ConsoleExists())
+//		GetConsole()->AsyncLine(oss.str(), 3);
 	return 0;
 }
 
@@ -140,8 +140,8 @@ static int Lua_debug(lua_State *L) {
 	std::ostringstream oss;
 	LuaToLog(L, oss);
 	AddLog(Debug, oss.str());
-	if (ConsoleExists())
-		GetConsole()->AsyncLine(oss.str(), 3);
+//	if (ConsoleExists())
+//		GetConsole()->AsyncLine(oss.str(), 3);
 	return 0;
 }
 #endif

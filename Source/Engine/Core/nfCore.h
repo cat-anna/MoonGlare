@@ -9,7 +9,6 @@ namespace Core {
     class HandleTable;
     class InputProcessor;
     class Hooks;	   
-    class Console;
 
     class Engine;
 

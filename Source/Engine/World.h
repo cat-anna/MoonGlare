@@ -13,6 +13,8 @@
 #include "Core/HandleTable.h"
 #include "Core/ResourceTable.h"
 
+#include "iConsole.h"
+
 namespace MoonGlare {
 
 class World final {
@@ -38,13 +40,13 @@ public:
 
 	Core::Hooks* GetHooks() { return m_Hooks.get(); }
 
-	Core::Console* GetConsole() { return m_Console; }
+    iConsole* GetConsole() { return m_Console; }
     Core::Engine* GetEngine();
 
 	void SetRendererFacade(Renderer::RendererFacade *c) { m_RendererFacade = c; }
 	Renderer::RendererFacade* GetRendererFacade() { return m_RendererFacade; }
 
-	void SetConsole(Core::Console *c) { m_Console = c; }
+	void SetConsole(iConsole *c) { m_Console = c; }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
@@ -55,7 +57,7 @@ private:
 	Core::EntityManager m_EntityManager;
 
 	//not owning
-	Core::Console *m_Console = nullptr;
+    iConsole *m_Console = nullptr;
 	Renderer::RendererFacade *m_RendererFacade = nullptr;
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
 };

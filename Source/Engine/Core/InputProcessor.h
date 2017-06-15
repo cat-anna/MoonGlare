@@ -142,7 +142,7 @@ protected:
 
     std::unordered_map<std::string, InputStateId> m_InputNames;
     World *m_World = nullptr;
-    Console *m_Console = nullptr;
+    iConsole *m_Console = nullptr;
     Renderer::Interfaces::IContext *m_Context = nullptr;
 
     bool m_ConsoleActive = false;

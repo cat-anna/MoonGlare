@@ -12,7 +12,7 @@
 #include "Core/Scene/ScenesManager.h"
 #include "Core/Hooks.h"
 
-#include "Core/Console.h"
+#include "iConsole.h"
 #include "Core/Engine.h"
 
 namespace MoonGlare {

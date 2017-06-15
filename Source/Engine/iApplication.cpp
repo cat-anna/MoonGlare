@@ -11,7 +11,6 @@
 #include <MoonGlare.h>
 
 #include <Engine/Core/DataManager.h>
-#include <Engine/Core/Console.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/InputProcessor.h>
@@ -21,6 +20,8 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/Context.h>
 #include <Renderer/ScriptApi.h>
+
+#include "Modules/BasicConsole.h"
 
 #include <iApplication.h>
 
@@ -95,7 +96,6 @@ void iApplication::SaveSettings() {
 //---------------------------------------------------------------------------------------
 
 using Modules::ModulesManager;
-using MoonGlare::Core::Console;
 using FileSystem::MoonGlareFileSystem;
 using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
@@ -152,7 +152,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
     if (m_Configuration->m_Core.m_EnableConsole) {
-        auto c = new Console();
+        auto c = new Modules::BasicConsole();
         _init_chk(c, "Unable to initialize console!");
         m_World->SetConsole(c);
     }
@@ -196,7 +196,12 @@ void iApplication::Finalize() {
 
     Settings->Save();
 
-    _del_chk(Console, "Console finalization failed");
+    auto Console = dynamic_cast<Modules::BasicConsole*>(m_World->GetConsole());
+    m_World->SetConsole(nullptr);
+    if (Console) {
+        Console->Finalize();
+        delete Console;
+    }
 
     MoonGlare::Core::Engine::Instance()->Finalize();
     _finit_chk(DataManager, "Data Manager finalization failed");

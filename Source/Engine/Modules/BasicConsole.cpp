@@ -2,7 +2,7 @@
 #include <MoonGlare.h>
 #include <Engine/Core/DataManager.h>
 #include <Engine/DataClasses/iFont.h>
-#include "Console.h"
+#include "BasicConsole.h"
 #include <Engine/Core/Engine.h>
 
 #include <Source/Renderer/Renderer.h>
@@ -14,9 +14,9 @@
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
 
-namespace MoonGlare::Core {
+namespace MoonGlare::Modules {
 
-class Console::ConsoleLine {
+class BasicConsole::ConsoleLine {
 public:
     ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), 
         ShowTime(Time){ 
@@ -35,9 +35,9 @@ public:
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-class Console::InputLine {
+class BasicConsole::InputLine {
 public:
-    InputLine(Console *Owner) : m_Text(), m_CaretPos(0), m_Owner(Owner) {}
+    InputLine(BasicConsole *Owner) : m_Text(), m_CaretPos(0), m_Owner(Owner) {}
     ~InputLine() {}
     const wstring& GetString() const {
         return m_Text;
@@ -96,69 +96,68 @@ public:
 protected:
     wstring m_Text;
     int m_CaretPos;
-    Console *m_Owner;
+    BasicConsole *m_Owner;
 };
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Console);
-RegisterApiDerivedClass(Console, &Console::RegisterScriptApi);
-RegisterApiInstance(Console, &Console::Instance, "Console");
 
 const emath::fvec4 LineTypesColor[] = {
         { 1.0f, 1.0f, 1.0f, 1.0f, }, //CC_Line_None
         { 1.0f, 0.5f, 0.5f, 1.0f, }, //CC_Line_Error
         { 0.8f, 0.8f, 0.0f, 1.0f, }, //CC_Line_Warning
         { 0.6f, 1.0f, 0.6f, 1.0f, }, //CC_Line_Hint
-        { 0.8f, 0.8f, 0.8f, 1.0f, }, //Console
+        { 0.8f, 0.8f, 0.8f, 1.0f, }, //BasicConsole
 };
 
-Console::Console() :
+BasicConsole::BasicConsole() :
         m_Font(0), 
         m_MaxLines(20), 
         m_Lines(), 
         m_InputLine(std::make_unique<InputLine>(this)), 
         m_Flags(0),
         m_Active(false) {
-    SetThisAsInstance();
     SetVisible(true);
     SetHideOldLines(true);
 }
 
-Console::~Console() {
+BasicConsole::~BasicConsole() {
 }
 
 //-------------------------------------------------------------------------------------------------
 
-bool Console::Initialize() {
+bool BasicConsole::Initialize() {
     if (!m_Font)
         SetFont(GetDataMgr()->GetConsoleFont());
 
-    auto &shres = GetEngine()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
+    auto &shres = Core::GetEngine()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
     shres.Load(m_ShaderHandle, "Passthrough");
 
     return true;
 }
 
-bool Console::Finalize() {
+bool BasicConsole::Finalize() {
     Clear();
     m_Font.reset();
     return true;
 }
 
-void Console::RegisterScriptApi(::ApiInitializer &api) {
+#if 0
+RegisterApiBaseClass(BasicConsole, &BasicConsole::RegisterScriptApi);
+
+void BasicConsole::RegisterScriptApi(::ApiInitializer &api) {
     api
-    .deriveClass<ThisClass, BaseClass>("cConsole")
-        .addFunction("Clear", &Console::Clear)
-        .addFunction("Print", &Console::Print)
+    .beginClass<ThisClass>("cConsole")
+        .addFunction("Clear", &BasicConsole::Clear)
+        .addFunction("Print", &BasicConsole::Print)
         .addFunction("SetVisible", &ThisClass::SetVisible)
     .endClass();
 }
+#endif
 
 //-------------------------------------------------------------------------------------------------
 
-bool Console::SetFont(DataClasses::FontPtr Font) {
+bool BasicConsole::SetFont(DataClasses::FontPtr Font) {
     Clear();
     if (!Font) {
         return false;
@@ -167,24 +166,24 @@ bool Console::SetFont(DataClasses::FontPtr Font) {
     return true;
 }
 
-void Console::Clear() {
+void BasicConsole::Clear() {
     m_Lines.clear();
     m_InputLine->Clear(); 
 }
 
-void Console::Deactivate() {
+void BasicConsole::Deactivate() {
     m_InputLine->Clear(); 
     m_Active = false;
 }
 
-void Console::Activate() {
+void BasicConsole::Activate() {
     m_InputLine->Clear();
     m_Active = true;
 }
 
-bool Console::ProcessConsole(const Core::MoveConfig &config) {
+bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     if (m_Lines.empty() && !m_Active) {
-        //console has nothing to process
+        //BasicConsole has nothing to process
         return true;
     }
 
@@ -284,27 +283,27 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
     return true;
 }
 
-void Console::Print(const char* Text, unsigned lineType) {
+void BasicConsole::Print(const char* Text, unsigned lineType) {
     return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
-void Console::AddLine(const string &Text, unsigned lineType) {
+void BasicConsole::AddLine(const string &Text, unsigned lineType) {
     return AddLine(Utils::Strings::towstring(Text), lineType);
 }
 
-void Console::AddLine(const wstring &Text, unsigned lineType) {
+void BasicConsole::AddLine(const wstring &Text, unsigned lineType) {
     m_Lines.emplace_back((float)glfwGetTime() + 60, lineType);
     auto &line = m_Lines.back();
     line.Text = Text;
 }
 
-void Console::AsyncLine(const string &Text, unsigned lineType) {
+void BasicConsole::AsyncLine(const string &Text, unsigned lineType) {
     Core::GetEngine()->PushSynchronizedAction([=]() {
         AddLine(Text, lineType);
     });
 }
 
-void Console::PushKey(unsigned key) {
+void BasicConsole::PushKey(unsigned key) {
     using Key = Graphic::WindowInput::Key;
     switch ((Key) key) {
     case Key::Enter:
@@ -314,7 +313,7 @@ void Console::PushKey(unsigned key) {
         if (text.empty())
             return;
         AddLine(text);
-        GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
+        Core::GetScriptEngine()->ExecuteCode(Utils::Strings::tostring(text), "ConsoleInput");
         return;
     }
     default:
@@ -322,4 +321,4 @@ void Console::PushKey(unsigned key) {
     }
 }
 
-} //namespace MoonGlare::Core
+} //namespace MoonGlare::Modules

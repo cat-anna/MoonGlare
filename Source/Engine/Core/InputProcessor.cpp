@@ -10,7 +10,7 @@
 #include "InputProcessor.h"
 #include <Utils/LuaUtils.h>
 
-#include "Console.h"
+#include "iConsole.h"
 
 #include <Renderer/Context.h>
 
