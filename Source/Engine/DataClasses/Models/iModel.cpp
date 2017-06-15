@@ -11,46 +11,26 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
-SPACERTTI_IMPLEMENT_CLASS(iModel)
+SPACERTTI_IMPLEMENT_CLASS(iModel, DataClass);
 
 iModel::iModel(const string& Name) :
-	BaseClass(Name), 
-	m_Meshes(),
-	m_VAO() {
+    DataClass(Name),
+    m_Meshes(),
+    m_VAO() {
 }
 
 iModel::~iModel() {
-	Finalize();
-}
-
-//------------------------------------------------------------------------------------------------
-
-void iModel::DoRender(cRenderDevice &dev) const {
-	THROW_ASSERT(IsReady(), "Resource is not initialized!");
-	m_VAO.Bind();
-	for (auto &mesh : m_Meshes) {
-		m_VAO.DrawElements(mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, mesh.ElementMode);
-	}
-	m_VAO.UnBind();
-}
-
-void iModel::DoRenderMesh(cRenderDevice &dev) const {
-	THROW_ASSERT(IsReady(), "Resource is not initialized!");
-	m_VAO.Bind();
-	for (auto &mesh : m_Meshes) {
-		m_VAO.DrawElements(mesh);
-	}
-	m_VAO.UnBind();
+    Finalize();
 }
 
 //------------------------------------------------------------------------------------------------
 
 bool iModel::DoFinalize() {
-	m_VAO.Finalize();
-	m_Meshes.clear();
-	return BaseClass::DoFinalize();
+    m_VAO.Finalize();
+    m_Meshes.clear();
+    return DataClass::DoFinalize();
 }
 
 } // namespace Models 
 } // namespace DataClasses 
-} //namespace MoonGlare 
+} // namespace MoonGlare 

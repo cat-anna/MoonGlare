@@ -49,6 +49,7 @@ public:
     };
 
     virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) = 0;
+    virtual bool LoadTextureMeta(const std::string &fpath, TexturePixelData &out) = 0;
 };
 
 class AssetLoader {

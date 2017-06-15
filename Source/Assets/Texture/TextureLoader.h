@@ -19,10 +19,11 @@ public:
 	void Initialize();
 	void Finalize();
 
-	bool LoadTextureMemory(const void* ImgData, unsigned ImgLen, TexturePixelData &out);
-	bool LoadTextureURI(const std::string &URI, TexturePixelData &out);
+	bool LoadTextureMemory(const void* ImgData, unsigned ImgLen, TexturePixelData &out, bool LoadPixels);
+	bool LoadTextureURI(const std::string &URI, TexturePixelData &out, bool LoadPixels);
 
 	virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) override;
+    virtual bool LoadTextureMeta(const std::string &fpath, TexturePixelData &out) override;
 protected:
 	FileSystem* GetFileSystem() { return m_FileSystem; }
 private: 

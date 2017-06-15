@@ -7,10 +7,10 @@ namespace Graphic {
 class VAO {
 public:
     struct MeshData {
-        unsigned __int32 BaseVertex;
-        unsigned __int32 BaseIndex;
-        unsigned __int32 NumIndices;
-        unsigned __int32 ElementMode;
+        uint32_t BaseVertex;
+        uint32_t BaseIndex;
+        uint32_t NumIndices;
+        uint32_t ElementMode;
 
         MeshData() { BaseVertex = BaseIndex = NumIndices = 0; }
         ~MeshData() { }
@@ -18,7 +18,7 @@ public:
 
     class MeshVector : public std::vector<MeshData> {
     public:
-        void push_back_mesh(unsigned __int32 BaseVertex, unsigned __int32 BaseIndex, unsigned __int32 NumIndices, unsigned __int32 ElementMode) {
+        void push_back_mesh(uint32_t BaseVertex, uint32_t BaseIndex, uint32_t NumIndices, uint32_t ElementMode) {
             push_back(MeshData());
             MeshData &md = back();
             md.BaseVertex = BaseVertex;

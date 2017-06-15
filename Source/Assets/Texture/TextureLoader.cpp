@@ -39,12 +39,16 @@ void Loader::Finalize() {
 //---------------------------------------------------------------------------------------
 
 bool Loader::LoadTexture(const std::string &fpath, TexturePixelData & out) {
-    return LoadTextureURI(fpath, out);
+    return LoadTextureURI(fpath, out, true);
 }
 
 //---------------------------------------------------------------------------------------
 
-bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePixelData &out) {
+bool Loader::LoadTextureMeta(const std::string &fpath, TexturePixelData &out) {
+    return LoadTextureURI(fpath, out, false);
+}
+
+bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePixelData &out, bool LoadPixels) {
 #ifdef _DISABLE_FREEIMAGE_LIB_
     return false;
 #else
@@ -59,6 +63,9 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
     default:
         break;
     }
+
+    if (!LoadPixels)
+        flags |= FIF_LOAD_NOPIXELS;
 
     FIBITMAP *dib = FreeImage_LoadFromMemory(fif, fim, flags);
     FreeImage_CloseMemory(fim);
@@ -78,41 +85,48 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
     //FreeImage_FlipHorizontal(dib);
     switch (FreeImage_GetBPP(dib)) {
     case 32:
-        SwapRedAndBlue(dib);
+        if(LoadPixels)
+            SwapRedAndBlue(dib);
         out.m_PixelFormat = PixelFormat::RGBA8;
         break;
     case 24:
-        if (fif != FIF_PNG)
+        if (LoadPixels && fif != FIF_PNG)
             SwapRedAndBlue(dib);
         out.m_PixelFormat = PixelFormat::RGB8;
         break;
     default: {
-        FIBITMAP *dib24 = FreeImage_ConvertTo24Bits(dib);
-        FreeImage_Unload(dib);
-        dib = dib24;
-        SwapRedAndBlue(dib);
+        if (LoadPixels) {
+            FIBITMAP *dib24 = FreeImage_ConvertTo24Bits(dib);
+            FreeImage_Unload(dib);
+            dib = dib24;
+            SwapRedAndBlue(dib);
+        }
         out.m_PixelFormat = PixelFormat::RGB8;
     }
     }
 
     out.m_PixelType = ValueFormat::UnsignedByte;
-    out.m_Pixels = FreeImage_GetBits(dib);
     out.m_PixelSize = emath::usvec2(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib));
     out.m_PixelsByteSize = out.m_PixelSize[0] * out.m_PixelSize[1] * (FreeImage_GetBPP(dib) / 8);
 
-    out.m_ImageMemory = ImageUniquePtr((void*)dib, &DibDeallocator);
+    if (LoadPixels) {
+        out.m_Pixels = FreeImage_GetBits(dib);
+        out.m_ImageMemory = ImageUniquePtr((void*)dib, &DibDeallocator);
+    } else {
+        out.m_Pixels = nullptr;
+    }
     return true;
 #endif
 }
 
-bool Loader::LoadTextureURI(const std::string & URI, TexturePixelData & out) {
+bool Loader::LoadTextureURI(const std::string & URI, TexturePixelData & out, bool LoadPixels) {
     StarVFS::ByteTable data;
     if (!GetFileSystem()->OpenFile(URI, DataPath::URI, data)) {
         //already logged, no need for more
         return false;
     }
 
-    return LoadTextureMemory((char*)data.get(), data.byte_size(), out);
+    return LoadTextureMemory((char*)data.get(), data.byte_size(), out, LoadPixels);
 }
 
 } //namespace MoonGlare::Asset::Texture

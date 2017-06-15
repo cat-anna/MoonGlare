@@ -5,8 +5,6 @@
 */
 
 #pragma once
-#ifndef SimpleModelImpl_H
-#define SimpleModelImpl_H
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -28,8 +26,6 @@ protected:
 private: 
 };
 
-} //namespace Models 
-} //namespace DataClasses 
-} //namespace MoonGlare 
-
-#endif
+} // namespace Models 
+} // namespace DataClasses 
+} // namespace MoonGlare 

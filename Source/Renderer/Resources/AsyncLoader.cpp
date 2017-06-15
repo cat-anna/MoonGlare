@@ -156,10 +156,9 @@ void AsyncLoader::SubmitTextureLoad(std::string URI, TextureResourceHandle handl
         auto &data = *((Asset::TextureLoader::TexturePixelData *)mem);
 
         auto Loader = m_AssetLoader->GetTextureLoader();
-        if (Loader->LoadTexture(URI, data)) {
+        if (Loader->LoadTextureMeta(URI, data)) {
             *OutSize = data.m_PixelSize;
         }
-        data.m_ImageMemory.reset();
     }
 
     QueuePush(TextureLoadTask{ std::move(URI), handle, glHandlePtr, settings });
