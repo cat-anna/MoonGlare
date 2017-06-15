@@ -165,7 +165,6 @@ void Context::DumpMonitors() {
 
     AddLogf(System, "Monitors[%d]:", count);
     for (int i = 0; i < count; ++i) {
-        int modecount;
         int widthMM, heightMM;
         GLFWmonitor* monitor = monitors[i];
         glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
@@ -179,7 +178,7 @@ void Context::DumpMonitors() {
     AddLogf(System, "Video modes:");
 
     for (int i = 0; i < count; ++i) {
-        GLFWmonitor* monitor = monitors[i];
+        //GLFWmonitor* monitor = monitors[i];
         AddLogf(System, "Monitor %d:", i);
         auto modes = GetMonitorModes(i);
         int modeindex = 0;
@@ -401,8 +400,7 @@ void Context::GLFW_FocusCallback(GLFWwindow* window, int focus) {
 }
 
 void Context::GLFW_CursorCallback(GLFWwindow *window, double x, double y) {
-    Context* ctx = GetContextFromWindow(window);
-
+//    Context* ctx = GetContextFromWindow(window);
 //    Window* w = ((Window*)glfwGetWindowUserPointer(window));
 //    vec2 pos = vec2(x, y);
 //    vec2 delta = pos - w->m_CursorPos;

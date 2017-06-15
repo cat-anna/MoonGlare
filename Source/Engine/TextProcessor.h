@@ -13,13 +13,13 @@ namespace MoonGlare {
 
 class TextProcessor {
 public:
- 	TextProcessor(DataClasses::StringTable *Tables = nullptr);
- 	~TextProcessor();
+    TextProcessor(DataClasses::StringTable *Tables = nullptr);
+    ~TextProcessor();
 
-	void SetTables(DataClasses::StringTable *Tables) { m_StringTables = Tables; }
-	void Process(const std::string& input, std::string &out);
+    void SetTables(DataClasses::StringTable *Tables) { m_StringTables = Tables; }
+    void Process(const std::string& input, std::string &out);
 protected:
-	DataClasses::StringTable *m_StringTables;
+    DataClasses::StringTable *m_StringTables;
 };
 
 } //namespace MoonGlare 

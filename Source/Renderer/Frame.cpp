@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "nfRenderer.h"
+#include "Resources/ResourceManager.h"
 #include "Frame.h"
 
 #include "Renderer.h"
@@ -15,49 +16,76 @@
 
 namespace MoonGlare::Renderer {
 
+void FrameResourceStorage::Initialize(const Configuration::RuntimeConfiguration *conf) {
+    PlaneShadowMap psm;
+    psm.textureHandle = Device::InvalidTextureHandle;
+    psm.framebufferHandle = Device::InvalidFramebufferHandle;
+    psm.size = Configuration::Shadow::GetShadowMapSize(conf->m_ShadowQuality);
+    psm.valid = false;
+    planeShadowMaps.fill(psm);
+}
+
+PlaneShadowMap* FrameResourceStorage::AllocPlaneShadowMap(Frame *frame) {
+    auto *ptr = planeShadowMaps.Allocate();
+    if (!ptr) {
+        AddLog(Warning, "Out of PlaneShadowMaps");
+        return nullptr;
+    }
+    if (!ptr->valid) {
+        ptr->Init(frame->GetControllCommandQueue());
+    }
+    return ptr;
+}
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade) {
-	RendererAssert(BufferIndex < Configuration::FrameBuffer::Count);
-	RendererAssert(device);
-	RendererAssert(rfacade);
-	
-	m_BufferIndex = BufferIndex;
-	m_RenderDevice = device;
-	m_ResourceManager = rfacade->GetResourceManager();
+    RendererAssert(BufferIndex < Configuration::FrameBuffer::Count);
+    RendererAssert(device);
+    RendererAssert(rfacade);
+    
+    m_BufferIndex = BufferIndex;
+    m_RenderDevice = device;
+    m_ResourceManager = rfacade->GetResourceManager();
 
-	m_QueuedTextureRender.ClearAllocation();
-	m_SubQueueTable.ClearAllocation();
+    m_QueuedTextureRender.ClearAllocation();
+    m_SubQueueTable.ClearAllocation();
 
-	m_CommandLayers.Clear();
-	m_WindowLayers.Clear();
+    m_CommandLayers.Clear();
+    m_WindowLayers.Clear();
 
-	m_Memory.Clear();
+    m_Memory.Clear();
 
-	for (auto &q : m_SubQueueTable)
-		q.Clear();
+    for (auto &q : m_SubQueueTable)
+        q.Clear();
 
-	auto ctx = rfacade->GetContextImpl();
-	RendererAssert(ctx);
-	ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
-	
-	return true;
+    auto ctx = rfacade->GetContextImpl();
+    RendererAssert(ctx);
+    ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
+    
+    m_FrameResourceStorage.Initialize(rfacade->GetConfiguration());
+    flags.shadowsEnabled = rfacade->GetConfiguration()->m_ShadowQuality != Configuration::Shadow::Quality::Disable;
+
+    return true;
 }
 
 bool Frame::Finalize() {
-	return true;
+    return true;
 }
 
 //----------------------------------------------------------------------------------
 
 void Frame::BeginFrame() {
-	m_QueuedTextureRender.ClearAllocation();
-	m_SubQueueTable.ClearAllocation();
+    m_QueuedTextureRender.ClearAllocation();
+    m_SubQueueTable.ClearAllocation();
 
-	m_CommandLayers.ClearAllocation();
-	m_WindowLayers.ClearAllocation();
+    m_CommandLayers.ClearAllocation();
+    m_WindowLayers.ClearAllocation();
 
-	m_FrameResourceStorage.Clear();
+    m_FrameResourceStorage.Clear();
 
-	m_Memory.Clear();
+    m_Memory.Clear();
 }
 
 void Frame::EndFrame() {
@@ -66,21 +94,21 @@ void Frame::EndFrame() {
 //----------------------------------------------------------------------------------
  
 bool Frame::Submit(TextureRenderTask *trt) {
-	RendererAssert(trt);
-	m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
-	return m_QueuedTextureRender.push(trt);
+    RendererAssert(trt);
+    m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
+    return m_QueuedTextureRender.push(trt);
 }
 
 bool Frame::Submit(SubQueue *q, ConfCtx::Window WindowLayer, Commands::CommandKey Key) {
-	RendererAssert(q);
-	m_WindowLayers[WindowLayer].PushQueue(q, Key);
-	return false;
+    RendererAssert(q);
+    m_WindowLayers[WindowLayer].PushQueue(q, Key);
+    return false;
 }
 
 bool Frame::Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key) {
-	RendererAssert(q);
-	m_CommandLayers[Layer].PushQueue(q, Key);
-	return false;
+    RendererAssert(q);
+    m_CommandLayers[Layer].PushQueue(q, Key);
+    return false;
 }
 
 //----------------------------------------------------------------------------------

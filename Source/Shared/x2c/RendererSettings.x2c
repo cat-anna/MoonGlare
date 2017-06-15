@@ -5,6 +5,16 @@ namespace "MoonGlare.x2c.Settings.Renderer"
 
 --------------------------------------------------------------
 
+Enum.import {
+    name = "ShadowQuality",
+    location = "MoonGlare::Renderer::Configuration::Shadow::Quality",
+    default = "Medium",
+    values = {
+        "Disable",
+        "Low",
+        "Medium",
+    }
+}
 
 --------------------------------------------------------------
 
@@ -78,6 +88,11 @@ Structure.import {
             description = "",
             name = "Texture",
             type = Local.Texture,
+        },
+        {
+            description = "",
+            name = "ShadowQuality",
+            type = Local.ShadowQuality,
         },
     },
 }

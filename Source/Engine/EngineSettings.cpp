@@ -65,15 +65,6 @@ struct SettingsImpl {
 	}
 
 	struct InternalSettings {
-		struct Graphic {
-			struct ShadowQuality {
-				using Type = int;
-				using EnumType = Settings_t::ShadowQuality;
-				static Type default() { return static_cast<int>(EnumType::Medium); }
-				static Type get() { return static_cast<int>(Settings.Graphic.Shadows); }
-				static void set(Type f) { Settings.Graphic.Shadows = EnumCastClamp<EnumType>(f); }
-			};
-		};
 		struct Localization {
 			struct Code {
 				using Type = const char *;
@@ -94,7 +85,6 @@ struct SettingsImpl {
 	}
 
 	SettingsImpl() {
-		RegisterBuffered<InternalSettings::Graphic::ShadowQuality>("Graphic.ShadowsQuality", SettingsGroup::None);
 		RegisterBuffered<InternalSettings::Localization::Code>("Localization.Code", SettingsGroup::Localization);
 	
 		GabiLib::Serialize::DefaultSetter def;

@@ -57,8 +57,6 @@ void DereferredPipeline::Initialize(World *world) {
 }     
        
 void DereferredPipeline::Finalize() { 
-    for (auto &it : m_PlaneShadowMapBuffer)
-        it.Free();
     //if (m_Sphere) m_Sphere->Finalize();
 }
 
@@ -395,23 +393,22 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
 void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     namespace Commands = Renderer::Commands;
 
-    Graphic::PlaneShadowMap *sm = nullptr;
+    Renderer::PlaneShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
-        sm = m_DereferredPipeline->m_PlaneShadowMapBuffer.Allocate();
-        if (!*sm)
-            sm->New();
+        sm = m_frame->AllocatePlaneShadowMap();
+        if (sm) {
 
-        using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
+            using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
 
-        sm->BindAndClear();
-        auto &Size = sm->GetSize();
-        m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(Size[0]), static_cast<int>(Size[1]));
-        m_SpotLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->FBHandle());
-        m_SpotLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
+            //sm->BindAndClear();
+            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(sm->size), static_cast<int>(sm->size));
+            m_SpotLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
+            m_SpotLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
 
-        m_ShadowShader.m_Queue = m_SpotLightShadowQueue;
-        m_ShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
-        m_ShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
+            m_ShadowShader.m_Queue = m_SpotLightShadowQueue;
+            m_ShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
+            m_ShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
+        }
     }
 
     //glDrawBuffer(GL_NONE);  //m_Buffer.BeginStencilPass();
@@ -450,7 +447,11 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     }
 
     //sm->BindAsTexture(SamplerIndex::PlaneShadow);
-    m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->Handle(), (unsigned)SamplerIndex::PlaneShadow);
+    if(sm) {
+        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::PlaneShadow);
+    } else {
+        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Renderer::Device::InvalidTextureHandle, (unsigned)SamplerIndex::PlaneShadow);
+    }
 
     {
         using Uniform = SpotLightShaderDescriptor::Uniform;
@@ -459,7 +460,7 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
         m_SpotShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 
         if(sm)
-            m_SpotShader.Set<Uniform::ShadowMapSize>(emath::MathCast<emath::fvec2>(sm->GetSize()));
+            m_SpotShader.Set<Uniform::ShadowMapSize>(emath::fvec2(sm->size, sm->size));
 
         m_SpotShader.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
 

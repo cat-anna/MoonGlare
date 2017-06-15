@@ -227,4 +227,55 @@ struct detail::Texture2DSetupArgument {
 };
 using Texture2DSetup = RunnableCommandTemplate<detail::Texture2DSetupArgument>;
 
+//---------------------------------------------------------------------------------------
+
+namespace detail {
+    struct InitPlaneShadowMapArgument;
+}
+
+struct detail::InitPlaneShadowMapArgument {
+    using Conf = Configuration::Shadow;
+
+    Conf::ShadowMapSize size;
+    Device::TextureHandle *textureHandle;
+    Device::FramebufferHandle *bufferHandle;
+
+    void Run() {
+        if(*bufferHandle == Device::InvalidFramebufferHandle) {
+            glGenFramebuffers(1, bufferHandle);
+        }
+        if (*textureHandle == Device::InvalidTextureHandle) {
+            glGenTextures(1, textureHandle);
+        }
+
+        glBindTexture(GL_TEXTURE_2D, *textureHandle);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+//            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+//            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+//            //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+//            //	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)m_Size[0], (GLsizei)m_Size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, (GLsizei)size, (GLsizei)size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+//
+//            //	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowTexture, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *bufferHandle);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *textureHandle, 0);
+
+        GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (Status != GL_FRAMEBUFFER_COMPLETE) {
+            AddLogf(Error, "FB error, status: 0x%x\n", Status);
+        }
+//
+//            //bool res =
+//            FrameBuffer::FinishFrameBuffer();
+//            FrameBuffer::UnBind();
+//            //	});
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Device::InvalidFramebufferHandle);
+    }
+};
+using InitPlaneShadowMap = RunnableCommandTemplate<detail::InitPlaneShadowMapArgument>;
+
 } //namespace MoonGlare::Renderer::Commands

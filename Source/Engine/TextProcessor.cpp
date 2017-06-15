@@ -74,8 +74,8 @@ void TextProcessor::Process(const std::string & input, std::string & out) {
 					} else {
 						id = std::string(inp, end - inp);
 					}
-					auto out = m_StringTables->GetString(id, table);
-					pushstring(out);
+					auto outx = m_StringTables->GetString(id, table);
+					pushstring(outx);
 					inp = end + 1;
 					continue;
 				}

@@ -23,7 +23,6 @@ public:
 	uint64_t FrameIndex() const { return m_FrameIndex; }
 
 	const WindowPtr& GetContext() const { return m_Context; }
-
 	const math::uvec2& GetContextSize() const { return m_Context->Size(); }
 
 	void RequestContextManip(LoadQueue::LoadRequestFunc func);

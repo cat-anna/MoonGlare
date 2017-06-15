@@ -152,7 +152,6 @@ namespace Graphic {
 	};
 }// namespace Graphic
 
-#include "Settings.h"
 #include "Dereferred/nfDereferred.h"
 
 #endif // GRAPHIC_H_ 

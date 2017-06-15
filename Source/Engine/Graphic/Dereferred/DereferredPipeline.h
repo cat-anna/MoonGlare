@@ -7,7 +7,6 @@
 #pragma once
 
 #include "DereferredFrameBuffer.h"
-#include "../PlaneShadowMap.h"
 
 #include "GeometryShader.h"
 #include "PointLightShader.h"
@@ -32,7 +31,6 @@ public:
     DefferedSink* GetDefferedSink() const { return m_DefferedSink.get(); }
 
     DereferredFrameBuffer m_Buffer;
-    Space::Container::StaticVector<PlaneShadowMap, 1024> m_PlaneShadowMapBuffer;
 private: 
     World *m_World = nullptr;
     MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;

@@ -36,7 +36,7 @@ public:
 	template<typename T>
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
 		Configuration::TextureLoad loadcfg, Device::PixelFormat pxtype, bool AllowAllocate = true, Commands::CommandKey key = Commands::CommandKey()) {
-		return SetTexturePixels(out, q, Pixels, size, loadcfg, pxtype, AllowAllocate, key, Device::TypeInfo<T>::TypeId, sizeof(T));
+		return SetTexturePixels(out, q, Pixels, size, loadcfg, pxtype, AllowAllocate, key, Device::TypeId<T>, sizeof(T));
 	}
 
 	Device::TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }

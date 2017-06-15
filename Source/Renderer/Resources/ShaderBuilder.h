@@ -51,7 +51,7 @@ struct
         arg->m_Handle = &(*m_UniformsPtr)[static_cast<uint32_t>(u)];
         arg->m_Value = t;
         if (*arg->m_Handle == -1) {
-            int i = 0;
+//            int i = 0;
         }
     }
 

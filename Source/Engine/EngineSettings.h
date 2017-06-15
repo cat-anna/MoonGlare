@@ -38,15 +38,6 @@ public:
 
     //dynamic configuration
 
-    using ShadowQuality = Graphic::Settings::ShadowQuality;
-
-    struct Graphic {
-        ShadowQuality Shadows;
-        template <class T> void Serialize(T & s) {
-            s.Value(Shadows, "Shadows", ShadowQuality::Medium);
-        }
-    } Graphic;
-
     struct Localization {
         string Code;
         template <class T> void Serialize(T & s) {
@@ -56,7 +47,6 @@ public:
 
     template <class T> void Serialize(T & s) {
         s.Group(Modules, "Modules");
-        s.Group(Graphic , "Graphic");
         s.Group(Localization , "Localization");
     }
 

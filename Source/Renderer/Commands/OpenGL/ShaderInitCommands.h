@@ -23,7 +23,7 @@ struct detail::ReleaseShaderResourceArgument {
 		if (*arg->m_ShaderHandle != Device::InvalidShaderHandle) {
 			DebugLogf(Info, "Released shader %u[%s]", arg->m_ShaderHandle, arg->m_ShaderName);
 			glDeleteProgram(*arg->m_ShaderHandle);
-			*arg->m_ShaderHandle == Device::InvalidShaderHandle;
+			*arg->m_ShaderHandle = Device::InvalidShaderHandle;
 		}
 	}
 };

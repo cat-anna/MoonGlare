@@ -17,6 +17,7 @@ struct Requirement {
 struct FrameResourceStorage {
     static constexpr uint32_t TextureLimit = 64;
     static constexpr uint32_t VAOLimit = 64;
+    static constexpr uint32_t PlaneShadowMapLimit = 64;
 };
 
 struct FrameBuffer {
@@ -116,6 +117,12 @@ struct Texture {
     };
     static_assert(sizeof(ColorSwizzle) == sizeof(uint8_t), "Invalid size!");
 
+    static ColorSwizzle MakeColorSwizzle(uint8_t v) {
+        ColorSwizzle cs;
+        cs.m_UIntValue = v;
+        return cs;
+    }
+
     Filtering m_Filtering;
 
     void ResetToDefault() {
@@ -142,7 +149,7 @@ struct TextureLoad {
         return {
             Conf::Filtering::Default,
             Conf::Edges::Default,
-            Conf::ColorSwizzle{0},
+            Conf::MakeColorSwizzle(0),
             0,
         };
     }
@@ -197,11 +204,40 @@ struct Material {
 
 //---------------------------------------------------------------------------------------
 
+struct Shadow {
+    using ShadowMapSize = uint16_t;
+    enum class Quality : ShadowMapSize {
+        Disable,
+        Low,
+        Medium,
+        High,
+
+        MaxValue,
+        Default = Medium,
+    };
+
+    static ShadowMapSize GetShadowMapSize(Quality quality) {
+        //dumb values, they are subject to tests
+        switch (quality) {
+        case Quality::Disable: return 1;
+        case Quality::Low: return 256;
+        case Quality::Medium: return 512;
+        case Quality::High: return 1024;
+        default:
+            return static_cast<ShadowMapSize>(quality);
+        }
+    }
+};
+
+//---------------------------------------------------------------------------------------
+
 struct RuntimeConfiguration {
     Texture m_Texture;
+    Shadow::Quality m_ShadowQuality;
 
     void ResetToDefault() {
         m_Texture.ResetToDefault();
+        m_ShadowQuality = Shadow::Quality::Default;
     }
 };
 

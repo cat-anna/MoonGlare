@@ -25,7 +25,7 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
     m_RendererFacade = Renderer;
     m_AssetLoader = Assets;
 
-    auto conf = m_RendererFacade->GetConfiguration();
+//    auto conf = m_RendererFacade->GetConfiguration();
 
     m_TextureResource.Initialize(this, m_AssetLoader->GetTextureLoader());
 

@@ -186,7 +186,6 @@ void Engine::EngineMain() {
             Device->ProcessPendingCtrlQueues();
 
             cmdl.Execute();
-            m_Dereferred->m_PlaneShadowMapBuffer.ClearAllocation();
             //	Device->Step();
             frame->GetFirstWindowLayer().Execute();
 
