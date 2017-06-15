@@ -18,10 +18,10 @@ public:
  	FileSystem();
  	~FileSystem();
 
-	bool Initialize();
-	bool Finalize();
+	void Initialize();
+	void Finalize();
 
-	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
+	bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 private: 
 };
 

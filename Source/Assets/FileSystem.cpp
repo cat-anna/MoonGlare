@@ -15,15 +15,13 @@ FileSystem::FileSystem() {
 FileSystem::~FileSystem() {
 }
 
-bool FileSystem::Initialize() {
-	return true;
+void FileSystem::Initialize() {
 }
 
-bool FileSystem::Finalize() {
-	return true;
+void FileSystem::Finalize() {
 }
 
-bool FileSystem::OpenFile(const string & FileName, DataPath origin, StarVFS::ByteTable & FileData) {
+bool FileSystem::OpenFile(const std::string & FileName, DataPath origin, StarVFS::ByteTable & FileData) {
 	return MoonGlare::FileSystem::MoonGlareFileSystem::Instance()->OpenFile(FileName, origin, FileData);
 }
 

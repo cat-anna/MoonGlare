@@ -39,7 +39,7 @@ void RendererFacade::SetConfiguration(const Configuration::RuntimeConfiguration 
     }
 }
 
-bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets) {
+bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets) {
     RendererAssert(Assets);
 
     if (!Context::InitializeSubSystem()) {

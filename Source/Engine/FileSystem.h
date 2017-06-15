@@ -6,8 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef FileSystem_H
-#define FileSystem_H
 
 enum class DataPath {
 	Root,
@@ -69,27 +67,27 @@ public:
 	/** Read raw file data */
 	bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
 	/** Read raw file data */
-	bool OpenFile(const string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
+	bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
 	/** Open an xml document */
 	bool OpenXML(XMLFile &doc, StarVFS::FileID fid);
 	/** Open an xml document */
-	bool OpenXML(XMLFile &doc, const string& FileName, DataPath origin = DataPath::URI);
+	bool OpenXML(XMLFile &doc, const std::string& FileName, DataPath origin = DataPath::URI);
 	/** Open resource xml document in fmt: 'origin/NAME/NAME.xml' [depends on resource type] */
-	bool OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin = DataPath::URI);
+	bool OpenResourceXML(XMLFile &doc, const std::string& Name, DataPath origin = DataPath::URI);
 	
-	bool OpenXML(XMLFile &doc, string ResName, const string& FileName, DataPath origin = DataPath::URI) {
+	bool OpenXML(XMLFile &doc, std::string ResName, const std::string& FileName, DataPath origin = DataPath::URI) {
 		return OpenXML(doc, (ResName += '/') += FileName, origin);
 	}
-	bool OpenFile(string ResName, const string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
+	bool OpenFile(std::string ResName, const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {
 		return OpenFile((ResName += '/') += FileName, origin, FileData);
 	}
 
 	bool Initialize();
 	bool Finalize();
 
-	bool EnumerateFolder(const string& Path, FileInfoTable &FileTable, bool Recursive);
+	bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive);
 	bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
-	bool EnumerateFolder(const string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
+	bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
 
 	static void RegisterDebugScriptApi(ApiInitializer &api);
 	void DumpStructure(std::ostream &out) const;
@@ -114,22 +112,22 @@ class DirectoryReader : public cRootClass {
 	SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
 public:
 	DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
-	DirectoryReader(DataPath origin, const string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
+	DirectoryReader(DataPath origin, const std::string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
 
-	bool OpenXML(XMLFile &xml, const string& FileName) {
+	bool OpenXML(XMLFile &xml, const std::string& FileName) {
 		if (m_OwnerName.empty())
 			return MoonGlareFileSystem::Instance()->OpenXML(xml, FileName, m_origin);
 		else
 			return MoonGlareFileSystem::Instance()->OpenXML(xml, (m_OwnerName + '/') += FileName, m_origin);
 	}
-	bool OpenFile(const string& FileName, StarVFS::ByteTable &FileData) {
+	bool OpenFile(const std::string& FileName, StarVFS::ByteTable &FileData) {
 		if (m_OwnerName.empty())
 			return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin, FileData);
 		else
 			return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
 	}
 	
-	std::string translate(const string& FileName) {
+	std::string translate(const std::string& FileName) {
 		std::string out;
 		if (m_OwnerName.empty())
 			MoonGlareFileSystem::Instance()->TranslateFileName(FileName, out, m_origin);
@@ -139,18 +137,18 @@ public:
 	}
 protected:
 	DataPath m_origin;
-	string m_OwnerName;
+    std::string m_OwnerName;
 };
 
 #endif
 
 struct DataPathsTable {
-	const string& operator[](DataPath p) const { return m_table[(unsigned)p]; }
+	const std::string& operator[](DataPath p) const { return m_table[(unsigned)p]; }
 	DataPathsTable();
-	void Translate(string& out, const string& in, DataPath origin) const;
-	void Translate(string& out, DataPath origin) const;
+	void Translate(std::string& out, const std::string& in, DataPath origin) const;
+	void Translate(std::string& out, DataPath origin) const;
 private:
-	string m_table[(unsigned)DataPath::MaxValue];
+    std::string m_table[(unsigned)DataPath::MaxValue];
 };
 extern const DataPathsTable DataSubPaths;
 
@@ -161,5 +159,3 @@ inline FileSystem::MoonGlareFileSystem* GetFileSystem() { return FileSystem::Moo
 } //namespace MoonGlare 
 
 using MoonGlare::FileSystem::XMLFile;
-
-#endif

@@ -7,9 +7,10 @@
 
 #pragma once
 
+#include <Assets/AssetLoaderInterface.h>
+
 #include "../nfRenderer.h"
 #include "../Configuration.Renderer.h"
-#include "AssetLoaderInterface.h"
 #include "../Commands/CommandQueue.h"
 
 namespace MoonGlare::Renderer::Resources {
@@ -20,7 +21,7 @@ class alignas(16) TextureResource {
 	using ConfRes = Configuration::Resources;
 
 public:
-	void Initialize(ResourceManager* Owner, TextureLoader *TexLoader);
+	void Initialize(ResourceManager* Owner, Asset::TextureLoader *TexLoader);
 	void Finalize();
 
 	bool Allocate(Commands::CommandQueue *queue, TextureResourceHandle &out);
@@ -51,7 +52,7 @@ private:
 	//Array<Asset::FileHash> m_SourceHash;
 	Array<emath::usvec2> m_TextureSize;
 	ResourceManager *m_ResourceManager = nullptr;
-	TextureLoader *m_TexureLoader = nullptr;
+	Asset::TextureLoader *m_TexureLoader = nullptr;
 	const Configuration::Texture *m_Settings = nullptr;
 
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,

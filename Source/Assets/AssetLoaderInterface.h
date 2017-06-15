@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../Device/Types.h"
-
-namespace MoonGlare::Renderer::Resources {
+namespace MoonGlare::Asset {
 
 class ShaderCodeLoader {
 public:
@@ -27,15 +25,24 @@ class TextureLoader {
 public:
     virtual ~TextureLoader() {}
 
-    using PixelType = Device::ValueFormat;
-    using PixelFormat = Device::PixelFormat;
+    enum class PixelFormat : uint16_t {
+        RGB8 = GL_RGB,
+        RGBA8 = GL_RGBA,
+        GrayScale8 = GL_LUMINANCE, //?
+        LuminanceAlpha = GL_LUMINANCE_ALPHA,
+    };
+
+    enum class ValueFormat : uint16_t {
+        UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
+        Float = GL_FLOAT,
+    };
 
     using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 
     struct TexturePixelData {
         void* m_Pixels;
         unsigned m_PixelsByteSize;
-        PixelType m_PixelType;
+        ValueFormat m_PixelType;
         PixelFormat m_PixelFormat;
         emath::usvec2 m_PixelSize;
         ImageUniquePtr m_ImageMemory;

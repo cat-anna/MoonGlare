@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Resources/AssetLoaderInterface.h"
+#include <Assets/AssetLoaderInterface.h>
 #include "../../Configuration.Renderer.h"
 #include "../CommandQueueBase.h"
 #include "Common.h"
@@ -15,7 +15,7 @@ struct Texture2DSetPixelsArrayArgument;
 //---------------------------------------------------------------------------------------
 
 struct detail::Texture2DSetPixelDataArgument {
-	Resources::TextureLoader::TexturePixelData data;
+    Asset::TextureLoader::TexturePixelData data;
 
 	void Run() {
 		auto &size = data.m_PixelSize;

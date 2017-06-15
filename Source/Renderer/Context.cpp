@@ -60,6 +60,29 @@ Context::~Context() {
 
 //----------------------------------------------------------------------------------
 
+//IContext
+
+emath::ivec2 Context::GetSize()const {
+    return m_Size;
+}
+
+void Context::SetInputHandler(Interfaces::ContextInputHandler *iph) {
+    m_InputHandler = iph;
+}
+
+void Context::SetPosition(const emath::ivec2 & pos) {
+    RendererAssert(this);
+    glfwSetWindowPos(m_Window, pos[0], pos[1]);
+}
+
+void Context::SetTitle(const char * Title) {
+    RendererAssert(Title);
+    RendererAssert(this);
+    glfwSetWindowTitle(m_Window, Title);
+}
+
+//----------------------------------------------------------------------------------
+
 bool Context::s_GLFWInitialized = false;
 
 bool Context::InitializeSubSystem() {
@@ -168,7 +191,6 @@ void Context::DumpMonitors() {
 }
 
 //----------------------------------------------------------------------------------
-
 
 void Context::MakeCurrent() {
     glfwMakeContextCurrent(m_Window);
@@ -319,17 +341,6 @@ emath::fvec2 Context::CursorPos() {
     double x, y;
     glfwGetCursorPos(m_Window, &x, &y);
     return emath::fvec2(x, y);
-}
-
-void Context::SetPosition(const emath::ivec2 & pos) {
-    RendererAssert(this);
-    glfwSetWindowPos(m_Window, pos[0], pos[1]);
-}
-
-void Context::SetTitle(const char * Title) {
-    RendererAssert(Title);
-    RendererAssert(this);
-    glfwSetWindowTitle(m_Window, Title);
 }
 
 //----------------------------------------------------------------------------------

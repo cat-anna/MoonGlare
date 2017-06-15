@@ -24,7 +24,7 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-void TextureResource::Initialize(ResourceManager *Owner, TextureLoader *TexLoader) {
+void TextureResource::Initialize(ResourceManager *Owner, Asset::TextureLoader *TexLoader) {
     RendererAssert(Owner);
     RendererAssert(TexLoader);
     m_ResourceManager = Owner;

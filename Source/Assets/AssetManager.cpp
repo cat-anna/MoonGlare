@@ -15,6 +15,9 @@
 namespace MoonGlare::Asset {
 
 AssetManager::AssetManager() {
+    m_FileSystem = std::make_unique<FileSystem>();
+    m_ShaderLoader = std::make_unique<Shader::Loader>(m_FileSystem.get());
+    m_TextureLoader = std::make_unique<Texture::Loader>(m_FileSystem.get());
 }
 
 AssetManager::~AssetManager() {
@@ -24,51 +27,26 @@ bool AssetManager::Initialize(const x2c::Settings::AssetSettings_t *Configuratio
     AssetsAssert(Configuration);
     m_Configuration = Configuration;
 
-    m_FileSystem = std::make_unique<FileSystem>();
-    if (!m_FileSystem->Initialize()) {
-        AddLogf(Error, "FileSystem initialization failed!");
-        m_FileSystem.reset();
-        return false;
-    }
-
-    m_ShaderLoader = std::make_unique<Shader::Loader>(m_FileSystem.get());
-    if (!m_ShaderLoader->Initialize()) {
-        AddLogf(Error, "ShaderLoader initialization failed!");
-        m_ShaderLoader.reset();
-        return false;
-    }
-
-    m_TextureLoader = std::make_unique<Texture::Loader>(m_FileSystem.get());
+    m_FileSystem->Initialize();
+    m_ShaderLoader->Initialize();
     m_TextureLoader->Initialize();
 
     return true;
 }
 
 bool AssetManager::Finalize() {
-    if (m_TextureLoader) {
-        m_TextureLoader->Finalize();
-        m_TextureLoader.reset();
-    }
+    m_TextureLoader->Finalize();
+    m_ShaderLoader->Finalize();
+    m_FileSystem->Finalize();
 
-    if (m_ShaderLoader) {
-        if(!m_ShaderLoader->Finalize())
-            AddLogf(Error, "ShaderLoader finalization failed!");
-        m_ShaderLoader.reset();
-    }
-
-    if (m_FileSystem) {
-        if(!m_FileSystem->Finalize())
-            AddLogf(Error, "FileSystem finalization failed!");
-        m_FileSystem.reset();
-    }
     return true;
 }
 
-Renderer::Resources::ShaderCodeLoader* AssetManager::GetShaderCodeLoader() const {
+ShaderCodeLoader* AssetManager::GetShaderCodeLoader() const {
     return m_ShaderLoader.get(); 
 }
 
-Renderer::Resources::TextureLoader * AssetManager::GetTextureLoader() const {
+TextureLoader * AssetManager::GetTextureLoader() const {
     return m_TextureLoader.get();
 }
 

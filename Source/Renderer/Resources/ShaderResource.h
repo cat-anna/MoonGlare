@@ -10,7 +10,7 @@
 #include "../nfRenderer.h"
 #include "../Configuration.Renderer.h"
 
-#include "AssetLoaderInterface.h"
+#include <Assets/AssetLoaderInterface.h>
 #include "ShaderBuilder.h"
 
 namespace MoonGlare::Renderer::Resources {
@@ -94,7 +94,7 @@ class
     using ConfRes = Configuration::Resources;
     using Conf = Configuration::Shader;
 public:
-    bool Initialize(ResourceManager* Owner, ShaderCodeLoader *CodeLoader);
+    bool Initialize(ResourceManager* Owner, Asset::ShaderCodeLoader *CodeLoader);
     bool Finalize();
 
     template<typename Descriptor_t>
@@ -146,7 +146,7 @@ private:
     Array<std::string> m_ShaderName;
     Array<ShaderHandlerInterface*> m_ShaderInterface;
     ResourceManager *m_ResourceManager = nullptr;
-    ShaderCodeLoader *m_ShaderCodeLoader = nullptr;
+    Asset::ShaderCodeLoader *m_ShaderCodeLoader = nullptr;
 
     std::string m_ShaderConfigurationDefs;
     void *_padding0;

@@ -15,7 +15,7 @@ class AsyncLoader {
     using ThisClass = AsyncLoader;
     using Conf = Configuration::Resources;
 public:
- 	AsyncLoader(ResourceManager *Owner, AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration);
+ 	AsyncLoader(ResourceManager *Owner, Asset::AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration);
  	~AsyncLoader();
 
     unsigned JobsPending() const;
@@ -31,7 +31,7 @@ private:
     bool m_CanWork = false;
     std::condition_variable m_Lock;
     std::thread m_Thread;
-    AssetLoader *m_AssetLoader;
+    Asset::AssetLoader *m_AssetLoader;
     const Configuration::RuntimeConfiguration *m_Configuration;
 
     struct QueueData {

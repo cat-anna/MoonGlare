@@ -21,7 +21,7 @@ namespace MoonGlare::Renderer::Resources {
 
 uint32_t ShaderHandlerInterface::s_InterfaceIndexAlloc = 0;
 
-bool ShaderResource::Initialize(ResourceManager *Owner, ShaderCodeLoader *CodeLoader) {
+bool ShaderResource::Initialize(ResourceManager *Owner, Asset::ShaderCodeLoader *CodeLoader) {
     RendererAssert(Owner);
     RendererAssert(CodeLoader);
 
@@ -142,7 +142,7 @@ bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, StackAllocator& Me
 bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex) {
     RendererAssert(this);
 
-    ShaderCodeLoader::ShaderCode code;
+    Asset::ShaderCodeLoader::ShaderCode code;
     if (!m_ShaderCodeLoader->LoadCode(m_ShaderName[ifindex], code)) {
         RendererAssert(false);
         return false;

@@ -75,8 +75,8 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
 
 }
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 #pragma warning ( push, 0 )
 

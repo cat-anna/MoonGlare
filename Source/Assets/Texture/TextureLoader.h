@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <Source/Renderer/Resources/AssetLoaderInterface.h>
+#include "AssetLoaderInterface.h"
 
 namespace MoonGlare::Asset::Texture {
 
-class Loader final : public Renderer::Resources::TextureLoader {
+class Loader final : public TextureLoader {
 public:
  	Loader(FileSystem *fs);
  	~Loader();

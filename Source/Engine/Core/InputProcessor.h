@@ -6,13 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef InputProcessor_H
-#define InputProcessor_H
 
-#include <libSpace/src/Container/StaticVector.h>
-
-namespace MoonGlare {
-namespace Core {
+namespace MoonGlare::Core {
 
 using KeyId = uint16_t;
 using InputStateId = uint8_t;
@@ -89,7 +84,7 @@ public:
 
     bool Initialize(World *world);
     bool Finalize();
-    void SetInputSource(Renderer::Context *Context) { m_Context = Context; }
+    void SetInputSource(Renderer::Interfaces::IContext *Context) { m_Context = Context; }
 
     bool Step(const Core::MoveConfig &config);
 
@@ -148,7 +143,7 @@ protected:
     std::unordered_map<std::string, InputStateId> m_InputNames;
     World *m_World = nullptr;
     Console *m_Console = nullptr;
-    Renderer::Context *m_Context = nullptr;
+    Renderer::Interfaces::IContext *m_Context = nullptr;
 
     bool m_ConsoleActive = false;
     bool m_CharMode = false;
@@ -187,7 +182,4 @@ private:
 
 extern const KeyNamesTable g_KeyNamesTable;
 
-} //namespace Core 
-} //namespace MoonGlare 
-
-#endif
+} //namespace MoonGlare::Core

@@ -245,7 +245,7 @@ bool Console::ProcessConsole(const Core::MoveConfig &config) {
         unsigned idx = 0u;
         for (auto &line : m_Lines) {
             ++idx;
-            if (idx >= m_MaxLines)
+            if (idx > m_MaxLines)
                 break;
 
             position.y() += LineH;

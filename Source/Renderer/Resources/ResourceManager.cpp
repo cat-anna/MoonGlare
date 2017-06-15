@@ -18,7 +18,7 @@ ResourceManager::ResourceManager() {
 ResourceManager::~ResourceManager() {
 }
 
-bool ResourceManager::Initialize(RendererFacade *Renderer, AssetLoader* Assets) {
+bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets) {
     RendererAssert(Renderer);
     RendererAssert(Assets);
 

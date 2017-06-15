@@ -8,7 +8,7 @@
 
 #include "Configuration.Renderer.h"
 
-#include "Resources/AssetLoaderInterface.h"
+#include <Assets/AssetLoaderInterface.h>
 
 namespace MoonGlare::Renderer {
 
@@ -18,7 +18,7 @@ public:
     ~RendererFacade();
 
     void SetConfiguration(const Configuration::RuntimeConfiguration *Configuration);
-    bool Initialize(const ContextCreationInfo& ctxifo, Resources::AssetLoader *Assets);
+    bool Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets);
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */

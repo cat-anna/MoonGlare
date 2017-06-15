@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include "AssetLoaderInterface.h"
-
+#include <Assets/AssetLoaderInterface.h>
 #include "TextureResource.h"
 #include "VAOResource.h"
 #include "ShaderResource.h"
@@ -23,7 +22,7 @@ public:
     ResourceManager();
     ~ResourceManager();
 
-    bool Initialize(RendererFacade *Renderer, AssetLoader* Assets);
+    bool Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets);
     bool Finalize();
 
     const Configuration::RuntimeConfiguration* GetConfiguration() const;
@@ -61,7 +60,7 @@ public:
     }
 private: 
     RendererFacade *m_RendererFacade = nullptr;
-    AssetLoader *m_AssetLoader = nullptr;
+    Asset::AssetLoader *m_AssetLoader = nullptr;
     std::unique_ptr<AsyncLoader> m_AsyncLoader;
     void* padding;
     TextureResource m_TextureResource;

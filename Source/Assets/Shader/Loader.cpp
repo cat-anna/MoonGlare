@@ -24,12 +24,10 @@ Loader::Loader(FileSystem *fs):
 Loader::~Loader() {
 }
 
-bool Loader::Initialize() {
-	return true;
+void Loader::Initialize() {
 }
 
-bool Loader::Finalize() {
-	return true;
+void Loader::Finalize() {
 }
 
 bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {

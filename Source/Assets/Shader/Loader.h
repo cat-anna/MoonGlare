@@ -6,22 +6,20 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef Loader_H
-#define Loader_H
 
-#include <Source/Renderer/Resources/AssetLoaderInterface.h>
+#include "AssetLoaderInterface.h"
 
 namespace MoonGlare::Asset::Shader {
 
 struct FileCache;
 
-class Loader final : public Renderer::Resources::ShaderCodeLoader {
+class Loader final : public ShaderCodeLoader {
 public:
  	Loader(FileSystem *fs);
  	~Loader();
 
-	bool Initialize();
-	bool Finalize();
+    void Initialize();
+    void Finalize();
 
 	virtual bool LoadCode(const std::string &Name, ShaderCode &Output) override;
 protected:
@@ -32,5 +30,3 @@ private:
 };
 
 } //namespace MoonGlare::Asset::Shader 
-
-#endif

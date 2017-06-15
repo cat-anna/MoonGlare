@@ -1,3 +1,4 @@
+#pragma once
 #ifndef PCH_H
 #define PCH_H
 #pragma warning ( disable: 4005 )
@@ -9,6 +10,8 @@
 #pragma warning ( disable: 4127 )
 //warning C4201: nonstandard extension used : nameless struct/union
 #pragma warning ( disable: 4201 )
+
+#pragma warning ( error: 4324 )
 
 #ifdef DEBUG
 #include <intrin.h>
@@ -25,17 +28,11 @@
 
 #include <boost/optional.hpp>
 
-using std::istream;
-using std::ostream;
-using std::string;
-using wstring = std::wstring;//u16string
-
 #pragma warning ( push, 0 )
 
 #include <assimp/Importer.hpp>     
 #include <assimp/scene.h>          
 #include <assimp/postprocess.h>    
-
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -56,7 +53,6 @@ using namespace Space::Utils::HashLiterals;
 
 class cRootClass;
 
-
 #include <luaJiT-2.0.4/lua.hpp>
 #if defined(_USE_API_GENERATOR_)
 #include <ApiGen/ApiDefAutoGen.h>
@@ -64,29 +60,6 @@ class cRootClass;
 #else
 #include <Libs/LuaBridge/LuaBridge.h>
 #endif
-
-namespace Core {
-class Console;
-#if defined(_USE_API_GENERATOR_)
-typedef ApiDefAutoGen::Namespace ApiInitializer;
-#elif defined(_DISABLE_SCRIPT_ENGINE_)
-struct DummyApiInitializer {
-	template <class ... Args1, class ... Args2> DummyApiInitializer& beginClass(Args2 ... args) { return *this; }
-	template <class ... Args1, class ... Args2> DummyApiInitializer& deriveClass(Args2 ... args) { return *this; }
-	template <class ... Args1, class ... Args2> DummyApiInitializer& endClass(Args2 ... args) { return *this; }
-	template <class ... Args1, class ... Args2> DummyApiInitializer& beginNamespace(Args2 ... args) { return *this; }
-	template <class ... Args1, class ... Args2> DummyApiInitializer& endNamespace(Args2 ... args) { return *this; }
-
-	template <class ... Args1, class ... Args2> DummyApiInitializer& addFunction(Args2 ... args) { return *this; }
-	template <class ... Args1, class ... Args2> DummyApiInitializer& addVariable(Args2 ... args) { return *this; }
-};
-typedef DummyApiInitializer ApiInitializer;
-#else
-typedef luabridge::Namespace ApiInitializer;
-#endif
-}
-
-using Core::ApiInitializer;
 
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>
@@ -104,23 +77,27 @@ using Core::ApiInitializer;
 
 #include <Utils/PerfCounters.h>
 
-#pragma warning (error: 4324)
+namespace Core {
+	class Console;
+#if defined(_USE_API_GENERATOR_)
+	typedef ApiDefAutoGen::Namespace ApiInitializer;
+#elif defined(_DISABLE_SCRIPT_ENGINE_)
+	struct DummyApiInitializer {
+		template <class ... Args1, class ... Args2> DummyApiInitializer& beginClass(Args2 ... args) { return *this; }
+		template <class ... Args1, class ... Args2> DummyApiInitializer& deriveClass(Args2 ... args) { return *this; }
+		template <class ... Args1, class ... Args2> DummyApiInitializer& endClass(Args2 ... args) { return *this; }
+		template <class ... Args1, class ... Args2> DummyApiInitializer& beginNamespace(Args2 ... args) { return *this; }
+		template <class ... Args1, class ... Args2> DummyApiInitializer& endNamespace(Args2 ... args) { return *this; }
 
-#if 0
-
-#include "Utils/SetGet.h"
-#include "Utils/Memory/nMemory.h"
-#include "Utils/Memory.h"
-#include "Utils/StringUtils.h"
-#include "Version.h"
-#include "Utils/TemplateUtils.h"
-#include "MathConstants.h"
-#include "xMath.h"
-#include "d2math.h"
-#include "Utils/XMLUtils.h"
-#include "Utils/StreamUtils.h"
-
-#include "Error.h"
-
+		template <class ... Args1, class ... Args2> DummyApiInitializer& addFunction(Args2 ... args) { return *this; }
+		template <class ... Args1, class ... Args2> DummyApiInitializer& addVariable(Args2 ... args) { return *this; }
+	};
+	typedef DummyApiInitializer ApiInitializer;
+#else
+	typedef luabridge::Namespace ApiInitializer;
 #endif
+}
+
+using Core::ApiInitializer;
+
 #endif

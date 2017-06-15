@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Resources/AssetLoaderInterface.h"
+#include <Assets/AssetLoaderInterface.h>
 #include "../../Configuration.Renderer.h"
 #include "../CommandQueueBase.h"
 #include "Common.h"
@@ -32,8 +32,8 @@ using ReleaseShaderResource = Commands::CommandTemplate<detail::ReleaseShaderRes
 //---------------------------------------------------------------------------------------
 
 struct detail::ConstructShaderArgument {
-	using ShaderCode = Resources::ShaderCodeLoader::ShaderCode;
-	using ShaderType = Resources::ShaderCodeLoader::ShaderType;
+	using ShaderCode = Asset::ShaderCodeLoader::ShaderCode;
+	using ShaderType = Asset::ShaderCodeLoader::ShaderType;
 
 	static constexpr size_t MaxShaderLines = 8;
 	static constexpr size_t MaxShaderTypes = static_cast<size_t>(ShaderType::MaxValue);

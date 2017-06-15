@@ -105,6 +105,17 @@ struct Texture {
         R, G, B, A,
     };
 
+    union ColorSwizzle {
+        struct {
+            ChannelSwizzle R : 2;
+            ChannelSwizzle G : 2;
+            ChannelSwizzle B : 2;
+            ChannelSwizzle A : 2;
+        };
+        uint8_t m_UIntValue;
+    };
+    static_assert(sizeof(ColorSwizzle) == sizeof(uint8_t), "Invalid size!");
+
     Filtering m_Filtering;
 
     void ResetToDefault() {
@@ -116,17 +127,7 @@ struct TextureLoad {
     using Conf = Texture;
     Conf::Filtering m_Filtering;
     Conf::Edges m_Edges;
-
-    union Swizzle {
-        struct {
-            Conf::ChannelSwizzle R : 2;
-            Conf::ChannelSwizzle G : 2;
-            Conf::ChannelSwizzle B : 2;
-            Conf::ChannelSwizzle A : 2;
-        };
-        uint8_t m_UIntValue;
-    } m_Swizzle;
-    static_assert(sizeof(Swizzle) == sizeof(uint8_t), "Invalid size!");
+    Conf::ColorSwizzle m_Swizzle;
 
     union Flags {
         struct {
@@ -141,7 +142,7 @@ struct TextureLoad {
         return {
             Conf::Filtering::Default,
             Conf::Edges::Default,
-            0,
+            Conf::ColorSwizzle{0},
             0,
         };
     }

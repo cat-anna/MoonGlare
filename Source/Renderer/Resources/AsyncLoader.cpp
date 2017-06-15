@@ -18,7 +18,7 @@ using namespace std::chrono_literals;
 
 namespace MoonGlare::Renderer::Resources {
 
-AsyncLoader::AsyncLoader(ResourceManager *Owner, AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration) {
+AsyncLoader::AsyncLoader(ResourceManager *Owner, Asset::AssetLoader *Loader, const Configuration::RuntimeConfiguration *Configuration) {
     RendererAssert(Owner);
     RendererAssert(Loader);
     RendererAssert(Configuration);
@@ -140,8 +140,8 @@ void AsyncLoader::SubmitTextureLoad(std::string URI, TextureResourceHandle handl
         Configuration::TextureLoad settings) {
 
     if (OutSize) {
-        char mem[sizeof(Resources::TextureLoader::TexturePixelData)] = { 0 };
-        auto &data = *((Resources::TextureLoader::TexturePixelData *)mem);
+        char mem[sizeof(Asset::TextureLoader::TexturePixelData)] = { 0 };
+        auto &data = *((Asset::TextureLoader::TexturePixelData *)mem);
 
         auto Loader = m_AssetLoader->GetTextureLoader();
         if (Loader->LoadTexture(URI, data)) {

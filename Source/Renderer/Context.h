@@ -13,8 +13,8 @@
 namespace MoonGlare::Renderer {
 
 class 
-//    alignas(16) 
-    Context final {
+    //alignas(16)
+    Context final : public Interfaces::IContext {
     using Conf = Configuration::Context;
 public:
     struct VideoMode {
@@ -34,7 +34,15 @@ public:
     static std::vector<VideoMode> GetMonitorModes(int MonitorIndex);
     static void DumpMonitors();
 
-    emath::ivec2 Size() const { return m_Size; }
+    //IContext
+    void EnterCharMode() override;
+    void ExitCharMode() override;
+    void HookMouse() override;
+    void ReleaseMouse() override;
+    emath::ivec2 GetSize() const override;
+    void SetInputHandler(Interfaces::ContextInputHandler *iph) override;
+    void SetPosition(const emath::ivec2 &pos) override ;
+    void SetTitle(const char* Title) override;
 
     void MakeCurrent();
     void Flush();
@@ -43,19 +51,14 @@ public:
     void InitializeWindowLayer(Commands::CommandQueue &q, Frame* frame);
     void Finalize();
 
-    GLFWwindow* GetHandle() { return m_Window; }
+    GLFWwindow* GetHandle() {
+        return m_Window;
+    }
 
     void Process();
-    void EnterCharMode();
-    void ExitCharMode();
-    void HookMouse();
-    void ReleaseMouse();
 
     emath::fvec2 CursorPos();
-    void SetPosition(const emath::ivec2 &pos);
-    void SetTitle(const char* Title);
-    void SetInputHandler(Interfaces::ContextInputHandler *iph) { m_InputHandler = iph; }
-private: 
+private:
     emath::ivec2 m_Size;
     GLFWwindow *m_Window = nullptr;
     RenderDevice *m_Device = nullptr;
@@ -64,7 +67,7 @@ private:
 
     bool m_CharMode : 1;
     bool m_MouseHooked : 1;
-    bool m_Focused: 1;
+    bool m_Focused : 1;
     emath::fvec2 m_LastMousePos;
 
     bool CreateWindow(ContextCreationInfo ctxifo);

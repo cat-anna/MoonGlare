@@ -55,7 +55,7 @@ private:
 };
 
 template<>
-inline bool PugiWritterSerializer::Save(pugi::xml_node node, const string &s) {
+inline bool PugiWritterSerializer::Save(pugi::xml_node node, const std::string &s) {
 	return node.text() = s.c_str();
 }
 
@@ -97,7 +97,7 @@ private:
 };
 
 template<>
-inline bool PugiReaderSerializer::Load(const pugi::xml_node node, string &s) {
+inline bool PugiReaderSerializer::Load(const pugi::xml_node node, std::string &s) {
 	s = node.text().as_string();
 	return true;
 }

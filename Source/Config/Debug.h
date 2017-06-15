@@ -52,7 +52,7 @@ enum eLocalDebugMessages {
 };
 
 class eAsserationError : public std::exception {
-	string m_Msg;
+	std::string m_Msg;
 public:
 	using cstr = const char *;
 
