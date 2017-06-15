@@ -18,7 +18,8 @@ Libraries{
 			},
 			branch = "master",
 			projects = {
-				"core/project.lua",
+				"core/project.lua",          
+                "svfs/project.lua",
 			}
 		},
 		{

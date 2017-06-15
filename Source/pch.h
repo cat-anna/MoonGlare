@@ -45,9 +45,6 @@ using wstring = std::wstring;//u16string
 
 #pragma warning ( pop )
 
-#define PUGIXML_NO_XPATH
-#define PUGIXML_HAS_LONG_LONG
-#define PUGIXML_NO_EXCEPTIONS
 #include <pugixml.hpp>
 using pugi::xml_node;
 using pugi::xml_attribute;
@@ -61,7 +58,7 @@ using namespace Space::Utils::HashLiterals;
 #include "Serialize.h"
 
 //scripts
-#include <luaJiT-2.0.4/lua.hpp>
+#include <lua.hpp>
 #if defined(_USE_API_GENERATOR_)
 #include <ApiGen/ApiDefAutoGen.h>
 #elif defined(_DISABLE_SCRIPT_ENGINE_)

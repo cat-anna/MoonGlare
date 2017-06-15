@@ -4,9 +4,8 @@
   * by Kalessin
 */
 /*--END OF HEADER BLOCK--*/
-//#include <luaJiT/lua.h>
-//#include <luaJiT/lauxlib.h>
-#include <luaJiT-2.0.4/lua.hpp>
+
+#include <lua.hpp>
 #include <Libs/LuaBridge/LuaBridge.h>
 
 #include "ScriptApi.h"

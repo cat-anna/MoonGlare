@@ -53,7 +53,7 @@ using namespace Space::Utils::HashLiterals;
 
 class cRootClass;
 
-#include <luaJiT-2.0.4/lua.hpp>
+#include <lua.hpp>
 #if defined(_USE_API_GENERATOR_)
 #include <ApiGen/ApiDefAutoGen.h>
 #elif defined(_DISABLE_SCRIPT_ENGINE_)
