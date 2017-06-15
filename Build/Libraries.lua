@@ -60,13 +60,6 @@ local function ProcessLibrary(conf, libconf)
 	end
 	
 	print (string.format("Status: %s, projects:%d, branch: %s, commit:%s", "ok", #libconf.projects, branch, commithash))
-	
-	--local result = { os.execute("git diff --cached --exit-code") }
-	--local changed = result[#result]
---	if changed == 1 then
---		print(string.format("Library %s is CHANGED", libconf.name))
---	end
-
 end
 
 function Libraries(config) 
@@ -94,6 +87,5 @@ function Libraries(config)
 end
 
 function MoonGlare.CheckLibraries()
-	include(dir.libsrc .. "LibConfig.lua")
-
+	include(dir.libsrc .. "LibConfig.lua")   
 end
