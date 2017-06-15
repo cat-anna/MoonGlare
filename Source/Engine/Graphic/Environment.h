@@ -21,10 +21,10 @@ public:
 	bool LoadMeta(const xml_node node);
 
 	//! Render environment
-	void Render(cRenderDevice &dev) const {
-		if (m_HaveSkyCube)
-			m_SkyCube.Render(dev);
-	}
+//	void Render(cRenderDevice &dev) const {
+	//	if (m_HaveSkyCube)
+//			m_SkyCube.Render(dev);
+//	}
 
 	
 	/** Initialize environment.*/
@@ -34,8 +34,8 @@ public:
 protected:
 	StaticFog m_StaticFog;
 
-	bool m_HaveSkyCube;
-	SkyCube m_SkyCube;
+	//bool m_HaveSkyCube;
+	//SkyCube m_SkyCube;
 };
 
 } //namespace Graphic 

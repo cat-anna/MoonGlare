@@ -19,17 +19,17 @@ Environment::~Environment() {
 }
 
 bool Environment::Initialize() {
-	m_SkyCube.Initialize();
+//	m_SkyCube.Initialize();
 	return true;
 }
 
 bool Environment::Finalize() {
-	m_SkyCube.Finalize();
+//	m_SkyCube.Finalize();
 	return true;
 }
 
 bool Environment::LoadMeta(const xml_node node) {
-	m_HaveSkyCube = false;
+	//m_HaveSkyCube = false;
 
 	if (!node) return true;
 	if (!m_StaticFog.LoadMeta(node.child("StaticFog"))) {

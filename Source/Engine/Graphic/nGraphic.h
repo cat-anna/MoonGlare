@@ -14,7 +14,6 @@
 #include "Window.h"
 
 #include "VAO.h"
-#include "SkyCube.h"
 #include "FrameBuffer.h"
 
 #include "StaticFog.h"
