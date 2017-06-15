@@ -12,7 +12,8 @@
 
 #include "iConsole.h"
 
-#include <Renderer/Context.h>
+#include <Renderer/iContext.h>
+#include <Renderer/iContextInputHandler.h>
 
 #include <Input.x2c.h>
 

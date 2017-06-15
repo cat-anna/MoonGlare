@@ -16,6 +16,10 @@
 
 namespace MoonGlare::Renderer {
 
+class iContext;
+class iContextInputHandler;
+class iRendererFacade;
+
 using StackAllocator = ::Space::Memory::StackAllocator<::Space::Memory::StaticTableMemory>;
 
 template<uint32_t SIZE>

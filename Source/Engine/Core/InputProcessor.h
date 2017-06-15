@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <Renderer/iContextInputHandler.h>
+
 namespace MoonGlare::Core {
 
 using KeyId = uint16_t;
@@ -77,14 +79,14 @@ enum class InputSwitchState {
 
 //---------------------------------------------------------------------------------------
 
-class InputProcessor final : public Renderer::Interfaces::ContextInputHandler {
+class InputProcessor final : public Renderer::iContextInputHandler {
 public:
     InputProcessor();
     ~InputProcessor();
 
     bool Initialize(World *world);
     bool Finalize();
-    void SetInputSource(Renderer::Interfaces::IContext *Context) { m_Context = Context; }
+    void SetInputSource(Renderer::iContext *Context) { m_Context = Context; }
 
     bool Step(const Core::MoveConfig &config);
 
@@ -119,7 +121,7 @@ public:
 
     static void RegisterScriptApi(ApiInitializer &root);
 
-    //Renderer::Interfaces::ContextInputHandler
+    //Renderer::iContextInputHandler
     virtual void OnKey(int Key, bool Pressed) override;
     virtual void OnChar(unsigned CharOrKey, bool Pressed) override;
     virtual void OnScroll(const emath::fvec2 &delta) override;
@@ -143,7 +145,7 @@ protected:
     std::unordered_map<std::string, InputStateId> m_InputNames;
     World *m_World = nullptr;
     iConsole *m_Console = nullptr;
-    Renderer::Interfaces::IContext *m_Context = nullptr;
+    Renderer::iContext *m_Context = nullptr;
 
     bool m_ConsoleActive = false;
     bool m_CharMode = false;
