@@ -26,9 +26,6 @@ public:
 	void DelayedContextManip(LoadQueue::LoadRequestFunc func) { m_LoadQueue.QueueRequest(func); }
 	void DispatchContextManipRequests();
 
-	/** Read pixels from opengl screen */
-	void ReadScreenPixels(void *memory, const uvec2 &size, unsigned &glType);
-
 	static void RegisterDebugScriptApi(ApiInitializer &api);
 protected:
 	uint64_t m_FrameIndex = 0;

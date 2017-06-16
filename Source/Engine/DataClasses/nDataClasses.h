@@ -17,7 +17,6 @@ using ModelResPtr = DataClasses::ModelPtr;
 
 #include "Models/iModel.h"
 
-#include "Texture.h"
 #include "StringTable.h"
 
 #endif // DATACLASSES_H_

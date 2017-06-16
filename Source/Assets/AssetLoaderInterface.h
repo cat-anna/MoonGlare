@@ -32,6 +32,21 @@ public:
         LuminanceAlpha = GL_LUMINANCE_ALPHA,
     };
 
+    static unsigned BppFromPixelFormat(PixelFormat pf) {
+        switch (pf) {
+        case PixelFormat::RGB8:
+            return 24;
+        case PixelFormat::RGBA8:
+            return 32;
+        case PixelFormat::GrayScale8:
+            return 8;
+        case PixelFormat::LuminanceAlpha:
+            return 16;
+        default:
+            return 0;
+        }
+    }
+
     enum class ValueFormat : uint16_t {
         UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
         Float = GL_FLOAT,
@@ -45,11 +60,14 @@ public:
         ValueFormat m_PixelType;
         PixelFormat m_PixelFormat;
         emath::usvec2 m_PixelSize;
-        ImageUniquePtr m_ImageMemory;
+        ImageUniquePtr m_ImageMemory{ nullptr, [](void*) {} };
     };
 
     virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) = 0;
     virtual bool LoadTextureMeta(const std::string &fpath, TexturePixelData &out) = 0;
+
+    virtual TexturePixelData AllocateImage(PixelFormat pf, const emath::usvec2 &Size) = 0;
+    virtual void StoreScreenShot(TexturePixelData out) = 0;
 };
 
 class AssetLoader {

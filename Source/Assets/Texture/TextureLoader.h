@@ -13,21 +13,25 @@ namespace MoonGlare::Asset::Texture {
 
 class Loader final : public TextureLoader {
 public:
- 	Loader(FileSystem *fs);
- 	~Loader();
+    Loader(FileSystem *fs);
+    ~Loader();
 
-	void Initialize();
-	void Finalize();
+    void Initialize();
+    void Finalize();
 
-	bool LoadTextureMemory(const void* ImgData, unsigned ImgLen, TexturePixelData &out, bool LoadPixels);
-	bool LoadTextureURI(const std::string &URI, TexturePixelData &out, bool LoadPixels);
+    bool LoadTextureMemory(const void* ImgData, unsigned ImgLen, TexturePixelData &out, bool LoadPixels);
+    bool LoadTextureURI(const std::string &URI, TexturePixelData &out, bool LoadPixels);
 
-	virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) override;
+    virtual bool LoadTexture(const std::string &fpath, TexturePixelData &out) override;
     virtual bool LoadTextureMeta(const std::string &fpath, TexturePixelData &out) override;
+
+    virtual TexturePixelData AllocateImage(PixelFormat pf, const emath::usvec2 &Size) override;
+
+    virtual void StoreScreenShot(TexturePixelData out) override;
 protected:
-	FileSystem* GetFileSystem() { return m_FileSystem; }
+    FileSystem* GetFileSystem() { return m_FileSystem; }
 private: 
-	FileSystem *m_FileSystem;
+    FileSystem *m_FileSystem;
 };
 
 } //namespace MoonGlare::Asset::Texture 

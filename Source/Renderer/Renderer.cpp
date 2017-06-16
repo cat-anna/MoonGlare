@@ -47,6 +47,7 @@ void RendererFacade::SetConfiguration(const Configuration::RuntimeConfiguration 
 
 bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets) {
     RendererAssert(Assets);
+    assets = Assets;
 
     if (!Context::InitializeSubSystem()) {
         AddLogf(Error, "Context subsystem initialization failed!");

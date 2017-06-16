@@ -38,15 +38,57 @@ void Loader::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+void Loader::StoreScreenShot(TexturePixelData out) {
+#ifndef _DISABLE_FREEIMAGE_LIB_
+
+    char buf[128];
+    std::time_t t = std::time(NULL);
+    auto tm = *std::localtime(&t);
+    sprintf(buf, "ScreenShot_%d-%d-%d_%d-%d-%d.png", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+    //if (image->value_type == Graphic::Flags::fBGR) {
+    //    SwapRedAndBlue((FIBITMAP*)image->FIImage);
+    //    image->value_type = Graphic::Flags::fRGB;
+    //}
+
+    //if (image->value_type == Graphic::Flags::fBGRA) {
+    //    SwapRedAndBlue((FIBITMAP*)image->FIImage);
+    //    image->value_type = Graphic::Flags::fRGBA;
+    //}
+
+    FreeImage_Save(FIF_PNG, (FIBITMAP*)out.m_ImageMemory.get(), buf, 0);
+#endif
+}
+
+Loader::TexturePixelData Loader::AllocateImage(PixelFormat pf, const emath::usvec2 &Size) {
+#ifndef _DISABLE_FREEIMAGE_LIB_
+
+    auto bpp = BppFromPixelFormat(pf);
+    FIBITMAP *dib = FreeImage_Allocate(Size[0], Size[1], static_cast<int>(bpp));
+
+    TexturePixelData out;
+    out.m_PixelType = ValueFormat::UnsignedByte;
+    out.m_PixelFormat = pf;
+    out.m_PixelSize = Size;
+    out.m_ImageMemory = ImageUniquePtr((void*)dib, &DibDeallocator);
+    out.m_PixelsByteSize = Size[0] * Size[1] * (bpp / 8);
+    out.m_Pixels = FreeImage_GetBits(dib);
+
+    return out;
+#else
+    return TexturePixelData();
+#endif
+}
+
 bool Loader::LoadTexture(const std::string &fpath, TexturePixelData & out) {
     return LoadTextureURI(fpath, out, true);
 }
 
-//---------------------------------------------------------------------------------------
-
 bool Loader::LoadTextureMeta(const std::string &fpath, TexturePixelData &out) {
     return LoadTextureURI(fpath, out, false);
 }
+
+//---------------------------------------------------------------------------------------
 
 bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePixelData &out, bool LoadPixels) {
 #ifdef _DISABLE_FREEIMAGE_LIB_

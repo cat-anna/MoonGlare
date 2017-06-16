@@ -64,12 +64,4 @@ void cRenderDevice::RegisterDebugScriptApi(ApiInitializer &api) {
 }
 #endif
 
-//----------------------------------------------------------------------------------
-
-void cRenderDevice::ReadScreenPixels(void *memory, const uvec2 &size, unsigned &glType) {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); 
-    glReadPixels(0, 0, size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, memory);
-    glType = Flags::fBGR;
-}
-
 } // namespace Graphic 

@@ -48,6 +48,11 @@ public:
         return m_ResourceManager.get();
     }
 
+    Asset::AssetLoader *GetAssets() {
+        RendererAssert(this);
+        return assets;
+    }
+
     template<typename T>
     void SetStopObserver(T&& t) {
         m_StopObserver = std::forward<T>(t);
@@ -67,6 +72,8 @@ private:
     const Configuration::RuntimeConfiguration *m_Configuration;
 
     std::function<void()> m_StopObserver;
+
+    Asset::AssetLoader *assets = nullptr;
 };
 
 } //namespace MoonGlare::Renderer
