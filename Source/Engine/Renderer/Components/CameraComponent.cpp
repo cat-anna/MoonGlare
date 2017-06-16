@@ -15,6 +15,9 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
+#include <Source/Renderer/Renderer.h>
+#include <Source/Renderer/iContext.h>
+
 #include <Common.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <CameraComponent.x2c.h>
@@ -184,19 +187,20 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_FoV = ce.m_FoV;
 
 //	void VirtualCamera::SetDefaultPerspective() {
-//		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
+//		auto ScreenSize = ... ;
 //		SetPerspective(ScreenSize[0] / ScreenSize[1]);
 //	}
 //	void VirtualCamera::SetDefaultOrthogonal() {
-//		auto ScreenSize = math::fvec2(GetRenderDevice()->GetContextSize());
+//		auto ScreenSize = ... ;
 //		SetOrthogonal(ScreenSize[0], ScreenSize[1]);
 //	}
 
     entry.m_Flags.m_Map.m_Active = ce.m_Active;
     m_EntityMapper.SetHandle(Owner, h);
 
-    entry.ResetProjectionMatrix();
-
+    auto s = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef();
+    entry.ResetProjectionMatrix(s);
+                                
     entry.m_Flags.m_Map.m_Valid = true;
     return true;
 }
@@ -207,8 +211,7 @@ bool CameraComponent::Create(Entity Owner, Handle & hout) {
 
 //-------------------------------------------------------------------------------------------------
 
-void CameraComponentEntry::ResetProjectionMatrix() {
-    auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+void CameraComponentEntry::ResetProjectionMatrix(const emath::fvec2 &ScreenSize) {
     float Aspect = ScreenSize[0] / ScreenSize[1];
     if (m_Flags.m_Map.m_Orthogonal) {
         m_ProjectionMatrix = glm::ortho(0.0f, Aspect, 1.0f, 0.0f);

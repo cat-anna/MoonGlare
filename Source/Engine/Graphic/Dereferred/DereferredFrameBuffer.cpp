@@ -66,10 +66,10 @@ void DereferredFrameBuffer::BeginFinalPass() {
     glReadBuffer(GL_COLOR_ATTACHMENT4);
 } 
 
-bool DereferredFrameBuffer::Reset() {
+bool DereferredFrameBuffer::Reset(const emath::fvec2 &ScreenSize) {
     Free();
     NewFrameBuffer();
-    auto s = GetRenderDevice()->GetContext()->Size();
+    auto s = ScreenSize;
 
     glGenTextures(Buffers::MaxValue, m_Textures);
     glGenTextures(1, &m_DepthTexture);

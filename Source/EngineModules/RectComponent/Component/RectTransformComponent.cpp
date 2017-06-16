@@ -23,6 +23,9 @@
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
+#include <Source/Renderer/Renderer.h>
+#include <Source/Renderer/iContext.h>
+
 
 namespace MoonGlare {
 namespace GUI {
@@ -110,7 +113,7 @@ bool RectTransformComponent::Initialize() {
     RootEntry.m_Flags.m_Map.m_Valid = true;
     RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
 
-    m_ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+    m_ScreenSize = emath::MathCast<math::fvec2>(GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef());
 
     if (m_Flags.m_Map.m_UniformMode) {
         float Aspect = m_ScreenSize[0] / m_ScreenSize[1];

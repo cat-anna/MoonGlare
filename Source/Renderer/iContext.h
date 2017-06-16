@@ -12,6 +12,11 @@ public:
     virtual void ReleaseMouse() = 0;
 
     virtual emath::ivec2 GetSize() const = 0;
+    emath::fvec2 GetSizef() {
+        auto s = GetSize();
+        return {static_cast<float>(s[0]), static_cast<float>(s[1]), };
+    }
+    virtual unsigned GetRefreshRate() const = 0;
 
     virtual void SetInputHandler(iContextInputHandler *iph) = 0;
 

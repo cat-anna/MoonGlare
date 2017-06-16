@@ -26,7 +26,7 @@ public:
     };
 
     void Free();
-    bool Reset();
+    bool Reset(const emath::fvec2 &ScreenSize);
 
     void BeginFrame();
 

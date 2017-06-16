@@ -83,7 +83,7 @@ bool TextComponent::Initialize() {
 	}
 
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
-	m_FontDeviceOptions.m_DeviceSize = emath::MathCast<emath::ivec2>(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+    m_FontDeviceOptions.m_DeviceSize = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSize();
 	
 	m_TextProcessor.SetTables(GetDataMgr()->GetStringTables());
 

@@ -14,12 +14,10 @@ namespace Graphic {
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
 RegisterDebugApi(Graphic, &cRenderDevice::RegisterDebugScriptApi, "Graphic");
 
-cRenderDevice::cRenderDevice(WindowPtr Context) :
+cRenderDevice::cRenderDevice() :
         cRootClass(),
-        m_InitThreadId(),
-        m_Context() {
+        m_InitThreadId() {
     SetThisAsInstance();
-    m_Context.swap(Context);
 
     m_InitThreadId = std::this_thread::get_id();
 }  

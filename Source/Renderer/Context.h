@@ -44,6 +44,7 @@ public:
     void SetInputHandler(iContextInputHandler *iph) override;
     void SetPosition(const emath::ivec2 &pos) override ;
     void SetTitle(const char* Title) override;
+    unsigned GetRefreshRate() const override;
 
     void MakeCurrent();
     void Flush();

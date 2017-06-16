@@ -52,7 +52,7 @@ struct CameraComponentEntry {
 	void SetActive(bool v) { m_Flags.m_Map.m_Active = v; m_Flags.m_Map.m_ActiveChanged = v; }
 	bool GetActive() const { return m_Flags.m_Map.m_Active; }
 
-	void ResetProjectionMatrix();
+	void ResetProjectionMatrix(const emath::fvec2 &ScreenSize);
 };
 //static_assert((sizeof(CameraComponentEntry) % 16) == 0, "Invalid CameraEntry size!");
 //static_assert(std::is_pod<LightComponentEntry>::value, "LightComponentEntry must be pod!");

@@ -203,7 +203,8 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
     entry.m_Flags.m_Map.m_Active = ie.m_Active;
 
-    entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode());
+    auto s = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef();
+    entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode(), s);
 
     auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
     if (rtentry) {

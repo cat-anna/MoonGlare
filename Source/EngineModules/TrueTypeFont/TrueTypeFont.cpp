@@ -120,7 +120,7 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
 //	Graphic::vec2 pos(0);
 //	float hmax = h;
 //
-//	auto ScreenSize = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+//	auto ScreenSize = ...;
 //	float Aspect = ScreenSize[0] / ScreenSize[1];
 
     while (*cstr) {

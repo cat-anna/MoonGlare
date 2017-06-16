@@ -24,9 +24,6 @@ namespace Graphic {
 
 	struct Material;
 
-	class Window;
-	using WindowPtr = std::unique_ptr < Window > ;
-
 	using vec4 = ::math::vec4;
 	using vec3 = ::math::vec3;
 

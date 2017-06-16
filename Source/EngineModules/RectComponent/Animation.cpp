@@ -37,6 +37,7 @@ Animation::~Animation() {
 
 //----------------------------------------------------------------'
 
+#if 0
 bool Animation::LoadMeta(const xml_node node) {
     if (!node) return false;
 
@@ -63,8 +64,9 @@ bool Animation::LoadMeta(const xml_node node) {
 
     return Load(tex, StartFrame, FrameCount, FrameStripCount, FrameSpacing, m_FrameSize, false);
 }
+#endif
 
-bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform) {
+bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize) {
     m_StartFrame = StartFrame;
     m_EndFrame = m_StartFrame + FrameCount - 1;
 
@@ -88,7 +90,7 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
     m_TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
 
     if (Uniform) {
-        auto screen = math::fvec2(Graphic::GetRenderDevice()->GetContextSize());
+        auto screen = emath::MathCast<math::fvec2>(ScreenSize);
         float Aspect = screen[0] / screen[1];
         FrameSize = m_TextureSize;
         FrameSize /= math::vec2(FrameStripCount);

@@ -107,7 +107,7 @@ namespace emath {
 
     template<class T, class S>
     T MathCast(const S& s) {
-        static_assert(std::is_same<int, int>::value, "invalid cast!");
+        static_assert(std::is_same<int, float>::value, "invalid cast!");
         throw false;
     }
 

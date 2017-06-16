@@ -11,8 +11,6 @@
 #include "Constants.h"
 #include "glTypes.h"
 
-#include "Window.h"
-
 #include "VAO.h"
 #include "FrameBuffer.h"
 

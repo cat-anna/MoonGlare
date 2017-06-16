@@ -56,7 +56,7 @@ protected:
 struct MoveConfig { 
     float TimeDelta;
 
-    math::uvec2 m_ScreenSize; //temporary
+    emath::fvec2 m_ScreenSize;
 
     Renderer::Frame *m_BufferFrame;
 

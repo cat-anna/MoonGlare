@@ -13,7 +13,7 @@ namespace Graphic {
 class cRenderDevice : public cRootClass {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice(WindowPtr Context);
+	cRenderDevice();
 
 	mem::aligned_ptr<RenderInput> CreateRenderInput();
 
@@ -21,9 +21,6 @@ public:
 
 	void BeginFrame() { ++m_FrameIndex; }
 	uint64_t FrameIndex() const { return m_FrameIndex; }
-
-	const WindowPtr& GetContext() const { return m_Context; }
-	const math::uvec2& GetContextSize() const { return m_Context->Size(); }
 
 	void RequestContextManip(LoadQueue::LoadRequestFunc func);
 	void DelayedContextManip(LoadQueue::LoadRequestFunc func) { m_LoadQueue.QueueRequest(func); }
@@ -34,12 +31,9 @@ public:
 
 	static void RegisterDebugScriptApi(ApiInitializer &api);
 protected:
-	volatile uint64_t m_FrameIndex = 0;
-	math::mat4 m_CameraMatrix;
+	uint64_t m_FrameIndex = 0;
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;
-
-	WindowPtr m_Context;
 }; 
 
 } // namespace Graphic 

@@ -57,7 +57,7 @@ void Engine::Initialize() {
     m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
     m_Dereferred->Initialize(GetWorld());
 
-    SetFrameRate((float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate());
+    SetFrameRate(static_cast<float>(m_Renderer->GetContext()->GetRefreshRate()));
 }
 
 void Engine::Finalize() {
@@ -124,7 +124,7 @@ void Engine::EngineMain() {
     MoveConfig conf;
     conf.m_RenderInput = dev.CreateRenderInput();
     conf.m_RenderInput->m_DefferedSink = m_Dereferred->GetDefferedSink();
-    conf.m_ScreenSize = dev.GetContextSize();
+    conf.m_ScreenSize = Ctx->GetSizef();
 
     using clock = std::chrono::steady_clock;
     auto tdiff = [](clock::time_point t1, clock::time_point t2) {
@@ -158,7 +158,7 @@ void Engine::EngineMain() {
 
         auto StartTime = clock::now();
         {
-            conf.m_RenderInput->m_DefferedSink->Reset(conf.m_BufferFrame);
+            conf.m_RenderInput->m_DefferedSink->Reset(conf);
             conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
             Ctx->Process();
             GetScriptEngine()->Step(conf);
@@ -233,12 +233,6 @@ void Engine::EngineMain() {
 void Engine::SetFrameRate(float value) {
     if (value < 1.0f)
         value = 1.0f;
-    else {
-        float refresh = (float)Graphic::GetRenderDevice()->GetContext()->GetRefreshRate();
-        if (value > refresh)
-            value = refresh;
-    }
-
     m_FrameTimeSlice = 1.0f / value;
     AddLogf(Debug, "Frame rate limit set to %d (%.5f ms per frame)", (unsigned)value, m_FrameTimeSlice * 1000.0f);
 }

@@ -22,10 +22,10 @@ void DereferredPipeline::Initialize(World *world) {
     assert(world);
     m_World = world;
 
-    m_ScreenSize = emath::MathCast<emath::fvec2>(math::fvec2(GetRenderDevice()->GetContextSize()));
+    auto ScreenSize = world->GetRendererFacade()->GetContext()->GetSizef();
 
     try {
-        if (!m_Buffer.Reset()) 
+        if (!m_Buffer.Reset(ScreenSize))
             throw "Unable to initialize render buffers!";
     }
     catch (int idx) {						 
@@ -106,9 +106,10 @@ void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
     if (!shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw "CANNOT LOAD D/SL SHADER!";
 }
 
-void DefferedSink::Reset(Renderer::Frame *frame) {
+void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     namespace Commands = Renderer::Commands;
 
+    Renderer::Frame *frame = config.m_BufferFrame;
     m_frame = frame;
 
     auto &shres = m_Renderer->GetResourceManager()->GetShaderResource();
@@ -125,7 +126,7 @@ void DefferedSink::Reset(Renderer::Frame *frame) {
         using Sampler = GeometryShaderDescriptor::Sampler;
 
         //dev.ResetViewPort();
-        auto &Size = m_DereferredPipeline->m_ScreenSize;
+        auto &Size = config.m_ScreenSize;
         m_GeometryQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(Size[0]), static_cast<int>(Size[1]));
 
         //m_Buffer.BeginFrame();
@@ -161,7 +162,7 @@ void DefferedSink::Reset(Renderer::Frame *frame) {
         m_DirectionalLightQueue = frame->AllocateSubQueue();
         m_DirectionalLightShader = shres.GetBuilder(*m_DirectionalLightQueue, m_ShaderLightDirectionalHandle);
         m_DirectionalLightShader.Bind();
-        m_DirectionalLightShader.Set<Uniform::ScreenSize>(m_DereferredPipeline->m_ScreenSize);
+        m_DirectionalLightShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
         //she.Set<Uniform::CameraPos>(ri->m_Camera.m_Position);
         //she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
         //she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
@@ -191,7 +192,7 @@ void DefferedSink::Reset(Renderer::Frame *frame) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_PointLightShader.Bind();//TODO
-        m_PointLightShader.Set<Uniform::ScreenSize>(m_DereferredPipeline->m_ScreenSize);
+        m_PointLightShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
     }
 //------------------------------------------------------------------------------------------
     {
@@ -202,7 +203,7 @@ void DefferedSink::Reset(Renderer::Frame *frame) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_SpotShader.Bind();//TODO
-        m_SpotShader.Set<Uniform::ScreenSize>(m_DereferredPipeline->m_ScreenSize);
+        m_SpotShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
     }
 //------------------------------------------------------------------------------------------
     {
@@ -233,7 +234,7 @@ void DefferedSink::Reset(Renderer::Frame *frame) {
         q.MakeCommand<Commands::FramebufferReadBind>(m_DereferredPipeline->m_Buffer.m_FrameBuffer);
         q.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
         
-        auto size = m_DereferredPipeline->m_ScreenSize;
+        auto size = config.m_ScreenSize;
         q.MakeCommand<Commands::BlitFramebuffer>(
             0, 0, (GLint)size[0], (GLint)size[1], 
             0, 0, (GLint)size[0], (GLint)size[1], 

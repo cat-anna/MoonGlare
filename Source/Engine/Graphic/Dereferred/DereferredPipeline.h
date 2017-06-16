@@ -36,7 +36,6 @@ private:
     MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
     VAO m_DirectionalQuad;
     mem::aligned_ptr<DefferedSink> m_DefferedSink;
-    emath::fvec2 m_ScreenSize;
 
     bool InitializeDirectionalQuad();
 };
@@ -46,7 +45,7 @@ private:
 struct DefferedSink {
     friend class DereferredPipeline;
 
-    void Reset(Renderer::Frame *frame);
+    void Reset(const ::MoonGlare::Core::MoveConfig &config);
     void Initialize(Renderer::RendererFacade *Renderer);
 
     struct RObj {

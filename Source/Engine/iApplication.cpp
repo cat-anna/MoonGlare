@@ -141,8 +141,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    auto window = std::make_unique<Graphic::Window>(m_Renderer->GetContextImpl()->GetHandle());
-    auto Device = new Graphic::cRenderDevice(std::move(window));
+    auto Device = new Graphic::cRenderDevice();
 
     if (!(new DataManager())->Initialize(ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");

@@ -199,7 +199,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     static bool initialized = false;
     if (!initialized) {
         initialized = true;
-        Camera.SetDefaultOrthogonal(math::fvec2(Graphic::GetRenderDevice()->GetContextSize()));
+        Camera.SetDefaultOrthogonal(config.m_ScreenSize);
     }
 
     auto qptr = frame->AllocateSubQueue();

@@ -81,6 +81,13 @@ void Context::SetTitle(const char * Title) {
     glfwSetWindowTitle(m_Window, Title);
 }
 
+unsigned Context::GetRefreshRate() const {
+    auto monitor = glfwGetWindowMonitor(m_Window);
+    if (!monitor)
+        monitor = glfwGetPrimaryMonitor();
+    return glfwGetVideoMode(monitor)->refreshRate;
+}
+
 //----------------------------------------------------------------------------------
 
 bool Context::s_GLFWInitialized = false;
@@ -435,29 +442,25 @@ void Context::GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         return;
     }
     Context* ctx = GetContextFromWindow(window);
-    //if(ctx->)
+    
     bool Pressed = (action == GLFW_PRESS);
 
     switch (key) {
-    case GLFW_KEY_PRINT_SCREEN:
-#if 0
-        if (!Pressed) 
+    case GLFW_KEY_PRINT_SCREEN: {
+        if (!Pressed)
             return;
-        Graphic::GetRenderDevice()->DelayedContextManip([this] {
-            auto size = Size();
-            auto img = MoonGlare::DataClasses::Texture::AllocateImage(size, MoonGlare::DataClasses::Texture::BPP::RGB);
-            Graphic::GetRenderDevice()->ReadScreenPixels(img->image, size, img->value_type);
 
-            char buf[128];
+        auto *assiface = ctx->m_Renderer->GetAssets();
+        auto texl = assiface->GetTextureLoader();
 
-            std::time_t t = std::time(NULL);
-            auto tm = *std::localtime(&t);
-            sprintf(buf, "ScreenShot_%d-%d-%d_%d-%d-%d.png", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        auto tex = texl->AllocateImage(Asset::TextureLoader::PixelFormat::RGB8, { ctx->m_Size[0], ctx->m_Size[1] });
 
-            MoonGlare::DataClasses::Texture::AsyncStoreImage(img, buf);
-        });
-#endif
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glReadPixels(0, 0, ctx->m_Size[0], ctx->m_Size[1], GL_BGR, GL_UNSIGNED_BYTE, tex.m_Pixels); //(GLenum)tex.m_PixelFormat
+                                                                  
+        texl->StoreScreenShot(std::move(tex));
         return;
+    }
     case GLFW_KEY_ESCAPE:
         if (!Pressed) 
             return;
