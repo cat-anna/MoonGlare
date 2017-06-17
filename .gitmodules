@@ -1,3 +1,6 @@
 [submodule "Libs/libSpace"]
 	path = Libs/libSpace
 	url = git@git.lan:~/projects/libs/libSpace.git
+[submodule "Libs/OrbitLogger"]
+	path = Libs/OrbitLogger
+	url = git@git.lan:~/projects/libs/OrbitLogger.git
