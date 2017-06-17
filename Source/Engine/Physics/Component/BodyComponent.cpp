@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 
 #include "../DebugDrawer.h"
-#include "../Collision.h"
 
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
