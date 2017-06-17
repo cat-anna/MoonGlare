@@ -61,8 +61,8 @@ inline std::string ToLower(std::string str) {
 
 #include <cassert>
 
-#include <pugixml-1.6/src/pugixml.hpp>
-#include <luaJiT-2.0.4/lua.hpp>
+#include <pugixml.hpp>
+#include <lua.hpp>
 
 #include <source/Utils/XMLUtils.h>
 #include <source/Utils/SetGet.h>
