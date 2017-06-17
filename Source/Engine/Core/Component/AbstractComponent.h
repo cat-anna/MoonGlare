@@ -61,7 +61,9 @@ protected:
 private:
 	ComponentManager *m_Owner;
 	HandleTable *m_HandleTable;
-	void *m_padding1;
+    void *m_padding1;
+    void *m_padding2;
+    void *m_padding3;
 };
 
 template<typename ELEMENT, ComponentID CID, size_t BUFFER = Configuration::Storage::ComponentBuffer>
