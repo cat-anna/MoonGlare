@@ -14,7 +14,7 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, vec3 LightDirection, vec3 WorldPos
     AmbientColor = vec4(BaseLight.Color, 1.0) * BaseLight.AmbientIntensity;
 
 	float gSpecularPower = 1;
-    float gMatSpecularIntensity = 1;
+    float gMatSpecularIntensity = 0.1;
 
     float DiffuseFactor = dot(Normal, -LightDirection);
 	DiffuseFactor *= BaseLight.DiffuseIntensity;
@@ -64,11 +64,11 @@ struct PointLight_t {
 uniform PointLight_t PointLight;
 
 vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
-    vec3 LightDirection = WorldPos - PointLight.Position;
-    float Distance = length(LightDirection);
-    LightDirection = normalize(LightDirection);
+	vec3 LightToWord = WorldPos - PointLight.Position;
+    float Distance = length(LightToWord);
+	vec3 LightToPixel = normalize(LightToWord);
 
-    vec4 Color = CalcLightInternal(PointLight.Base, LightDirection, WorldPos, Normal);
+    vec4 Color = CalcLightInternal(PointLight.Base, LightToPixel, WorldPos, Normal);
     Color.xyz /= CalcAttenuation(PointLight.Atten, Distance);
 	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
@@ -107,7 +107,7 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 
 	if (SpotFactor > SpotLight.CutOff) {
 		float Distance = length(LightToWord);
-		vec4 Color = CalcLightInternal(SpotLight.Base, -SpotLight.Direction, WorldPos, Normal);
+		vec4 Color = CalcLightInternal(SpotLight.Base, LightToPixel, WorldPos, Normal);
         Color.xyz /= CalcAttenuation(SpotLight.Atten, Distance);
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
