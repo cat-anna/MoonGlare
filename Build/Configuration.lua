@@ -86,9 +86,8 @@ local function SetCommonConfig()
 	location(dir.bin)
 
 	floatingpoint "Fast"
+	symbols "On"
 	flags { "NoMinimalRebuild", "MultiProcessorCompile", }
-
-	-- rules { "VersionCompiler" }
 
 	local GLOBAL_CONFIGURATION_FILE = dir.base .. "GlobalConfiguration.h"
 
@@ -142,7 +141,7 @@ local function SetCommonConfig()
 			"SPACERTTI_TRACK_INSTANCES",
 			"CONFIGURATION_NAME=\"Debug\"",
 		}
-		flags { "Symbols", }
+		flags { }
 		optimize "Debug"
 		warnings "Extra"
 		runtime "Debug"
