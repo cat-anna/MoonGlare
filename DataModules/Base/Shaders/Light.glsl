@@ -13,24 +13,27 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, vec3 LightDirection, vec3 WorldPos
 
     AmbientColor = vec4(BaseLight.Color, 1.0) * BaseLight.AmbientIntensity;
 
-	//float gSpecularPower = 0.0;
-    //float gMatSpecularIntensity = 0.5;
+	float gSpecularPower = 1;
+    float gMatSpecularIntensity = 1;
 
     float DiffuseFactor = dot(Normal, -LightDirection);
 	DiffuseFactor *= BaseLight.DiffuseIntensity;
     if (DiffuseFactor > 0.0) {
         DiffuseColor = vec4(BaseLight.Color, 1.0) * DiffuseFactor;
 
-        //vec3 VertexToEye = normalize(CameraPos - WorldPos);
-        //vec3 LightReflect = normalize(reflect(LightDirection, Normal));
-        //float SpecularFactor = dot(VertexToEye, LightReflect);
-        //SpecularFactor = pow(SpecularFactor, gSpecularPower);
-        //if (SpecularFactor > 0.0) {
-        //    SpecularColor = vec4(BaseLight.Color, 1.0) * gMatSpecularIntensity * SpecularFactor;
-        //}
+        vec3 VertexToEye = normalize(CameraPos - WorldPos);
+        vec3 LightReflect = normalize(reflect(LightDirection, Normal));
+        float SpecularFactor = dot(VertexToEye, LightReflect);
+        SpecularFactor = pow(SpecularFactor, gSpecularPower);
+        if (SpecularFactor > 0.0) {
+            SpecularColor = vec4(BaseLight.Color, 1.0) * gMatSpecularIntensity * SpecularFactor;
+        }
+
     }
 
-    return (AmbientColor + DiffuseColor + SpecularColor);
+    vec4 result = AmbientColor + DiffuseColor + SpecularColor;
+	result.a = 1.0;
+	return result;
 };
 
 //-----------LIGHT-ATTENUATION-----------
