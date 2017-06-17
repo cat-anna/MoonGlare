@@ -226,7 +226,7 @@ private:
 
 		for (int i = 0; i < 4; ++i)
 			VertexUp[i] = Vertex[i] + math::vec3(0, m_UnitSize[1] - 2.0*dY, 0);
-		GetMesh(constructor, it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &m_FloorNormal[0], &m_TextureBase[0]);
+		GetMesh(constructor, it.Style->Materials.Ceiling)->PushQuad(&VertexUp[0], &m_CeilingNormal[0], &m_TextureBase[0]);
 
 		bool Left = true, Right = true, Front = true, Back = true;
 		for (auto &c : it.Corridors) {
