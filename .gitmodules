@@ -1,0 +1,3 @@
+[submodule "Libs/libSpace"]
+	path = Libs/libSpace
+	url = git@git.lan:~/projects/libs/libSpace.git
