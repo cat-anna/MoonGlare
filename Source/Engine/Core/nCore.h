@@ -1,8 +1,6 @@
-#ifndef NCORE_H_
-#define NCORE_H_
+#pragma once
 
 #include "Events.h"
-#include "TimeEvents.h"
 
 #include "DataManager.h"
 #include "Scripts/nScripts.h"
@@ -16,4 +14,3 @@ namespace Core {
 } //namespace Core 
 } //namespace MoonGlare 
 
-#endif // NCORE_H_

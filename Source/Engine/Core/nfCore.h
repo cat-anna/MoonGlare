@@ -1,5 +1,4 @@
-#ifndef NFCORE_H_
-#define NFCORE_H_
+#pragma once
 
 namespace MoonGlare {
 namespace Core {
@@ -69,5 +68,3 @@ struct MoveConfig {
 
 }//namespace Core
 }//namespace MoonGlare
-
-#endif // NFCORE_H_ 

@@ -239,12 +239,17 @@ void Engine::SetFrameRate(float value) {
 
 //----------------------------------------------------------------------------------
 
-string Engine::GetVersionString() {
+string Engine::GetVersionString() {    
 #ifdef DEBUG
     return ::MoonGlare::Core::GetMoonGlareEngineVersion().VersionStringFull();
 #else
     return ::MoonGlare::Core::GetMoonGlareEngineVersion().VersionString();
 #endif
+}
+
+const Version::Info& GetMoonGlareEngineVersion() {
+    static const Version::Info MoonGlareEngineVersion{ 0, 1, 512, __DATE__ " at " __TIME__ };
+    return MoonGlareEngineVersion;
 }
 
 } //namespace Core
