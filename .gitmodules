@@ -4,3 +4,6 @@
 [submodule "Libs/OrbitLogger"]
 	path = Libs/OrbitLogger
 	url = git@git.lan:~/projects/libs/OrbitLogger.git
+[submodule "Libs/StarVFS"]
+	path = Libs/StarVFS
+	url = git@git.lan:~/projects/libs/StarVFS.git
