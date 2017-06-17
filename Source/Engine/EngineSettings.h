@@ -5,14 +5,10 @@
 */
 
 #pragma once
-#ifndef Settings_H
-#define Settings_H
 
 enum class SettingsGroup {
     None,
 //Master groups
-    Window,
-    Graphic,
     Sound,
     Engine,
     Localization,
@@ -204,5 +200,3 @@ std::string Settings_t::BaseSettingInfo<std::string, D>::_value = D::default();
 
 extern Settings_t Settings;
 using StaticSettings = Settings_t;
-
-#endif

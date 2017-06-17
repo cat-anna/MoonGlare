@@ -205,8 +205,7 @@ struct Material {
 //---------------------------------------------------------------------------------------
 
 struct Shadow {
-    using ShadowMapSize = uint16_t;
-    enum class Quality : ShadowMapSize {
+    enum class ShadowMapSize : uint16_t {
         Disable,
         Low,
         Medium,
@@ -216,16 +215,22 @@ struct Shadow {
         Default = Medium,
     };
 
-    static ShadowMapSize GetShadowMapSize(Quality quality) {
+    std::underlying_type_t<ShadowMapSize> GetShadowMapSize() const {
         //dumb values, they are subject to tests
-        switch (quality) {
-        case Quality::Disable: return 1;
-        case Quality::Low: return 256;
-        case Quality::Medium: return 512;
-        case Quality::High: return 1024;
+        switch (m_ShadowMapSize) {
+        case ShadowMapSize::Disable: return 1;
+        case ShadowMapSize::Low: return 256;
+        case ShadowMapSize::Medium: return 512;
+        case ShadowMapSize::High: return 1024;
         default:
-            return static_cast<ShadowMapSize>(quality);
+            return static_cast<std::underlying_type_t<ShadowMapSize>>(m_ShadowMapSize);
         }
+    }
+
+    ShadowMapSize m_ShadowMapSize;
+
+    void ResetToDefault() {
+        m_ShadowMapSize = ShadowMapSize::Default;
     }
 };
 
@@ -233,11 +238,11 @@ struct Shadow {
 
 struct RuntimeConfiguration {
     Texture m_Texture;
-    Shadow::Quality m_ShadowQuality;
+    Shadow m_Shadow;
 
     void ResetToDefault() {
         m_Texture.ResetToDefault();
-        m_ShadowQuality = Shadow::Quality::Default;
+        m_Shadow.ResetToDefault();
     }
 };
 

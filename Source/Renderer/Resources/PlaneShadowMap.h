@@ -16,14 +16,14 @@ struct alignas(16) PlaneShadowMap {
     Device::TextureHandle textureHandle;
     Device::FramebufferHandle framebufferHandle;
 
-    Conf::ShadowMapSize size;
+    uint16_t size;
     bool valid;
     uint8_t _padding1;
     uint32_t _padding2;
 
     void Init(Commands::CommandQueue &q) {
          auto *cmd = q.PushCommand<Commands::InitPlaneShadowMap>();
-         cmd->size = size;
+         cmd->size = static_cast<GLsizei>(size);
          cmd->bufferHandle = &framebufferHandle;
          cmd->textureHandle = &textureHandle;
          valid = true;

@@ -4,25 +4,17 @@
  *  Created on: 20-10-2013
  *      Author: Paweu
  */
+#pragma once
 
-#ifndef NFDATACLASSES_H_
-#define NFDATACLASSES_H_
-
-#define xmlAttr_Shared				"Shared"
 #define xmlAttr_Class				"Class"
 #define xmlAttr_Name				"Name"
 #define xmlAttr_Object				"Object"
-#define xmlAttr_SubXML				"File"
-#define xmlAttr_File				"File"
-#define xmlAttr_Type				"Type"
 #define xmlAttr_Value				"Value"
-#define xmlAttr_Id					"Id"
 
 #define InternalStringTable			"MoonGlare"
 #define MenusStringTable			"Menus"
 
-namespace MoonGlare {
-namespace DataClasses {
+namespace MoonGlare::DataClasses {
 
 	template<class T>
 	struct ResourceFinalizer {
@@ -61,11 +53,7 @@ namespace DataClasses {
 
 	class DataClass;
 	class StringTable;
-}
-} //namespace MoonGlare 
 
-//using MoonGlare::DataClasses::Paths::iPathSharedPtr;
+} //namespace MoonGlare::DataClasses
 
 #include "Models\nfModels.h"
-
-#endif // DATACLASSES_H_ 

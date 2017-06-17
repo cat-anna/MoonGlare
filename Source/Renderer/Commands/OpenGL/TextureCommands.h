@@ -236,7 +236,7 @@ namespace detail {
 struct detail::InitPlaneShadowMapArgument {
     using Conf = Configuration::Shadow;
 
-    Conf::ShadowMapSize size;
+    GLsizei size;
     Device::TextureHandle *textureHandle;
     Device::FramebufferHandle *bufferHandle;
 
@@ -258,7 +258,7 @@ struct detail::InitPlaneShadowMapArgument {
 //            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 //            //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
 //            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)m_Size[0], (GLsizei)m_Size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, (GLsizei)size, (GLsizei)size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, size, size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 //
 //            //	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowTexture, 0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *bufferHandle);

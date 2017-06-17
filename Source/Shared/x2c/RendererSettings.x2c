@@ -6,14 +6,27 @@ namespace "MoonGlare.x2c.Settings.Renderer"
 --------------------------------------------------------------
 
 Enum.import {
-    name = "ShadowQuality",
-    location = "MoonGlare::Renderer::Configuration::Shadow::Quality",
+    name = "ShadowMapSize",
+    location = "MoonGlare::Renderer::Configuration::Shadow::ShadowMapSize",
     default = "Medium",
     values = {
         "Disable",
         "Low",
         "Medium",
     }
+}
+
+Structure.import {
+    name = "Shadow",
+    location = "MoonGlare::Renderer::Configuration::Shadow",
+    description = "",
+    fields = {
+        {
+            description = "",
+            name = "ShadowMapSize",
+            type = Local.ShadowMapSize,
+        },
+    },
 }
 
 --------------------------------------------------------------
@@ -91,8 +104,8 @@ Structure.import {
         },
         {
             description = "",
-            name = "ShadowQuality",
-            type = Local.ShadowQuality,
+            name = "Shadow",
+            type = Local.Shadow,
         },
     },
 }
