@@ -56,10 +56,14 @@ struct ContextApi {
             .addObjectFunction("GetMonitorCount", this, &ContextApi::GetMonitorCount)
             .addObjectCFunction("GetMonitorModes", this, &ContextApi::GetMonitorModes)
             .addObjectCFunction("GetMonitorCurrentMode", this, &ContextApi::GetMonitorCurrentMode)
+            .addObjectFunction("CaptureScreenShot", this, &ContextApi::CaptureScreenShot)
         .endNamespace()
         ;
     }
 
+    void CaptureScreenShot() {
+       //m_RendererFacade->GetContextImpl()->CaptureScreenShot();
+    }
     int GetMonitorCount() {
         return m_RendererFacade->GetContextImpl()->GetMonitorCount();
     }

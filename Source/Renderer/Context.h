@@ -60,6 +60,8 @@ public:
     void Process();
 
     emath::fvec2 CursorPos();
+
+    void CaptureScreenShot();
 private:
     emath::ivec2 m_Size;
     GLFWwindow *m_Window = nullptr;

@@ -206,6 +206,18 @@ void Context::Flush() {
     glfwSwapBuffers(m_Window);
 }
 
+void Context::CaptureScreenShot() {
+    auto *assiface = m_Renderer->GetAssets();
+    auto texl = assiface->GetTextureLoader();
+
+    auto tex = texl->AllocateImage(Asset::TextureLoader::PixelFormat::RGB8, { m_Size[0], m_Size[1] });
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glReadPixels(0, 0, m_Size[0], m_Size[1], GL_BGR, GL_UNSIGNED_BYTE, tex.m_Pixels); //(GLenum)tex.m_PixelFormat
+
+    texl->StoreScreenShot(std::move(tex));
+}
+
 //----------------------------------------------------------------------------------
 
 void Context::Initialize(const ContextCreationInfo &ctxifo, RendererFacade *renderer, RenderDevice *device) {
@@ -449,16 +461,7 @@ void Context::GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     case GLFW_KEY_PRINT_SCREEN: {
         if (!Pressed)
             return;
-
-        auto *assiface = ctx->m_Renderer->GetAssets();
-        auto texl = assiface->GetTextureLoader();
-
-        auto tex = texl->AllocateImage(Asset::TextureLoader::PixelFormat::RGB8, { ctx->m_Size[0], ctx->m_Size[1] });
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-        glReadPixels(0, 0, ctx->m_Size[0], ctx->m_Size[1], GL_BGR, GL_UNSIGNED_BYTE, tex.m_Pixels); //(GLenum)tex.m_PixelFormat
-                                                                  
-        texl->StoreScreenShot(std::move(tex));
+        ctx->CaptureScreenShot();
         return;
     }
     case GLFW_KEY_ESCAPE:
