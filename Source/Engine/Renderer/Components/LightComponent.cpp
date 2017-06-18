@@ -43,10 +43,10 @@ void LightComponent::RegisterScriptApi(ApiInitializer & root) {
     using LightAttenuation = Renderer::Light::LightAttenuation;
     root
         .beginClass<LightAttenuation>("cLightAttenuation")
-            .addData("Constant", &LightAttenuation::m_Constant)
-            .addData("Linear", &LightAttenuation::m_Linear)
-            .addData("Exp", &LightAttenuation::m_Exp)
-            .addData("Threshold", &LightAttenuation::m_Threshold)
+            .addProperty("Constant", &LightAttenuation::Constant, &LightAttenuation::SetConstant )
+            .addProperty("Linear", &LightAttenuation::Linear, &LightAttenuation::SetLinear)
+            .addProperty("Exp", &LightAttenuation::Exp, &LightAttenuation::SetExp)
+            .addProperty("Threshold", &LightAttenuation::Threshold, &LightAttenuation::SetThreshold)
         .endClass()
         .beginClass<LightEntry>("cLightEntry")
             .addData("CutOff", &LightEntry::m_CutOff)
@@ -218,7 +218,7 @@ bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_Base.m_AmbientIntensity = le.m_AmbientIntensity;
     entry.m_Base.m_DiffuseIntensity = le.m_DiffuseIntensity;
     entry.m_Base.m_Color = le.m_Color;
-    entry.m_Attenuation = le.m_Attenuation;
+    entry.m_Attenuation.values = le.m_Attenuation;
     entry.m_Type = le.m_Type;
     entry.m_CutOff = le.m_CutOff;
 

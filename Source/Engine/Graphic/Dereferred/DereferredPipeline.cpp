@@ -368,10 +368,7 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
         //	she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
         m_PointLightShader.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position));
-        m_PointLightShader.Set<Uniform::AttenuationLinear>(linfo.m_Attenuation.m_Linear);
-        m_PointLightShader.Set<Uniform::AttenuationExp>(linfo.m_Attenuation.m_Exp);
-        m_PointLightShader.Set<Uniform::AttenuationConstant>(linfo.m_Attenuation.m_Constant);
-        m_PointLightShader.Set<Uniform::AttenuationMinThreshold>(linfo.m_Attenuation.m_Threshold);
+        m_PointLightShader.Set<Uniform::Attenuation>(emath::MathCast<emath::fvec4>((math::vec4)linfo.m_Attenuation.values));
         m_PointLightShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_PositionMatrix));
     }
 
@@ -475,11 +472,8 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
         m_SpotShader.Set<Uniform::Direction>(emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Direction));
 
         m_SpotShader.Set<Uniform::CutOff>(linfo.m_CutOff);
+        m_SpotShader.Set<Uniform::Attenuation>(emath::MathCast<emath::fvec4>((math::vec4)linfo.m_Attenuation.values));
 
-        m_SpotShader.Set<Uniform::AttenuationLinear>(linfo.m_Attenuation.m_Linear);
-        m_SpotShader.Set<Uniform::AttenuationExp>(linfo.m_Attenuation.m_Exp);
-        m_SpotShader.Set<Uniform::AttenuationConstant>(linfo.m_Attenuation.m_Constant);
-        m_SpotShader.Set<Uniform::AttenuationMinThreshold>(linfo.m_Attenuation.m_Threshold);
         m_SpotShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_PositionMatrix));
     }
 

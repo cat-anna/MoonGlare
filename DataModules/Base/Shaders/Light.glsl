@@ -38,19 +38,12 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, vec3 LightDirection, vec3 WorldPos
 
 //-----------LIGHT-ATTENUATION-----------
 
-struct Attenuation_t {
-	float Constant;
-    float Linear;
-    float Exp;
-	float MinThreshold;
-};
-
-float CalcAttenuation(Attenuation_t att, float Distance) {
-    float Attv = att.Constant +
-				 att.Linear * Distance +
-				 att.Exp * (Distance * Distance);
+float CalcAttenuation(vec4 att, float Distance) {
+    float Attv = att[0] +			              //constant
+				 att[1] * Distance +              //linerar
+				 att[2] * (Distance * Distance);  //exp
 	if(Attv <= 0)
-		return att.MinThreshold;
+		return att[3];
 	return pow(Attv, 2.2);// min(1.0 / Attv, att.MinThreshold);
 }
 
@@ -59,7 +52,7 @@ float CalcAttenuation(Attenuation_t att, float Distance) {
 struct PointLight_t {
 	BaseLight_t	Base;
     vec3 Position;
-    Attenuation_t Atten;
+    vec4 Attenuation;
 };
 uniform PointLight_t PointLight;
 
@@ -69,7 +62,7 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 	vec3 LightToPixel = normalize(LightToWord);
 
     vec4 Color = CalcLightInternal(PointLight.Base, LightToPixel, WorldPos, Normal);
-    Color.xyz /= CalcAttenuation(PointLight.Atten, Distance);
+    Color.xyz /= CalcAttenuation(PointLight.Attenuation, Distance);
 	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
@@ -78,7 +71,7 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 
 struct DirectionalLight_t {
  	BaseLight_t	Base;
-   vec3 Direction;
+	vec3 Direction;
 };
 uniform DirectionalLight_t DirectionalLight;
 
@@ -94,7 +87,7 @@ struct SpotLight_t {
  	BaseLight_t	Base;
 	vec3 Direction;
     vec3 Position;
-    Attenuation_t Atten;
+    vec4 Attenuation;
 	float CutOff;
 };
 uniform SpotLight_t SpotLight;
@@ -108,7 +101,7 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 	if (SpotFactor > SpotLight.CutOff) {
 		float Distance = length(LightToWord);
 		vec4 Color = CalcLightInternal(SpotLight.Base, LightToPixel, WorldPos, Normal);
-        Color.xyz /= CalcAttenuation(SpotLight.Atten, Distance);
+        Color.xyz /= CalcAttenuation(SpotLight.Attenuation, Distance);
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
 

@@ -10,34 +10,39 @@ Enum.import {
 	default = "Unknown",
 }
 
+Structure.field.prefix ""
 Structure.import {
 	name = "LightAttenuation",
-	location = "::MoonGlare::Renderer::Light::LightAttenuation",
+	location = "::math::vec4",
 	description = "Describes light attenutation with the distance from the source. Valid for spot and point light types",
 	fields = {
 		{
-			name = "Constant",
+			name = "x",
+			pugi = { alias = "Constant", },			
 			description = "Constant component",
 			type = Types.float,
 			require = true,
 			default = 0,
 		},	
 		{
-			name = "Linear",
+			name = "y",
+			pugi = { alias = "Linear", },			
 			description = "Linear component",
 			type = Types.float,
 			require = true,
 			default = 0.9,
 		},	
 		{
-			name = "Exp",
+			name = "z",
+			pugi = { alias = "Exp", },			
 			description = "Exponential component",
 			type = Types.float,
 			require = true,
 			default = 0.2,
 		},	
 		{
-			name = "Threshold",
+			name = "w",
+			pugi = { alias = "Threshold", },			
 			description = "Max light threshold",
 			type = Types.float,
 			require = true,
@@ -46,6 +51,8 @@ Structure.import {
 	},
 	pugi = { useattribute = true, },
 }
+
+Structure.field.prefix "m_"
 
 Structure.new {
 	name = "LightEntry",

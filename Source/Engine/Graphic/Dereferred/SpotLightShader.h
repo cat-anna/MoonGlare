@@ -34,10 +34,7 @@ struct SpotLightShaderDescriptor {
 		Direction,
 		CutOff,
 
-		AttenuationLinear,
-		AttenuationExp,
-		AttenuationConstant,
-		AttenuationMinThreshold,
+		Attenuation,
 
 		ScreenSize,
 
@@ -70,10 +67,7 @@ struct SpotLightShaderDescriptor {
 		case Uniform::Direction: return "SpotLight.Direction";
 		case Uniform::CutOff: return "SpotLight.CutOff";
 
-		case Uniform::AttenuationLinear: return "SpotLight.Atten.Linear";
-		case Uniform::AttenuationExp: return "SpotLight.Atten.Exp";
-		case Uniform::AttenuationConstant: return "SpotLight.Atten.Constant";
-		case Uniform::AttenuationMinThreshold: return "SpotLight.Atten.MinThreshold";
+		case Uniform::Attenuation: return "SpotLight.Attenuation";
 
 		case Uniform::ScreenSize: return "ScreenSize";
 		default: return nullptr;

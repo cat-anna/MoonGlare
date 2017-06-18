@@ -16,79 +16,86 @@ namespace Renderer {
 namespace Light {
 
 enum class LightType {
-	Unknown,
-	Point,
-	Directional,
-	Spot,
+    Unknown,
+    Point,
+    Directional,
+    Spot,
 };
 
 struct LightAttenuation {
-	float m_Constant;
-	float m_Linear;
-	float m_Exp;
-	float m_Threshold;
+    math::RawVec4 values;
 
-	float InfluenceRadius(float ColorFactor) const {
-		//float delta = Linear * Linear + 4 * Exp * Constant;
-		//float sqrtdelta = sqrtf(delta);
-		//
-		//float ret = (Linear + sqrtdelta);
-		////if(Exp != 0)
-		//	//ret /= 2 * Exp;
-		//return ret;
+    float Constant  () const { return values[0]; }
+    float Linear    () const { return values[1]; }
+    float Exp       () const { return values[2]; }
+    float Threshold () const { return values[3]; }
 
-		float ret = (-m_Linear + sqrtf(m_Linear * m_Linear - 4 * m_Exp * (m_Exp - 256 * ColorFactor)));// - 256 * ColorFactor
-		if (m_Exp != 0)
-			ret /= 2 * m_Exp;
-		return ret;
-	}
+    void SetConstant  (float v) { values[0] = v; }
+    void SetLinear    (float v) { values[1] = v; }
+    void SetExp       (float v) { values[2] = v; }
+    void SetThreshold (float v) { values[3] = v; }
 
-	float LightInfluenceRadius(const math::RGB &Color, float DiffuseIntensity) const {
-		return InfluenceRadius(Color.Max() * DiffuseIntensity);
-	}
+    float InfluenceRadius(float ColorFactor) const {
+        //float delta = Linear * Linear + 4 * Exp * Constant;
+        //float sqrtdelta = sqrtf(delta);
+        //
+        //float ret = (Linear + sqrtdelta);
+        ////if(Exp != 0)
+        //	//ret /= 2 * Exp;
+        //return ret;
+
+        float ret = (-Linear() + sqrtf(Linear() * Linear() - 4 * Exp() * (Exp() - 256 * ColorFactor)));// - 256 * ColorFactor
+        if (Exp() != 0)
+            ret /= 2 * Exp();
+        return ret;
+    }
+
+    float LightInfluenceRadius(const math::RGB &Color, float DiffuseIntensity) const {
+        return InfluenceRadius(Color.Max() * DiffuseIntensity);
+    }
 };
 static_assert(std::is_pod<LightAttenuation>::value, "LightAttenuation shall be POD!");
 
 struct LightBase {
-	math::RGB m_Color;
-	float m_AmbientIntensity;
-	float m_DiffuseIntensity;
+    math::RGB m_Color;
+    float m_AmbientIntensity;
+    float m_DiffuseIntensity;
 
-	union {
-		struct {
-			bool m_CastShadows : 1;
-		};
-		uint8_t m_UInt8value;
-	} m_Flags;
+    union {
+        struct {
+            bool m_CastShadows : 1;
+        };
+        uint8_t m_UInt8value;
+    } m_Flags;
 };
 static_assert(std::is_pod<LightBase>::value, "LightBase shall be POD!");
 
 struct PointLight {
-	LightBase m_Base;
-	LightAttenuation m_Attenuation;
+    LightBase m_Base;
+    LightAttenuation m_Attenuation;
 
-	math::RawVec3 m_Position;
-	math::RawMat4 m_PositionMatrix;
+    math::RawVec3 m_Position;
+    math::RawMat4 m_PositionMatrix;
 
-	float GetLightInfluenceRadius() const {
-		return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
-	}
+    float GetLightInfluenceRadius() const {
+        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+    }
 };
 static_assert(std::is_pod<PointLight>::value, "PointLight shall be POD!");
 
 struct SpotLight {
-	LightBase m_Base;
-	LightAttenuation m_Attenuation;
-	float m_CutOff;
+    LightBase m_Base;
+    LightAttenuation m_Attenuation;
+    float m_CutOff;
 
-	math::RawVec3 m_Position;
-	math::RawVec3 m_Direction;
-	math::RawMat4 m_PositionMatrix;
-	math::RawMat4 m_ViewMatrix;
+    math::RawVec3 m_Position;
+    math::RawVec3 m_Direction;
+    math::RawMat4 m_PositionMatrix;
+    math::RawMat4 m_ViewMatrix;
 
-	float GetLightInfluenceRadius() const {
-		return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
-	}
+    float GetLightInfluenceRadius() const {
+        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+    }
 };
 static_assert(std::is_pod<SpotLight>::value, "SpotLight shall be POD!");
 
