@@ -25,8 +25,7 @@ struct ShaderApi {
     void ReloadAllShaders() {
         RendererAssert(this);
         DebugLogf(Warning, "Reloading all shaders");
-        RendererAssert(false);
-        //m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
+        m_RendererFacade->GetResourceManager()->GetShaderResource().ReloadAll();
     }
     void DumpShaders() {
         RendererAssert(this);
