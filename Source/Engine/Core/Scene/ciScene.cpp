@@ -52,23 +52,13 @@ bool ciScene::SpawnChild(const std::string & URI, std::string Name, Entity & out
 
 void ciScene::BeginScene() {
 	THROW_ASSERT(IsInitialized() && !IsReady(), 0);
-
-//	Graphic::GetRenderDevice()->BindEnvironment(&m_Environment);
-	m_Environment.Initialize();
-
 	SendState(SceneState::Started);
-
 	SetReady(true);
 }
 
 void ciScene::EndScene() {
 	THROW_ASSERT(IsReady(), 0);
-
 	SendState(SceneState::Paused);
-
-//	Graphic::GetRenderDevice()->BindEnvironment(nullptr);
-	m_Environment.Finalize();
-
 	SetReady(false);
 }
 
@@ -97,8 +87,6 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 		return false;
 	}
 
-	m_Environment.LoadMeta(Node.child("Environment"));
-
 	SendState(SceneState::Created);
 
 	EntityBuilder(&m_ComponentManager).ProcessXML(GetSceneEntity(), Node.child("Entities"));
@@ -108,9 +96,6 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 }
 
 bool ciScene::Finalize() {
-	if (!IsInitialized()) return true;
-	if (IsReady()) EndScene();
-
 	//SendState(SceneState::);
 
 	if (!m_ComponentManager.Finalize()) {
@@ -118,7 +103,6 @@ bool ciScene::Finalize() {
 		return false;
 	}
 
-	SetInitialized(false);
 	return true;
 }
 

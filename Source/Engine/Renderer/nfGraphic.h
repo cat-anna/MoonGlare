@@ -15,12 +15,8 @@ namespace Graphic {
 
 	class cRenderDevice;
 	class LoadQueue;
-	struct MatrixStack;
 
 	class VAO;
-
-	struct StaticFog;
-	class Environment;
 
 	struct Material;
 
@@ -43,7 +39,6 @@ namespace Graphic {
 	using TexCoordVector = std::vector<vec2>;
 
 	using IndexVector = std::vector<unsigned>;
-//	typedef std::vector<unsigned short> cShortIndexVector;
 
 	using QuadArray3 = std::array<math::vec3, 4>;
 	using QuadArray2 = std::array<math::vec2, 4>;

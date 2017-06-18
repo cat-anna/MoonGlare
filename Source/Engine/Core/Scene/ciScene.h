@@ -31,12 +31,10 @@ public:
 	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
 
 //old
-	/** @brief Call this function to initialize scene before first call */
 	void BeginScene();
-	/** @brief Call this function when scene won't be used for some time */
 	void EndScene();
 
-	virtual void DoMove(const MoveConfig &conf);
+	void DoMove(const MoveConfig &conf);
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
@@ -59,12 +57,6 @@ protected:
 
 	bool SpawnChild(const std::string &URI, std::string Name, Entity &out);
 	bool SpawnChildRaw(const char *URI, const char *Name);
-
-//old
-	Graphic::Environment m_Environment;
-
-	void FinishScene();
-	void SetFinishedState();
 
 //very old
 	unsigned m_Flags;
