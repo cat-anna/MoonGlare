@@ -22,8 +22,8 @@
 #include <ComponentCommon.x2c.h>
 #include <CameraComponent.x2c.h>
 
-#include <Engine/Graphic/nGraphic.h>
-#include <Engine/Graphic/Dereferred/DereferredPipeline.h>
+#include <Engine/Renderer/nGraphic.h>
+#include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
 namespace MoonGlare {
 namespace Renderer {

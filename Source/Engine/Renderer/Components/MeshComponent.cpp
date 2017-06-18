@@ -15,8 +15,8 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
-#include <Engine/Graphic/nGraphic.h>
-#include <Engine/Graphic/Dereferred/DereferredPipeline.h>
+#include <Engine/Renderer/nGraphic.h>
+#include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
 namespace MoonGlare {
 namespace Renderer {

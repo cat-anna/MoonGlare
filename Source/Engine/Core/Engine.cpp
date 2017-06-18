@@ -4,7 +4,7 @@
 #include "Engine.h"
 #include "iConsole.h"
 
-#include <Graphic/Dereferred/DereferredPipeline.h>
+#include <Renderer/Dereferred/DereferredPipeline.h>
 
 #include <Renderer/RenderInput.h>
 #include <Renderer/Frame.h>

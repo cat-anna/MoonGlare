@@ -14,7 +14,7 @@ using namespace MoonGlare;
 
 #include "JobQueue.h"
 
-#include "Graphic/nfGraphic.h"
+#include "Renderer/nfGraphic.h"
 #include "EngineSettings.h"
 
 #include "DataClasses/nfDataClasses.h"
