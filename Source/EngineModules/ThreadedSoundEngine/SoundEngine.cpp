@@ -341,7 +341,8 @@ void SoundEngine::PlaySoundScript(const string &Name, const string &OnEndFunc, i
 	if (!SoundEngineSettings::Enabled::get()) return;
 	LOCK_MUTEX(m_ActionListMutex);
 	m_ActionPlayList.push_back({ Name, SoundType::Sound, [OnEndFunc, param](iSound *s){
-		SCRIPT_INVOKE_STATIC_NORETURN(OnEndFunc, s, param);
+        if(!OnEndFunc.empty())
+            ::MoonGlare::Core::GetScriptEngine()->RunFunction<int>(OnEndFunc.c_str(), param);
 	} });
 	m_Lock.notify_all();
 }
@@ -350,7 +351,8 @@ void SoundEngine::PlayMusicScript(const string &Name, const string &OnEndFunc, i
 	if (!SoundEngineSettings::Enabled::get()) return;
 	LOCK_MUTEX(m_ActionListMutex);
 	m_ActionPlayList.push_back({ Name, SoundType::Music, [OnEndFunc, param](iSound *s) {
-		SCRIPT_INVOKE_STATIC_NORETURN(OnEndFunc, s, param);
+        if (!OnEndFunc.empty())
+            ::MoonGlare::Core::GetScriptEngine()->RunFunction<int>(OnEndFunc.c_str(), param);
 	} });
 	m_Lock.notify_all();
 }
