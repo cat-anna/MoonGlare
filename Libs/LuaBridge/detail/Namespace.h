@@ -668,7 +668,12 @@ private:
         rawgetfield (L, -2, "__propget");
         rawgetfield (L, -4, "__propget");
         new (lua_newuserdata (L, sizeof (mp_t))) mp_t (mp);
-        lua_pushcclosure (L, &CFunc::getProperty <T,U>, 1);
+        if (isWritable && !std::is_fundamental_v<U>) {
+            lua_pushcclosure(L, &CFunc::getWritableProperty <T, U>, 1);
+        }
+        else {
+            lua_pushcclosure(L, &CFunc::getProperty <T, U>, 1);
+        }
         lua_pushvalue (L, -1);
         rawsetfield (L, -4, name);
         rawsetfield (L, -2, name);

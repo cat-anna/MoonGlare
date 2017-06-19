@@ -492,6 +492,14 @@ struct CFunc
     return 1;
   }
 
+  template <class C, typename T>
+  static int getWritableProperty(lua_State* L)
+  {
+    C * c = Userdata::get <C> (L, 1, true);
+    T C::** mp = static_cast <T C::**> (lua_touserdata (L, lua_upvalueindex (1)));
+    Stack <T*>::push (L, &(c->**mp));
+    return 1;
+  }
   //--------------------------------------------------------------------------
   /**
       lua_CFunction to set a class data member.
