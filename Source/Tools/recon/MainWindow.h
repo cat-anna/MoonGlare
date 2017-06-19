@@ -19,6 +19,5 @@ protected:
 
     void Save();
     void Load();
-
 };
 

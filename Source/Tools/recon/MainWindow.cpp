@@ -36,6 +36,9 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
         if (item) {
             QMenu menu;
             menu.addAction(item->text())->setEnabled(false);
+            menu.addAction("Edit", [this, item]() {
+                m_Ui->lineEdit->setText(item->text());
+            });
             menu.addAction("Remove", [this, item]() {
                 RemoveAll(item->text());
                 Save();
@@ -76,6 +79,7 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
     }
     std::string txt = text.toUtf8().data();
     recon->Send(txt);
+    m_Ui->statusbar->showMessage(QString("Send ") + text, 5000);
 }
 
 static const QString HistoryFileName = "ReconHistory.txt";

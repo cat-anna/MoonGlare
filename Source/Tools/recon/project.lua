@@ -3,7 +3,7 @@ local qt = premake.extensions.qt
 
 group "Tools"
 	project "recon"
-		kind "ConsoleApp"
+		kind "WindowedApp"
 		
 		qt.enable()
 		qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
