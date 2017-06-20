@@ -74,7 +74,7 @@ bool ScriptEngine::Initialize() {
     lua_pushlightuserdata(lua, GetScriptTableIndex());  
     lua_createtable(lua, 0, 0);
     MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptTable", this, -1);
-    lua_settable(lua, LUA_REGISTRYINDEX);      \
+    lua_settable(lua, LUA_REGISTRYINDEX);     
 
     AddLog(Debug, "Script construction finished");
     return true;

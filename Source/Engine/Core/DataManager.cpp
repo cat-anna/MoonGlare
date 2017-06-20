@@ -161,11 +161,18 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
     auto cid = Container->GetContainerID();
 
     struct RTCfg : public Scripts::iScriptRequire {
-        RTCfg(RuntimeConfiguration*r):rtconf(r){}
+        RTCfg(RuntimeConfiguration*r):currconf(*r), rtconf(r){}
+        RuntimeConfiguration currconf;
         RuntimeConfiguration *rtconf;
+        bool requested = false;
         int OnRequire(lua_State *lua, const std::string_view& name) override {
-            luabridge::push(lua, rtconf);
+            luabridge::push(lua, &currconf);
+            requested = true;
             return 1;
+        }
+        ~RTCfg() {
+            if (requested)
+                *rtconf = currconf;
         }
     };
 

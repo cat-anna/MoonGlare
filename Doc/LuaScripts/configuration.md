@@ -4,7 +4,7 @@
 
 ## Basic runtime configuration
 
-Structure can be accessed via `require "RuntimeConfiguration"` only from init.lua scripts
+Structure can be accessed via `require "RuntimeConfiguration"` only from init.lua scripts.
 
 Example:
 ```lua

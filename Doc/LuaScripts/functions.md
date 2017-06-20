@@ -10,13 +10,12 @@ Syntax:
 module = require(ModuleName)
 ```
 
-If *ModuleName* is not valid exception is raised {TODO: make it lua error, not exception}
+If *ModuleName* is not valid error is raised
 
 currently only internal modules are supported, they cannot be defined inside any loaded container
 
 ### Internal modules
 
 * _RuntimeConfiguration_ \
-Visible only in `init.lua` scripts. Cannot be accessed in any other situations {TODO: make it not possible to 'save for later'}
-Returned object is Engine RuntimeConfiguration.
+Visible only in `init.lua` scripts. Cannot be accessed in any other situations, reference to object cannot be store for later use. Returned object is Engine RuntimeConfiguration.
 
