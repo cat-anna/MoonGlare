@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 #include "ScenesManager.h"
 #include <Engine/Core/Engine.h>
-#include <Engine/BaseResources.h>
 
 #include <Renderer/Renderer.h>
 
@@ -42,16 +41,22 @@ void ScenesManager::RegisterScriptApi(ApiInitializer &api) {
             .addFunction("DropSceneState", &ThisClass::DropSceneState)
             .addFunction("CurrentSceneName", &ThisClass::GetCurrentSceneName)
         .endClass()
+        .beginClass<SceneConfiguration>("cSceneConfiguration")
+            .addData("firstScene", &SceneConfiguration::firstScene, true)
+            .addData("loadingScene", &SceneConfiguration::loadingScene, true)
+        .endClass()
         ;
 }
 
 //----------------------------------------------------------------------------------
 
-bool ScenesManager::Initialize(World *world) {
+bool ScenesManager::Initialize(World *world, const SceneConfiguration *configuration) {
     ASSERT(world);
+    ASSERT(configuration);
 
     m_World = world;
     m_DescriptorTable.reserve(32);//TODO: some config?
+    sceneConfiguration = configuration;
 
     return true;
 }
@@ -83,7 +88,7 @@ bool ScenesManager::PostSystemInit() {
 }
 
 bool ScenesManager::PreSystemStart() {
-    m_LoadingSceneDescriptor = FindDescriptor(Configuration::BaseResources::FallbackLoadScene::get());
+    m_LoadingSceneDescriptor = FindDescriptor(sceneConfiguration->loadingScene);
     if (!m_LoadingSceneDescriptor) {
         AddLogf(Error, "There is no FallbackLoadScene");
         return false;
@@ -100,7 +105,7 @@ bool ScenesManager::PreSystemStart() {
     JobQueue::QueueJob([this] { 
         while(m_NextSceneDescriptor)
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        LoadNextScene(Configuration::BaseResources::FirstScene::get());
+        LoadNextScene(sceneConfiguration->firstScene);
     });
 
     return true;

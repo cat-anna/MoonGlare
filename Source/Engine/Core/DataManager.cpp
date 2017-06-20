@@ -4,8 +4,10 @@
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/DataManager.h>
+#include <Engine/Core/Configuration.Runtime.h>
 #include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
+#include <Engine/Core/Scripts/iScriptRequire.h>
 
 #include <DataClasses/Models/SimpleModelImpl.h>
 
@@ -21,7 +23,8 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Manager)
 RegisterApiInstance(Manager, &Manager::Instance, "Data");
 RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
 
-Manager::Manager() : cRootClass() {
+Manager::Manager(World *world) : cRootClass(), world(world) {
+    ASSERT(world);
     SetThisAsInstance();
 
     m_ScriptEngine = nullptr;
@@ -65,7 +68,10 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
         .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<ThisClass, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
         .addFunction("ClearResources", Utils::Template::InstancedStaticCall<ThisClass, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
 #endif
-    .endClass()
+        .endClass()
+        .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
+            .addData("scene", &RuntimeConfiguration::scene)
+        .endClass()
     ;
 }
 
@@ -136,8 +142,6 @@ bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
     }
 
     auto rootnode = doc.document_element();
-    m_Configuration.LoadUpdate(rootnode.child("Options"));
-
     mod.m_ModuleName = rootnode.child("ModuleName").text().as_string("?");
 
     AddLogf(Hint, "Loaded module '%s' from container '%s'", mod.m_ModuleName.c_str(), Container->GetContainerURI().c_str());
@@ -156,7 +160,18 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 
     auto cid = Container->GetContainerID();
 
-    auto func = [this, cid, Container](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
+    struct RTCfg : public Scripts::iScriptRequire {
+        RTCfg(RuntimeConfiguration*r):rtconf(r){}
+        RuntimeConfiguration *rtconf;
+        int OnRequire(lua_State *lua, const std::string_view& name) override {
+            luabridge::push(lua, rtconf);
+            return 1;
+        }
+    };
+
+    RTCfg require(world->GetRuntimeConfiguration());
+
+    auto func = [this, cid, Container, &require](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
         auto dot = strrchr(fname, '.');
         if (!dot)
             return true;
@@ -172,7 +187,17 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 
         AddLogf(Debug, "Loading script: %s (%u bytes)", furi.c_str(), data.size());
 
+        bool reg = false;
+        std::string_view vname = strrchr(fname, '/') + 1; //horrible!!
+        if (vname == "init.lua") { 
+            reg = true;
+            m_ScriptEngine->RegisterRequire("RuntimeConfiguration", &require);
+        }
+
         m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
+
+        if (reg)
+            m_ScriptEngine->RegisterRequire("RuntimeConfiguration", nullptr);
 
         return true;
     };
@@ -196,7 +221,7 @@ void Manager::LoadGlobalData() {
 //------------------------------------------------------------------------------------------
 
 DataClasses::FontPtr Manager::GetConsoleFont() {
-    return GetFont(m_Configuration.m_ConsoleFont);
+    return GetFont("Arial");
 }
 
 DataClasses::FontPtr Manager::GetDefaultFont() { 

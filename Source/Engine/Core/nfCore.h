@@ -11,6 +11,8 @@ namespace Core {
 
     class Engine;
 
+    struct RuntimeConfiguration;
+
 }//namespace Core
 }//namespace MoonGlare
 

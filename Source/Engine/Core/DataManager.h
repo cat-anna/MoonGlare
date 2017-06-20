@@ -16,117 +16,104 @@ namespace Data {
 
 template<class T>
 struct SynchronizedResourceMap {
-	using Map_t = std::unordered_map < string, T > ;
-	struct MapProxy {
-		Map_t* operator->() { 
-			THROW_ASSERT(m_Map, "Map proxy is not valid!");
-			return m_Map; 
-		}
+    using Map_t = std::unordered_map < string, T > ;
+    struct MapProxy {
+        Map_t* operator->() { 
+            THROW_ASSERT(m_Map, "Map proxy is not valid!");
+            return m_Map; 
+        }
 
-		Map_t& operator*() {
-			THROW_ASSERT(m_Map, "Map proxy is not valid!");
-			return *m_Map; 
-		}
+        Map_t& operator*() {
+            THROW_ASSERT(m_Map, "Map proxy is not valid!");
+            return *m_Map; 
+        }
 
-		template<class V>
-		T& operator[](V &&v) { 
-			THROW_ASSERT(m_Map, "Map proxy is not valid!");
-			return (*m_Map)[std::forward<V>(v)]; 
-		}
+        template<class V>
+        T& operator[](V &&v) { 
+            THROW_ASSERT(m_Map, "Map proxy is not valid!");
+            return (*m_Map)[std::forward<V>(v)]; 
+        }
 
-		MapProxy(Map_t &map, std::mutex &mutex) : m_Map(&map), m_Lock(mutex) {  }
-		MapProxy(MapProxy&& other): m_Map(nullptr), m_Lock() {
-			m_Lock.swap(other.m_Lock);
-			std::swap(m_Map, other.m_Map);
-		}
-		MapProxy& operator=(const MapProxy&) = delete;
-		MapProxy() = delete;
-		~MapProxy() { }
+        MapProxy(Map_t &map, std::mutex &mutex) : m_Map(&map), m_Lock(mutex) {  }
+        MapProxy(MapProxy&& other): m_Map(nullptr), m_Lock() {
+            m_Lock.swap(other.m_Lock);
+            std::swap(m_Map, other.m_Map);
+        }
+        MapProxy& operator=(const MapProxy&) = delete;
+        MapProxy() = delete;
+        ~MapProxy() { }
 
-		void unlock() {
-			m_Map = nullptr;
-			std::unique_lock<std::mutex> l;
-			m_Lock.swap(l);
-		}
-	private:
-		Map_t *m_Map;
-		std::unique_lock<std::mutex> m_Lock;
-	};
+        void unlock() {
+            m_Map = nullptr;
+            std::unique_lock<std::mutex> l;
+            m_Lock.swap(l);
+        }
+    private:
+        Map_t *m_Map;
+        std::unique_lock<std::mutex> m_Lock;
+    };
 
-	MapProxy Lock() {
-		return MapProxy(m_Map, m_Mutex);
-	}
-	void clear() { Lock()->clear(); }
+    MapProxy Lock() {
+        return MapProxy(m_Map, m_Mutex);
+    }
+    void clear() { Lock()->clear(); }
 private:
-	Map_t m_Map;
-	std::mutex m_Mutex;
+    Map_t m_Map;
+    std::mutex m_Mutex;
 };
 
 struct DataModuleInfo {
-	StarVFS::Containers::iContainer *m_Container;
-	std::string m_ModuleName;
-};
-
-struct RuntimeConfiguration {
-	std::string m_ConsoleFont = "Arial";
-
-	void LoadUpdate(const xml_node node) {
-		if (!node)
-			return;
-		XML::ReadTextIfPresent(node, "ConsoleFont", m_ConsoleFont);
-		return;
-	}
+    StarVFS::Containers::iContainer *m_Container;
+    std::string m_ModuleName;
 };
 
 class Manager : public cRootClass {
-	friend class DataManagerDebugScritpApi;
-	SPACERTTI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
+    friend class DataManagerDebugScritpApi;
+    SPACERTTI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
 public:
-	Manager();
-	virtual ~Manager();
+    Manager(World *world);
+    virtual ~Manager();
 
-	bool LoadModule(StarVFS::Containers::iContainer *Container);
+    bool LoadModule(StarVFS::Containers::iContainer *Container);
 
-	const RuntimeConfiguration& GetConfiguration() const { return m_Configuration; }
+    void LoadGlobalData();
 
-	void LoadGlobalData();
+    DataClasses::FontPtr GetConsoleFont();
+    DataClasses::FontPtr GetDefaultFont();
 
-	DataClasses::FontPtr GetConsoleFont();
-	DataClasses::FontPtr GetDefaultFont();
+    DataClasses::FontPtr GetFont(const string &Name);
+    DataClasses::ModelPtr GetModel(const string& Name);
 
-	DataClasses::FontPtr GetFont(const string &Name);
-	DataClasses::ModelPtr GetModel(const string& Name);
+    const string& GetString(const string &Id, const string& TableName);
 
-	const string& GetString(const string &Id, const string& TableName);
+    DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
 
-	DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
+    bool Initialize(Scripts::ScriptEngine *ScriptEngine);
+    bool Finalize();
 
-	bool Initialize(Scripts::ScriptEngine *ScriptEngine);
-	bool Finalize();
-
-	void DumpAllResources(std::ostream &out);
-	/** Reprint all resources */
+    void DumpAllResources(std::ostream &out);
+    /** Reprint all resources */
 #ifdef DEBUG_DUMP
-	void NotifyResourcesChanged();
+    void NotifyResourcesChanged();
 #else
-	void NotifyResourcesChanged() { }
+    void NotifyResourcesChanged() { }
 #endif
 
-	static void RegisterScriptApi(::ApiInitializer &api);
+    static void RegisterScriptApi(::ApiInitializer &api);
 private:
-	Scripts::ScriptEngine *m_ScriptEngine;
+    Scripts::ScriptEngine *m_ScriptEngine;
 
-	std::vector<DataModuleInfo> m_Modules;
-	RuntimeConfiguration m_Configuration;
+    std::vector<DataModuleInfo> m_Modules;
+    World *world;
 
-	SynchronizedResourceMap<FontResPtr> m_Fonts;
-	SynchronizedResourceMap<ModelResPtr> m_Models;
-	
-	std::unique_ptr<DataClasses::StringTable> m_StringTables;
+    SynchronizedResourceMap<FontResPtr> m_Fonts;
+    SynchronizedResourceMap<ModelResPtr> m_Models;
+    
+    std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
-	void DumpResources();
+    void DumpResources();
 
-	bool LoadModuleScripts(StarVFS::Containers::iContainer *Container);
+    bool LoadModuleScripts(StarVFS::Containers::iContainer *Container);
 };
 
 } // namespace Data

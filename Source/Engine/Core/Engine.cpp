@@ -115,7 +115,7 @@ void Engine::EngineMain() {
         return;
     }
 
-    m_Running = true;
+    m_Running = true; 
 
     Graphic::cRenderDevice &dev = *Graphic::GetRenderDevice();
     auto Device = m_Renderer->GetDevice();

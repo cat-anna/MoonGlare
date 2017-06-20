@@ -5,8 +5,6 @@
 #include <Engine/iApplication.h>
 #include "GameApplication.h"
 
-#include <Engine/BaseResources.h>
-
 namespace MoonGlare {
 namespace Application {
  

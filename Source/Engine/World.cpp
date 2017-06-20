@@ -11,6 +11,7 @@
 #include "Core/InputProcessor.h"
 #include "Core/Scene/ScenesManager.h"
 #include "Core/Hooks.h"
+#include "Core/Configuration.Runtime.h"
 
 #include "iConsole.h"
 #include "Core/Engine.h"
@@ -19,6 +20,8 @@ namespace MoonGlare {
 
 World::World()
 	: m_ScriptEngine(nullptr) {
+    runtimeConfiguration = std::make_unique<Core::RuntimeConfiguration>();
+
 }
 
 World::~World() {
@@ -52,7 +55,7 @@ bool World::Initialize(Core::Scripts::ScriptEngine *se) {
 	}
 
 	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>();
-	if (!m_ScenesManager->Initialize(this)) {
+	if (!m_ScenesManager->Initialize(this, &runtimeConfiguration->scene)) {
 		AddLogf(Error, "Failed to initialize ScenesManager");
 		return false;
 	}

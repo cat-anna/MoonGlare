@@ -7,6 +7,8 @@
 #ifndef SCENESMANAGER_H_
 #define SCENESMANAGER_H_
 
+#include "Configuration.Scene.h"
+
 namespace MoonGlare::Core::Scene {
 
 struct SceneDescriptor {
@@ -52,7 +54,7 @@ public:
     ScenesManager();
     virtual ~ScenesManager();
 
-    bool Initialize(World *world);
+    bool Initialize(World *world, const SceneConfiguration *configuration);
     bool Finalize();
 
     bool PostSystemInit();
@@ -91,6 +93,7 @@ protected:
 
     bool m_LoadingInProgress;
     World *m_World;
+    const SceneConfiguration *sceneConfiguration = nullptr;
 
     bool LoadNextScene(const std::string &SID);					// load scene and execute it
     bool LoadNextScene(SceneDescriptor *descriptor);			// load scene and execute it
@@ -103,7 +106,6 @@ protected:
     /** Manager shall be already locked */
     SceneDescriptor* FindDescriptor(const std::string &SID);
     SceneDescriptor* AllocDescriptor(StarVFS::FileID fid, const std::string &SID);
-
 };
 
 } //namespace Scene::Core::MoonGlare 

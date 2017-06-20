@@ -34,6 +34,7 @@ public:
 	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
 	Core::ResourceTable* GetResourceTable() { return &m_ResourceTable; }
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
+    Core::RuntimeConfiguration* GetRuntimeConfiguration() { return runtimeConfiguration.get(); }
 
 	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 	Core::Scene::ScenesManager *GetScenesManager() { return m_ScenesManager.get(); };
@@ -50,7 +51,8 @@ public:
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
-	std::unique_ptr<Core::Hooks> m_Hooks;
+    std::unique_ptr<Core::Hooks> m_Hooks;
+    std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
 
 	Core::HandleTable m_HandleTable;
 	Core::ResourceTable m_ResourceTable;
