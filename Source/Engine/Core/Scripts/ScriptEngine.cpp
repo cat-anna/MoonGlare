@@ -7,6 +7,8 @@
 
 #include "InternalScript.h"
 
+#include "Modules/StaticModules.h"
+
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
@@ -163,9 +165,18 @@ bool ScriptEngine::ConstructLuaContext() {
     lua_pushcclosure(m_Lua, &lua_RequireQuerry, 1);
     lua_setglobal(m_Lua, "__RequireQuerry");
 
+
     std::pair<const char *, const char*> InitScripts[] = {
         {"InitRequire", InitCode::InitRequire},
     };
+    
+    try {
+        Modules::StaticModules::InitPrintModule(m_Lua, m_world);
+    }
+    catch (const std::exception &e) {
+        AddLogf(Error, "Exception during static module init '%s'", e.what());
+        return false;
+    }
 
     for (auto code : InitScripts) {
         if (!ExecuteCode(code.second, code.first)) {

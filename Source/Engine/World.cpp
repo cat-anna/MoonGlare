@@ -29,8 +29,7 @@ World::~World() {
 
 //------------------------------------------------------------------------------------------
 
-bool World::Initialize(Core::Scripts::ScriptEngine *se) {
-	m_ScriptEngine = se;
+bool World::Initialize() {
 	THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
 
 	if (!m_EntityManager.Initialize()) {

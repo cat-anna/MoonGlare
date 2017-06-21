@@ -129,6 +129,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     }
 
     auto scrEngine = new ScriptEngine(m_World.get());
+    m_World->SetScriptEngine(scrEngine);
     _init_chk(scrEngine, "Unable to initialize script engine!");
     
     m_Renderer = std::make_unique<Renderer::RendererFacade>();

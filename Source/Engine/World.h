@@ -22,7 +22,7 @@ public:
  	World();
  	~World();
 
-	bool Initialize(Core::Scripts::ScriptEngine *se);
+	bool Initialize();
 	bool Finalize();
 	bool PostSystemInit();
 	bool PreSystemStart();
@@ -46,6 +46,7 @@ public:
 
 	void SetRendererFacade(Renderer::RendererFacade *c) { m_RendererFacade = c; }
 	Renderer::RendererFacade* GetRendererFacade() { return m_RendererFacade; }
+    void SetScriptEngine(Core::Scripts::ScriptEngine *se) { m_ScriptEngine = se; }
 
 	void SetConsole(iConsole *c) { m_Console = c; }
 private:

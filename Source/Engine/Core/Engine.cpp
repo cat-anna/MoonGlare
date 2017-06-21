@@ -49,7 +49,7 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 void Engine::Initialize() {
-    if (!m_World->Initialize(GetScriptEngine())) {
+    if (!m_World->Initialize()) {
         AddLogf(Error, "Failed to initialize world!");
         throw "Failed to initialize world!";
     }
