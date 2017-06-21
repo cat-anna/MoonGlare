@@ -482,6 +482,14 @@ public:
   }
 };
 
+template <>
+inline void UserdataPtr::push(lua_State* const L, void* const p) {
+    if (p)
+        lua_pushlightuserdata(L, p);
+    else
+        lua_pushnil(L);
+}
+
 //============================================================================
 /**
   Wraps a container thet references a class object.

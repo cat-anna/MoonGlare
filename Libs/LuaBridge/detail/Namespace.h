@@ -1168,7 +1168,7 @@ public:
   }
 
   template<class ... ARGS>
-  Namespace& addCClosure(char const* name, int(*const fp)(lua_State*), ARGS&& ... args) {
+  Namespace& addCClosure(char const* name, int(*const fp)(lua_State*), ARGS ... args) {
 	  //lua_pushcfunction(L, fp);
 	  int t[] = { (Stack<ARGS>::push(L, std::forward<ARGS>(args)), 1)..., 0, };
 	  lua_pushcclosure(L, fp, sizeof...(args));
