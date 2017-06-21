@@ -13,9 +13,7 @@ public:
     void Deactivate() override;
     void Activate() override;
     void Clear() override;
-    void AddLine(std::string line, LineType type) override 
-    {
-    }
+    void AddLine(const std::string &line, LineType type) override;
     bool ProcessConsole(const Core::MoveConfig &config) override;
 
     class ConsoleLine;
@@ -29,12 +27,8 @@ public:
     bool SetFont(DataClasses::FontPtr Font);
     void SetMaxLines(unsigned Count) { m_MaxLines = Count; }
 
-
-    void AddLine(const string &Text, unsigned lineType = 0);
-    void AddLine(const wstring &Text, unsigned lineType = 0);
-    void Print(const char* Text, unsigned lineType = 0);
-
-    void AsyncLine(const string &Text, unsigned lineType = 0);
+    void AddLine(wstring Text, LineType lineType = LineType::Regular);
+    void AsyncLine(const string &Text, LineType lineType = LineType::Regular);
 
     const DataClasses::FontPtr& GetFont() { return m_Font; }
 
@@ -44,8 +38,6 @@ public:
     };
     DefineFlag(m_Flags, FlagBit(Flags::Visible), Visible);
     DefineFlag(m_Flags, FlagBit(Flags::HideOldLines), HideOldLines);
-
-    //static void RegisterScriptApi(::ApiInitializer &api);
 protected:
     unsigned m_Flags;
     bool m_Active;

@@ -14,16 +14,19 @@
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
 
+#include <libSpace/src/Container/EnumMapper.h>
+
 namespace MoonGlare::Modules {
 
 class BasicConsole::ConsoleLine {
 public:
-    ConsoleLine(float Time, unsigned Type = (unsigned)OrbitLogger::LogChannels::Info): type(Type), 
-        ShowTime(Time){ 
-    };
+    ConsoleLine(float Time, iConsole::LineType type = iConsole::LineType::Regular): lineType(type),
+        ShowTime(Time){ };
+
     ConsoleLine(const ConsoleLine&) = delete;
     ~ConsoleLine() { }
-    unsigned type;
+
+    iConsole::LineType lineType = iConsole::LineType::Regular;
     float ShowTime;
     wstring Text;
 
@@ -100,15 +103,22 @@ protected:
 };
 
 //-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-
-const emath::fvec4 LineTypesColor[] = {
-        { 1.0f, 1.0f, 1.0f, 1.0f, }, //CC_Line_None
-        { 1.0f, 0.5f, 0.5f, 1.0f, }, //CC_Line_Error
-        { 0.8f, 0.8f, 0.0f, 1.0f, }, //CC_Line_Warning
-        { 0.6f, 1.0f, 0.6f, 1.0f, }, //CC_Line_Hint
-        { 0.8f, 0.8f, 0.8f, 1.0f, }, //BasicConsole
+         
+struct LineColorTable : public Space::Container::EnumMapper<iConsole::LineType, emath::fvec4> {
+    LineColorTable() {
+        using E = iConsole::LineType;
+        at(E::Regular)   = emath::fvec4{ 0.8f, 0.8f, 0.8f, 1.0f, };
+        at(E::Highlight) = emath::fvec4{ 1.0f, 1.0f, 1.0f, 1.0f, };
+        at(E::Error)     = emath::fvec4{ 1.0f, 0.5f, 0.5f, 1.0f, };
+        at(E::Warning)   = emath::fvec4{ 0.8f, 0.8f, 0.0f, 1.0f, };
+        at(E::Hint)      = emath::fvec4{ 0.6f, 1.0f, 0.6f, 1.0f, };
+        at(E::Debug)     = emath::fvec4{ 0.5f, 0.5f, 1.0f, 1.0f, };
+    }
 };
+       
+static const LineColorTable LineTypesColor;
+
+//-------------------------------------------------------------------------------------------------
 
 BasicConsole::BasicConsole() :
         m_Font(0), 
@@ -142,20 +152,11 @@ bool BasicConsole::Finalize() {
     return true;
 }
 
-#if 0
-RegisterApiBaseClass(BasicConsole, &BasicConsole::RegisterScriptApi);
-
-void BasicConsole::RegisterScriptApi(::ApiInitializer &api) {
-    api
-    .beginClass<ThisClass>("cConsole")
-        .addFunction("Clear", &BasicConsole::Clear)
-        .addFunction("Print", &BasicConsole::Print)
-        .addFunction("SetVisible", &ThisClass::SetVisible)
-    .endClass();
-}
-#endif
-
 //-------------------------------------------------------------------------------------------------
+
+void BasicConsole::AddLine(const std::string &line, LineType type) {
+    return AddLine(Utils::Strings::towstring(line), type);
+}
 
 bool BasicConsole::SetFont(DataClasses::FontPtr Font) {
     Clear();
@@ -251,7 +252,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
 
             if (!line.m_Ready) {
                 DataClasses::Fonts::iFont::FontRenderRequest req{ };
-                req.m_Color = LineTypesColor[line.type];
+                req.m_Color = LineTypesColor[line.lineType];
                 DataClasses::Fonts::iFont::FontRect rect;
                 DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
 
@@ -267,7 +268,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     if (m_Active) {
         if (!m_InputLine->m_TextValid) {
             DataClasses::Fonts::iFont::FontRenderRequest req;
-            req.m_Color = LineTypesColor[0];
+            req.m_Color = LineTypesColor[LineType::Regular];
             DataClasses::Fonts::iFont::FontRect rect;
             DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
             m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
@@ -283,21 +284,13 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     return true;
 }
 
-void BasicConsole::Print(const char* Text, unsigned lineType) {
-    return AddLine(Utils::Strings::towstring(Text), lineType);
-}
-
-void BasicConsole::AddLine(const string &Text, unsigned lineType) {
-    return AddLine(Utils::Strings::towstring(Text), lineType);
-}
-
-void BasicConsole::AddLine(const wstring &Text, unsigned lineType) {
+void BasicConsole::AddLine(wstring Text, LineType lineType) {
     m_Lines.emplace_back((float)glfwGetTime() + 60, lineType);
     auto &line = m_Lines.back();
-    line.Text = Text;
+    line.Text = std::move(Text);
 }
 
-void BasicConsole::AsyncLine(const string &Text, unsigned lineType) {
+void BasicConsole::AsyncLine(const string &Text, LineType lineType) {
     Core::GetEngine()->PushSynchronizedAction([=]() {
         AddLine(Text, lineType);
     });

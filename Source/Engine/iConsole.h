@@ -7,19 +7,22 @@ protected:
     virtual ~iConsole() {};
 public:
     enum class LineType {
-        Regular,       
+        Regular,
         Highlight,
 
         Error,
         Warning,
         Hint,
+        Debug,
+
+        MaxValue,
     };
 
 
     virtual void PushKey(unsigned key) = 0;
 
     virtual void Clear() = 0;
-    virtual void AddLine(std::string line, LineType type = LineType::Regular) = 0;
+    virtual void AddLine(const std::string &line, LineType type = LineType::Regular) = 0;
 
     //virtual void SetVisible(bool value) = 0;
     //virtual bool IsVisible()const = 0;
