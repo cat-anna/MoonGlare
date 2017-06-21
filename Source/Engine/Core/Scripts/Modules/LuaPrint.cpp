@@ -42,14 +42,10 @@ int ClosureWrap(lua_State* lua) {
     return F(lua, t);
 }
 
-static constexpr char *InitPrint = R"===(
+static constexpr char InitPrintCode[] = R"===(
 
 local function dofmt(...)
-    local t = { }
-    for i,v in ipairs({...}) do
-        t[i] = tostring(v)
-    end
-    return table.concat(t, " ")
+    return table.concat({...}, " ")
 end
 
 function print(...) Log.Console(dofmt(...)) end
@@ -70,8 +66,8 @@ end
                    
 )===";
 
-void StaticModules::InitPrintModule(lua_State *lua, World *world) {
-    if (!world->GetScriptEngine()->ExecuteCode(InitPrint, "InitPrint")) {
+void StaticModules::InitPrint(lua_State *lua, World *world) {
+    if (!world->GetScriptEngine()->ExecuteCode(std::string(InitPrintCode), "InitPrint")) {
         throw std::runtime_error("InitPrintModule execute code failed!");
     }
 
@@ -87,4 +83,4 @@ void StaticModules::InitPrintModule(lua_State *lua, World *world) {
         ;
 }
 
-}
+} //namespace MoonGlare::Core::Scripts::Modules

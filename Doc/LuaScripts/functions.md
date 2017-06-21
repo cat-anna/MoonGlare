@@ -19,3 +19,13 @@ currently only internal modules are supported, they cannot be defined inside any
 * _RuntimeConfiguration_ \
 Visible only in `init.lua` scripts. Cannot be accessed in any other situations, reference to object cannot be store for later use. Returned object is Engine RuntimeConfiguration.
 
+
+## Logging functions
+
+* print[f]
+* hint[f]
+* debug[f]
+* warning[f]
+* error -> also raises lua panic
+
+All of above functions take multiple parameters. Versions with f does string.format instead of behaving like original lua's print function.

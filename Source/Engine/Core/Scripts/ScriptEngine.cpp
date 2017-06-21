@@ -171,7 +171,9 @@ bool ScriptEngine::ConstructLuaContext() {
     };
     
     try {
-        Modules::StaticModules::InitPrintModule(m_Lua, m_world);
+        Modules::StaticModules::InitPrint(m_Lua, m_world);
+        Modules::StaticModules::InitMath(m_Lua, m_world);
+        Modules::StaticModules::InitRandom(m_Lua, m_world);
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());
