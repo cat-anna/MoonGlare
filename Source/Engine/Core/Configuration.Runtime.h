@@ -5,7 +5,7 @@
 namespace MoonGlare::Core {
 
 struct RuntimeConfiguration {
-    //std::string ConsoleScene;
+    std::string consoleFont = "Arial";
     Scene::SceneConfiguration scene;
 };
 

@@ -71,7 +71,8 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
         .endClass()
         .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
             .addData("scene", &RuntimeConfiguration::scene)
-        .endClass()
+            .addData("consoleFont", &RuntimeConfiguration::consoleFont)
+        .endClass()                                
     ;
 }
 
@@ -228,7 +229,7 @@ void Manager::LoadGlobalData() {
 //------------------------------------------------------------------------------------------
 
 DataClasses::FontPtr Manager::GetConsoleFont() {
-    return GetFont("Arial");
+    return GetFont(world->GetRuntimeConfiguration()->consoleFont);
 }
 
 DataClasses::FontPtr Manager::GetDefaultFont() { 

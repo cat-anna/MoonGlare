@@ -11,4 +11,5 @@ Example:
 local rtconf = require "RuntimeConfiguration"
 rtconf.scene.firstScene = "MainMenu"
 rtconf.scene.loadingScene = "LoadScene"
+rtconf.consoleFont = "Arial"
 ```
