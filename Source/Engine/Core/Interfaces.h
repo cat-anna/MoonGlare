@@ -14,7 +14,6 @@ class Interfaces {
 public:
 	Interfaces() = delete;
 	static void DumpLists(ostream &out);
-	static void RegisterScriptApi(ApiInitializer &api);
 private:
 };
 

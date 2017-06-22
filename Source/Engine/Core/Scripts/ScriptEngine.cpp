@@ -115,9 +115,6 @@ bool ScriptEngine::ConstructLuaContext() {
 
     lua_newtable(m_Lua);
     lua_setglobal(m_Lua, "global");
-    lua_newtable(m_Lua);
-    lua_setglobal(m_Lua, "static");
-    //TODO: Load and store static context
 
 #ifdef DEBUG
     luabridge::setHideMetatables(false);

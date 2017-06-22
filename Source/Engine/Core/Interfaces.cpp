@@ -14,17 +14,6 @@
 namespace MoonGlare {
 namespace Core {
 
-#if 0
-RegisterApiNonClass(Interfaces, &Interfaces::RegisterScriptApi);
-
-void Interfaces::RegisterScriptApi(ApiInitializer &api) {
-	api
-	.beginNamespace("Interface")
-	.endNamespace()
-	;
-}
-#endif
-
 void Interfaces::DumpLists(ostream &out) {
 	auto regdump = [&out](const Space::TemplateClassListBase::ClassInfoBase &type) {
 		char buffer[256];

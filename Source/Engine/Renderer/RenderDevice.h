@@ -15,8 +15,6 @@ class cRenderDevice : public cRootClass {
 public:
 	cRenderDevice();
 
-	mem::aligned_ptr<RenderInput> CreateRenderInput();
-
 	bool Finalize();
 
 	void BeginFrame() { ++m_FrameIndex; }

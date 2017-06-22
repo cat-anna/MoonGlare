@@ -12,8 +12,6 @@
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
-#include <Renderer/RenderInput.h>
-
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <RectTransformComponent.x2c.h>

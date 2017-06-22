@@ -10,6 +10,7 @@
 #define LightComponent_H
 
 #include <Core/Component/AbstractComponent.h>
+#include "../Light.h"
 
 namespace MoonGlare {
 namespace Renderer {

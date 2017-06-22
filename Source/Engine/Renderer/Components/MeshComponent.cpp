@@ -7,8 +7,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Renderer/RenderInput.h>
-
 #include "MeshComponent.h"
 
 #include <Core/Component/ComponentManager.h>
@@ -73,7 +71,6 @@ bool MeshComponent::Finalize() {
 }
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
-	auto *RInput = conf.m_RenderInput.get();
 
 	size_t LastInvalidEntry = 0;
 	size_t InvalidEntryCount = 0;
@@ -129,7 +126,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 		}
 
 		auto &vao = item.m_Model->GetVAO();
-		auto r = RInput->m_DefferedSink->Begin(tcentry->m_GlobalMatrix, vao);
+		auto r = conf.deferredSink->Begin(tcentry->m_GlobalMatrix, vao);
 		for (auto &mesh : item.m_Model->GetMeshVector()) {
 			r.Mesh(mesh.m_Material, mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, vao.IndexValueType());
 		}

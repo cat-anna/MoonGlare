@@ -7,8 +7,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Renderer/RenderInput.h>
-
 #include "DirectAnimationComponent.h"
 
 #include <Core/Component/ComponentManager.h>

@@ -7,8 +7,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Renderer/RenderInput.h>
-
 #include "LightComponent.h"
 #include <Core/Component/ComponentManager.h>
 #include <Core/Component/ComponentRegister.h>
@@ -81,8 +79,6 @@ bool LightComponent::Finalize() {
 //------------------------------------------------------------------------------------------
 
 void LightComponent::Step(const Core::MoveConfig & conf) {
-    auto *RInput = conf.m_RenderInput.get();
-
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;
 
@@ -142,7 +138,7 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             sl.m_Position = pos;
             sl.m_Direction = dir;
 
-            conf.m_RenderInput->m_DefferedSink->SubmitSpotLight(sl);
+            conf.deferredSink->SubmitSpotLight(sl);
             continue;
         }
         case Light::LightType::Point: {
@@ -156,11 +152,11 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             pl.m_PositionMatrix = glm::scale(mat, math::vec3(infl));
             pl.m_Position = convert(tr.getOrigin());
 
-            conf.m_RenderInput->m_DefferedSink->SubmitPointLight(pl);
+            conf.deferredSink->SubmitPointLight(pl);
             continue;
         }
         case Light::LightType::Directional:	
-            conf.m_RenderInput->m_DefferedSink->SubmitDirectionalLight(item.m_Base);
+            conf.deferredSink->SubmitDirectionalLight(item.m_Base);
             continue;
         default:
             item.m_Flags.m_Map.m_Valid = false;

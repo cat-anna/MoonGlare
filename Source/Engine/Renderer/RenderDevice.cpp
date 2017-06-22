@@ -7,8 +7,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Renderer/RenderInput.h>
-
 namespace Graphic {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
@@ -21,10 +19,6 @@ cRenderDevice::cRenderDevice() :
 
     m_InitThreadId = std::this_thread::get_id();
 }  
-
-mem::aligned_ptr<RenderInput> cRenderDevice::CreateRenderInput() {
-    return mem::make_aligned<RenderInput>();
-}
 
 bool cRenderDevice::Finalize() {
     AddLog(Performance, "Frames drawn: " << m_FrameIndex);

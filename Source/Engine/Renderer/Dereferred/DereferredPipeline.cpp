@@ -3,8 +3,6 @@
 
 #include "DereferredPipeline.h"
 
-#include <Renderer/RenderInput.h>
-
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>

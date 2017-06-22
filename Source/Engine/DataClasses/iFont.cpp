@@ -4,7 +4,6 @@
 
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
-#include <Renderer/RenderInput.h>
 
 #include <Renderer/Frame.h>
 #include <Renderer/RenderDevice.h>

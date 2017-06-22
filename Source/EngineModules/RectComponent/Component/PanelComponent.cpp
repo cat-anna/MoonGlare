@@ -21,8 +21,6 @@
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 
-#include <Renderer/RenderInput.h>
-
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <RectTransformComponent.x2c.h>

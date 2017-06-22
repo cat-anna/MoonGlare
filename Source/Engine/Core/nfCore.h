@@ -63,7 +63,8 @@ struct MoveConfig {
 
     mutable Renderer::VirtualCamera *Camera = nullptr;
     
-    mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
+    //mutable mem::aligned_ptr<Renderer::RenderInput> m_RenderInput;
+    Graphic::Dereferred::DefferedSink *deferredSink;
 
     bool m_SecondPeriod;
 };

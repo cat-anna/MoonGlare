@@ -6,7 +6,6 @@
 
 #include <Renderer/Dereferred/DereferredPipeline.h>
 
-#include <Renderer/RenderInput.h>
 #include <Renderer/Frame.h>
 
 #include <Source/Renderer/Renderer.h>
@@ -122,8 +121,7 @@ void Engine::EngineMain() {
     auto Ctx = m_Renderer->GetContextImpl();
 
     MoveConfig conf;
-    conf.m_RenderInput = dev.CreateRenderInput();
-    conf.m_RenderInput->m_DefferedSink = m_Dereferred->GetDefferedSink();
+    conf.deferredSink = m_Dereferred->GetDefferedSink();
     conf.m_ScreenSize = Ctx->GetSizef();
 
     using clock = std::chrono::steady_clock;
@@ -158,7 +156,7 @@ void Engine::EngineMain() {
 
         auto StartTime = clock::now();
         {
-            conf.m_RenderInput->m_DefferedSink->Reset(conf);
+            conf.deferredSink->Reset(conf);
             conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
             Ctx->Process();
             GetScriptEngine()->Step(conf);

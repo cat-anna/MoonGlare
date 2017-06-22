@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 
 #include <Renderer/VirtualCamera.h>
-#include <Renderer/RenderInput.h>
 
 #include "CameraComponent.h"
 #include <Core/Component/ComponentManager.h>
@@ -77,8 +76,6 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
         return;
     }
 
-    auto *RInput = conf.m_RenderInput.get();
-
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;
 
@@ -134,14 +131,13 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
         auto p = convert(tr.getOrigin());
         auto d = convert(quatRotate(q, Physics::vec3(0, 0, 1)));
 
-        RInput->m_Camera.m_Position =  emath::MathCast<emath::fvec3>(p);
-        RInput->m_Camera.m_Direction = emath::MathCast<emath::fvec3>(d);
+        auto &cam = conf.deferredSink->m_Camera;
+        cam.m_Position =  emath::MathCast<emath::fvec3>(p);
+        cam.m_Direction = emath::MathCast<emath::fvec3>(d);
 
         //RInput->m_Camera.UpdateMatrix();
         auto view = glm::lookAt(p, p + d, math::vec3(0, 1, 0));
-        RInput->m_Camera.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
-
-        RInput->m_DefferedSink->m_Camera = RInput->m_Camera;
+        cam.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
     }
 
     if (InvalidEntryCount > 0) {
