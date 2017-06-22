@@ -5,9 +5,8 @@
 #include "LuaUtils.h"
 #include <Utils/LuaUtils.h>
 
-#include "InternalScript.h"
-
 #include "Modules/StaticModules.h"
+#include "Modules/LuaRequire.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -160,31 +159,16 @@ bool ScriptEngine::ConstructLuaContext() {
     }
     lua_settable(m_Lua, LUA_REGISTRYINDEX);						//stack: ... index ctable
 
-
-    lua_pushlightuserdata(m_Lua, this);
-    lua_pushcclosure(m_Lua, &lua_RequireQuerry, 1);
-    lua_setglobal(m_Lua, "__RequireQuerry");
-
-
-    std::pair<const char *, const char*> InitScripts[] = {
-        {"InitRequire", InitCode::InitRequire},
-    };
-    
     try {
         Modules::StaticModules::InitPrint(m_Lua, m_world);
         Modules::StaticModules::InitMath(m_Lua, m_world);
-        Modules::StaticModules::InitRandom(m_Lua, m_world);
+        Modules::StaticModules::InitRandom(m_Lua, m_world);       
+
+        InstallModule<Modules::LuaRequireModule, iRequireModule>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());
         return false;
-    }
-
-    for (auto code : InitScripts) {
-        if (!ExecuteCode(code.second, code.first)) {
-            AddLogf(Error, "Cannot load init script '%s'", code.first);
-            return false;
-        }
     }
 
     ApiInit::Initialize(this);
@@ -198,6 +182,7 @@ bool ScriptEngine::ConstructLuaContext() {
 
 bool ScriptEngine::ReleaseLuaContext() {
     LOCK_MUTEX(m_Mutex);
+    modules.clear();
     PrintMemoryUsage();
     lua_close(m_Lua);
     m_Lua = nullptr;
@@ -411,29 +396,14 @@ int ScriptEngine::RegisterModifyScript(lua_State * lua) {
 
 //---------------------------------------------------------------------------------------
 
-void ScriptEngine::RegisterRequire(const std::string &name, iScriptRequire *iface) {
-    if (!iface) {
-        scriptRequireMap.erase(name);
-        return;
-    }
-    scriptRequireMap[name] = iface;
-}
-
-int ScriptEngine::lua_RequireQuerry(lua_State *lua) {
-    std::string_view modname = luaL_checkstring(lua, -1);
-
-    void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
-    ScriptEngine *This = reinterpret_cast<ScriptEngine*>(voidThis);
-
-    auto it = This->scriptRequireMap.find(modname.data());
-    if (it != This->scriptRequireMap.end()) {
-        return it->second->OnRequire(lua, modname);
+template<typename Class, typename Iface>
+void ScriptEngine::InstallModule() {
+    auto &mod = modules[std::type_index(typeid(Iface))];
+    if (mod.basePtr) {
+        throw std::runtime_error(std::string("Attempt to reregister iface ") + typeid(Iface).name());
     }
 
-    //TODO: add support for opening files
-
-    lua_pushfstring(lua, "There is no registered require '%s'", modname.data());
-    return 0;
+    mod.basePtr = std::make_unique<Class>(m_Lua, m_world);
 }
 
 } //namespace Scripts

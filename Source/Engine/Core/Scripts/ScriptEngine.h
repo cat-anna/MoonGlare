@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iScriptRequire.h"
+#include "iDynamicModule.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -16,6 +16,16 @@ public:
     bool Finalize();
 
     void Step(const MoveConfig & conf);
+
+    template<typename Iface>
+    Iface* QuerryModule() const {
+        auto it = modules.find(std::type_index(typeid(Iface)));
+        if (it == modules.end()) {
+            AddLogf(Error, "Module %s is not registered", typeid(Iface).name());
+            return nullptr;
+        }
+        return dynamic_cast<Iface*>(it->second.basePtr.get());
+    }
 
     template<class RET = void, class ... Types>
     RET RunChildFunction(const char *Location, const char *FuncName, Types ... args) {
@@ -84,8 +94,6 @@ public:
     void PrintMemoryUsage() const;
     float GetMemoryUsage() const;
 
-    void RegisterRequire(const std::string &name, iScriptRequire *iface);
-
     static void RegisterScriptApi(ApiInitializer &api);
 protected:
     int RegisterModifyScript(lua_State *lua);
@@ -110,10 +118,15 @@ protected:
 private:
     lua_State *m_Lua = nullptr;
     World *m_world;
-    mutable std::recursive_mutex m_Mutex;
+    mutable std::recursive_mutex m_Mutex;        
 
-    std::unordered_map<std::string, iScriptRequire*> scriptRequireMap;
-    static int lua_RequireQuerry(lua_State *lua);
+    struct DynamicModule {
+        std::unique_ptr<iDynamicScriptModule> basePtr;
+    };
+    std::unordered_map<std::type_index, DynamicModule> modules;
+
+    template<typename Class, typename Iface>
+    void InstallModule();
 
 //old:
 protected:

@@ -2,9 +2,9 @@
 
 namespace MoonGlare::Core::Scripts {
 
-class iScriptRequire {
+class iDynamicScriptModule {
 public:
-    virtual int OnRequire(lua_State *lua, const std::string_view& name) = 0;
+    virtual ~iDynamicScriptModule() {}
 };
 
 } //namespace MoonGlare::Core::Script

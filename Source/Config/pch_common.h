@@ -33,6 +33,7 @@
 #include <chrono>
 #include <random>
 #include <type_traits>
+#include <typeindex>
 
 #include <mutex>
 #include <thread>

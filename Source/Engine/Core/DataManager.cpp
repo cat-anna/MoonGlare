@@ -7,7 +7,7 @@
 #include <Engine/Core/Configuration.Runtime.h>
 #include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
-#include <Engine/Core/Scripts/iScriptRequire.h>
+#include <Engine/Core/Scripts/iLuaRequire.h>
 
 #include <DataClasses/Models/SimpleModelImpl.h>
 
@@ -161,7 +161,7 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 
     auto cid = Container->GetContainerID();
 
-    struct RTCfg : public Scripts::iScriptRequire {
+    struct RTCfg : public Scripts::iRequireRequest {
         RTCfg(RuntimeConfiguration*r):currconf(*r), rtconf(r){}
         RuntimeConfiguration currconf;
         RuntimeConfiguration *rtconf;
@@ -177,9 +177,10 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
         }
     };
 
-    RTCfg require(world->GetRuntimeConfiguration());
+    RTCfg require(world->GetRuntimeConfiguration());    
+    auto rmod = m_ScriptEngine->QuerryModule<Scripts::iRequireModule>();
 
-    auto func = [this, cid, Container, &require](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
+    auto func = [this, cid, Container, &require, rmod](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
         auto dot = strrchr(fname, '.');
         if (!dot)
             return true;
@@ -197,15 +198,15 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
 
         bool reg = false;
         std::string_view vname = strrchr(fname, '/') + 1; //horrible!!
-        if (vname == "init.lua") { 
+        if (rmod && vname == "init.lua") {
             reg = true;
-            m_ScriptEngine->RegisterRequire("RuntimeConfiguration", &require);
+            rmod->RegisterRequire("RuntimeConfiguration", &require);
         }
 
         m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
 
-        if (reg)
-            m_ScriptEngine->RegisterRequire("RuntimeConfiguration", nullptr);
+        if (rmod && reg)
+            rmod->RegisterRequire("RuntimeConfiguration", nullptr);
 
         return true;
     };
