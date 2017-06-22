@@ -76,7 +76,8 @@ bool Frame::Finalize() {
 
 //----------------------------------------------------------------------------------
 
-void Frame::BeginFrame() {
+void Frame::BeginFrame(uint64_t index) {
+    frameIndex = index;
     m_QueuedTextureRender.ClearAllocation();
     m_SubQueueTable.ClearAllocation();
 

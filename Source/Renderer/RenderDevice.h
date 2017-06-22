@@ -40,11 +40,14 @@ public:
         Commands::CommitCommandQueue* null = nullptr;
         return m_CommitCommandQueue.compare_exchange_weak(null, queue);
     }
+
+    uint64_t FrameCounter() const { return frameCouter; }
 private:
     std::array<mem::aligned_ptr<Frame>, Conf::Count> m_Frames;
     std::atomic<uint32_t> m_FreeFrameBuffers = 0;
     std::atomic<Frame*> m_PendingFrame = nullptr;
     std::atomic<Commands::CommitCommandQueue*> m_CommitCommandQueue = nullptr;
+    uint64_t frameCouter = 0;
 
     Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
     std::array<TextureRenderTask, Configuration::TextureRenderTask::Limit> m_TextureRenderTask;

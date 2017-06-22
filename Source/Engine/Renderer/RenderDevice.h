@@ -15,18 +15,10 @@ class cRenderDevice : public cRootClass {
 public:
 	cRenderDevice();
 
-	bool Finalize();
-
-	void BeginFrame() { ++m_FrameIndex; }
-	uint64_t FrameIndex() const { return m_FrameIndex; }
-
 	void RequestContextManip(LoadQueue::LoadRequestFunc func);
 	void DelayedContextManip(LoadQueue::LoadRequestFunc func) { m_LoadQueue.QueueRequest(func); }
 	void DispatchContextManipRequests();
-
-	static void RegisterDebugScriptApi(ApiInitializer &api);
 protected:
-	uint64_t m_FrameIndex = 0;
 	LoadQueue m_LoadQueue;
 	std::thread::id m_InitThreadId;
 }; 

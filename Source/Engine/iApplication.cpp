@@ -205,7 +205,6 @@ void iApplication::Finalize() {
 
     MoonGlare::Core::Engine::Instance()->Finalize();
     _finit_chk(DataManager, "Data Manager finalization failed");
-    _finit_chk(Graphic::cRenderDevice, "Render device finalization failed");
 
     Graphic::cRenderDevice::DeleteInstance();
 

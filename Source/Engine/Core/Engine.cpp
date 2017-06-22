@@ -177,7 +177,6 @@ void Engine::EngineMain() {
             using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
             dev.DispatchContextManipRequests();
-            dev.BeginFrame();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -206,7 +205,7 @@ void Engine::EngineMain() {
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
                 sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
-                        tdiff(BeginTime, CurrentTime), m_LastFPS, dev.FrameIndex(), m_SkippedFrames,
+                        tdiff(BeginTime, CurrentTime), m_LastFPS, Device->FrameCounter(), m_SkippedFrames,
                         tdiff(StartTime, MoveTime) * 1000.0f,
                         tdiff(MoveTime, SortTime) * 1000.0f,
                         tdiff(SortTime, RenderTime) * 1000.0f,

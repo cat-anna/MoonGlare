@@ -5,7 +5,6 @@
 */
 #include <pch.h>
 #include "Graphic.h"
-//#include <EngineHeader.h>
 #include "FrameBuffer.h"
 
 namespace Graphic {

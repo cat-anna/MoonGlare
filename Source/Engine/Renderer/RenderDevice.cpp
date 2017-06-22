@@ -10,7 +10,6 @@
 namespace Graphic {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(cRenderDevice)
-RegisterDebugApi(Graphic, &cRenderDevice::RegisterDebugScriptApi, "Graphic");
 
 cRenderDevice::cRenderDevice() :
         cRootClass(),
@@ -19,11 +18,6 @@ cRenderDevice::cRenderDevice() :
 
     m_InitThreadId = std::this_thread::get_id();
 }  
-
-bool cRenderDevice::Finalize() {
-    AddLog(Performance, "Frames drawn: " << m_FrameIndex);
-    return true;
-}
 
 //----------------------------------------------------------------------------------
  
@@ -40,22 +34,5 @@ void cRenderDevice::DispatchContextManipRequests() {
     }
     m_LoadQueue.DispatchAllRequests();
 }
-
-//----------------------------------------------------------------------------------
-
-#ifdef DEBUG
-void cRenderDevice::RegisterDebugScriptApi(ApiInitializer &api) {
-    struct T {
-        static void SetWireFrameMode(bool value) {
-            if (value) glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-            else glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-        }
-    };
-    api
-    .addFunction("SetWireFrameMode", &T::SetWireFrameMode)
-    //.addVariable("Gamma", &m_gamma, true)
-    ;
-}
-#endif
 
 } // namespace Graphic 

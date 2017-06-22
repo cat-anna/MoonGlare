@@ -114,7 +114,7 @@ public:
         return q;
     }
 
-    void BeginFrame();
+    void BeginFrame(uint64_t index);
     void EndFrame();
 
     bool Submit(TextureRenderTask *trt);
@@ -152,6 +152,7 @@ public:
     uint8_t Index() const { return m_BufferIndex; }
     RenderDevice* GetDevice() const { return m_RenderDevice; }
     Resources::ResourceManager* GetResourceManager() const { return m_ResourceManager; }
+    uint64_t FrameIndex() const { return frameIndex; }
 private:
     uint8_t m_BufferIndex;
     uint8_t padding8[2];
@@ -169,6 +170,8 @@ private:
     TextureRenderQueue m_QueuedTextureRender;
     FrameResourceStorage m_FrameResourceStorage;
     Allocator_t m_Memory;
+
+    uint64_t frameIndex;
 };
 
 static_assert((sizeof(Frame) % 16) == 0, "Invalid size!");

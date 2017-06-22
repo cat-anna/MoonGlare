@@ -63,6 +63,8 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
 
 bool RenderDevice::Finalize() {
 
+    AddLogf(Performance, "Allocated frames: %llu", frameCouter);
+
     for (auto &buffer : m_Frames) {
         if (!buffer->Finalize()) {
             AddLogf(Error, "Frame buffer finalization failed!");
@@ -80,7 +82,7 @@ Frame* RenderDevice::NextFrame() {
         auto bit = 1u << idx;
         if ((m_FreeFrameBuffers.fetch_and(~bit) & bit) == bit) {
             auto fr = m_Frames[idx].get();
-            fr->BeginFrame();
+            fr->BeginFrame(++frameCouter);
             return fr;
         }
     }
