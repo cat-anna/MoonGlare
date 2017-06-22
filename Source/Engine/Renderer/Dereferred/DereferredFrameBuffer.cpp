@@ -19,7 +19,7 @@ DereferredFrameBuffer::~DereferredFrameBuffer() {
 }
 
 void DereferredFrameBuffer::Free() {
-    FrameBuffer::FreeFrameBuffer();
+    FreeFrameBuffer();
 
     if (m_Textures[0]) {
         glDeleteTextures(Buffers::MaxValue, m_Textures);
@@ -34,6 +34,32 @@ void DereferredFrameBuffer::Free() {
     }
 }
 
+bool DereferredFrameBuffer::FreeFrameBuffer() {
+    if (m_FrameBuffer != 0)
+        GetRenderDevice()->RequestContextManip([this] {
+        glDeleteFramebuffers(1, &m_FrameBuffer);
+        m_FrameBuffer = 0;
+    });
+    return true;
+}
+
+bool DereferredFrameBuffer::NewFrameBuffer() {
+    if (m_FrameBuffer) FreeFrameBuffer();
+    GetRenderDevice()->RequestContextManip([this] {
+        glGenFramebuffers(1, &m_FrameBuffer);
+        Bind();
+    });
+    return true;
+}
+
+bool DereferredFrameBuffer::FinishFrameBuffer() {
+    GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (Status != GL_FRAMEBUFFER_COMPLETE) {
+        AddLogf(Error, "FB error, status: 0x%x\n", Status);
+        return false;
+    }
+    return true;
+}
 
 void DereferredFrameBuffer::BeginFrame() {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FrameBuffer);
@@ -93,8 +119,8 @@ bool DereferredFrameBuffer::Reset(const emath::fvec2 &ScreenSize) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s[0], s[1], 0, GL_RGB, GL_FLOAT, NULL);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_FinalTexture, 0);	
 
-    FrameBuffer::FinishFrameBuffer();
-    FrameBuffer::UnBind();
+    FinishFrameBuffer();
+    UnBind();
 
     return true;
 }
