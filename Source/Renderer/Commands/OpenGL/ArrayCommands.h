@@ -74,6 +74,17 @@ struct VAODrawElementsArgument {
 };
 using VAODrawElements = CommandTemplate<VAODrawElementsArgument>;
 
+struct VAODrawArraysArgument {
+    GLenum mode;
+    GLint first;
+    GLsizei count;
+
+    static void Execute(const VAODrawArraysArgument *arg) {
+        glDrawArrays(arg->mode, arg->first, arg->count);
+    }
+};
+using VAODrawArrays = CommandTemplate<VAODrawArraysArgument>;
+
 //---------------------------------------------------------------------------------------
 //Buffer handling
 //---------------------------------------------------------------------------------------

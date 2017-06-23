@@ -21,7 +21,7 @@ struct FrameResourceStorage {
 };
 
 struct FrameBuffer {
-    static constexpr uint32_t MemorySize = 1 * 128 * 1024;
+    static constexpr uint32_t MemorySize = 1 * 1024 * 1024;
     static constexpr uint32_t Count = 3;
     static constexpr uint32_t SubQueueCount = 64;
 
@@ -31,8 +31,8 @@ struct FrameBuffer {
         ShadowMaps,
         //Render,
         DefferedGeometry,
-        //DefferedLighting,
-        //PostRender,
+        DefferedLighting,   //
+        PostRender,         //splitted to allow debugdraw
         //Postprocess,
 
         GUI, //temporary

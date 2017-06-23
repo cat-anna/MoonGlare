@@ -214,26 +214,29 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
         m_SpotLightShadowQueue->MakeCommand<Commands::Disable>((GLenum)GL_BLEND);
     }
     {
-        auto &q = layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedGeometry>();
+        auto &qgeom = layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedGeometry>();
+        qgeom.PushQueue(m_GeometryQueue);
 
-        q.PushQueue(m_GeometryQueue);
-        q.MakeCommand<Commands::DepthMask>((GLboolean)GL_FALSE);
-        q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
-        q.PushQueue(m_DirectionalLightQueue);
-        q.MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
-        q.PushQueue(m_SpotLightQueue);
-        q.PushQueue(m_PointLightQueue);
-        q.MakeCommand<Commands::Disable>((GLenum)GL_STENCIL_TEST);
+        auto &qlight = layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedLighting>();
+        qlight.MakeCommand<Commands::DepthMask>((GLboolean)GL_FALSE);
+        qlight.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+        qlight.PushQueue(m_DirectionalLightQueue);
+        qlight.MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
+        qlight.PushQueue(m_SpotLightQueue);
+        qlight.PushQueue(m_PointLightQueue);
+        qlight.MakeCommand<Commands::Disable>((GLenum)GL_STENCIL_TEST);
 
+
+        auto &qpost = layers.Get<Renderer::Configuration::FrameBuffer::Layer::PostRender>();
         //m_Buffer.BeginFinalPass();
-        q.MakeCommand<Commands::FramebufferDrawBind>(Renderer::Device::InvalidFramebufferHandle);
+        qpost.MakeCommand<Commands::FramebufferDrawBind>(Renderer::Device::InvalidFramebufferHandle);
         //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         //glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FrameBuffer);
-        q.MakeCommand<Commands::FramebufferReadBind>(m_DereferredPipeline->m_Buffer.m_FrameBuffer);
-        q.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
+        qpost.MakeCommand<Commands::FramebufferReadBind>(m_DereferredPipeline->m_Buffer.m_FrameBuffer);
+        qpost.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
         
         auto size = config.m_ScreenSize;
-        q.MakeCommand<Commands::BlitFramebuffer>(
+        qpost.MakeCommand<Commands::BlitFramebuffer>(
             0, 0, (GLint)size[0], (GLint)size[1], 
             0, 0, (GLint)size[0], (GLint)size[1], 
             (GLenum)GL_COLOR_BUFFER_BIT, (GLenum)GL_LINEAR);

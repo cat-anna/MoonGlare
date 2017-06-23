@@ -173,7 +173,6 @@ void Engine::EngineMain() {
         Device->Submit(conf.m_BufferFrame);
         {
             auto frame = Device->PendingFrame();
-            auto &cmdl = frame->GetCommandLayers();
             using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
             dev.DispatchContextManipRequests();

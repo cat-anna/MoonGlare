@@ -110,12 +110,10 @@ bool BodyComponent::LoadComponentConfiguration(pugi::xml_node node) {
 //---------------------------------------------------------------------------------------
 
 void BodyComponent::Step(const Core::MoveConfig & conf) {
-	if (m_Array.empty())
-		return;
 
-	//if (Config::Current::EnableFlags::PhysicsDebugDraw) {
-	//	conf.CustomDraw.push_back(this);
-	//}
+	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
+        DebugDraw(conf);
+	}
 	
 	if(!Config::Current::EnableFlags::Physics)
 		return;
@@ -413,27 +411,17 @@ BodyComponent::BulletRigidBody *BodyComponent::GetRigidBody(Handle h) {
 
 //-------------------------------------------------------------------------------------------------
 
-void BodyComponent::DefferedDraw(Graphic::cRenderDevice & dev) {
-	glEnable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-
+void BodyComponent::DebugDraw(const Core::MoveConfig &conf) {
 	if (!m_DebugDrawer) {
-		m_DebugDrawer = std::make_unique<BulletDebugDrawer>();
+        m_DebugDrawer = std::make_unique<BulletDebugDrawer>();
 		m_DynamicsWorld->setDebugDrawer(m_DebugDrawer.get());
 	}
-	m_DebugDrawer->PrepareDebugDraw(dev);
-	m_DynamicsWorld->debugDrawWorld();
-	m_DebugDrawer->Submit(dev);
 
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	//	glEnable(GL_CULL_FACE);
+	m_DebugDrawer->Prepare();
+	m_DynamicsWorld->debugDrawWorld();
+	m_DebugDrawer->Submit(conf);
 }
 
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
 #if 0
 disabled code
 

@@ -21,8 +21,7 @@ using namespace ::Physics;
 
 class BodyComponent
 		: public Core::Component::AbstractComponent
-		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body>
-		, public Core::iCustomDraw {
+		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
 public:
 	BodyComponent(Core::Component::ComponentManager *Owner);
 	virtual ~BodyComponent();
@@ -40,8 +39,7 @@ public:
 	//virtual bool Create(Entity Owner, Handle &hout);
 	//virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
 
-	//Core::iCustomDraw;
-	virtual void DefferedDraw(Graphic::cRenderDevice& dev) override;
+	void DebugDraw(const Core::MoveConfig & conf);
 
 	union FlagsMap {
 		struct MapBits_t {

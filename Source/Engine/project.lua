@@ -5,7 +5,7 @@ group ""
 		startproject "Engine"
 
 	project "Engine"
-		kind "ConsoleApp"
+		kind "WindowedApp"
 
 		SetPCH { hdr = "pch.h", src = "../pch.cpp", }
 
