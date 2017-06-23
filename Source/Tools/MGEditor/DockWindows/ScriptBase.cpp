@@ -22,7 +22,7 @@ namespace DockWindows {
 
 static const char LuaScriptPattern[] = R"(-- {name} script
 
-local {name} = Script:New("{name}")
+local {name} = oo.Class()
 
 function {name}:OnCreate()
 	--self:SetPerSecond(true)
