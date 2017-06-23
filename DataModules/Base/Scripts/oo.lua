@@ -1,9 +1,9 @@
---part of MoonGlare engine internal module
+-- part of MoonGlare engine internal module
 -- object-oriented support for lua
  
 oo = { }
  
-function oo.InheritsFrom( base )
+function oo.Inherit(base)
     local class = { }
 	
 	local classmt = { 
@@ -31,5 +31,7 @@ function oo.InheritsFrom( base )
 end
  
 function oo.NewClass()
-	return oo.InheritsFrom()
+	return oo.Inherit()
 end
+
+
