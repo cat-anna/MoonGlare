@@ -166,10 +166,10 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
         RuntimeConfiguration currconf;
         RuntimeConfiguration *rtconf;
         bool requested = false;
-        int OnRequire(lua_State *lua, const std::string_view& name) override {
+        bool OnRequire(lua_State *lua, std::string_view name) override {
             luabridge::push(lua, &currconf);
             requested = true;
-            return 1;
+            return true;
         }
         ~RTCfg() {
             if (requested)
