@@ -314,7 +314,7 @@ int ScriptEngine::RegisterNewScript(lua_State * lua) {
     }
 
     //Utils::Scripts::LuaStackOverflowAssert check(lua);
-    lua_pushlightuserdata(lua, (void *)this);
+    lua_pushlightuserdata(lua, (void*)this);
     lua_gettable(lua, LUA_REGISTRYINDEX); 
 
     lua_getfield(lua, -1, name);
@@ -337,25 +337,25 @@ int ScriptEngine::RegisterNewScript(lua_State * lua) {
 #endif
     } else {
         AddLogf(Info, "Registering script: %s", name);
-        lua_pop(lua, 1);
-        lua_createtable(lua, 0, 0);
-        lua_pushvalue(lua, -1);
-        lua_setfield(lua, -3, name);
-
-        lua_insert(lua, -2);
-        lua_pop(lua, 1);
-
-        lua_pushstring(lua, name);
-        lua_setfield(lua, -2, "Name");
-
-        lua_createtable(lua, 0, 0);
-        lua_pushvalue(lua, -1);
-        lua_setfield(lua, -3, "__index");
-
-        lua_insert(lua, -2);
-
-        lua_pop(lua, 1);
-
+        lua_pop(lua, 1);                            // registry
+        lua_createtable(lua, 0, 0);                 // registry class
+        lua_pushvalue(lua, -1);                     // registry class class
+        lua_setfield(lua, -3, name);                // registry class 
+                                                    
+        lua_insert(lua, -2);                        // class registry
+        lua_pop(lua, 1);                            // class
+                                                    
+        lua_pushstring(lua, name);                  // class name
+        lua_setfield(lua, -2, "Name");              // class
+                                                    
+        lua_createtable(lua, 0, 0);                 // class mt
+        lua_pushvalue(lua, -1);                     // class mt mt
+        lua_setfield(lua, -3, "__index");           // class mt
+                                                    
+        lua_insert(lua, -2);                        // mt class
+                                                    
+        lua_pop(lua, 1);                            // mt
+                                                    
         return 1;
     }
 }

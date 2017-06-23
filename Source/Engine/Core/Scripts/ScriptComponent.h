@@ -16,6 +16,8 @@
 #include <Utils/LuaUtils.h>
 #include "LuaUtils.h"
 
+#include "iLuaRequire.h"
+
 namespace MoonGlare::Core::Scripts::Component {
 
 using namespace Core::Component;
@@ -63,7 +65,7 @@ public:
     static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 //	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 
-    bool GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
+    void GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 
     ScriptEntry* GetEntry(Handle h);
     ScriptEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
@@ -122,6 +124,8 @@ protected:
     template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
     Array<ScriptEntry> m_Array;
     EntityMapper m_EntityMapper;
+
+    iRequireModule *requireModule;
 
     void ReleaseComponent(lua_State *lua, size_t Index);
 

@@ -44,28 +44,25 @@ bool LuaRequireModule::Querry(lua_State *lua, std::string_view name) {
     int top = lua_gettop(lua);
 
     lua_pushlightuserdata(lua, this);
-    lua_gettable(lua, LUA_REGISTRYINDEX);
+    lua_gettable(lua, LUA_REGISTRYINDEX);           
     int tableidx = lua_gettop(lua);
-    lua_pushstring(lua, name.data());
 
-    bool succ = ProcessRequire(lua, tableidx);
+    bool succ = ProcessRequire(lua, name, tableidx);
 
     int toph = lua_gettop(lua);
 
     if (succ) {
-        lua_insert(lua, -3);
+        lua_insert(lua, -2);
     }
-    lua_pop(lua, 2);
+    lua_pop(lua, 1);
 
     int top2 = lua_gettop(lua);
     return succ;
 }         
 
-bool LuaRequireModule::ProcessRequire(lua_State *lua, int cachetableloc) {
-    std::string_view name = luaL_checkstring(lua, -1);
+bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int cachetableloc) {
 
-    lua_pushvalue(lua, -1);
-    lua_gettable(lua, cachetableloc);
+    lua_getfield(lua, cachetableloc, name.data());
     if (!lua_isnil(lua, -1)) {
         AddLog(Performance, fmt::format("Got require '{}' from cache", name.data()));
         return 1;
@@ -88,8 +85,7 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, int cachetableloc) {
             continue;
         case ResultStoreMode::Store: {
             lua_pushvalue(lua, -2);
-            lua_pushvalue(lua, -2);
-            lua_settable(lua, cachetableloc);
+            lua_setfield(lua, cachetableloc, name.data());
         }
         //[[fallthrough]]
         case ResultStoreMode::DontStore:
@@ -148,7 +144,8 @@ int LuaRequireModule::lua_Require(lua_State *lua) {
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
     LuaRequireModule *This = reinterpret_cast<LuaRequireModule*>(voidThis);
 
-    if (This->ProcessRequire(lua, lua_upvalueindex(2)))
+    std::string_view name = luaL_checkstring(lua, -1);
+    if (This->ProcessRequire(lua, name, lua_upvalueindex(2)))
         return 1;
 
     throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));

@@ -17,13 +17,13 @@ public:
     };
 
     void RegisterRequire(const std::string &name, iRequireRequest *iface) override;
-    bool Requiure(lua_State *lua, std::string_view name) override;
+    bool Querry(lua_State *lua, std::string_view name) override;
 protected:
     std::unordered_map<std::string, iRequireRequest*> scriptRequireMap;
     World *world = nullptr;
 
     //require name shall be on top of the stack
-    bool ProcessRequire(lua_State *lua, int cachetableloc);
+    bool ProcessRequire(lua_State *lua, std::string_view name, int cachetableloc);
 
     ResultStoreMode TryLoadFileScript(lua_State *lua, const std::string &uri);
 

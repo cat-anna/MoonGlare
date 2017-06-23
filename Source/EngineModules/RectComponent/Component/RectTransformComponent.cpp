@@ -81,9 +81,8 @@ int RectTransformComponent::FindChild(lua_State *lua) {
         return 1;
     }
 
-    if (!This->m_ScriptComponent->GetObjectRootInstance(lua, e)) {
-        lua_pushnil(lua);
-    }
+    This->m_ScriptComponent->GetObjectRootInstance(lua, e);
+
     return 1;
 }
 
