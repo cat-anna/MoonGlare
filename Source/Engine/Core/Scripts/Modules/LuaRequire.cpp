@@ -63,6 +63,35 @@ void LuaRequireModule::RegisterRequire(const std::string &name, iRequireRequest 
     scriptRequireMap[name] = iface;
 }
 
+int LuaRequireModule::HandleFileRequest(lua_State *lua, std::string_view name) {
+    //TODO: loading compiled scripts
+    std::string uri = "file://" + std::string(name) + ".lua";
+    StarVFS::ByteTable bt;
+    if (!GetFileSystem()->OpenFile(bt, uri)) {
+        AddLog(Warning, "Cannot open file %s", uri.c_str());
+        return 0;
+    }
+
+    if (!world->GetScriptEngine()->ExecuteCode(bt.c_str(), bt.byte_size(), uri.c_str(), 1)) {
+        AddLogf(Error, "Script executio failed: %s", uri.c_str());
+        return 0;
+    }
+
+    lua_pushnumber(lua, 2);
+    lua_insert(lua, -2);
+    return 2;
+}
+
+int LuaRequireModule::HandleModuleRequest(lua_State *lua, std::string_view name) {
+    auto it = scriptRequireMap.find(name.data());
+    if (it != scriptRequireMap.end()) {
+        lua_pushnumber(lua, 1);
+        return it->second->OnRequire(lua, name) + 1;
+    }
+    return 0;
+}
+
+
 int LuaRequireModule::lua_RequireQuerry(lua_State *lua) {
     std::string_view name = luaL_checkstring(lua, -1);
 
@@ -70,16 +99,14 @@ int LuaRequireModule::lua_RequireQuerry(lua_State *lua) {
     LuaRequireModule *This = reinterpret_cast<LuaRequireModule*>(voidThis);
 
     if (name[0] == '/') {
-        //TODO: request to filesystem
-        //lua_pushnumber(lua, 2);
-        //return 0;
+        int r = This->HandleFileRequest(lua, name);
+        if (r > 0)
+            return r;
     }
 
-    auto it = This->scriptRequireMap.find(name.data());
-    if (it != This->scriptRequireMap.end()) {
-        lua_pushnumber(lua, 1);
-        return it->second->OnRequire(lua, name) + 1;
-    }
+    int r = This->HandleModuleRequest(lua, name);
+    if (r > 0)
+        return r;
 
     lua_pushnumber(lua, 0);
     lua_pushfstring(lua, "There is no registered require '%s'", name.data());

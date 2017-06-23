@@ -240,7 +240,7 @@ float ScriptEngine::GetMemoryUsage() const {
 
 //---------------------------------------------------------------------------------------
 
-bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* ChunkName) {
+bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* ChunkName, int rets) {
     LOCK_MUTEX(m_Mutex);
     MoonGlareAssert(Code);
 
@@ -249,7 +249,7 @@ bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* Chunk
 
     switch (result) {
     case 0:
-        if (lua_pcall(m_Lua, 0, 0, 0) != 0) {
+        if (lua_pcall(m_Lua, 0, rets, 0) != 0) {
             AddLog(Error, "Lua error: " << lua_tostring(m_Lua, -1));
             return false;
         }

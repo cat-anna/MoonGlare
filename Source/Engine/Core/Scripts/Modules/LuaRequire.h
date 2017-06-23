@@ -15,6 +15,9 @@ protected:
     std::unordered_map<std::string, iRequireRequest*> scriptRequireMap;
     World *world = nullptr;
 
+    int HandleFileRequest(lua_State *lua, std::string_view name);
+    int HandleModuleRequest(lua_State *lua, std::string_view name);
+
     static int lua_RequireQuerry(lua_State *lua);
 };
 

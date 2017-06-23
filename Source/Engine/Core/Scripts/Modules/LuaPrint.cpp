@@ -14,7 +14,7 @@ static int Lua_put(lua_State *L, World *w) {
         return 0;
     switch (lt) {
     case MoonGlare::iConsole::LineType::Error:
-        AddLog(Debug, msg);
+        AddLog(Error, msg);
         break;
     case MoonGlare::iConsole::LineType::Warning:
         AddLog(Warning, msg);
@@ -26,6 +26,7 @@ static int Lua_put(lua_State *L, World *w) {
         AddLog(Debug, msg);
         break;
     default:
+        AddLog(Info, msg);
         break;
     }                   
     if (w) {
