@@ -36,13 +36,13 @@ struct
         RendererAssert(m_ResourceManager);
     }
 
-    void Bind() {
+    void Bind(Commands::CommandKey key = Commands::CommandKey()) {
         SelfTest();
-        m_Queue->MakeCommand<Commands::ShaderResourceBind>(m_HandlePtr);
+        m_Queue->MakeCommandKey<Commands::ShaderResourceBind>(key, m_HandlePtr);
     }
-    void UnBind() {
+    void UnBind(Commands::CommandKey key = Commands::CommandKey()) {
         SelfTest();
-        m_Queue->MakeCommand<Commands::ShaderBind>(InvalidShaderHandle);
+        m_Queue->MakeCommandKey<Commands::ShaderBind>(key, InvalidShaderHandle);
     }
 
     template<Uniform u, typename T>

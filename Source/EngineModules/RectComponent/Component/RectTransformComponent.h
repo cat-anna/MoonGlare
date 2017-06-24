@@ -6,8 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef RectTransformComponent_H
-#define RectTransformComponent_H
 
 #include <Core/Component/AbstractComponent.h>
 #include <Core/Scripts/ScriptComponent.h>
@@ -17,9 +15,7 @@
 #include "../Enums.h"
 #include "../Rect.h"
 
-namespace MoonGlare {
-namespace GUI {
-namespace Component {
+namespace MoonGlare::GUI::Component {
 
 using namespace Core::Component;
 
@@ -171,13 +167,8 @@ protected:
     Point m_ScreenSize;
     Renderer::VirtualCamera m_Camera;
 
-//debug:
-protected:
-    void D2Draw(const Core::MoveConfig & conf);
+    class RectTransformDebugDraw;
+    std::unique_ptr<RectTransformDebugDraw> debugDraw;
 };
 
-} //namespace Component 
-} //namespace GUI 
-} //namespace MoonGlare 
-
-#endif
+} //namespace MoonGlare::GUI::Component 

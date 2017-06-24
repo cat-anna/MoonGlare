@@ -55,6 +55,8 @@ struct GUIShaderDescriptor {
 		default: return nullptr;
 		}
 	}
+
+    static constexpr char ResourceName[] = "GUI";
 };
 
 } //namespace GUI 

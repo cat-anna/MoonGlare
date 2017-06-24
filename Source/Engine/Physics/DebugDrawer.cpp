@@ -49,11 +49,6 @@ struct BtDebugDrawShaderDescriptor {
     }
 };
 
-struct BulletDebugDrawer::PrivateData {
-    Renderer::ShaderResourceHandle<BtDebugDrawShaderDescriptor> shaderHandle;
-    Renderer::VAOResourceHandle vao;
-};
-
 BulletDebugDrawer::BulletDebugDrawer() {
     m_LinePoints.reserve(2048);
     m_LinePointsColors.reserve(2048);   
@@ -69,20 +64,24 @@ void BulletDebugDrawer::Prepare() {
 void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     auto frame = conf.m_BufferFrame;
 
-    if (!privateData) {
+    if (!ready) {
         m_LinePoints.clear();
         m_LinePointsColors.clear();
-        privateData = std::make_unique<PrivateData>();
 
         auto &shres = frame->GetResourceManager()->GetShaderResource();
-        if (!shres.Load(privateData->shaderHandle, "btDebugDraw")) {
+        if (!shres.Load<BtDebugDrawShaderDescriptor>(shaderHandle, "btDebugDraw")) {
             AddLogf(Error, "Failed to load GUI shader");
-            privateData.reset();
+            return;
         }
 
+        ready = true;
         return;
     }
     using namespace Renderer;
+
+    Renderer::VAOResourceHandle vao;
+    if (!frame->AllocateFrameResource(vao))
+        return;
 
     auto &mem = frame->GetMemory();
 
@@ -91,7 +90,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     auto &q = Queue;
 
     auto &shres = frame->GetResourceManager()->GetShaderResource();
-    auto shb = shres.GetBuilder(q, privateData->shaderHandle);
+    auto shb = shres.GetBuilder<BtDebugDrawShaderDescriptor>(q, shaderHandle);
 
     shb.Bind();
     using Uniform = BtDebugDrawShaderDescriptor::Uniform;
@@ -100,7 +99,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     auto &m = frame->GetMemory();
     using ichannels = Renderer::Configuration::VAO::InputChannels;
 
-    auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, privateData->vao, true);
+    auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vao, true);
     vaob.BeginDataChange();
 
     vaob.CreateChannel(ichannels::Vertex);
@@ -153,7 +152,6 @@ void BulletDebugDrawer::reportErrorWarning(const char *c) {
 void BulletDebugDrawer::draw3dText(const btVector3 &, const char *) {}
 
 void BulletDebugDrawer::setDebugMode(int p) {
-    m = p;
 }
 
 int BulletDebugDrawer::getDebugMode(void) const {

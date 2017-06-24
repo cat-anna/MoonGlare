@@ -84,23 +84,29 @@ public:
 		return argptr;
 	}
 
-	template<typename CMD, typename ... ARGS>
-	typename CMD::Argument* MakeCommand(ARGS&& ... args) {
-		auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
-		if (IsFull() || !argptr) {
-			AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
-			return nullptr;
-		}
 
-		size_t index = m_AllocatedCommands;
-		++m_AllocatedCommands;
+    template<typename CMD, typename ... ARGS>
+    typename CMD::Argument* MakeCommandKey(CommandKey key, ARGS&& ... args) {
+        auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
+        if (IsFull() || !argptr) {
+            AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
+            return nullptr;
+        }
 
-		m_CommandFunctions[index] = CMD::GetFunction();
-		m_CommandArguments[index] = argptr;
-		m_SortKeys[index] = CommandKey();
+        size_t index = m_AllocatedCommands;
+        ++m_AllocatedCommands;
 
-		return new(argptr)CMD::Argument{ std::forward<ARGS>(args)... };
-	}
+        m_CommandFunctions[index] = CMD::GetFunction();
+        m_CommandArguments[index] = argptr;
+        m_SortKeys[index] = key;
+
+        return new(argptr)CMD::Argument{ std::forward<ARGS>(args)... };
+    }
+
+    template<typename CMD, typename ... ARGS>
+    typename CMD::Argument* MakeCommand(ARGS&& ... args) {
+        return MakeCommandKey<CMD>(CommandKey(), std::forward<ARGS>(args)...);
+    }
 
 	struct ExecuteQueueArgument {
 		CommandQueue *m_Queue;

@@ -70,6 +70,10 @@ union CommandKey {
 		//	uint32_t m_Ptr;
 		uint16_t m_Order;
 	};
+
+    static constexpr CommandKey Max() {
+        return CommandKey { 0xFFFF };
+    }
 };
 
 static_assert(sizeof(CommandKey) == sizeof(CommandKey::m_UIntValue), "CommandKey has invalid size!");

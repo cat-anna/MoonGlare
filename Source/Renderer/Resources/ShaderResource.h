@@ -104,6 +104,27 @@ public:
     }
 
     template<typename Descriptor_t>
+    bool Load(ShaderResourceHandleBase &out, const std::string &ShaderName) {
+        RendererAssert(this);
+        return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
+    }
+
+    template<typename Descriptor_t>
+    ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandleBase h) {
+        RendererAssert(this);
+
+        RendererAssert(h.m_TmpGuard == h.GuardValue);
+        RendererAssert(h.m_Index < Conf::Limit);
+
+        return ShaderBuilder<Descriptor_t> {
+            &q,
+                &m_ShaderUniform[h.m_Index],
+                &m_ShaderHandle[h.m_Index],
+                m_ResourceManager,
+        };
+    }
+
+    template<typename Descriptor_t>
     ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandle<Descriptor_t> h) {
         RendererAssert(this);
 

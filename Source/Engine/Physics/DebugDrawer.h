@@ -5,8 +5,6 @@
 */
 
 #pragma once
-#ifndef DefaultDebugDrawer_H
-#define DefaultDebugDrawer_H
 
 namespace Physics {
 
@@ -14,18 +12,6 @@ class BulletDebugDrawer : public btIDebugDraw {
 public:
     BulletDebugDrawer();
     ~BulletDebugDrawer();
-
-    int m;
-
-#if 0
-    void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix){
-        glUseProgram(0); // Use Fixed-function pipeline (no shaders)
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(&pViewMatrix[0][0]);
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(&pProjectionMatrix[0][0]);
-    }
-#endif // 0
 
     virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
     virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color);
@@ -36,16 +22,12 @@ public:
 
     void Prepare();
     void Submit(const MoonGlare::Core::MoveConfig &conf);
-
 private:
+    bool ready = false;
     std::vector<math::fvec3> m_LinePointsColors;
     std::vector<math::fvec3> m_LinePoints;
-
-    struct PrivateData;
-    std::unique_ptr<PrivateData> privateData;
+    Renderer::ShaderResourceHandleBase shaderHandle;
 };
 
 } //namespace Physics 
-
-#endif
 
