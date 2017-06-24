@@ -60,9 +60,9 @@ public:
 	}
 
 	void Sort() {
-		if (!IsEmpty()) {
-			m_SortKeys[m_AllocatedCommands].m_UIntValue = 0xFFFF;
-			SortBegin(static_cast<int>(m_CommandsPreamble), static_cast<int>(m_AllocatedCommands));
+		if (m_AllocatedCommands > 1) {
+			//m_SortKeys[m_AllocatedCommands].m_UIntValue = 0xFFFF;
+			SortBegin(static_cast<int>(m_CommandsPreamble), static_cast<int>(m_AllocatedCommands)-1);
 		}
 	}
 
