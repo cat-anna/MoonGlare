@@ -29,18 +29,19 @@ struct VAOBuilder {
 		RendererAssert(m_HandlePtr);
 	}
 
-	void BindVAO() {
+	void BindVAO(Commands::CommandKey key = Commands::CommandKey()) {
 		SelfTest();
-		m_Queue->MakeCommand<Commands::VAOBindResource>(m_HandlePtr);
+		m_Queue->MakeCommandKey<Commands::VAOBindResource>(key, m_HandlePtr);
 	}
-	void UnBindVAO() {
+	void UnBindVAO(Commands::CommandKey key = Commands::CommandKey()) {
 		SelfTest();
-		m_Queue->MakeCommand<Commands::VAOBind>(Device::InvalidVAOHandle);
+		m_Queue->MakeCommandKey<Commands::VAOBind>(key, Device::InvalidVAOHandle);
 	}
 
-	void BeginDataChange() {
+	void BeginDataChange(Commands::CommandKey key = Commands::CommandKey()) {
 		SelfTest();
-		BindVAO();
+        currentKey = key;
+		BindVAO(key);
 	}
 	void EndDataChange() {
 	}
@@ -50,7 +51,7 @@ struct VAOBuilder {
 		SelfTest();
 		RendererAssert(Channel < m_BuffersPtr->size());
 		if ((*m_BuffersPtr)[Channel] == Device::InvalidBufferHandle)
-			m_Queue->MakeCommand<Commands::BufferSingleAllocate>(&(*m_BuffersPtr)[Channel]);
+			m_Queue->MakeCommandKey<Commands::BufferSingleAllocate>(currentKey, &(*m_BuffersPtr)[Channel]);
 	}
 
 	template <typename T, GLint ElementSize = 1>
@@ -58,18 +59,18 @@ struct VAOBuilder {
 		auto Channel = static_cast<ChannelType>(iChannel);
 		SelfTest();
 		RendererAssert(Channel < m_BuffersPtr->size());
-		m_Queue->MakeCommand<Commands::BindArrayBufferResource>()->m_Handle = &(*m_BuffersPtr)[Channel];
+		m_Queue->MakeCommandKey<Commands::BindArrayBufferResource>(currentKey)->m_Handle = &(*m_BuffersPtr)[Channel];
 
 		GLsizeiptr bytecount = ElementCount * ElementSize * sizeof(T);
 		if (Dynamic)
-			m_Queue->MakeCommand<Commands::ArrayBufferDynamicData>(bytecount, (const void*)data);
+			m_Queue->MakeCommandKey<Commands::ArrayBufferDynamicData>(currentKey, bytecount, (const void*)data);
 		else
-			m_Queue->MakeCommand<Commands::ArrayBufferStaticData>(bytecount, (const void*)data);
+			m_Queue->MakeCommandKey<Commands::ArrayBufferStaticData>(currentKey, bytecount, (const void*)data);
 
 		if (Normalized)
-			m_Queue->MakeCommand<Commands::ArrayBufferNormalizedChannel>(Channel, ElementSize, Device::TypeId<T>);
+			m_Queue->MakeCommandKey<Commands::ArrayBufferNormalizedChannel>(currentKey, Channel, ElementSize, Device::TypeId<T>);
 		else
-			m_Queue->MakeCommand<Commands::ArrayBufferChannel>(Channel, ElementSize, Device::TypeId<T>);
+			m_Queue->MakeCommandKey<Commands::ArrayBufferChannel>(currentKey, Channel, ElementSize, Device::TypeId<T>);
 	}
 
 	template <typename T, size_t ElemCount>
@@ -82,20 +83,21 @@ struct VAOBuilder {
 		auto Channel = static_cast<ChannelType>(iChannel);
 		SelfTest();
 		RendererAssert(Channel < m_BuffersPtr->size());
-		m_Queue->MakeCommand<Commands::BindArrayIndexBufferResource>()->m_Handle = &(*m_BuffersPtr)[Channel];
+		m_Queue->MakeCommandKey<Commands::BindArrayIndexBufferResource>(currentKey)->m_Handle = &(*m_BuffersPtr)[Channel];
 
 		GLsizeiptr bytecount = ElementCount * sizeof(T);
 		if (Dynamic)
-			m_Queue->MakeCommand<Commands::ArrayIndexBufferDynamicData>(bytecount, (const void*)data);
+			m_Queue->MakeCommandKey<Commands::ArrayIndexBufferDynamicData>(currentKey, bytecount, (const void*)data);
 		else
-			m_Queue->MakeCommand<Commands::ArrayIndexBufferStaticData>(bytecount, (const void*)data);
+			m_Queue->MakeCommandKey<Commands::ArrayIndexBufferStaticData>(currentKey, bytecount, (const void*)data);
 	}
 
 
 	Commands::CommandQueue *m_Queue;
 	VAOBuffers *m_BuffersPtr;
 	Device::VAOHandle* m_HandlePtr;
-	void* _padding;
+    Commands::CommandKey currentKey;
+	uint16_t _padding;
 };
 static_assert(std::is_trivial<VAOBuilder>::value, "must be trivial!");
 static_assert((sizeof(VAOBuilder) % 16) == 0, "Invalid size!");

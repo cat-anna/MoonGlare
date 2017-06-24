@@ -155,7 +155,10 @@ void BulletDebugDrawer::setDebugMode(int p) {
 }
 
 int BulletDebugDrawer::getDebugMode(void) const {
-    return DBG_DrawWireframe | DBG_DrawAabb | DBG_DrawNormals;
+    return 
+        //DBG_DrawWireframe | 
+        DBG_DrawAabb | 
+        DBG_DrawNormals;
 }
 
 } //namespace Physics 

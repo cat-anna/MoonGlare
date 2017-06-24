@@ -182,7 +182,6 @@ void Engine::EngineMain() {
             Device->ProcessPendingCtrlQueues();
 
             cmdl.Execute();
-            //	Device->Step();
             frame->GetFirstWindowLayer().Execute();
 
             Device->ReleaseFrame(frame);
@@ -203,7 +202,7 @@ void Engine::EngineMain() {
             float sum = tdiff(StartTime, EndTime);
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
-                sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.1f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
+                sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.2f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
                         tdiff(BeginTime, CurrentTime), m_LastFPS, Device->FrameCounter(), m_SkippedFrames,
                         tdiff(StartTime, MoveTime) * 1000.0f,
                         tdiff(MoveTime, SortTime) * 1000.0f,
