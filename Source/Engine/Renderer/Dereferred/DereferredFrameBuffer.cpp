@@ -4,7 +4,8 @@
     by Paweu
 */
 #include <pch.h>
-#include "../Graphic.h"
+#include <nfMoonGlare.h>
+#include "../nGraphic.h"
 #include "DereferredFrameBuffer.h"
 
 namespace Graphic {

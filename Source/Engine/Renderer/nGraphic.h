@@ -5,8 +5,7 @@
  *      Author: Paweu
  */
 
-#ifndef NGRAPHIC_H_
-#define NGRAPHIC_H_
+#pragma once
 
 #include "Constants.h"
 #include "glTypes.h"
@@ -18,11 +17,3 @@
 #include <Renderer/VirtualCamera.h>
 
 #include "RenderDevice.h"
-
-using Graphic::cRenderDevice;
-
-namespace Graphic {
-	inline cRenderDevice* GetRenderDevice() { return cRenderDevice::Instance(); }
-}
-
-#endif /* GRAPHIC_H_ */

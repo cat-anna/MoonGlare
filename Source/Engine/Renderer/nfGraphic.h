@@ -1,8 +1,6 @@
-#ifndef NFGRAPHIC_H_
-#define NFGRAPHIC_H_
+#pragma once
 
 namespace Graphic {
-
 	class cRenderDevice;
 	class LoadQueue;
 
@@ -133,5 +131,3 @@ namespace Graphic {
 }// namespace Graphic
 
 #include "Dereferred/nfDereferred.h"
-
-#endif // GRAPHIC_H_ 

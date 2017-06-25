@@ -5,7 +5,8 @@
 */
 
 #include <pch.h>
-#include "Graphic.h"
+#include <nfMoonGlare.h>
+#include "nGraphic.h"
 
 namespace Graphic {
 
