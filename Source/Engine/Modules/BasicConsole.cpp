@@ -228,7 +228,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
         auto vaob = frame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, VAO);
         vaob.BindVAO();
 
-        auto arg = q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)Device::TypeInfo<uint8_t>::TypeId);
+        q.MakeCommand<Commands::VAODrawTriangles>(6u, (unsigned)Device::TypeInfo<uint8_t>::TypeId);
     };
    
     if (!m_Lines.empty()) {

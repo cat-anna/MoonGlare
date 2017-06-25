@@ -32,31 +32,25 @@ LuaRequireModule::~LuaRequireModule() {
 
 void LuaRequireModule::RegisterRequire(const std::string &name, iRequireRequest *iface) {
     if (!iface) {
-        AddLog(Debug, "Unregistered lua require: %s", name.c_str());
+        AddLogf(Debug, "Unregistered lua require: %s", name.c_str());
         scriptRequireMap.erase(name);
         return;
     }
-    AddLog(Debug, "Registered lua require: %s", name.c_str());
+    AddLogf(Debug, "Registered lua require: %s", name.c_str());
     scriptRequireMap[name] = iface;
 }
 
 bool LuaRequireModule::Querry(lua_State *lua, std::string_view name) {
-    int top = lua_gettop(lua);
-
     lua_pushlightuserdata(lua, this);
     lua_gettable(lua, LUA_REGISTRYINDEX);           
     int tableidx = lua_gettop(lua);
 
     bool succ = ProcessRequire(lua, name, tableidx);
-
-    int toph = lua_gettop(lua);
-
     if (succ) {
         lua_insert(lua, -2);
     }
-    lua_pop(lua, 1);
 
-    int top2 = lua_gettop(lua);
+    lua_pop(lua, 1);
     return succ;
 }         
 
@@ -104,7 +98,7 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
 ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::string &uri) {
     StarVFS::ByteTable bt;
     if (!GetFileSystem()->OpenFile(bt, uri)) {
-        AddLog(Warning, "Cannot open file %s", uri.c_str());
+        AddLogf(Warning, "Cannot open file %s", uri.c_str());
         return ResultStoreMode::NoResult;
     }
 

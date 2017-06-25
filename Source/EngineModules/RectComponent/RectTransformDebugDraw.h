@@ -11,7 +11,6 @@ public:
 private:
     bool ready = false;
     Renderer::ShaderResourceHandleBase shaderHandle;
-    Renderer::VAOResourceHandle vao;
 };
 
 } //namespace MoonGlare::GUI::Component 

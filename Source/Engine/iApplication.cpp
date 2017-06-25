@@ -142,7 +142,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    auto Device = new Graphic::cRenderDevice();
+    //auto Device = 
+        new Graphic::cRenderDevice();
 
     if (!(new DataManager(m_World.get()))->Initialize(ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");

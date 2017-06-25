@@ -104,10 +104,10 @@ public:
 
 	template<typename StackFunc, typename Entry>
 	static bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, MeshComponent *This) {
-		switch (hash) {
-		default:
+		//switch (hash) {
+		//default:
 			return false;
-		}
+		//}
 	}
 
 	static void RegisterScriptApi(ApiInitializer &root);

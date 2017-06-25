@@ -196,7 +196,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
         vaob.BindVAO();
     }
 
-    float y = 0;
+//    float y = 0;
     float h = m_CacheHight;
 
     if (options.m_Size > 0) 

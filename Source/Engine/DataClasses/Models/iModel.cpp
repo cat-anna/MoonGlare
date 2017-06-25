@@ -11,7 +11,7 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Models {
 
-SPACERTTI_IMPLEMENT_CLASS(iModel, DataClass);
+SPACERTTI_IMPLEMENT_CLASS(iModel);
 
 iModel::iModel(const string& Name) :
     DataClass(Name),

@@ -368,8 +368,6 @@ void Manager::DumpResources() {
     file << "Revision index: " << RevisionIndex << "\n\n";
     ++RevisionIndex;
 
-    auto world = Core::GetEngine()->GetWorld();
-
     GetDataMgr()->DumpAllResources(file);
     
     auto sm = world->GetScenesManager();

@@ -103,7 +103,7 @@ bool DereferredFrameBuffer::Reset(const emath::fvec2 &ScreenSize) {
 
     for (unsigned int i = 0 ; i < Buffers::MaxValue; i++) {
         glBindTexture(GL_TEXTURE_2D, m_Textures[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, s[0], s[1], 0, GL_RGB, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, (GLsizei)s[0], (GLsizei)s[1], 0, GL_RGB, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, m_Textures[i], 0);
@@ -111,12 +111,12 @@ bool DereferredFrameBuffer::Reset(const emath::fvec2 &ScreenSize) {
 
     // depth
     glBindTexture(GL_TEXTURE_2D, m_DepthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, s[0], s[1], 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, (GLsizei)s[0], (GLsizei)s[1], 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, NULL);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthTexture, 0);
     
     //final
     glBindTexture(GL_TEXTURE_2D, m_FinalTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s[0], s[1], 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)s[0], (GLsizei)s[1], 0, GL_RGB, GL_FLOAT, NULL);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_FinalTexture, 0);	
 
     FinishFrameBuffer();
