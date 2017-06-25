@@ -11,6 +11,7 @@
 #include <iFileIconProvider.h>
 #include <iCustomEnum.h>
 #include <Module.h>
+#include <iIssueReporter.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
 #include <libs/LuaWrap/src/LuaException.h>
@@ -109,6 +110,10 @@ ScriptFileProcessor::ScriptFileProcessor(ScriptFileProcessorInfo *Module, std::s
         : QtShared::iFileProcessor(std::move(URI)), module(Module) {
 }
 
+std::string ScriptFileProcessor::MakeIssueId() {
+    return "ScriptFileProcessor|" + m_URI + "|CompilationError";
+}
+
 ScriptFileProcessor::ProcessResult ScriptFileProcessor::ProcessFile()  {
     try {
         InitLua();
@@ -183,8 +188,14 @@ void ScriptFileProcessor::ExecuteScript() {
         std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
         std::smatch pieces_match;
         if (std::regex_match(errorstr, pieces_match, pieces_regex)) {
-            //
-            int i = 0;
+            QtShared::Issue issue;
+            issue.fileName = m_URI;
+            issue.sourceLine = std::strtol(pieces_match[2].str().c_str(), nullptr, 10);
+            issue.message = pieces_match[3];
+            issue.type = QtShared::Issue::Type::Error;
+            issue.internalID = MakeIssueId();
+
+            module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>()->ReportIssue(std::move(issue));
         }
         AddLogf(Error, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
         break;
