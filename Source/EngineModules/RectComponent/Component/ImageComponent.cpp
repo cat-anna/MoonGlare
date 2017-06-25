@@ -148,11 +148,12 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
         Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
+        shb.SetMaterial(item.m_Animation->GetMaterial(), key);
+
         shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-        shb.SetMaterial(item.m_Animation->GetMaterial(), key);
         //Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
         Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = vao;
 

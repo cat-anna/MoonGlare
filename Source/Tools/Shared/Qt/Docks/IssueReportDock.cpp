@@ -45,17 +45,17 @@ IssueReport::IssueReport(QWidget * parent, QtShared::SharedModuleManager modmgr)
 
     m_ViewModel = std::make_unique<QStandardItemModel>();
     m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Type"));
-    m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Message"));
-    m_ViewModel->setHorizontalHeaderItem(2, new QStandardItem("File"));
+    m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Group"));
+    m_ViewModel->setHorizontalHeaderItem(2, new QStandardItem("Message"));
+    m_ViewModel->setHorizontalHeaderItem(3, new QStandardItem("File"));
     m_Ui->treeView->setModel(m_ViewModel.get());
     m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     m_Ui->treeView->setColumnWidth(0, 70);
-    m_Ui->treeView->setColumnWidth(1, 200);
-    m_Ui->treeView->setColumnWidth(2, 200);
-    //connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
-    //connect(m_Ui->treeView, SIGNAL(doubleClicked(const QModelIndex&)), SLOT(ItemDoubleClicked(const QModelIndex&)));
+    m_Ui->treeView->setColumnWidth(1, 100);
+    m_Ui->treeView->setColumnWidth(2, 400);
+    m_Ui->treeView->setColumnWidth(3, 200);
 
     auto issuereporteer = moduleManager->QuerryModule<QtShared::IssueReporter>();
     connect(issuereporteer.get(), &QtShared::IssueReporter::IssueCreated, this, &IssueReport::IssueCreated);
@@ -71,11 +71,13 @@ IssueReport::~IssueReport() {
 //----------------------------------------------------------------------------------
 
 bool IssueReport::DoSaveSettings(pugi::xml_node node) const {
+    SaveColumns(node, "IssueReport:Columns", m_Ui->treeView, 4);
     QtShared::DockWindow::DoSaveSettings(node);
     return true;
 }
 
 bool IssueReport::DoLoadSettings(const pugi::xml_node node) {
+    LoadColumns(node, "IssueReport:Columns", m_Ui->treeView, 4);
     QtShared::DockWindow::DoLoadSettings(node);
     return true;
 }
@@ -98,7 +100,7 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
     QStandardItem *qitm;
     QList<QStandardItem*> cols;
     cols << (qitm = new QStandardItem());
-    
+
     switch (issue.type) {
     default:
     case QtShared::Issue::Type::Unknown:
@@ -133,6 +135,7 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
     }
 
 
+    cols << new QStandardItem(issue.group.c_str());
     cols << new QStandardItem(issue.message.c_str());
     if (issue.fileName) {
         cols << new QStandardItem(fmt::format("{}({})", issue.fileName.value_or(""), issue.sourceLine.value_or(0)).c_str());

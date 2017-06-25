@@ -84,7 +84,7 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
         case ResultStoreMode::NoResult:
             continue;
         case ResultStoreMode::Store: {
-            lua_pushvalue(lua, -2);
+            lua_pushvalue(lua, -1);
             lua_setfield(lua, cachetableloc, name.data());
         }
         //[[fallthrough]]

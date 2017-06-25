@@ -102,6 +102,10 @@ function oo.Class()
     return oo.Inherit()
 end
 
+function require()
+    return {}
+end
+
 )===";
 
 //----------------------------------------------------------------------------------
@@ -171,7 +175,7 @@ void ScriptFileProcessor::ExecuteScript() {
 
     //script exists, so insert it into custom enum set
     {
-        std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\/]+)\.lua)", std::regex::icase);
+        std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\.\/]+)\.lua)", std::regex::icase);
         std::smatch pieces_match;
         if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
             module->scriptListEnum->scriptSet.insert(pieces_match[1]);
@@ -193,6 +197,7 @@ void ScriptFileProcessor::ExecuteScript() {
             issue.sourceLine = std::strtol(pieces_match[2].str().c_str(), nullptr, 10);
             issue.message = pieces_match[3];
             issue.type = QtShared::Issue::Type::Error;
+            issue.group = "Lua";
             issue.internalID = MakeIssueId();
 
             module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>()->ReportIssue(std::move(issue));

@@ -16,6 +16,7 @@ public:
     };
 
     std::string message;
+    std::string group;
     Type type;
 
     std::optional<std::string> fileName;
