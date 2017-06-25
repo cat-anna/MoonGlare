@@ -14,6 +14,7 @@
 #include <FileSystem.h>
 
 #include <iFileIconProvider.h>
+#include <TypeEditor/CustomEditorItemDelegate.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -31,7 +32,7 @@ struct SceneEditorModule
 	}
 
 	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<SceneEditor>(parent);
+		return std::make_shared<SceneEditor>(parent, GetModuleManager());
 	}
 
 	std::vector<FileIconInfo> GetFileIconInfo() const override {
@@ -56,8 +57,10 @@ QtShared::ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("Scene
 
 //----------------------------------------------------------------------------------
 
-SceneEditor::SceneEditor(QWidget * parent)
+SceneEditor::SceneEditor(QWidget * parent, QtShared::SharedModuleManager modmgr)
 		:  QtShared::DockWindow(parent) {
+    moduleManager.swap(modmgr);
+
 	SetSettingID("SceneEditor");
 	m_Ui = std::make_unique<Ui::SceneEditor>();
 	m_Ui->setupUi(this);
@@ -71,7 +74,8 @@ SceneEditor::SceneEditor(QWidget * parent)
 
 	m_Ui->treeViewSceneSettings->CreateStructure(TypeEditor::Structure::GetStructureInfo("SceneConfiguration"));
 
-	auto ue = std::make_unique<SceneEntity>();
+    m_Ui->EntityTree->SetModuleManager(moduleManager);
+    auto ue = std::make_unique<SceneEntity>();
 	m_SceneEntity = ue.get();
 	m_Ui->EntityTree->SetEntity(std::move(ue));
 
@@ -83,7 +87,7 @@ SceneEditor::SceneEditor(QWidget * parent)
 	m_Ui->treeViewComponents->setModel(m_ComponentModel.get());
 	m_Ui->treeViewComponents->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeViewComponents->setContextMenuPolicy(Qt::CustomContextMenu);
-	m_Ui->treeViewComponents->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(this));
+	m_Ui->treeViewComponents->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 	m_Ui->treeViewComponents->setColumnWidth(0, 200);
 	m_Ui->treeViewComponents->setColumnWidth(1, 100);
 	m_Ui->treeViewComponents->setColumnWidth(2, 100);
@@ -418,7 +422,7 @@ void SceneEditor::ResetComponentList() {
 
 		cinst->m_ComponentInfo = it.second;
 
-		cinst->m_Config = cinst->m_ComponentInfo->m_SettingsStructure->m_CreateFunc(nullptr, nullptr);
+		cinst->m_Config = cinst->m_ComponentInfo->m_SettingsStructure->m_CreateFunc(nullptr);
 		if (cinst->m_Config->GetValues().empty())
 			cinst->m_Config.reset();
 		else

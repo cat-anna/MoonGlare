@@ -58,7 +58,7 @@ class EntityEditorWindow
 		, public QtShared::iEditor {
 	Q_OBJECT;
 public:
-	EntityEditorWindow(QWidget *parent = nullptr);
+	EntityEditorWindow(QWidget *parent, QtShared::SharedModuleManager modmgr);
  	virtual ~EntityEditorWindow();
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
@@ -84,6 +84,7 @@ private:
 	std::unique_ptr<Ui::EntityEditor> m_Ui;
 	BaseEntity *m_BaseEntity;
 	std::string m_CurrentPatternFile;
+    QtShared::SharedModuleManager moduleManager;
 };
 
 } //namespace EntityEditor 

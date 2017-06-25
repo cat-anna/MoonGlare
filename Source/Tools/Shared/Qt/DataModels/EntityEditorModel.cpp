@@ -13,6 +13,7 @@
 
 #include <TypeEditor/x2cDataTree.h>
 #include <TypeEditor/Structure.h>
+#include <TypeEditor/CustomEditorItemDelegate.h>
 
 namespace MoonGlare {
 namespace QtShared {
@@ -52,7 +53,7 @@ EntityEditorModel::EntityEditorModel(QWidget * parent)
 	m_Ui->treeViewDetails->setModel(m_ComponentModel.get());
 	m_Ui->treeViewDetails->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_Ui->treeViewDetails->setContextMenuPolicy(Qt::CustomContextMenu);
-	m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(this));
+	m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 	m_Ui->treeViewDetails->setColumnWidth(0, 200);
 	m_Ui->treeViewDetails->setColumnWidth(1, 100);
 	m_Ui->treeViewDetails->setColumnWidth(2, 100);
@@ -93,6 +94,11 @@ EntityEditorModel::EntityEditorModel(QWidget * parent)
 
 EntityEditorModel::~EntityEditorModel() {
 	m_Ui.reset();
+}
+
+void EntityEditorModel::SetModuleManager(QtShared::SharedModuleManager mm) {
+    moduleManager.swap(mm);
+    m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 }
 
 //----------------------------------------------------------------------------------
@@ -180,6 +186,8 @@ void EntityEditorModel::RefreshDetails() {
 		for (auto &value : component->GetValues()) {
 			QStandardItem *CaptionElem = new QStandardItem(value->GetName().c_str());
 			CaptionElem->setFlags(CaptionElem->flags() & ~Qt::ItemIsEditable);
+
+            //AddLogf(Error, "NAME: %s.%s", component->GetName().c_str(), value->GetName().c_str());
 
 			EditableComponentValueInfo ecvi;
 			ecvi.m_OwnerComponent = component.get();
@@ -660,7 +668,7 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
 		return nullptr;
 	}
 
-	auto x2cs = ci->m_EntryStructure->m_CreateFunc(nullptr, nullptr);
+	auto x2cs = ci->m_EntryStructure->m_CreateFunc(nullptr);
 	return std::make_unique<EditableComponent>(Parent, ci, std::move(x2cs));
 }
 

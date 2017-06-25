@@ -9,6 +9,7 @@
 #include <icons.h>
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
+#include <iCustomEnum.h>
 #include <Module.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
@@ -22,149 +23,201 @@ namespace MoonGlare {
 namespace Editor {
 namespace Processor {
 
-struct ScriptFileProcessorModule
-	: public QtShared::iModule
-	, public QtShared::iFileIconInfo {
+struct ScriptListEnum : public QtShared::iCustomEnum {
+    virtual std::string GetEnumTypeName() const {
+        return "string:Script.Script";
+    }
+    virtual std::vector<EnumValue> GetValues() const {
+        std::vector<EnumValue> ret;
+        for (auto &s : scriptSet)
+            ret.emplace_back(EnumValue{ s });
+        return std::move(ret);
+    }
 
-	ScriptFileProcessorModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
-
-	virtual std::vector<FileIconInfo> GetFileIconInfo() {
-		return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, };
-	}
+    std::set<std::string> scriptSet;
 };
-QtShared::ModuleClassRgister::Register<ScriptFileProcessorModule> ScriptFileProcessorReg("ScriptFileProcessor");
-
-struct ScriptFileProcessorInfo
-	: public QtShared::iFileProcessorInfo
-{
-	virtual QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
-		return std::make_shared<ScriptFileProcessor>(std::move(URI));
-	}
-
-	virtual std::vector<std::string> GetSupportedTypes() { return{ "lua", }; }
-};
-static QtShared::FileProcessorInfoClassRegister::Register<ScriptFileProcessorInfo> Reg0("ScriptFileProcessor");
 
 //----------------------------------------------------------------------------------
 
-static const char InternalScript[] = R"(
+struct ScriptFileProcessorInfo
+    : public QtShared::iModule
+    , public QtShared::iFileProcessorInfo
+    , public QtShared::iCustomEnumSupplier
+    , public QtShared::iFileIconInfo {
 
-global = { }
-static = { }
+    ScriptFileProcessorInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
+
+    std::shared_ptr<ScriptListEnum>  scriptListEnum = std::make_shared<ScriptListEnum>();
+
+    QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
+        return std::make_shared<ScriptFileProcessor>(this, std::move(URI));
+    }
+
+    std::vector<std::string> GetSupportedTypes() {
+        return{ "lua", };
+    }
+
+    std::vector<std::shared_ptr<QtShared::iCustomEnum>> GetCustomEnums() const override  {
+        return { scriptListEnum, };
+    }
+
+    std::vector<FileIconInfo> GetFileIconInfo() const override {
+        return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, };
+    }
+};
+QtShared::ModuleClassRgister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg("ScriptFileProcessorInfo");
+
+//----------------------------------------------------------------------------------
+
+static const char InternalScript[] = R"===(
 
 Script = { 
-	Table = { },
+    Table = { },
 }
-	
+    
 function Script:New(Name) 
-	local s = { }
-	self.Table[Name] = s
-	return s
+    local s = { }
+    self.Table[Name] = s
+    return s
 end
 
 local Script_mt = { __index = Script, }
 setmetatable(Script, Script_mt)
 
-)";
+oo = { }        
+
+function oo.Inherit(base)
+    local class = { }
+
+    class.__index = class
+    class.BaseClass = base
+
+    setmetatable(class, base)
+
+    return class
+end
+
+function oo.Class()
+    return oo.Inherit()
+end
+
+)===";
 
 //----------------------------------------------------------------------------------
 
-ScriptFileProcessor::ScriptFileProcessor(std::string URI) 
-		: QtShared::iFileProcessor(std::move(URI)) {
+ScriptFileProcessor::ScriptFileProcessor(ScriptFileProcessorInfo *Module, std::string URI)
+        : QtShared::iFileProcessor(std::move(URI)), module(Module) {
 }
 
 ScriptFileProcessor::ProcessResult ScriptFileProcessor::ProcessFile()  {
-	try {
-		InitLua();
-		ExecuteScript();
-		ProcessOutput();
-		Finalize();
-	}
-	catch (...) {
-		return ProcessResult::UnknownFailure;
-	}
-	return ProcessResult::Success;
+    try {
+        InitLua();
+        ExecuteScript();
+        ProcessOutput();
+        Finalize();
+    }
+    catch (...) {
+        return ProcessResult::UnknownFailure;
+    }
+    return ProcessResult::Success;
 }
 
 void ScriptFileProcessor::InitLua() {
-	m_Lua.reset(luaL_newstate());
-	auto lua = m_Lua.get();
-	luaopen_base(lua);
-	luaopen_math(lua);
-	luaopen_bit(lua);
-	luaopen_string(lua);
-	luaopen_table(lua);
+    m_Lua.reset(luaL_newstate());
+    auto lua = m_Lua.get();
+    luaopen_base(lua);
+    luaopen_math(lua);
+    luaopen_bit(lua);
+    luaopen_string(lua);
+    luaopen_table(lua);
 #ifdef DEBUG
-	luaopen_debug(lua);
+    luaopen_debug(lua);
 #endif
-	lua_atpanic(lua, &LuaWrap::eLuaPanic::ThrowPanicHandler);
+    lua_atpanic(lua, &LuaWrap::eLuaPanic::ThrowPanicHandler);
 
-	int result = luaL_loadstring(lua, InternalScript);
-	switch (result) {
-	case 0:
-		if (lua_pcall(lua, 0, 0, 0) == 0)
-			return;
-		AddLog(Error, "Lua error: " << lua_tostring(lua, -1));
-		break;
-	case LUA_ERRSYNTAX:
-		AddLogf(Error, "Unable to load internal script: Error string: '%s'", lua_tostring(lua, -1));
-		break;
-	case LUA_ERRMEM:
-		AddLog(Error, "Unable to load script: Memory allocation failed!");
-		break;
-	}
+    int result = luaL_loadstring(lua, InternalScript);
+    switch (result) {
+    case 0:
+        if (lua_pcall(lua, 0, 0, 0) == 0)
+            return;
+        AddLog(Error, "Lua error: " << lua_tostring(lua, -1));
+        break;
+    case LUA_ERRSYNTAX:
+        AddLogf(Error, "Unable to load internal script: Error string: '%s'", lua_tostring(lua, -1));
+        break;
+    case LUA_ERRMEM:
+        AddLog(Error, "Unable to load script: Memory allocation failed!");
+        break;
+    }
 
-	throw std::runtime_error("Unable to Execute internal lua processor script!");
+    throw std::runtime_error("Unable to Execute internal lua processor script!");
 }
 
 void ScriptFileProcessor::ExecuteScript() {
-	auto fs = MainWindow::Get()->GetFilesystem();
-	StarVFS::ByteTable bt;
-	if (!fs->GetFileData(m_URI, bt)) {
-		//todo: log sth
-		throw std::runtime_error("Unable to read file: " + m_URI);
-	}
-	if (bt.byte_size() == 0) {
-		//todo: log sth
-	}
+    auto fs = MainWindow::Get()->GetFilesystem();
+    StarVFS::ByteTable bt;
+    if (!fs->GetFileData(m_URI, bt)) {
+        //todo: log sth
+        throw std::runtime_error("Unable to read file: " + m_URI);
+    }
+    if (bt.byte_size() == 0) {
+        //todo: log sth
+    }
 
-	auto lua = m_Lua.get();
-	int result = luaL_loadstring(lua, bt.c_str());
-	switch (result) {
-	case 0:
-		if (lua_pcall(lua, 0, 0, 0) == 0)
-			return;
-		AddLogf(Error, "Lua script '%s' error: %s", m_URI.c_str(), lua_tostring(lua, -1));
-		break;
-	case LUA_ERRSYNTAX:
-		AddLogf(Error, "Unable to load '%s': Error string: '%s'", m_URI.c_str(), lua_tostring(lua, -1));
-		break;
-	case LUA_ERRMEM:
-		AddLogf(Error, "Unable to load '%s': Memory allocation failed!", m_URI.c_str());
-		break;
-	}
+    //script exists, so insert it into custom enum set
+    {
+        std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\/]+)\.lua)", std::regex::icase);
+        std::smatch pieces_match;
+        if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
+            module->scriptListEnum->scriptSet.insert(pieces_match[1]);
+        }
+    }
 
-	throw std::runtime_error("Unable to load script: " + m_URI);
+    auto lua = m_Lua.get();
+    int result = luaL_loadstring(lua, bt.c_str());
+    switch (result) {
+    case 0: {
+        if (lua_pcall(lua, 0, 0, 0) == 0)
+            return;
+        std::string errorstr = lua_tostring(lua, -1);
+        std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
+        std::smatch pieces_match;
+        if (std::regex_match(errorstr, pieces_match, pieces_regex)) {
+            //
+            int i = 0;
+        }
+        AddLogf(Error, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
+        break;
+    }
+    case LUA_ERRSYNTAX:
+        AddLogf(Error, "Unable to load '%s': Error string: '%s'", m_URI.c_str(), lua_tostring(lua, -1));
+        break;
+    case LUA_ERRMEM:
+        AddLogf(Error, "Unable to load '%s': Memory allocation failed!", m_URI.c_str());
+        break;
+    }
+
+    throw std::runtime_error("Unable to load script: " + m_URI);
 }
 
 void ScriptFileProcessor::ProcessOutput() {
-	auto lua = m_Lua.get();
-	lua_getfield(lua, LUA_GLOBALSINDEX, "Script");
-	lua_getfield(lua, -1, "Table");
-	int tbidx = lua_gettop(lua);
-	lua_pushnil(lua);							
+    auto lua = m_Lua.get();
+    lua_getfield(lua, LUA_GLOBALSINDEX, "Script");
+    lua_getfield(lua, -1, "Table");
+    int tbidx = lua_gettop(lua);
+    lua_pushnil(lua);							
 
-	while (lua_next(lua, tbidx) != 0) {
-		const char *name = lua_tostring(lua, -2);
+    while (lua_next(lua, tbidx) != 0) {
+        const char *name = lua_tostring(lua, -2);
 
-		AddLogf(Error, "Script: %s", name);
-	}
+        AddLogf(Error, "Script: %s", name);
+    }
 
-	lua_pop(lua, 2);
+    lua_pop(lua, 2);
 }
 
 void ScriptFileProcessor::Finalize() {
-	m_Lua.reset();
+    m_Lua.reset();
 }
 
 } //namespace Processor 

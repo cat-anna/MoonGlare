@@ -27,7 +27,7 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
 	m_Ui = std::make_unique<Ui::MainWindow>();
 	m_Ui->setupUi(this);
 
-	m_FileSystem = std::make_shared<FileSystem>();
+	m_FileSystem = std::make_shared<FileSystem>(GetModuleManager());
 	
 	connect(m_Ui->actionNew, SIGNAL(triggered()), SLOT(NewModuleAction()));
 	connect(m_Ui->actionOpen, SIGNAL(triggered()), SLOT(OpenModuleAction()));

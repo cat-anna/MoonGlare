@@ -8,8 +8,7 @@
 #include "CustomType.h"
 #include "Structure.h"
 
-namespace MoonGlare {
-namespace TypeEditor {
+namespace MoonGlare::TypeEditor {
 
 //----------------------------------------------------------------------------------
 
@@ -107,5 +106,4 @@ struct CTRegister {
 
 static const CTRegister reg;
 
-} //namespace TypeEditor 
-} //namespace MoonGlare 
+} //namespace MoonGlare::TypeEditor 

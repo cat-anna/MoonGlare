@@ -13,40 +13,37 @@ namespace MoonGlare {
 namespace QtShared {
 
 struct FileProcessorFileInfo {
-	std::string m_Ext;
-	std::string m_Icon;
+    std::string m_Ext;
+    std::string m_Icon;
 };
 
 class iFileProcessor : public std::enable_shared_from_this<iFileProcessor> {
 public:
- 	iFileProcessor(std::string uri) : m_URI(std::move(uri)) { }
- 	virtual ~iFileProcessor() { }
+    iFileProcessor(std::string uri) : m_URI(std::move(uri)) { }
+    virtual ~iFileProcessor() { }
 
-	enum class ProcessResult {
-		Success,
-		RetryLater,
-		UnknownFailure,
-		FileReadError,
-		FileIntegrityError,
-	};
-	virtual ProcessResult ProcessFile() = 0;
+    enum class ProcessResult {
+        Success,
+        RetryLater,
+        UnknownFailure,
+        FileReadError,
+        FileIntegrityError,
+    };
+    virtual ProcessResult ProcessFile() = 0;
 
-	virtual void HandlePostProcess() {};
+    virtual void HandlePostProcess() {};
 protected:
-	std::string m_URI;
+    std::string m_URI;
 };
 
 using SharedFileProcessor = std::shared_ptr<iFileProcessor>;
 
 class iFileProcessorInfo {
 public:
-	virtual ~iFileProcessorInfo() { }
-	virtual SharedFileProcessor CreateFileProcessor(std::string URI) = 0;
-	virtual std::vector<std::string> GetSupportedTypes() { return{}; }
+    virtual ~iFileProcessorInfo() { }
+    virtual SharedFileProcessor CreateFileProcessor(std::string URI) = 0;
+    virtual std::vector<std::string> GetSupportedTypes() { return{}; }
 };
-
-using FileProcessorInfoClassRegister = Space::DynamicClassRegister<iFileProcessorInfo>;
-using SharedFileProcessorInfo = std::shared_ptr<iFileProcessorInfo>;
 
 } //namespace QtShared 
 } //namespace MoonGlare 

@@ -13,13 +13,17 @@ namespace MoonGlare {
 namespace Editor {
 namespace Processor {
 
+struct ScriptFileProcessorInfo;
+
 struct ScriptFileProcessor
 	: public QtShared::iFileProcessor {
 
-	ScriptFileProcessor(std::string URI);
+	ScriptFileProcessor(ScriptFileProcessorInfo *Module, std::string URI);
 
 	virtual ProcessResult ProcessFile() override;
 private:
+    ScriptFileProcessorInfo *module;
+
 	void InitLua();
 	void ExecuteScript();
 	void ProcessOutput();

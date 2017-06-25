@@ -158,6 +158,8 @@ public:
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+    void SetModuleManager(QtShared::SharedModuleManager mm);
 public slots:
 	void Refresh();
 	void RefreshDetails();
@@ -184,6 +186,7 @@ private:
 	//std::string m_CurrentPatternFile;
 	EditableItemInfo m_CurrentItem;
 	EditableComponentValueInfo m_CurrentComponent;
+    QtShared::SharedModuleManager moduleManager;
 };
 
 } //namespace DataModels

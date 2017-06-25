@@ -8,6 +8,7 @@
 #include PCH_HEADER
 #include "EditorSettings.h"
 #include <TypeEditor/Structure.h>
+#include <TypeEditor/x2cStructure.h>
 
 namespace MoonGlare {
 namespace Editor {

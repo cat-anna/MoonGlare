@@ -25,8 +25,8 @@ static const char LuaScriptPattern[] = R"(-- {name} script
 local {name} = oo.Class()
 
 function {name}:OnCreate()
-	--self:SetPerSecond(true)
-	--self:SetStep(false)
+    --self:SetPerSecond(true)
+    --self:SetStep(false)
 end
 
 function {name}:OnDestroy()
@@ -41,87 +41,86 @@ end
 )";
 
 struct ScriptFileConstructor
-	: public QtShared::iEditor {
+    : public QtShared::iEditor {
 public:
-	ScriptFileConstructor(QtShared::SharedModuleManager modmgr) : m_ModuleManager(std::move(modmgr)) {
-		m_UserQuestions = m_ModuleManager->QuerryModule<QtShared::UserQuestions>();
-	}
-	virtual ~ScriptFileConstructor() { }
+    ScriptFileConstructor(QtShared::SharedModuleManager modmgr) : m_ModuleManager(std::move(modmgr)) {
+        m_UserQuestions = m_ModuleManager->QuerryModule<QtShared::UserQuestions>();
+    }
+    virtual ~ScriptFileConstructor() { }
 
-	QtShared::SharedModuleManager m_ModuleManager;
-	std::shared_ptr<QtShared::UserQuestions> m_UserQuestions;
+    QtShared::SharedModuleManager m_ModuleManager;
+    std::shared_ptr<QtShared::UserQuestions> m_UserQuestions;
 
-	// iEditor
-	virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) override {
-		std::string name;
-		if (!m_UserQuestions->QuerryStringInput("Enter name:", name))
-			return false;
+    // iEditor
+    virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) override {
+        std::string name;
+        if (!m_UserQuestions->QuerryStringInput("Enter name:", name))
+            return false;
 
-		std::string URI = LocationURI + name + ".lua";
+        std::string URI = LocationURI + name + ".lua";
 
-		auto fs = MainWindow::Get()->GetFilesystem();
-		if (!fs->CreateFile(URI)) {
-			m_UserQuestions->ErrorMessage("Failed during creating lua file");
-			AddLog(Hint, "Failed to create lua file: " << URI);
-			return false;
-		}
+        auto fs = MainWindow::Get()->GetFilesystem();
+        if (!fs->CreateFile(URI)) {
+            m_UserQuestions->ErrorMessage("Failed during creating lua file");
+            AddLog(Hint, "Failed to create lua file: " << URI);
+            return false;
+        }
 
-		std::unordered_map<std::string, std::string> Patterns;
-		Patterns[R"(\{name\})"] = name;
+        std::unordered_map<std::string, std::string> Patterns;
+        Patterns[R"(\{name\})"] = name;
 
-		std::string Pattern = LuaScriptPattern;
+        std::string Pattern = LuaScriptPattern;
 
-		for (auto &it : Patterns) {
-			std::regex pat(it.first);
-			std::string out;
-			out.reserve(Pattern.size() * 2);
-			std::regex_replace(std::back_inserter(out), Pattern.begin(), Pattern.end(), pat, it.second);
-			out.swap(Pattern);
-		}
+        for (auto &it : Patterns) {
+            std::regex pat(it.first);
+            std::string out;
+            out.reserve(Pattern.size() * 2);
+            std::regex_replace(std::back_inserter(out), Pattern.begin(), Pattern.end(), pat, it.second);
+            out.swap(Pattern);
+        }
 
-		StarVFS::ByteTable bt;
-		bt.from_string(Pattern);
+        StarVFS::ByteTable bt;
+        bt.from_string(Pattern);
 
-		if (!fs->SetFileData(URI, bt)) {
-			//todo: log sth
-			return false;
-		}
+        if (!fs->SetFileData(URI, bt)) {
+            //todo: log sth
+            return false;
+        }
 
-		AddLog(Hint, "created lua: " << URI);
+        AddLog(Hint, "created lua: " << URI);
 
-		return true;
-	}
-	//virtual bool OpenData(const std::string &URI) { return false; }
-	//virtual bool SaveData() { return false; }
-	//virtual bool TryCloseData() { return false; }
+        return true;
+    }
+    //virtual bool OpenData(const std::string &URI) { return false; }
+    //virtual bool SaveData() { return false; }
+    //virtual bool TryCloseData() { return false; }
 };
 
 //----------------------------------------------------------------------------------
 
 struct ScriptBaseInfo 
-	: public QtShared::iModule
-	, public QtShared::iFileIconInfo
-	, public QtShared::iEditorInfo
-	, public QtShared::iEditorFactory
+    : public QtShared::iModule
+    , public QtShared::iFileIconInfo
+    , public QtShared::iEditorInfo
+    , public QtShared::iEditorFactory
 {
-	
-	ScriptBaseInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
+    ScriptBaseInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
 
-	virtual std::vector<FileIconInfo> GetFileIconInfo() const override {
-		return std::vector<FileIconInfo>{
-			FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, },
-		};
-	}
+    virtual std::vector<FileIconInfo> GetFileIconInfo() const override {
+        return std::vector<FileIconInfo>{
+            FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, },
+        };
+    }
 
-	virtual QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const {
-		return std::make_shared<ScriptFileConstructor>(GetModuleManager());
-	}
+    virtual QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const {
+        return std::make_shared<ScriptFileConstructor>(GetModuleManager());
+    }
 
-	virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
-		return std::vector<FileHandleMethodInfo> {
-			FileHandleMethodInfo{ "lua", ICON_16_LUALOGO_RESOURCE, "Script...", "lua", },
-		};
-	}
+    virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
+        return std::vector<FileHandleMethodInfo> {
+            FileHandleMethodInfo{ "lua", ICON_16_LUALOGO_RESOURCE, "Script...", "lua", },
+        };
+    }
 };
 QtShared::ModuleClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
 

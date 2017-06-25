@@ -8,7 +8,8 @@
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
 #include <ChangesManager.h>
-#include <iSettingsUser.h>
+#include <iSettingsUser.h>      
+#include <Module.h>
 
 namespace MoonGlare {
 namespace QtShared {
@@ -30,6 +31,8 @@ public:
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+    void SetModuleManager(QtShared::SharedModuleManager mm);
 public slots:
 	void Refresh();
 protected slots:
@@ -37,6 +40,7 @@ protected slots:
 private:
 	std::unique_ptr<QStandardItemModel> m_Model;
 	TypeEditor::UniqueStructure m_Structure;
+    QtShared::SharedModuleManager moduleManager;
 };
 
 } //namespace DataModels

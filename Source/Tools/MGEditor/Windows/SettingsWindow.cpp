@@ -27,7 +27,7 @@ SettingsWindow::SettingsWindow(QWidget *parent)
 	auto &conf = GetSettings().getConfiguration();
 	auto info = TypeEditor::Structure::GetStructureInfo(conf.GetTypeName());
 	if (info) {
-		auto SettingsStructure = info->m_CreateFunc(nullptr, nullptr);
+		auto SettingsStructure = info->m_CreateFunc(nullptr);
 		SettingsStructure->SetExternlDataSink(&conf);
 		m_Ui->treeView->SetStructure(std::move(SettingsStructure));
 	} else {

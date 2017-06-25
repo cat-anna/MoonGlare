@@ -15,7 +15,7 @@
 #include <StarVFS/core/nStarVFS.h>
 
 #include <iFileProcessor.h>
-
+#include <Module.h>
 
 namespace StarVFS {
 	class StarVFS;
@@ -32,7 +32,7 @@ class FileSystem
 	, std::enable_shared_from_this<FileSystem> {
 	Q_OBJECT;
 public:
- 	FileSystem();
+ 	FileSystem(QtShared::SharedModuleManager modmgr);
  	virtual ~FileSystem();
 
 	StarVFS::SharedStarVFS GetVFS() { return m_VFS; }
@@ -55,8 +55,10 @@ private:
 	StarVFS::SharedStarVFS m_VFS;
 	std::string m_BasePath;
 	Module::SharedDataModule m_Module;
-	std::unordered_map<std::string, std::vector<QtShared::SharedFileProcessorInfo>> m_ExtFileProcessorList;
+	std::unordered_map<std::string, std::vector<std::weak_ptr<QtShared::iFileProcessorInfo>>> m_ExtFileProcessorList;
 	std::unique_ptr<AsyncFileProcessor> m_AsyncFileProcessor;
+    QtShared::SharedModuleManager moduleManager;
+
 	bool TranslateURI(const std::string &uri, std::string &out);
 };
 

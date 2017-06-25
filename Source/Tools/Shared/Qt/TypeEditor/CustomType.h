@@ -6,8 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef CustomType_H
-#define CustomType_H
 
 #include "Structure.h"
 
@@ -44,103 +42,6 @@ struct TemplateTypeEditorInfo : public TypeEditorInfo {
 	}
 };
 
-struct CustomEditorItemDelegate : public QStyledItemDelegate {
-	struct QtRoles {
-		enum {
-			StructureValue = Qt::UserRole + 1000,
-		};
-	};
+} //namespace TypeEditor
+} //namespace MoonGlare
 
-	CustomEditorItemDelegate(QWidget *parent = 0) : QStyledItemDelegate(parent) {}
-	virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
-		if (vinfo) {
-			auto einfoit = TypeEditor::TypeEditorInfo::GetEditor(vinfo->GetTypeName());
-			if (einfoit) {
-				return einfoit->CreateEditor(parent)->GetWidget();
-			}
-		}
-		return QStyledItemDelegate::createEditor(parent, option, index);
-	};
-	virtual void setEditorData(QWidget *editor, const QModelIndex &index) const override {
-		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
-		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
-		if (vinfo && cte) {
-			cte->SetValue(vinfo->GetValue());
-		}
-		return QStyledItemDelegate::setEditorData(editor, index);
-	};
-	virtual void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override {
-		QStyledItemDelegate::setModelData(editor, model, index);
-		auto vinfo = index.data(QtRoles::StructureValue).value<StructureValue*>();
-		auto *cte = dynamic_cast<TypeEditor::CustomTypeEditor*>(editor);
-		if (vinfo) {
-			if (cte) {
-				vinfo->SetValue(cte->GetValue());
-			} else {
-				std::string value = index.data(Qt::DisplayRole).toString().toLocal8Bit().constData();
-				vinfo->SetValue(value);
-			}
-		}
-	};
-};
-
-#ifdef _X2C_IMPLEMENTATION_
-template<typename ENUM>
-class EnumTemplate : public CustomTypeEditor, public QComboBox {
-public:
-	EnumTemplate(QWidget *Parent) : QComboBox(Parent) {
-		if (ENUM::GetValues(m_Values)) {
-			for (auto &it : m_Values) {
-				addItem(it.first.c_str(), it.second);
-			}
-			setInsertPolicy(QComboBox::NoInsert);
-			model()->sort(0);
-		} else {
-			setEditable(true);
-			setInsertPolicy(QComboBox::InsertAtTop);
-		}
-	}
-
-	static std::string ToDisplayText(const std::string &in) {
-		decltype(m_Values) Values;
-		if (ENUM::GetValues(Values)) {
-			for (auto &it : Values) {
-				if (std::to_string(it.second) == in) {
-					return it.first;
-				}
-			}
-		}
-		return in;
-	}
-
-	virtual void SetValue(const std::string &in) {
-		for (auto &it : m_Values) {
-			if (std::to_string(it.second) == in) {
-				setCurrentText(it.first.c_str());
-				return;
-			}
-		}
-		setCurrentText(in.c_str());
-	}
-	virtual std::string GetValue() {
-		auto cdata = currentData();
-		if (!cdata.isValid()) {
-			return currentText().toLocal8Bit().constData();
-		}
-		bool succ;
-		auto value = cdata.toULongLong(&succ);
-		if (succ) {
-			return std::to_string(value);
-		}
-		return currentText().toLocal8Bit().constData();
-	}
-private:
-	std::unordered_map<std::string, uint64_t> m_Values;
-};
-#endif
-
-} //namespace TypeEditor 
-} //namespace MoonGlare 
-
-#endif

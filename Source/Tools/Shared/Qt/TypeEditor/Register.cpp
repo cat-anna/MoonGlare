@@ -27,6 +27,9 @@
 #include "Structure.h"
 #include "ComponentInfo.h"
 
+#include <TypeEditor/x2cEnum.h>
+#include <TypeEditor/x2cStructure.h>
+
 namespace MoonGlare {
 namespace TypeEditor {
 
@@ -241,7 +244,7 @@ struct Register {
 
 	template<typename ENUM>
 	void RegEnum() {
-		TypeEditorInfo::RegisterTypeEditor(std::make_shared<TemplateTypeEditorInfo<EnumTemplate<ENUM>>>(), ENUM::GetTypeName());
+		TypeEditorInfo::RegisterTypeEditor(std::make_shared<TemplateTypeEditorInfo<X2CEnumTemplate<ENUM>>>(), ENUM::GetTypeName());
 	}
 
 	template<typename STRUCT>

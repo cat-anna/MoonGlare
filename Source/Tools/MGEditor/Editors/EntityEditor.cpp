@@ -35,7 +35,7 @@ struct EntityEditorModule
 	}
 
 	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<EntityEditorWindow>(parent);
+		return std::make_shared<EntityEditorWindow>(parent, GetModuleManager());
 	}
 
 	std::vector<FileIconInfo> GetFileIconInfo() const override {
@@ -60,9 +60,10 @@ QtShared::ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("Enti
 
 //----------------------------------------------------------------------------------
 
-EntityEditorWindow::EntityEditorWindow(QWidget * parent)
+EntityEditorWindow::EntityEditorWindow(QWidget * parent, QtShared::SharedModuleManager modmgr)
 	:  QtShared::DockWindow(parent) {
-	m_Ui = std::make_unique<Ui::EntityEditor>();
+    moduleManager.swap(modmgr);
+    m_Ui = std::make_unique<Ui::EntityEditor>();
 	m_Ui->setupUi(this);
 
 	SetSettingID("EntityEditorWindow");
@@ -72,6 +73,7 @@ EntityEditorWindow::EntityEditorWindow(QWidget * parent)
 
 	connect(Notifications::Get(), SIGNAL(RefreshView()), SLOT(Refresh()));
 
+    m_Ui->EntityTree->SetModuleManager(moduleManager);
 	auto ue = std::make_unique<BaseEntity>();
 	m_BaseEntity = ue.get();
 	m_Ui->EntityTree->SetEntity(std::move(ue));

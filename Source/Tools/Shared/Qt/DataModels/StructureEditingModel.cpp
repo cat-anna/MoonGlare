@@ -1,6 +1,7 @@
 #include PCH_HEADER
 
 #include "StructureEditingModel.h"
+#include <TypeEditor/CustomEditorItemDelegate.h>
 
 namespace MoonGlare {
 namespace QtShared {
@@ -18,7 +19,7 @@ StructureEditingModel::StructureEditingModel(QWidget *parent)
 	setModel(m_Model.get());
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	setContextMenuPolicy(Qt::CustomContextMenu);
-	setItemDelegate(new TypeEditor::CustomEditorItemDelegate(this));
+	setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 	setColumnWidth(0, 200);
 	setColumnWidth(1, 100);
 	setColumnWidth(2, 100);
@@ -28,10 +29,15 @@ StructureEditingModel::~StructureEditingModel()
 {
 }
 
+void StructureEditingModel::SetModuleManager(QtShared::SharedModuleManager mm) {
+    moduleManager.swap(mm);
+    setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
+}
+
 //-----------------------------------------
 
 void StructureEditingModel::CreateStructure(TypeEditor::SharedStructureInfo structure) {
-	SetStructure(structure->m_CreateFunc(nullptr, nullptr));
+	SetStructure(structure->m_CreateFunc(nullptr));
 }
 
 void StructureEditingModel::SetStructure(TypeEditor::UniqueStructure&& structure) {

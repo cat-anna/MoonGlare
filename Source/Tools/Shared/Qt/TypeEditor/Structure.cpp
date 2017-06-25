@@ -4,11 +4,12 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
+
 #include PCH_HEADER
+
 #include "Structure.h"
 
-namespace MoonGlare {
-namespace TypeEditor {
+namespace MoonGlare::TypeEditor {
 
 std::unordered_map<std::string, SharedStructureInfo> *gStructInfoMap = nullptr;
 
@@ -27,6 +28,4 @@ SharedStructureInfo Structure::GetStructureInfo(const std::string & Name) {
 	return it->second;
 }
 
-} //namespace TypeEditor 
-} //namespace MoonGlare 
-
+} //namespace MoonGlare::TypeEditor 
