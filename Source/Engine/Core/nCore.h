@@ -4,13 +4,6 @@
 
 #include "DataManager.h"
 #include "Scripts/nScripts.h"
-#include "Scene/nScene.h"
+#include "Scene/ciScene.h"
 
 #include "Component/nfComponent.h"
-
-//core shortcut getters
-namespace MoonGlare {
-namespace Core {
-} //namespace Core 
-} //namespace MoonGlare 
-
