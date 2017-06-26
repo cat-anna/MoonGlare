@@ -116,7 +116,7 @@ void Engine::EngineMain() {
 
     m_Running = true; 
 
-    Graphic::cRenderDevice &dev = *Graphic::GetRenderDevice();
+    Graphic::cRenderDevice &dev = *GetRenderDevice();
     auto Device = m_Renderer->GetDevice();
     auto Ctx = m_Renderer->GetContextImpl();
 

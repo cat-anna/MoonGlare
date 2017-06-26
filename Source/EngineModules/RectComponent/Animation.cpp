@@ -109,7 +109,7 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
         return false;
     }
 
-    Graphic::GetRenderDevice()->RequestContextManip([this]() {
+    GetRenderDevice()->RequestContextManip([this]() {
         m_DrawEnabled = true;
         AddLog(Debug, "Animation '" << this->GetName() << "' has been loaded");
     });

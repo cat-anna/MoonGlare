@@ -24,4 +24,9 @@ protected:
 }; 
 
 } // namespace Graphic 
+
+inline Graphic::cRenderDevice* GetRenderDevice() {
+    return Graphic::cRenderDevice::Instance();
+}
+
 #endif // CRENDERDEVICE_H_ 
