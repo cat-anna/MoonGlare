@@ -37,35 +37,6 @@ Animation::~Animation() {
 
 //----------------------------------------------------------------'
 
-#if 0
-bool Animation::LoadMeta(const xml_node node) {
-    if (!node) return false;
-
-    auto cstrName = node.attribute(xmlAttr_Name).as_string(0);
-    if (!cstrName) {
-        AddLog(Error, "Unnamed animation definition. Ignored.");
-        return false;
-    }
-    m_Name = cstrName;
-    m_DrawEnabled = false;
-
-    m_Speed = node.child("Speed").attribute(xmlAttr_Value).as_float(m_Speed);
-    auto tex = node.child("Texture").text().as_string(ERROR_STR);
-
-    auto nodeFrames = node.child("Frames");
-    unsigned StartFrame = nodeFrames.attribute("Start").as_uint(0);
-    unsigned FrameCount = nodeFrames.attribute("Count").as_uint(1);
-
-    math::uvec2 FrameStripCount, FrameSpacing;
-    auto nodeStrip = node.child("Strip");
-    XML::Vector::Read(nodeStrip, "Size", m_FrameSize);
-    XML::Vector::Read(nodeStrip, "Spacing", FrameSpacing);
-    XML::Vector::Read(nodeStrip, "Count", FrameStripCount, math::uvec2(1, 1));
-
-    return Load(tex, StartFrame, FrameCount, FrameStripCount, FrameSpacing, m_FrameSize, false);
-}
-#endif
-
 bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize) {
     m_StartFrame = StartFrame;
     m_EndFrame = m_StartFrame + FrameCount - 1;
@@ -189,15 +160,6 @@ const Graphic::VAO& Animation::GetFrameVAO(unsigned Frame) const {
             Frame = m_StartFrame;
     return m_FrameTable[Frame];
 }
-
-//void Animation::Draw(unsigned Frame) const {
-//	if (!m_DrawEnabled) return;
-//	m_Texture->Bind();
-//	auto &vao = GetFrameVAO(Frame);
-//	vao.Bind();
-//	vao.DrawElements(6, 0, 0, GL_TRIANGLES);
-//	vao.UnBind();
-//}
 
 } //namespace GUI 
 } //namespace MoonGlare 

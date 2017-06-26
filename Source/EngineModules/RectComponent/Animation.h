@@ -19,7 +19,6 @@ public:
 
     DefineRefGetterConst(Name, string);
 
-    //bool LoadMeta(const xml_node node);
     bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize);
 
     AnimationInstance CreateInstance();
