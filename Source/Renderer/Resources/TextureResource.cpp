@@ -91,23 +91,15 @@ bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string 
         }
     }
 
-    if (!NeedSize) {
-        auto loaderif = m_ResourceManager->GetLoaderIf();
-        config.Check(m_ResourceManager->GetConfiguration()->m_Texture);
-        loaderif->QueueRequest(fPath, std::make_shared<Loader::FreeImageLoader>(out, this, config));
-        return true;
+    auto loaderif = m_ResourceManager->GetLoaderIf();
+    config.Check(m_ResourceManager->GetConfiguration()->m_Texture);
+    loaderif->QueueRequest(fPath, std::make_shared<Loader::FreeImageLoader>(out, this, config));
+
+    if (NeedSize) {
+        auto loader = m_ResourceManager->GetLoader();
+        auto *size = &m_TextureSize[out.index];
+        loader->QueryTextureSize(fPath, size);
     }
-
-    auto loader = m_ResourceManager->GetLoader();
-    auto *size = &m_TextureSize[out.index];
-
-    loader->SubmitTextureLoad(
-        fPath,//?
-        out,
-        out.deviceHandle,
-        size,
-        config
-    );
 
     return true;
 }

@@ -145,11 +145,7 @@ void AsyncLoader::ThreadMain() {
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-void AsyncLoader::SubmitTextureLoad(std::string URI, TextureResourceHandle handle,
-        Device::TextureHandle *glHandlePtr,
-        emath::usvec2 *OutSize,
-        Configuration::TextureLoad settings) {
-
+void AsyncLoader::QueryTextureSize(std::string URI, emath::usvec2 *OutSize) {
     if (OutSize) {
         char mem[sizeof(Asset::TextureLoader::TexturePixelData)] = { 0 };
         auto &data = *((Asset::TextureLoader::TexturePixelData *)mem);
@@ -158,44 +154,8 @@ void AsyncLoader::SubmitTextureLoad(std::string URI, TextureResourceHandle handl
         if (Loader->LoadTextureMeta(URI, data)) {
             *OutSize = data.m_PixelSize;
         }
+        data.m_ImageMemory.reset();
     }
-
-    QueuePush(TextureLoadTask{ std::move(URI), handle, glHandlePtr, settings });
-    m_Lock.notify_one();
-}
-
-AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, TextureLoadTask &tlt) {
-    auto Loader = m_AssetLoader->GetTextureLoader();
-
-    RendererAssert(Loader);
-    auto &q = queue->storage.m_Queue;
-
-    if (*tlt.m_DeviceHandle == Device::InvalidTextureHandle)
-        q.MakeCommand<Commands::TextureSingleAllocate>(tlt.m_DeviceHandle);
-
-    auto texres = q.PushCommand<Commands::Texture2DResourceBind>();
-    texres->m_HandlePtr = tlt.m_DeviceHandle;
-
-    auto pixels = q.PushCommand<Commands::Texture2DSetPixelData>();
-    memset(pixels, 0, sizeof(*pixels));
-    if (!Loader->LoadTexture(tlt.m_URI, pixels->data)) {
-        AddLogf(Error, "Texture load failed: %s", tlt.m_URI.c_str());
-        return ProcessorResult::CriticalError;
-    }
-
-    using TexConf = Configuration::Texture;
-
-    //if (config.m_Edges == Conf::Edges::Default) {
-    //	config.m_Edges = Conf::Edges::Repeat;
-    //}
-
-    if (tlt.m_Settings.m_Filtering == TexConf::Filtering::Default) {
-        tlt.m_Settings.m_Filtering = m_Configuration->m_Texture.m_Filtering;
-    }
-
-    q.MakeCommand<Commands::Texture2DSetup>(tlt.m_Settings);
-
-    return ProcessorResult::Success;
 }
 
 //---------------------------------------------------------------------------------------

@@ -27,11 +27,8 @@ public:
 
     unsigned JobsPending() const;
 
+    void QueryTextureSize(std::string URI, emath::usvec2 *OutSize);
 
-    void SubmitTextureLoad(std::string URI, TextureResourceHandle handle,
-        Device::TextureHandle *glHandlePtr,
-        emath::usvec2 *OutSize,
-        Configuration::TextureLoad settings);
     void SubmitShaderLoad(ShaderResourceHandleBase handle);
 private:
     bool m_CanWork = false;
@@ -77,14 +74,6 @@ private:
     };
 
 //--
-    struct TextureLoadTask {
-        std::string m_URI;
-        TextureResourceHandle m_Handle;
-        Device::TextureHandle *m_DeviceHandle;
-        Configuration::TextureLoad m_Settings;
-    };
-    ProcessorResult ProcessTask(QueueData *queue, TextureLoadTask &tlt);
-//--
     struct ShaderLoadTask {
         ShaderResourceHandleBase m_Handle;
     };
@@ -98,7 +87,6 @@ private:
 //--
 
     using AnyTask = std::variant <
-        TextureLoadTask,
         ShaderLoadTask,
         AsyncFSTask
     >;
