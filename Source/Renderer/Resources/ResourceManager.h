@@ -18,7 +18,9 @@
 namespace MoonGlare::Renderer::Resources {
 
 class AsyncLoader;
+
 class MeshManager;
+class textureResource;
 
 class alignas(16) ResourceManager final {
 public:
@@ -35,7 +37,7 @@ public:
 
     TextureResource& GetTextureResource() {
         RendererAssert(this); 
-        return m_TextureResource;
+        return *textureResource;
     }
     VAOResource& GetVAOResource() {
         RendererAssert(this);
@@ -71,11 +73,11 @@ private:
     Asset::AssetLoader *m_AssetLoader = nullptr;
     std::unique_ptr<AsyncLoader> m_AsyncLoader;
     void* padding;
-    TextureResource m_TextureResource;
     VAOResource m_VAOResource;
     ShaderResource m_ShaderResource;
     MaterialManager m_MaterialManager;
 
+    std::unique_ptr<TextureResource> textureResource;
     std::unique_ptr<MeshManager> meshManager;
 };
 

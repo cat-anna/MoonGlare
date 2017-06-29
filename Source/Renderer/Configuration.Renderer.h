@@ -83,7 +83,6 @@ struct Resources {
 
 struct Texture {
     static constexpr uint32_t Limit = 1024;
-    static constexpr uint32_t Initial = 64;
 
     enum class Filtering : uint8_t {
         Nearest,
@@ -139,6 +138,7 @@ struct TextureLoad {
     union Flags {
         struct {
             bool m_Swizzle : 1;
+            bool generateMipMaps : 1;
         };
         uint8_t m_UIntValue;
     } m_Flags;
@@ -146,16 +146,25 @@ struct TextureLoad {
     static_assert(sizeof(Flags) == sizeof(uint8_t), "Invalid size!");
 
     static TextureLoad Default() {
+        Flags f;
+        f.m_UIntValue = 0;
+        f.generateMipMaps = true;
         return {
             Conf::Filtering::Default,
             Conf::Edges::Default,
             Conf::MakeColorSwizzle(0),
-            0,
+            f,
         };
+    }
+
+    void Check(const Texture &global) {
+        if (m_Filtering == Texture::Filtering::Default) {
+            m_Filtering = global.m_Filtering;
+        }
     }
 };
 static_assert(sizeof(TextureLoad) == sizeof(uint32_t), "Invalid size");//allowed to be 64bits if necessary
-static_assert(std::is_pod<TextureLoad>::value, "Must be pod");
+static_assert(std::is_pod_v<TextureLoad>, "Must be pod");
 
 struct TextureRenderTask {
     static constexpr uint32_t Limit = 64;

@@ -13,7 +13,7 @@ struct Material {
 
 	void Reset() {
 		m_DiffuseColor = emath::fvec4(1);
-		m_DiffuseMap.Reset();
+		//m_DiffuseMap.Reset();
 	}
 };
 

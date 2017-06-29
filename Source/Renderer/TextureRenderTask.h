@@ -36,7 +36,7 @@ private:
 	Device::FramebufferHandle m_Framebuffer;
 	emath::ivec2 m_Size;
 	Frame* m_Frame;
-	void* padding[3];
+	void* padding[2];
 
 	Commands::CommandQueue m_CommandQueue;
 };

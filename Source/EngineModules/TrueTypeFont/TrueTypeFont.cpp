@@ -256,7 +256,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
             auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
 
             auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
-            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.m_Index;
+            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.index;
 
             auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
             arg->m_NumIndices = 6;

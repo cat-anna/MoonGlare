@@ -33,7 +33,7 @@ public:
     float ShowTime;
     wstring Text;
 
-    DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
+    DataClasses::Fonts::iFont::FontResources m_FontResources{ };
 
     bool m_Ready = false;
 };
@@ -97,7 +97,7 @@ public:
         return std::move(text);
     }
     
-    DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
+    DataClasses::Fonts::iFont::FontResources m_FontResources{  };
     bool m_TextValid = false;
 protected:
     wstring m_Text;

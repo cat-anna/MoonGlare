@@ -59,7 +59,7 @@ struct
     void Set(TextureResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
         auto texres = m_Queue->PushCommand<Renderer::Commands::Texture2DResourceBindUnit>(key);
         texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
-        texres->m_HandlePtr = m_ResourceManager->GetTextureResource().GetHandleArrayBase() + h.m_Index;
+        texres->m_HandlePtr = m_ResourceManager->GetTextureResource().GetHandleArrayBase() + h.index;
     }
     template<Sampler SamplerUnit>
     void Set(Device::TextureHandle h, Commands::CommandKey key = Commands::CommandKey()) {

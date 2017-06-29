@@ -62,7 +62,7 @@ struct alignas(16) TextComponentEntry {
 	DataClasses::FontPtr m_Font;
 	DataClasses::Fonts::iFont::FontRenderRequest m_FontStyle;
 	DataClasses::Fonts::iFont::FontRect m_FontRect;
-	DataClasses::Fonts::iFont::FontResources m_FontResources{ 0 };
+	DataClasses::Fonts::iFont::FontResources m_FontResources{  };
 
 	void Reset() {
 		m_Flags.ClearAll();

@@ -12,7 +12,6 @@
 
 #include "../Commands/CommandQueue.h"
 #include "../Commands/OpenGL/TextureCommands.h"
-#include "../Commands/OpenGL/TextureInitCommands.h"
 
 #include "ResourceManager.h"
 #include "TextureResource.h"
@@ -21,7 +20,9 @@
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
-#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/ResourceManager.h>            
+
+#include "Loader/FreeImageLoader.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -34,10 +35,7 @@ void TextureResource::Initialize(ResourceManager *Owner, Asset::TextureLoader *T
     m_GLHandle.fill(Device::InvalidTextureHandle);
     m_TextureSize.fill(emath::usvec2(0));
     m_AllocationBitmap.ClearAllocation();
-
-    if (Conf::Initial > 0) {
-        //TBD!!!
-    }
+    generations.fill(1);
 }
 
 void TextureResource::Finalize() {
@@ -54,57 +52,59 @@ bool TextureResource::Allocate(Commands::CommandQueue *queue, TextureResourceHan
     Bitmap::Index_t index;
     if (m_AllocationBitmap.Allocate(index)) {
         if (queue && m_GLHandle[index] == Device::InvalidTextureHandle) {
-            IncrementPerformanceCounter(OpenGLAllocations);
             auto arg = queue->PushCommand<Commands::TextureSingleAllocate>();
             arg->m_Out = &m_GLHandle[index];
         }
-        out.m_Index = static_cast<TextureResourceHandle::Index_t>(index);
-        out.m_TmpGuard = out.GuardValue;
-        IncrementPerformanceCounter(SuccessfulAllocations);
+        out.index = static_cast<TextureResourceHandle::Index_t>(index);
+        out.generation = generations[out.index];
+        out.deviceHandle = &m_GLHandle[out.index];
         return true;
     }
     else {
         AddLogf(Debug, "Texture allocation failed");
-        IncrementPerformanceCounter(FailedAllocations);
         return false;
     }
 }
 
 void TextureResource::Release(Frame *frame, TextureResourceHandle h) {
-    RendererAssert(h.m_TmpGuard == h.GuardValue);
-    RendererAssert(h.m_Index < Conf::Limit);
+    if (!IsHandleValid(h))
+        return;
 
-    if (m_AllocationBitmap.Release(h.m_Index)) {
-        IncrementPerformanceCounter(SuccessfulDellocations);
+    if (m_AllocationBitmap.Release(h.index)) {
+        generations[h.index]++;
     }
     else {
         AddLogf(Debug, "Texture deallocation failed");
-        IncrementPerformanceCounter(FailedDellocations);
     }
 }
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate) {
-    if (!out && !CanAllocate) {
-        return false;
-    }
-
-    if (!out && CanAllocate) {
+bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate, bool NeedSize) {
+    if (!IsHandleValid(out)) {
+        if (!CanAllocate) {
+            return false;
+        }
         if (!Allocate((Commands::CommandQueue*)nullptr, out)) {
             DebugLogf(Error, "texture allocation - allocate failed");
             return false;
         }
-    } 
+    }
 
-    auto *rawptr = &m_GLHandle[out.m_Index];
+    if (!NeedSize) {
+        auto loaderif = m_ResourceManager->GetLoaderIf();
+        config.Check(m_ResourceManager->GetConfiguration()->m_Texture);
+        loaderif->QueueRequest(fPath, std::make_shared<Loader::FreeImageLoader>(out, this, config));
+        return true;
+    }
+
     auto loader = m_ResourceManager->GetLoader();
-    auto *size = &m_TextureSize[out.m_Index];
+    auto *size = &m_TextureSize[out.index];
 
     loader->SubmitTextureLoad(
         fPath,//?
         out,
-        rawptr,
+        out.deviceHandle,
         size,
         config
     );
@@ -113,16 +113,25 @@ bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string 
 }
 
 emath::usvec2 TextureResource::GetSize(TextureResourceHandle h) const {
-    if (!h)
+    if (!IsHandleValid(h))
         return {};
 
-    return m_TextureSize[h.m_Index];
+    return m_TextureSize[h.index];
+}
+
+bool TextureResource::IsHandleValid(TextureResourceHandle &h) const {
+    if (h.index >= Conf::Limit)
+        return false;
+    if (generations[h.index] != h.generation) {
+        return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------------------
 
 bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize) {
-    if (!out && AllowAllocate) {
+    if (!IsHandleValid(out) && AllowAllocate) {
         if (!Allocate(&q, out)) {
             DebugLogf(Error, "texture allocation - allocate failed");
             return false;
@@ -130,15 +139,15 @@ bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::Co
     }
 
     auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
-    texres->m_HandlePtr = GetHandleArrayBase() + out.m_Index;
+    texres->m_HandlePtr = GetHandleArrayBase() + out.index;
 
-    m_TextureSize[out.m_Index] = size;
+    m_TextureSize[out.index] = size;
     auto pixels = q.PushCommand<Commands::Texture2DSetPixelsArray>(key);
-    pixels->m_Size[0] = size[0];
-    pixels->m_Size[1] = size[1];
-    pixels->m_PixelData = Pixels;
-    pixels->m_BPP = static_cast<GLenum>(pxtype);
-    pixels->m_Type = static_cast<GLenum>(TypeValue);
+    pixels->size[0] = size[0];
+    pixels->size[1] = size[1];
+    pixels->pixels = Pixels;
+    pixels->BPP = static_cast<GLenum>(pxtype);
+    pixels->type = static_cast<GLenum>(TypeValue);
 
     if (config.m_Filtering == Conf::Filtering::Default) {
         config.m_Filtering = m_Settings->m_Filtering;

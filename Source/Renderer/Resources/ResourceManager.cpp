@@ -32,7 +32,8 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
 
 //    auto conf = m_RendererFacade->GetConfiguration();
 
-    m_TextureResource.Initialize(this, m_AssetLoader->GetTextureLoader());
+    textureResource = std::make_unique<TextureResource>();
+    textureResource->Initialize(this, m_AssetLoader->GetTextureLoader());
 
     if (!m_VAOResource.Initialize(this)) {
         AddLogf(Error, "VAOResource initialization failed!");
@@ -66,7 +67,8 @@ bool ResourceManager::Finalize() {
         AddLogf(Error, "VAOResource finalization failed!");
     }
 
-    m_TextureResource.Finalize();
+    textureResource->Finalize();
+    textureResource.reset();
 
     return true;
 }

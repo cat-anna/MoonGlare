@@ -8,8 +8,8 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-bool MaterialBuilder::SetDiffuseMap(const std::string &URI) {
-	return m_Manager->GetResourceManager()->GetTextureResource().LoadTexture(m_MaterialPtr->m_DiffuseMap, URI);
+bool MaterialBuilder::SetDiffuseMap(const std::string &URI, bool needsize)  {
+    return m_Manager->GetResourceManager()->GetTextureResource().LoadTexture(m_MaterialPtr->m_DiffuseMap, URI, Configuration::TextureLoad::Default(), true, needsize);
 }
 
 bool MaterialBuilder::SetDiffuseMap(const std::string & URI, Configuration::TextureLoad loadcfg) {

@@ -16,6 +16,11 @@ public:
     virtual ~iAsyncFileSystemRequest() {};
 
     virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) = 0;
+
+    //can be thrown: from OnFileReady
+    struct NotEnoughStorage {
+        size_t requiredSpace;
+    };
 };
 
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;

@@ -3,7 +3,7 @@
 
 #include <FreeImage.h>
 
-void SwapRedAndBlue(FIBITMAP *dib){
+static void SwapRedAndBlue(FIBITMAP *dib){
 	unsigned height = FreeImage_GetHeight(dib);
 
 	unsigned linebytes = FreeImage_GetLine(dib);
@@ -17,11 +17,11 @@ void SwapRedAndBlue(FIBITMAP *dib){
 	}
 }
 
-void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
+static void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 	AddLog(Error, "FreeImage [Format: " << FreeImage_GetFormatFromFIF(fif) << "] error: " << message);
 }
 
-void DibDeallocator(void * dib) {
+static void DibDeallocator(void * dib) {
 	if (dib != nullptr)
 		FreeImage_Unload((FIBITMAP*)dib);
 }

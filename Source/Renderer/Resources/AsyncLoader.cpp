@@ -12,7 +12,6 @@
 #include "../RenderDevice.h"
 
 #include "../Commands/OpenGL/TextureCommands.h"
-#include "../Commands/OpenGL/TextureInitCommands.h"
 
 using namespace std::chrono_literals;
 

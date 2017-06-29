@@ -26,7 +26,8 @@ using Texture2DBindUnit = CommandTemplate<Texture2DBindUnitArgument>;
 
 //---------------------------------------------------------------------------------------
 
-struct Texture2DResourceBindArgument : public TextureCommandBase {
+struct Texture2DResourceBindArgument {
+    Device::TextureHandle *m_HandlePtr;
     static void Execute(const Texture2DResourceBindArgument *arg) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, *arg->m_HandlePtr);
@@ -273,5 +274,52 @@ struct detail::InitPlaneShadowMapArgument {
     }
 };
 using InitPlaneShadowMap = RunnableCommandTemplate<detail::InitPlaneShadowMapArgument>;
+
+//---------------------------------------------------------------------------------------
+
+namespace detail {
+struct Texture2DSetPixelsArrayArgument;
+struct Texture2DGenerateMipMapsArgument;
+}
+
+struct detail::Texture2DSetPixelsArrayArgument {
+    unsigned short size[2];
+    GLenum BPP;
+    GLenum type;
+    const void *pixels;
+
+    void Run() {
+        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, BPP, size[0], size[1], /*border*/0, BPP, type, pixels);
+    }
+};
+using Texture2DSetPixelsArray = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelsArrayArgument>;
+
+
+struct detail::Texture2DGenerateMipMapsArgument {
+    void Run() {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+};
+using Texture2DGenerateMipMapsArgument = Commands::RunnableCommandTemplate<detail::Texture2DGenerateMipMapsArgument>;
+
+//---------------------------------------------------------------------------------------
+
+namespace detail {
+struct Texture2DSetPixelDataArgument;
+}
+
+struct detail::Texture2DSetPixelDataArgument {
+    Asset::TextureLoader::TexturePixelData data;
+
+    void Run() {
+        auto &size = data.m_PixelSize;
+        auto bpp = static_cast<unsigned>(data.m_PixelFormat);
+        auto type = static_cast<unsigned>(data.m_PixelType);
+        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, bpp, size[0], size[1], /*border*/0, bpp, type, data.m_Pixels);
+        data.m_ImageMemory.reset();
+    }
+};
+using Texture2DSetPixelData = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelDataArgument>;
+
 
 } //namespace MoonGlare::Renderer::Commands

@@ -2,24 +2,6 @@
 
 namespace MoonGlare::Renderer {
 
-struct TextureResourceHandle {
-    using Index_t = uint16_t;
-    Index_t m_Index;
-    Index_t m_TmpGuard;
-    static constexpr Index_t GuardValue = 0xFADE;
-
-    void Reset() {
-        memset(this, 0, sizeof(*this));
-    }
-
-    operator bool () const {
-        return m_TmpGuard == GuardValue;
-    }
-};
-static_assert(std::is_pod<TextureResourceHandle>::value, "Must be pod type!");
-
-//-----------------------------------------------------------------------------
-
 struct VAOResourceHandle {
     using Index_t = uint16_t;
     Index_t m_Index;
@@ -103,5 +85,6 @@ struct HandleTemplate : public ResourceHandleBase {
 //-----------------------------------------------------------------------------
 
 using MeshResourceHandle = HandleTemplate<Device::VAOHandle>;
+using TextureResourceHandle = HandleTemplate<Device::TextureHandle>;
 
 } //namespace MoonGlare::Renderer

@@ -11,7 +11,7 @@ class MaterialBuilder final {
 	using ConfRes = Configuration::Resources;
 public:
 	void SetDiffuseColor(const emath::fvec4 &col) { m_MaterialPtr->m_DiffuseColor = col; }
-	bool SetDiffuseMap(const std::string &URI);
+	bool SetDiffuseMap(const std::string &URI, bool needsize = false);
 	bool SetDiffuseMap(const std::string &URI, Configuration::TextureLoad loadcfg);
 
 	//template<typename T>

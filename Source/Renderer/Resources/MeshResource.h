@@ -35,8 +35,6 @@ public:
     bool Allocate(Commands::CommandQueue *q, HandleType &hout);
     void Release(Commands::CommandQueue *q, HandleType hin);
 
-    //TODO: meshbuilder
-
 #ifdef NEED_MESH_BUILDER
     Builder::MeshBuilder GetBuilder(Commands::CommandQueue &q, HandleType &h, 
         Commands::CommandKey key = {}, bool AllowAllocation = false) {
@@ -68,7 +66,7 @@ public:
 
     bool LoadMesh(const std::string &uri, HandleType &hout);
 
-    bool IsHandleValid(HandleType &h);
+    bool IsHandleValid(HandleType &h) const;
 
     auto GetMeshes(HandleType h) {
         if (!IsHandleValid(h)) {

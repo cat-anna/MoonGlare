@@ -53,7 +53,7 @@ void MeshManager::Release(Commands::CommandQueue *q, HandleType hin) {
     allocationBitmap.Release(hin.index);
 }
 
-bool MeshManager::IsHandleValid(HandleType &h) {
+bool MeshManager::IsHandleValid(HandleType &h) const {
     if (h.index >= Conf::Limit)
         return false;
     if (generations[h.index] != h.generation) {

@@ -31,9 +31,9 @@ public:
 	bool Allocate(Frame *frame, TextureResourceHandle &out);
 	void Release(Frame *frame, TextureResourceHandle h);
 
-	bool LoadTexture(TextureResourceHandle &out, const std::string &fPath, 
-		Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
-		bool CanAllocate = true);
+    bool LoadTexture(TextureResourceHandle &out, const std::string &fPath,
+        Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
+        bool CanAllocate = true, bool NeedSize = false);
 
 	template<typename T>
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
@@ -44,12 +44,14 @@ public:
 	Device::TextureHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
 	emath::usvec2 GetSize(TextureResourceHandle h) const;
+    bool IsHandleValid(TextureResourceHandle &h) const;
 private: 
 	template<typename T>
 	using Array = std::array<T, Conf::Limit>;
 	using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
-	Bitmap m_AllocationBitmap;
+    Array<TextureResourceHandle::Generation_t> generations;
+    Bitmap m_AllocationBitmap;
 	Array<Device::TextureHandle> m_GLHandle;
 	//Array<Asset::FileHash> m_SourceHash;
 	Array<emath::usvec2> m_TextureSize;
@@ -58,13 +60,6 @@ private:
 
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,
 		Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize);
-
-	DeclarePerformanceCounter(SuccessfulAllocations);
-	DeclarePerformanceCounter(SuccessfulDellocations);
-	DeclarePerformanceCounter(FailedAllocations);
-	DeclarePerformanceCounter(FailedDellocations);
-	DeclarePerformanceCounter(OpenGLAllocations);
-	DeclarePerformanceCounter(OpenGLDeallocations);
 };
 
 //static_assert((sizeof(TextureResource) % 16) == 0, "Invalid size!");
