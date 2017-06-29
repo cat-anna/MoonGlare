@@ -15,7 +15,9 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-class alignas(16) TextureResource {
+class 
+    //alignas(16) 
+    TextureResource {
 	using ThisClass = TextureResource;
 	using Conf = Configuration::Texture;
 	using ConfRes = Configuration::Resources;
@@ -52,7 +54,6 @@ private:
 	//Array<Asset::FileHash> m_SourceHash;
 	Array<emath::usvec2> m_TextureSize;
 	ResourceManager *m_ResourceManager = nullptr;
-	Asset::TextureLoader *m_TexureLoader = nullptr;
 	const Configuration::Texture *m_Settings = nullptr;
 
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,
@@ -66,7 +67,7 @@ private:
 	DeclarePerformanceCounter(OpenGLDeallocations);
 };
 
-static_assert((sizeof(TextureResource) % 16) == 0, "Invalid size!");
+//static_assert((sizeof(TextureResource) % 16) == 0, "Invalid size!");
 //static_assert(std::is_trivial<TextureResource>::value, "Invalid size!");//atomics
 
 } //namespace MoonGlare::Renderer::Resources 

@@ -60,6 +60,8 @@ struct DefferedSink {
 
     RObj Begin(const math::mat4 &ModelMatrix, const Graphic::VAO &vao);
 
+    void Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH);
+
     void SubmitDirectionalLight(const Renderer::Light::LightBase &linfo);
     void SubmitPointLight(const Renderer::Light::PointLight &linfo);
     void SubmitSpotLight(const Renderer::Light::SpotLight &linfo);

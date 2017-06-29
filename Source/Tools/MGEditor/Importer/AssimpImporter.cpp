@@ -17,18 +17,9 @@ namespace MoonGlare::Editor::Importer {
 
 class AssimpImporterInfo
 	: public QtShared::iModule	
-	, public QtShared::iFileIconInfo
 	, public QtShared::iEditorInfo {
 public:
 	AssimpImporterInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
-
-	virtual std::vector<FileIconInfo> GetFileIconInfo() const override {
-		return std::vector<FileIconInfo>{
-			FileIconInfo{ "blend", ICON_16_3DMODEL_RESOURCE, },
-			FileIconInfo{ "3ds", ICON_16_3DMODEL_RESOURCE, },
-			FileIconInfo{ "fbx", ICON_16_3DMODEL_RESOURCE, },
-		};
-	}
 
 	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
 		return std::vector<FileHandleMethodInfo> {

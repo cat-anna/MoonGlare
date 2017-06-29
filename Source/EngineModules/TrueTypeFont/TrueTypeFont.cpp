@@ -5,6 +5,9 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+
+#define NEED_VAO_BUILDER
+
 #include <MoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"

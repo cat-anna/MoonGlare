@@ -9,7 +9,9 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-class alignas(16) MaterialManager final {
+class alignas(16) MaterialManager final 
+    //: iAbstractResource
+{
 	using ThisClass = MaterialManager;
 	using Conf = Configuration::Material;
 	using ConfRes = Configuration::Resources;

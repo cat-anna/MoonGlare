@@ -10,7 +10,10 @@
 #include "../nfRenderer.h"
 #include "../Configuration.Renderer.h"
 
-#include "VAOBuilder.h"
+
+#ifdef NEED_VAO_BUILDER
+#include "Builder/VAOBuilder.h"
+#endif
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -32,7 +35,8 @@ public:
 
 	Device::VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
-	VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle &h, bool AllowAllocation = false) {
+#ifdef NEED_VAO_BUILDER
+    Builder::VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle &h, bool AllowAllocation = false) {
 		if (AllowAllocation && h.m_TmpGuard != GuardValue) {
 			Allocate(q, h);
 		}
@@ -40,13 +44,14 @@ public:
 		RendererAssert(h.m_TmpGuard == GuardValue);
 		RendererAssert(h.m_Index < Conf::VAOLimit);
 
-		return VAOBuilder {
+		return Builder::VAOBuilder {
 			&q,
-			&m_GLVAOBuffsers[h.m_Index],
+			&m_GLVAOBuffsers[h.m_Index][0],
 			&m_GLHandle[h.m_Index], 
 		};
 	}
-private: 
+#endif
+private:
 	template<typename T>
 	using Array = std::array<T, Conf::VAOLimit>;
 	using Bitmap = ConfRes::BitmapAllocator<Conf::VAOLimit>;

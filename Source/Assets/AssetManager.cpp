@@ -50,4 +50,8 @@ TextureLoader * AssetManager::GetTextureLoader() const {
     return m_TextureLoader.get();
 }
 
+bool AssetManager::ReadFile(const std::string &URI, StarVFS::ByteTable &out) {
+    return m_FileSystem->OpenFile(URI, DataPath::URI, out);
+}
+
 } //namespace MoonGlare::Asset

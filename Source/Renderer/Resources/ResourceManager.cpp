@@ -9,6 +9,7 @@
 #include "../Renderer.h"
 
 #include "AsyncLoader.h"
+#include "MeshResource.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -16,6 +17,10 @@ ResourceManager::ResourceManager() {
 }
 
 ResourceManager::~ResourceManager() {
+}
+
+iAsyncLoader* ResourceManager::GetLoaderIf() {
+    return m_AsyncLoader.get();
 }
 
 bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets) {
@@ -40,6 +45,8 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
     }
 
     m_MaterialManager.Initialize(this);
+
+    meshManager = std::make_unique<MeshManager>(this);
 
     m_AsyncLoader = std::make_unique<AsyncLoader>(this, m_AssetLoader, m_RendererFacade->GetConfiguration());
 

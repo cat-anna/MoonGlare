@@ -19,6 +19,24 @@ public:
     }
 };
 
+struct SetEnum : public QtShared::iCustomEnum {
+    SetEnum(std::string type) : type(type) {}
+
+    virtual std::string GetEnumTypeName() const {
+        return type;
+    }
+    virtual std::vector<EnumValue> GetValues() const {
+        std::vector<EnumValue> ret;
+        for (auto &s : set)
+            ret.emplace_back(EnumValue{ s });
+        return std::move(ret);
+    }
+
+    std::set<std::string> set;
+    std::string type;
+};
+using SharedSetEnum = std::shared_ptr<SetEnum>;
+
 class iCustomEnumSupplier {
 public:
     virtual ~iCustomEnumSupplier() {}

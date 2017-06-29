@@ -185,13 +185,13 @@ void FileSystem::Reload() {
     if (m_VFS->GetContainerCount() == 0) {
         auto ret = m_VFS->CreateContainer<StarVFS::Containers::FolderContainer>("/", m_BasePath);
         if (ret.first != StarVFS::VFSErrorCode::Success) {
-            AddLog(Error, "Failed to load base container. Code: %d", (int)ret.first);
+            AddLogf(Error, "Failed to load base container. Code: %d", (int)ret.first);
             return;
         }
     } else {
         auto c = m_VFS->GetContainer(1);
         if (!c) {
-            AddLog(Error, "Failed to get base container");
+            AddLogf(Error, "Failed to get base container");
             return;
         }
         c->ReloadContainer();

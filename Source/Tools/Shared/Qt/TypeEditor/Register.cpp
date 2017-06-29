@@ -45,8 +45,8 @@ struct bool_TypeInfo {
 		return "bool";
 	}
 	static bool GetValues(std::unordered_map<std::string, uint64_t> &values) {
-		values["Enabled"] = static_cast<uint64_t>(1);
-		values["Disabled"] = static_cast<uint64_t>(0);
+		values["True"] = static_cast<uint64_t>(1);
+		values["False"] = static_cast<uint64_t>(0);
 		return true;
 	}
 };

@@ -54,6 +54,7 @@ class cRootClass;
 
 #include "Config/Config.h"
 #include <OrbitLogger/src/OrbitLogger.h>
+#include <StarVFS/core/nfStarVFS.h>
 
 #include <libSpace/src/Space.h>
 

@@ -5,6 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 
+#include "../nfRenderer.h"
 #include "../Frame.h"
 #include "../Renderer.h"
 #include "../RenderDevice.h"
@@ -28,7 +29,6 @@ void TextureResource::Initialize(ResourceManager *Owner, Asset::TextureLoader *T
     RendererAssert(Owner);
     RendererAssert(TexLoader);
     m_ResourceManager = Owner;
-    m_TexureLoader = TexLoader;
     m_Settings = &Owner->GetConfiguration()->m_Texture;
 
     m_GLHandle.fill(Device::InvalidTextureHandle);

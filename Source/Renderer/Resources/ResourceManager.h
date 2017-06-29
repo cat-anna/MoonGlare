@@ -13,9 +13,12 @@
 #include "ShaderResource.h"
 #include "MaterialManager.h"
 
+#include "../iAsyncLoader.h"
+
 namespace MoonGlare::Renderer::Resources {
 
 class AsyncLoader;
+class MeshManager;
 
 class alignas(16) ResourceManager final {
 public:
@@ -28,6 +31,7 @@ public:
     const Configuration::RuntimeConfiguration* GetConfiguration() const;
     RendererFacade *GetRendererFacade() { return m_RendererFacade; }
     AsyncLoader* GetLoader() { return m_AsyncLoader.get(); }
+    iAsyncLoader* GetLoaderIf();
 
     TextureResource& GetTextureResource() {
         RendererAssert(this); 
@@ -44,6 +48,10 @@ public:
     MaterialManager& GetMaterialManager() {
         RendererAssert(this);
         return m_MaterialManager;
+    }
+    MeshManager& GetMeshManager() {
+        RendererAssert(this);
+        return *meshManager;
     }
 
     void Release(Frame *frame, TextureResourceHandle &texres) {
@@ -67,6 +75,8 @@ private:
     VAOResource m_VAOResource;
     ShaderResource m_ShaderResource;
     MaterialManager m_MaterialManager;
+
+    std::unique_ptr<MeshManager> meshManager;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");

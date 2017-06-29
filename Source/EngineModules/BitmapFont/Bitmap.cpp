@@ -5,6 +5,9 @@
 */
 
 #include <pch.h>
+
+#define NEED_VAO_BUILDER
+
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/DataClasses/iFont.h>

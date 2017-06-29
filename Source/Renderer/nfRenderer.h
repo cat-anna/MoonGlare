@@ -41,6 +41,9 @@ class RenderDevice;
 class Context;
 class ScriptApi;
 
+class iAsyncLoader;
+class iAsyncFileSystemRequest;
+
 class alignas(16) TextureRenderTask;
 
 struct alignas(16) VirtualCamera;
@@ -64,7 +67,9 @@ namespace Commands {
 
 namespace Resources {
     class alignas(16) ResourceManager;
-    class alignas(16) TextureResource;
+    class 
+        //alignas(16)
+        TextureResource;
     class alignas(16) MaterialManager;
 }
 

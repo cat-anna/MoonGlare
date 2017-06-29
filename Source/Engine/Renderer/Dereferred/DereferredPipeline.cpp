@@ -1,4 +1,7 @@
 #include <pch.h>
+
+#define NEED_VAO_BUILDER
+
 #include <MoonGlare.h>
 
 #include "DereferredPipeline.h"
@@ -7,6 +10,7 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/MeshResource.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>
@@ -298,6 +302,65 @@ void DefferedSink::Mesh(Renderer::MaterialResourceHandle material, unsigned NumI
 
     auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
     *larg = *garg;
+}
+
+void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH) {
+    //TODO
+
+    namespace Commands = Renderer::Commands;
+
+    {
+        using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
+        m_ShadowShader.m_Queue = m_LightGeometryQueue;
+        m_ShadowShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
+        m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
+    }
+
+    {
+        using Sampler = GeometryShaderDescriptor::Sampler;
+        using Uniform = GeometryShaderDescriptor::Uniform;
+        m_GeometryShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
+
+        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+        m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
+
+        m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
+    }
+
+    auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+    for (auto &mesh : mm.GetMeshes(meshH)) {
+        if (!mesh.valid)
+            break;
+
+        //f (material.m_TmpGuard == material.GuardValue) {
+        //   auto matptr = m_Renderer->GetResourceManager()->GetMaterialManager().GetMaterial(material);
+        //   if (matptr) {
+                //m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+        //        m_GeometryShader.Set<Sampler::DiffuseMap>(matptr->m_DiffuseMap);
+        //    }
+        //    else {
+            //       m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+        //        m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
+            //   }
+        //}
+        // else {
+            //if (mat) 
+            //	dev.Bind(mat->GetMaterial());
+            //else
+            //	dev.BindNullMaterial();
+        //    assert(false);
+        //    return;
+        // }
+
+        auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        garg->m_NumIndices = mesh.numIndices;
+        garg->m_IndexValueType = mesh.indexElementType;;
+        garg->m_BaseIndex = mesh.baseIndex;
+        garg->m_BaseVertex = mesh.baseVertex;
+
+        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        *larg = *garg;
+    }
 }
 
 void DefferedSink::SubmitDirectionalLight(const Renderer::Light::LightBase & linfo) {

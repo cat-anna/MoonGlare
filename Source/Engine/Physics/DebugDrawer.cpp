@@ -4,6 +4,9 @@
     by Paweu
 */
 #include <pch.h>
+
+#define NEED_VAO_BUILDER
+
 #include <MoonGlare.h>
 
 #include "DebugDrawer.h"

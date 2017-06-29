@@ -88,6 +88,8 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <fmt/format.h>
+
 #pragma warning ( pop )
 
 namespace emath {

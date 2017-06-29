@@ -28,8 +28,9 @@ public:
 
     Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
 
-    virtual ShaderCodeLoader* GetShaderCodeLoader() const override;
-    virtual TextureLoader* GetTextureLoader() const override;
+    ShaderCodeLoader* GetShaderCodeLoader() const override;
+    TextureLoader* GetTextureLoader() const override;
+    bool ReadFile(const std::string &URI, StarVFS::ByteTable &out) override;
 private:
     std::unique_ptr<FileSystem> m_FileSystem;
     std::unique_ptr<Shader::Loader> m_ShaderLoader;

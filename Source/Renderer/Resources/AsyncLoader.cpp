@@ -169,7 +169,7 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, TextureL
     auto Loader = m_AssetLoader->GetTextureLoader();
 
     RendererAssert(Loader);
-    auto &q = queue->m_Queue;
+    auto &q = queue->storage.m_Queue;
 
     if (*tlt.m_DeviceHandle == Device::InvalidTextureHandle)
         q.MakeCommand<Commands::TextureSingleAllocate>(tlt.m_DeviceHandle);
@@ -200,7 +200,6 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, TextureL
 }
 
 //---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
 
 void AsyncLoader::SubmitShaderLoad(ShaderResourceHandleBase handle) {
     QueuePush(ShaderLoadTask{ handle });
@@ -209,18 +208,35 @@ void AsyncLoader::SubmitShaderLoad(ShaderResourceHandleBase handle) {
 
 AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, ShaderLoadTask &slt) {
     auto &shres = m_ResourceManager->GetShaderResource();
-    bool success = shres.GenerateReload(queue->m_Queue, queue->m_Memory.m_Allocator, slt.m_Handle);
+    bool success = shres.GenerateReload(queue->storage.m_Queue, queue->storage.m_Memory.m_Allocator, slt.m_Handle);
 
     if (success) {
         return ProcessorResult::Success;
     }
-    else {
+    else {               
         return ProcessorResult::CriticalError;
     }
 }
 
 //---------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------
+
+void AsyncLoader::QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) {
+    AsyncFSTask task;
+    task.URI = std::move(URI);
+    task.request = std::move(handler);
+    QueuePush(std::move(task));
+}
+
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFSTask &afst) {
+    StarVFS::ByteTable bt;
+    if (!m_AssetLoader->ReadFile(afst.URI, bt)) {
+        AddLogf(Error, "Cannot load file %s", afst.URI.c_str());
+        return ProcessorResult::CriticalError;
+    }
+
+    afst.request->OnFileReady(afst.URI, bt, queue->storage, this);
+    return ProcessorResult::Success;
+}
 
 } //namespace MoonGlare::Renderer::Resources 
  

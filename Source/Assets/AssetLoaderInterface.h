@@ -76,6 +76,8 @@ public:
 
     virtual ShaderCodeLoader* GetShaderCodeLoader() const { return nullptr; }
     virtual TextureLoader* GetTextureLoader() const { return nullptr; }
+
+    virtual bool ReadFile(const std::string &URI, StarVFS::ByteTable &out) = 0;
 };
 
 } //namespace MoonGlare::Renderer::Resources 

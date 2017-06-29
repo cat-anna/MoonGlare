@@ -45,6 +45,8 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 	DataClasses::ModelPtr m_Model;
 	std::string m_ModelName;
 
+    Renderer::MeshResourceHandle meshHandle;
+
 	bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
 	void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
 

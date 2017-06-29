@@ -23,8 +23,10 @@ public:
     //iAsyncLoader
     bool AnyJobPending() override;
     bool AllResoucecsLoaded() override;
+    void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
 
     unsigned JobsPending() const;
+
 
     void SubmitTextureLoad(std::string URI, TextureResourceHandle handle,
         Device::TextureHandle *glHandlePtr,
@@ -43,20 +45,19 @@ private:
         bool m_Finished;
         uint8_t _padding[3];
         void *padding2[1];
-        Commands::CommandQueue m_Queue;
-        StackAllocatorMemory<Conf::QueueMemory> m_Memory;
+        ResourceLoadStorage storage;
 
         QueueData() {
-            m_ccq.m_Queue = &m_Queue;
-            m_Queue.MemZero();
+            m_ccq.m_Queue = &storage.m_Queue;
+            storage.m_Queue.MemZero();
             Clear();
         }
 
         void Clear() {
             m_Finished = false;
             m_ccq.m_Commited = false;
-            m_Queue.ClearAllocation();
-            m_Memory.m_Allocator.Clear();
+            storage.m_Queue.ClearAllocation();
+            storage.m_Memory.m_Allocator.Clear();
         }
     };
     static_assert(Conf::AsyncQueueCount == 2, "error!");//not implemented
@@ -89,10 +90,17 @@ private:
     };
     ProcessorResult ProcessTask(QueueData *queue, ShaderLoadTask &slt);
 //--
+    struct AsyncFSTask {
+        std::string URI;
+        SharedAsyncFileSystemRequest request;
+    };
+    ProcessorResult ProcessTask(QueueData *queue, AsyncFSTask &afst);
+//--
 
     using AnyTask = std::variant <
         TextureLoadTask,
-        ShaderLoadTask
+        ShaderLoadTask,
+        AsyncFSTask
     >;
 
     std::list<AnyTask> m_Queue;
