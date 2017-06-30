@@ -36,10 +36,7 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
     textureResource = mem::make_aligned<TextureResource>();
     textureResource->Initialize(this, m_AssetLoader->GetTextureLoader());
 
-    if (!m_VAOResource.Initialize(this)) {
-        AddLogf(Error, "VAOResource initialization failed!");
-        return true;
-    }
+    vaoManager = mem::make_aligned<VAOResource>(this);
 
     if (!m_ShaderResource.Initialize(this, m_AssetLoader->GetShaderCodeLoader())) {
         AddLogf(Error, "ShaderResource initialization failed!");
@@ -57,14 +54,11 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
 bool ResourceManager::Finalize() {
     m_AsyncLoader.reset();
 
+    vaoManager.reset();
     materialManager.reset();
 
     if (!m_ShaderResource.Finalize()) {
         AddLogf(Error, "ShaderResource finalization failed!");
-    }
-
-    if (!m_VAOResource.Finalize()) {
-        AddLogf(Error, "VAOResource finalization failed!");
     }
 
     textureResource->Finalize();

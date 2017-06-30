@@ -33,7 +33,6 @@ public:
     static string GetVersionString();
 
     World* GetWorld() { return m_World; }
-
 protected:
     Space::ActionQueue m_ActionQueue;
 
@@ -42,10 +41,10 @@ protected:
 
     std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 
-    volatile bool m_Running;		//!< Indicates whether engine is running
-    float m_FrameTimeSlice;			//!< Amount of ms per single frame. Equals to 16.(6) for 60PFSd
-    unsigned m_LastFPS;				//!< FPS in previous second.
-    unsigned m_SkippedFrames;		//!< Total amount of skipped frames.
+    volatile bool m_Running;	
+    float m_FrameTimeSlice;		
+    unsigned m_LastFPS;			
+    unsigned m_SkippedFrames;	
 };
 
 inline Engine* GetEngine() { return Engine::Instance(); }

@@ -6,7 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 
-#define NEED_MATERIAL_BUILDER
+#define NEED_MATERIAL_BUILDER     
+#define NEED_VAO_BUILDER     
 
 #include <MoonGlare.h>
 
@@ -25,22 +26,22 @@ namespace GUI {
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(Animation);
 
-Animation::Animation():
-        BaseClass(),
-        m_Speed(0.1f),
-        m_StartFrame(0),
-        m_EndFrame(0),
-        m_FrameSpacing(0),
-        m_FrameCount(1),
-        m_DrawEnabled(false) {
-}
+Animation::Animation() :
+    BaseClass(),
+    m_Speed(0.1f),
+    m_StartFrame(0),
+    m_EndFrame(0),
+    m_FrameSpacing(0),
+    m_FrameCount(1),
+    m_DrawEnabled(false) {}
 
-Animation::~Animation() {
-}
+Animation::~Animation() {}
 
 //----------------------------------------------------------------'
 
-bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize) {
+bool Animation::Load(const std::string &fileuri, unsigned StartFrame,
+    unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing,
+    math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize) {
     m_StartFrame = StartFrame;
     m_EndFrame = m_StartFrame + FrameCount - 1;
 
@@ -58,7 +59,7 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
     auto *rf = e->GetWorld()->GetRendererFacade();
     auto *resmgr = rf->GetResourceManager();
 
-    auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
+    auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(material, true);
     matb.SetDiffuseColor(emath::fvec4(1));
     matb.SetDiffuseMap(fileuri, true);
     m_TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
@@ -72,7 +73,8 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
         FrameSize.x *= Aspect;
         FrameSize *= 2.0f;
         m_FrameSize = FrameSize;
-    } else {
+    }
+    else {
         if (FrameCount == 1 && (FrameSize[0] == 0 || FrameSize[1] == 0)) {
             FrameSize = m_TextureSize;
         }
@@ -83,85 +85,88 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame, unsigned F
         return false;
     }
 
-    GetRenderDevice()->RequestContextManip([this]() {
-        m_DrawEnabled = true;
-        AddLog(Debug, "Animation '" << this->GetName() << "' has been loaded");
-    });
-
     return true;
 }
 
 bool Animation::GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount) {
+    auto *e = Core::GetEngine();
+    auto *rf = e->GetWorld()->GetRendererFacade();
+
     unsigned FrameCount = m_EndFrame - m_StartFrame + 1;
-    m_FrameTable.reset(new Graphic::VAO[FrameCount]);
+    frames.clear();
+    frames.resize(FrameCount, {});
 
-    math::vec2 texsize = m_TextureSize;
+    //FIXME: ugly!
+    rf->GetAsyncLoader()->QueueTask(std::make_shared < Renderer::FunctionalAsyncTask>(
+        [this, rf, FrameSize, FrameStripCount, FrameCount](Renderer::ResourceLoadStorage &storage) {
 
-    math::vec2 fu = math::vec2(1.0f) / FrameStripCount;
+        math::vec2 texsize = m_TextureSize;
+        math::vec2 fu = math::vec2(1.0f) / FrameStripCount;
 
-    for (unsigned y = 0; y < m_FrameCount[1]; ++y)
-    for (unsigned x = 0; x < m_FrameCount[0]; ++x) {
-        unsigned frame = y * m_FrameCount[0] + x;
-        if (frame > FrameCount)
-            continue;
+        std::vector<glm::fvec3> Vertexes;
+        std::vector<glm::fvec2> UVs;
 
-        Graphic::VertexVector Vertexes{
-            Graphic::vec3(0, FrameSize[1], 0),
-            Graphic::vec3(FrameSize[0], FrameSize[1], 0),
-            Graphic::vec3(FrameSize[0], 0, 0),
-            Graphic::vec3(0, 0, 0),
-        };
-        Graphic::NormalVector Normals;
-        float w1 = fu[0] * (float)x;
-        float h1 = fu[1] * (float)y;
-        float w2 = w1 + fu[0];
-        float h2 = h1 + fu[1];
-        Graphic::TexCoordVector TexUV{
-            Graphic::vec2(w1, h1),
-            Graphic::vec2(w2, h1),
-            Graphic::vec2(w2, h2),
-            Graphic::vec2(w1, h2),
-        };
+        Vertexes.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
 
-        Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
-        m_FrameTable[frame].DelayInit(Vertexes, TexUV, Normals, Index);
-    }
+        for (unsigned y = 0; y < m_FrameCount[1]; ++y)
+            for (unsigned x = 0; x < m_FrameCount[0]; ++x) {
+                unsigned frame = y * m_FrameCount[0] + x;
+                if (frame > FrameCount)
+                    continue;
+
+                auto &f = frames[frame];
+
+                f.baseIndex = 0;
+                f.baseVertex = Vertexes.size();
+                f.indexElementType = GL_UNSIGNED_BYTE;
+                f.numIndices = 6;
+
+                Vertexes.push_back(glm::fvec3(0, FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], 0, 0));
+                Vertexes.push_back(glm::fvec3(0, 0, 0));
+
+                Graphic::NormalVector Normals;
+                float w1 = fu[0] * (float)x;
+                float h1 = fu[1] * (float)y;
+                float w2 = w1 + fu[0];
+                float h2 = h1 + fu[1];
+
+                UVs.push_back(glm::fvec2(w1, h1));
+                UVs.push_back(glm::fvec2(w2, h1));
+                UVs.push_back(glm::fvec2(w2, h2));
+                UVs.push_back(glm::fvec2(w1, h2));
+            }
+
+
+        {
+            auto &m = storage.m_Memory.m_Allocator;
+            auto &q = storage.m_Queue;
+
+            using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+            auto vaob = rf->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, vaoHandle, true);
+            vaob.BeginDataChange();
+
+            vaob.CreateChannel(ichannels::Vertex);
+            vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+
+            vaob.CreateChannel(ichannels::Texture0);
+            vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(UVs), UVs.size());
+
+            vaob.CreateChannel(ichannels::Index);
+            static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+            vaob.SetIndex(ichannels::Index, IndexTable);
+
+            vaob.EndDataChange();
+            vaob.UnBindVAO();
+        }
+        m_DrawEnabled = true;
+    }));
 
     return true;
-}
-
-//----------------------------------------------------------------
-
-AnimationInstance Animation::CreateInstance() {
-    AnimationInstance ai;
-    ai.Data = shared_from_this();
-    ai.Position = static_cast<float>(m_StartFrame);
-    return ai;
-}
- 
-void Animation::UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance) {
-    if (m_Speed > 0) {
-        instance.Position += m_Speed * conf.TimeDelta;
-        if (instance.Position > m_EndFrame) {
-            auto delta = m_EndFrame - m_StartFrame;
-            int mult = static_cast<int>(instance.Position / delta);
-            instance.Position -= static_cast<float>(mult) * delta;
-        } 
-        //else
-            //if (instance.Position < m_StartFrame) {
-                //auto delta = m_EndFrame - m_StartFrame;
-                //int mult = static_cast<int>(instance.Position / delta);
-            //}
-    }
-}
-
-const Graphic::VAO& Animation::GetFrameVAO(unsigned Frame) const {
-    if (Frame > m_EndFrame)
-        Frame = m_EndFrame;
-    else
-        if (Frame < m_StartFrame)
-            Frame = m_StartFrame;
-    return m_FrameTable[Frame];
 }
 
 } //namespace GUI 

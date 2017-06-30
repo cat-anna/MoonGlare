@@ -32,7 +32,7 @@ public:
             return true;
         if (!pool.HasStorage())
             return false;
-        T h{ 0 };
+        T h{ };
         if (!frame->AllocateResource(h))
             return false;
         if (!pool.PushAndAlloc(h, resH)) {

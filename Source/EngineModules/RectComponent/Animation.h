@@ -5,8 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 
-#ifndef GUI_Texture_H
-#define GUI_Texture_H
+#pragma once
 
 namespace MoonGlare {
 namespace GUI {
@@ -18,18 +17,30 @@ public:
     ~Animation();
 
     DefineRefGetterConst(Name, string);
+    DefineRefGetterConst(FrameSize, math::vec2);
 
     bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize);
 
-    AnimationInstance CreateInstance();
-    void UpdateInstance(const Core::MoveConfig &conf, AnimationInstance &instance);
+    struct Frame {
+        uint16_t baseVertex;
+        uint16_t baseIndex;
+        uint16_t numIndices;
+        uint16_t indexElementType;
+    };
 
-    const Graphic::VAO& GetFrameVAO(unsigned Frame) const;
-    Renderer::MaterialResourceHandle GetMaterial()const { return m_Material; }
+    Frame GetFrame(uint32_t index) {
+        if (index > m_EndFrame)
+            index = m_EndFrame;
+        else
+            if (index < m_StartFrame)
+                index = m_StartFrame;
+        return frames[index];
+    }
 
-    DefineRefGetterConst(FrameSize, math::vec2);
+    Renderer::MaterialResourceHandle material{};
+    Renderer::VAOResourceHandle vaoHandle{};
+    bool m_DrawEnabled;
 protected:
-    Renderer::MaterialResourceHandle m_Material{ };
 
     math::fvec2 m_TextureSize;
     string m_Name;
@@ -38,19 +49,9 @@ protected:
     math::vec2 m_FrameSize;
     math::uvec2 m_FrameSpacing;
     math::uvec2 m_FrameCount;
-    std::unique_ptr<Graphic::VAO[]> m_FrameTable;
-    bool m_DrawEnabled;
+    std::vector<Frame> frames;
     bool GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount);
-};
-
-struct AnimationInstance {
-    SharedAnimation Data;
-    float Position;
-
-    void Update(const Core::MoveConfig &conf) { if(Data) Data->UpdateInstance(conf, *this); }
 };
 
 } //namespace GUI 
 } //namespace MoonGlare 
-
-#endif

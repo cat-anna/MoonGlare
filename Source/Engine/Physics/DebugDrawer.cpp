@@ -46,9 +46,10 @@ struct BtDebugDrawShaderDescriptor {
         }
     }
     constexpr static const char* GetSamplerName(Sampler s) {
-        switch (s) {
-        default: return nullptr;
-        }
+        //switch (s) {
+        //default: 
+            return nullptr;
+        //}
     }
 };
 
@@ -86,7 +87,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     if (!frame->AllocateFrameResource(vao))
         return;
 
-    auto &mem = frame->GetMemory();
+//    auto &mem = frame->GetMemory();
 
     auto &layers = frame->GetCommandLayers();
     auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedLighting>();

@@ -171,7 +171,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
 
     static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
 
-    Renderer::VAOResourceHandle vao{ 0 };
+    Renderer::VAOResourceHandle vao{ };
     if (!frame->AllocateFrameResource(vao))
         return false;
 

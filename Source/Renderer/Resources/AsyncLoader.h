@@ -24,6 +24,7 @@ public:
     bool AnyJobPending() override;
     bool AllResoucecsLoaded() override;
     void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
+    void QueueTask(SharedAsyncTask task) override;
 
     unsigned JobsPending() const;
 
@@ -85,10 +86,12 @@ private:
     };
     ProcessorResult ProcessTask(QueueData *queue, AsyncFSTask &afst);
 //--
+    ProcessorResult ProcessTask(QueueData *queue, SharedAsyncTask &afst);
 
     using AnyTask = std::variant <
         ShaderLoadTask,
-        AsyncFSTask
+        AsyncFSTask,
+        SharedAsyncTask
     >;
 
     std::list<AnyTask> m_Queue;

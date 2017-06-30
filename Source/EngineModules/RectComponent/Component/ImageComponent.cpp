@@ -42,6 +42,10 @@ ImageComponent::ImageComponent(ComponentManager *Owner)
         : TemplateStandardComponent(Owner)
 {
     m_RectTransform = nullptr;
+
+    //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
+    m_Array.fill(ImageComponentEntry());
+    m_Array.ClearAllocation();
 }
 
 ImageComponent::~ImageComponent() {
@@ -62,10 +66,6 @@ void ImageComponent::RegisterScriptApi(ApiInitializer & root) {
 //---------------------------------------------------------------------------------------
 
 bool ImageComponent::Initialize() {
-    //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
-    m_Array.fill(ImageComponentEntry());
-    m_Array.ClearAllocation();
-
     m_RectTransform = GetManager()->GetComponent<RectTransformComponent>();
     if (!m_RectTransform) {
         AddLog(Error, "Failed to get RectTransformComponent instance!");
@@ -139,27 +139,26 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         
         item.Update(conf.TimeDelta, *rtentry);
         
-        if (!item.m_Animation)
+        if (!item.m_Animation || !item.m_Animation->m_DrawEnabled)
             continue;
 
-        auto vao = item.m_Animation->GetFrameVAO(static_cast<unsigned>(item.m_Position)).Handle();
-        if (vao == 0)
-            continue;
+        auto frame = item.m_Animation->GetFrame(static_cast<unsigned>(item.m_Position));
 
         Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
-        shb.SetMaterial(item.m_Animation->GetMaterial(), key);
+        shb.SetMaterial(item.m_Animation->material, key);
 
         shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-        //Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Animation->GetTexture()->Handle();
-        Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = vao;
+        Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.m_Animation->vaoHandle.deviceHandle);
 
-        auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
-        arg->m_NumIndices = 6;
-        arg->m_IndexValueType = GL_UNSIGNED_INT;
+        auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTrianglesBaseVertex>(key);
+        arg->m_NumIndices = frame.numIndices;
+        arg->m_IndexValueType = frame.indexElementType;
+        arg->m_BaseIndex = frame.baseIndex;
+        arg->m_BaseVertex = frame.baseVertex;
     }
 
     if (InvalidEntryCount > 0) {
@@ -203,7 +202,11 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_Flags.m_Map.m_Active = ie.m_Active;
 
     auto s = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef();
-    entry.m_Animation->Load(ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, m_RectTransform->IsUniformMode(), s);
+
+    entry.m_Animation->Load(
+        ie.m_TextureURI, ie.m_StartFrame, ie.m_FrameCount, 
+        ie.m_FrameStripCount, ie.m_Spacing, ie.m_FrameSize, 
+        m_RectTransform->IsUniformMode(), s);
 
     auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
     if (rtentry) {

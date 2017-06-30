@@ -11,16 +11,16 @@
 namespace Graphic {
 
 class cRenderDevice : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
+    SPACERTTI_DECLARE_CLASS_SINGLETON(cRenderDevice, cRootClass)
 public:
-	cRenderDevice();
+    cRenderDevice();
 
-	void RequestContextManip(LoadQueue::LoadRequestFunc func);
-	void DelayedContextManip(LoadQueue::LoadRequestFunc func) { m_LoadQueue.QueueRequest(func); }
-	void DispatchContextManipRequests();
+    void RequestContextManip(LoadQueue::LoadRequestFunc func);
+    void DelayedContextManip(LoadQueue::LoadRequestFunc func) { m_LoadQueue.QueueRequest(func); }
+    void DispatchContextManipRequests();
 protected:
-	LoadQueue m_LoadQueue;
-	std::thread::id m_InitThreadId;
+    LoadQueue m_LoadQueue;
+    std::thread::id m_InitThreadId;
 }; 
 
 } // namespace Graphic 

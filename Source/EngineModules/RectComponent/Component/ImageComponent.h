@@ -22,69 +22,69 @@ namespace Component {
 using namespace Core::Component;
 
 union ImageComponentEntryFlagsMap {
-	struct MapBits_t {
-		bool m_Valid : 1;
-		bool m_Dirty : 1;
-		bool m_Active : 1;
-	};
-	MapBits_t m_Map;
-	uint8_t m_UintValue;
+    struct MapBits_t {
+        bool m_Valid : 1;
+        bool m_Dirty : 1;
+        bool m_Active : 1;
+    };
+    MapBits_t m_Map;
+    uint8_t m_UintValue;
 
-	void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
-	void ClearAll() { m_UintValue = 0; }
+    void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
+    void ClearAll() { m_UintValue = 0; }
 
-	static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
+    static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
 };
 
 struct ImageComponentEntry {
-	Handle m_SelfHandle;
-	Entity m_OwnerEntity;
-	char padding[3];
-	ImageComponentEntryFlagsMap m_Flags;
+    Handle m_SelfHandle;
+    Entity m_OwnerEntity;
+    char padding[3];
+    ImageComponentEntryFlagsMap m_Flags;
 
-	float m_Speed;
-	float m_Position;
-	math::vec4 m_Color;
-	DEFINE_COMPONENT_PROPERTY(Speed);
-	DEFINE_COMPONENT_PROPERTY(Position);
-	DEFINE_COMPONENT_PROPERTY(Color);
-	//TODO: FrameCount property
-	//TODO: ScaleMode
-	//TODO: AnimationTexture
+    float m_Speed;
+    float m_Position;
+    math::vec4 m_Color;
+    DEFINE_COMPONENT_PROPERTY(Speed);
+    DEFINE_COMPONENT_PROPERTY(Position);
+    DEFINE_COMPONENT_PROPERTY(Color);
+    //TODO: FrameCount property
+    //TODO: ScaleMode
+    //TODO: AnimationTexture
 
-	unsigned m_FrameCount;
-	ImageScaleMode m_ScaleMode;
-	SharedAnimation m_Animation;
-	
-	math::mat4 m_ImageMatrix;
-	Configuration::RuntimeRevision m_TransformRevision;
-	
-	void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
-	void Reset() {
-		m_Flags.ClearAll();
-		m_Animation.reset();
-		m_TransformRevision = 0;
-	}
+    unsigned m_FrameCount;
+    ImageScaleMode m_ScaleMode;
+    SharedAnimation m_Animation;
+    
+    math::mat4 m_ImageMatrix;
+    Configuration::RuntimeRevision m_TransformRevision;
+    
+    void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
+    void Reset() {
+        m_Flags.ClearAll();
+        m_Animation.reset();
+        m_TransformRevision = 0;
+    }
 
-	void Update(float TimeDelta, RectTransformComponentEntry &rectTransform);
+    void Update(float TimeDelta, RectTransformComponentEntry &rectTransform);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class ImageComponent 
-	: public TemplateStandardComponent<ImageComponentEntry, ComponentID::Image> {
+    : public TemplateStandardComponent<ImageComponentEntry, ComponentID::Image> {
 public:
- 	ImageComponent(ComponentManager *Owner);
- 	virtual ~ImageComponent();
-	virtual bool Initialize() override;
-	virtual bool Finalize() override;
-	virtual void Step(const Core::MoveConfig &conf) override;
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+    ImageComponent(ComponentManager *Owner);
+    virtual ~ImageComponent();
+    virtual bool Initialize() override;
+    virtual bool Finalize() override;
+    virtual void Step(const Core::MoveConfig &conf) override;
+    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 
-	static void RegisterScriptApi(ApiInitializer &root);
+    static void RegisterScriptApi(ApiInitializer &root);
 protected:
-	RectTransformComponent *m_RectTransform;
-	Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
+    RectTransformComponent *m_RectTransform;
+    Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
 };
 
 } //namespace Component 

@@ -53,6 +53,8 @@ public:
         return assets;
     }
 
+    iAsyncLoader* GetAsyncLoader();
+
     template<typename T>
     void SetStopObserver(T&& t) {
         m_StopObserver = std::forward<T>(t);

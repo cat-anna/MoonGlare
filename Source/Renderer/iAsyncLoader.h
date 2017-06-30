@@ -11,7 +11,14 @@ struct ResourceLoadStorage {
     StackAllocatorMemory<Conf::QueueMemory> m_Memory;
 };
 
-class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest> {
+struct BaseAsyncTask {
+    struct NotEnoughStorage {
+        size_t requiredSpace;//not yet used
+    };
+    struct RetryLater { };
+};
+
+class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest>, public BaseAsyncTask {
 public:
     virtual ~iAsyncFileSystemRequest() {};
 
@@ -20,15 +27,33 @@ public:
         loader = loaderptr;
     }
 
-    //can be thrown: from OnFileReady
-    struct NotEnoughStorage {
-        size_t requiredSpace;//not yet used
-    };
 protected:
     iAsyncLoader *loader;
 };
 
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
+
+class iAsyncTask : public BaseAsyncTask {
+public:
+    virtual ~iAsyncTask() {};
+
+    virtual void Do(ResourceLoadStorage &storage) = 0;
+};
+using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
+
+class FunctionalAsyncTask : public iAsyncTask {
+public:
+    using TaskFunction = std::function<void(ResourceLoadStorage &)>;
+
+    void Do(ResourceLoadStorage &storage) override final {
+        task(storage);
+    };
+
+
+    FunctionalAsyncTask(TaskFunction f) :task(std::move(f)) {}
+protected:
+    TaskFunction task;
+};
 
 class iAsyncLoader {
 public:
@@ -38,6 +63,7 @@ public:
     virtual bool AllResoucecsLoaded() = 0;
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
+    virtual void QueueTask(SharedAsyncTask task) = 0;
 };
 
 class MultiAsyncFileSystemRequest : public iAsyncFileSystemRequest {

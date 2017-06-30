@@ -186,7 +186,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 		CurrentTextureUV += 4;
 	}
 
-	Renderer::VAOResourceHandle vao{ 0 };
+	Renderer::VAOResourceHandle vao{ };
 	{
 		if (!frame->AllocateFrameResource(vao))
 			return false;

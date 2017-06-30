@@ -21,6 +21,7 @@ class AsyncLoader;
 class MeshManager;
 class textureResource;
 class MaterialManager;
+class VAOResource;
 
 class alignas(16) ResourceManager final {
 public:
@@ -41,7 +42,7 @@ public:
     }
     VAOResource& GetVAOResource() {
         RendererAssert(this);
-        return m_VAOResource;
+        return *vaoManager;
     }
     ShaderResource& GetShaderResource() {
         RendererAssert(this);
@@ -73,12 +74,12 @@ private:
     Asset::AssetLoader *m_AssetLoader = nullptr;
     std::unique_ptr<AsyncLoader> m_AsyncLoader;
     void* padding;
-    VAOResource m_VAOResource;
     ShaderResource m_ShaderResource;
 
     mem::aligned_ptr<TextureResource> textureResource;
     mem::aligned_ptr<MeshManager> meshManager;
     mem::aligned_ptr<MaterialManager> materialManager;
+    mem::aligned_ptr<VAOResource> vaoManager;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");

@@ -13,23 +13,15 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-bool VAOResource::Initialize(ResourceManager *Owner) {
-	RendererAssert(Owner);
-
-	m_GLHandle.fill(Device::InvalidVAOHandle);
-	m_GLVAOBuffsers.fill(VAOBuffers{ 0 });
-	m_AllocationBitmap.ClearAllocation();
-
-	if (Conf::VAOInitial > 0) {
-		//TBD!!!
-	}
-
-	m_ResourceManager = Owner;
-	return true;
+VAOResource::VAOResource(ResourceManager* Owner) {
+    m_GLHandle.fill(Device::InvalidVAOHandle);
+    m_GLVAOBuffsers.fill(VAOBuffers{ 0 });
+    m_AllocationBitmap.ClearAllocation();
+    generations.fill(1);
+    m_ResourceManager = Owner;
 }
 
-bool VAOResource::Finalize() {
-	return true;
+VAOResource::~VAOResource() {
 }
 
 bool VAOResource::Allocate(Frame *frame, VAOResourceHandle &out) {
@@ -46,34 +38,39 @@ bool VAOResource::Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out
 	Bitmap::Index_t index;
 	if (m_AllocationBitmap.Allocate(index)) {
 		if (m_GLHandle[index] == Device::InvalidVAOHandle) {
-			IncrementPerformanceCounter(OpenGLAllocations);
 			auto arg = queue.PushCommand<Commands::VAOSingleAllocate>();
 			arg->m_Out = &m_GLHandle[index];
 		}
-		out.m_Index = static_cast<VAOResourceHandle::Index_t>(index);
-		out.m_TmpGuard = GuardValue;
-		IncrementPerformanceCounter(SuccessfulAllocations);
+		out.index = static_cast<VAOResourceHandle::Index_t>(index);
+		out.generation = generations[out.index];
+        out.deviceHandle = &m_GLHandle[out.index];
 		return true;
 	}
 	else {
 		AddLogf(Debug, "VAO allocation failed");
-		IncrementPerformanceCounter(FailedAllocations);
 		return false;
 	}
 }
 
 void VAOResource::Release(Commands::CommandQueue &queue, VAOResourceHandle &h) {
-	RendererAssert(h.m_TmpGuard == GuardValue);
-	RendererAssert(h.m_Index < Conf::VAOLimit);
+    if (!IsHandleValid(h))
+        return;
 
-	if (m_AllocationBitmap.Release(h.m_Index)) {
-		IncrementPerformanceCounter(SuccessfulDellocations);
+	if (m_AllocationBitmap.Release(h.index)) {
 	}
 	else {
 		AddLogf(Debug, "VAO deallocation failed");
-		IncrementPerformanceCounter(FailedDellocations);
 	}
-	h.Reset();
+	h.Zero();
+}
+
+bool VAOResource::IsHandleValid(VAOResourceHandle &h) const {
+    if (h.index >= Conf::VAOLimit)
+        return false;
+    if (generations[h.index] != h.generation) {
+        return false;
+    }
+    return true;
 }
 
 } //namespace MoonGlare::Renderer::Resources 

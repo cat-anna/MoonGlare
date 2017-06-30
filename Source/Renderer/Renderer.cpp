@@ -122,4 +122,9 @@ bool RendererFacade::AllResourcesLoaded() {
 
 //----------------------------------------------------------------------------------
 
+iAsyncLoader* RendererFacade::GetAsyncLoader() {
+    RendererAssert(this);
+    return GetResourceManager()->GetLoaderIf();
+}
+
 } //namespace MoonGlare::Renderer

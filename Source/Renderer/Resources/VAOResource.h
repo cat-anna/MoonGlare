@@ -18,14 +18,11 @@
 namespace MoonGlare::Renderer::Resources {
 
 class alignas(16) VAOResource {
-	using ThisClass = VAOResource;
 	using ConfRes = Configuration::Resources;
 	using Conf = Configuration::VAO;
-
-	static constexpr VAOResourceHandle::Index_t GuardValue = 0xDEAD;
-public:
-	bool Initialize(ResourceManager* Owner);
-	bool Finalize();
+public:         
+    VAOResource(ResourceManager* Owner);
+    ~VAOResource();
 
 	bool Allocate(Commands::CommandQueue &queue, VAOResourceHandle &out);
 	void Release(Commands::CommandQueue &queue, VAOResourceHandle &h);
@@ -35,19 +32,18 @@ public:
 
 	Device::VAOHandle* GetHandleArrayBase() { return &m_GLHandle[0]; }
 
+    bool IsHandleValid(VAOResourceHandle &h) const;
+
 #ifdef NEED_VAO_BUILDER
     Builder::VAOBuilder GetVAOBuilder(Commands::CommandQueue &q, VAOResourceHandle &h, bool AllowAllocation = false) {
-		if (AllowAllocation && h.m_TmpGuard != GuardValue) {
+		if (AllowAllocation && !IsHandleValid(h)) {
 			Allocate(q, h);
 		}
 
-		RendererAssert(h.m_TmpGuard == GuardValue);
-		RendererAssert(h.m_Index < Conf::VAOLimit);
-
 		return Builder::VAOBuilder {
 			&q,
-			&m_GLVAOBuffsers[h.m_Index][0],
-			&m_GLHandle[h.m_Index], 
+			&m_GLVAOBuffsers[h.index][0],
+			&m_GLHandle[h.index],
 		};
 	}
 #endif
@@ -60,18 +56,11 @@ private:
 	Bitmap m_AllocationBitmap;
 	Array<Device::VAOHandle> m_GLHandle;
 	Array<VAOBuffers> m_GLVAOBuffsers;
+    Array<TextureResourceHandle::Generation_t> generations;
 	ResourceManager *m_ResourceManager = nullptr;
-	void* padding;
-
-	DeclarePerformanceCounter(SuccessfulAllocations);
-	DeclarePerformanceCounter(SuccessfulDellocations);
-	DeclarePerformanceCounter(FailedAllocations);
-	DeclarePerformanceCounter(FailedDellocations);
-	DeclarePerformanceCounter(OpenGLAllocations);
-	DeclarePerformanceCounter(OpenGLDeallocations);
+    void* padding[2];
 };
 
 static_assert((sizeof(VAOResource) % 16) == 0, "Invalid size!");
-//static_assert(std::is_trivial<TextureResource>::value, "Invalid size!");//atomics
 
 } //namespace MoonGlare::Renderer::Resources 
