@@ -26,12 +26,11 @@ public:
 	void Initialize(ResourceManager* Owner, Asset::TextureLoader *TexLoader);
 	void Finalize();
 
-	bool Allocate(Commands::CommandQueue *queue, TextureResourceHandle &out);
 
-	bool Allocate(Frame *frame, TextureResourceHandle &out);
-	void Release(Frame *frame, TextureResourceHandle h);
+	bool Allocate(TextureResourceHandle &out);
+	void Release(TextureResourceHandle h);
 
-    bool LoadTexture(TextureResourceHandle &out, const std::string &fPath,
+    bool LoadTexture(TextureResourceHandle &hout, const std::string &uri,
         Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
         bool CanAllocate = true, bool NeedSize = false);
 
@@ -53,8 +52,10 @@ private:
     Array<TextureResourceHandle::Generation_t> generations;
     Bitmap m_AllocationBitmap;
 	Array<Device::TextureHandle> m_GLHandle;
-	//Array<Asset::FileHash> m_SourceHash;
 	Array<emath::usvec2> m_TextureSize;
+
+    std::unordered_map<std::string, TextureResourceHandle> loadedTextures; //temporary solution
+
 	ResourceManager *m_ResourceManager = nullptr;
 	const Configuration::Texture *m_Settings = nullptr;
 

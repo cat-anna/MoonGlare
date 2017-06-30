@@ -7,6 +7,7 @@
 #include <pch.h>
 
 #define NEED_VAO_BUILDER
+#define NEED_MATERIAL_BUILDER
 
 #include <MoonGlare.h>
 #include <Engine/DataClasses/iFont.h>

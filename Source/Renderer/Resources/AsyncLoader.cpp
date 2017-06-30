@@ -183,6 +183,7 @@ void AsyncLoader::QueueRequest(std::string URI, SharedAsyncFileSystemRequest han
     AsyncFSTask task;
     task.URI = std::move(URI);
     task.request = std::move(handler);
+    task.request->OnTaskQueued(this);
     QueuePush(std::move(task));
 }
 
@@ -193,7 +194,7 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFST
         return ProcessorResult::CriticalError;
     }
 
-    afst.request->OnFileReady(afst.URI, bt, queue->storage, this);
+    afst.request->OnFileReady(afst.URI, bt, queue->storage);
     return ProcessorResult::Success;
 }
 

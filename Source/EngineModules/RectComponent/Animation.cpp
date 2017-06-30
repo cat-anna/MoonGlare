@@ -5,6 +5,9 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+
+#define NEED_MATERIAL_BUILDER
+
 #include <MoonGlare.h>
 
 #include "nfGUI.h"

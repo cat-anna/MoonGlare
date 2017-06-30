@@ -18,7 +18,7 @@ public:
     virtual ~iModel();
 
     struct MeshData : public Graphic::VAO::MeshData {
-        Renderer::MaterialResourceHandle m_Material{ 0 };
+        Renderer::MaterialResourceHandle m_Material{ };
     };
     typedef std::vector<MeshData> MeshDataVector;
 

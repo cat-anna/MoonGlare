@@ -5,6 +5,9 @@
  *      Author: Paweu
  */
 #include <pch.h>
+
+#define NEED_MATERIAL_BUILDER
+
 #include <MoonGlare.h>
 
 #include "SimpleModelConstructor.h"
@@ -72,7 +75,7 @@ bool SimpleModelConstructor::Generate(bool GenerateShape, SimpleModelConstructor
 		Renderer::MaterialResourceHandle mathandle{};
 		auto matid = i->GetMaterialID();
 		if(matid != -1){
-			if (!Materials[matid]) {
+			if (!Materials[matid].deviceHandle) {
 				const auto &pmat = m_Materials[matid];
 
 				auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(Materials[matid], true);

@@ -15,12 +15,17 @@ class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSy
 public:
     virtual ~iAsyncFileSystemRequest() {};
 
-    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) = 0;
+    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) = 0;
+    virtual void OnTaskQueued(iAsyncLoader *loaderptr) {
+        loader = loaderptr;
+    }
 
     //can be thrown: from OnFileReady
     struct NotEnoughStorage {
-        size_t requiredSpace;
+        size_t requiredSpace;//not yet used
     };
+protected:
+    iAsyncLoader *loader;
 };
 
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
@@ -37,28 +42,28 @@ public:
 
 class MultiAsyncFileSystemRequest : public iAsyncFileSystemRequest {
 public:
-    void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) override final {
+    void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override final {
         auto it = handlers.find(requestedURI);
         if (it != handlers.end()) {
-            it->second(filedata, storage, loader);
+            it->second(filedata, storage);
             handlers.erase(it);        
             ++filesProcessed;
             return;
         }
         if (filesProcessed == 0) {
-            OnFirstFile(requestedURI, filedata, storage, loader);
+            OnFirstFile(requestedURI, filedata, storage);
             ++filesProcessed;
         }
     }
 
-    using FileHandlerFunctor = std::function<void(StarVFS::ByteTable &, ResourceLoadStorage &, iAsyncLoader *)>;
+    using FileHandlerFunctor = std::function<void(StarVFS::ByteTable &, ResourceLoadStorage &)>;
 protected:
-    void LoadFile(iAsyncLoader *loader, std::string URI, FileHandlerFunctor functor) {
+    void LoadFile(std::string URI, FileHandlerFunctor functor) {
         handlers[URI].swap(functor);
         loader->QueueRequest(std::move(URI), shared_from_this());
     }
 
-    virtual void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) { }
+    virtual void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) { }
 private:
     std::unordered_map<std::string, FileHandlerFunctor> handlers;
     unsigned filesProcessed = 0;

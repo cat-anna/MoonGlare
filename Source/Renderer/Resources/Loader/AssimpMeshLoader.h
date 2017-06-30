@@ -8,7 +8,7 @@ class AssimpMeshLoader : public MultiAsyncFileSystemRequest
 public:
     AssimpMeshLoader(MeshResourceHandle handle, MeshManager *Owner) : owner(Owner), handle(handle) { }
 
-    void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) override;
+    void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 private:
     MeshManager *owner;
     MeshResourceHandle handle;
@@ -17,7 +17,8 @@ private:
     std::unique_ptr<Assimp::Importer> importer;
     const aiScene* scene;
 
-    void LoadScene(ResourceLoadStorage &storage);
+    void LoadMeshes(ResourceLoadStorage &storage);
+    void LoadMaterial(unsigned index, unsigned submeshindex, ResourceLoadStorage &storage);
 };
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

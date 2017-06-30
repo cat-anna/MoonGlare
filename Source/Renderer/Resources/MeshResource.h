@@ -55,9 +55,7 @@ public:
                 &deviceHandle[h.index],
             },
             subMesh[h.index],
-
             h,
-       //     this,
             q,
             key,
         };
@@ -84,7 +82,10 @@ private:
 
     Bitmap allocationBitmap;
     Array<Device::VAOHandle> deviceHandle;
+
     Array<Conf::SubMeshArray> subMesh;
+    Array<std::array<MaterialResourceHandle, Conf::SubMeshLimit>> materialHandle;
+
     Array<Conf::VAOBuffers> vaoBuffer;
     Array<HandleType::Generation_t> generations;
 

@@ -9,45 +9,62 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-void MaterialManager::Initialize(ResourceManager * Owner) {
+MaterialManager::MaterialManager(ResourceManager * Owner): m_ResourceManager(Owner) {
     RendererAssert(Owner);
-    m_ResourceManager = Owner;
     m_AllocationBitmap.ClearAllocation();
+    generations.fill(1);
 }
 
-void MaterialManager::Finalize() {
-}
-
-Material *MaterialManager::GetMaterial(MaterialResourceHandle out) {
-    RendererAssert(out.m_TmpGuard == out.GuardValue);
-
-    if (m_AllocationBitmap.IsAllocated(out.m_Index))
-        return &m_Materials[out.m_Index];
-
-    return nullptr;
+MaterialManager::~MaterialManager() {
 }
 
 //---------------------------------------------------------------------------------------
 
-bool MaterialManager::Allocate(MaterialResourceHandle &out, Material ** materialptr) {
-    RendererAssert(out.m_TmpGuard != out.GuardValue);
+Material *MaterialManager::GetMaterial(MaterialResourceHandle h) {
+    if (!IsHandleValid(h))
+        return nullptr;
+    return &m_Materials[h.index];
+}
+
+bool MaterialManager::IsHandleValid(MaterialResourceHandle &h) const {
+    if (h.index >= Conf::Limit)
+        return false;
+    if (generations[h.index] != h.generation) {
+        return false;
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+
+bool MaterialManager::Allocate(MaterialResourceHandle &hout, const std::string &uri) {
+    auto cache = loadedMaterials.find(uri);
+    if (cache != loadedMaterials.end() && !IsHandleValid(cache->second)) {
+        AddLogf(Performance, "material load cache hit");
+        hout = cache->second;
+        return true;
+    }
+
+    if (Allocate(hout)) {
+        loadedMaterials[uri] = hout;
+        return true;
+    }
+
+    return false;
+}
+
+bool MaterialManager::Allocate(MaterialResourceHandle &hout) {
     Bitmap::Index_t index;
     if (m_AllocationBitmap.Allocate(index)) {
-        //if (m_GLHandle[index] == InvalidTextureHandle) {
-        //	//IncrementPerformanceCounter(OpenGLAllocations);
-        //	auto arg = queue.PushCommand<Commands::TextureSingleAllocate>();
-        //	arg->m_Out = &m_GLHandle[index];
-        //}
-        out.m_Index = static_cast<MaterialResourceHandle::Index_t>(index);
-        out.m_TmpGuard = out.GuardValue;
-        //IncrementPerformanceCounter(SuccessfulAllocations);
-        if (materialptr)
-            *materialptr = &m_Materials[index];
+
+        hout.index = static_cast<MaterialResourceHandle::Index_t>(index);
+        hout.generation = generations[hout.index];
+        hout.deviceHandle = &m_Materials[hout.index];
+
         return true;
     }
     else {
         AddLogf(Debug, "material allocation failed");
-        //IncrementPerformanceCounter(FailedAllocations);
         return false;
     }
 }

@@ -11,7 +11,6 @@
 #include "TextureResource.h"
 #include "VAOResource.h"
 #include "ShaderResource.h"
-#include "MaterialManager.h"
 
 #include "../iAsyncLoader.h"
 
@@ -21,6 +20,7 @@ class AsyncLoader;
 
 class MeshManager;
 class textureResource;
+class MaterialManager;
 
 class alignas(16) ResourceManager final {
 public:
@@ -49,7 +49,7 @@ public:
     }
     MaterialManager& GetMaterialManager() {
         RendererAssert(this);
-        return m_MaterialManager;
+        return *materialManager;
     }
     MeshManager& GetMeshManager() {
         RendererAssert(this);
@@ -57,13 +57,13 @@ public:
     }
 
     void Release(Frame *frame, TextureResourceHandle &texres) {
-        GetTextureResource().Release(frame, texres);
+        GetTextureResource().Release(texres);
     }
     void Release(Frame *frame, VAOResourceHandle &vaores) {
         GetVAOResource().Release(frame, vaores);
     }
     bool Allocate(Frame *frame, TextureResourceHandle &resH) {
-        return GetTextureResource().Allocate(frame, resH);
+        return GetTextureResource().Allocate(resH);
     }
     bool Allocate(Frame *frame, VAOResourceHandle &resH) {
         return GetVAOResource().Allocate(frame, resH);
@@ -75,10 +75,10 @@ private:
     void* padding;
     VAOResource m_VAOResource;
     ShaderResource m_ShaderResource;
-    MaterialManager m_MaterialManager;
 
-    std::unique_ptr<TextureResource> textureResource;
-    std::unique_ptr<MeshManager> meshManager;
+    mem::aligned_ptr<TextureResource> textureResource;
+    mem::aligned_ptr<MeshManager> meshManager;
+    mem::aligned_ptr<MaterialManager> materialManager;
 };
 
 static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");

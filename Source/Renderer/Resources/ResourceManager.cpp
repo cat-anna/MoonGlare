@@ -10,6 +10,7 @@
 
 #include "AsyncLoader.h"
 #include "MeshResource.h"
+#include "MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -32,7 +33,7 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
 
 //    auto conf = m_RendererFacade->GetConfiguration();
 
-    textureResource = std::make_unique<TextureResource>();
+    textureResource = mem::make_aligned<TextureResource>();
     textureResource->Initialize(this, m_AssetLoader->GetTextureLoader());
 
     if (!m_VAOResource.Initialize(this)) {
@@ -45,9 +46,8 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
         return true;
     }
 
-    m_MaterialManager.Initialize(this);
-
-    meshManager = std::make_unique<MeshManager>(this);
+    materialManager = mem::make_aligned<MaterialManager>(this);
+    meshManager = mem::make_aligned<MeshManager>(this);
 
     m_AsyncLoader = std::make_unique<AsyncLoader>(this, m_AssetLoader, m_RendererFacade->GetConfiguration());
 
@@ -57,7 +57,7 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
 bool ResourceManager::Finalize() {
     m_AsyncLoader.reset();
 
-    m_MaterialManager.Finalize();
+    materialManager.reset();
 
     if (!m_ShaderResource.Finalize()) {
         AddLogf(Error, "ShaderResource finalization failed!");

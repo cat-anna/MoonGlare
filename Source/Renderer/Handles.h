@@ -39,23 +39,6 @@ struct ShaderResourceHandle : public ShaderResourceHandleBase {};
 
 //-----------------------------------------------------------------------------
 
-struct MaterialResourceHandle {
-    using Index_t = uint16_t;
-    static constexpr Index_t GuardValue = 0x2159;
-    Index_t m_Index;
-    Index_t m_TmpGuard;
-
-    void Reset() {
-        memset(this, 0, sizeof(*this));
-    }
-    operator bool() const {
-        return m_TmpGuard == GuardValue;
-    }
-};
-static_assert(std::is_pod<MaterialResourceHandle>::value, "Must be pod type!");
-
-//-----------------------------------------------------------------------------
-
 struct ResourceHandleBase {
     using Index_t = uint16_t;
     using Generation_t = uint16_t;
@@ -71,10 +54,11 @@ template<typename DeviceHandle_t>
 struct HandleTemplate : public ResourceHandleBase {
     using DeviceHandle = DeviceHandle_t;
 
-    static_assert(std::is_pod_v<DeviceHandle>);
-    static_assert(sizeof(DeviceHandle) == sizeof(void*));
-
     DeviceHandle* deviceHandle;
+
+    void Zero() {
+        memset(this, 0, sizeof(*this));
+    }
 };
 
 //template<typename H>
@@ -84,7 +68,10 @@ struct HandleTemplate : public ResourceHandleBase {
 
 //-----------------------------------------------------------------------------
 
+struct Material;
+
 using MeshResourceHandle = HandleTemplate<Device::VAOHandle>;
 using TextureResourceHandle = HandleTemplate<Device::TextureHandle>;
+using MaterialResourceHandle = HandleTemplate<Material>;
 
 } //namespace MoonGlare::Renderer

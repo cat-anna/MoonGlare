@@ -4,6 +4,9 @@
 	by Paweu
 */
 #include <pch.h>
+
+#define NEED_MATERIAL_BUILDER
+
 #include <MoonGlare.h>
 #include "SimpleModelImpl.h"
 
@@ -88,7 +91,7 @@ bool SimpleModelImpl::DoLoadModel(const std::string & fName) {
 }
 
 bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
-	matout.Reset();
+	matout.Zero();
 	if (index >= scene->mNumMaterials) {
 		AddLogf(Error, "Invalid material index");
 		return false;
@@ -177,7 +180,7 @@ bool SimpleModelImpl::DoLoadMeshes(const aiScene* scene) {
 		MeshData& meshd = m_Meshes[i];
 
 		auto matidx = mesh->mMaterialIndex;
-		if (!Materials[matidx]) {
+		if (!Materials[matidx].deviceHandle) {//wrong method
 			if (!LoadMaterial(matidx, scene, Materials[matidx])) {
 				DebugLogf(Warning, "Failed to load matertial index %u", matidx);
 			}

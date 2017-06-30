@@ -11,7 +11,7 @@
 
 namespace MoonGlare::Renderer::Resources::Loader {
 
-void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) {
+void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
     FIMEMORY *fim = FreeImage_OpenMemory((BYTE*)filedata.get(), filedata.byte_size());
     FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(fim);
 

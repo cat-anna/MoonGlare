@@ -44,14 +44,15 @@ bool TextureRenderTask::Finalize() {
 void TextureRenderTask::Begin() {
     using namespace Commands;
 
-    Device::TextureHandle *htable = m_Frame->GetResourceManager()->GetTextureResource().GetHandleArrayBase();
-
     m_CommandQueue.MakeCommand<FramebufferDrawBind>(m_Framebuffer);
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_DEPTH_TEST);
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_BLEND);
 
-    auto bind = m_CommandQueue.PushCommand<Texture2DResourceBind>();
-    bind->m_HandlePtr = htable + m_TargetTexture.index;
+
+    if (*m_TargetTexture.deviceHandle == Device::InvalidTextureHandle)
+        m_CommandQueue.MakeCommand<TextureSingleAllocate>(m_TargetTexture.deviceHandle);
+
+    m_CommandQueue.MakeCommand<Texture2DResourceBind>(m_TargetTexture.deviceHandle);
 
     auto teximg = m_CommandQueue.PushCommand<Texture2DImage>();
     teximg->m_Format = GL_RGBA;
@@ -67,7 +68,7 @@ void TextureRenderTask::Begin() {
     m_CommandQueue.MakeCommand<Texture2DParameterInt>((GLenum)GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     auto sfb = m_CommandQueue.MakeCommand<SetFramebufferDrawTexture>();
-    sfb->m_HandlePtr = htable + m_TargetTexture.index;
+    sfb->m_HandlePtr = m_TargetTexture.deviceHandle;
     sfb->m_ColorAttachment = GL_COLOR_ATTACHMENT0;
 
     static const GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0, };
@@ -92,8 +93,9 @@ void TextureRenderTask::End() {
 }
 
 void TextureRenderTask::SetTarget(TextureResourceHandle &handle, emath::ivec2 Size)  {
-    if (handle.deviceHandle == nullptr) { 
-        if (!m_Frame->GetResourceManager()->GetTextureResource().Allocate(&m_CommandQueue, handle)) {
+    auto &tmgr = m_Frame->GetResourceManager()->GetTextureResource();
+    if (!tmgr.IsHandleValid(handle)) { 
+        if (!tmgr.Allocate(handle)) {
             AddLogf(Warning, "Texture allocation failed!");
         }
     }

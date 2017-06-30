@@ -43,18 +43,9 @@ void TextureResource::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::Allocate(Frame *frame, TextureResourceHandle &out) {
-    RendererAssert(frame);
-    return Allocate(&frame->GetControllCommandQueue(), out);
-}
-
-bool TextureResource::Allocate(Commands::CommandQueue *queue, TextureResourceHandle &out) {
+bool TextureResource::Allocate(TextureResourceHandle &out) {
     Bitmap::Index_t index;
     if (m_AllocationBitmap.Allocate(index)) {
-        if (queue && m_GLHandle[index] == Device::InvalidTextureHandle) {
-            auto arg = queue->PushCommand<Commands::TextureSingleAllocate>();
-            arg->m_Out = &m_GLHandle[index];
-        }
         out.index = static_cast<TextureResourceHandle::Index_t>(index);
         out.generation = generations[out.index];
         out.deviceHandle = &m_GLHandle[out.index];
@@ -66,7 +57,7 @@ bool TextureResource::Allocate(Commands::CommandQueue *queue, TextureResourceHan
     }
 }
 
-void TextureResource::Release(Frame *frame, TextureResourceHandle h) {
+void TextureResource::Release(TextureResourceHandle h) {
     if (!IsHandleValid(h))
         return;
 
@@ -80,25 +71,34 @@ void TextureResource::Release(Frame *frame, TextureResourceHandle h) {
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::LoadTexture(TextureResourceHandle &out, const std::string &fPath, Configuration::TextureLoad config, bool CanAllocate, bool NeedSize) {
-    if (!IsHandleValid(out)) {
+bool TextureResource::LoadTexture(TextureResourceHandle &hout, const std::string &uri, Configuration::TextureLoad config, bool CanAllocate, bool NeedSize) {
+    auto cache = loadedTextures.find(uri);
+    if (cache != loadedTextures.end() && !IsHandleValid(cache->second)) {
+        AddLogf(Debug, "texture load cache hit");
+        hout = cache->second;
+        return true;
+    }
+
+    if (!IsHandleValid(hout)) {
         if (!CanAllocate) {
             return false;
         }
-        if (!Allocate((Commands::CommandQueue*)nullptr, out)) {
+        if (!Allocate(hout)) {
             DebugLogf(Error, "texture allocation - allocate failed");
             return false;
         }
     }
 
+    config.Check(*m_Settings);
     auto loaderif = m_ResourceManager->GetLoaderIf();
-    config.Check(m_ResourceManager->GetConfiguration()->m_Texture);
-    loaderif->QueueRequest(fPath, std::make_shared<Loader::FreeImageLoader>(out, this, config));
+    loaderif->QueueRequest(uri, std::make_shared<Loader::FreeImageLoader>(hout, this, config));
+
+    loadedTextures[uri] = hout;
 
     if (NeedSize) {
         auto loader = m_ResourceManager->GetLoader();
-        auto *size = &m_TextureSize[out.index];
-        loader->QueryTextureSize(fPath, size);
+        auto *size = &m_TextureSize[hout.index];
+        loader->QueryTextureSize(uri, size);
     }
 
     return true;
@@ -124,11 +124,14 @@ bool TextureResource::IsHandleValid(TextureResourceHandle &h) const {
 
 bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Commands::CommandKey key, uint16_t TypeValue, uint16_t ElementSize) {
     if (!IsHandleValid(out) && AllowAllocate) {
-        if (!Allocate(&q, out)) {
+        if (!Allocate(out)) {
             DebugLogf(Error, "texture allocation - allocate failed");
             return false;
         }
     }
+
+    if (*out.deviceHandle == Device::InvalidTextureHandle)
+        q.MakeCommand<Commands::TextureSingleAllocate>(out.deviceHandle);
 
     auto texres = q.PushCommand<Commands::Texture2DResourceBind>(key);
     texres->m_HandlePtr = GetHandleArrayBase() + out.index;
@@ -141,9 +144,7 @@ bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::Co
     pixels->BPP = static_cast<GLenum>(pxtype);
     pixels->type = static_cast<GLenum>(TypeValue);
 
-    if (config.m_Filtering == Conf::Filtering::Default) {
-        config.m_Filtering = m_Settings->m_Filtering;
-    }
+    config.Check(*m_Settings);
     q.PushCommand<Commands::Texture2DSetup>(key)->m_Config = config;
 
     return true;

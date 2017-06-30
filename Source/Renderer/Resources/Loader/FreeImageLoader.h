@@ -13,7 +13,7 @@ public:
     FreeImageLoader(TextureResourceHandle handle, TextureResource *Owner, Configuration::TextureLoad config) :
         owner(Owner), handle(handle), config(config) {}
 
-    void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) override;
+    void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 private:
     TextureResource *owner;
     TextureResourceHandle handle;

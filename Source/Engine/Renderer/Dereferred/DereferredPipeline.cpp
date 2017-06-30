@@ -275,7 +275,7 @@ void DefferedSink::Mesh(Renderer::MaterialResourceHandle material, unsigned NumI
     using Uniform = GeometryShaderDescriptor::Uniform;
     using Sampler = GeometryShaderDescriptor::Sampler;
 
-    if (material.m_TmpGuard == material.GuardValue) {
+    if (material.deviceHandle) {
         auto matptr = m_Renderer->GetResourceManager()->GetMaterialManager().GetMaterial(material);
         if (matptr) {
             m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));

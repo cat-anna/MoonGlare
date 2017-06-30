@@ -9,71 +9,7 @@
 
 namespace MoonGlare::Renderer::Resources::Loader {
 
-#if 0
-//------------------------------------------------------------------------
-
-bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
-    matout.Reset();
-    if (index >= scene->mNumMaterials) {
-        AddLogf(Error, "Invalid material index");
-        return false;
-    }
-
-    const aiMaterial* aiMat = scene->mMaterials[index];
-    if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) <= 0) {
-        AddLogf(Error, "No diffuse component");
-        return false;
-    }
-
-    auto *e = Core::GetEngine();
-    auto *rf = e->GetWorld()->GetRendererFacade();
-    auto *resmgr = rf->GetResourceManager();
-    MoonGlare::Renderer::Material *material = nullptr;
-
-    aiString Path;
-    if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-        AddLogf(Error, "Unable to load material");
-        return false;
-    }
-
-    if (Path.data[0] == '*') {
-        ////internal texture
-        //auto idx = strtoul(Path.data + 1, nullptr, 10);
-        //if (idx >= Scene->mNumTextures) {
-        //	AddLogf(Error, "Invalid internal texture id!");
-        //	return;
-        //}
-        //
-        //auto texptr = Scene->mTextures[idx];
-        //
-        //if (texptr->mHeight == 0) {
-        //	//raw image bytes
-        //	if (!DataClasses::Texture::LoadTexture(m_Material.Texture, (char*)texptr->pcData, texptr->mWidth)) {
-        //		AddLogf(Error, "Texture load failed!");
-        //	}
-        //}
-        //else {
-        //	AddLogf(Error, "NOT SUPPORTED!");
-        //
-        //}
-        AddLogf(Error, "inner texture not supported yet");
-        return false;
-    }
-
-    {
-        FileSystem::DirectoryReader reader(DataPath::Models, GetName());
-        auto fpath = reader.translate(Path.data);
-
-        auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(matout, true);
-        matb.SetDiffuseMap("file://" + fpath);
-        matb.SetDiffuseColor(emath::fvec4(1));
-    }
-}
-
-//------------------------------------------------------------------------
-#endif
-
-void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage, iAsyncLoader *loader) {
+void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
     importer = std::make_unique<Assimp::Importer>();
     scene = importer->ReadFileFromMemory(
         filedata.get(), filedata.size(),
@@ -88,10 +24,10 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
-    LoadScene(storage);
+    LoadMeshes(storage);
 }
 
-void AssimpMeshLoader::LoadScene(ResourceLoadStorage &storage) {
+void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     uint32_t NumVertices = 0, NumIndices = 0;
 
     if (scene->mNumMeshes > MeshConf::SubMeshLimit) {
@@ -114,22 +50,28 @@ void AssimpMeshLoader::LoadScene(ResourceLoadStorage &storage) {
         NumIndices += meshes[i].numIndices;
     }
 
-    std::vector<glm::vec3> verticles;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> texCords;
-    std::vector<uint32_t> indices;
+    auto &m = storage.m_Memory.m_Allocator;
 
-    verticles.reserve(NumVertices);
-    normals.reserve(NumVertices);
-    texCords.reserve(NumVertices);
-    indices.reserve(NumIndices);
+    glm::vec3 *verticles = m.Allocate<glm::vec3>(NumVertices);
+    glm::vec3 *normals = m.Allocate<glm::vec3>(NumVertices);
+    glm::vec2 *texCords = m.Allocate<glm::vec2>(NumVertices);
+    uint32_t *indices = m.Allocate<uint32_t>(NumIndices);
+
+    if (!verticles || !normals || !texCords || !indices) {
+        throw NotEnoughStorage{
+            NumVertices * (sizeof(glm::vec3) * 2 + sizeof(glm::vec2)) +
+            NumIndices * sizeof(uint32_t)
+        };
+    }
 
 //    std::vector<Renderer::MaterialResourceHandle> Materials;
 //    Materials.resize(scene->mNumMaterials, {});
 
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         const aiMesh* mesh = scene->mMeshes[i];
-        
+
+        LoadMaterial(scene->mMeshes[i]->mMaterialIndex, i, storage);
+
 //        auto matidx = mesh->mMaterialIndex;
 //        if (!Materials[matidx]) {
 //            if (!LoadMaterial(matidx, scene, Materials[matidx])) {
@@ -144,22 +86,22 @@ void AssimpMeshLoader::LoadScene(ResourceLoadStorage &storage) {
 
             if (mesh->mTextureCoords[0]) {
                 aiVector3D &UVW = mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-                texCords.push_back(glm::fvec2(UVW.x, UVW.y));
+                texCords[vertid] = glm::fvec2(UVW.x, UVW.y);
             }
             else {
-                texCords.push_back(glm::fvec2());
+                texCords[vertid] = glm::fvec2();
             }
 
-            verticles.push_back(glm::fvec3(vertex.x, vertex.y, vertex.z));
-            normals.push_back(glm::fvec3(normal.x, normal.y, normal.z));
+            verticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);
+            normals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
         }
 
         for (size_t face = 0; face < mesh->mNumFaces; face++) {
             aiFace *f = &mesh->mFaces[face];
             THROW_ASSERT(f->mNumIndices == 3, 0);
-            indices.push_back(f->mIndices[0]);
-            indices.push_back(f->mIndices[1]);
-            indices.push_back(f->mIndices[2]);
+            indices[face * 3 + 0] = f->mIndices[0];
+            indices[face * 3 + 1] = f->mIndices[1];
+            indices[face * 3 + 2] = f->mIndices[2];
         }
     }
 
@@ -167,26 +109,88 @@ void AssimpMeshLoader::LoadScene(ResourceLoadStorage &storage) {
 
     builder.subMeshArray = meshes;
 
-    auto &m = storage.m_Memory.m_Allocator;
     using ichannels = Renderer::Configuration::VAO::InputChannels;
 
     builder.AllocateVAO();
     builder.vaoBuilder.BeginDataChange();
 
     builder.vaoBuilder.CreateChannel(ichannels::Vertex);
-    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(verticles), verticles.size());
+    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Vertex, (const float*)(verticles), NumVertices);
 
     builder.vaoBuilder.CreateChannel(ichannels::Texture0);
-    builder.vaoBuilder.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(texCords), texCords.size());
+    builder.vaoBuilder.SetChannelData<float, 2>(ichannels::Texture0, (const float*)(texCords), NumVertices);
 
     builder.vaoBuilder.CreateChannel(ichannels::Normals);
-    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Normals, (const float*)m.Clone(normals), normals.size());
+    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Normals, (const float*)(normals), NumVertices);
 
     builder.vaoBuilder.CreateChannel(ichannels::Index);
-    builder.vaoBuilder.SetIndex(ichannels::Index, (const unsigned*)m.Clone(indices), indices.size());
+    builder.vaoBuilder.SetIndex(ichannels::Index, (const unsigned*)(indices), NumIndices);
 
     builder.vaoBuilder.EndDataChange();
     builder.vaoBuilder.UnBindVAO();
+}
+
+void AssimpMeshLoader::LoadMaterial(unsigned index, unsigned submeshindex, ResourceLoadStorage &storage) {
+//    bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
+//        matout.Reset();
+
+    if (index >= scene->mNumMaterials) {
+        AddLogf(Error, "Invalid material index");
+        return;
+    }
+
+    const aiMaterial* aiMat = scene->mMaterials[index];
+    if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) <= 0) {
+        AddLogf(Error, "No diffuse component");
+        return;
+    }
+
+
+//
+//        auto *e = Core::GetEngine();
+//        auto *rf = e->GetWorld()->GetRendererFacade();
+//        auto *resmgr = rf->GetResourceManager();
+//        MoonGlare::Renderer::Material *material = nullptr;
+//
+//        aiString Path;
+//        if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
+//            AddLogf(Error, "Unable to load material");
+//            return false;
+//        }
+//
+//        if (Path.data[0] == '*') {
+//            ////internal texture
+//            //auto idx = strtoul(Path.data + 1, nullptr, 10);
+//            //if (idx >= Scene->mNumTextures) {
+//            //	AddLogf(Error, "Invalid internal texture id!");
+//            //	return;
+//            //}
+//            //
+//            //auto texptr = Scene->mTextures[idx];
+//            //
+//            //if (texptr->mHeight == 0) {
+//            //	//raw image bytes
+//            //	if (!DataClasses::Texture::LoadTexture(m_Material.Texture, (char*)texptr->pcData, texptr->mWidth)) {
+//            //		AddLogf(Error, "Texture load failed!");
+//            //	}
+//            //}
+//            //else {
+//            //	AddLogf(Error, "NOT SUPPORTED!");
+//            //
+//            //}
+//            AddLogf(Error, "inner texture not supported yet");
+//            return false;
+//        }
+//
+//        {
+//            FileSystem::DirectoryReader reader(DataPath::Models, GetName());
+//            auto fpath = reader.translate(Path.data);
+//
+//            auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(matout, true);
+//            matb.SetDiffuseMap("file://" + fpath);
+//            matb.SetDiffuseColor(emath::fvec4(1));
+//        }
+//    }
 }
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

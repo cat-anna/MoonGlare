@@ -66,8 +66,8 @@ bool MeshManager::IsHandleValid(HandleType &h) const {
 
 bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     auto cache = loadedMeshes.find(uri);
-    if (cache != loadedMeshes.end()) {
-        AddLogf(Debug, "mesh load cache hit");
+    if (cache != loadedMeshes.end() && !IsHandleValid(cache->second)) {
+        AddLogf(Performance, "mesh load cache hit");
         hout = cache->second;
         return true;
     }

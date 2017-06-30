@@ -29,7 +29,7 @@ public:
 
     DefineRefGetterConst(FrameSize, math::vec2);
 protected:
-    Renderer::MaterialResourceHandle m_Material{ 0 };
+    Renderer::MaterialResourceHandle m_Material{ };
 
     math::fvec2 m_TextureSize;
     string m_Name;

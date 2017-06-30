@@ -37,7 +37,7 @@ protected:
 		unsigned char BeginingKey, KeyWidths[256];
 	};
 
-	Renderer::MaterialResourceHandle m_Material{ 0 };
+	Renderer::MaterialResourceHandle m_Material{ };
 
 //	TextureFile m_Texture;
 	cBFDHeader m_BFD;
