@@ -32,6 +32,7 @@ public:
     VAOBuilder vaoBuilder;
 
     Conf::SubMeshArray &subMeshArray;
+    Conf::SubMeshMaterialArray &subMeshMaterialArray;
     MeshResourceHandle handle;
     Commands::CommandQueue &queue;
     Commands::CommandKey currentKey;

@@ -11,10 +11,13 @@ MeshManager::MeshManager(ResourceManager *Owner) :
     allocationBitmap.ClearAllocation();
     deviceHandle.fill(Device::InvalidVAOHandle);
     subMesh.fill({});
+    materialHandle.fill({});
+
+    generations.fill(1);//TODO: random?
+
     Conf::VAOBuffers vaob;
     vaob.fill(Device::InvalidBufferHandle);
     vaoBuffer.fill(vaob);
-    generations.fill(1);//TODO: random?
 }
 
 MeshManager::~MeshManager() {
@@ -66,7 +69,7 @@ bool MeshManager::IsHandleValid(HandleType &h) const {
 
 bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     auto cache = loadedMeshes.find(uri);
-    if (cache != loadedMeshes.end() && !IsHandleValid(cache->second)) {
+    if (cache != loadedMeshes.end() && IsHandleValid(cache->second)) {
         AddLogf(Performance, "mesh load cache hit");
         hout = cache->second;
         return true;
@@ -77,7 +80,7 @@ bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     }
     loadedMeshes[uri] = hout;
 
-    auto request = std::make_shared<Loader::AssimpMeshLoader>(hout, this);
+    auto request = std::make_shared<Loader::AssimpMeshLoader>(hout, this, resourceManager->GetMaterialManager());
     resourceManager->GetLoaderIf()->QueueRequest(uri, request);
 
     return true;

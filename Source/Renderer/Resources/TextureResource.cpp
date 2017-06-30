@@ -73,7 +73,7 @@ void TextureResource::Release(TextureResourceHandle h) {
 
 bool TextureResource::LoadTexture(TextureResourceHandle &hout, const std::string &uri, Configuration::TextureLoad config, bool CanAllocate, bool NeedSize) {
     auto cache = loadedTextures.find(uri);
-    if (cache != loadedTextures.end() && !IsHandleValid(cache->second)) {
+    if (cache != loadedTextures.end() && IsHandleValid(cache->second)) {
         AddLogf(Debug, "texture load cache hit");
         hout = cache->second;
         return true;

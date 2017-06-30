@@ -194,7 +194,18 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFST
         return ProcessorResult::CriticalError;
     }
 
-    afst.request->OnFileReady(afst.URI, bt, queue->storage);
+    try {
+        afst.request->OnFileReady(afst.URI, bt, queue->storage);
+    }
+    catch (const iAsyncFileSystemRequest::NotEnoughStorage &nes) {
+        AddLog(Performance, fmt::format("Async FS task reported not enough storage. Used: {}/{} kbytes; required: {} kbytes",
+            queue->storage.m_Memory.m_Allocator.Allocated() / 1024.0f, Conf::QueueMemory / 1024.0f, nes.requiredSpace / 1024.0f));
+        if (nes.requiredSpace < Conf::QueueMemory) {
+            //retry job later
+            QueuePush(afst);
+            return ProcessorResult::QueueFull;
+        }
+    }
     return ProcessorResult::Success;
 }
 

@@ -13,6 +13,7 @@ MaterialManager::MaterialManager(ResourceManager * Owner): m_ResourceManager(Own
     RendererAssert(Owner);
     m_AllocationBitmap.ClearAllocation();
     generations.fill(1);
+    materials.fill({});
 }
 
 MaterialManager::~MaterialManager() {
@@ -23,7 +24,7 @@ MaterialManager::~MaterialManager() {
 Material *MaterialManager::GetMaterial(MaterialResourceHandle h) {
     if (!IsHandleValid(h))
         return nullptr;
-    return &m_Materials[h.index];
+    return &materials[h.index];
 }
 
 bool MaterialManager::IsHandleValid(MaterialResourceHandle &h) const {
@@ -39,7 +40,7 @@ bool MaterialManager::IsHandleValid(MaterialResourceHandle &h) const {
 
 bool MaterialManager::Allocate(MaterialResourceHandle &hout, const std::string &uri) {
     auto cache = loadedMaterials.find(uri);
-    if (cache != loadedMaterials.end() && !IsHandleValid(cache->second)) {
+    if (cache != loadedMaterials.end() && IsHandleValid(cache->second)) {
         AddLogf(Performance, "material load cache hit");
         hout = cache->second;
         return true;
@@ -59,7 +60,7 @@ bool MaterialManager::Allocate(MaterialResourceHandle &hout) {
 
         hout.index = static_cast<MaterialResourceHandle::Index_t>(index);
         hout.generation = generations[hout.index];
-        hout.deviceHandle = &m_Materials[hout.index];
+        hout.deviceHandle = &materials[hout.index];
 
         return true;
     }

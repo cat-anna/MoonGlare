@@ -30,11 +30,13 @@ public:
     MeshManager(ResourceManager* Owner);
     ~MeshManager();
 
+    ResourceManager* GetResourceManager() { return resourceManager; }
+
     using HandleType = MeshResourceHandle;
 
     bool Allocate(Commands::CommandQueue *q, HandleType &hout);
     void Release(Commands::CommandQueue *q, HandleType hin);
-
+                                    
 #ifdef NEED_MESH_BUILDER
     Builder::MeshBuilder GetBuilder(Commands::CommandQueue &q, HandleType &h, 
         Commands::CommandKey key = {}, bool AllowAllocation = false) {
@@ -55,6 +57,7 @@ public:
                 &deviceHandle[h.index],
             },
             subMesh[h.index],
+            materialHandle[h.index],
             h,
             q,
             key,
@@ -66,13 +69,21 @@ public:
 
     bool IsHandleValid(HandleType &h) const;
 
-    auto GetMeshes(HandleType h) {
+    auto& GetMeshes(HandleType h) {
         if (!IsHandleValid(h)) {
             //TODO
             __debugbreak();
             throw false;
         }
         return subMesh[h.index];
+    }
+    auto& GetMaterials(HandleType h) {
+        if (!IsHandleValid(h)) {
+            //TODO
+            __debugbreak();
+            throw false;
+        }
+        return materialHandle[h.index];
     }
 private:
     template<typename T>
@@ -84,7 +95,7 @@ private:
     Array<Device::VAOHandle> deviceHandle;
 
     Array<Conf::SubMeshArray> subMesh;
-    Array<std::array<MaterialResourceHandle, Conf::SubMeshLimit>> materialHandle;
+    Array<Conf::SubMeshMaterialArray> materialHandle;
 
     Array<Conf::VAOBuffers> vaoBuffer;
     Array<HandleType::Generation_t> generations;

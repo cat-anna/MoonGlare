@@ -353,7 +353,7 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
 
         glyph->m_Loaded = true;
         auto faceglyph = m_FontFace->glyph;
-        DebugLogf(Hint, "TTF[%s]: char %c[0x%x]  size:(%3d; %3d) pos:(%3d; %3d) bsize(%3d; %3d)",
+        DebugLogf(Hint, "TTF[%s]: char %c[0x%x]  size:(%3d; %3d) pos:(%4d; %4d) bsize(%3d; %3d)",
                 GetName().c_str(),
                 (unsigned)codepoint, (unsigned)codepoint,
                 faceglyph->advance.x, faceglyph->advance.y, 

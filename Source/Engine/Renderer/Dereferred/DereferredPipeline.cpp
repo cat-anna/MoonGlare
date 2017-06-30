@@ -30,7 +30,7 @@ void DereferredPipeline::Initialize(World *world) {
         if (!m_Buffer.Reset(ScreenSize))
             throw "Unable to initialize render buffers!";
     }
-    catch (int idx) {						 
+    catch (int idx) {
         AddLogf(Error, "Unable to load shader with index %d", idx);
         throw "Unable to load shader";
     }
@@ -42,23 +42,25 @@ void DereferredPipeline::Initialize(World *world) {
     m_DefferedSink = mem::make_aligned<DefferedSink>();
     m_DefferedSink->Initialize(m_World->GetRendererFacade());
     m_DefferedSink->m_DereferredPipeline = this;
-        
+
     m_Sphere = GetDataMgr()->GetModel("Sphere");
     if (!m_Sphere) {
         AddLog(Warning, "No sphere model! An attempt to render point light will cause failure!");
-    } else
+    }
+    else
         m_Sphere->Initialize();
 
     m_Cone = GetDataMgr()->GetModel("Cone");
     if (!m_Cone) {
         AddLog(Warning, "No Cone model! An attempt to render spot light will cause failure!");
-    } else
+    }
+    else
         m_Cone->Initialize();
 
     InitializeDirectionalQuad();
-}     
-       
-void DereferredPipeline::Finalize() { 
+}
+
+void DereferredPipeline::Finalize() {
     //if (m_Sphere) m_Sphere->Finalize();
 }
 
@@ -238,11 +240,11 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
         //glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FrameBuffer);
         qpost.MakeCommand<Commands::FramebufferReadBind>(m_DereferredPipeline->m_Buffer.m_FrameBuffer);
         qpost.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
-        
+
         auto size = config.m_ScreenSize;
         qpost.MakeCommand<Commands::BlitFramebuffer>(
-            0, 0, (GLint)size[0], (GLint)size[1], 
-            0, 0, (GLint)size[0], (GLint)size[1], 
+            0, 0, (GLint)size[0], (GLint)size[1],
+            0, 0, (GLint)size[0], (GLint)size[1],
             (GLenum)GL_COLOR_BUFFER_BIT, (GLenum)GL_LINEAR);
         //glBlitFramebuffer(0, 0, size[0], size[1], 0, 0, size[0], size[1], GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
@@ -265,7 +267,7 @@ DefferedSink::RObj DefferedSink::Begin(const math::mat4 & ModelMatrix, const Gra
         m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
     }
 
-    return RObj {
+    return RObj{
         this,
     };
 }
@@ -285,11 +287,12 @@ void DefferedSink::Mesh(Renderer::MaterialResourceHandle material, unsigned NumI
             m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
             m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
         }
-    } else {
-        //if (mat) 
-        //	dev.Bind(mat->GetMaterial());
-        //else
-        //	dev.BindNullMaterial();
+    }
+    else {
+     //if (mat) 
+     //	dev.Bind(mat->GetMaterial());
+     //else
+     //	dev.BindNullMaterial();
         assert(false);
         return;
     }
@@ -328,29 +331,27 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHan
     }
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
-    for (auto &mesh : mm.GetMeshes(meshH)) {
+    auto &meshes = mm.GetMeshes(meshH);
+    auto &materials = mm.GetMaterials(meshH);
+    for (size_t i = 0; i < meshes.size(); ++i) {
+
+        auto &mesh = meshes[i];
+        auto &mat = materials[i];
+
         if (!mesh.valid)
             break;
 
-        //f (material.m_TmpGuard == material.GuardValue) {
-        //   auto matptr = m_Renderer->GetResourceManager()->GetMaterialManager().GetMaterial(material);
-        //   if (matptr) {
-                //m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-        //        m_GeometryShader.Set<Sampler::DiffuseMap>(matptr->m_DiffuseMap);
-        //    }
-        //    else {
-            //       m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-        //        m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
-            //   }
-        //}
-        // else {
-            //if (mat) 
-            //	dev.Bind(mat->GetMaterial());
-            //else
-            //	dev.BindNullMaterial();
-        //    assert(false);
-        //    return;
-        // }
+        using Sampler = GeometryShaderDescriptor::Sampler;
+        using Uniform = GeometryShaderDescriptor::Uniform;
+
+        if (mat.deviceHandle) {
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+            m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->m_DiffuseMap);
+        }
+        else {
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+            m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
+        }
 
         auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         garg->m_NumIndices = mesh.numIndices;
@@ -373,9 +374,9 @@ void DefferedSink::SubmitDirectionalLight(const Renderer::Light::LightBase & lin
     //she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
     auto garg = m_DirectionalLightQueue->PushCommand<Commands::VAODrawElements>();
-    garg->m_NumIndices     = 4;
+    garg->m_NumIndices = 4;
     garg->m_IndexValueType = GL_UNSIGNED_INT;// m_DereferredPipeline->m_DirectionalQuad.IndexValueType();
-    garg->m_ElementMode    = GL_QUADS;
+    garg->m_ElementMode = GL_QUADS;
 }
 
 void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
@@ -406,10 +407,10 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
 
     auto garg = m_PointLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
     auto &mesh = m_DereferredPipeline->m_Sphere->GetMeshVector();
-    garg->m_NumIndices     = mesh[0].NumIndices;
+    garg->m_NumIndices = mesh[0].NumIndices;
     garg->m_IndexValueType = vao.IndexValueType();
-    garg->m_BaseIndex      = mesh[0].BaseIndex;
-    garg->m_BaseVertex     = mesh[0].BaseVertex;
+    garg->m_BaseIndex = mesh[0].BaseIndex;
+    garg->m_BaseVertex = mesh[0].BaseVertex;
 
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
@@ -509,9 +510,10 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     }
 
     //sm->BindAsTexture(SamplerIndex::PlaneShadow);
-    if(sm) {
+    if (sm) {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::PlaneShadow);
-    } else {
+    }
+    else {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Renderer::Device::InvalidTextureHandle, (unsigned)SamplerIndex::PlaneShadow);
     }
 
@@ -521,7 +523,7 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
         m_SpotShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
         m_SpotShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 
-        if(sm)
+        if (sm)
             m_SpotShader.Set<Uniform::ShadowMapSize>(emath::fvec2(sm->size, sm->size));
 
         m_SpotShader.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));

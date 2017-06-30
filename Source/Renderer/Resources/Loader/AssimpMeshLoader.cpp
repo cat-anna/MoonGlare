@@ -1,11 +1,14 @@
 #include "pch.h"
 
 #define NEED_MESH_BUILDER
+#define NEED_MATERIAL_BUILDER
 
 #include "../../nfRenderer.h"
 #include "../../iAsyncLoader.h"
 #include "../MeshResource.h"
 #include "AssimpMeshLoader.h"
+
+#include "../MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources::Loader {
 
@@ -13,14 +16,15 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     importer = std::make_unique<Assimp::Importer>();
     scene = importer->ReadFileFromMemory(
         filedata.get(), filedata.size(),
-            aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType,
-            strrchr(requestedURI.c_str(), '.'));
+        aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType,
+        strrchr(requestedURI.c_str(), '.'));
 
     if (!scene) {
         AddLog(Error, fmt::format("Unable to load model file[{}]. Error: {}", requestedURI, importer->GetErrorString()));
         return;
     }
 
+    ModelURI = requestedURI;
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
@@ -36,7 +40,9 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     }
 
     MeshConf::SubMeshArray meshes;
+    MeshConf::SubMeshMaterialArray materials;
     meshes.fill({});
+    materials.fill({});
 
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         meshes[i].valid = true;
@@ -45,7 +51,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         meshes[i].baseIndex = NumIndices;
         meshes[i].elementMode = GL_TRIANGLES;
         meshes[i].indexElementType = GL_UNSIGNED_INT;
- 
+
         NumVertices += scene->mMeshes[i]->mNumVertices;
         NumIndices += meshes[i].numIndices;
     }
@@ -70,7 +76,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         const aiMesh* mesh = scene->mMeshes[i];
 
-        LoadMaterial(scene->mMeshes[i]->mMaterialIndex, i, storage);
+        LoadMaterial(scene->mMeshes[i]->mMaterialIndex, materials[i], storage);
 
 //        auto matidx = mesh->mMaterialIndex;
 //        if (!Materials[matidx]) {
@@ -108,6 +114,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     auto builder = owner->GetBuilder(storage.m_Queue, handle);
 
     builder.subMeshArray = meshes;
+    builder.subMeshMaterialArray = materials;
 
     using ichannels = Renderer::Configuration::VAO::InputChannels;
 
@@ -130,7 +137,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     builder.vaoBuilder.UnBindVAO();
 }
 
-void AssimpMeshLoader::LoadMaterial(unsigned index, unsigned submeshindex, ResourceLoadStorage &storage) {
+void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage) {
 //    bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
 //        matout.Reset();
 
@@ -145,21 +152,19 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, unsigned submeshindex, Resou
         return;
     }
 
-
-//
 //        auto *e = Core::GetEngine();
 //        auto *rf = e->GetWorld()->GetRendererFacade();
 //        auto *resmgr = rf->GetResourceManager();
 //        MoonGlare::Renderer::Material *material = nullptr;
-//
-//        aiString Path;
-//        if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-//            AddLogf(Error, "Unable to load material");
-//            return false;
-//        }
-//
-//        if (Path.data[0] == '*') {
-//            ////internal texture
+
+    aiString Path;
+    if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
+        AddLogf(Error, "Unable to load material");
+        return;
+    }
+
+    if (Path.data[0] == '*') {
+        //internal texture
 //            //auto idx = strtoul(Path.data + 1, nullptr, 10);
 //            //if (idx >= Scene->mNumTextures) {
 //            //	AddLogf(Error, "Invalid internal texture id!");
@@ -178,19 +183,19 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, unsigned submeshindex, Resou
 //            //	AddLogf(Error, "NOT SUPPORTED!");
 //            //
 //            //}
-//            AddLogf(Error, "inner texture not supported yet");
-//            return false;
-//        }
-//
-//        {
+        AddLogf(Error, "inner texture not supported yet");
+        return;
+    }
+    else {
+        std::string texuri = baseURI + Path.data;
+
 //            FileSystem::DirectoryReader reader(DataPath::Models, GetName());
 //            auto fpath = reader.translate(Path.data);
-//
-//            auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(matout, true);
-//            matb.SetDiffuseMap("file://" + fpath);
-//            matb.SetDiffuseColor(emath::fvec4(1));
-//        }
-//    }
+
+        auto matb = materialManager.GetMaterialBuilder(h, true);
+        matb.SetDiffuseMap(texuri);
+        matb.SetDiffuseColor(emath::fvec4(1));
+    }
 }
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

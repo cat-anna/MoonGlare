@@ -90,7 +90,6 @@ void FreeImageLoader::SubmitPixels(ResourceLoadStorage &storage, void *pixels, s
 
     void *storagepixels = m.Clone((uint8_t*)pixels, bytesize);
     if (!storagepixels) {
-        __debugbreak();
         throw NotEnoughStorage{ bytesize };
     }
 
