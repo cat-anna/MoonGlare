@@ -40,28 +40,13 @@ void DereferredPipeline::Initialize(World *world) {
     }
 
     m_DefferedSink = mem::make_aligned<DefferedSink>();
-    m_DefferedSink->Initialize(m_World->GetRendererFacade());
     m_DefferedSink->m_DereferredPipeline = this;
-
-    m_Sphere = GetDataMgr()->GetModel("Sphere");
-    if (!m_Sphere) {
-        AddLog(Warning, "No sphere model! An attempt to render point light will cause failure!");
-    }
-    else
-        m_Sphere->Initialize();
-
-    m_Cone = GetDataMgr()->GetModel("Cone");
-    if (!m_Cone) {
-        AddLog(Warning, "No Cone model! An attempt to render spot light will cause failure!");
-    }
-    else
-        m_Cone->Initialize();
+    m_DefferedSink->Initialize(m_World->GetRendererFacade());
 
     InitializeDirectionalQuad();
 }
 
 void DereferredPipeline::Finalize() {
-    //if (m_Sphere) m_Sphere->Finalize();
 }
 
 //--------------------------------------------------------------------------------------
@@ -108,6 +93,17 @@ void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
     if (!shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw "CANNOT LOAD D/PL SHADER!";
     if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw "CANNOT LOAD D/PL SHADER!";
     if (!shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw "CANNOT LOAD D/SL SHADER!";
+
+    auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", sphereMesh)) {     //TODO: remove direct uri
+        AddLog(Error, "Cannot load sphere mesh!");
+        throw std::runtime_error("Cannot load sphere mesh!");
+    }
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
+        AddLog(Error, "Cannot load cone mesh!");
+        throw std::runtime_error("Cannot load cone mesh!");
+    }
 }
 
 void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
@@ -309,7 +305,7 @@ void DefferedSink::Mesh(Renderer::MaterialResourceHandle material, unsigned NumI
 
 void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH) {
     //TODO
-
+                        
     namespace Commands = Renderer::Commands;
 
     {
@@ -402,15 +398,16 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
 
     using Uniform = PointLightShaderDescriptor::Uniform;
 
-    auto &vao = m_DereferredPipeline->m_Sphere->GetVAO();
-    m_PointLightQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
+    auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+    auto &mesh = mm.GetMeshes(sphereMesh);
+
+    m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
 
     auto garg = m_PointLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    auto &mesh = m_DereferredPipeline->m_Sphere->GetMeshVector();
-    garg->m_NumIndices = mesh[0].NumIndices;
-    garg->m_IndexValueType = vao.IndexValueType();
-    garg->m_BaseIndex = mesh[0].BaseIndex;
-    garg->m_BaseVertex = mesh[0].BaseVertex;
+    garg->m_NumIndices = mesh[0].numIndices;
+    garg->m_IndexValueType = mesh[0].indexElementType;
+    garg->m_BaseIndex = mesh[0].baseIndex;
+    garg->m_BaseVertex = mesh[0].baseVertex;
 
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
@@ -423,8 +420,6 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
         for (unsigned int i = 0; i < DereferredFrameBuffer::Buffers::MaxValue; i++) {
             m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_DereferredPipeline->m_Buffer.m_Textures[i], i);
         }
-
-        //	she.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)light.m_ViewMatrix));
 
         m_PointLightShader.Set<Uniform::Color>(emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Base.m_Color));
         m_PointLightShader.Set<Uniform::AmbientIntensity>(linfo.m_Base.m_AmbientIntensity);
@@ -445,7 +440,7 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
     m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
 
     m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(0u, 0u);
-    m_PointLightQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
+    m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
     m_PointLightQueue->MakeCommand<Commands::VAODrawTrianglesBaseVertex>(*garg);
 
     m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_BACK);
@@ -455,6 +450,7 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
 
 void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     namespace Commands = Renderer::Commands;
+    using namespace Renderer::Commands;
 
     Renderer::PlaneShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
@@ -493,15 +489,17 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     m_SpotLightQueue->MakeCommand<Commands::StencilOpSeparate>((GLenum)GL_BACK, (GLenum)GL_KEEP, (GLenum)GL_INCR_WRAP, (GLenum)GL_KEEP);
     m_SpotLightQueue->MakeCommand<Commands::StencilOpSeparate>((GLenum)GL_FRONT, (GLenum)GL_KEEP, (GLenum)GL_DECR_WRAP, (GLenum)GL_KEEP);
 
-    auto &vao = m_DereferredPipeline->m_Sphere->GetVAO();
-    auto &mesh = m_DereferredPipeline->m_Sphere->GetMeshVector();
 
-    m_SpotLightQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
+    auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+    auto &mesh = mm.GetMeshes(coneMesh);
+
+
+    m_SpotLightQueue->MakeCommand<Commands::VAOBindResource>(coneMesh.deviceHandle);
     auto garg = m_SpotLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = mesh[0].NumIndices;
-    garg->m_IndexValueType = vao.IndexValueType();
-    garg->m_BaseIndex = mesh[0].BaseIndex;
-    garg->m_BaseVertex = mesh[0].BaseVertex;
+    garg->m_NumIndices = mesh[0].numIndices;
+    garg->m_IndexValueType = mesh[0].indexElementType;
+    garg->m_BaseIndex = mesh[0].baseIndex;
+    garg->m_BaseVertex = mesh[0].baseVertex;
 
     //m_Buffer.BeginLightingPass();
     m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
@@ -551,7 +549,7 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     m_SpotLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
 
     m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(0u, 0u);
-    m_SpotLightQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
+    m_SpotLightQueue->MakeCommand<Commands::VAOBindResource>(coneMesh.deviceHandle);
     m_SpotLightQueue->MakeCommand<Commands::VAODrawTrianglesBaseVertex>(*garg);
 
     m_SpotLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_BACK);

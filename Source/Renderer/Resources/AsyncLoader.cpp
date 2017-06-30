@@ -67,7 +67,7 @@ void AsyncLoader::ThreadMain() {
 
     while (m_CanWork) {
         if (m_PendingQueue->m_Finished) {
-            if (m_SubmitedQueue->m_ccq.m_Commited.load() == false) {
+            if (m_SubmitedQueue->m_ccq.m_Commited == false) {
                 std::this_thread::sleep_for(1ms);
                 continue;
             }

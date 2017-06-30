@@ -138,9 +138,6 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
 }
 
 void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage) {
-//    bool SimpleModelImpl::LoadMaterial(unsigned index, const aiScene* scene, Renderer::MaterialResourceHandle &matout) {
-//        matout.Reset();
-
     if (index >= scene->mNumMaterials) {
         AddLogf(Error, "Invalid material index");
         return;
@@ -151,11 +148,6 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
         AddLogf(Error, "No diffuse component");
         return;
     }
-
-//        auto *e = Core::GetEngine();
-//        auto *rf = e->GetWorld()->GetRendererFacade();
-//        auto *resmgr = rf->GetResourceManager();
-//        MoonGlare::Renderer::Material *material = nullptr;
 
     aiString Path;
     if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {

@@ -175,7 +175,7 @@ struct TextureRenderTask {
 struct VAO {
     static constexpr uint32_t VAOLimit = 1024;
     static constexpr uint32_t VAOInitial = 64;
-    static constexpr uint32_t MaxBuffersPerVAO = 8;
+    static constexpr uint32_t MaxBuffersPerVAO = 4;
 
     using VAOBuffers = std::array<Device::BufferHandle, MaxBuffersPerVAO>;
 
@@ -188,7 +188,7 @@ struct VAO {
 
         //Color, //unused
 
-        Index = 4,
+        Index,
 
         MaxValue,
     };

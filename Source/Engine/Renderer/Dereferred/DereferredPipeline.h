@@ -33,7 +33,6 @@ public:
     DereferredFrameBuffer m_Buffer;
 private: 
     World *m_World = nullptr;
-    MoonGlare::DataClasses::ModelPtr m_Sphere, m_Cone;
     VAO m_DirectionalQuad;
     mem::aligned_ptr<DefferedSink> m_DefferedSink;
 
@@ -92,6 +91,9 @@ protected:
     Renderer::Frame *m_frame = nullptr;
     Renderer::RendererFacade *m_Renderer = nullptr;
     DereferredPipeline *m_DereferredPipeline;
+
+    MoonGlare::Renderer::MeshResourceHandle sphereMesh;
+    MoonGlare::Renderer::MeshResourceHandle coneMesh;
 
     void Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, unsigned BaseVertex, unsigned ElementsType);
 };
