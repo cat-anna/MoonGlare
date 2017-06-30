@@ -173,7 +173,7 @@ void FileSystemViewer::OpenItem() {
 		return;
 
 	std::string fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
-	MainWindow::Get()->OpenFileEditor(fullpath);
+    MainWindow::Get()->OpenFileEditor(fullpath);
 }
 
 void FileSystemViewer::RefreshFilesystem() {

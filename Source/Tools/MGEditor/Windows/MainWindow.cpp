@@ -194,7 +194,7 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 void MainWindow::OpenFileEditor(const std::string& FileURI) {
 	const char *ext = strrchr(FileURI.c_str(), '.');
 	if (!ext) {
-		ErrorMessage("Unknown file type!");
+		//ErrorMessage("Unknown file type!");
 		return;
 	}
 	++ext;

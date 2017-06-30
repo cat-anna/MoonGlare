@@ -183,19 +183,28 @@ void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {
 void FileSystem::Reload() {
     LOCK_MUTEX(m_Mutex);
     if (m_VFS->GetContainerCount() == 0) {
-        auto ret = m_VFS->CreateContainer<StarVFS::Containers::FolderContainer>("/", m_BasePath);
-        if (ret.first != StarVFS::VFSErrorCode::Success) {
-            AddLogf(Error, "Failed to load base container. Code: %d", (int)ret.first);
-            return;
-        }
+
+        auto Load = [this](std::string path) {
+            auto ret = m_VFS->CreateContainer<StarVFS::Containers::FolderContainer>("/", path);
+            if (ret.first != StarVFS::VFSErrorCode::Success) {
+                AddLogf(Error, "Failed to load base container. Code: %d", (int)ret.first);
+                return false;
+            }
+            return true;
+        };
+        Load("./MoonGlare/DataModules/Base/");
+        Load("./MoonGlare/DataModules/Debug/");
+        Load(m_BasePath);
     } else {
-        auto c = m_VFS->GetContainer(1);
-        if (!c) {
-            AddLogf(Error, "Failed to get base container");
-            return;
+        for (size_t i = 0; i < m_VFS->GetContainerCount(); ++i) {
+            auto c = m_VFS->GetContainer(i);
+            if (!c) {
+                AddLogf(Error, "Failed to get base container");
+                return;
+            }
+            c->ReloadContainer();
+            c->RegisterContent();
         }
-        c->ReloadContainer();
-        c->RegisterContent();
     }
     Changed();
 
