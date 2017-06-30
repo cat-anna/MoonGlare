@@ -9,8 +9,6 @@
 #include <Engine/DataClasses/iFont.h>
 #include <Engine/Core/Scripts/iLuaRequire.h>
 
-#include <DataClasses/Models/SimpleModelImpl.h>
-
 #include <StarVFS/core/nStarVFS.h>
 
 #define xmlstr_Module_xml			"Module.xml"
@@ -39,7 +37,6 @@ Manager::Manager(World *world) : cRootClass(), world(world) {
 
 Manager::~Manager() {
     Finalize();
-
     m_StringTables.reset();
 }
 
@@ -105,13 +102,6 @@ bool Manager::Initialize(Scripts::ScriptEngine *ScriptEngine) {
 
 bool Manager::Finalize() {
     m_Fonts.clear();
-
-    for (auto &item : *m_Models.Lock()) {
-        item.second->Finalize();
-        item.second.reset();
-    }
-    m_Models.clear();
-
     m_Modules.clear();
 
     return true;
@@ -285,29 +275,6 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
     return font;
 }
 
-DataClasses::ModelPtr Manager::GetModel(const string& Name) {
-    auto models = m_Models.Lock();
-
-    auto it = models->find(Name);
-    if (it != models->end()) {
-        if (!it->second) {
-            AddLogf(Error, "Model '%s' is invalid.", Name.c_str());
-            return nullptr;
-        }
-        return it->second;
-    }
-    AddLogf(Debug, "Model '%s' not found. Trying to load.", Name.c_str());
-
-    auto model = std::make_shared<DataClasses::Models::SimpleModelImpl>(Name);
-    if (!model->Load(Name)) {
-        AddLogf(Error, "Unable to load model '%s'", Name.c_str());
-        return nullptr;
-    }
-    models[Name] = model;
-    NotifyResourcesChanged();
-    return model;
-}
-
 const string& Manager::GetString(const string &Id, const string& TableName) {
     return m_StringTables->GetString(Id, TableName);
 }
@@ -354,7 +321,6 @@ struct Dumper {
 
 void Manager::DumpAllResources(std::ostream &out) {
     Dumper::DumpRes<>(*m_Fonts.Lock(), "Fonts", out);
-    Dumper::DumpSharedRes<>(*m_Models.Lock(), "Models", out);
 }
 
 #endif

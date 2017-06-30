@@ -115,10 +115,6 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
             auto rt = GetManager()->GetWorld()->GetResourceTable();
             item.m_Model = rt->GetModel(item.m_MeshHandle);
 
-            if (!item.m_Model) {
-                item.m_Model = GetDataMgr()->GetModel(item.m_ModelName);
-            }
-
             item.m_Flags.m_Map.m_MeshValid = item.m_Model && item.m_Model->Initialize();
             if (!item.m_Flags.m_Map.m_MeshValid) {
                 AddLogf(Error, "Failed to get mesh!");

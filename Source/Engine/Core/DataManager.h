@@ -82,7 +82,6 @@ public:
     DataClasses::FontPtr GetDefaultFont();
 
     DataClasses::FontPtr GetFont(const string &Name);
-    DataClasses::ModelPtr GetModel(const string& Name);
 
     const string& GetString(const string &Id, const string& TableName);
 
@@ -107,7 +106,6 @@ private:
     World *world;
 
     SynchronizedResourceMap<FontResPtr> m_Fonts;
-    SynchronizedResourceMap<ModelResPtr> m_Models;
     
     std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
