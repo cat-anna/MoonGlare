@@ -170,14 +170,8 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
         }
     }
     else {
-        entry.m_Model = GetDataMgr()->GetModel(name);
-        if (entry.m_Model) {
-            if (!entry.m_Model->Initialize()) {
-                AddLogf(Error, "Failed to initialize model!");
-            }
-            else
-                entry.m_Flags.m_Map.m_MeshValid = true;
-        }
+        AddLog(Error, fmt::format("Invalid mesh uri: '{}'", name));
+        return false;
     }
 
     Handle &ch = hout;
