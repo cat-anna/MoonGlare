@@ -33,10 +33,8 @@ public:
     DereferredFrameBuffer m_Buffer;
 private: 
     World *m_World = nullptr;
-    VAO m_DirectionalQuad;
     mem::aligned_ptr<DefferedSink> m_DefferedSink;
 
-    bool InitializeDirectionalQuad();
 };
 
 //------------------------------------------------------------------------------------------
@@ -94,8 +92,10 @@ protected:
 
     MoonGlare::Renderer::MeshResourceHandle sphereMesh;
     MoonGlare::Renderer::MeshResourceHandle coneMesh;
+    MoonGlare::Renderer::MeshResourceHandle quadMesh;
 
     void Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, unsigned BaseVertex, unsigned ElementsType);
+    bool InitializeDirectionalQuad();
 };
 
 } //namespace Dereferred

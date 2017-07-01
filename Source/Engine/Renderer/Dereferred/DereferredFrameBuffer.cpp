@@ -37,19 +37,16 @@ void DereferredFrameBuffer::Free() {
 
 bool DereferredFrameBuffer::FreeFrameBuffer() {
     if (m_FrameBuffer != 0)
-        GetRenderDevice()->RequestContextManip([this] {
         glDeleteFramebuffers(1, &m_FrameBuffer);
-        m_FrameBuffer = 0;
-    });
+    m_FrameBuffer = 0;
     return true;
 }
 
 bool DereferredFrameBuffer::NewFrameBuffer() {
-    if (m_FrameBuffer) FreeFrameBuffer();
-    GetRenderDevice()->RequestContextManip([this] {
-        glGenFramebuffers(1, &m_FrameBuffer);
-        Bind();
-    });
+    if (m_FrameBuffer) 
+        FreeFrameBuffer();
+    glGenFramebuffers(1, &m_FrameBuffer);
+    Bind();
     return true;
 }
 

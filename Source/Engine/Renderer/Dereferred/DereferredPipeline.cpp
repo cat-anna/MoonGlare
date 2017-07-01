@@ -1,6 +1,7 @@
 #include <pch.h>
 
 #define NEED_VAO_BUILDER
+#define NEED_MESH_BUILDER
 
 #include <MoonGlare.h>
 
@@ -42,45 +43,72 @@ void DereferredPipeline::Initialize(World *world) {
     m_DefferedSink = mem::make_aligned<DefferedSink>();
     m_DefferedSink->m_DereferredPipeline = this;
     m_DefferedSink->Initialize(m_World->GetRendererFacade());
-
-    InitializeDirectionalQuad();
 }
 
 void DereferredPipeline::Finalize() {
 }
 
-//--------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
 
-bool DereferredPipeline::InitializeDirectionalQuad() {
-    NormalVector Normals{
-        math::vec3(0.0f, 0.0f, 1.0f),
-        math::vec3(0.0f, 0.0f, 1.0f),
-        math::vec3(0.0f, 0.0f, 1.0f),
-        math::vec3(0.0f, 0.0f, 1.0f),
-    };
-    VertexVector Vertex{
-        math::vec3(-1.0f, -1.0f, 0.0f),
-        math::vec3(1.0f, -1.0f, 0.0f),
-        math::vec3(1.0f,  1.0f, 0.0f),
-        math::vec3(-1.0f,  1.0f, 0.0f),
-    };
-    TexCoordVector Texture{
-        math::vec2(1.0f, 1.0f),
-        math::vec2(0.0f, 1.0f),
-        math::vec2(0.0f, 0.0f),
-        math::vec2(1.0f, 0.0f),
-    };
-    IndexVector Index{
-        0, 1, 2, 3,
-    };
+bool DefferedSink::InitializeDirectionalQuad() {
+    m_Renderer->GetResourceManager()->GetMeshManager().Allocate(quadMesh);
 
-    m_DirectionalQuad.Initialize(Vertex, Texture, Normals, Index);
+    m_Renderer->GetAsyncLoader()->QueueTask(std::make_shared < Renderer::FunctionalAsyncTask>(
+        [this](Renderer::ResourceLoadStorage &storage) {
+
+        VertexVector Vertex{
+            math::vec3(-1.0f, -1.0f, 0.0f),
+            math::vec3(1.0f, -1.0f, 0.0f),
+            math::vec3(1.0f,  1.0f, 0.0f),
+            math::vec3(-1.0f,  1.0f, 0.0f),
+        };
+        TexCoordVector Texture{
+            math::vec2(1.0f, 1.0f),
+            math::vec2(0.0f, 1.0f),
+            math::vec2(0.0f, 0.0f),
+            math::vec2(1.0f, 0.0f),
+        };
+
+     //   m_DirectionalQuad.Initialize(Vertex, Texture, Normals, Index);
+
+        auto builder = m_Renderer->GetResourceManager()->GetMeshManager().GetBuilder(storage.m_Queue, quadMesh);
+
+        builder.subMeshArray.fill({});
+        builder.subMeshMaterialArray.fill({});
+        auto &mesh = builder.subMeshArray[0];
+        mesh.valid = true;
+        mesh.indexElementType = GL_UNSIGNED_BYTE;
+        mesh.numIndices = 6;
+        mesh.baseIndex = 0;
+        mesh.baseVertex = 0;
+        mesh.elementMode = GL_TRIANGLES;
+
+        using ichannels = Renderer::Configuration::VAO::InputChannels;
+        auto &m = storage.m_Memory.m_Allocator;
+
+        builder.AllocateVAO();
+        builder.vaoBuilder.BeginDataChange();
+
+        builder.vaoBuilder.CreateChannel(ichannels::Vertex);
+        builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertex), Vertex.size());
+
+        builder.vaoBuilder.CreateChannel(ichannels::Texture0);
+        builder.vaoBuilder.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(Texture), Texture.size());
+
+        builder.vaoBuilder.CreateChannel(ichannels::Index);
+        static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+        builder.vaoBuilder.SetIndex(ichannels::Index, IndexTable);
+
+        builder.vaoBuilder.EndDataChange();
+        builder.vaoBuilder.UnBindVAO();
+
+    }));
 
     return true;
 }
 
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
 
 void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
@@ -104,6 +132,7 @@ void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
         AddLog(Error, "Cannot load cone mesh!");
         throw std::runtime_error("Cannot load cone mesh!");
     }
+    InitializeDirectionalQuad();
 }
 
 void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
@@ -170,7 +199,7 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
         m_DirectionalLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
         m_DirectionalLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
         m_DirectionalLightQueue->MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
-        m_DirectionalLightQueue->PushCommand<Commands::VAOBind>()->m_VAO = m_DereferredPipeline->m_DirectionalQuad.Handle();
+        m_DirectionalLightQueue->MakeCommand<Commands::VAOBindResource>(quadMesh.deviceHandle);// ->m_VAO = m_DereferredPipeline->m_DirectionalQuad.Handle();
 
         //m_Buffer.BeginLightingPass();
         m_DirectionalLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
@@ -370,9 +399,9 @@ void DefferedSink::SubmitDirectionalLight(const Renderer::Light::LightBase & lin
     //she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
     auto garg = m_DirectionalLightQueue->PushCommand<Commands::VAODrawElements>();
-    garg->m_NumIndices = 4;
-    garg->m_IndexValueType = GL_UNSIGNED_INT;// m_DereferredPipeline->m_DirectionalQuad.IndexValueType();
-    garg->m_ElementMode = GL_QUADS;
+    garg->m_NumIndices = 6;
+    garg->m_IndexValueType = GL_UNSIGNED_BYTE;// m_DereferredPipeline->m_DirectionalQuad.IndexValueType();
+    garg->m_ElementMode = GL_TRIANGLES;
 }
 
 void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
