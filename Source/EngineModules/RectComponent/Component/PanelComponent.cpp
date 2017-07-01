@@ -5,6 +5,9 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+
+#define NEED_VAO_BUILDER
+
 #include <MoonGlare.h>
 #include "../nfGUI.h"
 
@@ -42,7 +45,9 @@ RegisterComponentID<PanelComponent> PanelComponentIDReg("Panel", true, &PanelCom
 PanelComponent::PanelComponent(ComponentManager *Owner) 
         : TemplateStandardComponent(Owner)
 {
-    m_RectTransform = nullptr;
+    //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
+    //	m_Array.fill(PanelComponentEntry());
+    m_Array.ClearAllocation();
 }
 
 PanelComponent::~PanelComponent() {
@@ -63,10 +68,6 @@ void PanelComponent::RegisterScriptApi(ApiInitializer & root) {
 //---------------------------------------------------------------------------------------
 
 bool PanelComponent::Initialize() {
-    //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
-//	m_Array.fill(PanelComponentEntry());
-    m_Array.ClearAllocation();
-
     m_RectTransform = GetManager()->GetComponent<RectTransformComponent>();
     if (!m_RectTransform) {
         AddLog(Error, "Failed to get RectTransformComponent instance!");
@@ -141,7 +142,6 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
                 Graphic::vec3(size[0], 0, 0),
                 Graphic::vec3(0, 0, 0),
             };
-            Graphic::NormalVector Normals;
             float w1 = 0.0f;
             float h1 = 0.0f;
             float w2 = 1.0f;
@@ -152,8 +152,28 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
                 Graphic::vec2(w2, h2),
                 Graphic::vec2(w1, h2),
             };
-            Graphic::IndexVector Index{ 0, 1, 2, 0, 2, 3, };
-            item.m_VAO.DelayInit(Vertexes, TexUV, Normals, Index);
+
+            {//FIXME: transition to new api is not tested!
+                auto &m = conf.m_BufferFrame->GetMemory();
+
+                using ichannels = Renderer::Configuration::VAO::InputChannels;
+
+                auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(q, item.vaoHandle, true);
+                vaob.BeginDataChange();
+
+                vaob.CreateChannel(ichannels::Vertex);
+                vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+
+                vaob.CreateChannel(ichannels::Texture0);
+                vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+
+                vaob.CreateChannel(ichannels::Index);
+                static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };
+                vaob.SetIndex(ichannels::Index, IndexTable);
+
+                vaob.EndDataChange();
+                vaob.UnBindVAO();
+            }
         }
 
         Renderer::Commands::CommandKey key{ rtentry->m_Z };
@@ -169,7 +189,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
         shb.Set<Uniform::Border>(item.m_Border, key);
 
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
-        Queue.PushCommand<Renderer::Commands::VAOBind>(key)->m_VAO = item.m_VAO.Handle();
+        Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.vaoHandle.deviceHandle);
 
         auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
         arg->m_NumIndices = 6;

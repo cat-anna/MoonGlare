@@ -53,8 +53,7 @@ struct PanelComponentEntry {
 	DEFINE_COMPONENT_PROPERTY_CAST(TileMode, math::vec2);
 	//TODO: texture property
 
-	Graphic::VAO m_VAO;
-//	TextureFile m_Texture;
+    Renderer::VAOResourceHandle vaoHandle{};
 
 	void Reset() {
 		m_TransformRevision = 0;
@@ -78,7 +77,7 @@ public:
 
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
-	RectTransformComponent *m_RectTransform;
+    RectTransformComponent *m_RectTransform = nullptr;
 	Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
 };
 
