@@ -13,6 +13,8 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 
+#include <Renderer/VirtualCamera.h>
+
 namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {

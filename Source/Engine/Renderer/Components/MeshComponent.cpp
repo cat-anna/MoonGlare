@@ -13,7 +13,6 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
-#include <Engine/Renderer/nGraphic.h>
 #include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
 #include <Renderer/Resources/ResourceManager.h>

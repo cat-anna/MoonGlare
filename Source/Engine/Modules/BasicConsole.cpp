@@ -19,6 +19,8 @@
 
 #include <libSpace/src/Container/EnumMapper.h>
 
+#include <Renderer/VirtualCamera.h>
+
 namespace MoonGlare::Modules {
 
 class BasicConsole::ConsoleLine {

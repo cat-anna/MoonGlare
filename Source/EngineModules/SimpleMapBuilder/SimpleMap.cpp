@@ -2,7 +2,7 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/Core/Engine.h>
-#include <Engine/DataClasses/Models/SimpleModelConstructor.h>
+#include <Engine/DataClasses/SimpleModelConstructor.h>
 
 #include "SimpleMap.h"
 #include "StaticModelLoader.h"

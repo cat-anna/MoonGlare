@@ -275,63 +275,6 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     }
 }
 
-DefferedSink::RObj DefferedSink::Begin(const math::mat4 & ModelMatrix, const Graphic::VAO & vao) {
-    namespace Commands = Renderer::Commands;
-    {
-        using Uniform = GeometryShaderDescriptor::Uniform;
-        m_GeometryShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
-        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-
-        m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
-    }
-
-    {
-        using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
-        m_ShadowShader.m_Queue = m_LightGeometryQueue;
-        m_ShadowShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
-        m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = vao.Handle();
-    }
-
-    return RObj{
-        this,
-    };
-}
-
-void DefferedSink::Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, unsigned BaseVertex, unsigned ElementsType) {
-    namespace Commands = Renderer::Commands;
-    using Uniform = GeometryShaderDescriptor::Uniform;
-    using Sampler = GeometryShaderDescriptor::Sampler;
-
-    if (material.deviceHandle) {
-        auto matptr = m_Renderer->GetResourceManager()->GetMaterialManager().GetMaterial(material);
-        if (matptr) {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(matptr->m_DiffuseMap);
-        }
-        else {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
-        }
-    }
-    else {
-     //if (mat) 
-     //	dev.Bind(mat->GetMaterial());
-     //else
-     //	dev.BindNullMaterial();
-        assert(false);
-        return;
-    }
-
-    auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = NumIndices;
-    garg->m_IndexValueType = ElementsType;
-    garg->m_BaseIndex = BaseIndex;
-    garg->m_BaseVertex = BaseVertex;
-
-    auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    *larg = *garg;
-}
-
 void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH) {
     //TODO
                         

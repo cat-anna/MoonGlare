@@ -11,7 +11,6 @@
 
 #include "Core/EntityManager.h"
 #include "Core/HandleTable.h"
-#include "Core/ResourceTable.h"
 
 #include "iConsole.h"
 
@@ -32,7 +31,6 @@ public:
 
 	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
 	Core::HandleTable* GetHandleTable() { return &m_HandleTable; }
-	Core::ResourceTable* GetResourceTable() { return &m_ResourceTable; }
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
     Core::RuntimeConfiguration* GetRuntimeConfiguration() { return runtimeConfiguration.get(); }
 
@@ -56,7 +54,6 @@ private:
     std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
 
 	Core::HandleTable m_HandleTable;
-	Core::ResourceTable m_ResourceTable;
 	Core::EntityManager m_EntityManager;
 
 	//not owning

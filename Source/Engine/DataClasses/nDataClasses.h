@@ -13,9 +13,6 @@
 #include "Resource.h"
 
 using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
-using ModelResPtr = DataClasses::ModelPtr;
-
-#include "Models/iModel.h"
 
 #include "StringTable.h"
 

@@ -119,7 +119,7 @@ bool Animation::GenerateFrames(math::vec2 FrameSize, math::vec2 FrameStripCount)
                 auto &f = frames[frame];
 
                 f.baseIndex = 0;
-                f.baseVertex = Vertexes.size();
+                f.baseVertex = (uint16_t)Vertexes.size();
                 f.indexElementType = GL_UNSIGNED_BYTE;
                 f.numIndices = 6;
 

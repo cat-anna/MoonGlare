@@ -5,7 +5,6 @@
 */
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "../nGraphic.h"
 #include "DereferredFrameBuffer.h"
 
 namespace Graphic {

@@ -45,18 +45,6 @@ struct DefferedSink {
     void Reset(const ::MoonGlare::Core::MoveConfig &config);
     void Initialize(Renderer::RendererFacade *Renderer);
 
-    struct RObj {
-        DefferedSink *m_sink = nullptr;
-
-        RObj& Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, 
-            unsigned BaseVertex, unsigned ElementsType) {
-            m_sink->Mesh(material, NumIndices, BaseIndex, BaseVertex, ElementsType);
-            return *this;
-        }
-    };
-
-    RObj Begin(const math::mat4 &ModelMatrix, const Graphic::VAO &vao);
-
     void Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH);
 
     void SubmitDirectionalLight(const Renderer::Light::LightBase &linfo);
@@ -94,7 +82,6 @@ protected:
     MoonGlare::Renderer::MeshResourceHandle coneMesh;
     MoonGlare::Renderer::MeshResourceHandle quadMesh;
 
-    void Mesh(Renderer::MaterialResourceHandle material, unsigned NumIndices, unsigned BaseIndex, unsigned BaseVertex, unsigned ElementsType);
     bool InitializeDirectionalQuad();
 };
 

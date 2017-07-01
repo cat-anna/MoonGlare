@@ -142,9 +142,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    //auto Device = 
-        new Graphic::cRenderDevice();
-
     if (!(new DataManager(m_World.get()))->Initialize(ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");
         throw "Unable to initialize data manager";
@@ -206,8 +203,6 @@ void iApplication::Finalize() {
 
     MoonGlare::Core::Engine::Instance()->Finalize();
     _finit_chk(DataManager, "Data Manager finalization failed");
-
-    Graphic::cRenderDevice::DeleteInstance();
 
     if (m_Renderer && !m_Renderer->Finalize()) 
         AddLogf(Error, "Unable to finalize renderer");

@@ -55,5 +55,3 @@ namespace MoonGlare::DataClasses {
 	class StringTable;
 
 } //namespace MoonGlare::DataClasses
-
-#include "Models\nfModels.h"

@@ -116,7 +116,6 @@ void Engine::EngineMain() {
 
     m_Running = true; 
 
-    Graphic::cRenderDevice &dev = *GetRenderDevice();
     auto Device = m_Renderer->GetDevice();
     auto Ctx = m_Renderer->GetContextImpl();
 
@@ -174,8 +173,6 @@ void Engine::EngineMain() {
         {
             auto frame = Device->PendingFrame();
             using Layer = Renderer::Frame::CommandLayers::LayerEnum;
-
-            dev.DispatchContextManipRequests();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

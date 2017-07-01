@@ -11,6 +11,8 @@
 #include <Core/Scripts/ScriptComponent.h>
 #include <Core/Scripts/ComponentEntryWrap.h>
 
+#include <Renderer/VirtualCamera.h>
+
 #include "../Margin.h"
 #include "../Enums.h"
 #include "../Rect.h"
