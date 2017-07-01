@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Commands/CommandQueue.h>
-
+#include "../../Commands/CommandQueue.h"
 #include "VAOBuilder.h"
 
 namespace MoonGlare::Renderer::Resources::Builder {

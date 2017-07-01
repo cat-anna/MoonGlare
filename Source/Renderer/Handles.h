@@ -61,4 +61,8 @@ using TextureResourceHandle = HandleTemplate<Device::TextureHandle, detail::Text
 
 using MaterialResourceHandle = HandleTemplate<Material>;
 
+static_assert(std::is_trivial_v<MeshResourceHandle>);               //TODO: check why pod is failing
+static_assert(sizeof(MeshResourceHandle) == 2 * sizeof(void*));
+
+
 } //namespace MoonGlare::Renderer

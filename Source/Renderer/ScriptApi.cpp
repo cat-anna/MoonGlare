@@ -130,12 +130,28 @@ struct ContextApi {
 
 //---------------------------------------------------------------------------------------
 
+struct HandleApi {
+    void Install(lua_State *lua) {
+        luabridge::getGlobalNamespace(lua)
+            .beginNamespace("api")
+                .beginClass<MeshResourceHandle>("MeshResourceHandle")
+                .endClass()
+            .endNamespace()
+            ;
+    }
+
+    RendererFacade* m_RendererFacade = nullptr;
+};
+
+//---------------------------------------------------------------------------------------
+
 struct ScriptApi::ScriptApiImpl {
     ScriptApiImpl(RendererFacade * facade) : 
             m_RendererFacade(facade),
             m_ShaderApi{ facade }, 
             m_TextureApi{ facade },
-            m_ContextApi{ facade }
+            m_ContextApi{ facade },
+            hadleApi{ facade }
     {
         RendererAssert(m_RendererFacade);
     }
@@ -144,6 +160,7 @@ struct ScriptApi::ScriptApiImpl {
         RendererAssert(lua);
 
         m_ContextApi.Install(lua);
+        hadleApi.Install(lua);
 #ifdef DEBUG_SCRIPTAPI
         InstallDebug(lua);
 #endif
@@ -165,6 +182,7 @@ protected:
     ShaderApi m_ShaderApi;
     TextureApi m_TextureApi;
     ContextApi m_ContextApi;
+    HandleApi hadleApi;
 };
 
 //---------------------------------------------------------------------------------------

@@ -34,8 +34,8 @@ public:
 
     using HandleType = MeshResourceHandle;
 
-    bool Allocate(Commands::CommandQueue *q, HandleType &hout);
-    void Release(Commands::CommandQueue *q, HandleType hin);
+    bool Allocate(HandleType &hout);
+    void Release(HandleType hin);
                                     
 #ifdef NEED_MESH_BUILDER
     Builder::MeshBuilder GetBuilder(Commands::CommandQueue &q, HandleType &h, 
@@ -44,7 +44,7 @@ public:
             if (!AllowAllocation)
                 RendererAssert(false);//TODO:
 
-            if(!Allocate(&q, h)) {
+            if(!Allocate(h)) {
                 RendererAssert(false);//TODO:
             }
         }

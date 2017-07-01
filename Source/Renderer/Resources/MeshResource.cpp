@@ -25,16 +25,16 @@ MeshManager::~MeshManager() {
 
 //---------------------------------------------------------------------------------------
 
-bool MeshManager::Allocate(Commands::CommandQueue *q, HandleType &hout) {
+bool MeshManager::Allocate(HandleType &hout) {
     if (IsHandleValid(hout))
         return true;
 
     Bitmap::Index_t index;
     if (allocationBitmap.Allocate(index)) {
-        if (/*queue &&*/ deviceHandle[index] == Device::InvalidTextureHandle) {
-            //auto arg = queue->PushCommand<Commands::TextureSingleAllocate>();
-            //arg->m_Out = &m_GLHandle[index];
-        }
+       //if (/*queue &&*/ deviceHandle[index] == Device::InvalidTextureHandle) {
+       //    //auto arg = queue->PushCommand<Commands::TextureSingleAllocate>();
+       //    //arg->m_Out = &m_GLHandle[index];
+       //}
         hout.index = static_cast<HandleType::Index_t>(index);
         hout.generation = generations[index];
         hout.deviceHandle = &deviceHandle[index];
@@ -46,7 +46,7 @@ bool MeshManager::Allocate(Commands::CommandQueue *q, HandleType &hout) {
     }
 }
 
-void MeshManager::Release(Commands::CommandQueue *q, HandleType hin) {
+void MeshManager::Release(HandleType hin) {
     if (!IsHandleValid(hin))
         return;
 
@@ -75,7 +75,7 @@ bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
         return true;
     }
 
-    if (!Allocate(nullptr, hout)) {
+    if (!Allocate(hout)) {
         return false;
     }
     loadedMeshes[uri] = hout;

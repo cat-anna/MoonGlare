@@ -50,7 +50,7 @@ void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
     .beginClass<MeshEntry>("cMeshEntry")
         .addProperty("Visible", &MeshEntry::IsVisible, &MeshEntry::SetVisible)
         .addProperty("MeshHandle", &MeshEntry::GetMeshHandle, &MeshEntry::SetMeshHandle)
-        .addFunction("SetModel", &MeshEntry::SetModel)
+      //  .addFunction("SetModel", &MeshEntry::SetModel)
     .endClass()
     ;
 }
@@ -110,30 +110,9 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
             continue;
         }
 
-        if (item.m_Flags.m_Map.m_MeshHandleChanged) {
-            item.m_Flags.m_Map.m_MeshHandleChanged = false;
-            auto rt = GetManager()->GetWorld()->GetResourceTable();
-            item.m_Model = rt->GetModel(item.m_MeshHandle);
-
-            item.m_Flags.m_Map.m_MeshValid = item.m_Model && item.m_Model->Initialize();
-            if (!item.m_Flags.m_Map.m_MeshValid) {
-                AddLogf(Error, "Failed to get mesh!");
-            }
-        }
-
         if (item.meshHandle.deviceHandle) {//dirty valid check
             conf.deferredSink->Mesh(tcentry->m_GlobalMatrix, item.meshHandle);
             continue;
-        }
-
-        if (!item.m_Flags.m_Map.m_MeshValid) {
-            continue;
-        }
-
-        auto &vao = item.m_Model->GetVAO();
-        auto r = conf.deferredSink->Begin(tcentry->m_GlobalMatrix, vao);
-        for (auto &mesh : item.m_Model->GetMeshVector()) {
-            r.Mesh(mesh.m_Material, mesh.NumIndices, mesh.BaseIndex, mesh.BaseVertex, vao.IndexValueType());
         }
     }
 

@@ -5,28 +5,23 @@
  *      Author: Paweu
  */
 
-#ifndef CMODELCONSTRUCTOR_H_
-#define CMODELCONSTRUCTOR_H_
+#pragma once
 
-namespace MoonGlare {
-namespace DataClasses {
-namespace Models {
+namespace MoonGlare::DataClasses::Models {
 
-class SimpleModelConstructor : public cRootClass {
-	SPACERTTI_DECLARE_CLASS_NOCREATOR(SimpleModelConstructor, cRootClass)
+class SimpleModelConstructor  {
 public:
 	SimpleModelConstructor();
-	virtual ~SimpleModelConstructor();
+	~SimpleModelConstructor();
 
 	typedef int MaterialID;
 	typedef int MeshID;
 
 	struct Result {
-		std::unique_ptr<iModel> m_Model;
-		std::unique_ptr<btBvhTriangleMeshShape> m_Shape;
+		//std::unique_ptr<iModel> m_Model;
 	};
 
-	bool Generate(bool GenerateShape, Result &out) const;
+	Renderer::MeshResourceHandle Generate(bool GenerateShape, std::unique_ptr<btBvhTriangleMeshShape> &shape) const;
 
 //	struct EditableModelFields {
 //		Graphic::VAO *VAO;
@@ -79,8 +74,4 @@ protected:
 	MaterialVector m_Materials;
 };
 
-} // namespace Models
-} // namespace DataClasses
-} // namespace MoonGlare 
-
-#endif // CMODELCONSTRUCTOR_H_ 
+} // namespace MoonGlare::DataClasses::Models

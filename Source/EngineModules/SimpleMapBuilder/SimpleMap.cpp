@@ -28,7 +28,6 @@ struct SimpleMapModule : public MoonGlare::Modules::ModuleInfo {
 			.addProperty("DoubleWalls", &StaticModelLoader::GetDoubleWalls, &StaticModelLoader::SetDoubleWalls)
 
 			.addFunction("Generate", &StaticModelLoader::Generate)
-			.addFunction("GetMeshHandle", &StaticModelLoader::GetMeshHandle)
 			.addFunction("GetBodyShape", &StaticModelLoader::GetBodyShape)
 		
 			.addFunction("VectorPointToCoords", &StaticModelLoader::VectorPointToCoords)

@@ -38,8 +38,6 @@ struct StaticModelLoader {
     using QuadArray3 = std::array<math::vec3, 4>;
     using QuadArray2 = std::array<math::vec2, 4>;
 
-    SimpleModelConstructor::Result m_Result;
-
     StaticModelLoader(const StaticModelLoader& oth) {
         m_UnitSize = oth.m_UnitSize;
         m_HalfUnitSize = oth.m_HalfUnitSize;
@@ -72,22 +70,8 @@ struct StaticModelLoader {
         m_TextureBase[3] = math::vec2(0, 0);
     }
 
-    Handle GetMeshHandle() {
-        if(!m_Result.m_Model) {
-            AddLogf(Error, "Model has not been generated!");
-            return Handle();
-        }
-
-        DataClasses::ModelPtr model(m_Result.m_Model.release());
-        auto rt = Core::GetEngine()->GetWorld()->GetResourceTable();
-
-        Handle hout;
-        rt->Allocate(std::move(model), hout);
-        return hout;
-    }
-
     btCollisionShape* GetBodyShape() {
-        return m_Result.m_Shape.release();
+        return m_Shape.release();
     }
 
     bool Load(xml_node node) {
@@ -98,10 +82,10 @@ struct StaticModelLoader {
         return true;
     }
 
-    bool Generate() {
+    Renderer::MeshResourceHandle Generate() {
         if (!Validate()) {
             AddLogf(Error, "Validation failed!");
-            return false;
+            return {};
         }
         try {
             auto Constructor = std::make_unique<SimpleModelConstructor>();
@@ -121,15 +105,11 @@ struct StaticModelLoader {
                     GenerateJunction(Constructor.get(), it.second, -ws, 2 * ws);
             }
 
-            if (!Constructor->Generate(true, m_Result)) {
-                AddLogf(Error, "Generation failed!");
-                return false;
-            }
+            return Constructor->Generate(true, m_Shape);
         }
         catch (...) {
-            return false;
         }
-        return true;
+        return {};
     }
 
     void AddJunction(const char *Name, float X, float Y, float Z, const char *Style) {
@@ -207,6 +187,7 @@ private:
     std::unordered_map<string, Material> m_Materials;
     std::unordered_map<string, SimpleModelConstructor::cMesh*> m_MeshMap;
     std::list<Corridor> m_CorridorList;
+    std::unique_ptr<btBvhTriangleMeshShape> m_Shape;
     bool m_DoubleWalls;
 
     void GenerateJunction(SimpleModelConstructor *constructor, Junction &it, float dY, float XZmult) {
