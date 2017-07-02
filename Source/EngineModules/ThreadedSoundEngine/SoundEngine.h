@@ -108,6 +108,8 @@ protected:
 	virtual iSound* GetMusic(const string &Name) override;
 
 	struct SilentExitException {};
+    struct SettingsProvider;
+    std::unique_ptr<SettingsProvider> settingsProvider;
 private:
 	void InternalInitialize();
 	void InternalFinalize();

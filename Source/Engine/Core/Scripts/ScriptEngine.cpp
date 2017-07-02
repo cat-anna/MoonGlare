@@ -7,6 +7,7 @@
 
 #include "Modules/StaticModules.h"
 #include "Modules/LuaRequire.h"
+#include "Modules/LuaSettings.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -164,6 +165,7 @@ bool ScriptEngine::ConstructLuaContext() {
         Modules::StaticModules::InitRandom(m_Lua, m_world);
 
         InstallModule<Modules::LuaRequireModule, iRequireModule>();
+        InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());

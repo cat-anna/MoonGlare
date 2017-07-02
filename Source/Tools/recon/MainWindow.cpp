@@ -17,7 +17,7 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
     m_Ui->setupUi(this);
 
     connect(m_Ui->pushButton, &QPushButton::clicked, [this]() {
-        auto txt = m_Ui->lineEdit->text();
+        auto txt = m_Ui->plainTextEdit->toPlainText();
         //m_Ui->lineEdit->setText("");
         Send(txt, true);
     });
@@ -37,7 +37,7 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
             QMenu menu;
             menu.addAction(item->text())->setEnabled(false);
             menu.addAction("Edit", [this, item]() {
-                m_Ui->lineEdit->setText(item->text());
+                m_Ui->plainTextEdit->setPlainText(item->text().replace("\\n", "\n"));
             });
             menu.addAction("Remove", [this, item]() {
                 RemoveAll(item->text());
@@ -73,8 +73,10 @@ void MainWindow::RemoveAll(const QString &text) {
 
 void MainWindow::Send(const QString &text, bool addToHistory) {
     if (addToHistory) {
-        RemoveAll(text);
-        m_Ui->listWidget->insertItem(0, text);
+        auto t = text;
+        t.replace("\n", "\\n");
+        RemoveAll(t);
+        m_Ui->listWidget->insertItem(0, t);
         Save();
     }
     std::string txt = text.toUtf8().data();

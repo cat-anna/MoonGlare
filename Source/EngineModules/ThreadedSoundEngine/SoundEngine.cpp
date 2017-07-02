@@ -7,6 +7,7 @@
 #include <MoonGlare.h>
 #include <Engine/ModulesManager.h>
 #include <Engine/iSoundEngine.h>
+#include <Core/Scripts/iLuaSettings.h>
 #include "SoundEngine.h"
 
 #include <Utils/LuaUtils.h>
@@ -35,6 +36,60 @@ struct SoundEngineSettings {
 	struct Enabled : public Settings_t::BaseSettingInfo<bool, Enabled> {
 		static Type default() { return true; }
 	};
+};
+
+struct SoundEngine::SettingsProvider : public Core::Scripts::Settings::iSettingsProvider {
+    SoundEngine *owner;
+
+    SettingsProvider(SoundEngine *Owner) :owner(Owner) {}
+
+    using ValueVariant = Core::Scripts::Settings::ValueVariant;
+    using Setting = Core::Scripts::Settings::Setting;
+    using InvalidSettingId = Core::Scripts::Settings::iSettingsProvider::InvalidSettingId;
+
+    std::unordered_map<std::string, Setting> GetSettingList() const override {
+        return {
+            { "Enabled", Setting{ true } },
+            { "Volume.Master", Setting{ true } },
+            { "Volume.Sound", Setting{ true } },
+            { "Volume.Music", Setting{ true } },
+        };
+    }
+    void Set(const std::string& id, ValueVariant value) override {
+        switch (Space::Utils::MakeHash32(id.data())) {
+        case "Enabled"_Hash32:
+            SoundEngineSettings::Enabled::set(std::get<bool>(value));
+            owner->ConfigurationChanged(SettingsGroup::Sound);
+            return;
+        case "Volume.Master"_Hash32:
+            SoundEngineSettings::Volume::Master::set(std::get<float>(value));
+            owner->ConfigurationChanged(SettingsGroup::Sound_Volume);
+            return;
+        case "Volume.Sound"_Hash32:
+            SoundEngineSettings::Volume::Sound::set(std::get<float>(value));
+            owner->ConfigurationChanged(SettingsGroup::Sound_Volume);
+            return;
+        case "Volume.Music"_Hash32:
+            SoundEngineSettings::Volume::Music::set(std::get<float>(value));
+            owner->ConfigurationChanged(SettingsGroup::Sound_Volume);
+            return;
+        };
+        throw InvalidSettingId{};
+    }
+    ValueVariant Get(const std::string& id) override {
+        switch (Space::Utils::MakeHash32(id.data())) {
+        case "Enabled"_Hash32:
+            return SoundEngineSettings::Enabled::get();
+        case "Volume.Master"_Hash32:
+            return SoundEngineSettings::Volume::Master::get();
+        case "Volume.Sound"_Hash32:
+            return SoundEngineSettings::Volume::Master::get();
+        case "Volume.Music"_Hash32:
+            return SoundEngineSettings::Volume::Master::get();
+        };
+
+        throw InvalidSettingId{};
+    }
 };
 
 struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo {
@@ -67,6 +122,7 @@ struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo {
 			return; // ignore if another class of sound engine is set
 		se->ConfigurationChanged(what);
 	}
+
 };
 DEFINE_MODULE(ThreadedSoundEngineModule);
 
@@ -162,6 +218,9 @@ bool SoundEngine::Initialize() {
 	if (m_ThreadRunning) return true;
 	m_ThreadRunning = true;
 	m_Thread = std::thread(&ThisClass::ThreadEntry, this);
+
+    settingsProvider = std::make_unique<SettingsProvider>(this);
+
 	return true;
 }
 
@@ -193,6 +252,9 @@ void SoundEngine::RegisterScriptApi(ApiInitializer &api) {
 #endif
 	.endClass()
 	;
+
+    auto smod = Core::GetScriptEngine()->QuerryModule<Core::Scripts::Settings::iLuaSettingsModule>();
+    smod->RegisterProvider("Sound", ((SoundEngine*)SoundEngine::Instance())->settingsProvider.get());
 }
 
 //----------------------------------------------------------------------------------

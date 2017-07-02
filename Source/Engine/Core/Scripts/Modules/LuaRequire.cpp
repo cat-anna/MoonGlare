@@ -5,8 +5,6 @@
 
 #include "LuaRequire.h"
 
-#include <fmt/format.h>
-
 namespace MoonGlare::Core::Scripts::Modules {
 
 using ResultStoreMode = LuaRequireModule::ResultStoreMode;

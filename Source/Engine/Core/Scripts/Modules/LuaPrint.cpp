@@ -46,7 +46,11 @@ int ClosureWrap(lua_State* lua) {
 static constexpr char InitPrintCode[] = R"===(
 
 local function dofmt(...)
-    return table.concat({...}, " ")
+    local out = { }
+    for i,v in ipairs({...}) do
+        out[i] = tostring(v)
+    end
+    return table.concat(out, " ")
 end
 
 function print(...) Log.Console(dofmt(...)) end
