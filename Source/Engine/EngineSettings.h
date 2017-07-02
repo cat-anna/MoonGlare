@@ -66,16 +66,6 @@ public:
         static inline float GetSceneLoadTimeOut() { return 0.2f; }
     };
 
-    struct DataManager {
-        static const size_t MaxLoadableModules = 16;
-    };
-
-    struct ModulesManager {
-        enum {
-            ModuleReservedSpace		= 16,
-        };
-    };
-
     void Load();
     void Save();
 
@@ -117,28 +107,6 @@ public:
         static bool try_assign(bool *t, bool u) { *t = u;  return true; }
         static bool try_assign(float *t, float u) { *t = u;  return true; }
         static bool try_assign(string *t, const char *u) { *t = u;  return true; }
-    };
-
-    template < class CONFIG > 
-    struct BufferedSettingManipulator : public SettingManipulatorBase {
-        using Config = CONFIG;
-        using Type = typename Config::Type;
-        BufferedSettingManipulator() { m_Backup = m_Config.get(); }
-        virtual bool get(int *value) const { return try_assign(value, m_Backup); }
-        virtual bool get(bool *value) const { return try_assign(value, m_Backup); }
-        virtual bool get(float *value) const { return try_assign(value, m_Backup); }
-        virtual bool get(string *value) const { return try_assign(value, m_Backup); }
-        virtual int get(lua_State *lua) override { Utils::Scripts::Lua_push(lua, m_Backup); return 1; }
-        virtual int set(lua_State *lua, int stackpos) override { m_Backup = Utils::Scripts::Lua_to<Config::Type>(lua, stackpos); return 0; }
-        virtual bool load(const xml_node node) override { m_Config.set(XML::Value::Read(node.text(), m_Config.get())); return true; }
-        virtual bool save(xml_node node) const override { XML::Value::Write(node.text(), m_Config.get()); return true; }
-        virtual void dump(std::ostream &out) const override { out << m_Config.get(); }
-        virtual void reset() override { m_Config.set(m_Backup); }
-        virtual void write() override { m_Config.set(m_Backup); }
-        virtual void default() override { m_Backup = m_Config.default();  }
-    private:
-        Type m_Backup;
-        Config m_Config;
     };
 
     template < class CONFIG > 

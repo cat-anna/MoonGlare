@@ -29,7 +29,7 @@ Manager::Manager(World *world) : cRootClass(), world(world) {
 
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 
-    m_Modules.reserve(StaticSettings::DataManager::MaxLoadableModules);
+    m_Modules.reserve(16);
     m_StringTables = std::make_unique<DataClasses::StringTable>(GetFileSystem());
 
     //TODO: DataManager is not threadsafe

@@ -28,24 +28,12 @@ namespace Insider {
 
 using namespace InsiderApi;
 
-struct InsiderSettings {
-	struct Port : public Settings_t::BaseSettingInfo<int, Port> {
-		static Type default() { return Configuration::Insider_Port; }
-	};
-	struct Enabled : public Settings_t::BaseSettingInfo<bool, Enabled> {
-		static Type default() { return true; }
-	};
-};
-
 struct InsiderModule : public MoonGlare::Modules::ModuleInfo {
 	InsiderModule(): BaseClass("InsiderModule", ModuleType::Debug) { 
-		Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<InsiderSettings::Enabled>>("Debug.Insider.Enabled", true);
-		Settings.RegisterDynamicSetting<Settings_t::BufferedSettingManipulator<InsiderSettings::Port>>("Debug.Insider.Port", true);
 	}
 
 	virtual bool Initialize() override {
-		if (InsiderSettings::Enabled::get())
-			m_Instance = std::make_unique<Insider>();
+		m_Instance = std::make_unique<Insider>();
 		return true;
 	}
 	virtual bool Finalize() override {
@@ -157,7 +145,7 @@ void Insider::ThreadEntry() {
 	buffer.Fill(0);
 
 	try {
-		m_socket.reset(new udp::socket(m_ioservice, udp::endpoint(udp::v4(), (unsigned short)InsiderSettings::Port::get())));
+		m_socket.reset(new udp::socket(m_ioservice, udp::endpoint(udp::v4(), (unsigned short)Configuration::Insider_Port)));
 		
 		AddLog(Insider, "Insider initialized");
 		while (m_Running) {

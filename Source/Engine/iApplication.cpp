@@ -247,23 +247,15 @@ void iApplication::Exit() {
     MoonGlare::Core::GetEngine()->Exit();
 }
 
+void iApplication::Restart() {
+    m_Flags.m_Restart = true;
+    AddLogf(Debug, "Starting restart");
+    MoonGlare::Core::GetEngine()->Exit();
+}
+
 const char* iApplication::ExeName() const {
     return "";
 }
-
-//----------------------------------------------------------------------------------
-
-void iApplication::RegisterScriptApi(ApiInitializer &root) {
-    root
-    .deriveClass<ThisClass, BaseClass>("ciApplication")
-        .addFunction("Exit", &iApplication::Exit)
-        .addProperty("DoRestart", &iApplication::DoRestart, &iApplication::SetRestart)
-    .endClass()
-    ;
-}
-
-RegisterApiDerivedClass(iApplication, &iApplication::RegisterScriptApi);
-RegisterApiInstance(iApplication, &iApplication::Instance, "Application");
 
 } //namespace Application
 } //namespace MoonGlare

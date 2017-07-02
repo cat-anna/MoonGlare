@@ -136,7 +136,7 @@ void Engine::EngineMain() {
     clock::time_point TitleRefresh = LastFrame;
 
     while (m_Running) {
-        auto CurrentTime = clock::now();
+        CurrentTime = clock::now();
         float FrameTimeDelta = tdiff(LastFrame, CurrentTime);
         if (FrameTimeDelta < m_FrameTimeSlice) 
             continue;

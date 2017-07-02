@@ -94,6 +94,8 @@ void RandomNamespace(lua_State *lua) {
 }
 
 void StaticModules::InitRandom(lua_State *lua, World *world) {
+    DebugLogf(Debug, "Initializing Random module");
+
     RandomNamespace(lua);
 }
 

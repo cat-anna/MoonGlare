@@ -364,6 +364,7 @@ void ScriptMathGlobal(lua_State *lua) {
 //-------------------------------------------------------------------------------------------------
 
 void StaticModules::InitMath(lua_State *lua, World *world) {
+    DebugLogf(Debug, "Initializing Math module");
     ScriptMathGlobal(lua);
     ScriptMathClasses(lua);
 }

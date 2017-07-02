@@ -68,6 +68,8 @@ end
 )===";
 
 void StaticModules::InitPrint(lua_State *lua, World *world) {
+    DebugLogf(Debug, "Initializing Print module");
+
     if (!world->GetScriptEngine()->ExecuteCode(std::string(InitPrintCode), "InitPrint")) {
         throw std::runtime_error("InitPrintModule execute code failed!");
     }

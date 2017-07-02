@@ -12,6 +12,9 @@ namespace MoonGlare::Core::Scripts::Modules {
 using ResultStoreMode = LuaRequireModule::ResultStoreMode;
 
 LuaRequireModule::LuaRequireModule(lua_State *lua, World *world) : world(world) {
+    DebugLogf(Debug, "Initializing Require module");
+
+
     MoonGlareAssert(world);
     MoonGlareAssert(lua);
 

@@ -20,7 +20,7 @@ static ModuleInfoList *_ModuleList = 0;
 static ModuleInfoList* ModuleList() {
 	if (!_ModuleList) {
 		_ModuleList = new ModuleInfoList();
-		_ModuleList->reserve(StaticSettings::ModulesManager::ModuleReservedSpace);
+		_ModuleList->reserve(16);
 	}
 	return _ModuleList;
 }

@@ -18,7 +18,6 @@ namespace Application {
 
 class iApplication : public cRootClass {
     SPACERTTI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
-    DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
     iApplication();
     virtual ~iApplication();
@@ -26,6 +25,7 @@ public:
     void LoadSettings();
     void SaveSettings();
     void SettingsChanged() { m_Flags.m_SettingsChanged = true; }
+    void Restart();
     x2c::Settings::EngineSettings_t* GetConfiguration() { return m_Configuration.get(); }
 
     virtual void Initialize();
@@ -43,8 +43,6 @@ public:
     bool IsActive() const { return m_Flags.m_Active; }
     bool DoRestart() const { return m_Flags.m_Restart; }
     void SetRestart(bool v) { m_Flags.m_Restart = v; }
-
-    static void RegisterScriptApi(ApiInitializer &api);
 protected:
     union Flags {
         struct {

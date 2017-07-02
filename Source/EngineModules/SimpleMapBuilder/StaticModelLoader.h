@@ -200,8 +200,8 @@ private:
         Vertex[2] += math::vec3(-1, 0,  1) * m_HalfUnitSize * m;
         Vertex[3] += math::vec3( 1, 0,  1) * m_HalfUnitSize * m;
 
-        for (auto &it : Vertex) 
-            it[1] += dY;
+        for (auto &v : Vertex) 
+            v[1] += dY;
         GetMesh(constructor, it.Style->Materials.Floor)->PushQuad(&Vertex[0], &m_FloorNormal[0], &m_TextureBase[0]);
 
         for (int i = 0; i < 4; ++i)
