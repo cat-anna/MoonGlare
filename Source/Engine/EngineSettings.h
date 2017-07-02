@@ -8,12 +8,9 @@
 
 enum class SettingsGroup {
     None,
-//Master groups
-    Sound,
-    Engine,
     Localization,
     Input,
-//Secondary groups
+    Sound,
     Sound_Volume,
 //Nongroups
     Debug,
@@ -87,74 +84,6 @@ public:
         static std::string _value;
     };
 
-    struct SettingManipulatorBase {
-        virtual ~SettingManipulatorBase() { }
-        virtual bool get(int *value) const { return false; }
-        virtual bool get(bool *value) const { return false; }
-        virtual bool get(float *value) const { return false; }
-        virtual bool get(string *value) const { return false; }
-        virtual int get(lua_State *lua) = 0;
-        virtual int set(lua_State *lua, int stackpos) = 0;
-        virtual bool save(xml_node node) const { return true; }
-        virtual bool load(const xml_node node) { return true; }
-        virtual void dump(std::ostream &out) const{ }
-        virtual void reset() = 0;
-        virtual void write() = 0;
-        virtual void default() = 0;
-    protected:
-        template<class T, class U> static bool try_assign(T *t, U u) { return false; }
-        static bool try_assign(int *t, int u) { *t = u;  return true; }
-        static bool try_assign(bool *t, bool u) { *t = u;  return true; }
-        static bool try_assign(float *t, float u) { *t = u;  return true; }
-        static bool try_assign(string *t, const char *u) { *t = u;  return true; }
-    };
-
-    template < class CONFIG > 
-    struct DirectSettingManipulator : public SettingManipulatorBase {
-        DirectSettingManipulator() { m_Original = m_Config.get(); }
-        using Config = typename CONFIG;
-        using Type = typename Config::Type;
-        virtual bool get(int *value) const { return try_assign(value, m_Config.get()); }
-        virtual bool get(bool *value) const { return try_assign(value, m_Config.get()); }
-        virtual bool get(float *value) const { return try_assign(value, m_Config.get()); }
-        virtual bool get(string *value) const { return try_assign(value, m_Config.get()); }
-        virtual int get(lua_State *lua) override { Utils::Scripts::Lua_push(lua, m_Config.get()); return 1; }
-        virtual int set(lua_State *lua, int stackpos) override { m_Config.set(Utils::Scripts::Lua_to<Config::Type>(lua, stackpos)); return 0; }
-        virtual void dump(std::ostream &out) const override { out << m_Config.get(); }
-        virtual bool load(const xml_node node) override { m_Config.set(XML::Value::Read(node.text(), m_Config.get())); return true; }
-        virtual bool save(xml_node node) const override { XML::Value::Write(node.text(), m_Config.get()); return true; }
-        virtual void reset() override { m_Config.set(m_Original); }
-        virtual void write() override { }
-        virtual void default() override { m_Config.set(m_Config.default()); }
-    private:
-        Type m_Original;
-        Config m_Config;
-    };
-
-    struct SettingsHandlerInfo {
-        const char *Name;
-        SettingsGroup NotifyGroup;
-        using Constructor_t = std::unique_ptr<SettingManipulatorBase>(*)();
-        Constructor_t Constructor;
-    };
-
-    void RegisterDynamicSetting(const SettingsHandlerInfo& handler, bool RequireRestart = false);
-    template<class T>
-    void RegisterDynamicSetting(const char *Name, bool RequireRestart = false, SettingsGroup Group = SettingsGroup::None) {
-        struct V {
-            static std::unique_ptr<SettingManipulatorBase> func() { return std::make_unique<T>(); }
-        };
-        SettingsHandlerInfo value{ Name, Group, &V::func };
-        RegisterDynamicSetting(value, RequireRestart);
-    }
-    SettingManipulatorBase* FindSetting(const char *name);
-    template <class T>
-    bool GetSetting(const char *name, T &t) {
-        auto *s = FindSetting(name);
-        if (!s) return false;
-        return s->get(&t);
-    }
-
     ~Settings_t();
     Settings_t();
 protected:
@@ -167,4 +96,3 @@ template<class D>
 std::string Settings_t::BaseSettingInfo<std::string, D>::_value = D::default();
 
 extern Settings_t Settings;
-using StaticSettings = Settings_t;

@@ -94,12 +94,6 @@ struct SoundEngine::SettingsProvider : public Core::Scripts::Settings::iSettings
 
 struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo {
 	ThreadedSoundEngineModule(): BaseClass("ThreadedSoundEngine", ModuleType::Core) { 
-#define Setting Settings_t::DirectSettingManipulator
-		Settings.RegisterDynamicSetting<Setting<SoundEngineSettings::Enabled>>("Sound.Enabled", false, SettingsGroup::Sound);
-		Settings.RegisterDynamicSetting<Setting<SoundEngineSettings::Volume::Master>>("Sound.Volume.Master", false, SettingsGroup::Sound_Volume);
-		Settings.RegisterDynamicSetting<Setting<SoundEngineSettings::Volume::Sound>>("Sound.Volume.Sound", false, SettingsGroup::Sound_Volume);
-		Settings.RegisterDynamicSetting<Setting<SoundEngineSettings::Volume::Music>>("Sound.Volume.Music", false, SettingsGroup::Sound_Volume);
-#undef Setting
 	}
 
 	virtual bool Initialize() override {

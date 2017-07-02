@@ -34,7 +34,7 @@ DataPathsTable::DataPathsTable() {
 
 void DataPathsTable::Translate(string& out, const string& in, DataPath origin) const {
     out.clear();
-    out.reserve(StaticSettings::FileSystem::PathReserve);
+    out.reserve(::Settings_t::FileSystem::PathReserve);
 
     if (origin != DataPath::Root) {
         out += '/';
@@ -50,7 +50,7 @@ void DataPathsTable::Translate(string& out, const string& in, DataPath origin) c
 
 void DataPathsTable::Translate(string& out, DataPath origin) const {
     out.clear();
-    out.reserve(StaticSettings::FileSystem::PathReserve);
+    out.reserve(::Settings_t::FileSystem::PathReserve);
 
     if (origin != DataPath::Root) {
         out += '/';

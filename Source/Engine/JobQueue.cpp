@@ -17,14 +17,16 @@ JobQueue::JobQueue():
 		m_RunningThreads(0) {
 	SetThisAsInstance();
 
-	AddLogf(Debug, "Executing job queue with %d thread", ::StaticSettings::JobQueueThreads);
+
+
+	AddLogf(Debug, "Executing job queue with %d thread", ::Settings_t::JobQueueThreads);
 
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	m_JobCounter.store(0);
 #endif
 	m_CanRun = true;
 	m_RunningThreads.store(0);
-	for (unsigned i = 0; i < ::StaticSettings::JobQueueThreads; ++i) {
+	for (unsigned i = 0; i < ::Settings_t::JobQueueThreads; ++i) {
 		std::thread([this, i]{ ThreadMain(i); }).detach();
 	}
 }

@@ -76,13 +76,13 @@ bool iBassChannel::FinalizeBass() {
 }
 
 bool iBassChannel::ApplyGlobalConfig() {
-	float value;
-	if (!Settings.GetSetting("Sound.Volume.Master", value)) {
-		return false;
-	}
-	DWORD master = static_cast<DWORD>(10000 * value);
-	BASS_SetConfig(BASS_CONFIG_GVOL_MUSIC, master);
-	BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, master);
+//	float value;
+//	if (!Settings.GetSetting("Sound.Volume.Master", value)) {
+//		return false;
+//	}
+//	DWORD master = static_cast<DWORD>(10000 * value);
+//	BASS_SetConfig(BASS_CONFIG_GVOL_MUSIC, master);
+//	BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, master);
 	return true;
 }
 
