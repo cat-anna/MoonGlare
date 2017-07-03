@@ -54,6 +54,11 @@ struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo, public
         return SoundEngineSettings_Write(node, settings, nullptr);
     }
 
+    void OnPostInit() override {
+        auto smod = Core::GetScriptEngine()->QuerryModule<Core::Scripts::Settings::iLuaSettingsModule>();
+        smod->RegisterProvider("Sound", this);
+    }
+
     static float xclamp(float f) {
         return math::clamp < float >(f, 0.0f, 1.0f);
     };
@@ -62,7 +67,7 @@ struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo, public
     using Setting = Core::Scripts::Settings::Setting;
     using InvalidSettingId = Core::Scripts::Settings::iSettingsProvider::InvalidSettingId;
 
-    std::unordered_map<std::string, Setting> GetSettingList() const override {
+    std::unordered_map<std::string, Setting> GetSettingList(std::string_view prefix) const override {
         using namespace Core::Scripts::Settings;
         return {
             { "Enabled", Setting{ ApplyMethod::Immediate } },
@@ -71,7 +76,7 @@ struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo, public
             { "Volume.Music", Setting{ ApplyMethod::Immediate } },
         };
     }
-    void Set(const std::string& id, ValueVariant value) override {
+    void Set(std::string_view prefix, std::string_view id, ValueVariant value) override {
         switch (Space::Utils::MakeHash32(id.data())) {
         case "Enabled"_Hash32:
             settings.enabled = std::get<bool>(value);
@@ -93,7 +98,7 @@ struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo, public
             throw InvalidSettingId{};
         };
     }
-    ValueVariant Get(const std::string& id) override {
+    ValueVariant Get(std::string_view prefix, std::string_view id) override {
         switch (Space::Utils::MakeHash32(id.data())) {
         case "Enabled"_Hash32:
             return settings.enabled;
@@ -237,9 +242,6 @@ void SoundEngine::RegisterScriptApi(ApiInitializer &api) {
 #endif
         .endClass()
         ;
-
-    auto smod = Core::GetScriptEngine()->QuerryModule<Core::Scripts::Settings::iLuaSettingsModule>();
-    smod->RegisterProvider("Sound", &detail::ThreadedSoundEngineModuleModule);
 }
 
 //----------------------------------------------------------------------------------

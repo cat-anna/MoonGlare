@@ -23,31 +23,31 @@ namespace RemoteConsoleModule {
 using namespace InsiderApi;
 
 struct RemoteConsoleModule : public MoonGlare::Modules::ModuleInfo {
-	RemoteConsoleModule(): BaseClass("RemoteConsole", ModuleType::Debug) { 
-		m_Settings.ResetToDefault();
-	}
+    RemoteConsoleModule() : BaseClass("RemoteConsole", ModuleType::Debug) {
+        m_Settings.ResetToDefault();
+    }
 
-	virtual bool Initialize() override {
-		if (m_Settings.m_Enabled)
-			m_Instance = std::make_unique<RemoteConsole>(m_Settings.m_Port);
-		return true;
-	}
-	virtual bool Finalize() override {
-		m_Instance.reset();
-		return true;
-	}
+    virtual bool Initialize() override {
+        if (m_Settings.m_Enabled)
+            m_Instance = std::make_unique<RemoteConsole>(m_Settings.m_Port);
+        return true;
+    }
+    virtual bool Finalize() override {
+        m_Instance.reset();
+        return true;
+    }
 
-	bool LoadSettings(const pugi::xml_node node) {
-		if (!m_Settings.Read(node))
-			return false;
-		return true;
-	}
-	bool SaveSettings(pugi::xml_node node) const {
-		return m_Settings.Write(node);
-	}
+    bool LoadSettings(const pugi::xml_node node) {
+        if (!m_Settings.Read(node))
+            return false;
+        return true;
+    }
+    bool SaveSettings(pugi::xml_node node) const {
+        return m_Settings.Write(node);
+    }
 private:
-	x2c::Module::RemoteConsole::RemoteConsoleSettings_t m_Settings;
-	std::unique_ptr<RemoteConsole> m_Instance;
+    x2c::Module::RemoteConsole::RemoteConsoleSettings_t m_Settings;
+    std::unique_ptr<RemoteConsole> m_Instance;
 };
 DEFINE_MODULE(RemoteConsoleModule);
 
@@ -55,67 +55,69 @@ DEFINE_MODULE(RemoteConsoleModule);
 
 SPACERTTI_IMPLEMENT_STATIC_CLASS(RemoteConsole);
 
-RemoteConsole::RemoteConsole(uint16_t Port): BaseClass() {
-	m_Running = true;
-	m_Port = Port;
-	m_Thread = std::thread(&RemoteConsole::ThreadEntry, this);
-	SetPerformanceCounterOwner(CodeExecutionCount);
+RemoteConsole::RemoteConsole(uint16_t Port) : BaseClass() {
+    m_Running = true;
+    m_Port = Port;
+    m_Thread = std::thread(&RemoteConsole::ThreadEntry, this);
+    SetPerformanceCounterOwner(CodeExecutionCount);
 }
 
 RemoteConsole::~RemoteConsole() {
-	m_Running = false;
-	m_ioservice.stop();
-	if(m_Thread.joinable())
-		m_Thread.join(); 
+    m_Running = false;
+    m_ioservice.stop();
+    if (m_Thread.joinable())
+        m_Thread.join();
 }
 
 void RemoteConsole::ThreadEntry() {
-	::OrbitLogger::ThreadInfo::SetName("RECO");
-	AddLog(Info, "RemoteConsole Thread started");
+    ::OrbitLogger::ThreadInfo::SetName("RECO");
+    AddLog(Info, "RemoteConsole Thread started");
 
-	char buffer[Configuration::MaxMessageSize];
-	auto *header = reinterpret_cast<MessageHeader*>(buffer);
+    char buffer[Configuration::MaxMessageSize];
+    auto *header = reinterpret_cast<MessageHeader*>(buffer);
 
-	try {
-		udp::socket sock(m_ioservice, udp::endpoint(udp::v4(), m_Port));
+    udp::socket sock(m_ioservice, udp::endpoint(udp::v4(), m_Port));
 
-		AddLog(Hint, "Remote console initialized");
-		while (m_Running) {
-			//auto len = 1
-			if (sock.available() <= 0) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
-				continue;
-			}
-			udp::endpoint remote_endpoint;
-			boost::system::error_code error;
-			sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint, 0, error);
-			//m_ioservice.run();
-			//m_ioservice.reset();
+    AddLog(Hint, "Remote console initialized");
+    while (m_Running) {
+        try {
+            //auto len = 1
+            if (sock.available() <= 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                continue;
+            }
+            udp::endpoint remote_endpoint;
+            boost::system::error_code error;
+            sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint, 0, error);
+            //m_ioservice.run();
+            //m_ioservice.reset();
 
-			if (error && error != boost::asio::error::message_size)
-				continue;
-				//throw boost::system::system_error(error);
+            if (error && error != boost::asio::error::message_size)
+                continue;
+                //throw boost::system::system_error(error);
 
-			switch (header->MessageType) {
-			case MessageTypes::ExecuteCode: {
-				AddLogf(Info, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-				MoonGlare::Core::GetScriptEngine()->ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
-			//	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode
-				//THROW_ASSERT(false, "Remote console does not use new lua api!");
-				//auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
-				//payload->ReturnCode = ret;
-				//header->MessageType = MessageTypes::ExecutionResult;
-				//header->PayloadSize = sizeof(PayLoad_ExecutionResult);
-				break;
-			}
-			default:
-				AddLogf(Info, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
-			}
-
-			IncrementPerformanceCounter(CodeExecutionCount);
-		}
-	}
-	catch (...) { }
+            switch (header->MessageType) {
+            case MessageTypes::ExecuteCode:
+            {
+                AddLogf(Info, "Recived lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
+                MoonGlare::Core::GetScriptEngine()->ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+            //	int ret = ::Core::Scripts::ScriptProxy::ExecuteCode
+                //THROW_ASSERT(false, "Remote console does not use new lua api!");
+                //auto *payload = reinterpret_cast<PayLoad_ExecutionResult*>(header->PayLoad);
+                //payload->ReturnCode = ret;
+                //header->MessageType = MessageTypes::ExecutionResult;
+                //header->PayloadSize = sizeof(PayLoad_ExecutionResult);
+                break;
+            }
+            default:
+                AddLogf(Info, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+            }
+            IncrementPerformanceCounter(CodeExecutionCount);
+        }
+        catch (...) {
+            __debugbreak();
+        }
+    }
 }
 
 } //namespace RemoteConsoleModule

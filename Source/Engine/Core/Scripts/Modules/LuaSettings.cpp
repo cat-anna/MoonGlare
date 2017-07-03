@@ -1,6 +1,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 
+#include "../../Engine.h"
 #include "../ScriptEngine.h"
 
 #include "LuaSettings.h"
@@ -11,10 +12,32 @@ struct LuaSettingsModule::SettingsObject {
     LuaSettingsModule *owner;
 
     ~SettingsObject() {
+        Cancel();
     }
 
-    void Apply() {}
-    void Cancel() {}
+    void Apply() {
+        if (settingsChangedMap.empty()) {
+            return;
+        }
+
+        for (auto &i : settingsChangedMap) {
+            try {
+                i.second.settingInfo->provider->Set(i.second.prefix, i.second.id, i.second.value);
+            }
+            catch (Settings::iSettingsProvider::InvalidSettingId) {
+                AddLog(Error, fmt::format("Apply failed(InvalidSettingId): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
+                Core::GetEngine()->Abort();
+                throw eLuaPanic(fmt::format("Invalid setting '{}'", i.second.id.data()));
+            }
+            catch (const std::bad_variant_access &eacces) {
+                AddLog(Error, fmt::format("Apply failed(bad_variant_access): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
+                Core::GetEngine()->Abort();
+                throw eLuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
+            }
+        }
+    }
+    void Cancel() {
+    }
 
     int lua_Get(lua_State* lua) {
         std::string_view rawid = luaL_checkstring(lua, -1);
@@ -26,13 +49,13 @@ struct LuaSettingsModule::SettingsObject {
             }
         }
 
-        std::string_view id;
-        auto *s = FindSetting(rawid, id);
+        std::string_view provider, id;
+        auto *s = FindSetting(rawid, provider, id);
         if (!s)
             throw eLuaPanic(fmt::format("Cannot find setting {}", id.data()));
 
         try {
-            auto vv = s->provider->Get(id.data());
+            auto vv = s->provider->Get(provider, id);
             return PushValueVariant(lua, vv);
         }
         catch (Settings::iSettingsProvider::InvalidSettingId) {
@@ -42,23 +65,28 @@ struct LuaSettingsModule::SettingsObject {
     int lua_Set(lua_State* lua) {
         std::string_view rawid = luaL_checkstring(lua, -2);
 
-        std::string_view id;
-        auto *s = FindSetting(rawid, id);
+        std::string_view provider, id;
+        auto *s = FindSetting(rawid, provider, id);
+        if (!s) {
+            return 0;
+        }
 
         auto vv = GetValueVariant(lua, -1);
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
-                s->provider->Set(id.data(), vv);
+                s->provider->Set(provider, id, vv);
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
+                __debugbreak();
                 throw eLuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
             }
             catch (const std::bad_variant_access &eacces) {
+                __debugbreak();
                 throw eLuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", rawid.data(), eacces.what()));
             }
         }
         else {
-            settingsChangedMap[std::string(rawid)] = ChangedSettingInfo{ s, std::string(rawid), vv };
+            settingsChangedMap[std::string(rawid)] = ChangedSettingInfo{ s, std::string(provider), std::string(id), vv };
         }
         return 0;
     }
@@ -71,7 +99,7 @@ struct LuaSettingsModule::SettingsObject {
 
         int cnt = 1;
         for (auto &provider : owner->providerMap) {
-            for (auto &setting : provider.second->GetSettingList()) {
+            for (auto &setting : provider.second->GetSettingList(provider.first)) {
                 auto fullid = fmt::format("{}.{}", provider.first, setting.first);
                 lua_pushinteger(lua, cnt);
                 lua_pushstring(lua, fullid.c_str());
@@ -85,14 +113,15 @@ struct LuaSettingsModule::SettingsObject {
     void Dump() {
         AddLog(Info, "Registered settings:");
         for (auto &provider : owner->providerMap) {
-            for (auto &setting : provider.second->GetSettingList()) {
-                AddLog(Info, fmt::format("{}.{} = {}", provider.first, setting.first, ValueVariantToString(provider.second->Get(setting.first))));
+            for (auto &setting : provider.second->GetSettingList(provider.first)) {
+                auto vv = provider.second->Get(provider.first, setting.first);
+                AddLog(Info, fmt::format("{}.{} = {}", provider.first, setting.first, ValueVariantToString(vv)));
             }
         }
         if (!settingsChangedMap.empty()) {
             AddLog(Info, "Pending changes:");
             for (auto &i : settingsChangedMap) {
-                AddLog(Info, fmt::format("{}.{}", i.first, ValueVariantToString(i.second.value)));
+                AddLog(Info, fmt::format("{} = {}", i.first, ValueVariantToString(i.second.value)));
             }
         }
     }
@@ -105,15 +134,16 @@ struct LuaSettingsModule::SettingsObject {
 
     struct ChangedSettingInfo {
         const SettingInfo *settingInfo;
+        std::string prefix;
         std::string id;
         Settings::ValueVariant value;
     };
     std::unordered_map<std::string, ChangedSettingInfo> settingsChangedMap;
     std::unordered_map<std::string, ChangedSettingInfo> settingsAppliedMap;
 
-    const SettingInfo* FindSetting(std::string_view rawid, std::string_view &id) {
+    const SettingInfo* FindSetting(std::string_view rawid, std::string_view &provider, std::string_view &id) {
         auto dot = rawid.find('.');
-        auto provider = rawid.substr(0, dot);
+        provider = rawid.substr(0, dot);
         id = rawid;
         id.remove_prefix(dot + 1);
 
@@ -129,11 +159,17 @@ struct LuaSettingsModule::SettingsObject {
             return nullptr;
         }
 
-        auto &item = settingCacheMap[srawid];
-        item.provider = pit->second;
-        item.settingData = item.provider->GetSettingList()[std::string(id)];
+        try {
+            auto data = pit->second->GetSettingList(provider)[id.data()];
 
-        return &item;
+            auto &item = settingCacheMap[srawid];
+            item.provider = pit->second;
+            item.settingData = data;
+            return &item;
+        }
+        catch (...) {
+            return nullptr;
+        }
     }
 
     static int PushValueVariant(lua_State *lua, Settings::ValueVariant v) {
@@ -215,7 +251,7 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
         .addCFunction("GetDefault", &SettingsObject::lua_GetDefault)
         .addCFunction("ListAll", &SettingsObject::lua_ListAll)
 
-        //.addFunction("Apply", &SettingsObject::Apply)
+        .addFunction("Apply", &SettingsObject::Apply)
         //.addFunction("Cancel", &SettingsObject::Cancel)
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("Dump", &SettingsObject::Dump)
@@ -227,4 +263,4 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
 
 
 } //namespace MoonGlare::Core::Scripts::Modules
-                             ;
+                             

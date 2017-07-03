@@ -17,9 +17,9 @@ class iSettingsProvider {
 public:
     struct InvalidSettingId {}; //may be thrown from Set or Get
 
-    virtual std::unordered_map<std::string, Setting> GetSettingList() const = 0;
-    virtual void Set(const std::string& id, ValueVariant value) = 0;
-    virtual ValueVariant Get(const std::string& id) = 0;
+    virtual std::unordered_map<std::string, Setting> GetSettingList(std::string_view prefix) const = 0;
+    virtual void Set(std::string_view prefix, std::string_view id, ValueVariant value) = 0;
+    virtual ValueVariant Get(std::string_view prefixx, std::string_view id) = 0;
 };
 
 class iLuaSettingsModule {

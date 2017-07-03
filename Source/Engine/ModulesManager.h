@@ -62,6 +62,8 @@ public:
 	virtual bool LoadSettings(const pugi::xml_node node);
 	virtual bool SaveSettings(pugi::xml_node node) const;
 
+    virtual void OnPostInit() {}
+
 	DefineDirectGetter(Name, const char *);
 	DefineDirectGetterConst(Type, ModuleType);
 protected:
@@ -89,6 +91,8 @@ public:
 
 	void BroadcastNotification(NotifyEvent event);
 	void BroadcastNotification(SettingsGroup what);
+    void OnPostInit();
+
 
 	void DumpModuleList(std::ostream &out);
 

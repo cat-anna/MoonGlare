@@ -52,6 +52,7 @@ bool iApplication::PreSystemInit() {
 }
 
 bool iApplication::PostSystemInit() {
+    GetModulesManager()->OnPostInit();
     Core::GetEngine()->PostSystemInit();
     m_Renderer->GetContext()->HookMouse();
     return true;

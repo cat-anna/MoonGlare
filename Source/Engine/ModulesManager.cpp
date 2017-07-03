@@ -18,18 +18,18 @@ using ModuleInfoList =  ModulesManager::ModuleInfoList;
 static ModuleInfoList *_ModuleList = 0;
 
 static ModuleInfoList* ModuleList() {
-	if (!_ModuleList) {
-		_ModuleList = new ModuleInfoList();
-		_ModuleList->reserve(16);
-	}
-	return _ModuleList;
+    if (!_ModuleList) {
+        _ModuleList = new ModuleInfoList();
+        _ModuleList->reserve(16);
+    }
+    return _ModuleList;
 }
 
 //----------------------------------------------------------------
 
 ModuleInfo::ModuleInfo(const char *Name, ModuleType Type):
-		m_Name(Name), m_Type(Type) {
-	ModuleList()->push_back(this);
+        m_Name(Name), m_Type(Type) {
+    ModuleList()->push_back(this);
 }
 ModuleInfo::~ModuleInfo() { }
 bool ModuleInfo::Initialize() { return true; }
@@ -45,7 +45,7 @@ bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 //----------------------------------------------------------------
 
 ModulesManager::ModulesManager() {
-	SetThisAsInstance();
+    SetThisAsInstance();
 }
 
 ModulesManager::~ModulesManager() {
@@ -54,112 +54,119 @@ ModulesManager::~ModulesManager() {
 //----------------------------------------------------------------
 
 bool ModulesManager::Initialize() {
-	auto list = ModuleList();
-	std::sort(list->begin(), list->end(), [](const ModuleInfo* l, const ModuleInfo *r) -> bool {
-		return (unsigned)l->GetType() < (unsigned)r->GetType();
-	});
-	for (auto it = list->rbegin(), jt = list->rend(); it != jt; ++it) {
-		auto *module = *it;
-		AddLogf(Debug, "Initializing module %s", module->GetName());
-		if (!module->Initialize()) {
-			AddLogf(Warning, "Unable to initialize module %s", module->GetName());
-		}
-	}
-	return true;
+    auto list = ModuleList();
+    std::sort(list->begin(), list->end(), [](const ModuleInfo* l, const ModuleInfo *r) -> bool {
+        return (unsigned)l->GetType() < (unsigned)r->GetType();
+    });
+    for (auto it = list->rbegin(), jt = list->rend(); it != jt; ++it) {
+        auto *module = *it;
+        AddLogf(Debug, "Initializing module %s", module->GetName());
+        if (!module->Initialize()) {
+            AddLogf(Warning, "Unable to initialize module %s", module->GetName());
+        }
+    }
+    return true;
 }
 
 bool ModulesManager::Finalize() {
-	auto list = GetModuleList();
-	for (auto it = list->begin(), jt = list->end(); it != jt; ++it) {
-		auto *module = *it;
-		AddLogf(Debug, "Finalizing module %s", module->GetName());
-		if (!module->Finalize()) {
-			AddLogf(Warning, "Unable to Finalize module %s", module->GetName());
-		}
-	}
-	return true;
+    auto list = GetModuleList();
+    for (auto it = list->begin(), jt = list->end(); it != jt; ++it) {
+        auto *module = *it;
+        AddLogf(Debug, "Finalizing module %s", module->GetName());
+        if (!module->Finalize()) {
+            AddLogf(Warning, "Unable to Finalize module %s", module->GetName());
+        }
+    }
+    return true;
 }
 
 //----------------------------------------------------------------
 
 bool ModulesManager::LoadSettings(const pugi::xml_node node) {
-	if (!node)
-		return true;
+    if (!node)
+        return true;
 
-	auto list = GetModuleList();
-	for (auto &it : *list) {
-		auto modnode = node.child(it->GetName());
-		if (!modnode)
-			continue;
-		it->LoadSettings(modnode);
-	}
+    auto list = GetModuleList();
+    for (auto &it : *list) {
+        auto modnode = node.child(it->GetName());
+        if (!modnode)
+            continue;
+        it->LoadSettings(modnode);
+    }
 
-	return true;
+    return true;
 }
 
 bool ModulesManager::SaveSettings(pugi::xml_node node) const {
-	if (!node)
-		return false;
+    if (!node)
+        return false;
 
-	auto list = GetModuleList();
-	for (auto &it : *list) {
-		auto modnode = node.append_child(it->GetName());
-		if (!it->SaveSettings(modnode))
-			node.remove_child(modnode);
-	}
+    auto list = GetModuleList();
+    for (auto &it : *list) {
+        auto modnode = node.append_child(it->GetName());
+        if (!it->SaveSettings(modnode))
+            node.remove_child(modnode);
+    }
 
-	return true;
+    return true;
 }
 
 void ModulesManager::BroadcastNotification(NotifyEvent event) {
-	AddLogf(Debug, "Broadcasting event: %d.", (unsigned)event);
-	if (!IsInitialized()) {
-		AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
-		return;
-	}
-	auto list = GetModuleList();
-	for (auto &it: *list) {
-		auto *module = it;
-		module->Notify(event);
-	}
+    AddLogf(Debug, "Broadcasting event: %d.", (unsigned)event);
+    if (!IsInitialized()) {
+        AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
+        return;
+    }
+    auto list = GetModuleList();
+    for (auto &it: *list) {
+        auto *module = it;
+        module->Notify(event);
+    }
 }
 
 void ModulesManager::BroadcastNotification(SettingsGroup what) {
-	AddLogf(Debug, "Broadcasting settings changed notification: %d.", (unsigned)what);
-	if (!IsInitialized()) {
-		AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
-		return;
-	}
-	auto list = GetModuleList();
-	for (auto &it: *list) {
-		auto *module = it;
-		module->Notify(what);
-	}
+    AddLogf(Debug, "Broadcasting settings changed notification: %d.", (unsigned)what);
+    if (!IsInitialized()) {
+        AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
+        return;
+    }
+    auto list = GetModuleList();
+    for (auto &it: *list) {
+        auto *module = it;
+        module->Notify(what);
+    }
+}
+
+void ModulesManager::OnPostInit() {
+    for (auto &it : *GetModuleList()) {
+        auto *module = it;
+        module->OnPostInit();
+    }
 }
 
 //----------------------------------------------------------------
 
 const ModuleInfoList * ModulesManager::GetModuleList() const {
-	return _ModuleList;
+    return _ModuleList;
 }
 
 #ifdef DEBUG_DUMP
 void ModulesManager::DumpModuleList(std::ostream &out) {
-	const char *pattern = "%30s %20s";
-	char linebuf[1024];
-	out << "Modules:\n";
-	sprintf(linebuf, pattern, "Module name", "Type");
-	out << linebuf << "\n";
+    const char *pattern = "%30s %20s";
+    char linebuf[1024];
+    out << "Modules:\n";
+    sprintf(linebuf, pattern, "Module name", "Type");
+    out << linebuf << "\n";
 
-	for (auto* module : *GetModuleList()) {
-		char typebuf[64];
+    for (auto* module : *GetModuleList()) {
+        char typebuf[64];
 
-		sprintf(typebuf, "%s", ModuleTypeEnum::ToString(module->GetType()).c_str());
+        sprintf(typebuf, "%s", ModuleTypeEnum::ToString(module->GetType()).c_str());
 
-		sprintf(linebuf, pattern, module->GetName(), typebuf);
-		out << linebuf << "\n";
-	}
-	out << "\n";
+        sprintf(linebuf, pattern, module->GetName(), typebuf);
+        out << linebuf << "\n";
+    }
+    out << "\n";
 }
 #endif
 
