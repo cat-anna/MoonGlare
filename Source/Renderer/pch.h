@@ -48,8 +48,6 @@ using wstring = std::wstring;//u16string
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-#include "Serialize.h"
-
 class cRootClass;
 
 #include "Config/Config.h"

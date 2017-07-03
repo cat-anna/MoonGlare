@@ -49,8 +49,6 @@
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-#include "Serialize.h"
-
 class cRootClass;
 
 #include <lua.hpp>

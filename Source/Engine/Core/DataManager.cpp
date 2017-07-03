@@ -75,14 +75,14 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 
 //------------------------------------------------------------------------------------------
 
-bool Manager::Initialize(Scripts::ScriptEngine *ScriptEngine) {
+bool Manager::Initialize(const std::vector<std::string> &modules, Scripts::ScriptEngine *ScriptEngine) {
     m_ScriptEngine = ScriptEngine;
     MoonGlareAssert(m_ScriptEngine);
     
     //GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
     //GetFileSystem()->LoadRegisteredContainers();
-
-    for (auto &it : Settings->Modules.List) {
+                                                         
+    for (auto &it : modules) {
         AddLogf(Debug, "Trying to load module '%s'", it.c_str());
         
         if (!GetFileSystem()->LoadContainer(it)) {

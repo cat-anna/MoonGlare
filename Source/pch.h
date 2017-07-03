@@ -55,8 +55,6 @@ using pugi::xml_document;
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-#include "Serialize.h"
-
 //scripts
 #include <lua.hpp>
 #if defined(_USE_API_GENERATOR_)

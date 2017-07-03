@@ -52,7 +52,6 @@ bool iApplication::PreSystemInit() {
 }
 
 bool iApplication::PostSystemInit() {
-    GetModulesManager()->OnPostInit();
     Core::GetEngine()->PostSystemInit();
     m_Renderer->GetContext()->HookMouse();
     return true;
@@ -73,7 +72,11 @@ void iApplication::LoadSettings() {
         return;
     }
 
-    m_Configuration->ReadFile(m_ConfigurationFileName.data());
+    pugi::xml_document doc;
+    doc.load_file(m_ConfigurationFileName.data());
+    auto root = doc.child("EngineSettings");
+    m_Configuration->Read(root);
+    GetModulesManager()->LoadSettings(root.child("Modules"));
 
     m_Flags.m_SettingsLoaded = true;
     m_Flags.m_SettingsChanged = false;
@@ -89,7 +92,11 @@ void iApplication::SaveSettings() {
         return;
     }
 
-    m_Configuration->WriteFile(m_ConfigurationFileName.data());
+    pugi::xml_document doc;
+    auto root = doc.append_child("EngineSettings");
+    m_Configuration->Write(root);
+    GetModulesManager()->SaveSettings(root.append_child("Modules"));
+    doc.save_file(m_ConfigurationFileName.data());
 
     m_Flags.m_SettingsChanged = false;
 }
@@ -102,6 +109,8 @@ using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
 void iApplication::Initialize() {
+    auto ModManager = new ModulesManager();
+
     LoadSettings();
 
     m_World = std::make_unique<World>();
@@ -115,15 +124,13 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     _init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
-    static x2c::Settings::AssetSettings_t as;
     m_AssetManager = std::make_unique<Asset::AssetManager>();
-    if (!m_AssetManager->Initialize(&as)) {
+    if (!m_AssetManager->Initialize(&m_Configuration->m_Assets)) {
         AddLogf(Error, "Unable to initialize asset manager!");
         throw "Unable to initialize asset manager!";
     }
 
-    auto ModManager = new ModulesManager();
-    ::Settings->Load();
+
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
         throw "Unable to initialize modules manager";
@@ -143,7 +150,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    if (!(new DataManager(m_World.get()))->Initialize(ScriptEngine::Instance())) {
+    if (!(new DataManager(m_World.get()))->Initialize(m_Configuration->m_Assets.m_ModuleList, ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");
         throw "Unable to initialize data manager";
     }
@@ -193,7 +200,7 @@ void iApplication::Finalize() {
 #define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::InstanceExists()) break; if(!WHAT::Instance()->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
 
-    Settings->Save();
+    SaveSettings();
 
     auto Console = dynamic_cast<Modules::BasicConsole*>(m_World->GetConsole());
     m_World->SetConsole(nullptr);
@@ -227,7 +234,6 @@ void iApplication::Finalize() {
     AddLog(Debug, "Application finalized");
 #undef _finit_chk
 #undef _del_chk
-    SaveSettings();
     m_Flags.m_Initialized = false;
 }
 

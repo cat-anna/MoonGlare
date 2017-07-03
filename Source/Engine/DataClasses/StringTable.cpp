@@ -47,7 +47,7 @@ void StringTable::InitInternalTable() {
 bool StringTable::Load(const string& TableName) {
     XMLFile TableFile, TableTranslationFile;
     char buf[256];
-    sprintf(buf, "file:///Tables/%s.%s.xml", TableName.c_str(), ::Settings->Localization.Code.c_str());
+    sprintf(buf, "file:///Tables/%s.%s.xml", TableName.c_str(), "en");
     if (!fileSystem->OpenXML(TableTranslationFile, buf)) {
         AddLogf(Warning, "Unable to load translation string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
     }
