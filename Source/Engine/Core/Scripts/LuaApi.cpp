@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 #include <cmath>
 
-#include <ModulesManager.h>
+#include <Modules/ModuleManager.h>
 #include <Core/Component/ComponentRegister.h>
 
 namespace luabridge {

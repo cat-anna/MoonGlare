@@ -6,7 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "ModulesManager.h"
+#include "ModuleManager.h"
+
+#include "iModule.h"
 
 namespace MoonGlare {
 namespace Modules {
@@ -27,8 +29,8 @@ static ModuleInfoList* ModuleList() {
 
 //----------------------------------------------------------------
 
-ModuleInfo::ModuleInfo(const char *Name, ModuleType Type):
-        m_Name(Name), m_Type(Type) {
+ModuleInfo::ModuleInfo(const char *Name):
+        m_Name(Name) {
     ModuleList()->push_back(this);
 }
 ModuleInfo::~ModuleInfo() { }
@@ -45,6 +47,10 @@ bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 
 ModulesManager::ModulesManager() {
     SetThisAsInstance();
+
+    ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
+        moduleList.emplace_back(item.SharedCreate());
+    });
 }
 
 ModulesManager::~ModulesManager() {
@@ -54,9 +60,6 @@ ModulesManager::~ModulesManager() {
 
 bool ModulesManager::Initialize() {
     auto list = ModuleList();
-    std::sort(list->begin(), list->end(), [](const ModuleInfo* l, const ModuleInfo *r) -> bool {
-        return (unsigned)l->GetType() < (unsigned)r->GetType();
-    });
     for (auto it = list->rbegin(), jt = list->rend(); it != jt; ++it) {
         auto *module = *it;
         AddLogf(Debug, "Initializing module %s", module->GetName());
@@ -81,9 +84,9 @@ bool ModulesManager::Finalize() {
 
 //----------------------------------------------------------------
 
-bool ModulesManager::LoadSettings(const pugi::xml_node node) {
+void ModulesManager::LoadSettings(const pugi::xml_node node) {
     if (!node)
-        return true;
+        return;
 
     auto list = GetModuleList();
     for (auto &it : *list) {
@@ -93,12 +96,19 @@ bool ModulesManager::LoadSettings(const pugi::xml_node node) {
         it->LoadSettings(modnode);
     }
 
-    return true;
+    for (auto &it : moduleList) {
+        auto mname = it->GetName();
+        if (!mname.empty()) {
+            auto modnode = node.child(mname.c_str());
+            if(modnode)
+                it->LoadSettings(modnode);
+        }
+    }
 }
 
-bool ModulesManager::SaveSettings(pugi::xml_node node) const {
+void ModulesManager::SaveSettings(pugi::xml_node node) const {
     if (!node)
-        return false;
+        return;
 
     auto list = GetModuleList();
     for (auto &it : *list) {
@@ -107,7 +117,13 @@ bool ModulesManager::SaveSettings(pugi::xml_node node) const {
             node.remove_child(modnode);
     }
 
-    return true;
+    for (auto &it : moduleList) {
+        auto mname = it->GetName();
+        if (!mname.empty()) {
+            auto modnode = node.append_child(mname.c_str());
+            it->SaveSettings(modnode);
+        }
+    }
 }
 
 void ModulesManager::BroadcastNotification(SettingsGroup what) {
@@ -123,6 +139,10 @@ void ModulesManager::OnPostInit() {
     for (auto &it : *GetModuleList()) {
         auto *module = it;
         module->OnPostInit();
+    }
+
+    for (auto &it : moduleList) {
+        it->OnPostInit();
     }
 }
 
@@ -143,9 +163,7 @@ void ModulesManager::DumpModuleList(std::ostream &out) {
     for (auto* module : *GetModuleList()) {
         char typebuf[64];
 
-        sprintf(typebuf, "%s", ModuleTypeEnum::ToString(module->GetType()).c_str());
-
-        sprintf(linebuf, pattern, module->GetName(), typebuf);
+        sprintf(linebuf, pattern, module->GetName(), "");
         out << linebuf << "\n";
     }
     out << "\n";

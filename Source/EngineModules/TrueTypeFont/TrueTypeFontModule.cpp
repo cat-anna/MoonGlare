@@ -7,7 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
 
@@ -19,7 +19,7 @@ FT_Library ftlib = nullptr;
 	 
 struct TrueTypeFontModule : public MoonGlare::Modules::ModuleInfo {
 	TrueTypeFontModule(): 
-			BaseClass("TrueTypeFont", ModuleType::Functional) { 
+			BaseClass("TrueTypeFont") { 
 	}
 
 	bool Initialize() override {

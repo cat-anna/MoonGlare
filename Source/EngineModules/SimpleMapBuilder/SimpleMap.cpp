@@ -1,6 +1,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/DataClasses/SimpleModelConstructor.h>
 
@@ -12,7 +12,7 @@ namespace Modules {
 namespace SimpleMap {
 
 struct SimpleMapModule : public MoonGlare::Modules::ModuleInfo {
-	SimpleMapModule(): BaseClass("SimpleMapBuilder", ModuleType::Functional) { 
+	SimpleMapModule(): BaseClass("SimpleMapBuilder") { 
 	}
 
 	virtual void RegisterModuleApi(ApiInitializer &api) override {

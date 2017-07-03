@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Shared/MoonGlareInsider/Api.h>
 
 #include <Utils/LuaUtils.h>
@@ -23,7 +23,7 @@ namespace RemoteConsoleModule {
 using namespace InsiderApi;
 
 struct RemoteConsoleModule : public MoonGlare::Modules::ModuleInfo {
-    RemoteConsoleModule() : BaseClass("RemoteConsole", ModuleType::Debug) {
+    RemoteConsoleModule() : BaseClass("RemoteConsole") {
         m_Settings.ResetToDefault();
     }
 

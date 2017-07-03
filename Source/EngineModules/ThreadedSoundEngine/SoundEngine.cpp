@@ -5,7 +5,7 @@
 */
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/iSoundEngine.h>
 #include <Core/Scripts/iLuaSettings.h>
 #include "SoundEngine.h"
@@ -18,7 +18,7 @@
 namespace MoonGlare::Modules::ThreadedSoundEngine {
 
 struct ThreadedSoundEngineModule : public MoonGlare::Modules::ModuleInfo, public Core::Scripts::Settings::iSettingsProvider {
-    ThreadedSoundEngineModule() : BaseClass("ThreadedSoundEngine", ModuleType::Core) {}
+    ThreadedSoundEngineModule() : BaseClass("ThreadedSoundEngine") {}
 
     SoundEngineSettings settings;
     SoundEngine *soundEngine;

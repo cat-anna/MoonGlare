@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/iApplication.h>
 
@@ -29,7 +29,7 @@ namespace Insider {
 using namespace InsiderApi;
 
 struct InsiderModule : public MoonGlare::Modules::ModuleInfo {
-	InsiderModule(): BaseClass("InsiderModule", ModuleType::Debug) { 
+	InsiderModule(): BaseClass("InsiderModule") { 
 	}
 
 	virtual bool Initialize() override {

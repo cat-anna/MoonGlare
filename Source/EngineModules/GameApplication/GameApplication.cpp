@@ -1,7 +1,7 @@
 
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/iApplication.h>
 #include "GameApplication.h"
 
@@ -9,7 +9,7 @@ namespace MoonGlare {
 namespace Application {
  
 struct AppModule : public MoonGlare::Modules::ModuleInfo {
-	AppModule(): BaseClass("GameApplication", ModuleType::Application) { }
+	AppModule(): BaseClass("GameApplication") { }
 };
 DEFINE_MODULE(AppModule);
 

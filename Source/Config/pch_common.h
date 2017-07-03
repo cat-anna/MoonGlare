@@ -192,3 +192,5 @@ using LockGuard = std::lock_guard < std::mutex >;
 #include <libSpace/src/Container/StaticVector.h>
 #include <libSpace/src/Container/StaticAllocationBuffer.h>
 #include <libSpace/src/Utils/FmtStream.h>
+#include <libSpace/src/Utils/DynamicClassRegister.h>
+

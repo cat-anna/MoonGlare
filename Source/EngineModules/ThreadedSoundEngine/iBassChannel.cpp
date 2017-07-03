@@ -6,7 +6,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 #include <Engine/iSoundEngine.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include "iBassChannel.h"
 #include "BassInternal.h"
 #include "BassMusic.h"
@@ -17,7 +17,7 @@ namespace Modules {
 namespace BassSound {
 
 struct BassSoundModule : public MoonGlare::Modules::ModuleInfo {
-	BassSoundModule(): BaseClass("BassSound", ModuleType::Functional) { }
+	BassSoundModule(): BaseClass("BassSound") { }
 
 	virtual bool Initialize() override {
 		if (!iBassChannel::InitializeBass()) 

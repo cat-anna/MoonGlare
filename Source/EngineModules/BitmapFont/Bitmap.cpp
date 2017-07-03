@@ -10,7 +10,7 @@
 #define NEED_MATERIAL_BUILDER
 
 #include <MoonGlare.h>
-#include <Engine/ModulesManager.h>
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
 
@@ -30,7 +30,7 @@ namespace Modules {
 namespace BitmapFont {
 	
 struct BitmapFontModule : public MoonGlare::Modules::ModuleInfo {
-	BitmapFontModule(): BaseClass("BitmapFont", ModuleType::Functional) { }
+	BitmapFontModule(): BaseClass("BitmapFont") { }
 	bool Initialize() override {
 		FontClassRegister::Register<BitmapFont> ClassReg;
 		return true;
