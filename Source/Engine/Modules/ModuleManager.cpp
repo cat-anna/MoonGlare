@@ -10,8 +10,7 @@
 
 #include "iModule.h"
 
-namespace MoonGlare {
-namespace Modules {
+namespace MoonGlare::Modules {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
 
@@ -49,7 +48,9 @@ ModulesManager::ModulesManager() {
     SetThisAsInstance();
 
     ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
-        moduleList.emplace_back(item.SharedCreate());
+        auto mod = item.SharedCreate();
+        DebugLog(Hint, fmt::format("Created module of class '{}'", typeid(*mod).name()));
+        moduleList.emplace_back(std::move(mod));
     });
 }
 
@@ -161,8 +162,6 @@ void ModulesManager::DumpModuleList(std::ostream &out) {
     out << linebuf << "\n";
 
     for (auto* module : *GetModuleList()) {
-        char typebuf[64];
-
         sprintf(linebuf, pattern, module->GetName(), "");
         out << linebuf << "\n";
     }
@@ -170,5 +169,4 @@ void ModulesManager::DumpModuleList(std::ostream &out) {
 }
 #endif
 
-} //namespace Modules 
-} //namespace MoonGlare 
+} //namespace MoonGlare::Modules
