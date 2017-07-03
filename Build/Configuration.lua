@@ -157,10 +157,10 @@ local function SetCommonConfig()
 		optimize "Speed"
 		warnings "Default"
 		runtime "Release"
+    
+	filter { }
 
     MoonGlare.X2CRule()
-
-	filter { }
 end
 
 function MoonGlare.GenerateSolution(Name)

@@ -46,7 +46,6 @@ struct SettingsImpl {
 
     SettingsImpl() {
         //Register<InternalSettings::Localization::Code>("Localization.Code", SettingsGroup::Localization);
-    
         GabiLib::Serialize::DefaultSetter def;
         Settings.Serialize(def);
     }

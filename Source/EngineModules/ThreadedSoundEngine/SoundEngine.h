@@ -14,12 +14,14 @@ namespace ThreadedSoundEngine {
 
 using namespace ::MoonGlare::Sound; 
 
+struct SoundEngineSettings;
+
 class SoundEngine : public iSoundEngine {
 	friend struct SoundEngineDebugApi;
 	SPACERTTI_DECLARE_STATIC_CLASS(SoundEngine, iSoundEngine);
 	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
- 	SoundEngine();
+ 	SoundEngine(SoundEngineSettings *Settings);
  	~SoundEngine();
 
 	virtual bool Initialize() override;
@@ -72,7 +74,7 @@ protected:
 
 		SoundInfo();
 		~SoundInfo();
-		bool Load();
+		bool Load(SoundEngineSettings *setting);
 		void Release();
 	};
 	using SoundDatabase = std::unordered_map<string, SoundInfo>;
@@ -108,8 +110,8 @@ protected:
 	virtual iSound* GetMusic(const string &Name) override;
 
 	struct SilentExitException {};
-    struct SettingsProvider;
-    std::unique_ptr<SettingsProvider> settingsProvider;
+
+    SoundEngineSettings *settings;
 private:
 	void InternalInitialize();
 	void InternalFinalize();

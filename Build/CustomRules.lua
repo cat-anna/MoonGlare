@@ -11,7 +11,7 @@ function MoonGlare.X2CRule()
 --	buildcommands 'xml2cpp --input "%{file.relpath}" --output "%{cfg.objdir}%{file.basename}.x2c.h"'
 --	buildoutputs '%{cfg.objdir}%{file.basename}.x2c.h"'
 
-	filter 'files:**/x2c/**.x2c'
+	filter 'files:**.x2c'
 		buildmessage 'Processing %{file.name} with xml2cpp'
 		buildcommands 'CALL xml2cpp --enable-all --input "%{file.relpath}" --output "%{cfg.objdir}%{file.basename}.x2c.h"'
 		buildoutputs '%{cfg.objdir}%{file.basename}.x2c.h'
