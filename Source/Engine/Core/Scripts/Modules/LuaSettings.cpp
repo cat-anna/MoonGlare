@@ -245,18 +245,18 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
 
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("api")
-        .beginClass<SettingsObject>("SettingsHandler")
-        .addCFunction("Get", &SettingsObject::lua_Get)
-        .addCFunction("Set", &SettingsObject::lua_Set)
-        .addCFunction("GetDefault", &SettingsObject::lua_GetDefault)
-        .addCFunction("ListAll", &SettingsObject::lua_ListAll)
+            .beginClass<SettingsObject>("SettingsHandler")
+                .addCFunction("Get", &SettingsObject::lua_Get)
+                .addCFunction("Set", &SettingsObject::lua_Set)
+                .addCFunction("GetDefault", &SettingsObject::lua_GetDefault)
+                .addCFunction("ListAll", &SettingsObject::lua_ListAll)
 
-        .addFunction("Apply", &SettingsObject::Apply)
-        //.addFunction("Cancel", &SettingsObject::Cancel)
+                .addFunction("Apply", &SettingsObject::Apply)
+                //.addFunction("Cancel", &SettingsObject::Cancel)
 #ifdef DEBUG_SCRIPTAPI
-        .addFunction("Dump", &SettingsObject::Dump)
+                .addFunction("Dump", &SettingsObject::Dump)
 #endif
-        .endClass()
+           .endClass()
         .endNamespace()
         ;
 }

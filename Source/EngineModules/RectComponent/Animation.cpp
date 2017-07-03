@@ -24,10 +24,7 @@
 namespace MoonGlare {
 namespace GUI {
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(Animation);
-
 Animation::Animation() :
-    BaseClass(),
     m_Speed(0.1f),
     m_StartFrame(0),
     m_EndFrame(0),

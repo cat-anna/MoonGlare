@@ -20,15 +20,6 @@ namespace MoonGlare::Modules {
 
 using namespace Debug::InsiderApi;
 
-class RemoteConsole : public cRootClass {
-    SPACERTTI_DECLARE_STATIC_CLASS(RemoteConsole, cRootClass);
-public:
-    RemoteConsole(uint16_t Port);
-    virtual ~RemoteConsole();
-private:
-
-};
-
 struct RemoteConsoleModule : public iModule {
     RemoteConsoleModule()  {
         m_Settings.ResetToDefault();
