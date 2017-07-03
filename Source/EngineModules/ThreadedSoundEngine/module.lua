@@ -6,5 +6,6 @@ define_module {
 	
 	Add = function()
 		files { "*", }
+		links { "bass", }
 	end,
 }
