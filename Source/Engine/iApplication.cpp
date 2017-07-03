@@ -52,6 +52,7 @@ bool iApplication::PreSystemInit() {
 }
 
 bool iApplication::PostSystemInit() {
+    GetModulesManager()->OnPostInit();
     Core::GetEngine()->PostSystemInit();
     m_Renderer->GetContext()->HookMouse();
     return true;
@@ -130,7 +131,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize asset manager!";
     }
 
-
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
         throw "Unable to initialize modules manager";
@@ -150,7 +150,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    if (!(new DataManager(m_World.get()))->Initialize(m_Configuration->m_Assets.m_ModuleList, ScriptEngine::Instance())) {
+    if (!(new DataManager(m_World.get()))->Initialize(m_Configuration->m_Assets.m_ModuleList, m_Configuration->m_Core.m_LangCode, ScriptEngine::Instance())) {
         AddLogf(Error, "Unable to initialize data manager!");
         throw "Unable to initialize data manager";
     }

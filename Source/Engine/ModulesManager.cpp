@@ -34,7 +34,6 @@ ModuleInfo::ModuleInfo(const char *Name, ModuleType Type):
 ModuleInfo::~ModuleInfo() { }
 bool ModuleInfo::Initialize() { return true; }
 bool ModuleInfo::Finalize() { return true; }
-void ModuleInfo::Notify(NotifyEvent event) { /* ignore */ }
 void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
 void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
@@ -111,25 +110,8 @@ bool ModulesManager::SaveSettings(pugi::xml_node node) const {
     return true;
 }
 
-void ModulesManager::BroadcastNotification(NotifyEvent event) {
-    AddLogf(Debug, "Broadcasting event: %d.", (unsigned)event);
-    if (!IsInitialized()) {
-        AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
-        return;
-    }
-    auto list = GetModuleList();
-    for (auto &it: *list) {
-        auto *module = it;
-        module->Notify(event);
-    }
-}
-
 void ModulesManager::BroadcastNotification(SettingsGroup what) {
     AddLogf(Debug, "Broadcasting settings changed notification: %d.", (unsigned)what);
-    if (!IsInitialized()) {
-        AddLog(Error, "Unable to broadcast notification. Modules are not initialized!");
-        return;
-    }
     auto list = GetModuleList();
     for (auto &it: *list) {
         auto *module = it;

@@ -33,6 +33,7 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::ModuleInfo, public Cor
         auto smod = Core::GetScriptEngine()->QuerryModule<Core::Scripts::Settings::iLuaSettingsModule>();
         smod->RegisterProvider("Renderer", this);
         smod->RegisterProvider("Display", this);
+        smod->RegisterProvider("Core", this);
         settings = GetApplication()->GetConfiguration();
     }
 
@@ -50,6 +51,10 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::ModuleInfo, public Cor
                 { "Height", Setting{ ApplyMethod::Restart } },
                 { "Monitor", Setting{ ApplyMethod::Restart } },
                 { "FullScreen", Setting{ ApplyMethod::Restart } },
+            };
+        case "Core"_Hash32:
+            return{
+                { "LangCode", Setting{ ApplyMethod::Restart } },
             };
         default:
             throw InvalidSettingId{};
@@ -81,6 +86,9 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::ModuleInfo, public Cor
         case "Display.FullScreen"_Hash32:
             settings->m_Display.m_FullScreen = std::get<bool>(value);
             break;
+        case "Core.LangCode"_Hash32:
+            settings->m_Core.m_LangCode = std::get<std::string>(value);
+            break;
         default:
             throw InvalidSettingId{};
         };
@@ -101,6 +109,8 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::ModuleInfo, public Cor
             return static_cast<int>(settings->m_Display.m_Monitor);
         case "Display.FullScreen"_Hash32 :
             return settings->m_Display.m_FullScreen;
+        case "Core.LangCode"_Hash32:
+            return settings->m_Core.m_LangCode;
         default:
             throw InvalidSettingId{};
         };

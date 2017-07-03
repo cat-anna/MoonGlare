@@ -41,16 +41,6 @@ struct InsiderModule : public MoonGlare::Modules::ModuleInfo {
 		return true;
 	}
 
-	virtual void Notify(MoonGlare::Modules::NotifyEvent event) override {
-		if (!m_Instance)
-			return;
-		InsiderMessageBuffer msg;
-		auto hdr = msg.GetHeader();
-		hdr->MessageType = MessageTypes::NotificationGlobalEvent;
-		auto ptr = msg.AllocAndZero<PayLoad_NotificationGlobalEvent>();
-		ptr->event = (u32)event;
-		m_Instance->SendInsiderMessage(msg);
-	}
 	virtual void Notify(SettingsGroup what) override {
 		if (!m_Instance)
 			return;

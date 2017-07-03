@@ -32,10 +32,6 @@ struct ModuleTypeEnumConverter : Space::EnumConverter < ModuleType, ModuleType::
 };
 using ModuleTypeEnum = Space::EnumConverterHolder < ModuleTypeEnumConverter > ;
 
-enum class NotifyEvent {
-	None,
-};
-
 struct ModuleDescription {
 	const wchar_t *Author;
 	const wchar_t *TextInfo;
@@ -51,7 +47,6 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	virtual void Notify(NotifyEvent event);
 	virtual void Notify(SettingsGroup what);
 
 	virtual const ModuleDescription* GetDescription() const;
@@ -89,23 +84,12 @@ public:
 	bool LoadSettings(const pugi::xml_node node);
 	bool SaveSettings(pugi::xml_node node) const;
 
-	void BroadcastNotification(NotifyEvent event);
 	void BroadcastNotification(SettingsGroup what);
     void OnPostInit();
-
 
 	void DumpModuleList(std::ostream &out);
 
 	const ModuleInfoList* GetModuleList() const;
-
-	enum class Flags {
-		Initialized,
-	};
-	DefineFlagGetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
-private: 
-	unsigned m_Flags;
-
-	DefineFlagSetter(m_Flags, FlagBit(Flags::Initialized), Initialized);
 };
 
 } //namespace Modules 

@@ -16,10 +16,12 @@ public:
 
     const string& GetString(const string& id, const string& Table);
 
+    void SetLangCode(std::string code);
     void Clear();
     //static void RegisterScriptApi(ApiInitializer &api);
 protected:
-    FileSystem::iFileSystem *fileSystem;
+    FileSystem::iFileSystem *fileSystem = nullptr;
+    std::string langCode;
     struct StringTableInfo {
         StringStringMap StringMap;
         XMLFile XMLTableTranslation;

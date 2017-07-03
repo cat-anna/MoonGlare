@@ -8,12 +8,8 @@ Structure.new {
     name = "CoreSettings",
     description = "",
     fields = {
-        {
-            description = "",
-            name = "EnableConsole",
-            type = bool,
-            default = "DEBUG_TRUE",
-        },
+        { name = "EnableConsole",  type = bool, default = "DEBUG_TRUE", description = "", },
+        { name = "LangCode",  type = Types.string, default = "", description = "", },
     },
 }
 

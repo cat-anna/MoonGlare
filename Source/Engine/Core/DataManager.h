@@ -87,7 +87,7 @@ public:
 
     DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
 
-    bool Initialize(const std::vector<std::string> &modules, Scripts::ScriptEngine *ScriptEngine);
+    bool Initialize(const std::vector<std::string> &modules, std::string langCode, Scripts::ScriptEngine *ScriptEngine);
     bool Finalize();
 
     void DumpAllResources(std::ostream &out);

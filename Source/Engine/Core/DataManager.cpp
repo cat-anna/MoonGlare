@@ -75,9 +75,11 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 
 //------------------------------------------------------------------------------------------
 
-bool Manager::Initialize(const std::vector<std::string> &modules, Scripts::ScriptEngine *ScriptEngine) {
+bool Manager::Initialize(const std::vector<std::string> &modules, std::string langCode, Scripts::ScriptEngine *ScriptEngine) {
     m_ScriptEngine = ScriptEngine;
     MoonGlareAssert(m_ScriptEngine);
+
+    m_StringTables->SetLangCode(std::move(langCode));
     
     //GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
     //GetFileSystem()->LoadRegisteredContainers();

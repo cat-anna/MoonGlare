@@ -23,16 +23,10 @@ StringTable::~StringTable() {
 
 //----------------------------------------------------------------------------------
 
-//void StringTable::RegisterScriptApi(ApiInitializer &api) {
-//	api
-//		.deriveClass<ThisClass, BaseClass>("cStringTable")
-//		.addFunction("Get", ThisClass::GetString)
-//#ifdef DEBUG_SCRIPTAPI
-//		.addFunction("Clear", ThisClass::Clear)
-//#endif
-//		.endClass()
-//		;
-//}
+void StringTable::SetLangCode(std::string code) {
+    langCode.swap(code);
+    Clear();
+}
 
 //------------------------------------------------------------------------------------------
 
@@ -47,9 +41,11 @@ void StringTable::InitInternalTable() {
 bool StringTable::Load(const string& TableName) {
     XMLFile TableFile, TableTranslationFile;
     char buf[256];
-    sprintf(buf, "file:///Tables/%s.%s.xml", TableName.c_str(), "en");
-    if (!fileSystem->OpenXML(TableTranslationFile, buf)) {
-        AddLogf(Warning, "Unable to load translation string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
+    if (!langCode.empty()) {
+        sprintf(buf, "file:///Tables/%s.%s.xml", TableName.c_str(), langCode.c_str());
+        if (!fileSystem->OpenXML(TableTranslationFile, buf)) {
+            AddLogf(Warning, "Unable to load translation string table xml file! Table: '%s' File: '%s'", TableName.c_str(), buf);
+        }
     }
     sprintf(buf, "file:///Tables/%s.xml", TableName.c_str());
     if (fileSystem->OpenXML(TableFile, buf)) {
