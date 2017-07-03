@@ -4,8 +4,13 @@ namespace MoonGlare::Core::Scripts::Settings {
 
 using ValueVariant = std::variant<nullptr_t, int, float, bool, std::string>;
 
+enum class ApplyMethod {
+    Immediate,
+    Restart,
+};
+
 struct Setting {
-    bool immediateApply;
+    ApplyMethod applyMethod = ApplyMethod::Restart;
 };
 
 class iSettingsProvider {

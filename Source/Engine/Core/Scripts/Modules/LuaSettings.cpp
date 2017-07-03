@@ -46,7 +46,7 @@ struct LuaSettingsModule::SettingsObject {
         auto *s = FindSetting(rawid, id);
 
         auto vv = GetValueVariant(lua, -1);
-        if (s->settingData.immediateApply) {
+        if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(id.data(), vv);
             }
@@ -63,9 +63,9 @@ struct LuaSettingsModule::SettingsObject {
         return 0;
     }
     int lua_GetDefault(lua_State* lua) {
+        //TODO
         return 0;
     }
-
     int lua_ListAll(lua_State* lua) {
         lua_newtable(lua);
 
@@ -82,6 +82,20 @@ struct LuaSettingsModule::SettingsObject {
 
         return 1;
     }
+    void Dump() {
+        AddLog(Info, "Registered settings:");
+        for (auto &provider : owner->providerMap) {
+            for (auto &setting : provider.second->GetSettingList()) {
+                AddLog(Info, fmt::format("{}.{} = {}", provider.first, setting.first, ValueVariantToString(provider.second->Get(setting.first))));
+            }
+        }
+        if (!settingsChangedMap.empty()) {
+            AddLog(Info, "Pending changes:");
+            for (auto &i : settingsChangedMap) {
+                AddLog(Info, fmt::format("{}.{}", i.first, ValueVariantToString(i.second.value)));
+            }
+        }
+    }
 
     struct SettingInfo {
         Settings::iSettingsProvider *provider;
@@ -95,6 +109,7 @@ struct LuaSettingsModule::SettingsObject {
         Settings::ValueVariant value;
     };
     std::unordered_map<std::string, ChangedSettingInfo> settingsChangedMap;
+    std::unordered_map<std::string, ChangedSettingInfo> settingsAppliedMap;
 
     const SettingInfo* FindSetting(std::string_view rawid, std::string_view &id) {
         auto dot = rawid.find('.');
@@ -130,6 +145,15 @@ struct LuaSettingsModule::SettingsObject {
                 luabridge::push(lua, value);
             }
             return 1;
+        }, v);
+    }
+
+    template<typename T> static std::string tostr(T t) { return std::to_string(t); }
+    static std::string tostr(nullptr_t) { return "[NULL]"; }
+    static std::string tostr(const std::string &str) { return fmt::format("\"{}\"", str); }
+    static std::string ValueVariantToString(Settings::ValueVariant v) {
+        return std::visit([](auto &value) -> std::string {
+            return tostr(value);
         }, v);
     }
 
@@ -193,6 +217,9 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
 
         //.addFunction("Apply", &SettingsObject::Apply)
         //.addFunction("Cancel", &SettingsObject::Cancel)
+#ifdef DEBUG_SCRIPTAPI
+        .addFunction("Dump", &SettingsObject::Dump)
+#endif
         .endClass()
         .endNamespace()
         ;
@@ -200,3 +227,4 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
 
 
 } //namespace MoonGlare::Core::Scripts::Modules
+                             ;
