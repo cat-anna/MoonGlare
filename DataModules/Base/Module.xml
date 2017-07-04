@@ -1,11 +1,4 @@
 <?xml version="1.0"?>
 <DataModule>
 	<ModuleName>MoonGlareInternal</ModuleName>
-	<Options>
-		<ConsoleFont>Arial</ConsoleFont>
-	</Options>
-	<dEvents>
-		<dOnLoadFinished Invoke="" />
-		<dOnInitializeGame Invoke="" />
-	</dEvents>
 </DataModule>
