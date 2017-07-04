@@ -90,7 +90,6 @@ public:
     bool Initialize(const std::vector<std::string> &modules, std::string langCode, Scripts::ScriptEngine *ScriptEngine);
     bool Finalize();
 
-    void DumpAllResources(std::ostream &out);
     /** Reprint all resources */
 #ifdef DEBUG_DUMP
     void NotifyResourcesChanged();

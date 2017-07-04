@@ -151,8 +151,6 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
     MoonGlareAssert(Container);
     MoonGlareAssert(m_ScriptEngine);
 
-    auto cid = Container->GetContainerID();
-
     struct RTCfg : public Scripts::iRequireRequest {
         RTCfg(RuntimeConfiguration*r):currconf(*r), rtconf(r){}
         RuntimeConfiguration currconf;
@@ -259,7 +257,7 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
         fonts.unlock();
         return GetDefaultFont();
     }
-    ptr->Set(font, Class);
+    ptr->Set(font);
     ptr->SetValid(true);
     NotifyResourcesChanged();
     return font;
@@ -271,50 +269,6 @@ const string& Manager::GetString(const string &Id, const string& TableName) {
 
 //------------------------------------------------------------------------------------------
 
-#ifdef DEBUG_DUMP
-
-struct Dumper {
-    template<class T>
-    static void DumpSharedRes(const T &t, const char* Name, std::ostream &out) {
-        out << Name << ":\n";
-        for (auto &it : t) {
-            char buf[128];
-            sprintf(buf, "%40s [class %-20s][Loaded: %s][use count: %d]\n",
-                    it.first.c_str(), "-",(it.second ? "T" : "F"), it.second.use_count());
-            out << buf;
-        }
-        out << "\n";
-    }
-    template<class T>
-    static void DumpRes(const T &t, const char* Name, std::ostream &out) {
-        out << Name << ":\n";
-        for (auto &it : t) {
-            char buf[128];
-            sprintf(buf, "%40s [class %-20s][Loaded: %s][use count: %d]\n",
-                    it.first.c_str(), it.second.GetClass().c_str(), (it.second.IsLoaded() ? "T" : "F"), it.second.UseCount());
-            out << buf;
-        }
-        out << "\n";
-    }
-    template<class T>
-    static void DumpPredef(const T &t, const char* Name, std::ostream &out) {
-        out << Name << ":\n";
-        for (auto &it : t) {
-            char buf[128];
-            sprintf(buf, "%40s [class %-20s]\n",
-                    it.first.c_str(), it.second.Class.c_str() );
-            out << buf;
-        }
-        out << "\n";
-    }
-};
-
-void Manager::DumpAllResources(std::ostream &out) {
-    Dumper::DumpRes<>(*m_Fonts.Lock(), "Fonts", out);
-}
-
-#endif
-
 void Manager::DumpResources() {
 #ifdef DEBUG_DUMP
     static std::mutex mutex;
@@ -323,8 +277,6 @@ void Manager::DumpResources() {
     static std::ofstream file (DEBUG_LOG_FOLDER "resources.txt");
     file << "Revision index: " << RevisionIndex << "\n\n";
     ++RevisionIndex;
-
-    GetDataMgr()->DumpAllResources(file);
     
     auto sm = world->GetScenesManager();
     if(sm)
