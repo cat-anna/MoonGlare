@@ -135,9 +135,10 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = m_TransformComponent->GetCurrentRevision();
 			auto *shape = ((btRigidBody&)body).getCollisionShape();
-			if (shape)
-				shape->setLocalScaling(tcentry->m_GlobalScale);
-			m_DynamicsWorld->updateSingleAabb(&body);
+            if (shape) {
+                shape->setLocalScaling(tcentry->m_GlobalScale);
+                m_DynamicsWorld->updateSingleAabb(&body);
+            }
 		} else {
 			if (tcentry) {
 				if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {

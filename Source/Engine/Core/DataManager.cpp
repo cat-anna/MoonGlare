@@ -169,46 +169,34 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
         }
     };
 
-    RTCfg require(world->GetRuntimeConfiguration());    
-    auto rmod = m_ScriptEngine->QuerryModule<Scripts::iRequireModule>();
-
-    auto func = [this, cid, Container, &require, rmod](StarVFS::ConstCString fname, StarVFS::FileFlags fflags, StarVFS::FileID CFid, StarVFS::FileID ParentCFid)->bool {
-        auto dot = strrchr(fname, '.');
-        if (!dot)
-            return true;
-        if (stricmp(dot, ".lua") != 0)
-            return true;
-
-        auto furi = StarVFS::MakeContainerFilePathURI(cid, fname);
-        StarVFS::ByteTable data;
-        if (!Container->GetFileData(CFid, data)) {
-            AddLogf(Error, "Failed to get file data! (%d:%s)", (int)CFid, furi.c_str());
-            return true;
-        }
-
-        AddLogf(Debug, "Loading script: %s (%u bytes)", furi.c_str(), data.size());
-
-        bool reg = false;
-        std::string_view vname = strrchr(fname, '/') + 1; //horrible!!
-        if (rmod && vname == "init.lua") {
-            reg = true;
-            rmod->RegisterRequire("RuntimeConfiguration", &require);
-        }
-
-        m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
-
-        if (rmod && reg)
-            rmod->RegisterRequire("RuntimeConfiguration", nullptr);
-
+    auto cfid = Container->FindFile("/init.lua");
+    StarVFS::ByteTable data;
+    if (!Container->GetFileData(cfid, data)) {
+        //FIXME: read error / file does exists -> is it detectable
+        AddLogf(Error, "Failed to read init script! (cid:%d;cfid:%d)", (int)Container->GetContainerID(), (int)cfid);
         return true;
-    };
-
-    if (!Container->EnumerateFiles(func)) {
-        AddLogf(Error, "Container %s does not support file enumeration!", Container->GetContainerURI().c_str());
-        return false;
     }
+    else {
+        RTCfg require(world->GetRuntimeConfiguration());
+        auto rmod = m_ScriptEngine->QuerryModule<Scripts::iRequireModule>();
+        rmod->RegisterRequire("RuntimeConfiguration", &require);
+        
+        bool result = false;
+        try {
+            std::string furi = fmt::format("cfid://{}/{}", (int)Container->GetContainerID(), "init.lua");
+            m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
+            result = true;
+        }
+        catch (const std::exception &e) {
+            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : %s", (int)Container->GetContainerID(), (int)cfid, e.what());
+        }
+        catch (...) {
+            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : unknown error", (int)Container->GetContainerID(), (int)cfid);
+        }
 
-    return true;
+        rmod->RegisterRequire("RuntimeConfiguration", nullptr);
+        return result;
+    }
 }
 
 //------------------------------------------------------------------------------------------
