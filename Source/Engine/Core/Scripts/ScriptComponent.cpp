@@ -395,12 +395,9 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
             return false;
         }
     } else {
-        if (!m_ScriptEngine->GetRegisteredScript(se.m_Script.c_str())) {
-            AddLogf(Error, "There is no such script: '%s'", se.m_Script.c_str());
-            GetHandleTable()->Release(this, ch);
-            //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-            return false;
-        }
+        AddLogf(Error, "There is no such script: '%s'", se.m_Script.c_str());
+        GetHandleTable()->Release(this, ch);
+        return false;
     }
 
     //stack: ScriptClass

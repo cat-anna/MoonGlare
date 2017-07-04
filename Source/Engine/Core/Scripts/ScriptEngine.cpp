@@ -43,8 +43,6 @@ ScriptEngine::~ScriptEngine() {
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
     root
     .deriveClass<ThisClass, BaseClass>("ScriptEngine")
-        .addCFunction("New", &ThisClass::RegisterNewScript)
-        .addCFunction("Modify", &ThisClass::RegisterModifyScript)
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("CollectGarbage", &ThisClass::CollectGarbage)
         .addFunction("PrintMemoryUsage", &ThisClass::PrintMemoryUsage)
@@ -72,11 +70,6 @@ bool ScriptEngine::Initialize() {
     auto lua = GetLua();
     luabridge::Stack<ScriptEngine*>::push(lua, this);
     lua_setglobal(lua, "Script");
-
-    lua_pushlightuserdata(lua, GetScriptTableIndex());  
-    lua_createtable(lua, 0, 0);
-    MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "ScriptTable", this, -1);
-    lua_settable(lua, LUA_REGISTRYINDEX);     
 
     AddLog(Debug, "Script construction finished");
     return true;
@@ -272,25 +265,6 @@ bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* Chunk
 
 //---------------------------------------------------------------------------------------
 
-bool ScriptEngine::GetRegisteredScript(const char *name) {
-    if (!name) {
-        return false;
-    }
-
-    auto lua = GetLua();
-    GetScriptTable(lua);
-    lua_getfield(lua, -1, name);
-
-    if (lua_isnil(lua, -1)) {
-        lua_pop(lua, 2);
-        return false;
-    } else {
-        lua_insert(lua, -2);
-        lua_pop(lua, 1);
-        return true;
-    }
-}
-
 bool ScriptEngine::GetComponentEntryMT(ComponentID cid) {
     auto lua = GetLua();
     GetComponentMTTable(lua);
@@ -305,93 +279,6 @@ bool ScriptEngine::GetComponentEntryMT(ComponentID cid) {
         lua_insert(lua, -2);
         lua_pop(lua, 1);
         return true;
-    }
-}
-
-//---------------------------------------------------------------------------------------
-
-int ScriptEngine::RegisterNewScript(lua_State * lua) {
-    const char *name = lua_tostring(lua, -1);
-    if (!name) {
-        AddLog(Error, "Attempt to register nameless script!");
-        return 0;
-    }
-
-    //Utils::Scripts::LuaStackOverflowAssert check(lua);
-    lua_pushlightuserdata(lua, (void*)this);
-    lua_gettable(lua, LUA_REGISTRYINDEX); 
-
-    lua_getfield(lua, -1, name);
-
-    if (!lua_isnil(lua, -1)) {
-#ifdef DEBUG
-        AddLogf(Info, "Modifying script: %s", name);
-
-        lua_getfield(lua, -1, "__index");
-
-        lua_insert(lua, -3);
-
-        lua_pop(lua, 2);
-
-        return 1;
-#else
-        AddLogf(Error, "Attempt to redefine script: %s", name);
-        lua_pop(lua, 2);
-        return 0;
-#endif
-    } else {
-        AddLogf(Info, "Registering script: %s", name);
-        lua_pop(lua, 1);                            // registry
-        lua_createtable(lua, 0, 0);                 // registry class
-        lua_pushvalue(lua, -1);                     // registry class class
-        lua_setfield(lua, -3, name);                // registry class 
-                                                    
-        lua_insert(lua, -2);                        // class registry
-        lua_pop(lua, 1);                            // class
-                                                    
-        lua_pushstring(lua, name);                  // class name
-        lua_setfield(lua, -2, "Name");              // class
-                                                    
-        lua_createtable(lua, 0, 0);                 // class mt
-        lua_pushvalue(lua, -1);                     // class mt mt
-        lua_setfield(lua, -3, "__index");           // class mt
-                                                    
-        lua_insert(lua, -2);                        // mt class
-                                                    
-        lua_pop(lua, 1);                            // mt
-                                                    
-        return 1;
-    }
-}
-
-int ScriptEngine::RegisterModifyScript(lua_State * lua) {
-    const char *name = lua_tostring(lua, -1);
-    if (!name) {
-        AddLog(Error, "Attempt to register nameless script!");
-        return 0;
-    }
-
-    //Utils::Scripts::LuaStackOverflowAssert check(lua);
-    lua_pushlightuserdata(lua, (void *)this);
-    lua_gettable(lua, LUA_REGISTRYINDEX);
-
-    lua_getfield(lua, -1, name);
-
-    if (lua_isnil(lua, -1)) {
-        AddLogf(Error, "Attempt to define script: %s", name);
-        lua_pop(lua, 2);
-        return 0;
-    } else {
-        //TODO: Test this!
-        AddLogf(Info, "Modifying script: %s", name);
-
-        lua_getfield(lua, -1, "__index");
-
-        lua_insert(lua, -3);
-
-        lua_pop(lua, 2);
-
-        return 1;
     }
 }
 

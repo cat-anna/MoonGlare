@@ -79,8 +79,6 @@ public:
     lua_State *GetLua() { return m_Lua; }
     std::recursive_mutex& GetLuaMutex() { return m_Mutex; }
 
-    //script will be on top of lua stack, on fail stack remain unchanged
-    bool GetRegisteredScript(const char* name);
     //result will be on top of lua stack, on fail stack remain unchanged
     bool GetComponentEntryMT(ComponentID cid);
     
@@ -96,21 +94,13 @@ public:
 
     static void RegisterScriptApi(ApiInitializer &api);
 protected:
-    int RegisterModifyScript(lua_State *lua);
-    int RegisterNewScript(lua_State *lua);
-
     bool ConstructLuaContext();
     bool ReleaseLuaContext();
 
-    void GetScriptTable(lua_State *lua) {
-        lua_pushlightuserdata(lua, GetScriptTableIndex());
-        lua_gettable(lua, LUA_REGISTRYINDEX);
-    }
     void GetComponentMTTable(lua_State *lua) {
         lua_pushlightuserdata(lua, GetComponentMTTableIndex());
         lua_gettable(lua, LUA_REGISTRYINDEX);
     }
-    void *GetScriptTableIndex() { return this; }
     void *GetComponentMTTableIndex() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + 1); }
 
     DeclarePerformanceCounter(ExecutionCount);
@@ -133,7 +123,6 @@ protected:
     int m_CurrentGCStep;
     int m_CurrentGCRiseCounter;
     float m_LastMemUsage;
-    void LoadAllScriptsImpl();
 };
 
 } //namespace Scripts

@@ -1,4 +1,4 @@
-local DebugObject = Script:New("DebugObject")
+local DebugObject = oo.Class()
 
 function DebugObject:OnCreate()
 	Settings.Input:RegisterKeySwitch("DebugHelp", "F1")
@@ -27,3 +27,5 @@ function DebugObject:Step(data)
 		ToggleRectTransformDebugDraw()
 	end
 end
+
+return DebugObject
