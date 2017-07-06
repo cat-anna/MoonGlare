@@ -2,6 +2,7 @@
 #include <nfMoonGlare.h>
 
 #include "../../Engine.h"
+#include <iApplication.h>
 #include "../ScriptEngine.h"
 
 #include "LuaSettings.h"
@@ -34,6 +35,13 @@ struct LuaSettingsModule::SettingsObject {
                 Core::GetEngine()->Abort();
                 throw eLuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
             }
+        }
+
+        GetApplication()->SettingsChanged();
+
+        if (needRestart) {
+            GetApplication()->SetRestart(true);
+            Core::GetEngine()->Exit();
         }
     }
     void Cancel() {
@@ -75,6 +83,7 @@ struct LuaSettingsModule::SettingsObject {
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(provider, id, vv);
+                GetApplication()->SettingsChanged();
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 __debugbreak();
@@ -87,6 +96,7 @@ struct LuaSettingsModule::SettingsObject {
         }
         else {
             settingsChangedMap[std::string(rawid)] = ChangedSettingInfo{ s, std::string(provider), std::string(id), vv };
+            needRestart = true;
         }
         return 0;
     }
@@ -140,6 +150,7 @@ struct LuaSettingsModule::SettingsObject {
     };
     std::unordered_map<std::string, ChangedSettingInfo> settingsChangedMap;
     std::unordered_map<std::string, ChangedSettingInfo> settingsAppliedMap;
+    bool needRestart = false;
 
     const SettingInfo* FindSetting(std::string_view rawid, std::string_view &provider, std::string_view &id) {
         auto dot = rawid.find('.');

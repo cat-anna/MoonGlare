@@ -86,7 +86,6 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::iModule, public Core::
         default:
             throw InvalidSettingId{};
         };
-        GetApplication()->SettingsChanged();
     }
     ValueVariant Get(std::string_view prefix, std::string_view id) override {
         auto full = fmt::format("{}.{}", std::string(prefix), std::string(id));
