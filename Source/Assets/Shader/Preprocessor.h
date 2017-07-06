@@ -66,6 +66,10 @@ private:
 		void pushs(const char *fmt, const std::string &str) {
 			pushf(fmt, str.c_str());
 		}
+        template<typename ...ARGS>
+        void push(const char *fmt, ARGS ... args) {
+            push_back(fmt::format(fmt, std::forward<ARGS>(args)...));
+        }
 	};
 	OutputBuffer m_OutputBuffer;
 

@@ -183,9 +183,18 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAll
         Lines[6] = "//preprocesed code begin\n";
         Lines[7] = m.CloneString(code.m_Code[index]);
 
+#ifdef DEBUG_DUMP
+        std::string sname = m_ShaderName[ifindex];
+        std::replace(sname.begin(), sname.end(), '/', '.');
+        std::ofstream out(std::string("logs/") + sname + "." + shadertype.m_Name);
+        for (auto &l : Lines)
+            out << l;
+        out.close();
+#endif
+
         arg->m_Valid[index] = true;
     }
-
+           
     return true;
 }
 
