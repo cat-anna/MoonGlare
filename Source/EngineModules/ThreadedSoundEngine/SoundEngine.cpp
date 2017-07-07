@@ -286,7 +286,6 @@ void SoundEngine::ScanForSoundsImpl() {
     FileSystem::DataSubPaths.Translate(path, DataPath::Music);
     ScanForSoundsScanPath(DataPath::Music, path, "");
 
-    GetDataMgr()->NotifyResourcesChanged();
     AddLog(Debug, "Finished looking for sounds");
 }
 

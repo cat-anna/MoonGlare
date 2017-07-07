@@ -114,10 +114,10 @@ MoonGlareFileSystem::StarVFSCallback::BeforeContainerMountResult MoonGlareFileSy
 
 void MoonGlareFileSystem::AfterContainerMounted(StarVFS::Containers::iContainer *ptr) {
     ASSERT(ptr);
-    AddLogf(Info, "Container has been mounted:  cid:%d uri:'%s'", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
+    AddLogf(Info, "Container has been mounted: cid:%d uri:'%s'", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
 
-    if (!GetDataMgr()->LoadModule(ptr)) {
-        AddLogf(Error, "Unable to import data  module");
+    if (!GetDataMgr()->InitModule(ptr)) {
+        AddLogf(Error, "Unable to import data module");
     }
     else {
         AddLogf(Hint, "Container '%s' has been mounted", ptr->GetContainerURI().c_str());
@@ -333,10 +333,6 @@ std::string MoonGlareFileSystem::GetFullFileName(StarVFS::FileID fid) const {
     ASSERT(m_StarVFS);
     return m_StarVFS->GetFullFilePath(fid);
 }
-
-//----------------------------------------------------------------------------------
-
-SPACERTTI_IMPLEMENT_STATIC_CLASS(DirectoryReader);
 
 } //namespace FileSystem 
 } //namespace MoonGlare 

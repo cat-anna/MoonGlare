@@ -63,8 +63,8 @@ bool BitmapFont::DoInitialize(){
 	}
 	auto root = meta->document_element();
 
-	FileSystem::DirectoryReader reader(DataPath::Fonts);
-	auto fpath = reader.translate(root.child("Bitmap").text().as_string(ERROR_STR));
+    std::string fpath;
+    GetFileSystem()->TranslateFileName(root.child("Bitmap").text().as_string(ERROR_STR), fpath, DataPath::Fonts);
 
 	//m_Material = 
 

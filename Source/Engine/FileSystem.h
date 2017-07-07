@@ -100,42 +100,6 @@ private:
     std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };
 
-#ifndef _BUILDING_ASSETS_
-
-class DirectoryReader : public cRootClass {
-    SPACERTTI_DECLARE_STATIC_CLASS(DirectoryReader, cRootClass);
-public:
-    DirectoryReader() : m_origin(DataPath::Root), m_OwnerName("") { }
-    DirectoryReader(DataPath origin, const std::string& OwnerName = "") : m_origin(origin), m_OwnerName(OwnerName) { }
-
-    bool OpenXML(XMLFile &xml, const std::string& FileName) {
-        if (m_OwnerName.empty())
-            return MoonGlareFileSystem::Instance()->OpenXML(xml, FileName, m_origin);
-        else
-            return MoonGlareFileSystem::Instance()->OpenXML(xml, (m_OwnerName + '/') += FileName, m_origin);
-    }
-    bool OpenFile(const std::string& FileName, StarVFS::ByteTable &FileData) {
-        if (m_OwnerName.empty())
-            return MoonGlareFileSystem::Instance()->OpenFile(FileName, m_origin, FileData);
-        else
-            return MoonGlareFileSystem::Instance()->OpenFile((m_OwnerName + '/') += FileName, m_origin, FileData);
-    }
-    
-    std::string translate(const std::string& FileName) {
-        std::string out;
-        if (m_OwnerName.empty())
-            MoonGlareFileSystem::Instance()->TranslateFileName(FileName, out, m_origin);
-        else
-            MoonGlareFileSystem::Instance()->TranslateFileName((m_OwnerName + '/') += FileName, out, m_origin);
-        return out;
-    }
-protected:
-    DataPath m_origin;
-    std::string m_OwnerName;
-};
-
-#endif
-
 struct DataPathsTable {
     const std::string& operator[](DataPath p) const { return m_table[(unsigned)p]; }
     DataPathsTable();

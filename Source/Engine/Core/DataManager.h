@@ -62,11 +62,6 @@ private:
     std::mutex m_Mutex;
 };
 
-struct DataModuleInfo {
-    StarVFS::Containers::iContainer *m_Container;
-    std::string m_ModuleName;
-};
-
 class Manager : public cRootClass {
     friend class DataManagerDebugScritpApi;
     SPACERTTI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
@@ -74,9 +69,7 @@ public:
     Manager(World *world);
     virtual ~Manager();
 
-    bool LoadModule(StarVFS::Containers::iContainer *Container);
-
-    void LoadGlobalData();
+    bool InitModule(StarVFS::Containers::iContainer *Container);
 
     DataClasses::FontPtr GetConsoleFont();
     DataClasses::FontPtr GetDefaultFont();
@@ -87,30 +80,17 @@ public:
 
     DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
 
-    bool Initialize(const std::vector<std::string> &modules, std::string langCode, Scripts::ScriptEngine *ScriptEngine);
-    bool Finalize();
-
-    /** Reprint all resources */
-#ifdef DEBUG_DUMP
-    void NotifyResourcesChanged();
-#else
-    void NotifyResourcesChanged() { }
-#endif
+    void SetLangCode(std::string langCode);
 
     static void RegisterScriptApi(::ApiInitializer &api);
 private:
-    Scripts::ScriptEngine *m_ScriptEngine;
-
-    std::vector<DataModuleInfo> m_Modules;
     World *world;
 
     SynchronizedResourceMap<FontResPtr> m_Fonts;
     
     std::unique_ptr<DataClasses::StringTable> m_StringTables;
 
-    void DumpResources();
-
-    bool LoadModuleScripts(StarVFS::Containers::iContainer *Container);
+    void LoadInitScript(StarVFS::Containers::iContainer *Container);
 };
 
 } // namespace Data

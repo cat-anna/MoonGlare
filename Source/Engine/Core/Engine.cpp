@@ -3,6 +3,7 @@
 
 #include "Engine.h"
 #include "iConsole.h"
+#include "iSoundEngine.h"
 
 #include <Renderer/Dereferred/DereferredPipeline.h>
 
@@ -71,7 +72,7 @@ void Engine::Finalize() {
 }
 
 void Engine::PostSystemInit() {
-    GetDataMgr()->LoadGlobalData();
+    GetSoundEngine()->ScanForSounds();
 
     if (!m_World->PostSystemInit()) {
         AddLogf(Error, "World PostSystemInit failed!");

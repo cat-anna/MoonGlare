@@ -11,7 +11,6 @@ public:
 	BasicResource(const string& Name);
 	static void RegisterScriptApi(ApiInitializer &api);
 
-	FileSystem::DirectoryReader GetDataReader() const { return FileSystem::DirectoryReader(GetResourceType(), GetName()); }
 	virtual DataPath GetResourceType() const;
 protected:
 	FileSystem::XMLFile OpenMetaData() const;

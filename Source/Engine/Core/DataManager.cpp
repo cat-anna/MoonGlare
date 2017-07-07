@@ -25,18 +25,13 @@ Manager::Manager(World *world) : cRootClass(), world(world) {
     ASSERT(world);
     SetThisAsInstance();
 
-    m_ScriptEngine = nullptr;
-
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 
-    m_Modules.reserve(16);
     m_StringTables = std::make_unique<DataClasses::StringTable>(GetFileSystem());
-
-    //TODO: DataManager is not threadsafe
 }
 
 Manager::~Manager() {
-    Finalize();
+    m_Fonts.clear();
     m_StringTables.reset();
 }
 
@@ -61,7 +56,6 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
     .deriveClass<ThisClass, BaseClass>("cDataManager")
         .addFunction("GetString", &ThisClass::GetString)
 #ifdef DEBUG_SCRIPTAPI
-        .addFunction("NotifyResourcesChanged", &ThisClass::NotifyResourcesChanged)
         .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<ThisClass, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
         .addFunction("ClearResources", Utils::Template::InstancedStaticCall<ThisClass, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
 #endif
@@ -75,81 +69,24 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 
 //------------------------------------------------------------------------------------------
 
-bool Manager::Initialize(const std::vector<std::string> &modules, std::string langCode, Scripts::ScriptEngine *ScriptEngine) {
-    m_ScriptEngine = ScriptEngine;
-    MoonGlareAssert(m_ScriptEngine);
-
+void Manager::SetLangCode(std::string langCode) {
     m_StringTables->SetLangCode(std::move(langCode));
-    
-    //GetFileSystem()->RegisterInternalContainer(&InternalFS::RootNode, FileSystem::InternalContainerImportPriority::Primary);
-    //GetFileSystem()->LoadRegisteredContainers();
-                                                         
-    for (auto &it : modules) {
-        AddLogf(Debug, "Trying to load module '%s'", it.c_str());
-        
-        if (!GetFileSystem()->LoadContainer(it)) {
-            AddLogf(Error, "Unable to open module: '%s'", it.c_str());
-        }
-    }
-
-#ifdef DEBUG_RESOURCEDUMP
-    {
-        std::ofstream file("logs/vfs.txt");
-        GetFileSystem()->DumpStructure(file);
-    }
-#endif
-
-    return true;
-}
-
-bool Manager::Finalize() {
-    m_Fonts.clear();
-    m_Modules.clear();
-
-    return true;
 }
 
 //------------------------------------------------------------------------------------------
 
-bool Manager::LoadModule(StarVFS::Containers::iContainer *Container) {
+bool Manager::InitModule(StarVFS::Containers::iContainer *Container) {
     MoonGlareAssert(Container);
-    MoonGlareAssert(m_ScriptEngine);
 
-    m_Modules.emplace_back();
-    auto &mod = m_Modules.back();
+    AddLogf(Hint, "Loaded container '%s'", Container->GetContainerURI().c_str());
 
-    mod.m_Container = Container;
-    mod.m_ModuleName = "?";
-
-    auto cfid = Container->FindFile("/" xmlstr_Module_xml);
-    StarVFS::ByteTable data;
-    if (!Container->GetFileData(cfid, data)) {
-        AddLogf(Error, "Failed to read module meta-data from container '%s'", Container->GetContainerURI().c_str());
-        return false;
-    }
-
-    pugi::xml_document doc;
-    if (!doc.load_string((char*)data.get())) {
-        AddLogf(Error, "Failed to parse container meta-data xml '%s'", Container->GetContainerURI().c_str());
-        return false;
-    }
-
-    auto rootnode = doc.document_element();
-    mod.m_ModuleName = rootnode.child("ModuleName").text().as_string("?");
-
-    AddLogf(Hint, "Loaded module '%s' from container '%s'", mod.m_ModuleName.c_str(), Container->GetContainerURI().c_str());
-
-    if (!LoadModuleScripts(Container)) {
-        AddLogf(Error, "Failed to load module scripts!");
-        return false;
-    }
+    LoadInitScript(Container);
 
     return true;
 }
 
-bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
+void Manager::LoadInitScript(StarVFS::Containers::iContainer *Container) {
     MoonGlareAssert(Container);
-    MoonGlareAssert(m_ScriptEngine);
 
     struct RTCfg : public Scripts::iRequireRequest {
         RTCfg(RuntimeConfiguration*r):currconf(*r), rtconf(r){}
@@ -172,18 +109,15 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
     if (!Container->GetFileData(cfid, data)) {
         //FIXME: read error / file does exists -> is it detectable
         AddLogf(Error, "Failed to read init script! (cid:%d;cfid:%d)", (int)Container->GetContainerID(), (int)cfid);
-        return true;
     }
     else {
         RTCfg require(world->GetRuntimeConfiguration());
-        auto rmod = m_ScriptEngine->QuerryModule<Scripts::iRequireModule>();
+        auto rmod = world->GetScriptEngine()->QuerryModule<Scripts::iRequireModule>();
         rmod->RegisterRequire("RuntimeConfiguration", &require);
         
-        bool result = false;
         try {
             std::string furi = fmt::format("cfid://{}/{}", (int)Container->GetContainerID(), "init.lua");
-            m_ScriptEngine->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
-            result = true;
+            world->GetScriptEngine()->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
         }
         catch (const std::exception &e) {
             AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : %s", (int)Container->GetContainerID(), (int)cfid, e.what());
@@ -193,16 +127,7 @@ bool Manager::LoadModuleScripts(StarVFS::Containers::iContainer *Container) {
         }
 
         rmod->RegisterRequire("RuntimeConfiguration", nullptr);
-        return result;
     }
-}
-
-//------------------------------------------------------------------------------------------
-
-void Manager::LoadGlobalData() {
-    GetSoundEngine()->ScanForSounds();
-
-    NotifyResourcesChanged();
 }
 
 //------------------------------------------------------------------------------------------
@@ -259,42 +184,12 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
     }
     ptr->Set(font);
     ptr->SetValid(true);
-    NotifyResourcesChanged();
     return font;
 }
 
 const string& Manager::GetString(const string &Id, const string& TableName) {
     return m_StringTables->GetString(Id, TableName);
 }
-
-//------------------------------------------------------------------------------------------
-
-void Manager::DumpResources() {
-#ifdef DEBUG_DUMP
-    static std::mutex mutex;
-    static unsigned RevisionIndex = 1;
-    LOCK_MUTEX(mutex);
-    static std::ofstream file (DEBUG_LOG_FOLDER "resources.txt");
-    file << "Revision index: " << RevisionIndex << "\n\n";
-    ++RevisionIndex;
-    
-    auto sm = world->GetScenesManager();
-    if(sm)
-        sm->DumpAllDescriptors(file);
-
-    GetSoundEngine()->DumpContent(file);
-    GetModulesManager()->DumpModuleList(file);
-
-    file << "\n\n--------------------------------------------------------------------------------------\n" 
-         << std::flush;
-#endif
-}
-
-#ifdef DEBUG_DUMP
-void Manager::NotifyResourcesChanged() {
-    GetEngine()->PushSynchronizedAction([this]{ DumpResources(); });
-} 
-#endif
 
 } // namespace Data
 } // namespace Core

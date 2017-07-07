@@ -150,10 +150,19 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize renderer";
     }
 
-    if (!(new DataManager(m_World.get()))->Initialize(m_Configuration->m_Assets.m_ModuleList, m_Configuration->m_Core.m_LangCode, ScriptEngine::Instance())) {
-        AddLogf(Error, "Unable to initialize data manager!");
-        throw "Unable to initialize data manager";
+    auto datamgr = new DataManager(m_World.get());
+    datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
+
+    for (auto &it : m_Configuration->m_Assets.m_ModuleList) {
+        AddLogf(Debug, "Trying to load container '%s'", it.c_str());
+        if (!GetFileSystem()->LoadContainer(it)) {
+            AddLogf(Error, "Unable to open container: '%s'", it.c_str());
+        }
     }
+
+#ifdef DEBUG_RESOURCEDUMP
+    GetFileSystem()->DumpStructure(std::ofstream("logs/vfs.txt"));
+#endif
 
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
@@ -210,7 +219,7 @@ void iApplication::Finalize() {
     }
 
     MoonGlare::Core::Engine::Instance()->Finalize();
-    _finit_chk(DataManager, "Data Manager finalization failed");
+    DataManager::DeleteInstance();
 
     if (m_Renderer && !m_Renderer->Finalize()) 
         AddLogf(Error, "Unable to finalize renderer");
