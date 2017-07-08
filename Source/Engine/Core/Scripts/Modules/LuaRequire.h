@@ -31,7 +31,8 @@ protected:
     ResultStoreMode HandleModuleRequest(lua_State *lua, std::string_view name);
     ResultStoreMode HandleScriptSearch(lua_State *lua, std::string_view name);
 
-    static int lua_Require(lua_State *lua);
+    static int lua_require(lua_State *lua);
+    static int lua_dofile(lua_State *lua);
 };
 
 } //namespace MoonGlare::Core::Script::Modules

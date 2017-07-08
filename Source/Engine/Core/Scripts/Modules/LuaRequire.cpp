@@ -7,29 +7,99 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
+
+static constexpr char InitRequireCode[] =
+R"===(
+         
+)==="
+#ifdef DEBUG_SCRIPTAPI
+R"===(
+
+local org_require = require
+
+require = {  }
+require.__index = require
+require.__call = function(self, ...) return org_require(...) end
+require.cache = require_cache
+require_cache = nil
+                                                            
+function require.reload(name)
+    local req = require(name)
+    local new = dofile(name)
+
+    if type(req.onBeforeReload) == "function" then
+        req:onBeforeReload()        
+    end
+
+    for k,v in pairs(new) do
+        req[k] = v
+    end
+
+    if type(req.onAfterReload) == "function" then
+        req:onAfterReload()        
+    end
+end
+
+function require.reloadAll()
+    local loaded = {}
+    for k,_ in pairs(require.cache) do
+        if k:sub(1,1) == "/" then
+            table.insert(loaded, k)
+        end
+    end
+    for _,v in ipairs(loaded) do
+        require.reload(v)        
+    end
+end
+
+setmetatable(require, require)
+         
+)==="
+#endif
+;
+
+//-------------------------------------------------------------------------------------------------
+
 using ResultStoreMode = LuaRequireModule::ResultStoreMode;
 
 LuaRequireModule::LuaRequireModule(lua_State *lua, World *world) : world(world) {
     DebugLogf(Debug, "Initializing Require module");
 
-
     MoonGlareAssert(world);
     MoonGlareAssert(lua);
 
-    lua_newtable(lua); //table for cache
+    lua_newtable(lua); //table for cache           // cache
 
-    lua_pushlightuserdata(lua, this);
-    lua_pushvalue(lua, -2);
-    lua_settable(lua, LUA_REGISTRYINDEX);					
+#ifdef DEBUG_SCRIPTAPI
+    lua_pushvalue(lua, -1);                        // cache cache
+    lua_setglobal(lua, "require_cache");           // cache 
+#endif
 
-    lua_pushlightuserdata(lua, this);
-    lua_insert(lua, -2);
-    lua_pushcclosure(lua, &lua_Require, 2);
-    lua_setglobal(lua, "require");
+    lua_pushlightuserdata(lua, this);              // cache this
+    lua_pushvalue(lua, -2);                        // cache this cache
+    lua_settable(lua, LUA_REGISTRYINDEX);          // cache
+                                               
+    lua_pushlightuserdata(lua, this);              // cache this 
+    lua_pushvalue(lua, -2);                        // cache this cache
+    lua_pushcclosure(lua, &lua_require, 2);        // cache closure
+    lua_setglobal(lua, "require");                 // cache 
+                                               
+    lua_pushlightuserdata(lua, this);              // cache this 
+    lua_pushvalue(lua, -2);                        // cache this cache
+    lua_pushcclosure(lua, &lua_dofile, 2);         // cache closure
+    lua_setglobal(lua, "dofile");                  // cache 
+
+
+    lua_pop(lua, 1);
+
+    if (!world->GetScriptEngine()->ExecuteCode(std::string(InitRequireCode), "InitRequireCode")) {
+        throw std::runtime_error("LuaRequireModule execute code failed!");
+    }
 }
 
-LuaRequireModule::~LuaRequireModule() {
-}
+LuaRequireModule::~LuaRequireModule() {}
+
+//-------------------------------------------------------------------------------------------------
 
 void LuaRequireModule::RegisterRequire(const std::string &name, iRequireRequest *iface) {
     if (!iface) {
@@ -43,7 +113,7 @@ void LuaRequireModule::RegisterRequire(const std::string &name, iRequireRequest 
 
 bool LuaRequireModule::Querry(lua_State *lua, std::string_view name) {
     lua_pushlightuserdata(lua, this);
-    lua_gettable(lua, LUA_REGISTRYINDEX);           
+    lua_gettable(lua, LUA_REGISTRYINDEX);
     int tableidx = lua_gettop(lua);
 
     bool succ = ProcessRequire(lua, name, tableidx);
@@ -53,7 +123,7 @@ bool LuaRequireModule::Querry(lua_State *lua, std::string_view name) {
 
     lua_pop(lua, 1);
     return succ;
-}         
+}
 
 bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int cachetableloc) {
 
@@ -78,14 +148,12 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
         switch (mode) {
         case ResultStoreMode::NoResult:
             continue;
-        case ResultStoreMode::Store: {
+        case ResultStoreMode::Store:
             lua_pushvalue(lua, -1);
             lua_setfield(lua, cachetableloc, name.data());
-        }
-        //[[fallthrough]]
+            return true;
         case ResultStoreMode::DontStore:
             return true;
-
         default:
             LogInvalidEnum(mode);
             break;
@@ -129,19 +197,44 @@ ResultStoreMode LuaRequireModule::HandleScriptSearch(lua_State *lua, std::string
 ResultStoreMode LuaRequireModule::HandleModuleRequest(lua_State *lua, std::string_view name) {
     auto it = scriptRequireMap.find(name.data());
     if (it != scriptRequireMap.end()) {
-        if(it->second->OnRequire(lua, name))
+        if (it->second->OnRequire(lua, name))
             return ResultStoreMode::DontStore;
     }
     return ResultStoreMode::NoResult;
 }
 
-int LuaRequireModule::lua_Require(lua_State *lua) {
+//-------------------------------------------------------------------------------------------------
+
+int LuaRequireModule::lua_require(lua_State *lua) {
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
     LuaRequireModule *This = reinterpret_cast<LuaRequireModule*>(voidThis);
 
     std::string_view name = luaL_checkstring(lua, -1);
     if (This->ProcessRequire(lua, name, lua_upvalueindex(2)))
         return 1;
+
+    throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
+}
+
+int LuaRequireModule::lua_dofile(lua_State *lua) {
+    void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
+    LuaRequireModule *This = reinterpret_cast<LuaRequireModule*>(voidThis);
+
+    std::string_view name = luaL_checkstring(lua, -1);
+
+    if (name[0] != '/') {
+        throw eLuaPanic(fmt::format("Invalid file path '{}'", name.data()));
+    }
+
+    std::string uri = "file://" + std::string(name) + ".lua";
+    switch (This->TryLoadFileScript(lua, uri)) {
+    case ResultStoreMode::Store:
+    case ResultStoreMode::DontStore:
+        return 1;
+    default:
+    case ResultStoreMode::NoResult:
+        throw eLuaPanic(fmt::format("Cannot load file '{}'", name.data()));
+    }
 
     throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }

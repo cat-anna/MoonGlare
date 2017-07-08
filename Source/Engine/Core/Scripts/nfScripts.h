@@ -5,24 +5,19 @@
  *      Author: Paweu
  */
 
-#ifndef NSCRIPTS_H_
-#define NSCRIPTS_H_
+#pragma once
 
-namespace MoonGlare {
-namespace Core {
-namespace Scripts {
+namespace MoonGlare::Core::Scripts {
 
-	class eLuaPanic : public std::runtime_error {
-	public:
-		eLuaPanic(const string &msg) : std::runtime_error(msg) {}
-	};
+class eLuaPanic : public std::runtime_error {
+public:
+    eLuaPanic(const string &msg) : std::runtime_error(msg) {
+        __debugbreak();
+    }
+};
 
-	class ScriptEngine;
+class ScriptEngine;
 
-} //namespace Scripts
-} //namespace Core
-} //namespace MoonGlare
+} //namespace MoonGlare::Core::Scripts
 
 #include "LuaApi.h"
-
-#endif // NSCRIPTS_H_

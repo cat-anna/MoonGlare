@@ -89,6 +89,7 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #pragma warning ( pop )
 
