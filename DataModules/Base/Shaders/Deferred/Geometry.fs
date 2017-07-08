@@ -10,9 +10,8 @@ layout(location = 3) out vec3 NormalOut;
 
 void main() {
     vec4 color = texture2D(Texture0, VertexUV0);
-    if(color.a < Material.AlphaThreshold) {
-        color = vec4(0.0);
-    //	discard;
+    if(color.a < 0.1) { //Material.AlphaThreshold
+    	discard;
     }
     DiffuseOut	= color.xyz * Material.BackColor;
     WorldPosOut	= VertexWorldPos;
