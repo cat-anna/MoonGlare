@@ -12,7 +12,8 @@ class MaterialBuilder final {
 public:
 	void SetDiffuseColor(const emath::fvec4 &col) { m_MaterialPtr->m_DiffuseColor = col; }
 	bool SetDiffuseMap(const std::string &URI, bool needsize = false);
-	bool SetDiffuseMap(const std::string &URI, Configuration::TextureLoad loadcfg);
+    bool SetDiffuseMap(const std::string &URI, Configuration::TextureLoad loadcfg);
+    bool SetDiffuseMap();
 
 	//template<typename T>
 	//void SetDiffuseMapPixels(Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,

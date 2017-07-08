@@ -12,7 +12,13 @@
 namespace MoonGlare::Renderer::Resources::Loader {
 
 void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
-    FIMEMORY *fim = FreeImage_OpenMemory((BYTE*)filedata.get(), filedata.byte_size());
+
+    LoadTexture(storage, handle, filedata.get(), filedata.byte_size(), config);
+}
+
+void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceHandle handle, void *image, size_t datasize, Configuration::TextureLoad config) {
+
+    FIMEMORY *fim = FreeImage_OpenMemory((BYTE*)image, datasize);
     FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(fim);
 
     int flags = 0;
@@ -29,10 +35,10 @@ void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::Byte
 
     auto dibrelease = ImageUniquePtr((void*)dib, &DibDeallocator);
 
-    LoadFreeImage(storage, dib, fif);
+    LoadImage(storage, dib, fif, handle, config);
 }
 
-void FreeImageLoader::LoadFreeImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, FREE_IMAGE_FORMAT fif) {
+void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config) {
     RendererAssert(bitmap);
 
     switch (fif) {
@@ -77,10 +83,10 @@ void FreeImageLoader::LoadFreeImage(ResourceLoadStorage &storage, FIBITMAP *bitm
 
     void* pixels = FreeImage_GetBits(bitmap);
 
-    SubmitPixels(storage, pixels, bytesize, size, pixelFormat, valueFormat);
+    SubmitPixels(storage, pixels, bytesize, size, pixelFormat, valueFormat, handle, config);
 }
 
-void FreeImageLoader::SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat) {
+void FreeImageLoader::SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat, TextureResourceHandle handle, Configuration::TextureLoad config) {
     auto &m = storage.m_Memory.m_Allocator;
     auto &q = storage.m_Queue;
 

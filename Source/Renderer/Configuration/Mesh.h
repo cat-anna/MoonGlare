@@ -19,7 +19,7 @@ struct Mesh {
     static constexpr uint32_t ChannelCount = static_cast<uint32_t>(Channel::MaxValue);
     using VAOBuffers = std::array<Device::BufferHandle, ChannelCount>;
 
-    static constexpr uint32_t SubMeshLimit = 4;
+    static constexpr uint32_t SubMeshLimit = 8;
 
     struct alignas(16) SubMesh { //subject of change
         bool valid;

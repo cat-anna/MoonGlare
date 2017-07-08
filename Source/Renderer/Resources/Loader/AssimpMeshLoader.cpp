@@ -10,14 +10,22 @@
 
 #include "../MaterialManager.h"
 
+#include "FreeImageLoader.h"
+
 namespace MoonGlare::Renderer::Resources::Loader {
 
 void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
     importer = std::make_unique<Assimp::Importer>();
-    scene = importer->ReadFileFromMemory(
-        filedata.get(), filedata.size(),
-        aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType,
-        strrchr(requestedURI.c_str(), '.'));
+
+    auto loadflags =
+        //aiProcess_JoinIdenticalVertices |
+        aiProcess_PreTransformVertices |
+        aiProcess_Triangulate |
+        //aiProcess_GenUVCoords |
+        //aiProcess_SortByPType |
+        0;
+
+    scene = importer->ReadFileFromMemory(filedata.get(), filedata.size(), loadflags, strrchr(requestedURI.c_str(), '.'));
 
     if (!scene) {
         AddLog(Error, fmt::format("Unable to load model file[{}]. Error: {}", requestedURI, importer->GetErrorString()));
@@ -44,13 +52,22 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     meshes.fill({});
     materials.fill({});
 
+    struct LoadInfo {
+        size_t baseIndex;
+    };
+
+    std::array<LoadInfo, meshes.size()> loadInfo;
+    loadInfo.fill({});
+
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         meshes[i].valid = true;
         meshes[i].numIndices = scene->mMeshes[i]->mNumFaces * 3;
         meshes[i].baseVertex = NumVertices;
-        meshes[i].baseIndex = NumIndices;
+        meshes[i].baseIndex = NumIndices * sizeof(uint32_t);
         meshes[i].elementMode = GL_TRIANGLES;
         meshes[i].indexElementType = GL_UNSIGNED_INT;
+
+        loadInfo[i].baseIndex = NumIndices;
 
         NumVertices += scene->mMeshes[i]->mNumVertices;
         NumIndices += meshes[i].numIndices;
@@ -70,21 +87,14 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         };
     }
 
-//    std::vector<Renderer::MaterialResourceHandle> Materials;
-//    Materials.resize(scene->mNumMaterials, {});
-
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         const aiMesh* mesh = scene->mMeshes[i];
 
         LoadMaterial(scene->mMeshes[i]->mMaterialIndex, materials[i], storage);
 
-//        auto matidx = mesh->mMaterialIndex;
-//        if (!Materials[matidx]) {
-//            if (!LoadMaterial(matidx, scene, Materials[matidx])) {
-//                DebugLogf(Warning, "Failed to load matertial index %u", matidx);
-//            }
-//        }
-//        meshd.m_Material = Materials[matidx];
+        auto MeshTexCords = texCords + meshes[i].baseVertex;
+        auto MeshVerticles = verticles + meshes[i].baseVertex;
+        auto MeshNormals = normals + meshes[i].baseVertex;
 
         for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
             aiVector3D &vertex = mesh->mVertices[vertid];
@@ -92,22 +102,23 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
 
             if (mesh->mTextureCoords[0]) {
                 aiVector3D &UVW = mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-                texCords[vertid] = glm::fvec2(UVW.x, UVW.y);
+                MeshTexCords[vertid] = glm::fvec2(UVW.x, UVW.y);
             }
             else {
-                texCords[vertid] = glm::fvec2();
+                MeshTexCords[vertid] = glm::fvec2();
             }
 
-            verticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);
-            normals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
+            MeshVerticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);
+            MeshNormals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
         }
 
+        auto meshIndices = indices + loadInfo[i].baseIndex;
         for (size_t face = 0; face < mesh->mNumFaces; face++) {
             aiFace *f = &mesh->mFaces[face];
             THROW_ASSERT(f->mNumIndices == 3, 0);
-            indices[face * 3 + 0] = f->mIndices[0];
-            indices[face * 3 + 1] = f->mIndices[1];
-            indices[face * 3 + 2] = f->mIndices[2];
+            meshIndices[face * 3 + 0] = f->mIndices[0];
+            meshIndices[face * 3 + 1] = f->mIndices[1];
+            meshIndices[face * 3 + 2] = f->mIndices[2];
         }
     }
 
@@ -156,36 +167,35 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
     }
 
     if (Path.data[0] == '*') {
+        auto matb = materialManager.GetMaterialBuilder(h, true);
+        matb.SetDiffuseMap();
+        matb.SetDiffuseColor(emath::fvec4(1));
+
         //internal texture
-//            //auto idx = strtoul(Path.data + 1, nullptr, 10);
-//            //if (idx >= Scene->mNumTextures) {
-//            //	AddLogf(Error, "Invalid internal texture id!");
-//            //	return;
-//            //}
-//            //
-//            //auto texptr = Scene->mTextures[idx];
-//            //
-//            //if (texptr->mHeight == 0) {
-//            //	//raw image bytes
-//            //	if (!DataClasses::Texture::LoadTexture(m_Material.Texture, (char*)texptr->pcData, texptr->mWidth)) {
-//            //		AddLogf(Error, "Texture load failed!");
-//            //	}
-//            //}
-//            //else {
-//            //	AddLogf(Error, "NOT SUPPORTED!");
-//            //
-//            //}
-        AddLogf(Error, "inner texture not supported yet");
+        auto idx = strtoul(Path.data + 1, nullptr, 10);
+        if (idx >= scene->mNumTextures) {
+            AddLogf(Error, "Invalid internal texture id!");
+            return;
+        }
+
+        auto texptr = scene->mTextures[idx];
+
+        if (texptr->mHeight == 0) {
+            //raw image bytes
+            auto matH = matb.m_MaterialPtr->m_DiffuseMap;
+
+            PostTask([matH, texptr](ResourceLoadStorage &storage) {
+                FreeImageLoader::LoadTexture(storage, matH, texptr->pcData, texptr->mWidth);
+            });
+        }
+        else {
+            AddLogf(Error, "Not compressed inner texture are not supported!");
+        }
         return;
     }
     else {
-        std::string texuri = baseURI + Path.data;
-
-//            FileSystem::DirectoryReader reader(DataPath::Models, GetName());
-//            auto fpath = reader.translate(Path.data);
-
         auto matb = materialManager.GetMaterialBuilder(h, true);
-        matb.SetDiffuseMap(texuri);
+        matb.SetDiffuseMap(baseURI + Path.data);
         matb.SetDiffuseColor(emath::fvec4(1));
     }
 }

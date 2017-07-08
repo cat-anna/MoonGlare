@@ -323,7 +323,7 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHan
 
         auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         garg->m_NumIndices = mesh.numIndices;
-        garg->m_IndexValueType = mesh.indexElementType;;
+        garg->m_IndexValueType = mesh.indexElementType;
         garg->m_BaseIndex = mesh.baseIndex;
         garg->m_BaseVertex = mesh.baseVertex;
 

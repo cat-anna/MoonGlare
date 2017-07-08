@@ -5,6 +5,24 @@
 
 namespace MoonGlare::Renderer {
 
+
+class iAsyncFileSystemRequest;
+using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
+
+class iAsyncTask;
+using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
+
+class iAsyncLoader {
+public:
+    virtual ~iAsyncLoader() {};
+
+    virtual bool AnyJobPending() = 0;
+    virtual bool AllResoucecsLoaded() = 0;
+
+    virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
+    virtual void QueueTask(SharedAsyncTask task) = 0;
+};
+
 struct ResourceLoadStorage {
     using Conf = Configuration::Resources;
     Commands::CommandQueue m_Queue;
@@ -15,23 +33,8 @@ struct BaseAsyncTask {
     struct NotEnoughStorage {
         size_t requiredSpace;//not yet used
     };
-    struct RetryLater { };
+    struct RetryLater {};
 };
-
-class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest>, public BaseAsyncTask {
-public:
-    virtual ~iAsyncFileSystemRequest() {};
-
-    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) = 0;
-    virtual void OnTaskQueued(iAsyncLoader *loaderptr) {
-        loader = loaderptr;
-    }
-
-protected:
-    iAsyncLoader *loader;
-};
-
-using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
 
 class iAsyncTask : public BaseAsyncTask {
 public:
@@ -39,7 +42,6 @@ public:
 
     virtual void Do(ResourceLoadStorage &storage) = 0;
 };
-using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
 
 class FunctionalAsyncTask : public iAsyncTask {
 public:
@@ -55,16 +57,31 @@ protected:
     TaskFunction task;
 };
 
-class iAsyncLoader {
+template<typename T>
+class AsyncSubTask : public FunctionalAsyncTask {
 public:
-    virtual ~iAsyncLoader() {};
-
-    virtual bool AnyJobPending() = 0;
-    virtual bool AllResoucecsLoaded() = 0;
-
-    virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
-    virtual void QueueTask(SharedAsyncTask task) = 0;
+    AsyncSubTask(TaskFunction f, std::shared_ptr<T> owner) : FunctionalAsyncTask(std::move(f)), owner(std::move(owner)) {}
+protected:
+    std::shared_ptr<T> owner;
 };
+
+class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest>, public BaseAsyncTask {
+public:
+    virtual ~iAsyncFileSystemRequest() {};
+
+    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) = 0;
+    virtual void OnTaskQueued(iAsyncLoader *loaderptr) {
+        loader = loaderptr;
+    }
+
+protected:
+    iAsyncLoader *loader;
+
+    void PostTask(FunctionalAsyncTask::TaskFunction func) {
+        loader->QueueTask(std::make_shared<AsyncSubTask<iAsyncFileSystemRequest>>(std::move(func), shared_from_this()));
+    }
+};
+
 
 class MultiAsyncFileSystemRequest : public iAsyncFileSystemRequest {
 public:

@@ -14,6 +14,8 @@ public:
         owner(Owner), handle(handle), config(config) {}
 
     void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
+
+    static void LoadTexture(ResourceLoadStorage &storage, TextureResourceHandle handle, void *image, size_t datasize, Configuration::TextureLoad config = Configuration::TextureLoad::Default());
 private:
     TextureResource *owner;
     TextureResourceHandle handle;
@@ -21,8 +23,8 @@ private:
 
     using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 
-    void LoadFreeImage(ResourceLoadStorage &storage, FIBITMAP *dib, FREE_IMAGE_FORMAT fif);
-    void SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat);
+    static void LoadImage(ResourceLoadStorage &storage, FIBITMAP *dib, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config);
+    static void SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat, TextureResourceHandle handle, Configuration::TextureLoad config);
 };
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

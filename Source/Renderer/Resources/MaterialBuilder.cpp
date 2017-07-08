@@ -16,4 +16,8 @@ bool MaterialBuilder::SetDiffuseMap(const std::string & URI, Configuration::Text
 	return m_Manager->GetResourceManager()->GetTextureResource().LoadTexture(m_MaterialPtr->m_DiffuseMap, URI, loadcfg);
 }
 
+bool MaterialBuilder::SetDiffuseMap() {
+    return m_Manager->GetResourceManager()->GetTextureResource().Allocate(m_MaterialPtr->m_DiffuseMap);
+}
+
 } //namespace MoonGlare::Renderer::Resources 
