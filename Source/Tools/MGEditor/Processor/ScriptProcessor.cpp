@@ -182,13 +182,7 @@ void ScriptFileProcessor::ExecuteScript() {
         }
     }
 
-    auto lua = m_Lua.get();
-    int result = luaL_loadstring(lua, bt.c_str());
-    switch (result) {
-    case 0: {
-        if (lua_pcall(lua, 0, 0, 0) == 0)
-            return;
-        std::string errorstr = lua_tostring(lua, -1);
+    auto ParseError = [this](const std::string &errorstr, QtShared::Issue::Type type) {
         std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
         std::smatch pieces_match;
         if (std::regex_match(errorstr, pieces_match, pieces_regex)) {
@@ -196,18 +190,32 @@ void ScriptFileProcessor::ExecuteScript() {
             issue.fileName = m_URI;
             issue.sourceLine = std::strtol(pieces_match[2].str().c_str(), nullptr, 10);
             issue.message = pieces_match[3];
-            issue.type = QtShared::Issue::Type::Error;
+            issue.type = type;
             issue.group = "Lua";
             issue.internalID = MakeIssueId();
 
             module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>()->ReportIssue(std::move(issue));
         }
-        AddLogf(Error, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
+    };
+
+    auto lua = m_Lua.get();
+    int result = luaL_loadstring(lua, bt.c_str());
+    switch (result) {
+    case 0: {
+       //only syntax check is working correctly
+       // if (lua_pcall(lua, 0, 0, 0) == 0)
+       //     return;
+       // std::string errorstr = lua_tostring(lua, -1);
+       // ParseError(errorstr, QtShared::Issue::Type::Warning);
+       // AddLogf(Hint, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
         break;
     }
-    case LUA_ERRSYNTAX:
-        AddLogf(Error, "Unable to load '%s': Error string: '%s'", m_URI.c_str(), lua_tostring(lua, -1));
-        break;
+    case LUA_ERRSYNTAX: {
+        std::string errorstr = lua_tostring(lua, -1);
+        ParseError(errorstr, QtShared::Issue::Type::Error);
+        AddLogf(Hint, "Unable to load '%s': Error string: '%s'", m_URI.c_str(), errorstr.c_str());
+        break;     
+    }
     case LUA_ERRMEM:
         AddLogf(Error, "Unable to load '%s': Memory allocation failed!", m_URI.c_str());
         break;

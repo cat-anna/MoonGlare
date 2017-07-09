@@ -84,6 +84,8 @@ public:
 	bool IsMovable() const { return GetParent() != nullptr; }
 
 	void Clear();
+
+    bool enabled = true;
 protected:
 	EditableEntity *m_Parent;
 	std::string m_Name;
@@ -101,6 +103,8 @@ public:
 		m_Data->SetName(m_ComponentInfo->m_Name);
 	}
 	~EditableComponent() {}
+
+    bool enabled = true;
 
 	const TypeEditor::StructureValueList& GetValues() { return m_Data->GetValues(); }
 	bool Read(pugi::xml_node node) { return m_Data->Read(node); }
