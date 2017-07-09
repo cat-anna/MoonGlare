@@ -123,7 +123,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
 
     auto arg = Queue.PushCommand<Renderer::Commands::VAODrawArrays>();
     arg->mode = GL_LINES;
-    arg->first = 0;;
+    arg->first = 0;
     arg->count = m_LinePoints.size();
 
     vaob.UnBindVAO();
@@ -160,9 +160,10 @@ void BulletDebugDrawer::setDebugMode(int p) {
 
 int BulletDebugDrawer::getDebugMode(void) const {
     return 
-        //DBG_DrawWireframe | 
+        DBG_DrawWireframe | 
         DBG_DrawAabb | 
-        DBG_DrawNormals;
+//        DBG_DrawNormals | 
+        0;
 }
 
 } //namespace Physics 

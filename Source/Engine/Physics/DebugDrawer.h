@@ -13,12 +13,12 @@ public:
     BulletDebugDrawer();
     ~BulletDebugDrawer();
 
-    virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
-    virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color);
-    virtual void reportErrorWarning(const char *);
-    virtual void draw3dText(const btVector3 &, const char *);
-    virtual void setDebugMode(int p);
-    int getDebugMode(void) const;
+    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override;
+    void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override;
+    void reportErrorWarning(const char *) override;
+    void draw3dText(const btVector3 &, const char *) override;
+    void setDebugMode(int p) override;
+    int getDebugMode(void) const override;
 
     void Prepare();
     void Submit(const MoonGlare::Core::MoveConfig &conf);

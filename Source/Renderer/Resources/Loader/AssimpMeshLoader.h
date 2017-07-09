@@ -21,6 +21,8 @@ private:
     std::unique_ptr<Assimp::Importer> importer;
     const aiScene* scene;
 
+    bool meshDataLoaded = false;
+
     void LoadMeshes(ResourceLoadStorage &storage);
     void LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage);
 };

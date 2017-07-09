@@ -10,17 +10,18 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-namespace Loader {
-    class AssimpMeshLoader;
-}
+struct MeshData {
+    std::vector<glm::fvec3> verticles;
+    std::vector<glm::fvec2> UV0;
+    std::vector<glm::fvec3> normals;
+    std::vector<uint32_t> index;
+};
 
 class 
     //alignas(16)
     MeshManager final 
     //: iAbstractResource
 {
-    friend class Loader::AssimpMeshLoader;
-
     using ThisClass = MeshManager;
     using Conf = Configuration::Mesh;
     using ConfRes = Configuration::Resources;
@@ -49,7 +50,6 @@ public:
             }
         }
 
-
         return Builder::MeshBuilder{
             Builder::VAOBuilder {
                 &q,
@@ -59,6 +59,7 @@ public:
             subMesh[h.index],
             materialHandle[h.index],
             h,
+            meshData[h.index],
             q,
             key,
         };
@@ -85,6 +86,7 @@ public:
         }
         return materialHandle[h.index];
     }
+
 private:
     template<typename T>
     using Array = std::array<T, Conf::Limit>;
@@ -100,9 +102,7 @@ private:
     Array<Conf::VAOBuffers> vaoBuffer;
     Array<HandleType::Generation_t> generations;
 
-    //TODO: Array<material> material;
-    //TODO: source hash?
-    //TODO: storage for verticles, uvs, normals, etc
+    Array<MeshData> meshData;
 
     std::unordered_map<std::string, HandleType> loadedMeshes; //temporary solution
     ResourceManager *resourceManager = nullptr;

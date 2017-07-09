@@ -3,6 +3,10 @@
 #include "../../Commands/CommandQueue.h"
 #include "VAOBuilder.h"
 
+namespace MoonGlare::Renderer::Resources {
+struct MeshData;
+}
+
 namespace MoonGlare::Renderer::Resources::Builder {
 
 class MeshBuilder final {
@@ -33,6 +37,7 @@ public:
     Conf::SubMeshArray &subMeshArray;
     Conf::SubMeshMaterialArray &subMeshMaterialArray;
     MeshResourceHandle handle;
+    MeshData &meshData;
     Commands::CommandQueue &queue;
     Commands::CommandKey currentKey;
 };
