@@ -24,7 +24,7 @@ void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceH
     int flags = 0;
     switch (fif) {
     case FIF_PNG:
-        //flags |= PNG_IGNOREGAMMA;
+        flags |= PNG_IGNOREGAMMA;
         break;
     default:
         break;
