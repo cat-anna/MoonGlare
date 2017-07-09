@@ -89,7 +89,7 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 
 	SendState(SceneState::Created);
 
-	EntityBuilder(&m_ComponentManager).ProcessXML(GetSceneEntity(), Node.child("Entities"));
+	EntityBuilder(&m_ComponentManager).Build(GetSceneEntity(), Node.child("Entities"));
 
 	SetInitialized(true);
 	return true;

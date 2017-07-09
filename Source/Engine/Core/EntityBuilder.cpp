@@ -14,157 +14,258 @@
 namespace MoonGlare {
 namespace Core {
 
+struct EntityImport {
+    Entity entity{};
+    int32_t parentIndex = -1;
+    std::string name;
+    bool enabled = true;
+};
+
+struct ComponentImport {
+    int32_t entityIndex = 1;
+    bool enabled = true;
+    Handle handle{};
+    pugi::xml_node xmlNode;
+};
+
+struct EntityBuilder::ImportData {
+    std::vector<EntityImport> entities;
+    std::map<ComponentID, std::vector<ComponentImport>> components;
+    std::vector<XMLFile> xmlFiles;
+
+    void Prepare() {
+        for (auto &c : components) {
+            std::sort(c.second.begin(), c.second.end(), [](const ComponentImport &c1, const ComponentImport &c2) {
+                return c1.entityIndex < c2.entityIndex;
+            });
+        }
+    }
+
+    void Dump(const std::string &ename, const std::string &srcname = "") {
+        static int dumpid = 0;
+        std::string fname = "logs/";
+        fname = fmt::format("logs/{}.{}.entity", ename, dumpid++);
+
+        std::ofstream of(fname, std::ios::out);
+
+        if (!srcname.empty())
+            of << "SOURCE: " << srcname << "\n\n";
+
+        of << fmt::format("Entities: {}\n", entities.size());
+        for (auto&it : entities) {
+            of << fmt::format("\tParentIndex:{}  Name:{}  Enabled:{}\n", it.parentIndex, it.name, it.enabled);
+        }
+        of << "\n";
+        of << fmt::format("Components: {}\n", components.size());
+        for (auto &it : components) {
+            of << fmt::format("\tComponent:{}  Name:{}\n", (int)it.first, Component::ComponentRegister::GetComponentInfo(it.first)->m_Name);
+            for (auto &c : it.second) {
+                of << fmt::format("\t\tParentIndex:{}  Enabled:{}\n", c.entityIndex, c.enabled);
+            }
+        }
+
+        of.close();
+    }
+};
+
+//-------------------------------------------------------------------------------------------------
+
 EntityBuilder::EntityBuilder(Component::ComponentManager *Manager)
-		: m_Manager(Manager) {
+        : m_Manager(Manager) {
 }
 
 EntityBuilder::~EntityBuilder() {
 }
 
-bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
-	XMLFile xml;
-	if (!GetFileSystem()->OpenXML(xml, PatternUri)) {
-		AddLogf(Error, "Failed to open uri: %s", PatternUri);
-		return false;
-	}
-	
-	unsigned count = BuildChild(Owner, xml->document_element(), eout, std::move(Name));
+//-------------------------------------------------------------------------------------------------
 
-	if (count == 0) {
-		AddLogf(Error, "No elements has been loaded from: %s", PatternUri);
-		return false;
-	}
-	return true;
+bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+    ImportData data;
+
+    EntityImport ei;
+    ei.parentIndex = -1;
+    ei.name = std::move(Name);
+    data.entities.emplace_back(std::move(ei));
+
+    Import(data, PatternUri, 0);
+    data.Prepare();
+#ifdef DEBUG_DUMP
+    data.Dump(Name, PatternUri);
+#endif
+
+    Spawn(data, Owner);
+
+    eout = data.entities[0].entity;
+
+    return true;
+}
+
+bool EntityBuilder::Build(Entity Owner, pugi::xml_node node, std::string Name) {
+    ImportData data;
+
+    Import(data, node, -1);
+    data.Prepare();
+    Spawn(data, Owner);
+    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-unsigned EntityBuilder::BuildChild(Entity Owner, pugi::xml_node node, Entity &eout, std::string Name) {
-	auto world = m_Manager->GetWorld();
-	auto em = world->GetEntityManager();
-	if (!em->IsValid(Owner)) {
-		AddLogf(Error, "Attempt to build object with invalid owner entity!");
-		return false;
-	}
+void EntityBuilder::Spawn(ImportData &data, Entity Owner) {
+    auto world = m_Manager->GetWorld();
+    auto em = world->GetEntityManager();
 
-	if (Name.empty()) {
-		auto attname = node.attribute("Name");
-		Name = attname.as_string("");
-	}
+    for (auto &ei : data.entities) {
+        if (!ei.enabled)
+            continue;
 
-	Entity child;
-	if (!em->Allocate(Owner, child, std::move(Name))) {
-		AddLogf(Error, "Failed to allocate entity!");
-		return false;
-	}
+        Entity parent;
+        if (ei.parentIndex >= 0)
+            parent = data.entities[ei.parentIndex].entity;
+        else
+            parent = Owner;
 
-	auto c = ProcessXML(child, node);
-	if (c == 0) {
-		AddLogf(Error, "No elements has been loaded!");
-		em->Release(child);
-		return 0;
-	}
-	eout = child;
-	return c;
+        if (!em->Allocate(parent, ei.entity, ei.name)) {
+            AddLogf(Error, "Failed to allocate entity!");
+            return;
+        }         
+    }
+
+    std::array<ComponentID, 3> ComponentOrder = {
+        ComponentID::Transform,
+        ComponentID::RectTransform,
+        ComponentID::Body,
+    };
+
+    auto SpawnComponents = [this, Owner, &data](std::vector<ComponentImport>& cs) {
+        for (auto &ci : cs) {
+            if (!ci.enabled)
+                continue; 
+            Entity parent;
+            if (ci.entityIndex >= 0)
+                parent = data.entities[ci.entityIndex].entity;
+            else
+                parent = Owner;
+            LoadComponent(parent, ci.xmlNode, ci.handle);
+        }
+    };
+
+    for (auto cidx : ComponentOrder) {
+        auto it = data.components.find(cidx);
+        if (it != data.components.end()) {
+            SpawnComponents(it->second);
+            data.components.erase(it);
+        }
+    }
+    
+    std::vector<ComponentImport> scripts;
+    auto scrit = data.components.find(ComponentID::Script);
+    if (scrit != data.components.end()) {
+        scrit->second.swap(scripts);
+        data.components.erase(scrit);
+    }
+
+    for (auto &c : data.components)
+        SpawnComponents(c.second);
+
+    SpawnComponents(scripts);
 }
 
-unsigned EntityBuilder::ProcessXML(Entity Owner, pugi::xml_node node) {
-	unsigned count = 0;
-	for (auto it = node.first_child(); it; it = it.next_sibling()) {
+//-------------------------------------------------------------------------------------------------
 
-		const char *nodename = it.name();
-		auto hash = Space::Utils::MakeHash32(nodename);
-		
-		switch (hash) {
+void EntityBuilder::Import(ImportData &data, const char *PatternUri, int32_t entityIndex) {
+    data.xmlFiles.emplace_back();
+    XMLFile &xml = data.xmlFiles.back();
+    if (!GetFileSystem()->OpenXML(xml, PatternUri)) {
+        AddLogf(Error, "Failed to open uri: %s", PatternUri);
+        return;
+    }
 
-		case "Component"_Hash32: {
-			Handle h;
-			if (LoadComponent(Owner, it, h))
-				++count;
-			break;
-		}
+    auto node = xml->document_element();
 
-		case "Entity"_Hash32:
-		{
-			auto pattern = it.attribute("Pattern").as_string(nullptr);
-			if (pattern) {
-				FileSystem::XMLFile xdoc;
-				Entity child;
-				std::string paturi = pattern;
-				if (!GetFileSystem()->OpenXML(xdoc, paturi, DataPath::URI)) {
-					AddLogf(Error, "Failed to open pattern: %s", pattern);
-					continue;
-				}
-
-				std::string Name;
-				auto attname = it.attribute("Name");
-				if (attname)
-					Name = attname.as_string("");
-
-				auto c = BuildChild(Owner, xdoc->document_element(), child, std::move(Name));
-				if (c == 0) {
-					AddLogf(Error, "Failed to load child!");
-					continue;
-				}
-				c += ProcessXML(child, it);
-				count += c;
-				continue;
-			}
-		}
-		//no break;
-		//[[fallthrough]]
-		case "Child"_Hash32: {
-			Entity child;
-			std::string Name;
-			auto attname = it.attribute("Name");
-			if (attname)
-				Name = attname.as_string("");
-			auto c = BuildChild(Owner, it, child, std::move(Name));
-			if (c == 0) {
-				AddLogf(Error, "Failed to load child!");
-				continue;
-			}
-			count += c;
-			continue;
-		}
-		default:
-			AddLogf(Warning, "Unknown node: %s", nodename);
-			continue;
-		}
-	}
-	return count;
+    Import(data, node, entityIndex);
 }
 
-unsigned EntityBuilder::LoadComponents(Entity Owner, pugi::xml_node node) {
-	unsigned count = 0;
-	for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
-		Handle h;
-		if (LoadComponent(Owner, it, h))
-			++count;
-	}
-	return count;
+void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entityIndex) {
+    bool parentEnabled = entityIndex >= 0 ? data.entities[entityIndex].enabled : true;
+
+    if (entityIndex >= 0) {
+        auto &ei = data.entities[entityIndex];
+        if (ei.name.empty()) 
+            ei.name = node.attribute("Name").as_string("");
+
+        ei.enabled = node.attribute("Enabled").as_bool(true) && parentEnabled;
+    }
+
+    for (auto it = node.first_child(); it; it = it.next_sibling()) {
+
+        const char *nodename = it.name();
+        auto hash = Space::Utils::MakeHash32(nodename);
+
+        switch (hash) {
+        case "Component"_Hash32: {
+            ComponentImport ci;
+            ci.xmlNode = it;
+            ci.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
+
+            ComponentID cid = ComponentID::Invalid;
+            if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
+                AddLogf(Warning, "Unknown component!");
+                continue;
+            }
+            ci.entityIndex = entityIndex;
+            data.components[cid].emplace_back(std::move(ci));
+            continue;
+        }
+
+        case "Child"_Hash32: 
+        case "Entity"_Hash32:
+        {
+            EntityImport ei;
+            ei.parentIndex = entityIndex;
+            ei.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
+            ei.name = it.attribute("Name").as_string("");
+
+            int32_t index = static_cast<int32_t>(data.entities.size());
+            data.entities.emplace_back(std::move(ei));
+
+            auto pattern = it.attribute("Pattern").as_string(nullptr);
+            if (pattern) {                                 
+                Import(data, pattern, index);
+            } else {
+                Import(data, it, index);
+            }
+            continue;
+        }
+        default:
+            AddLogf(Warning, "Unknown node: %s", nodename);
+            continue;
+        }
+    }
 }
+
+//-------------------------------------------------------------------------------------------------
 
 bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & hout) {
-	ComponentID cid = ComponentID::Invalid;
-	
-	if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
-		AddLogf(Warning, "Unknown component!");
-		return false;
-	}
+    ComponentID cid = ComponentID::Invalid;
 
-	auto c = m_Manager->GetComponent(cid);
-	if (!c) {
-		AddLogf(Warning, "No such component: %d", cid);
-		return false;
-	}
+    if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
+        AddLogf(Warning, "Unknown component!");
+        return false;
+    }
 
-	if (!c->Load(node, Owner, hout)) {
-		AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
-		return false;
-	}
+    auto c = m_Manager->GetComponent(cid);
+    if (!c) {
+        AddLogf(Warning, "No such component: %d", cid);
+        return false;
+    }
 
-	return true;
+    if (!c->Load(node, Owner, hout)) {
+        AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
+        return false;
+    }
+
+    return true;
 }
 
 } //namespace Core 

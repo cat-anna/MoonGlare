@@ -14,27 +14,27 @@ namespace Core {
 
 class EntityBuilder {
 public:
- 	EntityBuilder(Component::ComponentManager *Manager);
- 	~EntityBuilder();
+    EntityBuilder(Component::ComponentManager *Manager);
+    ~EntityBuilder();
 
-	static bool Build(Component::ComponentManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
-		EntityBuilder eb(Manager);
-		return eb.Build(Owner, PatternUri, eout, std::move(Name));
-	}
+    static bool Build(Component::ComponentManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+        EntityBuilder eb(Manager);
+        return eb.Build(Owner, PatternUri, eout, std::move(Name));
+    }
 
-	bool Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name);
+    bool Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name = std::string());
+    bool Build(Entity Owner, pugi::xml_node node, std::string Name = std::string());
 
-//xml
-	/** Returns count of processed elements */
-	unsigned BuildChild(Entity Owner, pugi::xml_node node, Entity &eout, std::string Name);
-	/** Returns count of processed elements */
-	unsigned ProcessXML(Entity Owner, pugi::xml_node node);
-	/** Returns count of loaded components */
-	unsigned LoadComponents(Entity Owner, pugi::xml_node node);
-	/** Returns true on success */
-	bool LoadComponent(Entity Owner, pugi::xml_node node, Handle &hout);
 protected:
-	Component::ComponentManager *m_Manager;
+    bool LoadComponent(Entity Owner, pugi::xml_node node, Handle &hout);
+    Component::ComponentManager *m_Manager;
+
+    struct ImportData;
+
+    void Import(ImportData &data, const char *PatternUri, int32_t entityIndex);
+    void Import(ImportData &data, pugi::xml_node node, int32_t entityIndex);
+
+    void Spawn(ImportData &data, Entity Owner);
 };
 
 } //namespace Core 
