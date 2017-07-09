@@ -21,53 +21,53 @@ using namespace ::MoonGlare::Core::Component;
 using namespace ::Physics;
 
 struct BodyShapeComponentEntry {
-	union FlagsMap {
-		struct MapBits_t {
-			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-		};
-		MapBits_t m_Map;
-		uint32_t m_UintValue;
+    union FlagsMap {
+        struct MapBits_t {
+            bool m_Valid : 1; //Entity is not valid or requested to be deleted;
+        };
+        MapBits_t m_Map;
+        uint32_t m_UintValue;
 
-		void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
-		void ClearAll() { m_UintValue = 0; }
+        void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
+        void ClearAll() { m_UintValue = 0; }
 
-		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
-	};
+        static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
+    };
 
-	Handle m_SelfHandle;
-	Entity m_OwnerEntity;
-	FlagsMap m_Flags;
-	Handle m_BodyHandle;
-	BodyComponent *m_BodyComponent;
-	std::unique_ptr<btCollisionShape> m_Shape;
+    Handle m_SelfHandle;
+    Entity m_OwnerEntity;
+    FlagsMap m_Flags;
+    Handle m_BodyHandle;
+    BodyComponent *m_BodyComponent;
+    std::unique_ptr<btCollisionShape> m_Shape;
 
-	bool SetShapeInternal(std::unique_ptr<btCollisionShape> shape);
-	void SetShape(btCollisionShape *shape);
-	void SetSphere(float Radius);
-	void SetBox(const math::vec3 & size);
+    bool SetShapeInternal(std::unique_ptr<btCollisionShape> shape);
+    void SetShape(btCollisionShape *shape);
+    void SetSphere(float Radius);
+    void SetBox(const math::vec3 & size);
 };
 
 class BodyShapeComponent
-	: public AbstractComponent
-	, public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
+    : public AbstractComponent
+    , public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
 public:
-	BodyShapeComponent(Core::Component::ComponentManager *Owner);
- 	virtual ~BodyShapeComponent();
+    BodyShapeComponent(Core::Component::ComponentManager *Owner);
+    virtual ~BodyShapeComponent();
 
-	virtual bool Initialize() override;
-	virtual bool Finalize() override;
+    virtual bool Initialize() override;
+    virtual bool Finalize() override;
 
-	virtual void Step(const Core::MoveConfig &conf) override;
+    virtual void Step(const Core::MoveConfig &conf) override;
 
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
 
-	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+    virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
 
-	virtual bool Create(Entity Owner, Handle &hout);
-	virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
+    virtual bool Create(Entity Owner, Handle &hout);
+    virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
 
-	BodyShapeComponentEntry* GetEntry(Handle h);
-	BodyShapeComponentEntry* GetEntry(Entity e);
+    BodyShapeComponentEntry* GetEntry(Handle h);
+    BodyShapeComponentEntry* GetEntry(Entity e);
 
 //	virtual bool LoadComponentConfiguration(pugi::xml_node node);
 /*
@@ -77,18 +77,21 @@ btCapsuleShapeZ
 btConvexHullShape
 btBvhTriangleMeshShape
 */
-	static void RegisterScriptApi(ApiInitializer &root);
+    static void RegisterScriptApi(ApiInitializer &root);
 protected:
-	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+    template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
 
-	BodyComponent *m_BodyComponent = nullptr;
-	TransformComponent *m_TransformComponent = nullptr;
+    BodyComponent *m_BodyComponent = nullptr;
+    TransformComponent *m_TransformComponent = nullptr;
 
-	Array<BodyShapeComponentEntry> m_Array;
+    Array<BodyShapeComponentEntry> m_Array;
 
-	Core::EntityMapper m_EntityMapper;
+    Core::EntityMapper m_EntityMapper;
 
-	bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
+    bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
+
+    std::unique_ptr<btCollisionShape> LoadByName(const std::string &name, xml_node node);
+    std::unique_ptr<btCollisionShape> LoadShape(xml_node node);
 };
 
 } //namespace Component 

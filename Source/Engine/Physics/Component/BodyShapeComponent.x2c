@@ -1,0 +1,35 @@
+namespace "MoonGlare.x2c.Component.BodyShapeComponent"
+
+--Use(Global.MoonGlare.x2c.Math.Vec3)
+
+Structure.new {
+    name = "CapsuleYBodyShape",
+    description = "tbd",
+    fields = {
+        { name = "radius", type = float, description = "tbd", },
+        { name = "height", type = float, description = "tbd", },
+    },
+}
+
+Enum.new {
+    name = "ColliderType",
+    description = "tbd",
+    values = {
+        "Box", "Sphere", "ConvexMesh", "TriangleMesh",
+        "Capsule", 
+       -- "CapsuleY",
+        "Cylinder", 
+        --"CylinderY",
+    },            
+}
+
+Structure.new {
+    name = "ColliderComponent",
+    description = "tbd",
+    fields = {
+        { name = "type", type = ColliderType, description = "tbd", },
+        { name = "radius", type = float, description = "Only for Capsule/Cylinder shapes", },
+        { name = "height", type = float, description = "Only for Capsule/Cylinder shapes", },
+    },
+}
+
