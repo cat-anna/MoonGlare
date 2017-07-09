@@ -19,81 +19,81 @@ class LuaWindow;
 class LuaCompiler;
 
 enum class EditorFileSource {
-	DummyFile,
-	RawFile,
-	Engine,
+    DummyFile,
+    RawFile,
+    Engine,
 };
 
 struct EditorFileSourceConverter : Space::EnumConverter < EditorFileSource, EditorFileSource::DummyFile > {
-	EditorFileSourceConverter() {
-		Add("RawFile", Enum::DummyFile);
-		Add("Default", Enum::RawFile);
-		Add("Engine", Enum::Engine);
-	}
+    EditorFileSourceConverter() {
+        Add("RawFile", Enum::DummyFile);
+        Add("Default", Enum::RawFile);
+        Add("Engine", Enum::Engine);
+    }
 };
 using EditorFileSourceEnum = Space::EnumConverterHolder < EditorFileSourceConverter >;
 
 struct EditorStatusLine {
-	std::string Message;
-	enum class Type {
-		None, Error, Warning, Hint,
-	} Status = Type::None;
-	int SourceLine = -1;
-	EditorTab *Sender = nullptr;
+    std::string Message;
+    enum class Type {
+        None, Error, Warning, Hint,
+    } Status = Type::None;
+    int SourceLine = -1;
+    EditorTab *Sender = nullptr;
 };
 
 struct EditorStatusText {
-	std::list<EditorStatusLine> Lines;
+    std::list<EditorStatusLine> Lines;
 };
 
 class EditorTab : public QWidget, public RemoteConsoleRequestQueue {
-	Q_OBJECT;
+    Q_OBJECT;
 public:
- 	EditorTab(LuaWindow *Window, QTabWidget *Owner, QWidget* parent, const QString& Name = "", EditorFileSource source = EditorFileSource::DummyFile);
- 	virtual ~EditorTab();
+    EditorTab(LuaWindow *Window, QTabWidget *Owner, QWidget* parent, const QString& Name = "", EditorFileSource source = EditorFileSource::DummyFile);
+    virtual ~EditorTab();
 
-	QString GetDisplayName();
-	const QString& GetName() const { return m_Name; }
+    QString GetDisplayName();
+    const QString& GetName() const { return m_Name; }
 
-	bool IsTextSelected() const;
-	bool IsChanged() const;
-	EditorFileSource GetType() const { return m_FileSource; }
-	QString GetCode() const;
+    bool IsTextSelected() const;
+    bool IsChanged() const;
+    EditorFileSource GetType() const { return m_FileSource; }
+    QString GetCode() const;
 
-	void GetEditorStatusLines(EditorStatusText &status);
+    void GetEditorStatusLines(EditorStatusText &status);
 protected:
 private:
-	class LuaSaveRequest;
-	class LuaLoadRequest;
+    class LuaSaveRequest;
+    class LuaLoadRequest;
 
-	QTabWidget *m_Owner;
-	QVBoxLayout *m_Layout;
-	CodeEditor *m_Editor;
-	LuaWindow *m_Window;
-	QtLuaHighlighter *m_Highlighter;
-	QString m_Name;
-	bool m_Modiffied;
-	EditorFileSource m_FileSource;
-	std::unique_ptr<QTimer> m_RecompileTimer;
-	std::unique_ptr<LuaCompiler> m_LuaCompiler;
-	
-	void DoOpen();
-	void DoSave();
+    QTabWidget *m_Owner;
+    QVBoxLayout *m_Layout;
+    CodeEditor *m_Editor;
+    LuaWindow *m_Window;
+    QtLuaHighlighter *m_Highlighter;
+    QString m_Name;
+    bool m_Modiffied;
+    EditorFileSource m_FileSource;
+    std::unique_ptr<QTimer> m_RecompileTimer;
+    std::unique_ptr<LuaCompiler> m_LuaCompiler;
+    
+    void DoOpen();
+    void DoSave();
 
 protected slots:
-	void EditorFontChanged(const QFont &font);
-	void EditorContextMenuRequested(QPoint p);
-	void TextChaged();
+    void EditorFontChanged(const QFont &font);
+    void EditorContextMenuRequested(QPoint p);
+    void TextChaged();
 public slots:
-	void SendText(bool SelectionOnly);
-	void CloseEditor();
-	void Save();
-	void Reload();
-	void Validate();
-	void SetCodeAdnotations(std::shared_ptr<CompilationResult> result);
+    void SendText(bool SelectionOnly);
+    void CloseEditor();
+    void Save();
+    void Reload();
+    void Validate();
+    void SetCodeAdnotations(std::shared_ptr<CompilationResult> result);
 signals:
-	void StateChanged(EditorTab *);
-	void ContextMenuRequested(EditorTab * sender, QPoint pos);
+    void StateChanged(EditorTab *);
+    void ContextMenuRequested(EditorTab * sender, QPoint pos);
 };
 
 Q_DECLARE_METATYPE(EditorTab*);

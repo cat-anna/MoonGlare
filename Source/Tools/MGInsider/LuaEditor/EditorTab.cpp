@@ -18,61 +18,61 @@
 
 class EditorTab::LuaSaveRequest : public RemoteConsoleObserver {
 public:
-	LuaSaveRequest(EditorTab *Owner):
-		RemoteConsoleObserver(InsiderApi::MessageTypes::SetScriptCode),
-		m_Owner(Owner) {
-	}
+    LuaSaveRequest(EditorTab *Owner):
+        RemoteConsoleObserver(InsiderApi::MessageTypes::SetScriptCode),
+        m_Owner(Owner) {
+    }
 
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
-		auto info = buffer.Alloc<InsiderApi::PayLoad_SetScriptCode>();
-		std::string s = m_Owner->GetName().toUtf8().constData();
-		std::string c = m_Owner->m_Editor->toPlainText().toUtf8().constData();
-		info->NameLength = (InsiderApi::u16)s.length();
-		info->DataLength = (InsiderApi::u16)c.length();
-		info->OverwriteContainerFile = 1;
-		buffer.PushString(s);
-		buffer.PushString(c);
-	};
+    virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
+        auto info = buffer.Alloc<InsiderApi::PayLoad_SetScriptCode>();
+        std::string s = m_Owner->GetName().toUtf8().constData();
+        std::string c = m_Owner->m_Editor->toPlainText().toUtf8().constData();
+        info->NameLength = (InsiderApi::u16)s.length();
+        info->DataLength = (InsiderApi::u16)c.length();
+        info->OverwriteContainerFile = 1;
+        buffer.PushString(s);
+        buffer.PushString(c);
+    };
 
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		m_Owner->RequestFinished(this);
-		m_Owner->m_Modiffied = false;
-		emit m_Owner->StateChanged(m_Owner);
-		return HanderStatus::Remove;
-	};
+    HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
+        m_Owner->RequestFinished(this);
+        m_Owner->m_Modiffied = false;
+        emit m_Owner->StateChanged(m_Owner);
+        return HanderStatus::Remove;
+    };
 private:
-	EditorTab *m_Owner;
+    EditorTab *m_Owner;
 };
 
 class EditorTab::LuaLoadRequest : public RemoteConsoleObserver {
 public:
-	LuaLoadRequest(EditorTab *Owner):
-		RemoteConsoleObserver(InsiderApi::MessageTypes::GetScriptCode),
-		m_Owner(Owner) {
-	}
+    LuaLoadRequest(EditorTab *Owner):
+        RemoteConsoleObserver(InsiderApi::MessageTypes::GetScriptCode),
+        m_Owner(Owner) {
+    }
 
-	virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
-		auto info = buffer.Alloc<InsiderApi::PayLoad_GetScriptCode>();
-		std::string s = m_Owner->GetName().toUtf8().constData();
-		info->NameLength = (InsiderApi::u16)s.length();
-		buffer.PushString(s);
-	};
+    virtual void BuildMessage(InsiderApi::InsiderMessageBuffer &buffer) override {
+        auto info = buffer.Alloc<InsiderApi::PayLoad_GetScriptCode>();
+        std::string s = m_Owner->GetName().toUtf8().constData();
+        info->NameLength = (InsiderApi::u16)s.length();
+        buffer.PushString(s);
+    };
 
-	HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
-		auto *hdr = message.GetAndPull<InsiderApi::PayLoad_ScriptCode>();
-		auto code = std::string(hdr->Data, hdr->DataLength);
+    HanderStatus Message(InsiderApi::InsiderMessageBuffer &message) override {
+        auto *hdr = message.GetAndPull<InsiderApi::PayLoad_ScriptCode>();
+        auto code = std::string(hdr->Data, hdr->DataLength);
 
-		m_Owner->RequestFinished(this);
-		m_Owner->m_Editor->setPlainText(code.c_str());
-		m_Owner->m_Modiffied = false;
-		m_Owner->m_RecompileTimer->stop();
-		m_Owner->m_RecompileTimer->start();
-		emit m_Owner->StateChanged(m_Owner);
+        m_Owner->RequestFinished(this);
+        m_Owner->m_Editor->setPlainText(code.c_str());
+        m_Owner->m_Modiffied = false;
+        m_Owner->m_RecompileTimer->stop();
+        m_Owner->m_RecompileTimer->start();
+        emit m_Owner->StateChanged(m_Owner);
 
-		return HanderStatus::Remove;
-	};
+        return HanderStatus::Remove;
+    };
 private:
-	EditorTab *m_Owner;
+    EditorTab *m_Owner;
 };
 
 //-----------------------------------------
@@ -80,157 +80,157 @@ private:
 //-----------------------------------------
 
 EditorTab::EditorTab(LuaWindow *Window, QTabWidget *Owner, QWidget* parent, const QString& Name, EditorFileSource source):
-		QWidget(parent),
-		m_Name("NoName.lua"),
-		m_Owner(Owner),
-		m_Window(Window),
-		m_FileSource(source)
+        QWidget(parent),
+        m_Name("NoName.lua"),
+        m_Owner(Owner),
+        m_Window(Window),
+        m_FileSource(source)
 {
-	m_Layout = new QVBoxLayout(this); 
-	m_Layout->setMargin(2);
-	m_Editor = new CodeEditor(this);
-	m_Layout->addWidget(m_Editor);
+    m_Layout = new QVBoxLayout(this); 
+    m_Layout->setMargin(2);
+    m_Editor = new CodeEditor(this);
+    m_Layout->addWidget(m_Editor);
 
 //	m_Editor->setFont(mgdtSettings::get().Editor.GetEditorFont());
-	m_Editor->setContextMenuPolicy(Qt::CustomContextMenu);
-	m_Editor->setWordWrapMode(QTextOption::NoWrap);
+    m_Editor->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_Editor->setWordWrapMode(QTextOption::NoWrap);
     m_Highlighter = new QtLuaHighlighter(m_Editor->document());
 
-	connect(&mgdtSettings::get(), SIGNAL(EditorFontChanged(const QFont &)), SLOT(EditorFontChanged(const QFont &)));
-	connect(m_Editor, SIGNAL(customContextMenuRequested(QPoint)), SLOT(EditorContextMenuRequested(QPoint)));
-	connect(m_Editor, SIGNAL(textChanged()), SLOT(TextChaged()));
+    connect(&mgdtSettings::get(), SIGNAL(EditorFontChanged(const QFont &)), SLOT(EditorFontChanged(const QFont &)));
+    connect(m_Editor, SIGNAL(customContextMenuRequested(QPoint)), SLOT(EditorContextMenuRequested(QPoint)));
+    connect(m_Editor, SIGNAL(textChanged()), SLOT(TextChaged()));
 
 //	EditorFontChanged(mgdtSettings::get().Editor.GetEditorFont());
 
-	m_LuaCompiler = std::make_unique<LuaCompiler>();
-	connect(m_LuaCompiler.get(), SIGNAL(CompilationDone(std::shared_ptr<CompilationResult>)), SLOT(SetCodeAdnotations(std::shared_ptr<CompilationResult>)));
+    m_LuaCompiler = std::make_unique<LuaCompiler>();
+    connect(m_LuaCompiler.get(), SIGNAL(CompilationDone(std::shared_ptr<CompilationResult>)), SLOT(SetCodeAdnotations(std::shared_ptr<CompilationResult>)));
 
-	m_RecompileTimer = std::make_unique<QTimer>();
-	m_RecompileTimer->setInterval(10 * 1000);
-	m_RecompileTimer->setSingleShot(true);
-	connect(m_RecompileTimer.get(), SIGNAL(timeout()), SLOT(Validate()));
+    m_RecompileTimer = std::make_unique<QTimer>();
+    m_RecompileTimer->setInterval(10 * 1000);
+    m_RecompileTimer->setSingleShot(true);
+    connect(m_RecompileTimer.get(), SIGNAL(timeout()), SLOT(Validate()));
 
-	m_Modiffied = false;
+    m_Modiffied = false;
 
-	switch (source) {
-	case EditorFileSource::DummyFile:
-	case EditorFileSource::RawFile:{
-		QFileInfo info(Name);
-		if (info.isFile() && info.exists()) {
-			m_FileSource = EditorFileSource::RawFile;
-			m_Name = Name;
-		}
-		else {
-			m_FileSource = EditorFileSource::DummyFile;
-		}
-		break;
-	}
-	case EditorFileSource::Engine:
-		m_Name = Name;
-		break;
-	default:
-		assert(false);
-		break;
-	}
-	DoOpen();
+    switch (source) {
+    case EditorFileSource::DummyFile:
+    case EditorFileSource::RawFile:{
+        QFileInfo info(Name);
+        if (info.isFile() && info.exists()) {
+            m_FileSource = EditorFileSource::RawFile;
+            m_Name = Name;
+        }
+        else {
+            m_FileSource = EditorFileSource::DummyFile;
+        }
+        break;
+    }
+    case EditorFileSource::Engine:
+        m_Name = Name;
+        break;
+    default:
+        assert(false);
+        break;
+    }
+    DoOpen();
 }
 
 EditorTab::~EditorTab() {
-	delete m_Highlighter;
-	delete m_Editor;
-	delete m_Layout;
+    delete m_Highlighter;
+    delete m_Editor;
+    delete m_Layout;
 }
 
 //-----------------------------------------
 
 bool EditorTab::IsTextSelected() const { 
-	return m_Editor->textCursor().hasSelection();
+    return m_Editor->textCursor().hasSelection();
 }
 
 bool EditorTab::IsChanged() const {
-	return m_Modiffied;
+    return m_Modiffied;
 }
 
 //-----------------------------------------
 
 QString EditorTab::GetDisplayName() {
-	return QFileInfo(m_Name).baseName();
+    return QFileInfo(m_Name).baseName();
 }
 
 QString EditorTab::GetCode() const {
-	return m_Editor->toPlainText();
+    return m_Editor->toPlainText();
 }
 
 void EditorTab::SetCodeAdnotations(std::shared_ptr<CompilationResult> result) {
-	m_Editor->SetCodeAdnotations(result);
+    m_Editor->SetCodeAdnotations(result);
 emit StateChanged(this);
 }
 
 void EditorTab::GetEditorStatusLines(EditorStatusText &status) {
-	m_Editor->GetStatusText(status);
-	if (m_FileSource == EditorFileSource::DummyFile) {
-		EditorStatusLine line;
-		line.Sender = this;
-		line.SourceLine = -1;
-		line.Status = EditorStatusLine::Type::Warning;
-		line.Message = "Script does not have assigned valid filename and cannot be saved!";
-		status.Lines.emplace_back(std::move(line));
-	}
+    m_Editor->GetStatusText(status);
+    if (m_FileSource == EditorFileSource::DummyFile) {
+        EditorStatusLine line;
+        line.Sender = this;
+        line.SourceLine = -1;
+        line.Status = EditorStatusLine::Type::Warning;
+        line.Message = "Script does not have assigned valid filename and cannot be saved!";
+        status.Lines.emplace_back(std::move(line));
+    }
 }
 
 //-----------------------------------------
 
 void EditorTab::Reload() {
-	DoOpen();
+    DoOpen();
 }
 
 void EditorTab::DoOpen() {
-	switch (m_FileSource) {
-	case EditorFileSource::DummyFile:
-		m_Modiffied = false;
-		break;
-	case EditorFileSource::RawFile:
-	{
-		QFile file(m_Name);
-		if (file.open(QFile::ReadOnly | QFile::Text)) {
-			m_Editor->setPlainText(file.readAll());
-			m_Modiffied = false;
-		}
-		break;
-	}
-	case EditorFileSource::Engine:
-		QueueRequest(std::make_shared<LuaLoadRequest>(this));
-		m_Modiffied = false;
-		break;
-	default:
-		assert(false);
-		return;
-	}
-	emit StateChanged(this);
+    switch (m_FileSource) {
+    case EditorFileSource::DummyFile:
+        m_Modiffied = false;
+        break;
+    case EditorFileSource::RawFile:
+    {
+        QFile file(m_Name);
+        if (file.open(QFile::ReadOnly | QFile::Text)) {
+            m_Editor->setPlainText(file.readAll());
+            m_Modiffied = false;
+        }
+        break;
+    }
+    case EditorFileSource::Engine:
+        QueueRequest(std::make_shared<LuaLoadRequest>(this));
+        m_Modiffied = false;
+        break;
+    default:
+        assert(false);
+        return;
+    }
+    emit StateChanged(this);
 }
 
 //-----------------------------------------
 
 void EditorTab::EditorFontChanged(const QFont &font) {
-	m_Editor->setFont(font);
-	const int tabStop = 4;  // 4 characters
+    m_Editor->setFont(font);
+    const int tabStop = 4;  // 4 characters
 
-	QFontMetrics metrics(font);
-	m_Editor->setTabStopWidth(tabStop * metrics.width(' '));
+    QFontMetrics metrics(font);
+    m_Editor->setTabStopWidth(tabStop * metrics.width(' '));
 }
 
 void EditorTab::EditorContextMenuRequested(QPoint p) {
-	emit ContextMenuRequested(this, p);
+    emit ContextMenuRequested(this, p);
 }
 
 void EditorTab::SendText(bool SelectionOnly) {
-	QString s;
-	if (SelectionOnly)
-		s = m_Editor->textCursor().selectedText();
-	else
-		s = m_Editor->toPlainText();
+    QString s;
+    if (SelectionOnly)
+        s = m_Editor->textCursor().selectedText();
+    else
+        s = m_Editor->toPlainText();
 
-	GetRemoteConsole().ExecuteCode(s);
+    GetRemoteConsole().ExecuteCode(s);
 }
 
 void EditorTab::CloseEditor() {
@@ -239,49 +239,49 @@ void EditorTab::CloseEditor() {
 //	auto &recent = mgdtSettings::get().Recent;
 //	recent.RemoveOpenedScript(s);
 
-	m_Owner->removeTab(m_Owner->indexOf(this));
-	delete this;
+    m_Owner->removeTab(m_Owner->indexOf(this));
+    delete this;
 }
 
 void EditorTab::Save() {
-	if (!m_Modiffied)
-		return;
+    if (!m_Modiffied)
+        return;
 
-	switch (m_FileSource) {
-	case EditorFileSource::DummyFile: {
-			QString f = QFileDialog::getSaveFileName(this, "Save file", "NoName.lua", FileFilter_Scripts);
-			if (f.isEmpty())
-				return;
-			f.swap(m_Name);
-			m_FileSource = EditorFileSource::RawFile;
-		}
-	case EditorFileSource::RawFile: {
-		QTextDocumentWriter  writter(m_Name, "plaintext");
-		if (writter.write(m_Editor->document())) {
-			m_Modiffied = false;
-			emit StateChanged(this);
-		}
-		break;
-	}
-	case EditorFileSource::Engine:
-		QueueRequest(std::make_shared<LuaSaveRequest>(this));
-		break;
-	default:
-		break;
-	}
+    switch (m_FileSource) {
+    case EditorFileSource::DummyFile: {
+            QString f = QFileDialog::getSaveFileName(this, "Save file", "NoName.lua", FileFilter_Scripts);
+            if (f.isEmpty())
+                return;
+            f.swap(m_Name);
+            m_FileSource = EditorFileSource::RawFile;
+        }
+    case EditorFileSource::RawFile: {
+        QTextDocumentWriter  writter(m_Name, "plaintext");
+        if (writter.write(m_Editor->document())) {
+            m_Modiffied = false;
+            emit StateChanged(this);
+        }
+        break;
+    }
+    case EditorFileSource::Engine:
+        QueueRequest(std::make_shared<LuaSaveRequest>(this));
+        break;
+    default:
+        break;
+    }
 }
 
 void EditorTab::TextChaged() {
-	bool prev = m_Modiffied;
-	m_Modiffied = true;
+    bool prev = m_Modiffied;
+    m_Modiffied = true;
 
-	m_RecompileTimer->stop();
-	m_RecompileTimer->start();
+    m_RecompileTimer->stop();
+    m_RecompileTimer->start();
 
-	if (!prev)
-		emit StateChanged(this);
+    if (!prev)
+        emit StateChanged(this);
 }
 
 void EditorTab::Validate() {
-	m_LuaCompiler->Compile(m_Editor->toPlainText());
+    m_LuaCompiler->Compile(m_Editor->toPlainText());
 }

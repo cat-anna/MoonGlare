@@ -31,7 +31,14 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPlainTextEdit" name="plainTextEdit"/>
+        <widget class="CodeEditor" name="plainTextEdit">
+         <property name="font">
+          <font>
+           <family>Consolas</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
@@ -54,6 +61,13 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CodeEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>lua/CodeEditor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
