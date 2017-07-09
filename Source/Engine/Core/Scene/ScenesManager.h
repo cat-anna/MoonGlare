@@ -26,21 +26,10 @@ struct SceneDescriptor {
         bool m_AllowMissingResources;
     } m_Flags;
 
-    void DropScene() {
-        AddLogf(Debug, "Dropping scene: %s", m_SID.c_str());
-        m_Flags.m_Loaded = false;
-        if (m_Ptr) {
-            m_Ptr->Finalize();
-            m_Ptr.reset();
-        }
-    }
+    void DropScene();
 
-    SceneDescriptor() : m_Ptr() {
-        memset(&m_Flags, 0, sizeof(m_Flags));
-    }
-    ~SceneDescriptor() {
-        DropScene();
-    }
+    SceneDescriptor();
+    ~SceneDescriptor();
 
     SceneDescriptor(const SceneDescriptor&) = delete;
     SceneDescriptor& operator=(const SceneDescriptor&) = delete;
@@ -74,6 +63,12 @@ public:
     ciScene* CurrentScene() const { return m_CurrentScene; }
     void ChangeScene();
 
+    double GetSceneTime() const {
+        if (!m_CurrentScene)
+            return 0.0;
+        return std::chrono::duration<double>(std::chrono::steady_clock::now() - sceneStartTime).count();
+    }
+
 //later
     //preload scene => takes sid and prepares scene; SwitchToScene shall be instant
 
@@ -86,6 +81,7 @@ protected:
     using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;
 
     ciScene *m_CurrentScene = nullptr;
+    std::chrono::steady_clock::time_point sceneStartTime;
     SceneDescriptor *m_CurrentSceneDescriptor = nullptr;
     SceneDescriptor *m_NextSceneDescriptor = nullptr;
     SceneDescriptor *m_LoadingSceneDescriptor = nullptr;

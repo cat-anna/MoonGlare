@@ -15,6 +15,26 @@
 
 namespace MoonGlare::Core::Scene {
 
+SceneDescriptor::SceneDescriptor() : m_Ptr() {
+    memset(&m_Flags, 0, sizeof(m_Flags));
+}
+
+SceneDescriptor::~SceneDescriptor() {
+    DropScene();
+}
+
+void SceneDescriptor::DropScene() {
+    AddLogf(Debug, "Dropping scene: %s", m_SID.c_str());
+    m_Flags.m_Loaded = false;
+    if (m_Ptr) {
+        m_Ptr->Finalize();
+        m_Ptr.reset();
+    }
+}
+
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+
 SPACERTTI_IMPLEMENT_STATIC_CLASS(ScenesManager)
 RegisterApiBaseClass(ScenesManager, &ScenesManager::RegisterScriptApi);
 ScenesManager* GetScenesManager() { return GetEngine()->GetWorld()->GetScenesManager(); }
@@ -141,6 +161,7 @@ void ScenesManager::ChangeScene() {
     m_CurrentScene = m_NextSceneDescriptor->m_Ptr.get();
     m_CurrentSceneDescriptor = m_NextSceneDescriptor;
     m_NextSceneDescriptor = nullptr;
+    sceneStartTime = std::chrono::steady_clock::now();
 
     if (m_CurrentScene) {
         m_CurrentScene->BeginScene();

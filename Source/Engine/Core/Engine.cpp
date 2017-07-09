@@ -86,10 +86,7 @@ void Engine::PostSystemInit() {
 void Engine::ScriptApi(ApiInitializer &root){
     root
     .deriveClass<ThisClass, BaseClass>("cEngine")
-        .addFunction("GetFrameRate", &ThisClass::GetFrameRate)
         .addFunction("GetInfoString", Utils::Template::InstancedStaticCall<ThisClass, string>::get<&ThisClass::GetVersionString>())
-
-//		.addFunction("CaptureScreenShot", &ThisClass::CaptureScreenShot)
 
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("SetFrameRate", &ThisClass::SetFrameRate)
@@ -121,13 +118,13 @@ void Engine::EngineMain() {
     auto Device = m_Renderer->GetDevice();
     auto Ctx = m_Renderer->GetContextImpl();
 
-    MoveConfig conf;
+    MoveConfig &conf = stepData;
     conf.deferredSink = m_Dereferred->GetDefferedSink();
     conf.m_ScreenSize = Ctx->GetSizef();
 
     using clock = std::chrono::steady_clock;
     auto tdiff = [](clock::time_point t1, clock::time_point t2) {
-        return std::chrono::duration<float>(t2 - t1).count();
+        return std::chrono::duration<double>(t2 - t1).count();
     };
 
     DebugLog(Debug, "Engine initialized. Waiting for scene to be ready.");
@@ -139,17 +136,18 @@ void Engine::EngineMain() {
     DebugLog(Debug, "Scene became ready. Starting main loop.");
 
     unsigned FrameCounter = 0;
-    clock::time_point LastFrame = clock::now();
-    clock::time_point BeginTime = LastFrame;
-    clock::time_point CurrentTime = LastFrame;
-    clock::time_point LastMoveTime = LastFrame;
-    clock::time_point TitleRefresh = LastFrame;
+    clock::time_point EntryTime = clock::now();
+    clock::time_point LastFrame = EntryTime;
+    clock::time_point BeginTime = EntryTime;
+    clock::time_point CurrentTime = EntryTime;
+    clock::time_point LastMoveTime = EntryTime;
+    clock::time_point TitleRefresh = EntryTime;
 
     Ctx->SetVisible(true);
 
     while (m_Running) {
         CurrentTime = clock::now();
-        float FrameTimeDelta = tdiff(LastFrame, CurrentTime);
+        double FrameTimeDelta = tdiff(LastFrame, CurrentTime);
         if (FrameTimeDelta < m_FrameTimeSlice) 
             continue;
         if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f) 
@@ -169,6 +167,7 @@ void Engine::EngineMain() {
         {
             conf.deferredSink->Reset(conf);
             conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
+            conf.globalTime = tdiff(EntryTime, CurrentTime);
             Ctx->Process();
             GetScriptEngine()->Step(conf);
             GetWorld()->Step(conf);
@@ -208,7 +207,7 @@ void Engine::EngineMain() {
             TitleRefresh = CurrentTime;
             m_LastFPS = FrameCounter;
             FrameCounter = 0;
-            float sum = tdiff(StartTime, EndTime);
+            double sum = tdiff(StartTime, EndTime);
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
                 sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.2f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",

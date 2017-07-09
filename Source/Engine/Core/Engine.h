@@ -17,12 +17,9 @@ public:
 
     void EngineMain();
 
-    /** Add action which has to be called between engine steps */
     template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
 
-    /** Abort engine execution. Throws exception. No cleanup is done. */
     void Abort();
-    /** Proper way to exit. Graceful engine exit. Engine smoothly finishes execution. */
     void Exit();
 
     static void ScriptApi(ApiInitializer &root);
@@ -33,6 +30,8 @@ public:
     static string GetVersionString();
 
     World* GetWorld() { return m_World; }
+
+    const MoveConfig& StepData() const { return stepData; }
 protected:
     Space::ActionQueue m_ActionQueue;
 
@@ -45,6 +44,8 @@ protected:
     float m_FrameTimeSlice;		
     unsigned m_LastFPS;			
     unsigned m_SkippedFrames;	
+
+    MoveConfig stepData;
 };
 
 inline Engine* GetEngine() { return Engine::Instance(); }

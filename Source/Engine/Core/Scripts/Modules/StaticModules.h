@@ -7,6 +7,7 @@ struct StaticModules {
     static void InitMath(lua_State *lua, World *world);
     static void InitRandom(lua_State *lua, World *world);
     static void InitApplication(lua_State *lua, World *world);
+    static void InitTime(lua_State *lua, World *world);
 };
 
 }              

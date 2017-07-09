@@ -30,7 +30,9 @@ const Version::Info& GetMoonGlareEngineVersion();
 class TextProcessor;
 
 struct MoveConfig { 
-    float TimeDelta;
+    double TimeDelta = 0.0f;
+    double globalTime = 0.0f;
+
 
     emath::fvec2 m_ScreenSize;
 

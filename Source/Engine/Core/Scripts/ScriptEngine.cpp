@@ -152,10 +152,10 @@ bool ScriptEngine::ConstructLuaContext() {
 
     try {
         Modules::StaticModules::InitApplication(m_Lua, m_world);
-
         Modules::StaticModules::InitPrint(m_Lua, m_world);
         Modules::StaticModules::InitMath(m_Lua, m_world);
         Modules::StaticModules::InitRandom(m_Lua, m_world);
+        Modules::StaticModules::InitTime(m_Lua, m_world);
 
         InstallModule<Modules::LuaRequireModule, iRequireModule>();
         InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
