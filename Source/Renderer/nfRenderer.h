@@ -54,6 +54,7 @@ struct ContextCreationInfo {
     int32_t m_Monitor = -1;
     bool m_FullScreen = false;
     const char *m_Title = "";
+    bool visible = true;
 };
 
 namespace Commands {

@@ -88,6 +88,14 @@ unsigned Context::GetRefreshRate() const {
     return glfwGetVideoMode(monitor)->refreshRate;
 }
 
+void Context::SetVisible(bool value) {
+    if(value)
+        glfwShowWindow(m_Window);
+    else
+        glfwHideWindow(m_Window);
+}
+
+
 //----------------------------------------------------------------------------------
 
 bool Context::s_GLFWInitialized = false;
@@ -262,6 +270,8 @@ bool Context::CreateWindow(ContextCreationInfo ctxifo) {
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
     //glfwWindowHint(GLFW_SRGB_CAPABLE, GL_FALSE);
+
+    glfwWindowHint(GLFW_VISIBLE, ctxifo.visible ? GLFW_TRUE : GLFW_FALSE);
 
     GLFWmonitor *monitor = nullptr;
 

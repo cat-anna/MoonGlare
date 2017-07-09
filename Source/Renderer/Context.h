@@ -45,6 +45,8 @@ public:
     void SetPosition(const emath::ivec2 &pos) override ;
     void SetTitle(const char* Title) override;
     unsigned GetRefreshRate() const override;
+    void SetVisible(bool value) override;
+
 
     void MakeCurrent();
     void Flush();

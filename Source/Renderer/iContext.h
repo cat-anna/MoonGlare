@@ -22,6 +22,7 @@ public:
 
     virtual void SetPosition(const emath::ivec2 &pos) = 0;
     virtual void SetTitle(const char* Title) = 0;
+    virtual void SetVisible(bool value) = 0;
 };
 
 } //namespace MoonGlare::Renderer

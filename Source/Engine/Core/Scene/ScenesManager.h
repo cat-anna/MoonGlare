@@ -71,6 +71,9 @@ public:
         return m_CurrentSceneDescriptor->m_SID;
     }
 
+    ciScene* CurrentScene() const { return m_CurrentScene; }
+    void ChangeScene();
+
 //later
     //preload scene => takes sid and prepares scene; SwitchToScene shall be instant
 
@@ -101,7 +104,6 @@ protected:
     bool SetNextSceneDescriptor(SceneDescriptor *descriptor);	// set scene as next
 
     void ProcessPreviousScene(SceneDescriptor *descriptor);
-    void ChangeScene();
     
     /** Manager shall be already locked */
     SceneDescriptor* FindDescriptor(const std::string &SID);

@@ -145,6 +145,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->SetConfiguration(&m_Configuration->m_Renderer);
+    m_Configuration->m_Display.visible = false;
     if (!m_Renderer->Initialize(m_Configuration->m_Display, m_AssetManager.get())) {
         AddLogf(Error, "Unable to initialize renderer");
         throw "Unable to initialize renderer";

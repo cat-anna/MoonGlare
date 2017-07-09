@@ -118,7 +118,8 @@ bool ScenesManager::PreSystemShutdown() {
 //----------------------------------------------------------------------------------
 
 void ScenesManager::ChangeScene() {
-    MoonGlareAssert(m_NextSceneDescriptor)
+    if (!m_NextSceneDescriptor)
+        return;
 
     if (m_CurrentScene) {
         if (!m_NextSceneDescriptor->m_Flags.m_AllowMissingResources) {

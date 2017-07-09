@@ -4,6 +4,7 @@
 #include "Engine.h"
 #include "iConsole.h"
 #include "iSoundEngine.h"
+#include "Scene/ScenesManager.h"
 
 #include <Renderer/Dereferred/DereferredPipeline.h>
 
@@ -129,12 +130,22 @@ void Engine::EngineMain() {
         return std::chrono::duration<float>(t2 - t1).count();
     };
 
+    DebugLog(Debug, "Engine initialized. Waiting for scene to be ready.");
+    while (!m_World->GetScenesManager()->CurrentScene()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        m_World->GetScenesManager()->ChangeScene();
+        Ctx->Process();
+    }
+    DebugLog(Debug, "Scene became ready. Starting main loop.");
+
     unsigned FrameCounter = 0;
     clock::time_point LastFrame = clock::now();
     clock::time_point BeginTime = LastFrame;
     clock::time_point CurrentTime = LastFrame;
     clock::time_point LastMoveTime = LastFrame;
     clock::time_point TitleRefresh = LastFrame;
+
+    Ctx->SetVisible(true);
 
     while (m_Running) {
         CurrentTime = clock::now();
