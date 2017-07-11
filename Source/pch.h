@@ -80,7 +80,6 @@ class cRootClass;
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
 #include "Utils/StringUtils.h"
-#include "Version.h"
 #include "Utils/TemplateUtils.h"
 #include "MathConstants.h"
 #include "xMath.h"

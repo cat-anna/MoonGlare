@@ -17,9 +17,13 @@
 namespace MoonGlare {
 namespace Core {
 
+const char *VersionString = "0.1.0 build 512";
+const char *ApplicationName = "MoonGlare engine";
+const char *CompilationDate = __DATE__ " at " __TIME__;
+
+//----------------------------------------------------------------------------------
+
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
-RegisterApiDerivedClass(Engine, &Engine::ScriptApi);
-RegisterApiInstance(Engine, &Engine::Instance, "Engine");
 
 Engine::Engine(World *world) :
         cRootClass(),
@@ -83,20 +87,6 @@ void Engine::PostSystemInit() {
 
 //----------------------------------------------------------------------------------
 
-void Engine::ScriptApi(ApiInitializer &root){
-    root
-    .deriveClass<ThisClass, BaseClass>("cEngine")
-        .addFunction("GetInfoString", Utils::Template::InstancedStaticCall<ThisClass, string>::get<&ThisClass::GetVersionString>())
-
-#ifdef DEBUG_SCRIPTAPI
-        .addFunction("SetFrameRate", &ThisClass::SetFrameRate)
-#endif
-    .endClass()
-    ;
-}
-
-//----------------------------------------------------------------------------------
-
 void Engine::Exit() {
     m_Running = false;
 }
@@ -147,6 +137,7 @@ void Engine::EngineMain() {
 
     while (m_Running) {
         CurrentTime = clock::now();
+
         double FrameTimeDelta = tdiff(LastFrame, CurrentTime);
         if (FrameTimeDelta < m_FrameTimeSlice) 
             continue;
@@ -154,6 +145,7 @@ void Engine::EngineMain() {
             ++m_SkippedFrames;
 
         LastFrame = CurrentTime;
+        conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
 
         m_ActionQueue.DispatchPendingActions();
 
@@ -202,7 +194,6 @@ void Engine::EngineMain() {
         auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
 
-        conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
         if(conf.m_SecondPeriod) {
             TitleRefresh = CurrentTime;
             m_LastFPS = FrameCounter;
@@ -241,19 +232,6 @@ void Engine::SetFrameRate(float value) {
 }
 
 //----------------------------------------------------------------------------------
-
-string Engine::GetVersionString() {    
-#ifdef DEBUG
-    return ::MoonGlare::Core::GetMoonGlareEngineVersion().VersionStringFull();
-#else
-    return ::MoonGlare::Core::GetMoonGlareEngineVersion().VersionString();
-#endif
-}
-
-const Version::Info& GetMoonGlareEngineVersion() {
-    static const Version::Info MoonGlareEngineVersion{ 0, 1, 512, __DATE__ " at " __TIME__ };
-    return MoonGlareEngineVersion;
-}
 
 } //namespace Core
 } //namespace MoonGlare

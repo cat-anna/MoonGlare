@@ -328,7 +328,7 @@ bool Insider::InfoRequest(InsiderMessageBuffer& buffer) {
 	buffer.Clear();
 	auto *info = buffer.Alloc<PayLoad_InfoResponse>();
 
-	string ver = Core::GetMoonGlareEngineVersion().VersionString();
+    string ver = Core::VersionString;
 
 	info->VersionLength = (u16)ver.length();
 	buffer.PushString(ver);
@@ -337,8 +337,8 @@ bool Insider::InfoRequest(InsiderMessageBuffer& buffer) {
 	info->ExeNameLength = (u16)strlen(exen);
 	buffer.PushString(exen);
 
-	info->BuildDateLength = (u16)strlen(Core::GetMoonGlareEngineVersion().BuildDate);
-	buffer.PushString(Core::GetMoonGlareEngineVersion().BuildDate);
+	info->BuildDateLength = (u16)strlen(Core::CompilationDate);
+	buffer.PushString(Core::CompilationDate);
 
 	auto *hdr = buffer.GetHeader();
 	hdr->MessageType = MessageTypes::InfoResponse;

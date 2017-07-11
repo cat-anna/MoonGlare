@@ -33,9 +33,9 @@ void StringTable::SetLangCode(std::string code) {
 void StringTable::InitInternalTable() {
     auto &mgt = m_TableMap["MoonGlare"].StringMap;
 
-    mgt["InfoLine"] = Core::GetMoonGlareEngineVersion().VersionStringFull();
-    mgt["BuildDate"] = Core::GetMoonGlareEngineVersion().BuildDate;
-    mgt["Version"] = Core::GetMoonGlareEngineVersion().VersionString();
+    mgt["InfoLine"] = fmt::format("{} {}", Core::ApplicationName, Core::VersionString);
+    mgt["BuildDate"] = Core::CompilationDate;
+    mgt["Version"] = Core::VersionString;
 }
 
 bool StringTable::Load(const string& TableName) {

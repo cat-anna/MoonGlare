@@ -1,12 +1,10 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#pragma once
 
 namespace MoonGlare {
 namespace Core {
 
 class Engine : public cRootClass {
     SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
-    DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
     Engine(World *World);
     ~Engine();
@@ -22,12 +20,8 @@ public:
     void Abort();
     void Exit();
 
-    static void ScriptApi(ApiInitializer &root);
-
     void SetFrameRate(float value);
     unsigned GetFrameRate() const { return m_LastFPS; }
-
-    static string GetVersionString();
 
     World* GetWorld() { return m_World; }
 
@@ -52,5 +46,3 @@ inline Engine* GetEngine() { return Engine::Instance(); }
 
 } //namespace Core
 } //namespace MoonGlare
-
-#endif // ENGINE_H

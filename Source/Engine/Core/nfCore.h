@@ -25,7 +25,9 @@ namespace Core {
 namespace MoonGlare {
 namespace Core {
 
-const Version::Info& GetMoonGlareEngineVersion();
+extern const char *VersionString;
+extern const char *ApplicationName;
+extern const char *CompilationDate;
 
 class TextProcessor;
 
