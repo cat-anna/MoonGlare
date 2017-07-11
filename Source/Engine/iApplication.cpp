@@ -110,11 +110,10 @@ using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
 void iApplication::Initialize() {
-    auto ModManager = new ModulesManager();
+    m_World = std::make_unique<World>();
+    auto ModManager = new ModulesManager(m_World.get());
 
     LoadSettings();
-
-    m_World = std::make_unique<World>();
 
     if (!PreSystemInit()) {
         AddLogf(Error, "Pre system init action failed!");

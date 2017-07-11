@@ -9,6 +9,7 @@
 #include "ModuleManager.h"
 
 #include "iModule.h"
+#include <Core/Engine.h>
 
 namespace MoonGlare::Modules {
 
@@ -44,11 +45,11 @@ bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 
 //----------------------------------------------------------------
 
-ModulesManager::ModulesManager() {
+ModulesManager::ModulesManager(World *world) : world(world) {
     SetThisAsInstance();
 
     ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
-        auto mod = item.SharedCreate();
+        auto mod = item.SharedCreate(this->world);
         DebugLog(Hint, fmt::format("Created module of class '{}'", typeid(*mod).name()));
         moduleList.emplace_back(std::move(mod));
     });

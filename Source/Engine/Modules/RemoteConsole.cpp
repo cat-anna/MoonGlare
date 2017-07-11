@@ -21,7 +21,7 @@ namespace MoonGlare::Modules {
 using namespace Debug::InsiderApi;
 
 struct RemoteConsoleModule : public iModule {
-    RemoteConsoleModule()  {
+    RemoteConsoleModule(World *world) : iModule(world) {
         m_Settings.ResetToDefault();
     }
 

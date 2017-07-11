@@ -70,7 +70,7 @@ public:
 
     bool IsHandleValid(HandleType &h) const;
 
-    auto& GetMeshes(HandleType h) {
+    const auto& GetMeshes(HandleType h) {
         if (!IsHandleValid(h)) {
             //TODO
             __debugbreak();
@@ -78,7 +78,7 @@ public:
         }
         return subMesh[h.index];
     }
-    auto& GetMaterials(HandleType h) {
+    const auto& GetMaterials(HandleType h) {
         if (!IsHandleValid(h)) {
             //TODO
             __debugbreak();
@@ -86,7 +86,23 @@ public:
         }
         return materialHandle[h.index];
     }
+    const auto &GetMeshData(HandleType h) {
+        if (!IsHandleValid(h)) {
+            //TODO
+            __debugbreak();
+            throw false;
+        }
+        return meshData[h.index];
+    }
 
+    void SetMeshData(HandleType h, MeshData data) {
+        if (!IsHandleValid(h)) {
+            //TODO
+            __debugbreak();
+            throw false;
+        }
+        meshData[h.index] = std::move(data);
+    }
 private:
     template<typename T>
     using Array = std::array<T, Conf::Limit>;

@@ -46,13 +46,11 @@ private:
 class ModulesManager : public cRootClass, public iModuleManager {
 	SPACERTTI_DECLARE_CLASS_SINGLETON(ModulesManager, cRootClass);
 public:
- 	ModulesManager();
+ 	ModulesManager(World *world);
  	virtual ~ModulesManager();
 
 	void LoadSettings(const pugi::xml_node node) override;
 	void SaveSettings(pugi::xml_node node) const override;
-
-
 
 	using ModuleInfoList = std::vector < ModuleInfo* >;
 
@@ -67,6 +65,7 @@ public:
 	const ModuleInfoList* GetModuleList() const;
 private:
     std::vector<std::shared_ptr<iModule>> moduleList;
+    World *world = nullptr;
 };
 
 } //namespace Modules 
