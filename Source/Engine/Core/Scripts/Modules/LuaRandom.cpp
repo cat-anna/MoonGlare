@@ -5,92 +5,65 @@
 #include "StaticModules.h"
 
 namespace MoonGlare::Core::Scripts::Modules {
-       
-int randomi(int rmin, int rmax) {
-    int d = rmax - rmin + 1;
-    int r = (rand() % d) + rmin;
-    // AddLog("random: " << rmin << "   " << r << "    " << rmax);
-    return r;
-}
 
-int RandRange(int rmin, int rmax) {
-    int d = rmax - rmin + 1;
-    int r = (rand() % d) + rmin;
-    // AddLog("random: " << rmin << "   " << r << "    " << rmax);
-    return r;
-}
+struct RandomObject {
+    RandomObject() : mt(std::random_device()()) { }
+    void SetSeed(int value) { mt.seed(value); }
+    void Randomize() { mt.seed(std::random_device()()); }
 
-float randomf(float rmin, float rmax) {
-    float d = rmax - rmin;
-    float r = (rand() % static_cast<int>(d)) + rmin;
-    // AddLog("random: " << rmin << "   " << r << "    " << rmax);
-    return r;
-}
+    bool nextBool() { return boolDist(mt); }
+    double nextDouble() { return realDist(mt); }
+    double nextDoubleRange(double a, double b) { 
+        std::uniform_real_distribution<double> d{ a, b };
+        return d(mt);
+    }
+    double nextGaussian() { return normalDist(mt); }
+    int nextInt() { return intDist(mt); }
+    int nextIntRange(int a, int b) { 
+        std::uniform_int_distribution<int> d(a, b);
+        return d(mt); 
+    }
 
-std::random_device _RandomDevice;
-std::mt19937 _PseudoRandom(_RandomDevice());
+    std::mt19937 mt;
+    std::uniform_real_distribution<double> realDist{ 0.0, 1.0 };
+    std::uniform_int_distribution<int> intDist{ std::numeric_limits<int>::min(), std::numeric_limits<int>::max() };
+    std::normal_distribution<double> normalDist{0, 1};
+    std::bernoulli_distribution boolDist{ 0.5 };
+
+    static RandomObject Create() { return {}; }
+};
+
+static RandomObject randomDevice;
 
 void RandomNamespace(lua_State *lua) {
-    struct T {
-        static void Seed(int seed) {
-            _PseudoRandom = std::mt19937(seed);
-        }		
-        static void Randomize() {
-            _PseudoRandom = std::mt19937(_RandomDevice());
-        }
-
-        static int UniformRange(int min, int max) {
-            std::uniform_int_distribution<int> generator(min, max);
-            return generator(_PseudoRandom);
-        }
-        //static int NormalRange(int min, int max) {
-            //std::normal_distribution<int> generator(min, max);
-            //return generator(_PseudoRandom);
-        //}
-
-        static lua_Number UniformFloat() {
-            std::uniform_real_distribution<lua_Number> generator;
-            return generator(_PseudoRandom);
-        }
-        static lua_Number NormalFloat() {   //gaussian
-            std::normal_distribution<lua_Number> generator(0, 1);
-            return generator(_PseudoRandom);
-        }
-
-        static bool Boolean() {
-            std::bernoulli_distribution dist;
-            return dist(_PseudoRandom);
-        }
-    };
-
     luabridge::getGlobalNamespace(lua)
-    .beginNamespace("random")
+        .beginNamespace("Random")
+            .addObjectFunction("nextBool", &randomDevice, &RandomObject::nextBool)
+            .addObjectFunction("nextFloat", &randomDevice, &RandomObject::nextDouble)
+            .addObjectFunction("nextFloatRange", &randomDevice, &RandomObject::nextDoubleRange)
+            .addObjectFunction("nextGaussian", &randomDevice, &RandomObject::nextGaussian)
+            .addObjectFunction("nextInt", &randomDevice, &RandomObject::nextInt)
+            .addObjectFunction("nextIntRange", &randomDevice, &RandomObject::nextIntRange)
 
-    .addFunction("random", &randomi)
-    .addFunction("RandRange", &randomi)
+            .addObjectFunction("SetSeed", &randomDevice, &RandomObject::SetSeed)
+            .addObjectFunction("Randomize", &randomDevice, &RandomObject::Randomize)
 
-    .addFunction("Seed", &T::Seed)
-    .addFunction("Randomize", &T::Randomize)
+            .addFunction("New", &RandomObject::Create)
+        .endNamespace()
+        .beginNamespace("api")
+            .beginClass<RandomObject>("cRandomObject")
+                .addFunction("nextBool", &RandomObject::nextBool)
+                .addFunction("nextDouble", &RandomObject::nextDouble)
+                .addFunction("nextDoubleRange", &RandomObject::nextDoubleRange)
+                .addFunction("nextGaussian", &RandomObject::nextGaussian)
+                .addFunction("nextInt", &RandomObject::nextInt)
+                .addFunction("nextIntRange", &RandomObject::nextIntRange)
 
-    .addFunction("UniformRange", &T::UniformRange)
-    //.addFunction("NormalRange", &T::NormalRange)
-
-    .addFunction("UniformFloat", &T::UniformFloat)
-    .addFunction("NormalFloat", &T::NormalFloat)
-
-    .addFunction("Boolean", &T::Boolean)
-
-    //.addFunction("randomf", &randomf)
-    //.addFunction("vec4", &T::MakeVec4)
-    //.addFunction("vec2", &T::MakeVec2)
-    //.beginClass<math::vec3>("vec3")
-    //	.addConstructor<void(*)(float, float, float)>()
-    //	.addData("x", &math::vec3::x)
-    //	.addData("y", &math::vec3::y)
-    //	.addData("z", &math::vec3::z)
-    //	.addFunction("length", &math::vec3::length)
-    //.endClass()
-    ;
+                .addFunction("SetSeed", &RandomObject::SetSeed)
+                .addFunction("Randomize", &RandomObject::Randomize)
+            .endClass()
+        .endNamespace()
+        ;
 }
 
 void StaticModules::InitRandom(lua_State *lua, World *world) {
