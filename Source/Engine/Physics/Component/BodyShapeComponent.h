@@ -20,6 +20,16 @@ namespace Component {
 using namespace ::MoonGlare::Core::Component;
 using namespace ::Physics;
 
+enum class ColliderType : uint8_t {
+    Unknown,
+    Box,
+    Sphere,
+    ConvexMesh,
+    TriangleMesh,
+    Capsule,
+    Cylinder,
+};
+
 struct BodyShapeComponentEntry {
     union FlagsMap {
         struct MapBits_t {
@@ -39,18 +49,25 @@ struct BodyShapeComponentEntry {
     FlagsMap m_Flags;
     Handle m_BodyHandle;
     BodyComponent *m_BodyComponent;
+    BodyShapeComponent *shapeComponent;
     std::unique_ptr<btCollisionShape> m_Shape;
+    std::unique_ptr<btTriangleIndexVertexArray> meshInterface;
 
     bool SetShapeInternal(std::unique_ptr<btCollisionShape> shape);
     void SetShape(btCollisionShape *shape);
     void SetSphere(float Radius);
     void SetBox(const math::vec3 & size);
-};
+
+    void SetTriangleMesh(Renderer::MeshResourceHandle h);
+    void SetConvexMesh(Renderer::MeshResourceHandle h);
+};                
 
 class BodyShapeComponent
     : public AbstractComponent
     , public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
-public:
+public:                    
+    friend struct BodyShapeComponentEntry;
+
     BodyShapeComponent(Core::Component::ComponentManager *Owner);
     virtual ~BodyShapeComponent();
 
@@ -90,8 +107,8 @@ protected:
 
     bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
 
-    std::unique_ptr<btCollisionShape> LoadByName(const std::string &name, xml_node node);
-    std::unique_ptr<btCollisionShape> LoadShape(xml_node node);
+    std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadByName(const std::string &name, xml_node node);
+    std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadShape(xml_node node);
 };
 
 } //namespace Component 

@@ -18,9 +18,41 @@
 #include <Math.x2c.h>
 #include <BodyShapeComponent.x2c.h>
 
+
+#include <Renderer/Renderer.h>
+#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/MeshResource.h>
+
 namespace MoonGlare {
 namespace Physics {
 namespace Component {
+
+struct TriangleMeshProxy : public btTriangleIndexVertexArray {
+    TriangleMeshProxy(const Renderer::Resources::MeshData &data) : mesh(data){
+        btIndexedMesh meshIndex;
+        meshIndex.m_numTriangles = 0;
+        meshIndex.m_numVertices = 0;
+        meshIndex.m_indexType = PHY_INTEGER;
+        meshIndex.m_triangleIndexBase = 0;
+        meshIndex.m_triangleIndexStride = 3 * sizeof(int);
+        meshIndex.m_vertexBase = 0;
+        meshIndex.m_vertexStride = sizeof(mesh.verticles[0]);
+        m_indexedMeshes.push_back(meshIndex);
+
+        m_indexedMeshes[0].m_numTriangles = mesh.index.size() / 3;
+        m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*)&mesh.index[0];
+        m_indexedMeshes[0].m_indexType = PHY_INTEGER;
+        m_indexedMeshes[0].m_triangleIndexStride = sizeof(mesh.index[0]) * 3;
+
+        m_indexedMeshes[0].m_numVertices = mesh.verticles.size();
+        m_indexedMeshes[0].m_vertexBase = (unsigned char*)&mesh.verticles[0];
+        m_indexedMeshes[0].m_vertexStride = sizeof(mesh.verticles[0]);
+    }
+private:
+    const Renderer::Resources::MeshData &mesh;
+};
+
+//---------------------------------------------------------------------------------------
 
 ::Space::RTTI::TypeInfoInitializer<BodyShapeComponent, BodyShapeComponentEntry> BodyShapeComponentTypeInfo;
 Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", true, &BodyShapeComponent::RegisterScriptApi);
@@ -51,8 +83,11 @@ void BodyShapeComponent::RegisterScriptApi(ApiInitializer &root) {
         .endClass()
         .beginClass<BodyShapeComponentEntry>("cBodyShapeComponentEntry")
             .addFunction("SetShape", &BodyShapeComponentEntry::SetShape)
-            .addFunction("SetSphere", &BodyShapeComponentEntry::SetSphere)
-            .addFunction("SetBox", &BodyShapeComponentEntry::SetBox)
+
+            .addFunction("SetTriangleMesh", &BodyShapeComponentEntry::SetTriangleMesh)
+            .addFunction("SetConvexMesh", &BodyShapeComponentEntry::SetConvexMesh)
+            //.addFunction("SetSphere", &BodyShapeComponentEntry::SetSphere)
+            //.addFunction("SetBox", &BodyShapeComponentEntry::SetBox)
         .endClass()
         ;
 }
@@ -120,18 +155,19 @@ bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexo
     }
 
     entry.m_BodyComponent = m_BodyComponent;
+    entry.shapeComponent = this;
 
     m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
 
     return true;
 }
 
-std::unique_ptr<btCollisionShape> BodyShapeComponent::LoadByName(const std::string &name, xml_node node) {
+std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::LoadByName(const std::string &name, xml_node node) {
     switch (Space::Utils::MakeHash32(name.c_str())) {
     case "Box"_Hash32:
-        return std::make_unique<btBoxShape>(btVector3{ 1,1,1 });// convert(bbs.m_Size) / 2.0f);
+        return { std::make_unique<btBoxShape>(btVector3{ 1,1,1 }), ColliderType::Box};// convert(bbs.m_Size) / 2.0f);
     case "Sphere"_Hash32:
-        return std::make_unique<btSphereShape>(1);
+        return { std::make_unique<btSphereShape>(1), ColliderType::Sphere };
     case "Capsule"_Hash32:
     case "CapsuleY"_Hash32:
     {
@@ -139,8 +175,7 @@ std::unique_ptr<btCollisionShape> BodyShapeComponent::LoadByName(const std::stri
         cbs.ResetToDefault();
         if (!cbs.Read(node))
             break;
-        return std::make_unique<btCapsuleShape>(cbs.radius, cbs.height);
-        break;
+        return { std::make_unique<btCapsuleShape>(cbs.radius, cbs.height), ColliderType::Capsule };
     }
     //case "Cylinder"_Hash32:
     //case "CylinderY"_Hash32:
@@ -156,34 +191,32 @@ std::unique_ptr<btCollisionShape> BodyShapeComponent::LoadByName(const std::stri
     default:
         AddLogf(Error, "Attempt to add BodyShape of unknown type!");
     }
-    return nullptr;
+    return { nullptr , ColliderType::Unknown};
 }
 
-std::unique_ptr<btCollisionShape> BodyShapeComponent::LoadShape(xml_node node) {
+std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::LoadShape(xml_node node) {
     x2c::Component::BodyShapeComponent::ColliderComponent cc;
     cc.ResetToDefault();
-    using x2c::Component::BodyShapeComponent::ColliderType;
     if (!cc.Read(node))
-        return nullptr;
+        return { nullptr , ColliderType::Unknown };
 
     switch (cc.type) {
     case ColliderType::Box:
-        return std::make_unique<btBoxShape>(btVector3{ 1,1,1 });// convert(bbs.m_Size) / 2.0f);
+        return { std::make_unique<btBoxShape>(btVector3{ 1,1,1 }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
     case ColliderType::Capsule:
-        return std::make_unique<btCapsuleShape>(cc.radius, cc.height);
-        break;
+        return { std::make_unique<btCapsuleShape>(cc.radius, cc.height), ColliderType::Capsule };
     //case ColliderType::CapsuleY:
     //    return std::make_unique<btCapsuleShape>(cc.radius, cc.height);
     //case ColliderType::ConvexMesh:
     //    break;
     case ColliderType::Sphere:
-        return std::make_unique<btSphereShape>(1);
-    //case ColliderType::TriangleMesh:
-    //    break;
+        return { std::make_unique<btSphereShape>(1), ColliderType::Sphere };
+    case ColliderType::TriangleMesh:
+        break;
     default:
         break;
     }
-    return nullptr;
+    return { nullptr , ColliderType::Unknown };
 }
 
 bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
@@ -194,7 +227,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     }
 
     auto &entry = m_Array[index];                                 
-    std::unique_ptr<btCollisionShape> shape;
+    std::pair<std::unique_ptr<btCollisionShape>, ColliderType>  shape;
     
     auto ShapeNode = node.child("Shape");
     auto ShapeName = ShapeNode.attribute("Name").as_string(nullptr);
@@ -206,14 +239,16 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     }
 
 
-    if (!shape) {
-        AddLogf(Error, "Failed to create BodyShape!");
-        return false;
-    }
+    //if (!shape.first) {
+    //    AddLogf(Error, "Failed to create BodyShape!");
+    //    return false;
+    //}
 
     entry.m_Flags.m_Map.m_Valid = true;
     //entry.
-    entry.SetShapeInternal(std::move(shape));
+    if (shape.first) {
+        entry.SetShapeInternal(std::move(shape.first));
+    }
     
 //	auto tcEntry = m_TransformComponent->GetEntry(Owner);
 //	if (!tcEntry) {
@@ -293,6 +328,24 @@ void BodyShapeComponentEntry::SetSphere(float Radius) {
 void BodyShapeComponentEntry::SetBox(const math::vec3 & size) {
     SetShapeInternal(std::make_unique<btBoxShape>(convert(size) / 2.0f));
 }
+
+void BodyShapeComponentEntry::SetTriangleMesh(Renderer::MeshResourceHandle h) {
+    auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
+    auto &mm = rf->GetResourceManager()->GetMeshManager();
+    auto &md = mm.GetMeshData(h);
+
+    meshInterface = std::make_unique<TriangleMeshProxy>(md);
+    SetShapeInternal(std::make_unique<btBvhTriangleMeshShape>(meshInterface.get(), false));
+}     
+
+void BodyShapeComponentEntry::SetConvexMesh(Renderer::MeshResourceHandle h) {
+    auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
+    auto &mm = rf->GetResourceManager()->GetMeshManager();
+    auto &md = mm.GetMeshData(h);
+
+    meshInterface.reset();
+    SetShapeInternal(std::make_unique<btConvexHullShape>((float*)&md.verticles[0], md.verticles.size(), sizeof(md.verticles[0])));
+}     
 
 } //namespace Component 
 } //namespace Physics 

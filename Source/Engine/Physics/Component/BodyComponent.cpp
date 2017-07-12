@@ -134,14 +134,16 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = m_TransformComponent->GetCurrentRevision();
-			auto *shape = ((btRigidBody&)body).getCollisionShape();
-            if (shape) {
-                shape->setLocalScaling(tcentry->m_GlobalScale);
-                m_DynamicsWorld->updateSingleAabb(&body);
+            if (item.m_Flags.m_Map.m_HasShape) {
+                auto *shape = ((btRigidBody&)body).getCollisionShape();
+                if (shape) {
+                    shape->setLocalScaling(tcentry->m_GlobalScale);
+                    m_DynamicsWorld->updateSingleAabb(&body);
+                }
             }
 		} else {
 			if (tcentry) {
-				if (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0) {
+				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0)) {
 					if (item.m_Revision != tcentry->m_Revision) {
 						((btRigidBody&) body).setWorldTransform(tcentry->m_LocalTransform);
 						auto *shape = ((btRigidBody&) body).getCollisionShape();
@@ -331,7 +333,7 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	body.setUserIndex(index);
 	body.setUserIndex2(entry.m_Flags.m_Map.m_WantsCollisionEvent ? 1 : 0);
 
-	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
+//	m_DynamicsWorld->addRigidBody(&body);// , (short)entry.m_CollisionMask.Body, (short)entry.m_CollisionMask.Group);
 
 //	entry.m_Flags.m_Map.m_Valid = true;
 //	Physics::vec3 pos;
@@ -362,7 +364,6 @@ bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionS
 	auto &entry = m_Array[index];
 	auto &body = m_BulletRigidBody[index];
 
-	entry.m_Flags.m_Map.m_HasShape = ptr != nullptr;
 	vec3 internia;
 	body.setCollisionShape(ptr);
 	if (ptr) {
@@ -372,11 +373,16 @@ bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionS
 			internia = vec3(0, 0, 0);
 		}
 		body.setMassProps(entry.m_Mass, internia);
-		m_DynamicsWorld->addRigidBody(&body);
+      //  if (!entry.m_Flags.m_Map.m_HasShape) {
+        m_DynamicsWorld->removeRigidBody(&body);
+        m_DynamicsWorld->addRigidBody(&body);
+       // }
 	} else {
 		body.setMassProps(0.0f, internia);
 		m_DynamicsWorld->removeRigidBody(&body);
-	}
+    }
+    entry.m_Revision = 0;
+    entry.m_Flags.m_Map.m_HasShape = ptr != nullptr;
 
 	return true;
 }

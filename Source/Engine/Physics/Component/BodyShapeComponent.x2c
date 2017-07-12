@@ -14,7 +14,9 @@ Structure.new {
 Enum.new {
     name = "ColliderType",
     description = "tbd",
+    location = "::MoonGlare::Physics::Component::ColliderType",
     values = {
+        "Unknown",
         "Box", "Sphere", "ConvexMesh", "TriangleMesh",
         "Capsule", 
        -- "CapsuleY",
