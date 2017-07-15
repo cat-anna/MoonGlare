@@ -9,5 +9,5 @@ void main() {
 	vec3 Normal = texture(NormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
 	FragColor = vec4(Color, 1.0) * CalcDirectionalLight(WorldPos, Normal);
-	FragColor.xyz *= CalcStaticShadow(WorldPos);
+	FragColor.xyz = CalcStaticShadow(WorldPos, FragColor.xyz);
 }
