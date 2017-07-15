@@ -7,7 +7,7 @@ namespace MoonGlare {
 	namespace Configuration {
 
 		using HashID = uint32_t;
-		using RuntimeRevision = uint16_t;
+		using RuntimeRevision = uint32_t; //TODO:unsafe
 
 		struct Entity {
 			enum {
