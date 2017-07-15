@@ -155,6 +155,7 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
     menu.addAction(ICON_16_REFRESH, "Refresh", [this]() {
         m_FileSystem->Reload();
         RefreshFilesystem();
+        RefreshTreeView();
     });
 
     menu.exec(m_Ui->treeView->mapToGlobal(point));
