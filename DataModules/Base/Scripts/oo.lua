@@ -11,6 +11,14 @@ function oo.Inherit(base)
 
     setmetatable(class, base)
 
+    function class.New()
+        local o = setmetatable({}, class)
+        if o.OnCreate then
+            o:OnCreate()
+        end
+        return o
+    end
+
     return class
 end
 

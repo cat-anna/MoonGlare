@@ -167,7 +167,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     case "Box"_Hash32:
         return { std::make_unique<btBoxShape>(btVector3{ 1,1,1 }), ColliderType::Box};// convert(bbs.m_Size) / 2.0f);
     case "Sphere"_Hash32:
-        return { std::make_unique<btSphereShape>(1), ColliderType::Sphere };
+        return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case "Capsule"_Hash32:
     case "CapsuleY"_Hash32:
     {
@@ -210,7 +210,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     //case ColliderType::ConvexMesh:
     //    break;
     case ColliderType::Sphere:
-        return { std::make_unique<btSphereShape>(1), ColliderType::Sphere };
+        return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case ColliderType::TriangleMesh:
         break;
     default:
@@ -332,19 +332,19 @@ void BodyShapeComponentEntry::SetBox(const math::vec3 & size) {
 void BodyShapeComponentEntry::SetTriangleMesh(Renderer::MeshResourceHandle h) {
     auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
     auto &mm = rf->GetResourceManager()->GetMeshManager();
-    auto &md = mm.GetMeshData(h);
+    auto *md = mm.GetMeshData(h);
 
-    meshInterface = std::make_unique<TriangleMeshProxy>(md);
+    meshInterface = std::make_unique<TriangleMeshProxy>(*md);
     SetShapeInternal(std::make_unique<btBvhTriangleMeshShape>(meshInterface.get(), false));
 }     
 
 void BodyShapeComponentEntry::SetConvexMesh(Renderer::MeshResourceHandle h) {
     auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
     auto &mm = rf->GetResourceManager()->GetMeshManager();
-    auto &md = mm.GetMeshData(h);
+    auto *md = mm.GetMeshData(h);
 
     meshInterface.reset();
-    SetShapeInternal(std::make_unique<btConvexHullShape>((float*)&md.verticles[0], md.verticles.size(), sizeof(md.verticles[0])));
+    SetShapeInternal(std::make_unique<btConvexHullShape>((float*)(&md->verticles[0]), md->verticles.size(), sizeof(md->verticles[0])));
 }     
 
 } //namespace Component 

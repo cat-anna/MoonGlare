@@ -70,10 +70,7 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
 		try {
 			if (!TryLoad(Name + "." + shaderfile.m_Ext, shaderfile)) {
 				AddLogf(Warning, "No dedicated file for %s shader %s", shaderfile.m_Name, Name.c_str());
-				if (!TryLoad(Name + ".glsl", shaderfile)) {
-					AddLogf(Warning, "No master file for %s shader %s", shaderfile.m_Name, Name.c_str());
-					continue;
-				}
+				continue;
 			}
 		}
 		catch (Preprocessor::ParseException &) {
