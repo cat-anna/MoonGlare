@@ -48,7 +48,11 @@ static constexpr char InitPrintCode[] = R"===(
 local function dofmt(...)
     local out = { }
     for i,v in ipairs({...}) do
-        out[i] = tostring(v)
+        if v == nil then
+            out[i] = "[NIL]"
+        else        
+            out[i] = tostring(v)
+        end
     end
     return table.concat(out, " ")
 end
