@@ -11,6 +11,7 @@
 namespace MoonGlare::Renderer::Resources {
 
 struct MeshData {
+    //TODO: switch to std::uptr
     std::vector<glm::fvec3> verticles;
     std::vector<glm::fvec2> UV0;
     std::vector<glm::fvec3> normals;
@@ -25,8 +26,6 @@ class
     using ThisClass = MeshManager;
     using Conf = Configuration::Mesh;
     using ConfRes = Configuration::Resources;
-
-   // static constexpr VAOResourceHandle::Index_t GuardValue = 0xDEAD;
 public:
     MeshManager(ResourceManager* Owner);
     ~MeshManager();
@@ -56,6 +55,7 @@ public:
                 &vaoBuffer[h.index][0],
                 &deviceHandle[h.index],
             },
+            *this,
             subMesh[h.index],
             materialHandle[h.index],
             h,
@@ -70,38 +70,44 @@ public:
 
     bool IsHandleValid(HandleType &h) const;
 
-    const auto& GetMeshes(HandleType h) {
-        if (!IsHandleValid(h)) {
+    const Conf::SubMeshArray* GetMeshes(HandleType h) {
+        if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
             //TODO
-            __debugbreak();
-            throw false;
+            return nullptr;
         }
-        return subMesh[h.index];
+        return &subMesh[h.index];
     }
-    const auto& GetMaterials(HandleType h) {
-        if (!IsHandleValid(h)) {
+    const Conf::SubMeshMaterialArray *GetMaterials(HandleType h) {
+        if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
             //TODO
-            __debugbreak();
-            throw false;
+            return nullptr;
         }
-        return materialHandle[h.index];
+        return &materialHandle[h.index];
     }
-    const auto &GetMeshData(HandleType h) {
+    const MeshData *GetMeshData(HandleType h) {
         if (!IsHandleValid(h)) {
             //TODO
-            __debugbreak();
-            throw false;
+            return nullptr;
         }
-        return meshData[h.index];
+        return &meshData[h.index];
     }
 
     void SetMeshData(HandleType h, MeshData data) {
         if (!IsHandleValid(h)) {
             //TODO
             __debugbreak();
-            throw false;
+            return;
         }
+        meshFlags[h.index].meshCommited = false;
         meshData[h.index] = std::move(data);
+    }
+    void CommitMesh(HandleType h) {
+        if (!IsHandleValid(h)) {
+            //TODO
+            __debugbreak();
+            return;
+        }
+        meshFlags[h.index].meshCommited = true;
     }
 private:
     template<typename T>
@@ -109,8 +115,14 @@ private:
 
     using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
+    struct MeshFlags {
+        bool meshCommited : 1;
+    };
+    static_assert(sizeof(MeshFlags) == 1);
+
     Bitmap allocationBitmap;
     Array<Device::VAOHandle> deviceHandle;
+    Array<MeshFlags> meshFlags;
 
     Array<Conf::SubMeshArray> subMesh;
     Array<Conf::SubMeshMaterialArray> materialHandle;

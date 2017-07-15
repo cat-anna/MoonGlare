@@ -13,27 +13,14 @@ class MeshBuilder final {
     using Conf = Configuration::Mesh;
     using ConfRes = Configuration::Resources;
 public:
-    //void SetDiffuseColor(const emath::fvec4 &col) {
-        //m_MaterialPtr->m_DiffuseColor = col;
-    //}
-    //bool SetDiffuseMap(const std::string &URI);
-    //bool SetDiffuseMap(const std::string &URI, Configuration::TextureLoad loadcfg);
-
-    //template<typename T>
-    //void SetDiffuseMapPixels(Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
-    //	Configuration::TextureLoad loadcfg, Device::PixelType pxtype, Commands::CommandKey key = Commands::CommandKey()) {
-    //}
-    //(expanded_data, emath::usvec2(width, height), tload, Renderer::Device::PixelType::LuminanceAlpha);
-
-    //Material* m_MaterialPtr;
-
-    void AllocateVAO() {
-        if(*vaoBuilder.m_HandlePtr == Device::InvalidVAOHandle)
-            queue.MakeCommandKey<Commands::VAOSingleAllocate>(currentKey, vaoBuilder.m_HandlePtr);
-    }
+    void AllocateVAO();
+    void UpdateVAO();
+    void Set(const Conf::SubMeshArray &meshes);
+    void Set(const Conf::SubMeshMaterialArray &materials);
+    void Commit();
 
     VAOBuilder vaoBuilder;
-
+    MeshManager &meshManager;
     Conf::SubMeshArray &subMeshArray;
     Conf::SubMeshMaterialArray &subMeshMaterialArray;
     MeshResourceHandle handle;

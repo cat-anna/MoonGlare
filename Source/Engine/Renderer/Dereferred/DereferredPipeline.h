@@ -82,7 +82,7 @@ protected:
     MoonGlare::Renderer::MeshResourceHandle coneMesh;
     MoonGlare::Renderer::MeshResourceHandle quadMesh;
 
-    bool InitializeDirectionalQuad();
+    void InitializeDirectionalQuad();
 };
 
 } //namespace Dereferred

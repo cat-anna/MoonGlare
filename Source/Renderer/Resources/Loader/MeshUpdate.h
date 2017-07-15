@@ -6,8 +6,8 @@ class CustomMeshLoader : public iAsyncTask
 {
     using MeshConf = Configuration::Mesh;
 public:
-    CustomMeshLoader(MeshResourceHandle handle, MeshManager &Owner, MaterialManager &matmgr) :
-        owner(Owner), handle(handle), materialManager(matmgr) { }
+    CustomMeshLoader(MeshResourceHandle handle, MeshManager &Owner) :
+        owner(Owner), handle(handle) { }
 
     void Do(ResourceLoadStorage &storage) override;
 
@@ -16,7 +16,6 @@ public:
 
 private:
     MeshManager &owner;
-    MaterialManager &materialManager;
     MeshResourceHandle handle;
 };
 

@@ -6,12 +6,12 @@ class AssimpMeshLoader : public MultiAsyncFileSystemRequest
 {
     using MeshConf = Configuration::Mesh;
 public:
-    AssimpMeshLoader(MeshResourceHandle handle, MeshManager *Owner, MaterialManager &matmgr) : 
+    AssimpMeshLoader(MeshResourceHandle handle, MeshManager &Owner, MaterialManager &matmgr) : 
         owner(Owner), handle(handle), materialManager(matmgr) { }
 
     void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 private:
-    MeshManager *owner;
+    MeshManager &owner;
     MaterialManager &materialManager;
 
     MeshResourceHandle handle;
@@ -20,8 +20,6 @@ private:
     std::string baseURI;
     std::unique_ptr<Assimp::Importer> importer;
     const aiScene* scene;
-
-    bool meshDataLoaded = false;
 
     void LoadMeshes(ResourceLoadStorage &storage);
     void LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage);

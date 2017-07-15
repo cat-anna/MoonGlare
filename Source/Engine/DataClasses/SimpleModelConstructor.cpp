@@ -154,6 +154,7 @@ Renderer::MeshResourceHandle SimpleModelConstructor::Generate(bool GenerateShape
 
         builder.vaoBuilder.EndDataChange();
         builder.vaoBuilder.UnBindVAO();
+        builder.Commit();
     }));
 
     if (GenerateShape) {

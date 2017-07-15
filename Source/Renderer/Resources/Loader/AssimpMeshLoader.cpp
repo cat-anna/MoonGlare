@@ -12,6 +12,9 @@
 
 #include "FreeImageLoader.h"
 
+#include <Commands/MemoryCommands.h>
+#include "MeshUpdate.h"
+
 namespace MoonGlare::Renderer::Resources::Loader {
 
 void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
@@ -47,118 +50,82 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         return;
     }
 
-    auto builder = owner->GetBuilder(storage.m_Queue, handle);
+    auto builder = owner.GetBuilder(storage.m_Queue, handle);
 
     struct LoadInfo {
         size_t baseIndex;
     };
 
-    if (!meshDataLoaded) {
-        MeshConf::SubMeshArray meshes;
-        meshes.fill({});
+    MeshConf::SubMeshArray meshes;
+    meshes.fill({});
 
-        MeshConf::SubMeshMaterialArray materials;
-        materials.fill({});
+    MeshConf::SubMeshMaterialArray materials;
+    materials.fill({});
 
-        std::array<LoadInfo, meshes.size()> loadInfo;
-        loadInfo.fill({});
+    std::array<LoadInfo, meshes.size()> loadInfo;
+    loadInfo.fill({});
 
-        for (size_t i = 0; i < scene->mNumMeshes; i++) {
-            meshes[i].valid = true;
-            meshes[i].numIndices = scene->mMeshes[i]->mNumFaces * 3;
-            meshes[i].baseVertex = NumVertices;
-            meshes[i].baseIndex = NumIndices * sizeof(uint32_t);
-            meshes[i].elementMode = GL_TRIANGLES;
-            meshes[i].indexElementType = GL_UNSIGNED_INT;
+    for (size_t i = 0; i < scene->mNumMeshes; i++) {
+        meshes[i].valid = true;
+        meshes[i].numIndices = scene->mMeshes[i]->mNumFaces * 3;
+        meshes[i].baseVertex = NumVertices;
+        meshes[i].baseIndex = NumIndices * sizeof(uint32_t);
+        meshes[i].elementMode = GL_TRIANGLES;
+        meshes[i].indexElementType = GL_UNSIGNED_INT;
 
-            loadInfo[i].baseIndex = NumIndices;
+        loadInfo[i].baseIndex = NumIndices;
 
-            NumVertices += scene->mMeshes[i]->mNumVertices;
-            NumIndices += meshes[i].numIndices;
-        }
+        NumVertices += scene->mMeshes[i]->mNumVertices;
+        NumIndices += meshes[i].numIndices;
+    }
 
-        MeshData meshData;
-        meshData.verticles.resize(NumVertices);
-        meshData.UV0.resize(NumVertices);
-        meshData.normals.resize(NumVertices);
-        meshData.index.resize(NumIndices);
+    MeshData meshData;
+    meshData.verticles.resize(NumVertices);
+    meshData.UV0.resize(NumVertices);
+    meshData.normals.resize(NumVertices);
+    meshData.index.resize(NumIndices);
 
-        for (size_t i = 0; i < scene->mNumMeshes; i++) {
-            const aiMesh* mesh = scene->mMeshes[i];
+    for (size_t i = 0; i < scene->mNumMeshes; i++) {
+        const aiMesh* mesh = scene->mMeshes[i];
 
-            LoadMaterial(scene->mMeshes[i]->mMaterialIndex, materials[i], storage);
+        LoadMaterial(scene->mMeshes[i]->mMaterialIndex, materials[i], storage);
 
-            auto MeshVerticles = &meshData.verticles[meshes[i].baseVertex];
-            auto MeshTexCords = &meshData.UV0[meshes[i].baseVertex];
-            auto MeshNormals = &meshData.normals[meshes[i].baseVertex];
+        auto MeshVerticles = &meshData.verticles[meshes[i].baseVertex];
+        auto MeshTexCords = &meshData.UV0[meshes[i].baseVertex];
+        auto MeshNormals = &meshData.normals[meshes[i].baseVertex];
 
-            for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
-                aiVector3D &vertex = mesh->mVertices[vertid];
-                aiVector3D &normal = mesh->mNormals[vertid];
+        for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
+            aiVector3D &vertex = mesh->mVertices[vertid];
+            aiVector3D &normal = mesh->mNormals[vertid];
 
-                if (mesh->mTextureCoords[0]) {
-                    aiVector3D &UVW = mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-                    MeshTexCords[vertid] = glm::fvec2(UVW.x, UVW.y);
-                }
-                else {
-                    MeshTexCords[vertid] = glm::fvec2();
-                }
-
-                MeshVerticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);
-                MeshNormals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
+            if (mesh->mTextureCoords[0]) {
+                aiVector3D &UVW = mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+                MeshTexCords[vertid] = glm::fvec2(UVW.x, UVW.y);
+            }
+            else {
+                MeshTexCords[vertid] = glm::fvec2();
             }
 
-            auto meshIndices = &meshData.index[loadInfo[i].baseIndex];
-            for (size_t face = 0; face < mesh->mNumFaces; face++) {
-                aiFace *f = &mesh->mFaces[face];
-                THROW_ASSERT(f->mNumIndices == 3, 0);
-                meshIndices[face * 3 + 0] = f->mIndices[0];
-                meshIndices[face * 3 + 1] = f->mIndices[1];
-                meshIndices[face * 3 + 2] = f->mIndices[2];
-            }
+            MeshVerticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);
+            MeshNormals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
         }
-        meshDataLoaded = true;
 
-        builder.subMeshArray = meshes;
-        builder.subMeshMaterialArray = materials;
-        builder.meshData = std::move(meshData);
+        auto meshIndices = &meshData.index[loadInfo[i].baseIndex];
+        for (size_t face = 0; face < mesh->mNumFaces; face++) {
+            aiFace *f = &mesh->mFaces[face];
+            THROW_ASSERT(f->mNumIndices == 3, 0);
+            meshIndices[face * 3 + 0] = f->mIndices[0];
+            meshIndices[face * 3 + 1] = f->mIndices[1];
+            meshIndices[face * 3 + 2] = f->mIndices[2];
+        }
     }
 
-    size_t size = NumVertices * (sizeof(glm::vec3) * 2 + sizeof(glm::vec2)) +
-        NumIndices * sizeof(uint32_t);
+    owner.SetMeshData(handle, std::move(meshData));
 
-    if (size > storage.m_Memory.m_Allocator.Reserve()) {
-        throw NotEnoughStorage{ size };
-    }
-
-    auto &m = storage.m_Memory.m_Allocator;
-    glm::vec3 *verticles = m.Clone(builder.meshData.verticles);
-    glm::vec3 *normals = m.Clone(builder.meshData.normals);
-    glm::vec2 *texCords = m.Clone(builder.meshData.UV0);
-    uint32_t *indices = m.Clone(builder.meshData.index);
-    if (!verticles || !normals || !texCords || !indices) {
-        throw NotEnoughStorage{ size };
-    }
-
-    using ichannels = Renderer::Configuration::VAO::InputChannels;
-
-    builder.AllocateVAO();
-    builder.vaoBuilder.BeginDataChange();
-
-    builder.vaoBuilder.CreateChannel(ichannels::Vertex);
-    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Vertex, (const float*)(verticles), NumVertices);
-
-    builder.vaoBuilder.CreateChannel(ichannels::Texture0);
-    builder.vaoBuilder.SetChannelData<float, 2>(ichannels::Texture0, (const float*)(texCords), NumVertices);
-
-    builder.vaoBuilder.CreateChannel(ichannels::Normals);
-    builder.vaoBuilder.SetChannelData<float, 3>(ichannels::Normals, (const float*)(normals), NumVertices);
-
-    builder.vaoBuilder.CreateChannel(ichannels::Index);
-    builder.vaoBuilder.SetIndex(ichannels::Index, (const unsigned*)(indices), NumIndices);
-
-    builder.vaoBuilder.EndDataChange();
-    builder.vaoBuilder.UnBindVAO();
+    auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle , owner);
+    task->materialArray = materials;
+    task->meshArray = meshes;
+    loader->QueueTask(std::move(task));
 }
 
 void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage) {

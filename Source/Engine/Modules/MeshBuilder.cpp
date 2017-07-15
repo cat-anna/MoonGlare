@@ -96,7 +96,7 @@ struct MeshBuilder {
             of << fmt::format("# material uri: {}\n", mat.TextureURI);
             for (size_t i = 0; i < mat.index.size(); i += 3) {
                 auto *base = &mat.index[i];
-                of << fmt::format("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}", base[0]+1, base[1]+1, base[2]+1);
+                of << fmt::format("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n", base[0]+1, base[1]+1, base[2]+1);
             }
         }
 
@@ -115,6 +115,9 @@ struct MeshBuilder {
     }
 
     void Update() {
+        if (verticles.empty())
+            return;
+
         auto *rf = world->GetRendererFacade();
         auto *resmgr = rf->GetResourceManager();
         auto &mm = resmgr->GetMeshManager();
@@ -142,15 +145,18 @@ struct MeshBuilder {
             auto &mesh = meshArray[index];
             mesh.valid = true;
             mesh.baseVertex = 0;
-            mesh.baseIndex = meshIndex.size() * sizeof(uint32_t);
+            mesh.baseIndex = meshIndex.size() *sizeof(uint32_t);
             mesh.elementMode = GL_TRIANGLES;
             mesh.indexElementType = GL_UNSIGNED_INT;
             mesh.numIndices = matInfo.index.size();
 
+            meshIndex.reserve(matInfo.index.size());
             for (auto itm: matInfo.index) {
                 meshIndex.emplace_back(itm);
             }
         }
+        if (meshIndex.empty())
+            return;
 
         auto h = GetHandle();
         Renderer::Resources::MeshData md;
@@ -160,7 +166,7 @@ struct MeshBuilder {
         md.UV0 = UVs;
         mm.SetMeshData(h, std::move(md));
 
-        auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(GetHandle(), mm, matm);
+        auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(h, mm);
         task->materialArray = materialArray;
         task->meshArray = meshArray;
         rf->GetAsyncLoader()->QueueTask(task);

@@ -12,6 +12,7 @@ MeshManager::MeshManager(ResourceManager *Owner) :
     deviceHandle.fill(Device::InvalidVAOHandle);
     subMesh.fill({});
     materialHandle.fill({});
+    meshFlags.fill({});
 
     generations.fill(1);//TODO: random?
 
@@ -80,7 +81,7 @@ bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     }
     loadedMeshes[uri] = hout;
 
-    auto request = std::make_shared<Loader::AssimpMeshLoader>(hout, this, resourceManager->GetMaterialManager());
+    auto request = std::make_shared<Loader::AssimpMeshLoader>(hout, *this, resourceManager->GetMaterialManager());
     resourceManager->GetLoaderIf()->QueueRequest(uri, request);
 
     return true;

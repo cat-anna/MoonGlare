@@ -72,6 +72,9 @@ namespace Resources {
         //alignas(16)
         TextureResource;
     class alignas(16) MaterialManager;
+    class 
+        //alignas(16) 
+        MeshManager;
 }
 
 } //namespace MoonGlare::Renderer
