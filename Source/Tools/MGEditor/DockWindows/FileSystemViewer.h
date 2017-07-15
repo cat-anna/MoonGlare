@@ -47,11 +47,11 @@ public:
 	virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what);
 protected:
 	void Clear();
-	void RefreshTreeView();
 protected slots:
 	void ShowContextMenu(const QPoint &);
 	void ItemDoubleClicked(const QModelIndex&);
 	void RefreshFilesystem();
+	void RefreshTreeView();
 	void ProjectChanged(Module::SharedDataModule datamod);
 	void OpenItem();
 private: 

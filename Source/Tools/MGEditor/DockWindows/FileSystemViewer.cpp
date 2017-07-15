@@ -60,7 +60,7 @@ FileSystemViewer::FileSystemViewer(QWidget * parent, QtShared::WeakModule module
     connect(m_Ui->treeView, SIGNAL(doubleClicked(const QModelIndex&)), SLOT(ItemDoubleClicked(const QModelIndex&)));
 
     connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
-    connect(m_FileSystem.get(), SIGNAL(Changed()), this, SLOT(RefreshFilesystem()));
+    connect(m_FileSystem.get(), SIGNAL(Changed()), this, SLOT(RefreshTreeView()));
 
     m_ViewModel = std::make_unique<QStandardItemModel>();
     m_ViewModel->setSortRole(FileSystemViewerRole::SortString);
@@ -179,8 +179,7 @@ void FileSystemViewer::OpenItem() {
 void FileSystemViewer::RefreshFilesystem() {
     if (!m_Module) {
     }
-    //m_FileSystem->Reload();
-    RefreshTreeView();
+    m_FileSystem->Reload();
 }
 
 void FileSystemViewer::ProjectChanged(Module::SharedDataModule datamod) {
