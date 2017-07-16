@@ -60,12 +60,12 @@ end
 function print(...) Log.Console(dofmt(...)) end
 function warning(...) Log.Warning(dofmt(...)) end
 function hint(...) Log.Hint(dofmt(...)) end
-function debug(...) Log.Debug(dofmt(...)) end
+--function debug(...) Log.Debug(dofmt(...)) end
 
 function printf(...) Log.Console(string.format(...)) end
 function warningf(...) Log.Warning(string.format(...)) end
 function hintf(...) Log.Hint(string.format(...)) end
-function debugf(...) Log.Debug(string.format(...)) end
+--function debugf(...) Log.Debug(string.format(...)) end
 
 local lua_error = error
 function error(msg, c) 

@@ -127,7 +127,7 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 
                 if (!editor->Create(URI, methodmodule.m_FileHandleMethod)) {
                     AddLogf(Error, "Failure during creation!");
-                    ErrorMessage("Cannot create reqesterd file!");
+                    ErrorMessage("Cannot create registered file!");
                 }
             });
         }

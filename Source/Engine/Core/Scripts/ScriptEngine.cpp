@@ -101,7 +101,6 @@ bool ScriptEngine::ConstructLuaContext() {
     luaopen_bit(m_Lua);
     luaopen_string(m_Lua);
     luaopen_table(m_Lua);
-    luaopen_os(m_Lua);
 #ifdef DEBUG
     luaopen_debug(m_Lua);
 #endif
