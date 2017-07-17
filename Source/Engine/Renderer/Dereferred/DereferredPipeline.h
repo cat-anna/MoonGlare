@@ -45,9 +45,10 @@ struct DefferedSink {
     void Reset(const ::MoonGlare::Core::MoveConfig &config);
     void Initialize(Renderer::RendererFacade *Renderer);
 
-    void Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH);
+    void Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH);
 
     void SubmitDirectionalLight(const Renderer::Light::LightBase &linfo);
+    bool PointLightTest(const emath::fvec3 &position, float radius);
     void SubmitPointLight(const Renderer::Light::PointLight &linfo);
     void SubmitSpotLight(const Renderer::Light::SpotLight &linfo);
 

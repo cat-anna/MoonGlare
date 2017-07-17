@@ -67,7 +67,9 @@ namespace Commands {
 }
 
 namespace Resources {
-    class alignas(16) ResourceManager;
+    class 
+       // alignas(16) 
+        ResourceManager;
     class 
         //alignas(16)
         TextureResource;

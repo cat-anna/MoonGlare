@@ -156,6 +156,7 @@ private:
     static int lua_DereferenceHandle(lua_State *lua);
     static int lua_SetComponentState(lua_State *lua);
 
+    static int lua_DoSpawn(lua_State *lua, Entity Owner);
 //ScriptComponent api
     static int lua_DestroyComponent(lua_State *lua);
     static int lua_GetComponent(lua_State *lua);
@@ -166,6 +167,7 @@ private:
 //GameObject api
     static int lua_CreateComponent(lua_State *lua);
     static int lua_SpawnChild(lua_State *lua);
+    static int lua_Spawn(lua_State *lua);
     static int lua_DestroyObject(lua_State *lua);
     static int lua_Destroy(lua_State *lua);
     static int lua_SetName(lua_State *lua);

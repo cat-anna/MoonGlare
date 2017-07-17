@@ -45,7 +45,8 @@ namespace lua {
     static const char *GetComponentName = "GetComponent";
     static const char *CreateComponentName = "CreateComponent";
     static const char *SpawnChildName = "SpawnChild";
-    static const char *DestroyObjectName = "DestroyObject";
+    static const char *SpawnName = "Spawn";
+    static const char *DestroyObjectName = "DestroyObject";      
     static const char *DestroyName = "Destroy";
     static const char *GetName = "GetName";
     static const char *SetName = "SetName";
@@ -141,6 +142,10 @@ bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
     lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index Manager
     lua_pushcclosure(lua, &lua_SpawnChild, 1);												 //stack: GameObjectMT GameObjectMT_index Manager lua_SpawnChild
     lua_setfield(lua, -2, lua::SpawnChildName);												 //stack: GameObjectMT GameObjectMT_index 
+
+    lua_pushlightuserdata(lua, this);														 //stack: GameObjectMT GameObjectMT_index Manager
+    lua_pushcclosure(lua, &lua_Spawn, 1);												     //stack: GameObjectMT GameObjectMT_index Manager lua_Spawn
+    lua_setfield(lua, -2, lua::SpawnName);												     //stack: GameObjectMT GameObjectMT_index 
 
     lua_pushlightuserdata(lua, GetManager());												 //stack: GameObjectMT GameObjectMT_index Manager
     lua_pushcclosure(lua, &lua_DestroyObject, 1);											 //stack: GameObjectMT GameObjectMT_index Manager lua_DestroyObject
@@ -847,23 +852,39 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
     }
 }
 
-int ScriptComponent::lua_SpawnChild(lua_State *lua) {
-/*
-GameObject:SpawnChild {
+//----------------------------------------------------
+
+template<typename T>
+std::optional<T> GetOptionalField(lua_State *lua, int idx, const char *field) {
+    lua_getfield(lua, idx, field);
+    if (lua_isnil(lua, -1)) {
+        lua_pop(lua, 1);
+        return std::nullopt;
+    }
+    else {
+        auto t = luabridge::Stack<T>::get(lua, lua_gettop(lua));
+        lua_pop(lua, 1);
+        return std::move(t);
+    }
+}
+
+int ScriptComponent::lua_DoSpawn(lua_State *lua, Entity Owner) {
+    /*
+    GameObject:SpawnChild {
     Pattern = "URI",
     [Name = "..."]
     [Position = Vec3(5, 5, 5),] --local pos
     [Rotation = Quaternion(5, 5, 5, 5),] --local rotation
-    
---TODO:
+
+    --TODO:
     [Data = { --[[ sth ]] },] -- data passed to script OnCreate function
     [Owner = someone, ] -- create as child of someone
     [Clone = someone, ] -- create clone of someone
-}
+    }
 
-returns:
+    returns:
     TODO
-*/
+    */
     int argc = lua_gettop(lua);		//stack: self spawnarg
     Utils::Scripts::LuaStackOverflowAssert check(lua);
 
@@ -890,10 +911,6 @@ returns:
 
     //stack: self spawnarg spawnarg.Pattern
 
-    lua_getfield(lua, 1, lua::EntityMemberName);						//stack: self spawnarg spawnarg.Pattern spawnarg.Name Entity
-    Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
-    lua_pop(lua, 1);													//stack: self spawnarg spawnarg.Pattern spawnarg.Name
-
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
@@ -907,40 +924,21 @@ returns:
     lua_pop(lua, 1);													//stack: self spawnarg spawnarg.Pattern
     ChildName = nullptr;
 
-    bool HasPos = false;
-    math::vec3 Position;
-    bool HasRot = false;
-    math::vec4 Rotation;
-
-    lua_getfield(lua, 2, "Position");									//stack: self spawnarg spawnarg.Pattern spawnarg.Position	
-    if (lua_isnil(lua, -1)) {
-        HasPos = false;
-    } else {
-        HasPos = true;
-        Position = luabridge::Stack<math::vec3>::get(lua, 4);
-    }
-    lua_pop(lua, 1);
-
-    lua_getfield(lua, 2, "Rotation");									//stack: self spawnarg spawnarg.Pattern spawnarg.Rotation		
-    if (lua_isnil(lua, -1)) {
-        HasRot = false;
-    } else {
-        HasRot = true;
-        Rotation = luabridge::Stack<math::vec4>::get(lua, 4);
-    }
-    lua_pop(lua, 1);
+    auto OptPosition = GetOptionalField<math::vec3>(lua, 2, "Position");
+    auto OptRotation = GetOptionalField<math::vec4>(lua, 2, "Rotation");    
 
     auto cm = This->GetManager();
-    if (HasRot || HasPos) {
+    if (OptPosition.has_value() || OptRotation.has_value()) {
         auto *tc = cm->GetComponent<TransformComponent>();
         auto entry = tc->GetEntry(Child);
         if (!entry) {
             AddLogf(Error, "GameObject::SpawnChild: Child does not have transform component!");
-        } else {
-            if (HasPos)
-                entry->m_LocalTransform.setOrigin(convert(Position));
-            if (HasRot)
-                entry->m_LocalTransform.setRotation(convert(Rotation));
+        }
+        else {
+            if (OptPosition.has_value())
+                entry->SetPosition(*OptPosition);
+            if (OptRotation.has_value())
+                entry->SetRotation(*OptRotation);
         }
     }
 
@@ -951,6 +949,21 @@ returns:
     lua_insert(lua, -2);
     lua_pop(lua, 1);
     return check.ReturnArgs(1);
+}
+
+int ScriptComponent::lua_Spawn(lua_State *lua) {
+    void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
+    ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
+    auto cm = This->GetManager();
+    auto Owner = cm->GetScene()->GetSceneEntity();
+    return lua_DoSpawn(lua, Owner);
+}
+
+int ScriptComponent::lua_SpawnChild(lua_State *lua) {
+    lua_getfield(lua, 1, lua::EntityMemberName);					
+    Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
+    lua_pop(lua, 1);												
+    return lua_DoSpawn(lua, Owner);
 }
 
 int ScriptComponent::lua_DestroyObject(lua_State *lua) {

@@ -190,9 +190,9 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	};
 
 	CollisionMap cmap;
-	m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
+    m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
 
-	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 1/*5*/, 1.0f / (60.0f));
+	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 1, 1.0f / (60.0f));
 
 	CollisionMap last;
 	last.swap(m_LastCollisions);
@@ -323,7 +323,10 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	if (entry.m_Mass == 0.0f) {
 		body.setActivationState(DISABLE_SIMULATION);
-	}
+    }
+    else {
+        body.setActivationState(WANTS_DEACTIVATION);
+    }
 
 	if (!entry.m_Flags.m_Map.m_Kinematic) {
 		body.setActivationState(DISABLE_DEACTIVATION);

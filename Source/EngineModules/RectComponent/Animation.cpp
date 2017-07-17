@@ -57,7 +57,7 @@ bool Animation::Load(const std::string &fileuri, unsigned StartFrame,
     auto *resmgr = rf->GetResourceManager();
 
     auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(material, true);
-    matb.SetDiffuseColor(emath::fvec4(1));
+    matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
     matb.SetDiffuseMap(fileuri, true);
     m_TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
 

@@ -53,6 +53,34 @@ Structure.import {
 }
 
 Structure.import {
+	location = "::math::vec3",
+	name = "Color3",
+	description = "3f color structure",
+	fields = {
+		{
+			name = "r",
+			type = Types.float,
+			pugi = { alias = "X", },
+			require = false,
+		},
+		{
+			name = "g",
+			type = Types.float,
+			pugi = { alias = "Y", },
+			require = false,
+		},
+		{
+			name = "b",
+			type = Types.float,
+			pugi = { alias = "Z", },
+			require = false,
+		},
+	},
+	require = "all",
+	pugi = { useattribute = true, },
+}
+
+Structure.import {
 	location = "::math::vec4",
 	name = "Vec4",
 	description = "4d vector structure",

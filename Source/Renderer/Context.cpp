@@ -359,7 +359,7 @@ void Context::ReleaseMouse() {
     m_MouseHooked = false;
     if (m_InputHandler) {
         m_InputHandler->OnMouseHookChange(m_MouseHooked);
-        m_InputHandler->MouseDelta(emath::fvec2(0));
+        m_InputHandler->MouseDelta(emath::fvec2(0,0));
     }
 }
 

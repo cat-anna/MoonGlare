@@ -259,7 +259,7 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     }
 }
 
-void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHandle meshH) {
+void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH) {
     //TODO
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
     auto *meshes = mm.GetMeshes(meshH);
@@ -267,6 +267,13 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHan
 
     if (!meshes || !materials)
         return;
+
+    auto *md = mm.GetMeshData(meshH);
+
+    // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
+    //  if (delta.squaredNorm() > 100.0f)
+    //      return;
+    
 
     namespace Commands = Renderer::Commands;
 
@@ -282,7 +289,7 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHan
         using Uniform = GeometryShaderDescriptor::Uniform;
         m_GeometryShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
 
-        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
         m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
 
         m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
@@ -301,11 +308,11 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, Renderer::MeshResourceHan
         using Uniform = GeometryShaderDescriptor::Uniform;
 
         if (mat.deviceHandle) {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
             m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->m_DiffuseMap);
         }
         else {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1));
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
             m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
         }
 
@@ -333,6 +340,12 @@ void DefferedSink::SubmitDirectionalLight(const Renderer::Light::LightBase & lin
     garg->m_NumIndices = 6;
     garg->m_IndexValueType = GL_UNSIGNED_INT;// m_DereferredPipeline->m_DirectionalQuad.IndexValueType();
     garg->m_ElementMode = GL_TRIANGLES;
+}
+
+bool DefferedSink::PointLightTest(const emath::fvec3 &position, float radius) {
+    //emath::fvec3 delta = m_Camera.m_Position - position;
+    //return delta.squaredNorm() < radius * radius;
+    throw false;
 }
 
 void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
@@ -392,12 +405,12 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
         m_PointLightShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_PositionMatrix));
     }
 
-    m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
-    m_PointLightQueue->MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
-    m_PointLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
-    m_PointLightQueue->MakeCommand<Commands::StencilFunc>((GLenum)GL_NOTEQUAL, 0, 0xFFu);
-    m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
-    m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
+     m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
+     m_PointLightQueue->MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
+     m_PointLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+     m_PointLightQueue->MakeCommand<Commands::StencilFunc>((GLenum)GL_NOTEQUAL, 0, 0xFFu);
+     m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
+     m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
 
     m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(0u, 0u);
     m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
@@ -412,6 +425,10 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
     namespace Commands = Renderer::Commands;
     using namespace Renderer::Commands;
 
+  // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
+ //  if (delta.squaredNorm() > 100.0f)
+ //      return;
+
     Renderer::PlaneShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
         sm = m_frame->AllocatePlaneShadowMap();
@@ -420,8 +437,8 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
             using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
 
             //sm->BindAndClear();
-            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(sm->size), static_cast<int>(sm->size));
             m_SpotLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
+            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(sm->size), static_cast<int>(sm->size));
             m_SpotLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
 
             m_ShadowShader.m_Queue = m_SpotLightShadowQueue;

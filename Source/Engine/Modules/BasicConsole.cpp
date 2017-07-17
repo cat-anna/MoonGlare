@@ -220,7 +220,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     auto shb = shres.GetBuilder(q, m_ShaderHandle);
     shb.Bind();
     shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
-    shb.Set<Uniform::BackColor>(emath::fvec4(1));
+    shb.Set<Uniform::BackColor>(emath::fvec4(1,1,1,1));
     q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
 
     auto PrintText = [this, &q, key, frame, &shb](const emath::fvec3 &position,

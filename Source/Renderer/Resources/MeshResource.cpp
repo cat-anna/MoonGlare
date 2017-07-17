@@ -5,6 +5,19 @@
 
 namespace MoonGlare::Renderer::Resources {
 
+void MeshData::UpdateBoundary() {
+    boundingRadius = 0;
+    halfBoundingBox = emath::fvec3(0, 0, 0);
+    for (auto &v : verticles) {
+        boundingRadius = std::max(boundingRadius, glm::length(v));
+        for (int j = 0; j < 3; ++j)
+            halfBoundingBox[j] = std::max(halfBoundingBox[j], abs(v[j]));
+    }
+}
+
+//---------------------------------------------------------------------------------------
+
+
 MeshManager::MeshManager(ResourceManager *Owner) :
     resourceManager(Owner) {
 

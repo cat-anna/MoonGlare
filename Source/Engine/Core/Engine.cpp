@@ -121,6 +121,7 @@ void Engine::EngineMain() {
     while (!m_World->GetScenesManager()->CurrentScene()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         m_World->GetScenesManager()->ChangeScene();
+        Device->ProcessPendingCtrlQueues();
         Ctx->Process();
     }
     DebugLog(Debug, "Scene became ready. Starting main loop.");
@@ -185,6 +186,9 @@ void Engine::EngineMain() {
             frame->GetFirstWindowLayer().Execute();
 
             Device->ReleaseFrame(frame);
+            
+         //   glFinish();
+            glFlush();
         }
 
         auto RenderTime = clock::now();

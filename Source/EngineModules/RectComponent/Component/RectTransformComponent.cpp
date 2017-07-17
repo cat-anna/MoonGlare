@@ -189,11 +189,13 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
         TrivialReleaseElement(LastInvalidEntry);
     }
 
+#ifdef DEBUG
     if (gRectTransformDebugDraw) {
         if (!debugDraw)
             debugDraw = std::make_unique<RectTransformDebugDraw>();
         debugDraw->DebugDraw(conf, this);
     }
+#endif
 
     ++m_CurrentRevision;
     if (m_CurrentRevision < 1) {

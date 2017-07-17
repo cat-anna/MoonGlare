@@ -110,7 +110,7 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
         }
 
         if (item.meshHandle.deviceHandle) {//dirty valid check
-            conf.deferredSink->Mesh(tcentry->m_GlobalMatrix, item.meshHandle);
+            conf.deferredSink->Mesh(tcentry->m_GlobalMatrix, emath::MathCast<emath::fvec3>(convert(tcentry->m_GlobalTransform.getOrigin())), item.meshHandle);
             continue;
         }
     }

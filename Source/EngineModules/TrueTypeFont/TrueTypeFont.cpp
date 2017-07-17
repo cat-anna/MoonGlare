@@ -340,7 +340,7 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
         auto *resmgr = frame->GetResourceManager();
 
         auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(glyph->m_GlyphMaterial, true);
-        matb.SetDiffuseColor(emath::fvec4(1));
+        matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
 
         Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
         tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Linear;

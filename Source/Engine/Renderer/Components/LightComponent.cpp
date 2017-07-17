@@ -141,15 +141,18 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
         case Light::LightType::Point: {
-            math::mat4 mat;
-            tr.getOpenGLMatrix(&mat[0][0]);
 
             Light::PointLight pl;
             pl.m_Base = item.m_Base;
             pl.m_Attenuation = item.m_Attenuation;
-            float infl = pl.GetLightInfluenceRadius() * 10.0f;
-            pl.m_PositionMatrix = glm::scale(mat, math::vec3(infl));
+            float infl = pl.GetLightInfluenceRadius();
             pl.m_Position = convert(tr.getOrigin());
+            //if (!conf.deferredSink->PointLightTest(emath::MathCast<emath::fvec3>((math::fvec3)pl.m_Position), infl))
+                //continue;
+
+            math::mat4 mat;
+            tr.getOpenGLMatrix(&mat[0][0]);
+            pl.m_PositionMatrix = glm::scale(mat, math::vec3(infl));
 
             conf.deferredSink->SubmitPointLight(pl);
             continue;

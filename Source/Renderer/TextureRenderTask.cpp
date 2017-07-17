@@ -44,6 +44,7 @@ bool TextureRenderTask::Finalize() {
 void TextureRenderTask::Begin() {
     using namespace Commands;
 
+    m_CommandQueue.ClearAllocation();
     m_CommandQueue.MakeCommand<FramebufferDrawBind>(m_Framebuffer);
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_DEPTH_TEST);
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_BLEND);

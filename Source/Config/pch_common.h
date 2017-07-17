@@ -94,17 +94,17 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
 #pragma warning ( pop )
 
 namespace emath {
-    using fvec2 = Eigen::Array2f;
-    using fvec3 = Eigen::Array3f;
-    using fvec4 = Eigen::Array4f;
+    using fvec2 = Eigen::Vector2f;
+    using fvec3 = Eigen::Vector3f;
+    using fvec4 = Eigen::Vector4f;
 
     using ivec2 = Eigen::Array2i;
     using ivec3 = Eigen::Array3i;
     using ivec4 = Eigen::Array4i;
 
-    using usvec2 = Eigen::Array<uint16_t, 2, 1>;
-    using usvec3 = Eigen::Array<uint16_t, 3, 1>;
-    using usvec4 = Eigen::Array<uint16_t, 4, 1>;
+    using usvec2 = Eigen::Matrix<uint16_t, 2, 1>;
+    using usvec3 = Eigen::Matrix<uint16_t, 3, 1>;
+    using usvec4 = Eigen::Matrix<uint16_t, 4, 1>;
 
     using fmat3 = Eigen::Matrix3f;
     using fmat4 = Eigen::Matrix4f;

@@ -73,7 +73,7 @@ bool BitmapFont::DoInitialize(){
 	auto *resmgr = rf->GetResourceManager();
 
 	auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
-	matb.SetDiffuseColor(emath::fvec4(1));
+	matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
 	matb.SetDiffuseMap("file://" + fpath);
 
 	StarVFS::ByteTable data;

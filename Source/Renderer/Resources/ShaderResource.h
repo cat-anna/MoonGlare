@@ -183,6 +183,6 @@ private:
     bool InitializeSamplers(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
 }; 
 
-static_assert((sizeof(ShaderResource) % 16) == 0, "Invalid size!");
+//static_assert((sizeof(ShaderResource) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer::Resources 

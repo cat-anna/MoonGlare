@@ -135,7 +135,7 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
         cam.m_Direction = emath::MathCast<emath::fvec3>(d);
 
         //RInput->m_Camera.UpdateMatrix();
-        auto view = glm::lookAt(p, p + d, math::vec3(0, 1, 0));
+        auto view = glm::lookAt(p, p - d, math::vec3(0, 1, 0));
         cam.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
     }
 

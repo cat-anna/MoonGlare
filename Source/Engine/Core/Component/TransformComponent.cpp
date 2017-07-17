@@ -203,7 +203,7 @@ bool TransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_OwnerEntity = Owner;
 
 	entry.Recalculate(ParentEntry);
-	entry.m_Revision = m_CurrentRevision;
+	entry.m_Revision = 0;
 
 	entry.m_Flags.m_Map.m_Valid = true;
 	m_EntityMapper.SetComponentMapping(entry);

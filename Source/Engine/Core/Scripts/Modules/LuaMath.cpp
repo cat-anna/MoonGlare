@@ -13,6 +13,9 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
+#define NN(a)   
+//if (!a) throw std::runtime_error(__FUNCTION__ " - nullptr! (" #a ")");
+
 //Other
 
 template<int multiplier = 1,int divider = 1>
@@ -24,10 +27,10 @@ template<typename T> inline T VecNormalized(const T * vec) { return glm::normali
 template<typename T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
 template<typename T> inline float VecLength(const T *vec) { return glm::length(*vec); }
 template<typename T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
-template<typename T> inline T VecDiv(T *a, T* b) { return *a / *b; }
-template<typename T> inline T VecMul(T *a, T* b) { return *a * *b; }
-template<typename T> inline T VecAdd(T *a, T* b) { return *a + *b; }
-template<typename T> inline T VecSub(T *a, T* b) { return *a - *b; }
+template<typename T> inline T VecDiv(T *a, T* b) { NN(a) NN(b) return *a / *b; }
+template<typename T> inline T VecMul(T *a, T* b) { NN(a) NN(b) return *a * *b; }
+template<typename T> inline T VecAdd(T *a, T* b) { NN(a) NN(b) return *a + *b; }
+template<typename T> inline T VecSub(T *a, T* b) { NN(a) NN(b) return *a - *b; }
 template<typename T> inline std::string ToString(T *vec) {
     std::ostringstream oss;
     oss << *vec;
@@ -189,6 +192,7 @@ inline int lua_NewVec3(lua_State *lua) {
     return 1;
 }
 inline math::vec3 SphericalToCartesian(const math::vec2 *vec) {
+    NN(vec)
     float th = vec->y;
     float fi = vec->x;
     return glm::normalize(math::vec3(

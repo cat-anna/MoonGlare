@@ -16,6 +16,10 @@ struct MeshData {
     std::vector<glm::fvec2> UV0;
     std::vector<glm::fvec3> normals;
     std::vector<uint32_t> index;
+    emath::fvec3 halfBoundingBox;
+    float boundingRadius;
+
+    void UpdateBoundary();
 };
 
 class 

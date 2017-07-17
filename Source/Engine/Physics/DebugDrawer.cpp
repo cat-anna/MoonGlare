@@ -160,7 +160,7 @@ void BulletDebugDrawer::setDebugMode(int p) {
 
 int BulletDebugDrawer::getDebugMode(void) const {
     return 
-        DBG_DrawWireframe | 
+      //  DBG_DrawWireframe | 
         DBG_DrawAabb | 
 //        DBG_DrawNormals | 
         0;

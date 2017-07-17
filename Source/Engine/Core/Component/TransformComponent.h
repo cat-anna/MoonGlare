@@ -75,7 +75,8 @@ public:
 		void SetRotation(math::vec4 rot) { 
 			m_LocalTransform.setRotation(convert(rot));
 			m_Revision = 0;
-		}
+            m_Flags.m_Map.m_Dirty = true;
+        }
 		math::vec3 GetScale() const { return convert(m_LocalScale); }
 		void SetScale(math::vec3 s) { 
 			m_LocalScale = convert(s);

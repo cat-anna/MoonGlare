@@ -145,7 +145,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		}
 
 		shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(entry.m_Matrix), key);
-		shb.Set<Uniform::BaseColor>(emath::fvec4(1), key);
+		shb.Set<Uniform::BaseColor>(emath::fvec4(1,1,1,1), key);
 		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 		shb.Set<Sampler::DiffuseMap>(entry.m_FontResources.m_Texture, key);
 

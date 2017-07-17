@@ -137,7 +137,7 @@ struct MeshBuilder {
                 //load material
                 auto matb = matm.GetMaterialBuilder(matInfo.matHandle, true);
                 matb.SetDiffuseMap(matInfo.TextureURI);
-                matb.SetDiffuseColor(emath::fvec4(1));
+                matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
             }
 
             materialArray[index] = matInfo.matHandle;
@@ -164,6 +164,7 @@ struct MeshBuilder {
         md.verticles = verticles;
         md.normals = normals;
         md.UV0 = UVs;
+        md.UpdateBoundary();
         mm.SetMeshData(h, std::move(md));
 
         auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(h, mm);

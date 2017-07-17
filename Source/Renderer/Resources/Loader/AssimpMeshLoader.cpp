@@ -120,6 +120,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         }
     }
 
+    meshData.UpdateBoundary();
     owner.SetMeshData(handle, std::move(meshData));
 
     auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle , owner);
@@ -176,7 +177,7 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
     else {
         auto matb = materialManager.GetMaterialBuilder(h, true);
         matb.SetDiffuseMap(baseURI + Path.data);
-        matb.SetDiffuseColor(emath::fvec4(1));
+        matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
     }
 }
 

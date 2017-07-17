@@ -112,7 +112,7 @@ public:
         CommandQueue *m_Queue;
         static void Execute(const ExecuteQueueArgument *arg) {
             RendererAssert(arg->m_Queue);
-            arg->m_Queue->Execute();
+            arg->m_Queue->Execute(false);
         }
     };
     using ExecuteQueue = CommandTemplate<ExecuteQueueArgument>;

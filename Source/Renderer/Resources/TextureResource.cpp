@@ -33,7 +33,7 @@ void TextureResource::Initialize(ResourceManager *Owner, Asset::TextureLoader *T
     m_Settings = &Owner->GetConfiguration()->m_Texture;
 
     m_GLHandle.fill(Device::InvalidTextureHandle);
-    m_TextureSize.fill(emath::usvec2(0));
+    m_TextureSize.fill(emath::usvec2(0,0));
     m_AllocationBitmap.ClearAllocation();
     generations.fill(1);
 }

@@ -23,7 +23,9 @@ class textureResource;
 class MaterialManager;
 class VAOResource;
 
-class alignas(16) ResourceManager final {
+class 
+    //alignas(16) 
+    ResourceManager final {
 public:
     ResourceManager();
     ~ResourceManager();
@@ -82,6 +84,6 @@ private:
     mem::aligned_ptr<VAOResource> vaoManager;
 };
 
-static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");
+//static_assert((sizeof(ResourceManager) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer::Resources 
