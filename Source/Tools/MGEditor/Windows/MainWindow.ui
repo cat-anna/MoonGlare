@@ -77,6 +77,8 @@
     <addaction name="actionOpen"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
+    <addaction name="actionBuild"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuModule"/>
@@ -120,6 +122,15 @@
   <action name="actionEditorConfiguration">
    <property name="text">
     <string>Editor configuration</string>
+   </property>
+  </action>
+  <action name="actionBuild">
+   <property name="icon">
+    <iconset resource="../../Shared/Resources/icons.qrc">
+     <normaloff>:/icons/icons/green_puzzle.png</normaloff>:/icons/icons/green_puzzle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Build</string>
    </property>
   </action>
  </widget>

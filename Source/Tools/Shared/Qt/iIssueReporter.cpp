@@ -40,8 +40,7 @@ std::vector<std::shared_ptr<Issue>> IssueReporter::CurrentIssues() const {
         r.emplace_back(item.second);
     return std::move(r);
 }
-
-
+                      
 } //namespace QtShared 
 } //namespace MoonGlare 
 

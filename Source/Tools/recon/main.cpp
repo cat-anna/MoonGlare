@@ -16,8 +16,6 @@
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
-#include <Version.h>
-//#include <reconVersion.inc>
 #include <source/Utils/SetGet.h>
 #include <source/Utils/Memory/nMemory.h>
 #include <source/Utils/Memory.h>

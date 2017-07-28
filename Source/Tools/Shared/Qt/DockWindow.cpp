@@ -8,10 +8,16 @@ DockWindow::DockWindow(QWidget *parent, bool AutoRefresh)
 	: QDockWidget(parent)
 {
 	SetAutoRefresh(AutoRefresh);
+
+    connect(this, &DockWindow::UIUpdate, this, &DockWindow::UIUpdateImpl, Qt::QueuedConnection);
 }
 
 DockWindow::~DockWindow()
 {
+}
+
+void DockWindow::UIUpdateImpl(std::function<void()> h) {
+    h();
 }
 
 //-----------------------------------------

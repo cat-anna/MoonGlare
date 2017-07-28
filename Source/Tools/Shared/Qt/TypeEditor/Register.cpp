@@ -5,6 +5,7 @@
 #include <Source/Engine/Core/Component/nfComponent.h>
 
 #include <Source/Engine/Renderer/Light.h>
+#include <Source/Renderer/StaticFog.h>
 #include <EngineModules/RectComponent/Types.h>
 
 #include <Math.x2c.h>
@@ -19,6 +20,7 @@
 #include <ImageComponent.x2c.h>
 #include <PanelComponent.x2c.h>
 #include <TextComponent.x2c.h>
+#include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
 #include <DirectAnimationComponent.x2c.h>

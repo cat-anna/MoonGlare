@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="icons">
     <file>icons/Erase.png</file>
+    <file>icons/green_puzzle.png</file>
     <file>icons/blue_sphere.png</file>
     <file>icons/Lua-Logo_16x16.png</file>
     <file>icons/Copy.png</file>
@@ -34,6 +35,6 @@
     <file>icons/blue_up_arrow.png</file>
     <file>icons/blue_down_save.png</file>
     <file>icons/yellow_folder.png</file>
-	<file>icons/3d.png</file>
+    <file>icons/3d.png</file>
   </qresource>
 </RCC>

@@ -26,9 +26,11 @@ public:
 	void SetAutoRefresh(bool value, unsigned Interval = 1000);
 signals:
 	void WindowClosed(DockWindow* Sender);
+    void UIUpdate(std::function<void()> h);
 public slots:
 	virtual void Refresh();
 protected slots:
+    void UIUpdateImpl(std::function<void()> h);
 private:
 	bool m_AutoRefresh;
 	std::unique_ptr<QTimer> m_RefreshTimer;
@@ -36,5 +38,7 @@ private:
 
 } //namespace QtShared
 } //namespace MoonGlare
+
+Q_DECLARE_METATYPE(std::function<void()>);
 
 #endif // SUBWINDOW_H
