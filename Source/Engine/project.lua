@@ -6,6 +6,7 @@ group ""
 
 	project "Engine"
 		kind "WindowedApp"
+		MoonGlare.SetOutputDir("Engine")   
 
 	    filter 'files:**.lua'
 		    buildmessage 'Processing %{file.name} with bin2c'
@@ -63,6 +64,10 @@ group ""
 		--	print(p)
 		--	os.execute("echo " .. p .. " >> " .. f)
 		--end
+
+		postbuildcommands {
+            [["%{cfg.targetdir}/../svfs" -m "%{cfg.targetdir}" -e RDCExporter:%{cfg.targetdir}/../Modules/Engine.rdc:/]],
+        }
 
 		filter "configurations:Debug"
 			Features.ApplyAll(Engine.Debug.Features)

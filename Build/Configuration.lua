@@ -55,6 +55,14 @@ function SetPCH(pch)
 	filter { }
 end
 
+function MoonGlare.SetOutputDir(subpath)
+	filter "configurations:Debug"
+		targetdir(dir.target .. "/" .. subpath)		
+	filter "configurations:Release"
+		targetdir(dir.target .. "/" .. subpath)		
+	filter {}
+end
+
 local function SetCommonConfig()
 	editorintegration "on"
 	configurations { "Debug", "Release", }
