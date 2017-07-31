@@ -5,8 +5,6 @@ local qt = premake.extensions.qt
 group "Tools"
     project "MGEditor"
 
-        MoonGlare.X2CRule()
-
         filter { }
 
         qt.enable()

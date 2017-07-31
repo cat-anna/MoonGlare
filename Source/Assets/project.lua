@@ -17,8 +17,6 @@ group "EngineLibs"
 			"_FEATURE_EXTENDED_PERF_COUNTERS_",
 		}
 
-        MoonGlare.X2CRule()
-
 		files {
 			"**",
 			"../Config/*.h",

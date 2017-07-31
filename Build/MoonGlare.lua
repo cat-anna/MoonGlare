@@ -2,7 +2,9 @@
 
 --package.path = package.path .. ";./build/?.lua"
 
-dir.bin = dir.root .. "bin_" .. (_ACTION or "none") .. "/"
+dir.bin = dir.root .. "bin/"
+dir.project = dir.bin .. (_ACTION or "none") .. "/"
+dir.target = dir.bin .. "/%{cfg.buildcfg}_%{cfg.architecture}"
 dir.base = dir.root .. "MoonGlare/"
 dir.src = dir.base .. "Source/"
 dir.libsrc = dir.base .. "Libs/"
@@ -10,7 +12,6 @@ dir.libsrc = dir.base .. "Libs/"
 MoonGlare = {
 }
 
-include "CustomRules.lua"
 --require "Repositories"
 include "Configuration.lua"
 include "Projects.lua"
@@ -31,5 +32,3 @@ function MoonGlareSolution(Name)
 		--MoonGlare.Initialize()
 	end
 end
-
-

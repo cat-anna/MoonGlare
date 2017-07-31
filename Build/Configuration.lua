@@ -82,8 +82,7 @@ local function SetCommonConfig()
 
 	basedir "."
 	debugdir "."
-	targetdir(dir.bin)
-	location(dir.bin)
+	location "."
 
 	floatingpoint "Fast"
 	symbols "On"
@@ -136,6 +135,7 @@ local function SetCommonConfig()
 		}
 
 	filter "configurations:Debug"
+		targetdir(dir.target)
 		defines {
 			"DEBUG",
 			"SPACERTTI_TRACK_INSTANCES",
@@ -145,9 +145,9 @@ local function SetCommonConfig()
 		optimize "Debug"
 		warnings "Extra"
 		runtime "Debug"
-		targetsuffix "d"
 
 	filter "configurations:Release"
+		targetdir(dir.target)		
 		defines {
 			"RELEASE",
 			"CONFIGURATION_NAME=\"Release\"",
@@ -157,10 +157,13 @@ local function SetCommonConfig()
 		optimize "Speed"
 		warnings "Default"
 		runtime "Release"
-    
-	filter { }
 
-    MoonGlare.X2CRule()
+	filter 'files:**.x2c'
+		buildmessage 'Processing %{file.name} with xml2cpp'
+		buildcommands 'CALL xml2cpp --enable-all --input "%{file.relpath}" --output "%{cfg.objdir}%{file.basename}.x2c.h"'
+		buildoutputs '%{cfg.objdir}%{file.basename}.x2c.h'
+
+	filter { }
 end
 
 function MoonGlare.GenerateSolution(Name)

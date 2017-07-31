@@ -9,6 +9,10 @@ function MoonGlare.LookForProjects()
 		print("Found project: " .. path.getrelative(dir.root, v))
 		dofile(v)
 	end
+	for i,v in ipairs(os.matchfiles(dir.root .. "/**/DataModules/project.lua")) do
+		print("Found project: " .. path.getrelative(dir.root, v))
+		dofile(v)
+	end	
 end
 
 local PremakeGroup = group
@@ -37,7 +41,7 @@ function project(Name)
 
 	local proj = PremakeProject(Name)
 
-	local projbin = dir.bin .. CurrentGroup .. Name
+	local projbin = dir.project .. "%{prj.group}/%{prj.name}"
 	location (projbin)
 	includedirs(projbin)
 

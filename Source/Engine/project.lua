@@ -7,6 +7,12 @@ group ""
 	project "Engine"
 		kind "WindowedApp"
 
+	    filter 'files:**.lua'
+		    buildmessage 'Processing %{file.name} with bin2c'
+		    buildcommands 'CALL bin2c -o "%{cfg.objdir}%{file.basename}".lua.h -n %{file.basename}_lua "%{file.relpath}"'
+		    buildoutputs '%{cfg.objdir}%{file.basename}.lua.h'
+
+
 		SetPCH { hdr = "pch.h", src = "../pch.cpp", }
 
 		defines {
@@ -44,7 +50,6 @@ group ""
 
 		ModuleManager:AddModules("Engine")
 
-		MoonGlare.X2CRule()
 		--local fs = os.matchfiles("../Shared/x2c/**")
 		--MoonGlare.X2C.Files(fs)
 		--files {
