@@ -14,14 +14,12 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, vec3 LightDirection, vec3 WorldPos
     AmbientColor = vec4(BaseLight.Color, 1.0) * BaseLight.AmbientIntensity;
 
 	float gSpecularPower = 1;
-    float gMatSpecularIntensity = 0.01;
+    float gMatSpecularIntensity = 0.1;
 
     float DiffuseFactor = dot(Normal, -LightDirection);
 	DiffuseFactor *= BaseLight.DiffuseIntensity;
     if (DiffuseFactor > 0.0) {
-        DiffuseColor = 
-			vec4(BaseLight.Color, 1.0)
-		 * DiffuseFactor;
+        DiffuseColor = vec4(BaseLight.Color, 1.0) * DiffuseFactor;
 
         vec3 VertexToEye = normalize(CameraPos - WorldPos);
         vec3 LightReflect = normalize(reflect(LightDirection, Normal));
@@ -43,7 +41,6 @@ float CalcAttenuation(vec4 att, float Distance) {
     float Attv = att[0] +			              //constant
 				 att[1] * Distance +              //linerar
 				 att[2] * (Distance * Distance);  //exp
-
 	if(Attv <= 0)
 		return att[3];
 	return 1.0f / Attv;
@@ -65,7 +62,9 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 	vec3 LightToPixel = normalize(LightToWord);
 
     vec4 Color = CalcLightInternal(PointLight.Base, LightToPixel, WorldPos, Normal);
-    Color.xyz *= CalcAttenuation(PointLight.Attenuation, Distance);
+	float factor = CalcAttenuation(PointLight.Attenuation, Distance) ;
+	factor *= CalcStaticFogFactor(Distance);
+    Color.xyz *= factor;
 //	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
@@ -104,7 +103,9 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 	if (SpotFactor > SpotLight.CutOff) {
 		float Distance = length(LightToWord);
 		vec4 Color = CalcLightInternal(SpotLight.Base, LightToPixel, WorldPos, Normal);
-        Color.xyz *= CalcAttenuation(SpotLight.Attenuation, Distance);
+		float factor = CalcAttenuation(SpotLight.Attenuation, Distance);
+		factor *= CalcStaticFogFactor(Distance);
+		Color.xyz *= factor;
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
 

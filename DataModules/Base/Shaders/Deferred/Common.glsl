@@ -1,8 +1,8 @@
 #include "Common.glsl"
+#include "StaticFog.glsl"
 #include "Light.glsl"
 #include "ShadowTest.glsl"
 #include "Gamma.glsl"
-#include "StaticFog.glsl"
 
 //-----------------------------------------------
 

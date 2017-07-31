@@ -6,23 +6,24 @@ struct StaticFog_t {
 	
 	float Start;
 	float End;
-	
-	// float Density;
 };
 
 uniform StaticFog_t gStaticFog;
 
-vec3 CalcStaticShadow(vec3 WorldPos, vec3 fcolor) {
+float CalcStaticFogFactor(float Distance) {
 	if(!gStaticFog.Enabled) {
-		return fcolor;
+		return 1.0f;
 	}
-
-	float Distance = length(WorldPos - CameraPos);
+	
 	float factor = (gStaticFog.End - Distance) / (gStaticFog.End - gStaticFog.Start); 
-
-	return mix(gStaticFog.Color, fcolor, clamp(factor, 0.0, 1.0));
+	return clamp(factor, 0.0, 1.0);
 }
 
+vec3 CalcStaticShadow(vec3 WorldPos, vec3 fcolor) {
+	float Distance = length(WorldPos - CameraPos);
+	float factor = CalcStaticFogFactor(Distance);
+	return mix(gStaticFog.Color, fcolor, factor);
+}
 	// float Distance =1.0 - length(WorldPos) / 10;
 //	float factor = (5 - Distance) / (5 - 1); 
 	
