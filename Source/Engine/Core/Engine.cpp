@@ -14,6 +14,8 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Context.h>
 
+using namespace std::chrono_literals;
+
 namespace MoonGlare {
 namespace Core {
 
@@ -54,11 +56,6 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 void Engine::Initialize() {
-    if (!m_World->Initialize()) {
-        AddLogf(Error, "Failed to initialize world!");
-        throw "Failed to initialize world!";
-    }
-
     m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
     m_Dereferred->Initialize(GetWorld());
 
@@ -120,7 +117,7 @@ void Engine::EngineMain() {
     DebugLog(Debug, "Engine initialized. Waiting for scene to be ready.");
     while (!m_World->GetScenesManager()->CurrentScene()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        m_World->GetScenesManager()->ChangeScene();
+        m_World->GetScenesManager()->ChangeScene(conf);
         Device->ProcessPendingCtrlQueues();
         Ctx->Process();
     }
@@ -135,18 +132,34 @@ void Engine::EngineMain() {
     clock::time_point TitleRefresh = EntryTime;
 
     Ctx->SetVisible(true);
+    bool odd = true;
 
     while (m_Running) {
         CurrentTime = clock::now();
 
         double FrameTimeDelta = tdiff(LastFrame, CurrentTime);
-        if (FrameTimeDelta < m_FrameTimeSlice) 
+
+    // if (FrameTimeDelta < m_FrameTimeSlice * 0.8f) 
+        //continue;
+
+
+        if (FrameTimeDelta + 0.001f < m_FrameTimeSlice) {
+            auto remain = m_FrameTimeSlice - FrameTimeDelta;
+            glFlush();
+            std::this_thread::sleep_for(1ms * (remain * 0.9f));//arbitrary
             continue;
-        if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f) 
+        }
+
+        if (FrameTimeDelta < m_FrameTimeSlice) {
+            continue;
+        }
+
+        if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f)
             ++m_SkippedFrames;
 
         LastFrame = CurrentTime;
         conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
+        odd = odd || conf.m_SecondPeriod;
 
         m_ActionQueue.DispatchPendingActions();
 
@@ -175,28 +188,42 @@ void Engine::EngineMain() {
         auto SortTime = clock::now();
         Device->Submit(conf.m_BufferFrame);
         {
+            //if (odd)
+
             auto frame = Device->PendingFrame();
             using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
             Device->ProcessPendingCtrlQueues();
+            if (odd) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            cmdl.Execute();
-            frame->GetFirstWindowLayer().Execute();
+                glFlush();
+                cmdl.Execute();
+                glFlush();
+                frame->GetFirstWindowLayer().Execute();
+                Ctx->Flush();
+
+            }
+            else {
+                frame->GetCommandLayers().Execute<Layer::Controll, Layer::PreRender>();
+            }
 
             Device->ReleaseFrame(frame);
-            
-         //   glFinish();
-            glFlush();
+
+            //glFlush();
+            //glFinish();
+            //glFlush();
         }
 
         auto RenderTime = clock::now();
         {
-            Ctx->Flush();
+            //glFinish();
+            //Ctx->Flush();
         }
         auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
+
+        odd = !odd;
 
         if(conf.m_SecondPeriod) {
             TitleRefresh = CurrentTime;

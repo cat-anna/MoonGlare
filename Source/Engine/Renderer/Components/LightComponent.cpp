@@ -147,8 +147,8 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             pl.m_Attenuation = item.m_Attenuation;
             float infl = pl.GetLightInfluenceRadius();
             pl.m_Position = convert(tr.getOrigin());
-            //if (!conf.deferredSink->PointLightTest(emath::MathCast<emath::fvec3>((math::fvec3)pl.m_Position), infl))
-                //continue;
+            if (!conf.deferredSink->PointLightVisibilityTest(emath::MathCast<emath::fvec3>((math::fvec3)pl.m_Position), infl))
+                continue;
 
             math::mat4 mat;
             tr.getOpenGLMatrix(&mat[0][0]);

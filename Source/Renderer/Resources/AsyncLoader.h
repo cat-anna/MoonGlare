@@ -25,6 +25,7 @@ public:
     bool AllResoucecsLoaded() override;
     void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
     void QueueTask(SharedAsyncTask task) override;
+    void SetObserver(SharedAsyncLoaderObserver o) override;
 
     unsigned JobsPending() const;
 
@@ -37,6 +38,7 @@ private:
     std::thread m_Thread;
     Asset::AssetLoader *m_AssetLoader;
     const Configuration::RuntimeConfiguration *m_Configuration;
+    WeakAsyncLoaderObserver observer;
 
     struct QueueData {
         Commands::CommitCommandQueue m_ccq;
@@ -60,6 +62,7 @@ private:
     };
     static_assert(Conf::AsyncQueueCount == 2, "error!");//not implemented
 
+    std::atomic<bool> working = false;
     bool m_QueueDirty = false;
     QueueData *m_PendingQueue;
     QueueData *m_SubmitedQueue;
@@ -96,10 +99,7 @@ private:
 
     std::list<AnyTask> m_Queue;
     mutable std::mutex m_QueueMutex;
-    void QueuePush(AnyTask at) {
-        LOCK_MUTEX(m_QueueMutex);
-        m_Queue.emplace_back(std::move(at));
-    }
+    void QueuePush(AnyTask at);
 
     DeclarePerformanceCounter(JobsDone);
 

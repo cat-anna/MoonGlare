@@ -1,0 +1,17 @@
+Import "../Math.x2c"
+
+namespace "MoonGlare.x2c.Renderer"
+
+Use(Global.MoonGlare.x2c.Math.Color3)
+
+Structure.import {
+    name = "StaticFog",
+    location = "MoonGlare::Renderer::StaticFog",
+    description = "",
+    fields = {
+        { name = "Enabled", type = bool, default = false, description = "", },
+        { name = "Color", type = Local.Color3, default = {r=0,g=0,b=0}, description = "", },
+        { name = "Start", type = float, default = 1, description = "", },
+        { name = "End", type = float, default = 10, description = "", },
+    },
+}

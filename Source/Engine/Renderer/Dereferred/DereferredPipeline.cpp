@@ -119,14 +119,34 @@ void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
     InitializeDirectionalQuad();
 }
 
+void DefferedSink::SetStaticFog(const Renderer::StaticFog &fog) {
+    this->fog = fog;
+    fogSet = false;
+    visibility = fog.m_Enabled ? fog.m_End + 1 : -1;
+}
+
 void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     namespace Commands = Renderer::Commands;
 
     Renderer::Frame *frame = config.m_BufferFrame;
     m_frame = frame;
 
+    if (config.m_SecondPeriod) {
+        AddLogf(Performance, "Mesh counter: %u", meshcouter);
+    }
+    meshcouter = 0;
+
     auto &shres = m_Renderer->GetResourceManager()->GetShaderResource();
     auto &layers = m_frame->GetCommandLayers();
+
+    auto SetFog = [this](auto builder) {
+        builder.Set("gStaticFog.Enabled", fog.m_Enabled ? 1 : 0);
+        if (fog.m_Enabled) {
+            builder.Set("gStaticFog.Color", emath::MathCast<emath::fvec3>(fog.m_Color));
+            builder.Set("gStaticFog.Start", fog.m_Start);
+            builder.Set("gStaticFog.End", fog.m_End);
+        }
+    };
 
 //------------------------------------------------------------------------------------------
     m_LightGeometryQueue = frame->AllocateSubQueue();
@@ -175,6 +195,9 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
         m_DirectionalLightQueue = frame->AllocateSubQueue();
         m_DirectionalLightShader = shres.GetBuilder(*m_DirectionalLightQueue, m_ShaderLightDirectionalHandle);
         m_DirectionalLightShader.Bind();
+        if (!fogSet) {
+            SetFog(m_DirectionalLightShader);
+        }
         m_DirectionalLightShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
         m_DirectionalLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
         //she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
@@ -205,6 +228,9 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_PointLightShader.Bind();//TODO
+        if (!fogSet) {
+            SetFog(m_PointLightShader);
+        }
         m_PointLightShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
     }
 //------------------------------------------------------------------------------------------
@@ -216,6 +242,9 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_SpotShader.Bind();//TODO
+        if (!fogSet) {
+            SetFog(m_SpotShader);
+        }
         m_SpotShader.Set<Uniform::ScreenSize>(config.m_ScreenSize);
     }
 //------------------------------------------------------------------------------------------
@@ -261,20 +290,24 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
 
 void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH) {
     //TODO
+
+
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+    auto *md = mm.GetMeshData(meshH);
+
+    if (!md || !MeshVisibilityTest(basepos, md->boundingRadius))
+        return;
+
     auto *meshes = mm.GetMeshes(meshH);
     auto *materials = mm.GetMaterials(meshH);
 
     if (!meshes || !materials)
         return;
 
-    auto *md = mm.GetMeshData(meshH);
-
     // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
     //  if (delta.squaredNorm() > 100.0f)
     //      return;
     
-
     namespace Commands = Renderer::Commands;
 
     {
@@ -302,7 +335,9 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basep
         auto &mat = (*materials)[i];
 
         if (!mesh.valid)
-            break;
+            break;               
+
+        ++meshcouter;
 
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
@@ -342,10 +377,36 @@ void DefferedSink::SubmitDirectionalLight(const Renderer::Light::LightBase & lin
     garg->m_ElementMode = GL_TRIANGLES;
 }
 
-bool DefferedSink::PointLightTest(const emath::fvec3 &position, float radius) {
-    //emath::fvec3 delta = m_Camera.m_Position - position;
-    //return delta.squaredNorm() < radius * radius;
-    throw false;
+bool DefferedSink::MeshVisibilityTest(const emath::fvec3 &position, float radius) {
+    emath::fvec3 delta = m_Camera.m_Position - position;
+
+    auto sqnorm = delta.squaredNorm();
+    //if (sqnorm < pow(radius, 2.0f))
+        //return true;
+
+    if (sqnorm > pow(radius + visibility, 2.0f))
+        return false;
+
+    //if (delta.dot(m_Camera.m_Direction) < 0)
+        //return false;
+
+    return true;
+}
+
+bool DefferedSink::PointLightVisibilityTest(const emath::fvec3 &position, float radius) {
+    emath::fvec3 delta = m_Camera.m_Position - position;
+
+    auto sqnorm = delta.squaredNorm();
+    if (sqnorm < pow(radius, 2.0f))
+        return true;
+
+    if (sqnorm > pow(radius + visibility, 2.0f))
+        return false;
+
+    if (delta.dot(m_Camera.m_Direction) < 0)
+        return false;
+
+    return true;
 }
 
 void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {

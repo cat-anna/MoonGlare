@@ -18,6 +18,7 @@
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Light.h>
 #include <Renderer/VirtualCamera.h>
+#include <Renderer/StaticFog.h>
 
 namespace Graphic {
 namespace Dereferred {
@@ -45,12 +46,15 @@ struct DefferedSink {
     void Reset(const ::MoonGlare::Core::MoveConfig &config);
     void Initialize(Renderer::RendererFacade *Renderer);
 
+    bool MeshVisibilityTest(const emath::fvec3 &position, float radius);
     void Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH);
 
     void SubmitDirectionalLight(const Renderer::Light::LightBase &linfo);
-    bool PointLightTest(const emath::fvec3 &position, float radius);
     void SubmitPointLight(const Renderer::Light::PointLight &linfo);
+    bool PointLightVisibilityTest(const emath::fvec3 &position, float radius);
     void SubmitSpotLight(const Renderer::Light::SpotLight &linfo);
+
+    void SetStaticFog(const Renderer::StaticFog &fog);
 
     Renderer::VirtualCamera m_Camera;
 protected:
@@ -75,6 +79,9 @@ protected:
     Renderer::ShaderResourceHandle<StencilLightShaderDescriptor> m_ShaderStencilHandle{};
     Renderer::ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{};
 
+    uint32_t meshcouter = 0;
+    float visibility = -1.0f;
+
     Renderer::Frame *m_frame = nullptr;
     Renderer::RendererFacade *m_Renderer = nullptr;
     DereferredPipeline *m_DereferredPipeline;
@@ -82,6 +89,9 @@ protected:
     MoonGlare::Renderer::MeshResourceHandle sphereMesh;
     MoonGlare::Renderer::MeshResourceHandle coneMesh;
     MoonGlare::Renderer::MeshResourceHandle quadMesh;
+
+    Renderer::StaticFog fog = {};
+    bool fogSet = false;
 
     void InitializeDirectionalQuad();
 };

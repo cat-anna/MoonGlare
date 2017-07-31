@@ -955,7 +955,7 @@ int ScriptComponent::lua_Spawn(lua_State *lua) {
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
     auto cm = This->GetManager();
-    auto Owner = cm->GetScene()->GetSceneEntity();
+    auto Owner = cm->GetRootEntity();
     return lua_DoSpawn(lua, Owner);
 }
 

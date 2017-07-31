@@ -54,6 +54,13 @@ struct
 //            int i = 0;
         }
     }
+    template<typename T>
+    void Set(const char Name[], const T &t, Commands::CommandKey key = Commands::CommandKey()) {
+        auto arg = m_Queue->PushCommand<Commands::ShaderResourcSetNamedUniform<T>>(key);
+        arg->shaderHandle = m_HandlePtr;
+        arg->value = t;
+        arg->name = Name;
+    }
 
     template<Sampler SamplerUnit>
     void Set(TextureResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {

@@ -232,9 +232,8 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
             auto pattern = it.attribute("Pattern").as_string(nullptr);
             if (pattern) {                                 
                 Import(data, pattern, index);
-            } else {
-                Import(data, it, index);
-            }
+            } 
+            Import(data, it, index);
             continue;
         }
         default:

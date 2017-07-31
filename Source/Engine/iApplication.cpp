@@ -166,6 +166,12 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
 
+    if (!m_World->Initialize()) {
+        AddLogf(Error, "Failed to initialize world!");
+        throw "Failed to initialize world!";
+    }
+
+
     if (m_Configuration->m_Core.m_EnableConsole) {
         auto c = new Modules::BasicConsole();
         _init_chk(c, "Unable to initialize console!");

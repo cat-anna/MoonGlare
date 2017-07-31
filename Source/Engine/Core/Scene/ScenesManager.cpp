@@ -5,12 +5,19 @@
  *      Author: Paweu
  */
 #include <pch.h>
+#include <libSpace/src/Container/EnumMapper.h>
+
 #include <MoonGlare.h>
 #include "ScenesManager.h"
 #include <Engine/Core/Engine.h>
 
 #include <Renderer/Renderer.h>
+#include <Renderer/StaticFog.h>
 
+#include <Renderer/Dereferred/DereferredPipeline.h>
+
+#include <Math.x2c.h>
+#include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
 namespace MoonGlare::Core::Scene {
@@ -78,6 +85,20 @@ bool ScenesManager::Initialize(World *world, const SceneConfiguration *configura
     m_DescriptorTable.reserve(32);//TODO: some config?
     sceneConfiguration = configuration;
 
+    struct Observer : public Renderer::iAsyncLoaderObserver {
+        ScenesManager *Owner;
+
+        Observer(ScenesManager*o) :Owner(o){}
+
+        void OnFinished() override {
+            Owner->SetSceneChangeFence(SceneChangeFence::Resources, false);
+        };
+        void OnStarted() override {
+            Owner->SetSceneChangeFence(SceneChangeFence::Resources, true);
+        };
+    };
+    loaderObserver = std::make_shared<Observer>(this);
+    m_World->GetRendererFacade()->GetAsyncLoader()->SetObserver(loaderObserver);
     return true;
 }
 
@@ -137,20 +158,39 @@ bool ScenesManager::PreSystemShutdown() {
 
 //----------------------------------------------------------------------------------
 
-void ScenesManager::ChangeScene() {
+static const Space::Container::EnumMapper<SceneChangeFence, const char*> SceneChangeFenceNames{ "Resources", "ScriptThreads" };
+
+void ScenesManager::SetSceneChangeFence(SceneChangeFence type, bool value) {
+    uint32_t bit = 1 << static_cast<uint32_t>(type);
+    if (value) {
+        changeSceneFences |= bit;
+        DebugLogf(Hint, "Added scene change fence '%s' -> 0x%x", SceneChangeFenceNames[type], changeSceneFences.load());
+    }                                                                                 
+    else {
+        changeSceneFences &= ~bit;
+        DebugLogf(Hint, "Removed scene change fence '%s' -> 0x%x", SceneChangeFenceNames[type], changeSceneFences.load());
+    }
+}
+
+void ScenesManager::ChangeScene(const Core::MoveConfig & config) {
     if (!m_NextSceneDescriptor)
         return;
 
+    bool can = changeSceneFences.load() == 0;
+
     if (m_CurrentScene) {
         if (!m_NextSceneDescriptor->m_Flags.m_AllowMissingResources) {
-            if (!m_World->GetRendererFacade()->AllResourcesLoaded()) {
+            //if (!m_World->GetRendererFacade()->AllResourcesLoaded()) {
+            //    return;
+            //}
+            if (!can) { //m_World->GetRendererFacade()->AllResourcesLoaded()
                 return;
             }
         }
         m_CurrentScene->EndScene();
     }
     else {
-        if (!m_World->GetRendererFacade()->AllResourcesLoaded()) {
+        if (!can) { //m_World->GetRendererFacade()->AllResourcesLoaded()
             return;
         }
     }
@@ -165,6 +205,7 @@ void ScenesManager::ChangeScene() {
 
     if (m_CurrentScene) {
         m_CurrentScene->BeginScene();
+        config.deferredSink->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
     }
 
     AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
@@ -177,7 +218,7 @@ void ScenesManager::ChangeScene() {
 
 bool ScenesManager::Step(const Core::MoveConfig & config) {
     if (m_NextSceneDescriptor) {
-        ChangeScene();
+        ChangeScene(config);
     }
 
     if (m_CurrentScene)
@@ -262,6 +303,7 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
         }
 
         descriptor->m_Flags.m_Stateful = sc.m_Stateful;
+        descriptor->staticFog = sc.m_StaticFog;
 
         auto ptr = std::make_unique<ciScene>();
         auto RootEntity = m_World->GetEntityManager()->GetRootEntity();

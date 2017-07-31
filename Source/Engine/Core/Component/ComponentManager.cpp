@@ -36,12 +36,13 @@ ComponentManager::~ComponentManager() {
 
 //---------------------------------------------------------------------------------------
 
-bool ComponentManager::Initialize(ciScene *scene) {
+bool ComponentManager::Initialize(ciScene *scene, Entity root) {
 	if (!scene) {
 		AddLog(Error, "No scene pointer!");
 		return false;
 	}
 	m_Scene = scene;
+    rootEntity = root;
 
 	INITCHECK(m_EventDispatcher.Initialize(GetWorld()));
 					  

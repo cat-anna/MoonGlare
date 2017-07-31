@@ -21,7 +21,7 @@ public:
 	ComponentManager();
 	~ComponentManager();
 
-	bool Initialize(ciScene *scene);
+	bool Initialize(ciScene *scene, Entity root);
 	bool Finalize();
 
 	bool LoadComponents(pugi::xml_node node);
@@ -44,6 +44,7 @@ public:
 	World* GetWorld() { return m_World; }
 
 	EventDispatcher& GetEventDispatcher() { return m_EventDispatcher; }
+    Entity GetRootEntity() const { return rootEntity; }
 
 	struct ComponentInfo {
 		float m_TotalStepDuration;
@@ -53,6 +54,7 @@ private:
 	std::array<UniqueAbstractComponent, Configuration::Storage::MaxComponentCount> m_Components;
 	std::array<ComponentID, Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
 	size_t m_UsedCount;
+    Entity rootEntity;
 	EventDispatcher m_EventDispatcher;
 	ciScene *m_Scene;
 	World *m_World;

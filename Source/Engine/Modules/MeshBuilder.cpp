@@ -179,8 +179,8 @@ struct MeshBuilder {
         normals.clear();
 
         auto *rf = world->GetRendererFacade();
-        auto *resmgr = rf->GetResourceManager();
-        auto &matm = resmgr->GetMaterialManager();
+//        auto *resmgr = rf->GetResourceManager();
+//        auto &matm = resmgr->GetMaterialManager();
         for (auto &mat : materials) {             
             //matm.Release(mat.matHandle);
             //TODO: release materials

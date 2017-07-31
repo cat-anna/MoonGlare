@@ -155,6 +155,7 @@ bool ScriptEngine::ConstructLuaContext() {
         Modules::StaticModules::InitMath(m_Lua, m_world);
         Modules::StaticModules::InitRandom(m_Lua, m_world);
         Modules::StaticModules::InitTime(m_Lua, m_world);
+        Modules::StaticModules::InitThread(m_Lua, m_world);
 
         InstallModule<Modules::LuaRequireModule, iRequireModule>();
         InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
@@ -187,6 +188,7 @@ bool ScriptEngine::ReleaseLuaContext() {
 void ScriptEngine::Step(const MoveConfig &config) {
     LOCK_MUTEX(m_Mutex);
 
+    Modules::StaticModules::ThreadStep(m_Lua, m_world);
     lua_gc(m_Lua, LUA_GCSTEP, m_CurrentGCStep);
 
     if (!config.m_SecondPeriod) {
@@ -203,6 +205,7 @@ void ScriptEngine::Step(const MoveConfig &config) {
             AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
         }
     }
+
 
 #ifdef PERF_PERIODIC_PRINT
     AddLogf(Performance, "Lua memory usage: %6.2f kbytes", memusage);
@@ -236,30 +239,45 @@ float ScriptEngine::GetMemoryUsage() const {
 
 //---------------------------------------------------------------------------------------
 
-bool ScriptEngine::ExecuteCode(const char* Code, unsigned len, const char* ChunkName, int rets) {
-    LOCK_MUTEX(m_Mutex);
+bool ScriptEngine::Call(lua_State *lua, int args, int rets) {
+    switch (lua_pcall(lua, args, rets, 0)) {
+    case 0:
+        return true;
+    case LUA_ERRRUN:
+        AddLog(Error, "Call error: a runtime error!");
+        break;
+    case LUA_ERRERR:                    
+        AddLog(Error, "Call error: error while running the error handler function!");
+        break;
+    case LUA_ERRMEM:
+        AddLog(Error, "Call error: Memory allocation failed!");
+        break;
+    }
+    AddLog(Error, "Call error message: " << lua_tostring(lua, -1));
+    lua_pop(lua, 1);
+    return false;
+}
+
+bool ScriptEngine::ExecuteCode(lua_State *lua, const char* Code, unsigned len, const char* ChunkName, int rets) {
     MoonGlareAssert(Code);
 
     Utils::Scripts::LuaCStringReader reader(Code, len);
-    int result = lua_load(m_Lua, &reader.Reader, &reader, ChunkName);
+    int result = lua_load(lua, &reader.Reader, &reader, ChunkName);
 
     switch (result) {
     case 0:
-        if (lua_pcall(m_Lua, 0, rets, 0) != 0) {
-            AddLog(Error, "Lua error: " << lua_tostring(m_Lua, -1));
-            return false;
-        }
         AddLogf(Debug, "Loaded lua chunk: '%s'", ChunkName ? ChunkName : "?");
-        break;
+        return Call(lua, 0, rets);
     case LUA_ERRSYNTAX:
-        AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName ? ChunkName : "?", lua_tostring(m_Lua, -1), Code);
+        AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName ? ChunkName : "?", lua_tostring(lua, -1), Code);
         break;
     case LUA_ERRMEM:
         AddLog(Error, "Unable to load script: Memory allocation failed!");
         break;
     }
 
-    return true;
+    lua_pop(lua, 1);
+    return false;
 }
 
 //---------------------------------------------------------------------------------------
@@ -287,7 +305,7 @@ template<typename Class, typename Iface>
 void ScriptEngine::InstallModule() {
     auto &mod = modules[std::type_index(typeid(Iface))];
     if (mod.basePtr) {
-        throw std::runtime_error(std::string("Attempt to reregister iface ") + typeid(Iface).name());
+        throw std::runtime_error(std::string("Attempt to re-register iface ") + typeid(Iface).name());
     }
 
     mod.basePtr = std::make_unique<Class>(m_Lua, m_world);

@@ -1,16 +1,12 @@
-Import "CoreCommon.x2c"
+Import "../Renderer/StaticFog.x2c"
 
 namespace "MoonGlare.x2c.Core.Scene"
 
 Structure.new {
-	name = "SceneConfiguration",
+    name = "SceneConfiguration",
     description = "",
-	fields = {
-		{
-			name = "Stateful",
-			description = "",
-			type = bool,
-			default = false,
-		},
-	},
+    fields = {
+        { name = "Stateful", type = bool, default = false, description = "", },
+        { name = "StaticFog", type = Global.MoonGlare.x2c.Renderer.StaticFog, description = "", },
+    },
 }

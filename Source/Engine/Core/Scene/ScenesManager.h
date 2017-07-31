@@ -8,6 +8,8 @@
 #define SCENESMANAGER_H_
 
 #include "Configuration.Scene.h"
+#include <Renderer/StaticFog.h>
+#include <Renderer/iAsyncLoader.h>
 
 namespace MoonGlare::Core::Scene {
 
@@ -16,6 +18,8 @@ struct SceneDescriptor {
     std::string m_SID;
     std::mutex m_Lock;
     std::unique_ptr<ciScene> m_Ptr;
+
+    Renderer::StaticFog staticFog;
 
     struct {
         bool m_SingleInstance;
@@ -36,6 +40,12 @@ struct SceneDescriptor {
 };
 
 using UniqueSceneDescriptor = std::unique_ptr<SceneDescriptor>;
+
+enum class SceneChangeFence : uint32_t {
+    Resources,
+    ScriptThreads,
+    MaxValue,
+};
 
 class ScenesManager : public cRootClass {
     SPACERTTI_DECLARE_STATIC_CLASS(ScenesManager, cRootClass);
@@ -61,13 +71,15 @@ public:
     }
 
     ciScene* CurrentScene() const { return m_CurrentScene; }
-    void ChangeScene();
+    void ChangeScene(const Core::MoveConfig & config);
 
     double GetSceneTime() const {
         if (!m_CurrentScene)
             return 0.0;
         return std::chrono::duration<double>(std::chrono::steady_clock::now() - sceneStartTime).count();
     }
+
+    void SetSceneChangeFence(SceneChangeFence type, bool value);
 
 //later
     //preload scene => takes sid and prepares scene; SwitchToScene shall be instant
@@ -79,6 +91,8 @@ public:
 protected:
     using SceneSIDMap = std::unordered_map<string, SceneDescriptor*>;
     using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;
+
+    std::atomic<uint32_t> changeSceneFences = 0;
 
     ciScene *m_CurrentScene = nullptr;
     std::chrono::steady_clock::time_point sceneStartTime;
@@ -93,6 +107,7 @@ protected:
     bool m_LoadingInProgress;
     World *m_World;
     const SceneConfiguration *sceneConfiguration = nullptr;
+    Renderer::SharedAsyncLoaderObserver loaderObserver;
 
     bool LoadNextScene(const std::string &SID);					// load scene and execute it
     bool LoadNextScene(SceneDescriptor *descriptor);			// load scene and execute it

@@ -78,7 +78,7 @@ bool TransformComponent::Initialize() {
 	auto &RootEntry = m_Array[index];
 	RootEntry.m_Flags.ClearAll();
 	RootEntry.m_Flags.m_Map.m_Valid = true;
-	RootEntry.m_OwnerEntity = GetManager()->GetScene()->GetSceneEntity();
+	RootEntry.m_OwnerEntity = GetManager()->GetRootEntity();
 	RootEntry.m_GlobalMatrix = math::mat4();
 	RootEntry.m_LocalScale = Physics::vec3(1, 1, 1);
 	RootEntry.m_GlobalScale = Physics::vec3(1, 1, 1);

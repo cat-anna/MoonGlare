@@ -141,16 +141,19 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
         &LuaRequireModule::HandleModuleRequest,
         &LuaRequireModule::HandleScriptSearch,
     };
-
+    const char *t;
     for (auto item : funcs) {
         auto mode = (this->*item)(lua, name);
-
+        t = lua_typename(lua, lua_type(lua, -1));
+        
         switch (mode) {
         case ResultStoreMode::NoResult:
             continue;
-        case ResultStoreMode::Store:
+        case ResultStoreMode::Store:  
             lua_pushvalue(lua, -1);
+            t = lua_typename(lua, lua_type(lua, -1));
             lua_setfield(lua, cachetableloc, name.data());
+            t = lua_typename(lua, lua_type(lua, -1));
             return true;
         case ResultStoreMode::DontStore:
             return true;
@@ -171,7 +174,7 @@ ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::s
         return ResultStoreMode::NoResult;
     }
 
-    if (!world->GetScriptEngine()->ExecuteCode(bt.c_str(), bt.byte_size(), uri.c_str(), 1)) {
+    if (!world->GetScriptEngine()->ExecuteCode(lua, bt.c_str(), bt.byte_size(), uri.c_str(), 1)) {
         AddLogf(Error, "Script execution failed: %s", uri.c_str());
         return ResultStoreMode::NoResult;
     }
@@ -210,8 +213,10 @@ int LuaRequireModule::lua_require(lua_State *lua) {
     LuaRequireModule *This = reinterpret_cast<LuaRequireModule*>(voidThis);
 
     std::string_view name = luaL_checkstring(lua, -1);
-    if (This->ProcessRequire(lua, name, lua_upvalueindex(2)))
+    if (This->ProcessRequire(lua, name, lua_upvalueindex(2))) {
+        auto t = lua_typename(lua, lua_type(lua, -1));
         return 1;
+    }
 
     throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }

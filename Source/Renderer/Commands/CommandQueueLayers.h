@@ -41,6 +41,12 @@ public:
 			it.Clear();
 	}
 
+    template<LayerEnum ... Layers>
+    void Execute() {
+        int v[] = { (Get<Layers>().Execute(), 1)... };
+    }
+
+
 	template<LayerEnum layer>
 	Queue& Get() { return m_Layers[static_cast<uint32_t>(layer)]; }
 	Queue& operator[](LayerEnum layer) { return m_Layers[static_cast<size_t>(layer)]; }

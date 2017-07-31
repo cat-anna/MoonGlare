@@ -123,11 +123,25 @@ struct ShaderResourcSetUniformArgument {
 	}
 };
 
+template<typename T>
+struct ShaderResourcSetNamedUniformArgument {
+    Device::ShaderHandle *shaderHandle;
+    T value;
+    const char *name;
+    static void Execute(const ShaderResourcSetNamedUniformArgument *arg) {            
+        auto loc = glGetUniformLocation(*arg->shaderHandle, arg->name);
+        ShaderResourcSetUniformArgumentBase::Set(loc, arg->value);
+    }
+};
+
 }
 using ShaderResourceBind = CommandTemplate<detail::ShaderResourceBindArgument>;
 
 template<typename T>
 using ShaderResourcSetUniform = CommandTemplate<detail::ShaderResourcSetUniformArgument<T>>;
+
+template<typename T>
+using ShaderResourcSetNamedUniform = CommandTemplate<detail::ShaderResourcSetNamedUniformArgument<T>>;
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------

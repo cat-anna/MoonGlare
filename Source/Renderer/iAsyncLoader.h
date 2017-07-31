@@ -12,12 +12,24 @@ using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
 class iAsyncTask;
 using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
 
+class iAsyncLoaderObserver {
+public:
+    virtual ~iAsyncLoaderObserver() {};
+
+    virtual void OnFinished() {};
+    virtual void OnStarted() {};
+};
+
+using SharedAsyncLoaderObserver = std::shared_ptr<iAsyncLoaderObserver>;
+using WeakAsyncLoaderObserver = std::weak_ptr<iAsyncLoaderObserver>;
+
 class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() {};
 
     virtual bool AnyJobPending() = 0;
     virtual bool AllResoucecsLoaded() = 0;
+    virtual void SetObserver(SharedAsyncLoaderObserver) = 0;
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
     virtual void QueueTask(SharedAsyncTask task) = 0;

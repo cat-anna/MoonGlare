@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<Entity>
-	<Component Name="Script">
-		<Script>/Scripts/DebugObject</Script>
-	</Component>
-</Entity>

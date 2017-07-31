@@ -73,7 +73,13 @@ public:
 
     ApiInitializer GetApiInitializer() { return luabridge::getGlobalNamespace(m_Lua); }
 
-    bool ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr, int rets = 0);
+    static bool Call(lua_State *lua, int args = 0, int rets = 0);
+    static bool ExecuteCode(lua_State *lua, const char *code, unsigned len, const char *CodeName = nullptr, int rets = 0);
+
+    bool ExecuteCode(const char *code, unsigned len, const char *CodeName = nullptr, int rets = 0) { 
+        LOCK_MUTEX(m_Mutex);
+        return ExecuteCode(m_Lua, code, len, CodeName, rets); 
+    }
     bool ExecuteCode(const string& code, const char *CodeName = nullptr, int rets = 0) { return ExecuteCode(code.c_str(), code.length(), CodeName, rets); }
 
     lua_State *GetLua() { return m_Lua; }

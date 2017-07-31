@@ -57,6 +57,11 @@ bool AsyncLoader::AllResoucecsLoaded() {
     return JobsPending() == 0 && !m_QueueDirty;
 } 
 
+void AsyncLoader::SetObserver(SharedAsyncLoaderObserver f) {
+    //TODO: possible race condition
+    observer = f;
+}
+
 //---------------------------------------------------------------------------------------
 
 void AsyncLoader::ThreadMain() {
@@ -116,6 +121,13 @@ void AsyncLoader::ThreadMain() {
                 break;
             case ProcessorResult::NothingDone:
                 if (!m_QueueDirty) {
+                    if (working) {
+                        working = false;
+                        auto ob = observer.lock();
+                        if (ob)
+                            ob->OnFinished();
+                    }
+
                     std::mutex mutex;
                     std::unique_lock<std::mutex> lock(mutex);
                     m_Lock.wait_for(lock, 100ms);
@@ -141,6 +153,19 @@ void AsyncLoader::ThreadMain() {
         }
     }
 }
+
+void AsyncLoader::QueuePush(AnyTask at) {
+    LOCK_MUTEX(m_QueueMutex);
+    m_Queue.emplace_back(std::move(at));
+    if (!working) {
+        working = true;
+        auto ob = observer.lock();
+        if (ob)
+            ob->OnStarted();
+    }
+
+}
+
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------

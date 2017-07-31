@@ -14,21 +14,17 @@ namespace MoonGlare::Core::Scene {
 
 struct SceneDescriptor;
 
-class ciScene : public cRootClass {
-	SPACERTTI_DECLARE_STATIC_CLASS(ciScene, cRootClass)
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
+class ciScene {
 public:
 	ciScene(const ciScene&) = delete;
 	ciScene();
-	virtual ~ciScene();
+	~ciScene();
 
 	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
+	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
 
 	bool Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor);
 	bool Finalize();
-
-	Entity GetSceneEntity() const { return m_Entity; }
-	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
 
 //old
 	void BeginScene();
@@ -38,18 +34,9 @@ public:
 
 	static void RegisterScriptApi(::ApiInitializer &api);
 
-//very old
-	DefineFlagGetter(m_Flags, sfset_IsReady, Ready)
-	DefineFlagGetter(m_Flags, sf_Initialized, Initialized)
-	enum eSceneFlags {
-		sf_Initialized = 0x0001,
-		sf_Ready = 0x0002,
-		sfset_IsReady = sf_Ready | sf_Initialized,
-	};
 protected:
-	Entity m_Entity;
 	Component::ComponentManager m_ComponentManager;
-	SceneDescriptor *m_Descriptor;
+	SceneDescriptor *m_Descriptor = nullptr;
 
 	void SendState(SceneState state) {
 		m_ComponentManager.GetEventDispatcher().SendMessage<SceneStateChangeEvent>({ state, this });
@@ -58,10 +45,6 @@ protected:
 	bool SpawnChild(const std::string &URI, std::string Name, Entity &out);
 	bool SpawnChildRaw(const char *URI, const char *Name);
 
-//very old
-	unsigned m_Flags;
-	DefineFlagSetter(m_Flags, sf_Initialized, Initialized);
-	DefineFlagSetter(m_Flags, sf_Ready, Ready);
 };
 
 } //namespace MoonGlare::Core::Scene

@@ -40,8 +40,7 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
     } );
 
     connect(m_Ui->actionBuild, &QAction::triggered, [this]() {
-        auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
-        pm->CreateProcess<BuildProcess>(std::to_string(rand()))->Start();
+        BuildModule();
     });
 }
 
@@ -261,6 +260,13 @@ void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<Share
     }
 }
 */
+
+//-----------------------------------------
+
+void MainWindow::BuildModule() {
+    auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
+    pm->CreateProcess<BuildProcess>(std::to_string(rand()))->Start();
+}
 
 } //namespace Editor
 } //namespace MoonGlare

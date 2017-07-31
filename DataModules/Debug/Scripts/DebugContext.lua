@@ -1,25 +1,19 @@
 --part of MoonGlare engine debug module
 
-local DebugHooks = { }
-
-local DEBUG_OBJECT_URI = "file:///Objects/DebugObject.xml"
-
-function DebugHooks:SceneStateChangeEvent(event, arg)
-	if arg.State == 1 then
-		arg.Scene:SpawnChild(DEBUG_OBJECT_URI, "debug")
+-- local DebugHooks = { }
+-- local DEBUG_OBJECT_URI = "file:///Objects/DebugObject.xml"
+-- function DebugHooks:SceneStateChangeEvent(event, arg)
+	-- if arg.State == 1 then
+		-- arg.Scene:SpawnChild(DEBUG_OBJECT_URI, "debug")
 		--print "SceneStateChangeEvent Created"
-	end
-end
+	-- end
+-- end
 
-local function Debug_OnInit()
-	Hooks.RegisterReciver(DebugHooks)
 --[[
 	local w = Inst.Window
 	w:ReleaseMouse()
 	w:SetPosition(5, 20)
 ]]
-	print "Debug context initialized"
-end
 
 function TogglePhysicEnabled()
 	local val = not Debug.Flags.Physics.Enabled
@@ -54,6 +48,7 @@ function ToggleRectTransformDebugDraw()
 	return 0;
 end
 
-if Config and Config.Debug then
-	Debug_OnInit()
-end
+
+-- Hooks.RegisterReciver(DebugHooks)
+print "Debug context initialized"
+

@@ -218,18 +218,20 @@ struct Shadow {
         Low,
         Medium,
         High,
+        Ultra,
 
         MaxValue,
         Default = Medium,
     };
 
     std::underlying_type_t<ShadowMapSize> GetShadowMapSize() const {
-        //dumb values, they are subject to tests
+        //dumb values, they are subject to tests and changes
         switch (m_ShadowMapSize) {
         case ShadowMapSize::Disable: return 1;
         case ShadowMapSize::Low: return 256;
         case ShadowMapSize::Medium: return 512;
         case ShadowMapSize::High: return 1024;
+        case ShadowMapSize::Ultra: return 2048;
         default:
             return static_cast<std::underlying_type_t<ShadowMapSize>>(m_ShadowMapSize);
         }
@@ -239,6 +241,7 @@ struct Shadow {
 
     void ResetToDefault() {
         m_ShadowMapSize = ShadowMapSize::Default;
+
     }
 };
 

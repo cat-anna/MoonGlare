@@ -13,8 +13,9 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
-#define NN(a)   
-//if (!a) throw std::runtime_error(__FUNCTION__ " - nullptr! (" #a ")");
+#define NN(a)   \
+if (!a)    __debugbreak();
+//throw std::runtime_error(__FUNCTION__ " - nullptr! (" #a ")");
 
 //Other
 
