@@ -82,7 +82,7 @@ local function SetCommonConfig()
 
 	basedir "."
 	debugdir "."
-	location "."
+	location(dir.project)
 
 	floatingpoint "Fast"
 	symbols "On"
