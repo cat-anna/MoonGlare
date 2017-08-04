@@ -7,11 +7,14 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
+#include <LuaPrint.lua.h>
+
 template<iConsole::LineType lt>
 static int Lua_put(lua_State *L, World *w) {
     const char *msg = luaL_checkstring(L, -1);
     if (!msg || *msg == '\0')
         return 0;
+    bool toConsole = true;
     switch (lt) {
     case MoonGlare::iConsole::LineType::Error:
         AddLog(Error, msg);
@@ -23,6 +26,7 @@ static int Lua_put(lua_State *L, World *w) {
         AddLog(Hint, msg);
         break;
     case MoonGlare::iConsole::LineType::Debug:
+        toConsole = false;
         AddLog(Debug, msg);
         break;
     default:
@@ -43,42 +47,10 @@ int ClosureWrap(lua_State* lua) {
     return F(lua, t);
 }
 
-static constexpr char InitPrintCode[] = R"===(
-
-local function dofmt(...)
-    local out = { }
-    for i,v in ipairs({...}) do
-        if v == nil then
-            out[i] = "[NIL]"
-        else        
-            out[i] = tostring(v)
-        end
-    end
-    return table.concat(out, " ")
-end
-
-function print(...) Log.Console(dofmt(...)) end
-function warning(...) Log.Warning(dofmt(...)) end
-function hint(...) Log.Hint(dofmt(...)) end
---function debug(...) Log.Debug(dofmt(...)) end
-
-function printf(...) Log.Console(string.format(...)) end
-function warningf(...) Log.Warning(string.format(...)) end
-function hintf(...) Log.Hint(string.format(...)) end
---function debugf(...) Log.Debug(string.format(...)) end
-
-local lua_error = error
-function error(msg, c) 
-    Log.Error(msg) 
-    lua_error(t, (c or 0) + 1)
-end
-                   
-)===";
-
 void StaticModules::InitPrint(lua_State *lua, World *world) {
     DebugLogf(Debug, "Initializing Print module");
 
-    if (!world->GetScriptEngine()->ExecuteCode(std::string(InitPrintCode), "InitPrint")) {
+    if (!world->GetScriptEngine()->ExecuteCode((const char*)LuaPrint_lua, LuaPrint_lua_size, "InitPrint")) {
         throw std::runtime_error("InitPrintModule execute code failed!");
     }
 

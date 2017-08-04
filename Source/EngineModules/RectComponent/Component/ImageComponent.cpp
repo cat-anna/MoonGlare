@@ -105,7 +105,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
     q.MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
     q.MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
     q.MakeCommand<Commands::Disable>((GLenum)GL_CULL_FACE);
-    q.MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE_MINUS_SRC_ALPHA);
+    q.MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_SRC_ALPHA, (GLenum)GL_ONE_MINUS_SRC_ALPHA);
 
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;

@@ -42,8 +42,8 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     RendererAssert(bitmap);
 
     switch (fif) {
-    case FIF_PNG: //png images need to be flipped
-                  //	FreeImage_FlipVertical(dib);
+  //  case FIF_PNG: //png images need to be flipped
+ //          FreeImage_FlipVertical(bitmap);
         break;
     default:
         //nothing todo

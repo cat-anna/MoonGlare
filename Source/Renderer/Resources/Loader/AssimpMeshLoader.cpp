@@ -150,7 +150,7 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
     if (Path.data[0] == '*') {
         auto matb = materialManager.GetMaterialBuilder(h, true);
         matb.SetDiffuseMap();
-        matb.SetDiffuseColor(emath::fvec4(1));
+        matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
 
         //internal texture
         auto idx = strtoul(Path.data + 1, nullptr, 10);

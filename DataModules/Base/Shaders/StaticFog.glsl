@@ -13,7 +13,7 @@ uniform StaticFog_t gStaticFog;
 float CalcStaticFogFactor(float Distance) {
 	if(!gStaticFog.Enabled) {
 		return 1.0f;
-	}
+	 }
 	
 	float factor = (gStaticFog.End - Distance) / (gStaticFog.End - gStaticFog.Start); 
 	return clamp(factor, 0.0, 1.0);

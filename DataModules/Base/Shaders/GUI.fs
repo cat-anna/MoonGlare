@@ -2,8 +2,9 @@
 #include "GUICommon.glsl"
 
 vec4 ProcessBaseColor(vec4 fragment) {
-	fragment *= gBaseColor.a;
-	fragment.xyz = fragment.xyz * gBaseColor.xyz;
+	fragment.xyz *= gBaseColor.a ;//* fragment.a;
+	fragment.xyz *= gBaseColor.xyz;
+	fragment.a *= gBaseColor.a;
 	return fragment;
 }
 
@@ -49,5 +50,5 @@ void main() {
 	tex.x = ProcessTile(VertexPosition.x, gTileMode.x, gPanelBorder / gPanelAspect);
 	tex.y = ProcessTile(VertexPosition.y, gTileMode.y, gPanelBorder);
 
-	FragColor = ProcessBaseColor(vec4(texture2D(Texture0, tex)));
+	FragColor = ProcessBaseColor(texture2D(Texture0, tex));
 }
