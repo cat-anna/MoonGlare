@@ -52,8 +52,8 @@ bool ModuleManager::Finalize() {
 	for (auto &it : m_Modules) {
 		it->Finalize();
 	}
-	m_Modules.clear();
-	return false;
+    auto mod = std::move(m_Modules);
+	return true;
 }
 
 void ModuleManager::LoadSettigs() {

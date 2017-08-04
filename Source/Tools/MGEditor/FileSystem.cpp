@@ -196,8 +196,8 @@ void FileSystem::Reload() {
         Load("./MoonGlare/DataModules/Debug/");
         Load(m_BasePath);
     } else {
-        for (size_t i = 1; i < m_VFS->GetContainerCount(); ++i) {
-            auto c = m_VFS->GetContainer(i);
+        for (size_t i = 0; i < m_VFS->GetContainerCount(); ++i) {
+            auto c = m_VFS->GetContainer(i + 1);
             if (!c) {
                 AddLogf(Error, "Failed to get base container");
             }

@@ -191,7 +191,7 @@ void MainWindow::showEvent(QShowEvent * event) {
 
 void MainWindow::closeEvent(QCloseEvent * event) {
     m_DataModule.reset();
-    event->accept();
+    event->accept();       
 }
 
 //-----------------------------------------

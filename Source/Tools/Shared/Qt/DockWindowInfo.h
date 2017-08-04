@@ -26,7 +26,8 @@ public:
 
 	std::shared_ptr<DockWindow> GetInstance(QWidget *parent = nullptr);
 	void ReleaseInstance();
-
+     
+    bool Finalize() override;
 public slots:
 	void Show();
 protected:

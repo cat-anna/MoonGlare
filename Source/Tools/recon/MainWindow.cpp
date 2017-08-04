@@ -23,7 +23,9 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
     });
 
     connect(m_Ui->listWidget, &QListWidget::itemDoubleClicked, [this](QListWidgetItem*item) {
-        Send(item->text(), false);
+        auto t = item->text();
+        t.replace("|", "\n");
+        Send(t, false);
     });
 
     connect(m_Ui->buttonBox, &QDialogButtonBox::clicked, [this](QAbstractButton *item) {
@@ -35,7 +37,13 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
         auto item = m_Ui->listWidget->itemAt(p);
         if (item) {
             QMenu menu;
-            menu.addAction(item->text())->setEnabled(false);
+            auto parts = item->text().split("|", QString::SkipEmptyParts);
+            for (auto &p : parts) {
+                p.replace("\t", "    ");
+                menu.addAction(p)->setEnabled(false);
+            }
+
+            menu.addSeparator();
             menu.addAction("Edit", [this, item]() {
                 m_Ui->plainTextEdit->setPlainText(item->text().replace("|", "\n"));
             });
@@ -79,9 +87,12 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
         m_Ui->listWidget->insertItem(0, t);
         Save();
     }
+
     std::string txt = text.toUtf8().data();
     recon->Send(txt);
-    m_Ui->statusbar->showMessage(QString("Send ") + text, 5000);
+    auto t = text;
+    t.replace("\n", "|");
+    m_Ui->statusbar->showMessage(QString("Send ") + t, 5000);
 }
 
 static const QString HistoryFileName = "ReconHistory.txt";
@@ -92,12 +103,12 @@ void MainWindow::Save() {
     for (int i = 0; i < m_Ui->listWidget->count(); ++i) {
         SL.append(m_Ui->listWidget->item(i)->text());
     }
-
+    SL.sort();
     QFile fOut(HistoryFileName);
     if (fOut.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream s(&fOut);
-        for (int i = 0; i < m_Ui->listWidget->count(); ++i) {
-            s << m_Ui->listWidget->item(i)->text() << '\n';
+        for (int i = 0; i < SL.size(); ++i) {
+            s << SL[i] << '\n';
         }
     }
     else {

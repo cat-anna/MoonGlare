@@ -63,6 +63,9 @@ public:
     }
 
     void AbortAll();
+    void WaitForAll();
+
+    bool Finalize() override;
 private:
     std::list<SharedBackgroundProcess> processes;
     mutable std::recursive_mutex mutex;

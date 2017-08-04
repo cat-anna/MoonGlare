@@ -77,7 +77,12 @@ BackgroundProcessManager::BackgroundProcessManager(SharedModuleManager modmgr) :
 }
 
 BackgroundProcessManager::~BackgroundProcessManager() {
+}
+
+bool BackgroundProcessManager::Finalize() {
     AbortAll();
+    WaitForAll();
+    return true;
 }
 
 std::list<SharedBackgroundProcess> BackgroundProcessManager::GetAllProcesses() const {
@@ -93,6 +98,15 @@ void BackgroundProcessManager::AddProcess(SharedBackgroundProcess process) {
 void BackgroundProcessManager::ProcessCompleted(SharedBackgroundProcess process) {
     LOCK_MUTEX(mutex);
     processes.remove(process);
+}
+
+void BackgroundProcessManager::WaitForAll() {
+    for (;;) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        LOCK_MUTEX(mutex);
+        if (processes.empty())
+            return;
+    }
 }
 
 void BackgroundProcessManager::AbortAll() {

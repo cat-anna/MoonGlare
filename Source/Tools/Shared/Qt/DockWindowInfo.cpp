@@ -15,7 +15,6 @@ BaseDockWindowModule::BaseDockWindowModule(SharedModuleManager modmgr): iModule(
 }
 
 BaseDockWindowModule::~BaseDockWindowModule() {
-	ReleaseInstance();
 }
 
 std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
@@ -33,6 +32,11 @@ std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
 		m_Instance->LoadSettings();
 	}
 	return m_Instance;
+}
+
+bool BaseDockWindowModule::Finalize() {
+    ReleaseInstance();
+    return true;
 }
 
 void BaseDockWindowModule::ReleaseInstance() {

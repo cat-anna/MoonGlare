@@ -160,12 +160,26 @@ OutputDock::OutputDock(QWidget * parent, QtShared::SharedModuleManager modmgr)
 }
 
 OutputDock::~OutputDock() {
+    Clear();
+    m_Ui.reset();
+}
+
+void OutputDock::Clear() {
+    if (tabs.empty())
+        return;
+
     auto op = moduleManager->QuerryModule<QtShared::iOutputProvider>();
-    for(auto &o: tabs) {
-        op->Close(o.second);
+    if (op) {
+        for (auto &o : tabs) {
+            op->Close(o.second);
+        }
     }
     tabs.clear();
-    m_Ui.reset();
+}
+
+void OutputDock::closeEvent(QCloseEvent * event) {
+    DockWindow::closeEvent(event);
+    Clear();
 }
 
 //----------------------------------------------------------------------------------

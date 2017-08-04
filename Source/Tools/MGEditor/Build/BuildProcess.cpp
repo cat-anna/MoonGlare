@@ -18,7 +18,7 @@ BuildProcess::BuildProcess(const std::string& id, QtShared::SharedModuleManager 
 }
 
 void BuildProcess::Run() {
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10 && canRun; ++i) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         output->Format("s {}", i);
     }

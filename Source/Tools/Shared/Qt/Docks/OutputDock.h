@@ -26,6 +26,10 @@ public:
     OutputDock(QWidget *parent, QtShared::SharedModuleManager modmgr);
     virtual ~OutputDock();
 
+    void Clear();
+
+    void closeEvent(QCloseEvent * event) override;
+
     virtual bool DoSaveSettings(pugi::xml_node node) const override;
     virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
