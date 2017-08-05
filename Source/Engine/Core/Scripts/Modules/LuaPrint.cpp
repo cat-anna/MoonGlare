@@ -33,7 +33,7 @@ static int Lua_put(lua_State *L, World *w) {
         AddLog(Info, msg);
         break;
     }                   
-    if (w) {
+    if (toConsole && w) {
         auto c = w->GetConsole();
         if (c)
             c->AddLine(msg, lt);

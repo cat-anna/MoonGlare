@@ -7,6 +7,10 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
+using std::chrono::steady_clock;
+using std::chrono::duration;
+
+static const auto startTimePoint = steady_clock::now();
 static int TimeIndex(lua_State *lua) {
     World *w = reinterpret_cast<World*>(lua_touserdata(lua, lua_upvalueindex(1)));
 
@@ -25,7 +29,9 @@ static int TimeIndex(lua_State *lua) {
     case "fps"_Hash32:
         lua_pushnumber(lua, static_cast<lua_Number>(w->GetEngine()->GetFrameRate()));
         return 1;
-
+    case "perf"_Hash32:
+        lua_pushnumber(lua, duration<double>(steady_clock::now() - startTimePoint).count());
+        return 1;
     default:
         AddLogf(ScriptRuntime, "Attempt to get unknown field %s", what);
         return 0;
