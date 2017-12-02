@@ -1097,7 +1097,7 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
 
     ComponentID cid = ComponentID::Invalid;
     const char *cname = nullptr;
-    Entity RequestedOwner;
+    Entity RequestedOwner = {};
     bool HaveOwner = false;
 
     switch (argc) {

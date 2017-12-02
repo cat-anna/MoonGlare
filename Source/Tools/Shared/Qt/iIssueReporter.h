@@ -25,7 +25,7 @@ public:
     std::string internalID;
 };
 
-class IssueReporter :public QObject, public iModule {
+class IssueReporter : public QObject, public iModule {
     Q_OBJECT;
 public:
     IssueReporter(SharedModuleManager modmgr);

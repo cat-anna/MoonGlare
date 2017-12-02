@@ -25,7 +25,8 @@ private:
     ScriptFileProcessorInfo *module;
 
 	void InitLua();
-	void ExecuteScript();
+    void ReportIssue(MoonGlare::QtShared::Issue issue);
+    void ExecuteScript();
 	void ProcessOutput();
 	void Finalize();
 

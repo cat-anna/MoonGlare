@@ -23,7 +23,7 @@
 namespace MoonGlare {
 namespace Editor {
 namespace Processor {
-
+                                  
 struct ScriptListEnum : public QtShared::iCustomEnum {
     virtual std::string GetEnumTypeName() const {
         return "string:Script.Script";
@@ -37,7 +37,7 @@ struct ScriptListEnum : public QtShared::iCustomEnum {
 
     std::set<std::string> scriptSet;
 };
-
+  
 //----------------------------------------------------------------------------------
 
 struct ScriptFileProcessorInfo
@@ -162,6 +162,13 @@ void ScriptFileProcessor::InitLua() {
     throw std::runtime_error("Unable to Execute internal lua processor script!");
 }
 
+void ScriptFileProcessor::ReportIssue(MoonGlare::QtShared::Issue issue)
+{
+    auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
+    issue.internalID = MakeIssueId();
+    reporter->ReportIssue(std::move(issue));  
+}
+
 void ScriptFileProcessor::ExecuteScript() {
     auto fs = MainWindow::Get()->GetFilesystem();
     StarVFS::ByteTable bt;
@@ -192,9 +199,8 @@ void ScriptFileProcessor::ExecuteScript() {
             issue.message = pieces_match[3];
             issue.type = type;
             issue.group = "Lua";
-            issue.internalID = MakeIssueId();
-
-            module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>()->ReportIssue(std::move(issue));
+       
+            ReportIssue(std::move(issue));
         }
     };
 
@@ -243,7 +249,7 @@ void ScriptFileProcessor::ProcessOutput() {
 void ScriptFileProcessor::Finalize() {
     m_Lua.reset();
 }
-
+                    
 } //namespace Processor 
 } //namespace Editor 
 } //namespace MoonGlare 

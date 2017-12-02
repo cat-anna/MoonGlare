@@ -566,7 +566,7 @@ void EditableEntity::MoveDown(EditableComponent *c) {
     auto idx = Find(c);
     if (idx < 0)
         return;
-    if (idx + 1 >= m_Components.size())
+    if (idx + 1 >= (int)m_Components.size())
         return;
     m_Components[idx].swap(m_Components[idx + 1]);
 }
@@ -582,7 +582,7 @@ void EditableEntity::MoveDown(EditableEntity * c) {
     auto idx = Find(c);
     if (idx < 0)
         return;
-    if (idx + 1 >= m_Children.size())
+    if (idx + 1 >= (int)m_Children.size())
         return;
     m_Children[idx].swap(m_Children[idx + 1]);
 }

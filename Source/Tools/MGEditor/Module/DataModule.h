@@ -6,10 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef DataModule_H
-#define DataModule_H
 
-#include <Project.x2c.h>
 #include "../SaveableItem.h"
 
 namespace MoonGlare {
@@ -17,27 +14,24 @@ namespace Editor {
 namespace Module {
 
 class DataModule 
-	: public SaveableItemParent {
+    : public SaveableItemParent {
 public:
-	static std::shared_ptr<DataModule> NewModule(const std::string &MasterFile);
-	static std::shared_ptr<DataModule> OpenModule(const std::string &MasterFile);
-	DataModule(const std::string &MasterFile);
-	virtual ~DataModule();
+    static std::shared_ptr<DataModule> NewModule(const std::string &BaseDirectrory);
+    static std::shared_ptr<DataModule> OpenModule(const std::string &BaseDirectrory);
+    DataModule(const std::string &BaseDirectrory);
+    virtual ~DataModule();
 
-	std::string GetBaseDirectory();
+    const std::string& GetBaseDirectory() { return baseDirectrory; }
 protected:
 
-	bool Create();
-	bool Open();
+    bool Create();
+    bool Open();
 
-	virtual bool DoPeriodicSave() override;
+    virtual bool DoPeriodicSave() override;
 private:
-	std::string m_MasterFile;
-	x2c::Project::MoonGlareProject_t m_Project;
+    std::string baseDirectrory;
 };
 
 } //namespace Module 
 } //namespace Editor 
 } //namespace MoonGlare 
-
-#endif

@@ -197,7 +197,7 @@ void FileSystem::Reload() {
         Load(m_BasePath);
     } else {
         for (size_t i = 0; i < m_VFS->GetContainerCount(); ++i) {
-            auto c = m_VFS->GetContainer(i + 1);
+            auto c = m_VFS->GetContainer(static_cast<::StarVFS::ContainerID>(i + 1));
             if (!c) {
                 AddLogf(Error, "Failed to get base container");
             }

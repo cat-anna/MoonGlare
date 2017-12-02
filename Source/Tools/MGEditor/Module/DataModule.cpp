@@ -13,32 +13,25 @@ namespace MoonGlare {
 namespace Editor {
 namespace Module {
 
-std::shared_ptr<DataModule> DataModule::NewModule(const std::string & MasterFile) {
-	auto ptr = std::make_shared<DataModule>(MasterFile);
+std::shared_ptr<DataModule> DataModule::NewModule(const std::string & BaseDirectrory) {
+	auto ptr = std::make_shared<DataModule>(BaseDirectrory);
 	if (!ptr->Create())
 		return nullptr;
 	return ptr;
 }
 
-std::shared_ptr<DataModule> DataModule::OpenModule(const std::string & MasterFile) {
-	auto ptr = std::make_shared<DataModule>(MasterFile);
+std::shared_ptr<DataModule> DataModule::OpenModule(const std::string & BaseDirectrory) {
+	auto ptr = std::make_shared<DataModule>(BaseDirectrory);
 	if (!ptr->Open())
 		return nullptr;
 	return ptr;
 }
 
-DataModule::DataModule(const std::string & MasterFile)
-	: m_MasterFile(MasterFile) {
-	m_Project.ResetToDefault();
+DataModule::DataModule(const std::string & BaseDirectrory)
+	: baseDirectrory(BaseDirectrory) {
 }
 
 DataModule::~DataModule() {
-}
-
-std::string DataModule::GetBaseDirectory() {
-	boost::filesystem::path p(m_MasterFile);
-
-	return p.parent_path().string();
 }
 
 bool DataModule::Create() {
@@ -47,11 +40,11 @@ bool DataModule::Create() {
 }
 
 bool DataModule::Open() {
-	return m_Project.ReadFile(m_MasterFile);
+    return true;
 }
 
 bool DataModule::DoPeriodicSave() {
-	return m_Project.WriteFile(m_MasterFile);
+    return true;
 }
 
 } //namespace Module 
