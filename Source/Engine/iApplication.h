@@ -32,6 +32,8 @@ public:
     virtual void Execute();
     virtual void Finalize();
 
+    virtual void LoadDataModules();
+
     virtual bool PreSystemInit();
     virtual bool PostSystemInit();
 

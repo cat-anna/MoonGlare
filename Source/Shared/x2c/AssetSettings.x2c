@@ -9,10 +9,5 @@ Structure.new {
 	name = "AssetSettings",
 	description = "",
 	fields = {
-		{
-            description = "",
-			name = "ModuleList",
-			type = Local.ModuleList,
-		},
 	},
 }

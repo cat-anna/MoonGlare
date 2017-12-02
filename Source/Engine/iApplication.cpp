@@ -29,6 +29,8 @@
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
 
+#include <boost/algorithm/string.hpp>
+
 namespace MoonGlare {
 namespace Application {
 
@@ -153,12 +155,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     auto datamgr = new DataManager(m_World.get());
     datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
 
-    for (auto &it : m_Configuration->m_Assets.m_ModuleList) {
-        AddLogf(Debug, "Trying to load container '%s'", it.c_str());
-        if (!GetFileSystem()->LoadContainer(it)) {
-            AddLogf(Error, "Unable to open container: '%s'", it.c_str());
-        }
-    }
+    LoadDataModules();
 
 #ifdef DEBUG_RESOURCEDUMP
     GetFileSystem()->DumpStructure(std::ofstream("logs/vfs.txt"));
@@ -198,6 +195,31 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     m_Flags.m_Initialized = true;
 }
+
+void iApplication::LoadDataModules() {
+    static const std::string_view moduleListFileName = "ModuleList.txt";
+    std::ifstream file(moduleListFileName.data(), std::ios::in);
+                   
+    while (!file.eof()) {
+        std::string mod;
+        std::getline(file, mod);
+        
+        boost::trim(mod);
+                    
+        auto comment = mod.find('#');
+        if (comment != std::string::npos) {
+            mod = mod.substr(0, comment);
+            boost::trim(mod);
+        }
+        if (mod.empty())
+            continue;
+
+        AddLogf(Debug, "Trying to load container '%s'", mod.c_str());
+        if (!GetFileSystem()->LoadContainer(mod)) {
+            AddLogf(Error, "Unable to open container: '%s'", mod.c_str());
+        }
+    }
+}                       
 
 void iApplication::Execute() {
     try {
