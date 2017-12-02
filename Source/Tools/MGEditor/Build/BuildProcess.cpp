@@ -121,6 +121,13 @@ void BuildProcess::PrepareConfiguration() {
         for (auto &line : settings.runtimeModules)
             file << line << "\n";
     }
+
+    {
+        auto isfile = boost::filesystem::path(settings.InputSettingsFile);
+        if (boost::filesystem::is_regular_file(isfile)) {
+            boost::filesystem::copy_file(isfile, settings.outputLocation + isfile.filename().string());
+        }
+    }
 }
 
 void BuildProcess::WaitForProcess(const std::string &command, const std::list<std::string> &arguments, const std::list<std::string> &inputLines, const std::string &logMarker) {

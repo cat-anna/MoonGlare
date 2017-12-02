@@ -22,6 +22,9 @@ public:
     virtual ~DataModule();
 
     const std::string& GetBaseDirectory() { return baseDirectrory; }
+    std::string GetEditorConfigDirectory() { return baseDirectrory + ".editor/"; }
+
+    std::string GetInputSettingsFile() { return GetEditorConfigDirectory() + "InputSettings.xml"; }
 protected:
 
     bool Create();

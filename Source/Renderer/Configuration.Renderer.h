@@ -91,14 +91,14 @@ struct Texture {
         Trilinear,
 
         MaxValue,
-        Default = MaxValue,
+        Default = Bilinear,
     };
 
     enum class Edges : uint8_t {
         Repeat,
         Clamp,
         MaxValue,
-        Default = MaxValue,
+        Default = Clamp,
     };
 
     enum class ChannelSwizzle : uint8_t {

@@ -8,6 +8,7 @@
 #include PCH_HEADER
 #include <qobject.h>
 #include "DataModule.h"
+#include <boost/algorithm/string.hpp>
 
 namespace MoonGlare {
 namespace Editor {
@@ -29,6 +30,10 @@ std::shared_ptr<DataModule> DataModule::OpenModule(const std::string & BaseDirec
 
 DataModule::DataModule(const std::string & BaseDirectrory)
 	: baseDirectrory(BaseDirectrory) {
+
+    boost::replace_all(baseDirectrory, "\\", "/");
+    if (baseDirectrory.back() != '/')
+        baseDirectrory += '/';
 }
 
 DataModule::~DataModule() {

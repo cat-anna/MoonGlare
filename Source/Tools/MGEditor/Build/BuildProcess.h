@@ -20,13 +20,14 @@ struct BuildSettings {
     bool debugBuild = false;
     bool disableValidation = false;  
 
+    std::string InputSettingsFile;
+
     std::string RDCModuleFileName;
+    std::list<std::string> runtimeModules;
 
     std::string binLocation;
     std::string rdccExeName = "rdcc";
     std::string svfsExeName = "svfs";
-
-    std::list<std::string> runtimeModules;
 };
 
 class BuildProcess : public QtShared::iBackgroundProcess {

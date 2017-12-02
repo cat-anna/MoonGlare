@@ -46,7 +46,7 @@ std::list<InputFileInfo> RDCC::DoFileSearch() {
     std::list<InputFileInfo> inputFileList;
 
     fs::recursive_directory_iterator dir(config.inputDir), end;
-    while (dir != end) {
+    for (; dir != end; ++dir) {
         fs::directory_entry e = *dir;
 
         if (fs::is_directory(e.path())) {

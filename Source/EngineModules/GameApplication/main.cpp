@@ -1,4 +1,5 @@
 #include <pch.h>
+#include <boost/filesystem.hpp>
 
 #include <OrbitLogger/src/sink/FileSink.h>
 #include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
@@ -72,6 +73,7 @@ int main(int argc, char** argv) {
     using OrbitLogger::StdNoDebugFileLoggerSink;
     using OrbitLogger::MSVCDebuggerSink;
 
+    boost::filesystem::create_directory("logs");
     LogCollector::Start();
     LogCollector::AddLogSink<StdFileLoggerSink>("logs/Engine.log");
     LogCollector::AddLogSink<StdFileLoggerSink>("logs/Engine.last.log", false);
