@@ -16,6 +16,7 @@
 
 #include "Build/BuildOptions.h"
 #include "Build/BuildProcess.h"
+#include "InputConfigurator.h"
 
 namespace MoonGlare {
 namespace Editor {
@@ -42,6 +43,10 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
         sw.exec();
     } );
 
+    connect(m_Ui->actionInputSettings, &QAction::triggered, [this]() {
+        InputConfigurator ic(this, GetModuleManager(), m_DataModule->GetInputSettingsFile());
+        ic.exec();
+    });
 }
 
 MainWindow::~MainWindow() {
@@ -149,6 +154,7 @@ void MainWindow::BuildModuleAction() {
         return;
 
     auto settings = w.GetSettings();
+    settings.InputSettingsFile = m_DataModule->GetInputSettingsFile();
     settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
     settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
 
@@ -177,9 +183,9 @@ void MainWindow::OpenModule(const std::string& MasterFile)  {
     if (m_DataModule)
         return;
 
-    QFileInfo check_file(MasterFile.c_str());
-    if (!check_file.exists())
-        return;
+    //QFileInfo check_file(MasterFile.c_str());
+    //if (!check_file.exists())
+        //return;
 
     m_DataModule = Module::DataModule::OpenModule(MasterFile);
     if (!m_DataModule)

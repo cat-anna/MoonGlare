@@ -96,25 +96,4 @@ private:
     static int luaIndexInput(lua_State *lua);
 };
 
-//---------------------------------------------------------------------------------------
-
-struct KeyNamesTable {
-    KeyNamesTable();
-    const char *Get(KeyId kid) const {
-        if (kid >= m_Array.size())
-            return nullptr;
-        return m_Array[kid];
-    }
-    bool Find(const char *Name, KeyId &out) const {
-        for (KeyId kid = 0; kid < m_Array.size(); ++kid)
-            if (m_Array[kid] && stricmp(Name, m_Array[kid]) == 0)
-                return out = kid, true;
-        return false;
-    }
-private:
-    std::array<const char *, Configuration::Input::MaxKeyCode> m_Array;
-};
-
-extern const KeyNamesTable g_KeyNamesTable;
-
 } //namespace MoonGlare::Core
