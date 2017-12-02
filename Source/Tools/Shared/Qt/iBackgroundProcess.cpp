@@ -10,12 +10,14 @@ iBackgroundProcess::iBackgroundProcess(const std::string & id, SharedModuleManag
 }
 
 void iBackgroundProcess::Start() {
-    bool expected = false;
-    if (!started.compare_exchange_strong(expected, true))
-        return;
+    {
+        State expected = State::NotStarted;
+        if (!state.compare_exchange_strong(expected, State::Starting))
+            return;
+    }
+    SetStateText("");
     thread = std::thread([this]() {
         try {
-            stateText = "started";
             canRun = true;
 
             if (!readableName.empty()) {
@@ -25,9 +27,19 @@ void iBackgroundProcess::Start() {
 
             AddLogf(Debug, "Process started %s", typeid(*this).name());
             output->PushLine("prcess started");
+            state = State::InProgress;
             Run();
+            SetStateText("");
+            {
+                State expected = State::InProgress;
+                state.compare_exchange_strong(expected, State::Completed);
+                expected = State::Aborting;
+                state.compare_exchange_strong(expected, State::Aborted);
+            }
         }
         catch (...) {
+            progress = 1;
+            state = State::Failed;
             OnFailure(std::current_exception());
         }
         canRun = false;
@@ -42,12 +54,17 @@ void iBackgroundProcess::OnFailure(std::exception_ptr exptr) {
         std::rethrow_exception(exptr);
     }
     catch (const char *msg) {
+        output->PushLine("Failure:");
+        output->PushLine(msg);
         AddLogf(Error, "Process failure: %s", msg);
     }
     catch (const std::exception &e) {
+        output->PushLine("Failure:");
+        output->PushLine(e.what());
         AddLogf(Error, "Process failure: %s", e.what());
     }
     catch (...) {
+        output->PushLine("Unknown process failure");
         AddLogf(Error, "Unknown process failure");
     }
 }
@@ -63,11 +80,21 @@ iBackgroundProcess::~iBackgroundProcess() {
     }
 }
 
-iBackgroundProcess::Action iBackgroundProcess::Abort() {
-    canRun = false;
-    return Action::InProgress;
+iBackgroundProcess::AbortAction iBackgroundProcess::Abort() {
+    return AbortAction::Impossible;
 }
 
+void iBackgroundProcess::ExecuteSteps(const std::vector<StepInfo> &steps) {
+    for (size_t i = 0; i < steps.size(); ++i) {
+        const auto &step = steps[i];
+        auto st = fmt::format("Executing step {} of {} ({})", i + 1, steps.size(), step.name);
+        SetStateText(st);
+        output->PushLine(st);
+        if(step.function)
+            step.function();
+    }
+    SetStateText("");
+}
 
 //-------------------------------------------------------------------------------------------------
 
@@ -114,6 +141,7 @@ void BackgroundProcessManager::AbortAll() {
     for (auto &itm : processes)
         itm->Abort();
 }
+
 
 } //namespace QtShared 
 } //namespace MoonGlare 

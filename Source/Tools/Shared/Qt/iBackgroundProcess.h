@@ -22,27 +22,40 @@ public:
     iBackgroundProcess(const std::string &id, SharedModuleManager moduleManager);
     virtual ~iBackgroundProcess();
 
-    enum class Action{ InProgress, Impossible, };
-    virtual Action Abort();
+    enum class State { NotStarted, Starting, InProgress, Aborting, Aborted, Completed, Failed, };
+
+    enum class AbortAction{ InProgress, Impossible, };
+    virtual AbortAction Abort();
     void Start();
 
     float GetProgress() const { return progress; }
     const std::string& GetStateText() const { return stateText; }
     const std::string& GetId() const { return id; }
     const std::string& GetReadableName() const { return readableName; }
+    State GetState() const { return state; }
 protected:
     SharedModuleManager moduleManager;
     WeakBackgroundProcessManager processManager;
     SharedOutput output;
-    std::string id, readableName, stateText;
+    std::string id, readableName; //FIXME: possible race on GetXXX string functions!
     float progress = -1.0f;
     std::thread thread;
     bool canRun = false;
+    std::atomic<State> state = State::NotStarted;
 
     virtual void Run() = 0;
     virtual void OnFailure(std::exception_ptr exptr);
+
+    void SetStateText(std::string text) { stateText.swap(text); }
+
+    struct StepInfo {
+        const std::string name;
+        std::function<void()> function;
+    };
+    void ExecuteSteps(const std::vector<StepInfo> &steps);
 private:
     std::atomic<bool> started = false;
+    std::string stateText;
 };
 
 class BackgroundProcessManager : public iModule {

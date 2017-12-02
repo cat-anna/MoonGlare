@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qmainwindow.h>
+#include <qdialog.h>
 #include <qevent.h>
 
 #include "Module.h"
@@ -8,25 +8,25 @@
 namespace MoonGlare {
 namespace QtShared {
 
-class SubWindow : public QMainWindow {
+class SubDialog: public QDialog {
     Q_OBJECT
 public:
-    SubWindow(QWidget *parent, QtShared::SharedModuleManager ModuleManager)
-        : QMainWindow(parent), moduleManager(ModuleManager)
+    SubDialog(QWidget *parent, QtShared::SharedModuleManager ModuleManager)
+        : QDialog(parent), moduleManager(ModuleManager)
     {
     }
 
-    ~SubWindow() override {}
+    ~SubDialog() override {}
 
     void closeEvent(QCloseEvent * event) override {
         event->accept();
-        emit WindowClosed(this);
+        emit DialogClosed(this);
     }
     void showEvent(QShowEvent * event) override {
         event->accept();
     }
 signals:
-    void WindowClosed(SubWindow *window);
+    void DialogClosed(SubDialog *window);
 protected:
     SharedModuleManager GetModuleManager() { return moduleManager; }
     SharedModuleManager GetModuleManager() const { return moduleManager; }

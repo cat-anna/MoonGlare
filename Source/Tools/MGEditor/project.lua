@@ -37,6 +37,7 @@ group "Tools"
             "OrbitLogger",
             "libSpace",
             "StarVFS",
+            "svfslua",
         }
 
         filter "action:vs*"
