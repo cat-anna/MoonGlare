@@ -12,7 +12,9 @@
 #include "FileSystem.h"
 
 #include "SettingsWindow.h"
+#include "ForegroundProcess.h"
 
+#include "Build/BuildOptions.h"
 #include "Build/BuildProcess.h"
 
 namespace MoonGlare {
@@ -34,14 +36,12 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
     connect(m_Ui->actionOpen, SIGNAL(triggered()), SLOT(OpenModuleAction()));
     connect(m_Ui->actionClose, SIGNAL(triggered()), SLOT(CloseModuleAction()));
     connect(m_Ui->actionExit, SIGNAL(triggered()), SLOT(CloseEditorAction()));
+    connect(m_Ui->actionBuild, SIGNAL(triggered()), SLOT(BuildModuleAction()));
     connect(m_Ui->actionEditorConfiguration, &QAction::triggered, [this]() {
         SettingsWindow sw(this);
         sw.exec();
     } );
 
-    connect(m_Ui->actionBuild, &QAction::triggered, [this]() {
-        BuildModule();
-    });
 }
 
 MainWindow::~MainWindow() {
@@ -141,6 +141,21 @@ void MainWindow::CloseEditorAction() {
     }
 
     close();
+}
+
+void MainWindow::BuildModuleAction() {
+    BuildOptions w(this, GetModuleManager());
+    if (w.exec() != QDialog::Accepted)
+        return;
+
+    auto settings = w.GetSettings();
+    settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
+    settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
+
+    auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
+    auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
+    ForegroundProcess fp(this, GetModuleManager(), process, false);
+    fp.exec();
 }
 
 //-----------------------------------------
@@ -260,13 +275,6 @@ void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<Share
     }
 }
 */
-
-//-----------------------------------------
-
-void MainWindow::BuildModule() {
-    auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
-    pm->CreateProcess<BuildProcess>(std::to_string(rand()))->Start();
-}
 
 } //namespace Editor
 } //namespace MoonGlare

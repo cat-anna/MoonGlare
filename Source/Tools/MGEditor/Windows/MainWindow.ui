@@ -61,6 +61,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="actionInputSettings"/>
     <addaction name="separator"/>
     <addaction name="actionEditorConfiguration"/>
    </widget>
@@ -78,6 +79,7 @@
     <addaction name="actionClose"/>
     <addaction name="separator"/>
     <addaction name="actionBuild"/>
+    <addaction name="actionActionPackModule"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -95,11 +97,19 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
+   <property name="icon">
+    <iconset resource="../../Shared/Resources/icons.qrc">
+     <normaloff>:/icons/icons/blue_file.png</normaloff>:/icons/icons/blue_file.png</iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
   </action>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="../../Shared/Resources/icons.qrc">
+     <normaloff>:/icons/icons/yellow_open.png</normaloff>:/icons/icons/yellow_open.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -120,6 +130,10 @@
    </property>
   </action>
   <action name="actionEditorConfiguration">
+   <property name="icon">
+    <iconset resource="../../Shared/Resources/icons.qrc">
+     <normaloff>:/icons/icons/blue_gear.png</normaloff>:/icons/icons/blue_gear.png</iconset>
+   </property>
    <property name="text">
     <string>Editor configuration</string>
    </property>
@@ -127,10 +141,24 @@
   <action name="actionBuild">
    <property name="icon">
     <iconset resource="../../Shared/Resources/icons.qrc">
+     <normaloff>:/icons/icons/blue_Toolbox.png</normaloff>:/icons/icons/blue_Toolbox.png</iconset>
+   </property>
+   <property name="text">
+    <string>Build...</string>
+   </property>
+  </action>
+  <action name="actionActionPackModule">
+   <property name="icon">
+    <iconset resource="../../Shared/Resources/icons.qrc">
      <normaloff>:/icons/icons/green_puzzle.png</normaloff>:/icons/icons/green_puzzle.png</iconset>
    </property>
    <property name="text">
-    <string>Build</string>
+    <string>Pack module...</string>
+   </property>
+  </action>
+  <action name="actionInputSettings">
+   <property name="text">
+    <string>Input settings</string>
    </property>
   </action>
  </widget>

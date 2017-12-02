@@ -72,12 +72,12 @@ private:
 public slots:
 	void OpenFileEditor(const std::string& FileURI);
 //	void CreateFileEditor(const std::string& URI, std::shared_ptr<SharedData::FileCreatorInfo> info);
-    void BuildModule();
 protected slots:
 	void NewModuleAction();
 	void OpenModuleAction();
 	void CloseModuleAction();
 	void CloseEditorAction();
+    void BuildModuleAction();
 };
 
 } //namespace Editor
