@@ -38,6 +38,7 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
     connect(m_Ui->actionClose, SIGNAL(triggered()), SLOT(CloseModuleAction()));
     connect(m_Ui->actionExit, SIGNAL(triggered()), SLOT(CloseEditorAction()));
     connect(m_Ui->actionBuild, SIGNAL(triggered()), SLOT(BuildModuleAction()));
+    connect(m_Ui->actionActionPackModule, SIGNAL(triggered()), SLOT(PackModuleAction()));
     connect(m_Ui->actionEditorConfiguration, &QAction::triggered, [this]() {
         SettingsWindow sw(this);
         sw.exec();
@@ -162,6 +163,27 @@ void MainWindow::BuildModuleAction() {
     auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
     ForegroundProcess fp(this, GetModuleManager(), process, false);
     fp.exec();
+}
+
+void MainWindow::PackModuleAction() {
+    ReportNotImplemented();
+    //BuildOptions w(this, GetModuleManager());
+    //if (w.exec() != QDialog::Accepted)
+        //return;
+
+    //bs.outputLocation = ui->lineEditOutput->text().toLocal8Bit().begin();
+    //bs.debugBuild = ui->checkBoxDebug->isChecked();
+    //bs.disableValidation = ui->checkBoxDisableValidation->isChecked();
+
+    //Editor::BuildOptions settings = w.GetSettings(
+    //settings.
+    //settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
+    //settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
+
+    //auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
+    //auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
+    //ForegroundProcess fp(this, GetModuleManager(), process, false);
+    //fp.exec();
 }
 
 //-----------------------------------------

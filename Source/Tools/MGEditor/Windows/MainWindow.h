@@ -78,6 +78,7 @@ protected slots:
 	void CloseModuleAction();
 	void CloseEditorAction();
     void BuildModuleAction();
+    void PackModuleAction();
 };
 
 } //namespace Editor

@@ -30,6 +30,7 @@ group "Tools"
         }
         includedirs {
             ".",
+            "../Shared/",
             "../Shared/Qt/",
             "../Shared/Resources/",
         }

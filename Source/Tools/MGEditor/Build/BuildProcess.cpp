@@ -7,6 +7,8 @@
 
 #include "BuildProcess.h"
 
+#include <Tools/Shared/waitforprocess.h>
+
 namespace MoonGlare {
 namespace Editor {
 
@@ -22,13 +24,17 @@ void BuildProcess::Run() {
     std::vector<StepInfo> steps = {
         {"Preparing", [this] {
             CheckSettings();
-            CheckOutputDirectory();
+            CheckOutput();
         }},
-        { "Preparing base modules", [this] { PrepareBaseModules(); } },
-        { "Packing module", [this] { PackModule();} },
-        { "Unpack engine binaries", [this] { UnpackEngineBinaries(); } },
-        { "Write configuration", [this] { PrepareConfiguration(); } },
     };
+
+    steps.emplace_back(StepInfo{ "Packing module", [this] { PackModule(); } });
+
+    if (!settings.RDCPackOnly) {
+        steps.emplace_back(StepInfo{ "Preparing base modules", [this] { PrepareBaseModules(); } });
+        steps.emplace_back(StepInfo{ "Unpack engine binaries", [this] { UnpackEngineBinaries(); } });
+        steps.emplace_back(StepInfo{ "Write configuration", [this] { PrepareConfiguration(); } });
+    }
 
     try {
         ExecuteSteps(steps);
@@ -38,37 +44,17 @@ void BuildProcess::Run() {
     }
 }
 
-void BuildProcess::CheckOutputDirectory() {
-    Print("Checking output directory...");
-
-    if (boost::filesystem::exists(settings.outputLocation))
-        try {
-            boost::filesystem::directory_iterator end_it;
-            boost::filesystem::directory_iterator it(settings.outputLocation);
-            std::for_each(it, end_it, [](auto arg) { boost::filesystem::remove_all(arg); });
-        }
-        catch (const std::exception &e) {
-            Print("Cannot clear output directory: {}", e.what());
-        }
-
-    if (!boost::filesystem::exists(settings.outputLocation))
-        boost::filesystem::create_directories(settings.outputLocation);
-   
-    if (settings.RDCModuleFileName.empty()) {
-        settings.RDCModuleFileName = boost::filesystem::path(settings.moduleSourceLocation).parent_path().filename().string();
-        settings.RDCModuleFileName += ".rdc";
-    }
-}
-
 void BuildProcess::PackModule() {
     Print("Packing module...");
 
     std::list<std::string> command;
-    //command.push_back(settings.binLocation + settings.rdccExeName);
+    command.push_back(settings.binLocation + settings.rdccExeName);
     //command.push_back(fmt::format("-v"));
     command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
     command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
-    WaitForProcess(settings.binLocation + settings.rdccExeName, command, {}, "[RDC]");
+    WaitForProcess(command, {}, [this](std::string line) {
+        Print("[RDC] {}", line);
+    });
 
     settings.runtimeModules.push_back(settings.RDCModuleFileName);
 }
@@ -80,6 +66,7 @@ void BuildProcess::UnpackEngineBinaries() {
     }
 
     std::list<std::string> command;
+    command.push_back(settings.binLocation + settings.svfsExeName);
     command.push_back(fmt::format("-s prompt=nil"));
     //command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
     //command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
@@ -93,7 +80,9 @@ void BuildProcess::UnpackEngineBinaries() {
     input.push_back(fmt::format("io.flush()"));
     input.push_back(fmt::format("os.exit(0)"));
     
-    WaitForProcess(settings.binLocation + settings.svfsExeName, command, input, "[SVFS]");
+    WaitForProcess(command, input, [this](std::string line) {
+        Print("[SVFS] {}", line);
+    });
 }
 
 void BuildProcess::PrepareBaseModules() {
@@ -130,83 +119,45 @@ void BuildProcess::PrepareConfiguration() {
     }
 }
 
-void BuildProcess::WaitForProcess(const std::string &command, const std::list<std::string> &arguments, const std::list<std::string> &inputLines, const std::string &logMarker) {
-    namespace bp = boost::process;
-
-    boost::asio::io_service ios;
-    bp::async_pipe ap(ios);
-    bp::opstream in;
-    
-    auto str = boost::join(arguments, std::string(" "));
-    bp::child c;
-    try {
-        c = bp::child(command + " " + str,  bp::std_out > ap, bp::std_in < in, bp::std_err > ap);
-    }                                     
-    catch (...) {
-        ap.close();
-        throw;
-    }
-
-    std::thread feedThread;
-
-    if (!inputLines.empty()) {
-        feedThread = std::thread([&]() {
-            for (const auto &line : inputLines)
-                in << line << "\n" << std::flush;
-        });
-    }
-
-    boost::asio::streambuf b;
-    std::function<void()> doRead;
-    auto handler = [&](const boost::system::error_code &ec, std::size_t size) {
-        if (ec)
-            return;
-
-        std::string str{
-            boost::asio::buffers_begin(b.data()),
-            boost::asio::buffers_begin(b.data()) + size };
-        b.consume(size);
-
-        std::vector<std::string> lines;
-        boost::split(lines, str, boost::is_any_of("\n"));
-        for (auto &line : lines) {
-            boost::trim(line);
-            if (!line.empty())
-                Print(fmt::format("{} {}", logMarker, line));
-        }
-        doRead();
-    };
-    doRead = [&]() {
-        boost::asio::async_read_until(ap, b, '\n', handler);
-    };
-
-    doRead();
-
-    ios.run();
-    c.wait();
-    if(feedThread.joinable())
-        feedThread.join();
-    if(ap.is_open())
-        ap.close();
-    int result = c.exit_code();
-
-    if (result != 0) {
-        //print(fmt::format("svfs failed with code {}", result), true);
-        throw "process failed!";
-    }
-
-    //print(fmt::format("svfs ended with code {}", result));
-}
-
 void BuildProcess::CheckSettings() {
     Print("Checking build settings...");
     boost::replace_all(settings.moduleSourceLocation, "\\", "/");
     boost::replace_all(settings.outputLocation, "\\", "/");
 
+    if (settings.RDCPackOnly) {
+        if (settings.RDCModuleFileName.empty())
+            throw "Output is not specified";
+    } else {
+        if (settings.InputSettingsFile.empty())
+            throw "InputSettigs file is not specified";
+    }
+
 #ifdef WINDOWS
     settings.rdccExeName += ".exe";
     settings.svfsExeName += ".exe";
 #endif
+}
+
+void BuildProcess::CheckOutput() {
+    Print("Checking output directory...");
+
+    if (boost::filesystem::exists(settings.outputLocation))
+        try {
+            boost::filesystem::directory_iterator end_it;
+            boost::filesystem::directory_iterator it(settings.outputLocation);
+            std::for_each(it, end_it, [](auto arg) { boost::filesystem::remove_all(arg); });
+        }
+        catch (const std::exception &e) {
+            Print("Cannot clear output directory: {}", e.what());
+        }
+
+    if (!boost::filesystem::exists(settings.outputLocation))
+        boost::filesystem::create_directories(settings.outputLocation);
+   
+    if (!settings.RDCPackOnly && settings.RDCModuleFileName.empty()) {
+        settings.RDCModuleFileName = boost::filesystem::path(settings.moduleSourceLocation).parent_path().filename().string();
+        settings.RDCModuleFileName += ".rdc";
+    }
 }
 
 } //namespace Editor 

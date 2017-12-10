@@ -14,6 +14,8 @@ namespace MoonGlare {
 namespace Editor {
 
 struct BuildSettings {
+    bool RDCPackOnly = false;
+
     std::string outputLocation;
     std::string moduleSourceLocation;
     
@@ -37,14 +39,12 @@ protected:
     BuildSettings settings;
 
     void CheckSettings();
-    void CheckOutputDirectory();
+    void CheckOutput();
     void PackModule();
 
     void UnpackEngineBinaries();
     void PrepareBaseModules();
     void PrepareConfiguration();
-
-    void WaitForProcess(const std::string &command, const std::list<std::string> &arguments, const std::list<std::string> &inputLines = {}, const std::string &logMarker = "");
 
     template<typename ...ARGS>
     void Print(ARGS && ...args) const {
