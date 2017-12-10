@@ -1,5 +1,5 @@
+#include <cassert>
 
-#include <pch.h>
 #include "Resources/StringTables.h"
 #include "TextProcessor.h"
 
@@ -11,7 +11,7 @@ TextProcessor::TextProcessor(Resources::StringTables * Tables) : stringTables(Ta
 TextProcessor::~TextProcessor() {}
 
 void TextProcessor::Process(const std::string & input, std::string & out) {
-	ASSERT(stringTables, "No string tables!");
+	assert(stringTables, "No string tables!");
 
 	if (input.empty()) {
 		out.clear();

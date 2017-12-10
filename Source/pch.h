@@ -79,11 +79,11 @@ class cRootClass;
 #include "Utils/SetGet.h"
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
-#include "Utils/StringUtils.h"
+#include "StringUtils.h"
 #include "Utils/TemplateUtils.h"
 #include "MathConstants.h"
+#include "MathSupport.h"
 #include "xMath.h"
-#include "d2math.h"
 #include "Utils/XMLUtils.h"
 #include "Utils/StreamUtils.h"
 #include <Utils/PerfCounters.h>
@@ -118,5 +118,5 @@ namespace Core {
 using Core::ApiInitializer;
 
 #include "Error.h"
-
+                       
 #endif

@@ -1,12 +1,4 @@
-/*
- * d2math.h
- *
- *  Created on: 28-11-2013
- *      Author: Paweu
- */
-
-#ifndef D2MATH_H_
-#define D2MATH_H_
+#pragma once 
 
 namespace d2math {
 
@@ -90,5 +82,3 @@ namespace d2math {
 	};
 
 }
-
- #endif // D2MATH_H_ 

@@ -6,8 +6,6 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef iSoundEngine_H
-#define iSoundEngine_H
 
 namespace MoonGlare {
 namespace Sound {
@@ -138,5 +136,3 @@ private:
 inline Sound::iSoundEngine* GetSoundEngine() { return Sound::iSoundEngine::Instance(); }
 
 } //namespace MoonGlare 
-
-#endif

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <MathSupportBullet3.h>
+
 namespace MoonGlare::Physics::Component {	  
 
 template<typename OWNER, Entity OWNER::*ptr>

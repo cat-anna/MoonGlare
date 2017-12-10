@@ -1,13 +1,5 @@
-/*
- * d3math.h
- *
- *  Created on: 28-11-2013
- *      Author: Paweu
- */
+#pragma once
 
-#ifndef XMATH_H
-#define XMATH_H
- 
 namespace Physics {
 	using vec3 = btVector3;
 	using Quaternion = btQuaternion;
@@ -33,47 +25,10 @@ namespace math {
 	using Quaternion = Physics::Quaternion;
 
 	template<class T>
-	inline T clamp(T t, T tmin, T tmax) {
-		if (t > tmax) return tmax;
-		if (t < tmin) return tmin;
-		return t;
-	}
- 
-	template<class T>
 	T min(T a, T b) { return a < b ? a : b; }
 
 	template<class T>
 	T max(T a, T b) { return a < b ? b : a; }
-
-	template<class VEC, class POS>
-	inline VEC LinearVectorMix(const VEC &v1, const VEC &v2, POS t) {
-		return v1 * t + v2 * (static_cast<POS>(1.0) - t);
-	}
-
-	/** Calculate plane normal from 3 points */
-	template<class VEC> inline VEC PlaneNormal(const VEC &p1, const VEC &p2, const VEC &p3) {
-		return PlaneNormalVectors(p2 - p1, p3 - p1);
-	}
-
-	/** Calculate plane normal from 2 points and vector */
-	template<class VEC> inline VEC PlaneNormalPointPointVector(const VEC &p1, const VEC &p2, const VEC &v1) {
-		return PlaneNormalVectors(p2 - p1, v1);
-	}
-
-	/** Calculate plane normal from 2 vectors */
-	inline Physics::vec3 PlaneNormalVectors(const Physics::vec3 &v1, const Physics::vec3 &v2) {
-		return v1.cross(v2);
-	}
-
-	template<class T>
-	inline T next_power2(T in) {
-		T r = 1;
-		if (std::is_integral<T>::value)
-			while (r < in) r <<= 1;
-		else
-			while (r < in) r *= static_cast<T>(2.0);
-		return r;
-	}
 
 	struct RawVec3 {
 		union {
@@ -143,5 +98,3 @@ using math::uvec2;
 
 using math::max;
 using math::min;
-
-#endif // XMATH_H 
