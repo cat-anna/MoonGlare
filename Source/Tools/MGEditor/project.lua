@@ -24,7 +24,6 @@ group "Tools"
         files {
             "**",
             "../../**.x2c",
-
             "../Shared/Qt/**",
             "../Shared/Resources/*",
         }
@@ -38,7 +37,6 @@ group "Tools"
             "OrbitLogger",
             "libSpace",
             "StarVFS",
-            "svfslua",
         }
 
         filter "action:vs*"

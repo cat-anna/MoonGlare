@@ -100,7 +100,7 @@ public:
         m_CommandArguments[index] = argptr;
         m_SortKeys[index] = key;
 
-        return new(argptr)CMD::Argument{ std::forward<ARGS>(args)... };
+        return new(argptr)typename CMD::Argument{ std::forward<ARGS>(args)... };
     }
 
     template<typename CMD, typename ... ARGS>

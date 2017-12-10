@@ -20,7 +20,7 @@ public:
 	ScriptApi(RendererFacade* facade);
 	~ScriptApi();
 
-	void Install(lua_State *lua) throw(InitFailureException);
+    void Install(lua_State *lua);
 private: 
 	std::unique_ptr<ScriptApiImpl> m_Impl;
 };

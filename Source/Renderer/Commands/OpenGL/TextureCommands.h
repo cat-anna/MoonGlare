@@ -159,7 +159,6 @@ struct TextureSettingsCommon {
             break;
         default:
             AddLogf(Error, "Unknown edges mode!");
-        case Configuration::Texture::Edges::Default:
         case Configuration::Texture::Edges::Clamp:
             SetClampToEdges();
         }
@@ -178,7 +177,6 @@ struct TextureSettingsCommon {
             break;
         default:
             AddLogf(Error, "Unknown filtering mode!");
-        case Configuration::Texture::Filtering::Default:
         case Configuration::Texture::Filtering::Linear:
             SetLinearFiltering();
         }

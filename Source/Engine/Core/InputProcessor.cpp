@@ -161,7 +161,6 @@ void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
     case Configuration::Console::ActivateKey:
         if (Pressed || ProcessConsoleActivateKey())
             break;
-        [[fallthrough]]
     default:
         ProcessKeyState(KeyCode + InputKeyOffsets::Keyboard, Pressed);
     }

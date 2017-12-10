@@ -156,7 +156,7 @@ struct ScriptApi::ScriptApiImpl {
         RendererAssert(m_RendererFacade);
     }
 
-    void Install(lua_State *lua) throw(InitFailureException) {
+    void Install(lua_State *lua) {
         RendererAssert(lua);
 
         m_ContextApi.Install(lua);
@@ -194,7 +194,7 @@ ScriptApi::ScriptApi(RendererFacade * facade) {
 ScriptApi::~ScriptApi() {
 }
 
-void ScriptApi::Install(lua_State *lua) throw(InitFailureException) {
+void ScriptApi::Install(lua_State *lua) {
     RendererAssert(lua);
     RendererAssert(m_Impl);
     m_Impl->Install(lua);

@@ -490,7 +490,6 @@ void Context::GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             }
             return;
         }
-        [[fallthrough]]
     default:
         if (ctx->m_InputHandler)
             ctx->m_InputHandler->OnKey(key, Pressed);
