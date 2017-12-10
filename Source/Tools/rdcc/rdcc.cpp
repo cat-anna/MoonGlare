@@ -14,14 +14,16 @@
 
 namespace MoonGlare::RDCC {
 
-RDCC::RDCC(RDCCConfig Config) :config(Config) {
-
+RDCC::RDCC(std::shared_ptr<RDCCConfig> Config) : RDCCBaseClass(Config) {
+    outputCollector = std::make_unique<OutputCollector>(Config);
+    fileProcessorDispatcher = std::make_unique<FileProcessorDispatcher>(Config, outputCollector.get());
 }
 
 int RDCC::Run() {
     try {
         auto inputFiles = DoFileSearch();
-        auto processedFiles = ProcessFiles(inputFiles);
+        ProcessFiles(inputFiles);
+        auto & processedFiles = outputCollector->GetProcessedFilesList();
         auto script = GenerateSVFSScript(processedFiles);
         ExecuteSVFS(script);
         CleanUp(processedFiles);
@@ -45,26 +47,31 @@ std::list<InputFileInfo> RDCC::DoFileSearch() {
 
     std::list<InputFileInfo> inputFileList;
 
-    fs::recursive_directory_iterator dir(config.inputDir), end;
+    fs::recursive_directory_iterator dir(config->inputDir), end;
     for (; dir != end; ++dir) {
         fs::directory_entry e = *dir;
 
-        if (fs::is_directory(e.path())) {
-            if (e.path().filename() == ".editor") {
+        if (fs::is_directory(e.path())) {     
+            auto name = e.path().filename().string();
+            boost::to_lower(name);
+            if (name == ".editor") {
                 dir.no_push(); // don't recurse into this directory.
             }
             continue;
         }
 
-        if (config.fileFilter.has_value()) {
+        if (config->fileFilter.has_value()) {
             //TODO:
         }
         InputFileInfo ifi;
         ifi.globalPath = fs::system_complete(e.path()).string();
-        ifi.localPath = e.path().string().substr(config.inputDir.length() - 1);
+        ifi.localPath = e.path().string().substr(config->inputDir.length() - 1);
+        ifi.fileName = e.path().filename().string();
         ifi.extension = e.path().extension().string();
-        if(!ifi.extension.empty())
+        if (!ifi.extension.empty()) {
             ifi.extension = ifi.extension.substr(1);//remove "." from beginning
+            boost::to_lower(ifi.extension);
+        }
 
         auto fixSlash = [](std::string &str) {
             boost::replace_all(str, "\\", "/");
@@ -84,30 +91,14 @@ std::list<InputFileInfo> RDCC::DoFileSearch() {
     return inputFileList;
 }
 
-std::list<ProcessedFileInfo> RDCC::ProcessFiles(const std::list<InputFileInfo> &inputFiles) {
-    std::list<ProcessedFileInfo> output;
-
+void RDCC::ProcessFiles(const std::list<InputFileInfo> &inputFiles) {
     print(fmt::format("Processing {} files", inputFiles.size()));
 
     for (auto &inputFile : inputFiles) {
-        output.emplace_back(ProcessFile(inputFile));
+        fileProcessorDispatcher->ProcessFile(inputFile);
     }
 
     print("Processing completed");
-
-    return output;
-}
-
-ProcessedFileInfo RDCC::ProcessFile(const InputFileInfo & inputFileInfo) {
-    ProcessedFileInfo output;
-    output.inputFileInfo = inputFileInfo;
-
-    output.dataSourceMode = ProcessedFileInfo::DataSourceMode::File;
-    output.fileDataSource = output.inputFileInfo.globalPath;
-
-    print(fmt::format("Processing {}", output.inputFileInfo.localPath));
-
-    return output;
 }
 
 std::list<std::string> RDCC::GenerateSVFSScript(const std::list<ProcessedFileInfo> &processedFiles) {
@@ -115,7 +106,7 @@ std::list<std::string> RDCC::GenerateSVFSScript(const std::list<ProcessedFileInf
     std::list<std::string> output;
 
     auto put = [this, &output](std::string line) {
-        if(config.dumpScript)
+        if(config->dumpScript)
             std::cout << line << "\n" << std::flush;
 
         output.emplace_back(std::move(line));
@@ -132,14 +123,14 @@ std::list<std::string> RDCC::GenerateSVFSScript(const std::list<ProcessedFileInf
     put("");
 
     put("for i,v in ipairs(fileList) do");
-    if(config.verbose)
+    if(config->verbose)
         put("\tprint('Adding file: ', v.virtual, ' -> ',  v.system)");
     put("\tinjectFile(v.virtual, v.system)");
     put("end");
     put("");
 
     put("Exporter = Register:CreateExporter([[RDCExporter]])");
-    put(fmt::format("Exporter:DoExport([[/]], [[{}]])", config.outputFile));
+    put(fmt::format("Exporter:DoExport([[/]], [[{}]])", config->outputFile));
     put("");
 
     print("Done");
@@ -149,7 +140,7 @@ std::list<std::string> RDCC::GenerateSVFSScript(const std::list<ProcessedFileInf
 
 void RDCC::ExecuteSVFS(const std::list<std::string> &script) {
     print("Packing files");
-    print(fmt::format("SVFS executable: {}", config.svfsExecutable));
+    print(fmt::format("SVFS executable: {}", config->svfsExecutable));
 
     namespace bp = boost::process;
 
@@ -159,7 +150,7 @@ void RDCC::ExecuteSVFS(const std::list<std::string> &script) {
 
     bp::child c;
     try {
-        c = bp::child(config.svfsExecutable, "-s prompt=nil", bp::std_out > ap, bp::std_in < in, bp::std_err > ap);
+        c = bp::child(config->svfsExecutable + " -s prompt=nil", bp::std_out > ap, bp::std_in < in, bp::std_err > ap);
     }
     catch (...) {
         ap.close();
@@ -218,21 +209,7 @@ void RDCC::ExecuteSVFS(const std::list<std::string> &script) {
 
 void RDCC::CleanUp(std::list<ProcessedFileInfo>) {
     print("Cleaning up");
-}
-
-void RDCC::print(std::string msg, bool ignoreVerbose) const
-{
-    if (!ignoreVerbose && !config.verbose)
-        return;
-
-    if (msg.empty() || msg.back() != '\n')
-        msg += "\n";
-
-    //auto t = std::time(nullptr);
-    //auto tm = *std::localtime(&t);
-    std::cout 
-        //<< std::put_time(&tm, "%c") << " " 
-        << msg << std::flush;
+    boost::filesystem::remove_all(config->tmpPath);
 }
 
 }

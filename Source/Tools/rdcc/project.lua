@@ -1,18 +1,19 @@
 
 
 group "Tools"
-	project "rdcc"
-		filter { }
+    project "rdcc"
+        filter { }
 
-		kind "ConsoleApp"
-		defines {
-			"_BUILDING_TOOL_",
-		}
-		files {
-			"**",
-		}
-		includedirs {
-			".",
-		}
-		links {
-		}
+        kind "ConsoleApp"
+        defines {
+            "_BUILDING_TOOL_",
+        }
+        files {
+            "**",
+        }
+        includedirs {
+            ".",       
+            "..",
+        }
+        links {
+        }

@@ -6,42 +6,28 @@
 #include <memory>
 
 #include "config.h"
+#include "common.h"
+#include "FileProcessor.h"
+#include "OutputCollector.h"
 
 namespace MoonGlare::RDCC {
 
-struct InputFileInfo {
-    std::string globalPath;
-    std::string localPath;
-    std::string extension;
-};
-
-struct ProcessedFileInfo {
-    InputFileInfo inputFileInfo;
-
-    enum class DataSourceMode { Unknown, File, String, TempFile, };
-    std::string fileDataSource;
-    DataSourceMode dataSourceMode = DataSourceMode::Unknown;
-
-    bool compiled = false;
-};
-
-class RDCC {
+class RDCC : public RDCCBaseClass {
 public:
-    RDCC(RDCCConfig Config);
+    RDCC(std::shared_ptr<RDCCConfig> Config);
 
     int Run();
 private:                            
-    RDCCConfig config;
+    std::unique_ptr<FileProcessorDispatcher> fileProcessorDispatcher;
+    std::unique_ptr<OutputCollector> outputCollector;
 
     std::list<InputFileInfo> DoFileSearch();
-    std::list<ProcessedFileInfo> ProcessFiles(const std::list<InputFileInfo> &inputFiles);
-    ProcessedFileInfo ProcessFile(const InputFileInfo & inputFileInfo);
+    void ProcessFiles(const std::list<InputFileInfo> &inputFiles);
 
     std::list<std::string> GenerateSVFSScript(const std::list<ProcessedFileInfo> &processedFiles);
     void ExecuteSVFS(const std::list<std::string> &script);
     void CleanUp(std::list<ProcessedFileInfo>);
 
-    void print(std::string msg, bool ignoreVerbose = false) const ;
 };
 
 }

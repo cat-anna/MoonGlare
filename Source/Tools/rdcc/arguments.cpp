@@ -11,6 +11,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/process.hpp>
 
 #include "arguments.h"
                                   
@@ -20,7 +21,7 @@ namespace po = boost::program_options;
 
 //-------------------------------------------------------------------------------------------------
 
-RDCCConfig ArgumentParser::Run(int argc, char **argv) {
+std::shared_ptr<RDCCConfig> ArgumentParser::Run(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "Produce help message")
@@ -66,6 +67,7 @@ RDCCConfig ArgumentParser::Run(int argc, char **argv) {
         config.exeName = argv[0];
         auto myName = boost::filesystem::path(argv[0]);
         config.svfsExecutable = myName.parent_path().string() + "/svfs" + myName.extension().string();
+        config.luacExecutable = myName.parent_path().string() + "/luac" + myName.extension().string();
 
         auto getOption = [&vm](const char *name, auto &option, const char *missingError = nullptr) {
             if (!vm[name].empty())
@@ -92,7 +94,10 @@ RDCCConfig ArgumentParser::Run(int argc, char **argv) {
         if (!boost::ends_with(config.outputFile, ".rdc"))
             config.outputFile += ".rdc";
 
-        return config;
+        config.tmpPath = ".rdcc." + std::to_string(boost::this_process::get_id()) + "/"; 
+        boost::filesystem::create_directories(config.tmpPath);
+
+        return std::make_shared<RDCCConfig>(std::move(config));
     }
     catch (const char *e) {
         std::cout << e << "\n";
