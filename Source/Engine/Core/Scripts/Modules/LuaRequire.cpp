@@ -7,7 +7,6 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
-
 static constexpr char InitRequireCode[] =
 R"===(
          

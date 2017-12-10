@@ -14,6 +14,4 @@
 
 using FontResPtr = MoonGlare::DataClasses::SmartResource<DataClasses::FontPtr>;
 
-#include "StringTable.h"
-
 #endif // DATACLASSES_H_

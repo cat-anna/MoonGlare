@@ -13,7 +13,7 @@ public:
 
 	virtual DataPath GetResourceType() const;
 protected:
-	FileSystem::XMLFile OpenMetaData() const;
+	XMLFile OpenMetaData() const;
 private:
 };
 

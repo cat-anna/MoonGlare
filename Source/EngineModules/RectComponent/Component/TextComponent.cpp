@@ -86,7 +86,7 @@ bool TextComponent::Initialize() {
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
     m_FontDeviceOptions.m_DeviceSize = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSize();
 	
-	m_TextProcessor.SetTables(GetDataMgr()->GetStringTables());
+	m_TextProcessor.SetTables(GetManager()->GetWorld()->GetStringTables());
 
 	return true;
 }

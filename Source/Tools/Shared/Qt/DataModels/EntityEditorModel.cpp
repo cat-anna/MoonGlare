@@ -496,7 +496,7 @@ bool EditableEntity::Read(pugi::xml_node node) {
         //{
         //auto pattern = it.attribute("Pattern").as_string(nullptr);
         //if (pattern) {
-        //	FileSystem::XMLFile xdoc;
+        //	XMLFile xdoc;
         //	Entity child;
         //	std::string paturi = pattern;
         //	if (!GetFileSystem()->OpenXML(xdoc, paturi, DataPath::URI)) {

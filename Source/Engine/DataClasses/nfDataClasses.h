@@ -52,6 +52,4 @@ namespace MoonGlare::DataClasses {
 	using Fonts::FontPtr;
 
 	class DataClass;
-	class StringTable;
-
 } //namespace MoonGlare::DataClasses

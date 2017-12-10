@@ -247,7 +247,7 @@ void SoundEngine::RegisterScriptApi(ApiInitializer &api) {
 //----------------------------------------------------------------------------------
 
 void SoundEngine::ScanForSoundsScanPath(DataPath mode, const string& basepath, const string& namepath) {
-    FileSystem::FileInfoTable files;
+    FileInfoTable files;
 
     GetFileSystem()->EnumerateFolder(basepath, files, true);
 
@@ -414,7 +414,7 @@ void SoundEngine::SetPlayList(const string& PlayListName) {
 
     if (!PlayListName.empty()) {
         m_PlayList = std::make_unique<PlayList>();
-        FileSystem::XMLFile xml;
+        XMLFile xml;
         char xmlname[64];
         sprintf(xmlname, "PlayList.%s.xml", PlayListName.c_str());
         if (!GetFileSystem()->OpenXML(xml, xmlname, DataPath::XML)) {

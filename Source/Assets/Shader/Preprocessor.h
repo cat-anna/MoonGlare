@@ -36,7 +36,7 @@ public:
 		int m_IncludeLevel;
 	};
 
-	void PushFile(const std::string &Name) throw(ParseException);
+    void PushFile(const std::string &Name);
 	void GetOutput(std::string &Output);
 
 	void ClearOutput();

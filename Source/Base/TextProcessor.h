@@ -6,22 +6,20 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef TextProcessor_H
-#define TextProcessor_H
+
+namespace MoonGlare::Resources { class StringTables; }
 
 namespace MoonGlare {
 
 class TextProcessor {
 public:
-    TextProcessor(DataClasses::StringTable *Tables = nullptr);
+    TextProcessor(Resources::StringTables *Tables = nullptr);
     ~TextProcessor();
 
-    void SetTables(DataClasses::StringTable *Tables) { m_StringTables = Tables; }
+    void SetTables(Resources::StringTables *Tables) { stringTables = Tables; }
     void Process(const std::string& input, std::string &out);
 protected:
-    DataClasses::StringTable *m_StringTables;
+    Resources::StringTables *stringTables;
 };
 
 } //namespace MoonGlare 
-
-#endif

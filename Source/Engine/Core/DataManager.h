@@ -5,8 +5,9 @@
  *      Author: Paweu
  */
 
-#ifndef CDATAMANAGER_H_
-#define CDATAMANAGER_H_
+#pragma once
+
+namespace MoonGlare::Resources { class StringTables; }
 
 namespace MoonGlare {
 namespace Core {
@@ -76,20 +77,15 @@ public:
 
     DataClasses::FontPtr GetFont(const string &Name);
 
-    const string& GetString(const string &Id, const string& TableName);
-
-    DataClasses::StringTable* GetStringTables() { return m_StringTables.get(); }
-
     void SetLangCode(std::string langCode);
 
     static void RegisterScriptApi(::ApiInitializer &api);
 private:
     World *world;
+    std::unique_ptr<Resources::StringTables> stringTables;
 
     SynchronizedResourceMap<FontResPtr> m_Fonts;
     
-    std::unique_ptr<DataClasses::StringTable> m_StringTables;
-
     void LoadInitScript(StarVFS::Containers::iContainer *Container);
 };
 
@@ -99,5 +95,3 @@ private:
 inline MoonGlare::Core::Data::Manager* GetDataMgr() { return MoonGlare::Core::Data::Manager::Instance(); }
 
 } // namespace MoonGlare 
-
-#endif // CMODULEMANAGER_H_ 

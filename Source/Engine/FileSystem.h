@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "iFileSystem.h"
+#include <iFileSystem.h>
 
 enum class DataPath {
     Root,
@@ -116,4 +116,4 @@ inline FileSystem::MoonGlareFileSystem* GetFileSystem() { return FileSystem::Moo
 
 } //namespace MoonGlare 
 
-using MoonGlare::FileSystem::XMLFile;
+using MoonGlare::XMLFile;

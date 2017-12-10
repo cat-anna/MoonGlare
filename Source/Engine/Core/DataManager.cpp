@@ -11,6 +11,8 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
+#include <Resources/StringTables.h>
+
 #define xmlstr_Module_xml			"Module.xml"
 
 namespace MoonGlare {
@@ -27,12 +29,13 @@ Manager::Manager(World *world) : cRootClass(), world(world) {
 
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 
-    m_StringTables = std::make_unique<DataClasses::StringTable>(GetFileSystem());
+    stringTables = std::make_unique<Resources::StringTables>(GetFileSystem());
+    world->SetStringTables(stringTables.get());
 }
 
 Manager::~Manager() {
     m_Fonts.clear();
-    m_StringTables.reset();
+    stringTables.reset();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -41,12 +44,12 @@ class DataManagerDebugScritpApi {
 public:
 #ifdef DEBUG_SCRIPTAPI
     static void ClearStringTables() {
-        GetDataMgr()->m_StringTables->Clear();
+        GetDataMgr()->stringTables->Clear();
     }
     static void ClearResources(Manager *mgr) {
         AddLogf(Warning, "Clearing resources");
         mgr->m_Fonts.Lock()->clear();
-        mgr->m_StringTables->Clear();
+        mgr->stringTables->Clear();
     }
 #endif
 };
@@ -54,7 +57,6 @@ public:
 void Manager::RegisterScriptApi(::ApiInitializer &api) {
     api
     .deriveClass<ThisClass, BaseClass>("cDataManager")
-        .addFunction("GetString", &ThisClass::GetString)
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<ThisClass, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
         .addFunction("ClearResources", Utils::Template::InstancedStaticCall<ThisClass, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
@@ -70,7 +72,7 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
 //------------------------------------------------------------------------------------------
 
 void Manager::SetLangCode(std::string langCode) {
-    m_StringTables->SetLangCode(std::move(langCode));
+    stringTables->SetLangCode(std::move(langCode));
 }
 
 //------------------------------------------------------------------------------------------
@@ -163,7 +165,7 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
     AddLogf(Debug, "Font '%s' not found. Trying to load.", Name.c_str());
 
 //	AddLog(TODO, "Move ownership of loaded font xml to map instance");
-    FileSystem::XMLFile xml;
+    XMLFile xml;
     if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Fonts)) {
         AddLogf(Error, "Unable to open master resource xml for font '%s'", Name.c_str());
         fonts.unlock();
@@ -185,10 +187,6 @@ DataClasses::FontPtr Manager::GetFont(const string &Name) {
     ptr->Set(font);
     ptr->SetValid(true);
     return font;
-}
-
-const string& Manager::GetString(const string &Id, const string& TableName) {
-    return m_StringTables->GetString(Id, TableName);
 }
 
 } // namespace Data

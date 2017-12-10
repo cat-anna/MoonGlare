@@ -32,6 +32,7 @@ group ""
 			"../Shared/x2c/**",
 		}
 		includedirs {
+			"../Base",
 			".",
 			"%{cfg.objdir}",
 		}
@@ -42,6 +43,7 @@ group ""
 
             "Renderer",
             "Assets",
+            "MoonGlareBase",
 		}
 
 		Features.ApplyAll(Engine.Features)

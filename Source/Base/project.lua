@@ -1,29 +1,24 @@
 
-group "EngineLibs"
+group "Foundation"
 
-	project "Renderer"
+	project "MoonGlareBase"
 		kind "StaticLib"
 
-		SetPCH { hdr = "pch.h", src = "pch.cpp", }
-
-        forceincludes {
-            "pch.h",
-        }
+		-- SetPCH { hdr = "pch.h", src = "pch.cpp", }
+        -- forceincludes {
+            -- "pch.h",
+        -- }
 
 		defines {
-			"_BUILDING_ENGINE_",
 			"BT_EULER_DEFAULT_ZYX",
 			"_FEATURE_EXTENDED_PERF_COUNTERS_",
 		}
 
 		files {
 			"**",
-			"../Config/*.h",
 		}
 		includedirs {
 			".",
-			"../Base",
-			"%{cfg.objdir}",
 		}
 
 		filter "configurations:Debug"
@@ -31,5 +26,4 @@ group "EngineLibs"
             }
 		filter "configurations:Release"
 			defines {
-
             }

@@ -287,7 +287,7 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
     AddLogf(Debug, "Loading scene '%s'", descriptor->m_SID.c_str());
 
     do {
-        FileSystem::XMLFile doc;
+        XMLFile doc;
         if (!GetFileSystem()->OpenXML(doc, descriptor->m_FID)) {
             AddLogf(Warning, "Unable to load xml for scene: '%s'", descriptor->m_SID.c_str());
             break;

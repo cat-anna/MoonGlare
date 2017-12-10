@@ -150,6 +150,7 @@ bool ScriptEngine::ConstructLuaContext() {
     lua_settable(m_Lua, LUA_REGISTRYINDEX);						//stack: ... index ctable
 
     try {
+        Modules::StaticModules::InitStrings(m_Lua, m_world);
         Modules::StaticModules::InitApplication(m_Lua, m_world);
         Modules::StaticModules::InitPrint(m_Lua, m_world);
         Modules::StaticModules::InitMath(m_Lua, m_world);
