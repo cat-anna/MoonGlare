@@ -1,9 +1,9 @@
 [submodule "Libs/libSpace"]
 	path = Libs/libSpace
-	url = git@git.lan:~/projects/libs/libSpace.git
+url=git@github.com:pgrabas/libSpace.git
 [submodule "Libs/OrbitLogger"]
 	path = Libs/OrbitLogger
-	url = git@git.lan:~/projects/libs/OrbitLogger.git
+url=git@github.com:pgrabas/OrbitLogger.git
 [submodule "Libs/StarVFS"]
 	path = Libs/StarVFS
-	url = git@git.lan:~/projects/libs/StarVFS.git
+url=git@github.com:pgrabas/starVFS.git
