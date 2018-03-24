@@ -6,11 +6,15 @@ group "Tools"
         kind "WindowedApp"
         
         qt.enable()
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
-    --	qtheaderpath(settings.qt.headers)"d:/Programowanie/Qt/5.5/msvc2013/"
         qtprefix "Qt5"
         qtmodules { "core", "gui", "widgets", "network" }
-    --	qtlibsuffix ""
+
+        filter "platforms:x32"
+            qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
+        filter "platforms:x64"
+            qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
+        filter {}
+
 
         SetPCH { hdr = "Tools/recon/pch.h", src = "pch.cpp", }	
         

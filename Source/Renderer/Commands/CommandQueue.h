@@ -12,7 +12,7 @@
 
 namespace MoonGlare::Renderer::Commands {
 
-//vitality and copying is forbidden
+//virtuality and copying is forbidden
 //should be zeroed manually before first use!
 class alignas(16) CommandQueue final {
     using Conf = Configuration::CommandQueue;
@@ -160,9 +160,12 @@ private:
     uint32_t m_CommandsPreamble;
     uint32_t m_MemoryPreamble;
 
+    Allocator_t m_Memory;
+#ifdef X64
+    uint32_t p_padding;
+#endif
     Array<CommandFunction> m_CommandFunctions;
     Array<void*> m_CommandArguments;
-    Allocator_t m_Memory;
     Array<CommandKey> m_SortKeys;
 
     void SortBegin(int first, int last);

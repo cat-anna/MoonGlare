@@ -75,9 +75,6 @@ local function SetCommonConfig()
 		"STARVFS_USE_ORBITLOGGER",
 	--	"BOOST_NO_AUTO_PTR",
 	}
-	libdirs {
-		"../../../../../LibsC",
-	}
 	includedirs {
 		"../../../../../LibsC",
         dir.bin,
@@ -128,6 +125,7 @@ local function SetCommonConfig()
             "4290", -- C++ exception specification ignored
 		}
 		buildoptions  { "/std:c++latest", }
+		entrypoint "mainCRTStartup"
 
 	filter "platforms:x32"
 		architecture "x32"
@@ -135,12 +133,15 @@ local function SetCommonConfig()
 			"X32",
 			"PLATFORM_NAME=\"x32\"",
 		}
+		libdirs { "../../../../../LibsC" }		
 	filter "platforms:x64"
 		architecture "x64"
 		defines {
 			"X64",
 			"PLATFORM_NAME=\"x64\"",
 		}
+		libdirs { "../../../../../LibsC/x64" }
+		
 
 	filter "configurations:Debug"
 		targetdir(dir.target)

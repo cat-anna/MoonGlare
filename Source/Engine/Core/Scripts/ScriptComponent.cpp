@@ -19,7 +19,7 @@
 
 namespace MoonGlare::Core::Scripts::Component {
 
-static_assert(sizeof(void*) == sizeof(Handle), "Size of void* must match the size of Handle!");
+//static_assert(sizeof(void*) == sizeof(Handle), "Size of void* must match the size of Handle!");
 
 namespace lua {
     enum {
@@ -977,7 +977,7 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
     void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
-    size_t index;
+    HandleIndex index;
     if (!This->GetHandleTable()->GetHandleIndex(This, h, index)) {
         AddLogf(Error, "ScriptComponent::DestroyObject: Error: Invalid argument #1: invalid handle");
         lua_pushboolean(lua, 0);
@@ -987,7 +987,7 @@ int ScriptComponent::lua_DestroyObject(lua_State *lua) {
     //auto &item = This->m_Array[index];
     //auto *scene = static_cast<GameScene*>(This->GetManager()->GetScene());
     //auto reg = scene->GetObjectRegister();
-
+         
     LOG_NOT_IMPLEMENTED();
     //TODO: lua api DestroyObject
     AddLog(Error, "DestroyObject is not yet supported");

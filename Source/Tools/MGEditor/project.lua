@@ -8,7 +8,13 @@ group "Tools"
         filter { }
 
         qt.enable()
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
+
+        filter "platforms:x32"
+            qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
+        filter "platforms:x64"
+            qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
+    
+        filter {}
     --	qtheaderpath(settings.qt.headers)"d:/Programowanie/Qt/5.5/msvc2013/"
         qtprefix "Qt5"
         qtmodules { "core", "gui", "widgets", "network" }

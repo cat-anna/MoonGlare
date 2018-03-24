@@ -29,10 +29,13 @@ struct ResourceHandleBase {
 
     Index_t index;
     Generation_t generation;
+#ifdef X64
+    uint32_t padding;
+#endif
 };
 
 static_assert(std::is_pod_v<ResourceHandleBase>);
-static_assert(sizeof(ResourceHandleBase) == sizeof(void*));
+//static_assert(sizeof(ResourceHandleBase) == sizeof(void*));
 
 template<typename DeviceHandle_t, typename DiffType = void>
 struct HandleTemplate : public ResourceHandleBase {

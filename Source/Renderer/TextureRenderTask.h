@@ -34,9 +34,10 @@ public:
 private: 
 	TextureResourceHandle m_TargetTexture;
 	Device::FramebufferHandle m_Framebuffer;
+    uint32_t padding;
 	emath::ivec2 m_Size;
 	Frame* m_Frame;
-	void* padding[2];
+	void* padding2;
 
 	Commands::CommandQueue m_CommandQueue;
 };

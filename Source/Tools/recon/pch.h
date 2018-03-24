@@ -1,6 +1,28 @@
 #pragma once	
 
-#include <Config/pch_common.h>
+#include <unordered_map>
+#include <map>
+#include <set>
+#include <list>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <stack>
+#include <array>
+#include <bitset>
+#include <variant>      
+#include <optional>
+
+#include <string>
+#include <cstring>
+#include <regex>
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #pragma warning (disable: 4251)
 #pragma warning( disable : 4290 )  
@@ -44,3 +66,7 @@
 #include <QInputDialog>
 
 #pragma warning ( pop )
+
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif

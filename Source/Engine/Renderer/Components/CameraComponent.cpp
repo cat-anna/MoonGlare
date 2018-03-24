@@ -154,7 +154,7 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     }
 
     Handle &h = hout;
-    HandleIndex index;
+    size_t index;
     if (!m_Array.Allocate(index)) {
         AddLog(Error, "Failed to allocate index");
         //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
