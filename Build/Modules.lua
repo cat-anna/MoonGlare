@@ -49,8 +49,8 @@ function ModuleManager_t:fail(message)
 end;
 
 function ModuleManager_t:search()
-	local modlist = os.matchfiles(dir.base .. "**/module.lua")
-	table.foreach(modlist, function(k,v) include(v); end)
+	local modlist = os.matchfiles(dir.base .. "**/module.lua")	
+	for k,v in ipairs(modlist) do include(v) end
 end
 
 function ModuleManager_t:RegisterModule(data)

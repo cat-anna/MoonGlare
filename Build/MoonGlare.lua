@@ -5,7 +5,7 @@
 dir.bin = dir.root .. "bin/"
 dir.project = dir.bin .. (_ACTION or "none") .. "/"
 dir.target = dir.bin .. "/%{cfg.buildcfg}_%{cfg.architecture}"
-dir.base = dir.root .. "MoonGlare/"
+dir.base = dir.root .. "./"
 dir.src = dir.base .. "Source/"
 dir.libsrc = dir.base .. "Libs/"
 
@@ -19,16 +19,14 @@ include "Projects.lua"
 include "Modules.lua"
 include "Settings.lua"
 
-function MoonGlareSolution(Name)
-	if _PREMAKE_VERSION then
-		MoonGlare.LoadSettings()
-		MoonGlare.GenerateSolution(Name or "MoonGlareEngine")
-		include(dir.libsrc .. "LibProjects.lua")   
-		ModuleManager:init()
-		MoonGlare.LookForProjects()
-		MoonGlare.SaveSettings()
-	else
-		print "Premake5 not detected!"
-		--MoonGlare.Initialize()
-	end
+if _PREMAKE_VERSION then
+	MoonGlare.LoadSettings()
+	MoonGlare.GenerateSolution(Name or "MoonGlareEngine")
+	include(dir.libsrc .. "LibProjects.lua")   
+	ModuleManager:init()
+	MoonGlare.LookForProjects()
+	MoonGlare.SaveSettings()
+else
+	print "Premake5 not detected!"
+	--MoonGlare.Initialize()
 end
