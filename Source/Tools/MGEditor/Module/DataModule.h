@@ -35,6 +35,8 @@ private:
     std::string baseDirectrory;
 };
 
+using SharedDataModule = std::shared_ptr<DataModule>;
+
 } //namespace Module 
 } //namespace Editor 
 } //namespace MoonGlare 

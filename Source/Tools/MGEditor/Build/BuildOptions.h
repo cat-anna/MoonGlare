@@ -5,6 +5,7 @@
 #include <SubDialog.h>
 
 #include "BuildProcess.h"
+#include "../Module/DataModule.h"
 
 namespace Ui { class BuildOptions; }
 
@@ -17,11 +18,12 @@ class BuildOptions
 {
     Q_OBJECT
 public:
-    BuildOptions(QWidget *parent, QtShared::SharedModuleManager ModuleManager);
+    BuildOptions(QWidget *parent, Module::SharedDataModule dataModule, QtShared::SharedModuleManager ModuleManager);
     ~BuildOptions();
     BuildSettings GetSettings() const;
 private:
     std::unique_ptr<Ui::BuildOptions> ui;
+    Module::SharedDataModule dataModule;
 protected slots:
 };
 

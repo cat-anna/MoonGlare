@@ -15,9 +15,12 @@ namespace Editor {
 
 EditorSettings* EditorSettings::_Instance = nullptr;
 
-EditorSettings::EditorSettings() {
+EditorSettings::EditorSettings(std::string basePath): basePath(std::move(basePath)) {
 	_Instance = this;
 	m_FileName = "MGEditor.Settings.xml";
+    if (!this->basePath.empty()) {
+        m_FileName = this->basePath + "/" + m_FileName;
+    }
 
 	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorConfiguration_t>();
 	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorState_t>();

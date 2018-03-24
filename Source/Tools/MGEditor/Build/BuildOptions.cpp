@@ -24,13 +24,14 @@ bool has_child(const std::string &path) {
         return true;
 }
 
-BuildOptions::BuildOptions(QWidget *parent, QtShared::SharedModuleManager ModuleManager)
-	: SubDialog(parent, ModuleManager)
+BuildOptions::BuildOptions(QWidget *parent, Module::SharedDataModule dataModule, QtShared::SharedModuleManager ModuleManager)
+	: SubDialog(parent, ModuleManager), dataModule(dataModule)
 {
 	ui = std::make_unique<Ui::BuildOptions>();
 	ui->setupUi(this);
-
-    ui->lineEditOutput->setText((boost::filesystem::current_path().string() + "/bin/build/").c_str());
+                          
+   
+    ui->lineEditOutput->setText((dataModule->GetBaseDirectory() + "build/").c_str());
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, [this]() {
         if (ui->lineEditOutput->text().isEmpty()) {

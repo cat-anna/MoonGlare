@@ -150,7 +150,7 @@ void MainWindow::CloseEditorAction() {
 }
 
 void MainWindow::BuildModuleAction() {
-    BuildOptions w(this, GetModuleManager());
+    BuildOptions w(this, m_DataModule, GetModuleManager());
     if (w.exec() != QDialog::Accepted)
         return;
 

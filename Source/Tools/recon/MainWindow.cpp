@@ -104,7 +104,8 @@ void MainWindow::Save() {
         SL.append(m_Ui->listWidget->item(i)->text());
     }
     SL.sort();
-    QFile fOut(HistoryFileName);
+    
+    QFile fOut(QApplication::applicationDirPath() + "/" + HistoryFileName);
     if (fOut.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream s(&fOut);
         for (int i = 0; i < SL.size(); ++i) {
@@ -117,7 +118,7 @@ void MainWindow::Save() {
 }
 
 void MainWindow::Load() {
-    QFile fIn(HistoryFileName);
+    QFile fIn(QApplication::applicationDirPath() + "/" + HistoryFileName);
     if (fIn.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream sIn(&fIn);
     }

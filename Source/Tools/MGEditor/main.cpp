@@ -37,11 +37,14 @@ static void QtLogSink(QtMsgType type, const QMessageLogContext &context, const Q
 
 int main(int argc, char *argv[]) {
 
-    (new MoonGlare::Editor::EditorSettings())->Load();
+    auto basep = boost::filesystem::path(argv[0]).parent_path();
+    {
+        (new MoonGlare::Editor::EditorSettings(basep.string()))->Load();
+    }
 
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
-    LogCollector::AddLogSink<StdFileLoggerSink>("logs/MGEditor.log");
+    LogCollector::AddLogSink<StdFileLoggerSink>((basep / "logs/MGEditor.log").string().c_str());
 
     using MoonGlare::Editor::MainWindow;
 

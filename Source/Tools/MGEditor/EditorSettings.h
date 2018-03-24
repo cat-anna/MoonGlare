@@ -18,7 +18,7 @@ namespace Editor {
 class EditorSettings : public QtShared::iSettings {
 	Q_OBJECT;
 public:
-	EditorSettings();
+	EditorSettings(std::string basePath);
 	~EditorSettings();
 
 	static EditorSettings& getInstance();
@@ -32,6 +32,7 @@ protected:
 	virtual void LoadStaticSettings(pugi::xml_node node) override;
 private:
 	static EditorSettings *_Instance;
+    std::string basePath;
 };
 
 using iSettingsUser = EditorSettings::iSettingsUser;
