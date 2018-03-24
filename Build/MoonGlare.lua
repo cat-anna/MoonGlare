@@ -1,11 +1,11 @@
---Moonglare main build subscript 
+--MoonGlare main build subscript 
 
 --package.path = package.path .. ";./build/?.lua"
 
 dir.bin = dir.root .. "bin/"
 dir.project = dir.bin .. (_ACTION or "none") .. "/"
 dir.target = dir.bin .. "/%{cfg.buildcfg}_%{cfg.architecture}"
-dir.base = dir.root .. "./"
+dir.base = dir.root 
 dir.src = dir.base .. "Source/"
 dir.libsrc = dir.base .. "Libs/"
 

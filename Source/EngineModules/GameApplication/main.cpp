@@ -59,7 +59,7 @@ Space::ProgramParameters Params = {
     Parameters,
     0,
     0,
-};
+};            
 
 #ifndef _BUILDING_TOOLS_
 

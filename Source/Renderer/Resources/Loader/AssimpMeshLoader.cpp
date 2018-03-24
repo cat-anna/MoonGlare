@@ -68,8 +68,8 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
         meshes[i].valid = true;
         meshes[i].numIndices = scene->mMeshes[i]->mNumFaces * 3;
-        meshes[i].baseVertex = NumVertices;
-        meshes[i].baseIndex = NumIndices * sizeof(uint32_t);
+        meshes[i].baseVertex = static_cast<uint16_t>(NumVertices);
+        meshes[i].baseIndex = static_cast<uint16_t>(NumIndices * sizeof(uint32_t));
         meshes[i].elementMode = GL_TRIANGLES;
         meshes[i].indexElementType = GL_UNSIGNED_INT;
 

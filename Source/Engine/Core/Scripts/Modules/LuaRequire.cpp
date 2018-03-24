@@ -213,7 +213,7 @@ int LuaRequireModule::lua_require(lua_State *lua) {
 
     std::string_view name = luaL_checkstring(lua, -1);
     if (This->ProcessRequire(lua, name, lua_upvalueindex(2))) {
-        auto t = lua_typename(lua, lua_type(lua, -1));
+        //auto t = lua_typename(lua, lua_type(lua, -1));
         return 1;
     }
 

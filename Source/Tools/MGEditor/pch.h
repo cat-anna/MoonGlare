@@ -69,7 +69,7 @@ inline std::string ToLower(std::string str) {
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
 #include <source/Utils/LuaUtils.h>
-#include <Source/xMath.h>
+#include <Source/Base/xMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>
 #include <libSpace/src/RTTI/RTTI.h>

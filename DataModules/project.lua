@@ -8,7 +8,7 @@ group "Modules"
         dependson "svfs"
 
         buildcommands {
-            [["%{cfg.targetdir}/../svfs" -m "../../../../MoonGlare/DataModules/Debug" -e RDCExporter:%{cfg.targetdir}/Debug.rdc:/]],
+            [["%{cfg.targetdir}/../svfs" -m "../Debug" -e RDCExporter:%{cfg.targetdir}/Debug.rdc:/]],
         }
 
     project "Base"
@@ -18,5 +18,5 @@ group "Modules"
         dependson "svfs"
 
         buildcommands {
-            [["%{cfg.targetdir}/../svfs" -m "../../../../MoonGlare/DataModules/Base" -e RDCExporter:%{cfg.targetdir}/Base.rdc:/]],
+            [["%{cfg.targetdir}/../svfs" -m "../Base" -e RDCExporter:%{cfg.targetdir}/Base.rdc:/]],
         }

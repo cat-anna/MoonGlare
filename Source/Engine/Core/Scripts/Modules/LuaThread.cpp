@@ -29,7 +29,7 @@ void StaticModules::InitThread(lua_State *lua, World *world) {
     if (!world->GetScriptEngine()->ExecuteCode((const char *)LuaThread_lua, LuaThread_lua_size, "LuaThread", 1)) {
         throw std::runtime_error("InitThread module execute code failed!");
     }
-    auto t = lua_type(lua, -1);
+  //  auto t = lua_type(lua, -1);
 
     lua_pushlightuserdata(lua, (void*)LuaThread_lua);
     lua_insert(lua, -2);              

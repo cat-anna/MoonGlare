@@ -1,4 +1,4 @@
---Moonglare build subscript
+--MoonGlare build subscript
 --Engine configuration
 
 Features = {
@@ -18,7 +18,7 @@ Features = {
 	end,
 
 	ApplyAll = function(list)
-		table.foreach(list, function(k,v) Features.Apply(v); end)
+		for k,v in pairs(list) do Features.Apply(v) end
 	end,
 }
 
@@ -76,10 +76,10 @@ local function SetCommonConfig()
 	--	"BOOST_NO_AUTO_PTR",
 	}
 	libdirs {
-		"../../../../LibsC",
+		"../../../../../LibsC",
 	}
 	includedirs {
-		"../../../../LibsC",
+		"../../../../../LibsC",
         dir.bin,
 		dir.base,
 		dir.src,
