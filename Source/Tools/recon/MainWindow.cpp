@@ -2,6 +2,7 @@
 #include <qobject.h>
 
 #include "Recon.h"
+#include <Foundation/OS/Path.h>
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -95,7 +96,7 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
     m_Ui->statusbar->showMessage(QString("Send ") + t, 5000);
 }
 
-static const QString HistoryFileName = "ReconHistory.txt";
+static const std::string HistoryFileName = MoonGlare::OS::GetSettingsDirectory() + "ReconHistory.txt";
 
 void MainWindow::Save() {
                
@@ -105,7 +106,7 @@ void MainWindow::Save() {
     }
     SL.sort();
     
-    QFile fOut(QApplication::applicationDirPath() + "/" + HistoryFileName);
+    QFile fOut(HistoryFileName.c_str());
     if (fOut.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream s(&fOut);
         for (int i = 0; i < SL.size(); ++i) {
@@ -118,7 +119,7 @@ void MainWindow::Save() {
 }
 
 void MainWindow::Load() {
-    QFile fIn(QApplication::applicationDirPath() + "/" + HistoryFileName);
+    QFile fIn(HistoryFileName.c_str());
     if (fIn.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream sIn(&fIn);
     }

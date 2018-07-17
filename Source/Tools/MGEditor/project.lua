@@ -24,14 +24,13 @@ project "MGEditor"
     }
     files {
         "**",
-        "../Shared/Qt/**",
         "../Shared/Resources/*",
     }
     includedirs {
         ".",
         "../Shared/",
-        "../Shared/Qt/",
         "../Shared/Resources/",
+        --"%{cfg.objdir}",
     }
     links {
         "OrbitLogger",
@@ -39,7 +38,7 @@ project "MGEditor"
         "StarVFS",
 
         "Foundation",
-        -- "x2c",
+        "ToolBase",
     }
 
     filter "action:vs*"

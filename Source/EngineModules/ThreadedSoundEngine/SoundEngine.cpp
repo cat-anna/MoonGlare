@@ -10,7 +10,7 @@
 #include <Core/Scripts/iLuaSettings.h>
 #include "SoundEngine.h"
 
-#include <Utils/LuaUtils.h>
+#include <Foundation/LuaUtils.h>
 
 #include "SoundEngineSettings.h"
 #include "SoundEngineSettings.x2c.h"

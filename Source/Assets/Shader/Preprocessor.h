@@ -25,6 +25,25 @@ private:
 	FileSystem *m_FileSystem;
 };
 
+struct OutputBuffer : public std::list<std::string> {
+    template<typename ... ARGS>
+    void pushf(const char *fmt, ARGS&& ... args) {
+        char buf[4 * 1024];
+        sprintf_s(buf, fmt, std::forward<ARGS>(args)...);
+        push_back(buf);
+    }
+    void pushs(const char *fmt, const std::string &str) {
+        pushf(fmt, str.c_str());
+    }
+    template<typename ... ARGS>
+    void push(const char *fmt, ARGS ... args) {
+        push_back(fmt::format(fmt, std::forward<ARGS>(args)...));
+    }
+    void push(std::string l) {
+        push_back(std::move(l));
+    }
+};                         
+
 class Preprocessor final {
 public:
  	Preprocessor(FileCache *fs);
@@ -56,23 +75,7 @@ private:
 	std::unordered_map<std::string, std::string> m_Defines;
 	std::unordered_map<std::string, bool> m_IncludedFiles;
 
-	struct OutputBuffer : public std::list<std::string> {
-		template<typename ... ARGS>
-		void pushf(const char *fmt, ARGS&& ... args) {
-			char buf[4 * 1024];
-			sprintf_s(buf, fmt, std::forward<ARGS>(args)...);
-			push_back(buf);
-		}
-		void pushs(const char *fmt, const std::string &str) {
-			pushf(fmt, str.c_str());
-		}
-        template<typename ...ARGS>
-        void push(const char *fmt, ARGS ... args) {
-            push_back(fmt::format(fmt, std::forward<ARGS>(args)...));
-        }
-	};
 	OutputBuffer m_OutputBuffer;
-
 
 	void Process(const std::string &FName, int level);
 	void GenerateDefines();

@@ -11,27 +11,6 @@
 #include <Modules/ModuleManager.h>
 #include <Core/Component/ComponentRegister.h>
 
-namespace luabridge {
-
-LuaBridgeApiDump *gLuaBridgeApiDump = nullptr;
-static LuaBridgeApiDump gLuaBridgeApiDumpInstance;
-
-template<typename ... ARGS>
-static void ApiLine(const char *fmt, ARGS&& ... args) {
-	char buf[4096];
-	sprintf_s(buf, fmt, std::forward<ARGS>(args)...);
-	gLuaBridgeApiDumpInstance.m_output << buf << "\n";// << std::flush;
-}
-
-static void ResetLocation() { ApiLine("ResetLocation()"); }
-
-void LuaBridgeApiDump::beginNamespace(const char *name) { ApiLine("BeginNamespace([[%s]])", name); }
-void LuaBridgeApiDump::endNamespace() { ApiLine("EndNamespace()"); }
-void LuaBridgeApiDump::beginClass(const char *name, const char *cname) { ApiLine("BeginClass([[%s]], [[%s]])", name, cname); }
-void LuaBridgeApiDump::deriveClass(const char *name, const char *cname, const char *bname) { ApiLine("DeriveClass([[%s]], [[%s]], { [[%s]], })", name, cname, bname); }
-void LuaBridgeApiDump::endClass() { ApiLine("EndClass()"); }
-
-}
 
 namespace MoonGlare {
 namespace Core {
@@ -72,9 +51,6 @@ void ApiInit::Initialize(ScriptEngine *s) {
 	std::chrono::high_resolution_clock::time_point tstart = std::chrono::high_resolution_clock::now();
 #endif
 
-	luabridge::gLuaBridgeApiDump = &luabridge::gLuaBridgeApiDumpInstance;
-	luabridge::gLuaBridgeApiDumpInstance.m_output.open("logs/luaapi.lua", std::ios::out);
-	
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	unsigned ApiInitFunctionsRun = 0;
 	AddLog(Performance, "Processing api init functions");
@@ -144,7 +120,6 @@ void ApiInit::Initialize(ScriptEngine *s) {
 			s->GetApiInitializer() 
 				.DefferCalls([it](auto &n) { it.func(n); });
 		}
-		luabridge::ResetLocation();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 		++ApiInitFunctionsRun;
 #endif
@@ -156,13 +131,11 @@ void ApiInit::Initialize(ScriptEngine *s) {
 			.beginNamespace("Module")
 				.beginNamespace(it->GetName())
 					.DefferCalls<ModuleInfo, &ModuleInfo::RegisterModuleApi>(it);
-		luabridge::ResetLocation();
 
 		s->GetApiInitializer()
 			.beginNamespace("api")
 				.beginNamespace(it->GetName())
 					.DefferCalls<ModuleInfo, &ModuleInfo::RegisterInternalApi>(it);
-		luabridge::ResetLocation();
 
 		ApiInitFunctionsRun += 2;
 	}
@@ -187,7 +160,6 @@ void ApiInit::Initialize(ScriptEngine *s) {
 				.beginNamespace("api")
 					.beginNamespace("Component")
 						.DefferCalls([ci](auto &n) { ci.m_ApiRegFunc(n); });
-			luabridge::ResetLocation();
 
 			++ApiInitFunctionsRun;
 		}
@@ -201,11 +173,9 @@ void ApiInit::Initialize(ScriptEngine *s) {
 				.beginNamespace("api")
 					.beginNamespace("Events")
 						.DefferCalls([&info] (auto &n) { info.m_ApiInit(n); });
-			luabridge::ResetLocation();
 		}
 	}
 
-	luabridge::gLuaBridgeApiDumpInstance.m_output.flush();
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
 	std::chrono::high_resolution_clock::time_point tend = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(tend - tstart).count() / 1000.0f;

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <source/Utils/SetGet.h>
-#include <source/Utils/Memory/nMemory.h>
-#include <source/Utils/Memory.h>
+#include <Foundation/SetGet.h>
+#include <Foundation/Memory/nMemory.h>
+#include <Foundation/Memory.h>
 
 #include <libSpace/src/Memory/Handle.h>
 #include <Engine/Configuration.h>
 
-#include <Shared/MoonGlareInsider/Api.h>
+#include <Foundation/MoonGlareInsider.h>
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 

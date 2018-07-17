@@ -45,5 +45,7 @@ function project(Name)
 	location (projbin)
 	includedirs(projbin)
 
+    debugdir(dir.bin)
+
 	return proj
 end

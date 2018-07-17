@@ -7,7 +7,7 @@
 
 #include "BuildProcess.h"
 
-#include <Tools/Shared/waitforprocess.h>
+#include <Foundation/OS/WaitForProcess.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -52,7 +52,7 @@ void BuildProcess::PackModule() {
     //command.push_back(fmt::format("-v"));
     command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
     command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
-    WaitForProcess(command, {}, [this](std::string line) {
+    OS::WaitForProcess(command, {}, [this](std::string line) {
         Print("[RDC] {}", line);
     });
 
@@ -80,7 +80,7 @@ void BuildProcess::UnpackEngineBinaries() {
     input.push_back(fmt::format("io.flush()"));
     input.push_back(fmt::format("os.exit(0)"));
     
-    WaitForProcess(command, input, [this](std::string line) {
+    OS::WaitForProcess(command, input, [this](std::string line) {
         Print("[SVFS] {}", line);
     });
 }

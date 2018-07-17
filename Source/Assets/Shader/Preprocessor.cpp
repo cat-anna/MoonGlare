@@ -107,7 +107,7 @@ void Preprocessor::Process(const std::string &FName, int level) {
 
     unsigned linenum = 0;
     try {
-        m_OutputBuffer.push("#line {}", 1);
+        m_OutputBuffer.push(fmt::format("#line {}", 1));
         for(const auto &line : *lines) {
             ++linenum;
 
@@ -120,7 +120,7 @@ void Preprocessor::Process(const std::string &FName, int level) {
 
                     (this->*token.m_Handler)(FName, line, level, std::move(match));
 
-                    m_OutputBuffer.push("#line {}", linenum);
+                    m_OutputBuffer.push(fmt::format("#line {}", linenum));
 
                     handled = true;
                     break;
@@ -158,7 +158,7 @@ void Preprocessor::IncludeToken(const std::string &FName, const std::string &lin
         Process(iName, level + 1);
         m_OutputBuffer.pushf("//@ continue[%d] %s", level, FName.c_str());
     }
-    catch (ParseException &e) {
+    catch (ParseException &) {
         AddLogf(Error, "Error while processing included file %s", iName.c_str());
         throw;
     }

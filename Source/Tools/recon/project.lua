@@ -14,7 +14,11 @@ group "Tools"
         filter "platforms:x64"
             qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
         filter {}
-
+    
+        links {
+            "ToolBase",
+            "Foundation",
+        }
 
         SetPCH { hdr = "Tools/recon/pch.h", src = "pch.cpp", }	
         
@@ -28,6 +32,5 @@ group "Tools"
         files { 
             "*",
             "../Shared/**.rc",
-            "../Shared/Qt/lua/*",
         }	
     

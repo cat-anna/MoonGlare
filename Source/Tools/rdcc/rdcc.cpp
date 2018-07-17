@@ -6,9 +6,9 @@
 #include <thread>
 #include <sstream>
 #include <fmt/format.h>
-#include <boost/process.hpp>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
+#include <Foundation/OS/WaitForProcess.h>
 
 #include "rdcc.h"
 
@@ -142,62 +142,22 @@ void RDCC::ExecuteSVFS(const std::list<std::string> &script) {
     print("Packing files");
     print(fmt::format("SVFS executable: {}", config->svfsExecutable));
 
-    namespace bp = boost::process;
 
-    boost::asio::io_service ios;
-    bp::async_pipe ap(ios);
-    bp::opstream in;
+    std::list<std::string> input = script;
+    input.push_back("print([[***DONE***]])\n");
+    input.push_back("io.flush()\n");
+    input.push_back("os.exit(0)\n");
 
-    bp::child c;
-    try {
-        c = bp::child(config->svfsExecutable + " -s prompt=nil", bp::std_out > ap, bp::std_in < in, bp::std_err > ap);
-    }
-    catch (...) {
-        ap.close();
-        throw;
-    }
-                     
-    auto feedThread = std::thread([&]() {
-        for (const auto &line : script)
-            in << line << "\n" << std::flush;
-
-        in << "print([[***DONE***]])\n" << std::flush;
-        in << "io.flush()" << "\n" << std::flush;
-        in << "os.exit(0)" << "\n" << std::flush;
-    });
-
-    boost::asio::streambuf b;
-    std::function<void()> doRead;
-    auto handler = [&](const boost::system::error_code &ec, std::size_t size) {
-        if (ec)
-            return;
-
-        std::string str{
-            boost::asio::buffers_begin(b.data()),
-            boost::asio::buffers_begin(b.data()) + size};
-        b.consume(size);
-
-        std::vector<std::string> lines;
-        boost::split(lines, str, boost::is_any_of("\n"));
-        for (auto &line : lines) {
-            boost::trim(line);
-            if(!line.empty())
-                print(fmt::format("[SVFS] {}", line));
-        }
-
-        doRead();
-    };
-    doRead = [&]() {
-            boost::asio::async_read_until(ap, b, '\n', handler);
+    auto outF = [this](std::string & line) {
+        print(fmt::format("[SVFS] {}", line));
     };
 
-    doRead();
+    std::list<std::string> command = {
+        config->svfsExecutable,
+        "-s prompt=nil"
+    };
 
-    ios.run();
-    c.wait();
-    feedThread.join();
-    ap.close();
-    int result = c.exit_code();
+    int result = OS::WaitForProcess(command, input, outF);
 
     if (result != 0) {
         print(fmt::format("svfs failed with code {}", result), true);

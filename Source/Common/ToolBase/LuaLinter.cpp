@@ -1,5 +1,6 @@
-#include PCH_HEADER
 #include "LuaLinter.h"
+
+#include <regex>
 
 #include <lua.hpp>
 
@@ -18,7 +19,8 @@ CompilationResult LuaLinter::Compile(const std::string &code) {
     switch (r) {
     case LUA_ERRSYNTAX: {
         result.status = CompilationResult::Status::Failed;
-        const char *c = lua_tostring(lua, -1);
+        //const char *c = 
+            lua_tostring(lua, -1);
         std::string errorstr = lua_tostring(lua, -1);
         std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
         std::smatch pieces_match;

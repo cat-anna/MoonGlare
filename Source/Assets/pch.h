@@ -73,7 +73,7 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
-#include <Base/PerfCounters.h>
+#include <Foundation/PerfCounters.h>
 
 namespace Core {
 	class Console;

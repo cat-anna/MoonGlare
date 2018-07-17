@@ -1,5 +1,6 @@
-#ifndef QtLUAHIGHLIGHTER_P_H
-#define QtLUAHIGHLIGHTER_P_H
+#pragma once
+
+#include <QSyntaxHighlighter>
 
 class QtLuaHighlighter : public QSyntaxHighlighter
 {
@@ -28,5 +29,3 @@ protected:
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
 };
-
-#endif // QtLUAHIGHLIGHTER_P_H

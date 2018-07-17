@@ -3,7 +3,7 @@
 #include <Engine/Core/DataManager.h>
 
 #include "LuaUtils.h"
-#include <Utils/LuaUtils.h>
+#include <Foundation/LuaUtils.h>
 
 #include "Modules/StaticModules.h"
 #include "Modules/LuaRequire.h"

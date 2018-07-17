@@ -1,4 +1,3 @@
-#include PCH_HEADER
 #include "QtLuaHighlighter.h"
 
 QtLuaHighlighter::QtLuaHighlighter(QTextDocument *document) :

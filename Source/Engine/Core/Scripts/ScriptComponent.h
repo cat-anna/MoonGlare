@@ -13,7 +13,7 @@
 #include <libSpace/src/Container/StaticVector.h>
 #include <Core/Configuration.Core.h>
 
-#include <Utils/LuaUtils.h>
+#include <Foundation/LuaUtils.h>
 #include "LuaUtils.h"
 
 #include "iLuaRequire.h"

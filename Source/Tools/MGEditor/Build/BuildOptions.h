@@ -5,7 +5,7 @@
 #include <SubDialog.h>
 
 #include "BuildProcess.h"
-#include "../Module/DataModule.h"
+#include "../DataModule.h"
 
 namespace Ui { class BuildOptions; }
 

@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 
 #include "InputProcessor.h"
-#include <Utils/LuaUtils.h>
+#include <Foundation/LuaUtils.h>
 
 #include "iConsole.h"
 

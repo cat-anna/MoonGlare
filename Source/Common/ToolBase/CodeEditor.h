@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QPlainTextEdit>
+#include <QTimer>
+
 #include "LuaLinter.h"
 
 class QtLuaHighlighter;
@@ -13,7 +16,7 @@ public:
 
     class LineNumberArea;
 protected:
-    void resizeEvent(QResizeEvent *e) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent *e) override;
 private:
     QWidget *lineNumberArea;
     std::unique_ptr<QtLuaHighlighter> highlighter;

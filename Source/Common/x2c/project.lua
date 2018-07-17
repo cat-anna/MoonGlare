@@ -1,5 +1,5 @@
 
-local x2coutput = dir.project .. "Foundation/x2c/obj/%{cfg.platform}/%{cfg.buildcfg}/"
+local x2coutput = dir.project .. "Common/x2c/obj/%{cfg.platform}/%{cfg.buildcfg}/"
 
 workspace()
     includedirs { x2coutput, }
@@ -17,6 +17,7 @@ project "x2c"
     links { }
 
     files {
+        "**.lua",
         x2coutput .. "x2c.h",
         -- x2coutput .. "x2c.cpp",
     }

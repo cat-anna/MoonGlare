@@ -64,7 +64,7 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
-#include <Base/PerfCounters.h>
+#include <Foundation/PerfCounters.h>
 
 #pragma warning (error: 4324)
 

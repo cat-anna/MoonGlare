@@ -20,6 +20,7 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/Context.h>
 #include <Renderer/ScriptApi.h>
+#include <Foundation/OS/Path.h>
 
 #include "Modules/BasicConsole.h"
 
@@ -40,7 +41,7 @@ iApplication::iApplication() : BaseClass() {
     m_Flags.m_UintValue = 0;
 
     m_Configuration = std::make_unique<x2c::Settings::EngineSettings_t>();
-    m_ConfigurationFileName = "MoonGlare.Settings.xml";
+    m_ConfigurationFileName = OS::GetSettingsDirectory() + "Engine.xml";
 
     SetThisAsInstance();
 }
@@ -99,7 +100,7 @@ void iApplication::SaveSettings() {
     auto root = doc.append_child("EngineSettings");
     m_Configuration->Write(root);
     GetModulesManager()->SaveSettings(root.append_child("Modules"));
-    doc.save_file(m_ConfigurationFileName.data());
+    doc.save_file(m_ConfigurationFileName.c_str());
 
     m_Flags.m_SettingsChanged = false;
 }
@@ -197,8 +198,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 }
 
 void iApplication::LoadDataModules() {
-    static const std::string_view moduleListFileName = "ModuleList.txt";
-    std::ifstream file(moduleListFileName.data(), std::ios::in);
+    static const std::string moduleListFileName = OS::GetSettingsDirectory() + "ModuleList.txt";
+    std::ifstream file(moduleListFileName, std::ios::in);
                    
     while (!file.eof()) {
         std::string mod;

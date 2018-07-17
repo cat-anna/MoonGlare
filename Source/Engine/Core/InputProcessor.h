@@ -8,7 +8,7 @@
 #pragma once
 
 #include <Renderer/iContextInputHandler.h>
-#include <Base/InputProcessor.h>
+#include <Foundation/InputProcessor.h>
 
 namespace MoonGlare::Core {
 

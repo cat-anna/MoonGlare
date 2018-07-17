@@ -1,4 +1,5 @@
 #include PCH_HEADER
+#include <Foundation/OS/Path.h>
 #include "EditorSettings.h"
 #include "Windows/MainWindow.h"
 #include <Module.h>
@@ -37,13 +38,13 @@ static void QtLogSink(QtMsgType type, const QMessageLogContext &context, const Q
 
 int main(int argc, char *argv[]) {
 
-    auto basep = boost::filesystem::path(argv[0]).parent_path();
     {
-        (new MoonGlare::Editor::EditorSettings(basep.string()))->Load();
+        (new MoonGlare::Editor::EditorSettings(MoonGlare::OS::GetSettingsDirectory()))->Load();
     }
 
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
+    auto basep = boost::filesystem::path(argv[0]).parent_path();
     LogCollector::AddLogSink<StdFileLoggerSink>((basep / "logs/MGEditor.log").string().c_str());
 
     using MoonGlare::Editor::MainWindow;

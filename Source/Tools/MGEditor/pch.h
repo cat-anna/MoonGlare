@@ -64,12 +64,12 @@ inline std::string ToLower(std::string str) {
 #include <pugixml.hpp>
 #include <lua.hpp>
 
-#include <source/Utils/XMLUtils.h>
-#include <source/Utils/SetGet.h>
-#include "Utils/Memory/nMemory.h"
-#include "Utils/Memory.h"
-#include <source/Utils/LuaUtils.h>
-#include <Source/Base/xMath.h>
+#include <Foundation/XMLUtils.h>
+#include <Foundation/SetGet.h>
+#include "Foundation/Memory/nMemory.h"
+#include "Foundation/Memory.h"
+#include <Foundation/LuaUtils.h>
+#include <Foundation/xMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>
 #include <libSpace/src/RTTI/RTTI.h>

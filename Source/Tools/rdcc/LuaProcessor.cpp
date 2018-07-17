@@ -4,7 +4,7 @@
 
 #include "LuaProcessor.h"
 
-#include <Shared/WaitForProcess.h>
+#include <Foundation/OS/WaitForProcess.h>
 #include <libs/LuaWrap/src/LuaException.h>
 #include <libs/LuaWrap/src/LuaDeleter.h>
 
@@ -23,7 +23,7 @@ void LuaProcessor::ProcessFile(InputFileInfo inputFileInfo) const {
           
     output->PassthroughFile(std::move(inputFileInfo));
     return;
-
+#if  0
     print(fmt::format("Compiling script {}", inputFileInfo.localPath));
 
     //string infile = fi.Name + ".luac.in";
@@ -53,8 +53,8 @@ Available options are:
         print(fmt::format("[LUAC] {}", line));
     };
 
-    WaitForProcess(command, {}, outF);
-
+    OS::WaitForProcess(command, outF);
+#endif
     //check
 
     //fi.PreloadData();

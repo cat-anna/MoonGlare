@@ -9,7 +9,7 @@
 #ifndef ComponentEntryWrap_H
 #define ComponentEntryWrap_H
 
-#include <Utils/LuaUtils.h>
+#include <Foundation/LuaUtils.h>
 
 namespace MoonGlare::Core::Scripts::Component {
 

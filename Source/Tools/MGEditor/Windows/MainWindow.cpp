@@ -7,7 +7,7 @@
 #include <DockWindow.h>
 #include <qtUtils.h>
 
-#include "Module/DataModule.h"
+#include "DataModule.h"
 #include "Notifications.h"
 #include "FileSystem.h"
 
@@ -100,8 +100,7 @@ void MainWindow::NewModuleAction() {
         }
     }
 
-    auto f = QFileDialog::getSaveFileName(this, "MoonGlare", QString(),
-                                          QtShared::Utils::GetMoonGlareProjectFilter());
+    auto f = QFileDialog::getExistingDirectory(this, "MoonGlare", QString());
 
     if (f.isEmpty())
         return;
@@ -118,8 +117,7 @@ void MainWindow::OpenModuleAction() {
         }
     }
 
-    auto f = QFileDialog::getOpenFileName(this, "MoonGlare", QString(),
-                                          QtShared::Utils::GetMoonGlareProjectFilter());
+    auto f = QFileDialog::getExistingDirectory(this, "MoonGlare", QString());
     if (f.isEmpty())
         return;
 

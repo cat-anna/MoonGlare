@@ -62,7 +62,7 @@ protected:
     Asset::UniqueAssetManager m_AssetManager;
     Renderer::UniqueRenderer m_Renderer;
 
-    std::string_view m_ConfigurationFileName;
+    std::string m_ConfigurationFileName;
     std::unique_ptr<x2c::Settings::EngineSettings_t> m_Configuration;
 };
 

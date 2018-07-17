@@ -11,7 +11,7 @@
 
 #include "nfGUIComponent.h"
 #include <Core/Component/AbstractComponent.h>
-#include <Base/TextProcessor.h>
+#include <Foundation/TextProcessor.h>
 
 #include "../GUIShader.h"
 

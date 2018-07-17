@@ -8,7 +8,7 @@
 
 #include <qtUtils.h>
 
-#include <Shared/headers/InputProcessor.h>
+#include <Foundation/InputProcessor.h>
 #include <Input.x2c.h>
 
 namespace MoonGlare {

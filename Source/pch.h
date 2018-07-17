@@ -76,18 +76,18 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
-#include <Base/MathConstants.h>
-#include <Base/StringUtils.h>
-#include <Base/MathSupport.h>
-#include <Base/xMath.h>
-#include <Base/PerfCounters.h>
+#include <Foundation/MathConstants.h>
+#include <Foundation/StringUtils.h>
+#include <Foundation/MathSupport.h>
+#include <Foundation/xMath.h>
+#include <Foundation/PerfCounters.h>
 
-#include "Utils/SetGet.h"
-#include "Utils/Memory/nMemory.h"
-#include "Utils/Memory.h"
-#include "Utils/TemplateUtils.h"
-#include "Utils/XMLUtils.h"
-#include "Utils/StreamUtils.h"
+#include "Foundation/SetGet.h"
+#include "Foundation/Memory/nMemory.h"
+#include "Foundation/Memory.h"
+#include "Foundation/TemplateUtils.h"
+#include "Foundation/XMLUtils.h"
+#include "Foundation/StreamUtils.h"
 
 namespace Utils {
 namespace Scripts {

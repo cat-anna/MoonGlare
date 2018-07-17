@@ -14,10 +14,6 @@ namespace QtShared {
 
 class Utils {
 public:
-	static const char *GetMoonGlareProjectFilter() {
-		return "MoonGlare module project (*.mgp)";
-	}
-
 	static bool AskForPermission(QWidget *parent, const char *msg = nullptr) {
 		return QMessageBox::question(parent, "MoonGlare", msg ? msg : "Are you sure?") == QMessageBox::Yes;
 	}

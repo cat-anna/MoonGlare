@@ -8,7 +8,7 @@
 #include "FileSystem.h"
 
 #include <StarVFS/core/Container/FolderContainer.h>
-#include "Module/DataModule.h"
+#include "DataModule.h"
 #include "AsyncFileProcessor.h"
 
 namespace MoonGlare {

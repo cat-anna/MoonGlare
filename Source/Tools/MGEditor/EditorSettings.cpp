@@ -17,7 +17,7 @@ EditorSettings* EditorSettings::_Instance = nullptr;
 
 EditorSettings::EditorSettings(std::string basePath): basePath(std::move(basePath)) {
 	_Instance = this;
-	m_FileName = "MGEditor.Settings.xml";
+	m_FileName = "Editor.xml";
     if (!this->basePath.empty()) {
         m_FileName = this->basePath + "/" + m_FileName;
     }

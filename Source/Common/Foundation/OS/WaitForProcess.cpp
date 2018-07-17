@@ -1,10 +1,16 @@
+#pragma warning( push, 1 )
+#pragma warning( disable : 4996 )  
+
+#define _WIN32_WINNT 0x0600
+
 #include <boost/algorithm/string.hpp>
 #include <boost/process.hpp>
 #include <boost/asio.hpp>
 
 #include "WaitForProcess.h"
 
-namespace MoonGlare::Base::OS {
+
+namespace MoonGlare::OS {
 
 int WaitForProcess(const std::list<std::string> &arguments, const std::list<std::string> &inputLines, std::function<void(std::string)> onOutput) {
     namespace bp = boost::process;

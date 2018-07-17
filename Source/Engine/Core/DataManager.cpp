@@ -11,9 +11,7 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
-#include <Base/Resources/StringTables.h>
-
-#define xmlstr_Module_xml			"Module.xml"
+#include <Foundation/Resources/StringTables.h>
 
 namespace MoonGlare {
 namespace Core {

@@ -11,7 +11,7 @@ TextProcessor::TextProcessor(Resources::StringTables * Tables) : stringTables(Ta
 TextProcessor::~TextProcessor() {}
 
 void TextProcessor::Process(const std::string & input, std::string & out) {
-	assert(stringTables, "No string tables!");
+	assert(stringTables);
 
 	if (input.empty()) {
 		out.clear();

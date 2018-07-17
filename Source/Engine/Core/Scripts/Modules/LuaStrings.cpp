@@ -4,7 +4,7 @@
 #include "../ScriptEngine.h"
 #include "StaticModules.h"
 
-#include <Base/Resources/StringTables.h>
+#include <Foundation/Resources/StringTables.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
 
