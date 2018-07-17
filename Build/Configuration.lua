@@ -79,10 +79,9 @@ local function SetCommonConfig()
 		"../../../../../LibsC",
         dir.bin,
 		dir.base,
+		dir.base .. "Libs",
 		dir.src,
-		dir.libsrc,
-		dir.root .. "Libs",
-		"Libs",
+		dir.src .. "Common",
 	}
 
 	basedir "."
@@ -166,11 +165,6 @@ local function SetCommonConfig()
 		optimize "Speed"
 		warnings "Default"
 		runtime "Release"
-
-	filter 'files:**.x2c'
-		buildmessage 'Processing %{file.name} with xml2cpp'
-		buildcommands 'CALL xml2cpp --enable-all --input "%{file.relpath}" --output "%{cfg.objdir}%{file.basename}.x2c.h"'
-		buildoutputs '%{cfg.objdir}%{file.basename}.x2c.h'
 
 	filter { }
 end

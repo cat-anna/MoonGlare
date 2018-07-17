@@ -1,6 +1,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Base/CriticalException.h>
+
 namespace MoonGlare {
 namespace DataClasses {
 

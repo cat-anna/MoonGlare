@@ -25,7 +25,6 @@ group "EngineLibs"
 		}
 		includedirs {
 			".",
-			"../Base",
 			"%{cfg.objdir}",
 		}
 

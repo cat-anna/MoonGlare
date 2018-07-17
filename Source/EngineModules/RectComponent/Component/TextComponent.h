@@ -11,13 +11,13 @@
 
 #include "nfGUIComponent.h"
 #include <Core/Component/AbstractComponent.h>
-#include <TextProcessor.h>
+#include <Base/TextProcessor.h>
 
 #include "../GUIShader.h"
 
 #include "../Enums.h"
 
-namespace MoonGlare {
+namespace MoonGlare {   
 namespace GUI {
 namespace Component {
 

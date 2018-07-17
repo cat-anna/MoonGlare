@@ -7,7 +7,7 @@
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/Modules/iModule.h>
-#include <Shared/MoonGlareInsider/Api.h>
+#include <Base/MoonGlareInsider.h>
 
 #include <Utils/LuaUtils.h>
 

@@ -2,6 +2,10 @@
 #include <boost/process.hpp>
 #include <boost/asio.hpp>
 
+#include "WaitForProcess.h"
+
+namespace MoonGlare::Base::OS {
+
 int WaitForProcess(const std::list<std::string> &arguments, const std::list<std::string> &inputLines, std::function<void(std::string)> onOutput) {
     namespace bp = boost::process;
 
@@ -66,4 +70,6 @@ int WaitForProcess(const std::list<std::string> &arguments, const std::list<std:
         throw "process failed!";
     }
     return result;
+}
+
 }

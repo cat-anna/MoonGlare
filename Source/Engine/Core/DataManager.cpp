@@ -11,7 +11,7 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
-#include <Resources/StringTables.h>
+#include <Base/Resources/StringTables.h>
 
 #define xmlstr_Module_xml			"Module.xml"
 

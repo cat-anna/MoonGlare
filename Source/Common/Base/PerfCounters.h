@@ -68,18 +68,4 @@ private:										\
 #define IncrementPerformanceCounter(NAME)		do { /* nothing there */ } while(0)
 #define DecrementPerformanceCounter(NAME)		do { /* nothing there */ } while(0)
 #define SetPerformanceCounterOwner(NAME)		do { /* nothing there */ } while(0)
-#define __LOG_ACTION_F_Performance(T, ...)		ORBITLOGGER_DISASBLED_ACTION()
-#define __LOG_ACTION_Performance(T, A)			ORBITLOGGER_DISASBLED_ACTION()
 #endif
-
-
-#define DISABLE_COPY() public: ThisClass(const ThisClass&) = delete; ThisClass& operator=(const ThisClass&) = delete
-
-#define AS_STRING(X) #X
-
-#ifdef DEBUG
-#define ERROR_STR				"{badstr in " __FUNCTION__ " at " AS_STRING(__LINE__) "}"
-#else
-#define ERROR_STR				"{?}"
-#endif
-

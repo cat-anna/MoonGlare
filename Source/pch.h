@@ -76,17 +76,18 @@ class cRootClass;
 #include GLOBAL_CONFIGURATION_FILE
 #endif
 
+#include <Base/MathConstants.h>
+#include <Base/StringUtils.h>
+#include <Base/MathSupport.h>
+#include <Base/xMath.h>
+#include <Base/PerfCounters.h>
+
 #include "Utils/SetGet.h"
 #include "Utils/Memory/nMemory.h"
 #include "Utils/Memory.h"
-#include "StringUtils.h"
 #include "Utils/TemplateUtils.h"
-#include "MathConstants.h"
-#include "MathSupport.h"
-#include "xMath.h"
 #include "Utils/XMLUtils.h"
 #include "Utils/StreamUtils.h"
-#include <Utils/PerfCounters.h>
 
 namespace Utils {
 namespace Scripts {
@@ -116,7 +117,5 @@ namespace Core {
 }
 
 using Core::ApiInitializer;
-
-#include "Error.h"
                        
 #endif
