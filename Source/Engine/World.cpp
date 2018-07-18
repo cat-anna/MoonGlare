@@ -10,7 +10,6 @@
 
 #include "Core/InputProcessor.h"
 #include "Core/Scene/ScenesManager.h"
-#include "Core/Hooks.h"
 #include "Core/Configuration.Runtime.h"
 
 #include "iConsole.h"
@@ -54,12 +53,6 @@ bool World::Initialize() {
 		return false;
 	}
 
-	m_Hooks = std::make_unique<Core::Hooks>();
-	if (!m_Hooks->Initialize(this)) {
-		AddLogf(Error, "Failed to initialize Hooks");
-		return false;
-	}
-
 	return true;
 }
 
@@ -89,11 +82,6 @@ bool World::Finalize() {
 	if (!m_EntityManager.Finalize()) {
 		AddLogf(Error, "Failed to finalize EntityManager!");
 	}
-
-	if (m_Hooks && !m_Hooks->Finalize()) {
-		AddLogf(Error, "Failed to finalize Hooks!");
-	}
-	m_Hooks.reset();
 
 	return true;
 }
