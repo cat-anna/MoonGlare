@@ -18,7 +18,6 @@ public:
         MaxValue,
     };
 
-
     virtual void PushKey(unsigned key) = 0;
 
     virtual void Clear() = 0;

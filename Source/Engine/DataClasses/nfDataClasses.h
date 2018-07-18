@@ -7,12 +7,6 @@
 #pragma once
 
 #define xmlAttr_Class				"Class"
-#define xmlAttr_Name				"Name"
-#define xmlAttr_Object				"Object"
-#define xmlAttr_Value				"Value"
-
-#define InternalStringTable			"MoonGlare"
-#define MenusStringTable			"Menus"
 
 namespace MoonGlare::DataClasses {
 

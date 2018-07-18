@@ -1,6 +1,5 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include <iConsole.h>
 
 #include "../ScriptEngine.h"
 #include "StaticModules.h"

@@ -15,10 +15,6 @@ class ResourcePointerBase {
 public:
 	ResourcePointerBase() : m_Flags(0) { }
 
-	//const string& GetName() const { return m_Info.Name; }
-	//const string& GetClass() const { return m_Info.Class; }
-	//bool LoadMeta(const xml_node Node) { return m_Info.LoadMeta(Node); }
-	//bool SaveMeta(xml_node Node) const { return m_Info.SaveMeta(Node); }
 	DefineFlag(m_Flags, 0x01, Valid);
 protected:
 	unsigned m_Flags;
