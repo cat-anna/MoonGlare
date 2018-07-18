@@ -13,6 +13,8 @@
 #include "Core/Interfaces.h"
 #include "Core/Events.h"
 
+#include <Core/Scripts/LuaApi.h>
+
 namespace Config {
 namespace Debug {
 

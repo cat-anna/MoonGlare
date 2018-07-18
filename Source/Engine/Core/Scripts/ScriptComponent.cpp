@@ -13,11 +13,18 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/EntityBuilder.h>
 
+#include <Foundation/Scripts/ErrorHandling.h>
+#include <Foundation/Scripts/LuaWrap.h>
+#include <Foundation/Scripts/LuaStackOverflowAssert.h>
+#include <Core/Scripts/ScriptEngine.h>
+#include <Core/Scripts/LuaApi.h>
+
 #include <Core/Component/TransformComponent.h>
 
 #include <ScriptComponent.x2c.h>
 
 namespace MoonGlare::Core::Scripts::Component {
+using namespace MoonGlare::Scripts;
 
 //static_assert(sizeof(void*) == sizeof(Handle), "Size of void* must match the size of Handle!");
 
@@ -86,16 +93,16 @@ bool ScriptComponent::Initialize() {
     auto lua = m_ScriptEngine->GetLua();
     LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
 
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     lua_pushlightuserdata(lua, GetInstancesTableIndex());									 //stack: InstTblIdx
     lua_createtable(lua, m_Array.Capacity(), 0);											 //stack: InstTblIdx InstTbl
-    Scripts::PublishSelfLuaTable(lua, "ScriptComponent", this, -1);							 //stack: InstTblIdx InstTbl
+    PublishSelfLuaTable(lua, "ScriptComponent", this, -1);							 //stack: InstTblIdx InstTbl
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 
     lua_pushlightuserdata(lua, GetObjectRootTableIndex());									 //stack: Index  
     lua_createtable(lua, 0, 0);																 //stack: Index ORTable
-    Scripts::PublishSelfLuaTable(lua, "ScriptComponent_OR", this, -1);						 //stack: Index ORTable
+    PublishSelfLuaTable(lua, "ScriptComponent_OR", this, -1);						 //stack: Index ORTable
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 
     if (!InitGameObjectMetaTable(lua)) {
@@ -115,7 +122,7 @@ bool ScriptComponent::Initialize() {
 bool ScriptComponent::Finalize() {
     auto lua = m_ScriptEngine->GetLua();
     LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-    MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptComponent", this);
+    HideSelfLuaTable(lua, "ScriptComponent", this);
     lua_pushlightuserdata(lua, (void *)this);
     lua_pushnil(lua);
     lua_settable(lua, LUA_REGISTRYINDEX);
@@ -123,10 +130,10 @@ bool ScriptComponent::Finalize() {
 }
 
 bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     lua_createtable(lua, 0, 0);																 //stack: GameObjectMT
-    Scripts::PublishSelfLuaTable(lua, "ScriptComponent_GameObjectMT", this, -1);			 //stack: GameObjectMT
+    PublishSelfLuaTable(lua, "ScriptComponent_GameObjectMT", this, -1);			 //stack: GameObjectMT
     lua_pushlightuserdata(lua, GetGameObjectMetaTableIndex());								 //stack: GameObjectMT Index 
     lua_pushvalue(lua, -2);																	 //stack: GameObjectMT Index GameObjectMT
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: GameObjectMT
@@ -175,10 +182,10 @@ bool ScriptComponent::InitGameObjectMetaTable(lua_State *lua) {
     lua_pushcclosure(lua, &lua_GetGameObject, 1);											 //stack: GameObjectMT GameObjectMT_index this lua_GetFirstChild
     lua_setfield(lua, -2, lua::GetGameObject);												 //stack: GameObjectMT GameObjectMT_index
 
-    Utils::Scripts::lua_PushCClosure(lua, &lua_Destroy, (void*)GetManager()->GetWorld());	 //stack: GameObjectMT GameObjectMT_index closure
+    lua_PushCClosure(lua, &lua_Destroy, (void*)GetManager()->GetWorld());	 //stack: GameObjectMT GameObjectMT_index closure
     lua_setfield(lua, -2, lua::DestroyName);												 //stack: GameObjectMT GameObjectMT_index 
 
-    Utils::Scripts::lua_PushCClosure(lua, &lua_GameObjectGetComponent, (void*)this);		 //stack: GameObjectMT GameObjectMT_index closure
+    lua_PushCClosure(lua, &lua_GameObjectGetComponent, (void*)this);		 //stack: GameObjectMT GameObjectMT_index closure
     lua_setfield(lua, -2, lua::GetComponentName);											 //stack: GameObjectMT GameObjectMT_index 
 
     lua_pop(lua, 2);																		 //stack: -
@@ -195,10 +202,10 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 
     auto lua = m_ScriptEngine->GetLua();
     LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     //stack: -		
 
-    lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+    lua_pushcclosure(lua, LuaErrorHandler, 0);
     int errf = lua_gettop(lua);
 
     GetInstancesTable(lua);									//stack: self
@@ -286,7 +293,7 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 }
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     auto lastidx = m_Array.Allocated() - 1;
     auto LuaIndex = Index + 1;				//lua index
@@ -384,12 +391,12 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
     auto lua = m_ScriptEngine->GetLua();
     LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     int top = lua_gettop(lua);
     //stack: -
 
-    lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+    lua_pushcclosure(lua, LuaErrorHandler, 0);
     int errf = lua_gettop(lua);
 
     if (se.m_Script[0] == '/') {
@@ -518,7 +525,7 @@ bool ExtractHandleFromArgument(lua_State *lua, int location, Handle &h, bool All
 //-------------------------------------------------------------------------------------------------
 
 void ScriptComponent::GetObjectRootInstance(lua_State *lua, Entity Owner) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     GetObjectRootTable(lua);												//stack: ORTable
     lua_rawgeti(lua, -1, static_cast<int>(Owner.GetIndex()) + 1);			//stack: ORTable OR?
@@ -554,7 +561,7 @@ void ScriptComponent::GetObjectRootInstance(lua_State *lua, Entity Owner) {
 }
 
 bool ScriptComponent::InvalidateObjectRoot(lua_State *lua, Entity Owner) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     GetObjectRootTable(lua);												//stack: ORTable
         
     lua_pushnil(lua);														//stack: ORTable nil
@@ -579,7 +586,7 @@ int ScriptComponent::lua_GetScriptComponent(lua_State *lua, Entity Owner) {
     }
 
     int luatop = lua_gettop(lua);
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     //stack: -
     GetInstancesTable(lua);				//stack: insttable
@@ -614,7 +621,7 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
 }
 
 int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     lua_createtable(lua, 0, 5);
 
@@ -672,7 +679,7 @@ int ScriptComponent::lua_SetComponentState(lua_State *lua) {
     }
 
     //stack: self valtable
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     void *voidcptr = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     AbstractComponent *cptr = reinterpret_cast<AbstractComponent*>(voidcptr);
@@ -886,7 +893,7 @@ int ScriptComponent::lua_DoSpawn(lua_State *lua, Entity Owner) {
     TODO
     */
     int argc = lua_gettop(lua);		//stack: self spawnarg
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
 
     if (argc != 2) {
         AddLogf(Error, "GameObject::SpawnChild: Error: Invalid argument count: %s", argc);
@@ -1062,7 +1069,7 @@ int ScriptComponent::lua_GetName(lua_State * lua) {
 }
 
 int ScriptComponent::lua_FindChild(lua_State * lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
@@ -1092,7 +1099,7 @@ int ScriptComponent::lua_FindChild(lua_State * lua) {
 }
 
 int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     int argc = lua_gettop(lua);
 
     ComponentID cid = ComponentID::Invalid;
@@ -1162,7 +1169,7 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
 }
 
 int ScriptComponent::lua_GetParent(lua_State * lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
@@ -1188,7 +1195,7 @@ int ScriptComponent::lua_GetParent(lua_State * lua) {
 }
 
 int ScriptComponent::lua_GetFirstChild(lua_State * lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 
@@ -1214,7 +1221,7 @@ int ScriptComponent::lua_GetFirstChild(lua_State * lua) {
 }
  
 int ScriptComponent::lua_GetGameObject(lua_State * lua) {
-    Utils::Scripts::LuaStackOverflowAssert check(lua);
+    LuaStackOverflowAssert check(lua);
     void *voidThis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidThis);
 

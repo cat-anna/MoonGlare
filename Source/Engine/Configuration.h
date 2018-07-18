@@ -89,18 +89,6 @@ namespace MoonGlare {
 			};
 		};
 
-		namespace Input {
-			enum {
-				MaxKeyCode = 512,
-				MaxInputStates = 64,
-				MaxMouseButton = 8,
-				MaxMouseAxes = 4,
-			};
-			static const float StaticMouseSensivity = 0.005f;
-			static const float StaticMouseScrollSensivity = 1.0f;
-			static const char *SettingsFileName = "InputSettings.xml";
-		};
-
 		struct Console {
 			enum {
 				MaxConsoleLines = 20,

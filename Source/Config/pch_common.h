@@ -185,9 +185,7 @@ using LockGuard = std::lock_guard < std::mutex >;
 #define ERROR_STR				"{?}"
 #endif
 
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
+#include <Foundation/OrbitLoggerConf.h>
 
 #include <libSpace/src/Memory/BitampAllocator.h>
 #include <libSpace/src/Container/StaticVector.h>

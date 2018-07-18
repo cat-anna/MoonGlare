@@ -9,6 +9,7 @@
 #include <MoonGlare.h>
 
 #include <StarVFS/core/nStarVFS.h>
+#include <Core/Scripts/LuaApi.h>
 
 namespace MoonGlare {
 namespace FileSystem {

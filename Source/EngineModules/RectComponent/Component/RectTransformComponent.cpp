@@ -17,6 +17,8 @@
 #include <RectTransformComponent.x2c.h>
 
 #include <Source/Renderer/Renderer.h>
+#include <Core/Scripts/LuaApi.h>
+
 
 #include "../RectTransformDebugDraw.h"
 

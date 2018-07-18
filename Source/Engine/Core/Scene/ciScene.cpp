@@ -9,6 +9,8 @@
 #include <MoonGlare.h>
 #include <Engine/iSoundEngine.h>
 #include <Engine/Core/Engine.h>
+#include <Core/Scripts/LuaApi.h>
+
 
 #include <Core/EntityBuilder.h>
 

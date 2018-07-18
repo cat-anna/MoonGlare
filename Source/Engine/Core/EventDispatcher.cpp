@@ -8,7 +8,6 @@
 #include <MoonGlare.h>
 #include "EventDispatcher.h"
 
-#include "Core/Hooks.h"
 
 namespace MoonGlare::Core {
 	
@@ -24,7 +23,7 @@ EventDispatcher::EventDispatcher() {
 
 bool EventDispatcher::Initialize(World *world) {
 	ASSERT(world);
-	return world->GetHooks()->Subscribe(*this);
+    return true;
 }
 
 bool EventDispatcher::Finalize() {

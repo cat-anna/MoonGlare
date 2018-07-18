@@ -13,13 +13,14 @@
 #include <libSpace/src/Container/StaticVector.h>
 #include <Core/Configuration.Core.h>
 
-#include <Foundation/LuaUtils.h>
-#include "LuaUtils.h"
+#include <Foundation/Scripts/ErrorHandling.h>
+#include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
 #include "iLuaRequire.h"
+#include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare::Core::Scripts::Component {
-
+using namespace MoonGlare::Scripts;
 using namespace Core::Component;
 
 class ScriptComponent
@@ -83,11 +84,11 @@ public:
 
         auto lua = m_ScriptEngine->GetLua();
         LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-        Utils::Scripts::LuaStackOverflowAssert check(lua);
+        LuaStackOverflowAssert check(lua);
         //stack: -	
 
         int luatop = lua_gettop(lua);
-        lua_pushcclosure(lua, Core::Scripts::LuaErrorHandler, 0);
+        lua_pushcclosure(lua, LuaErrorHandler, 0);
         int errf = lua_gettop(lua);
 
         int index = entry - &m_Array[0] + 1;

@@ -22,7 +22,6 @@ using SoundEndAction = std::function < void(iSound*) > ;
 using SoundClassRegister = Space::DynamicClassRegister < iSound > ;
 
 class iSoundEngine : public cRootClass {
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 	SPACERTTI_DECLARE_CLASS_SINGLETON(iSoundEngine, cRootClass);
 public:
  	iSoundEngine();
@@ -64,7 +63,7 @@ public:
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	volatile unsigned m_Flags;
+	unsigned m_Flags;
 	
 	virtual iSound* GetSound(const string &Name) = 0;
 	virtual iSound* GetMusic(const string &Name) = 0;
@@ -92,8 +91,10 @@ public:
 	virtual void AddEndActionNotification(SoundEndAction &action) = 0;
 
 	void Configure(const string& FileName, const string& Name, SoundType Type, DataPath path = DataPath::Root);
-	DefineRefGetterConst(FileName, string);
-	DefineDirectGetter(Type, SoundType);
+
+    auto GetSoundType() { return m_Type; }
+    auto GetFileName() { return m_FileName; }
+
 
 	static void RegisterScriptApi(ApiInitializer &api);
 private:
@@ -119,7 +120,8 @@ public:
 	bool Next(string &out) const;
 	void Reset() const;
 
-	DefineREADAcces(Mode, Mode);
+    auto GetMode() { return m_Mode; }
+
 
 	void Add(const string& name);
 	void ClearList();

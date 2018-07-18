@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Foundation/Flags.h>
 #include <Libs/libSpace/src/Memory/DynamicMessageBuffer.h>
 
 namespace MoonGlare {

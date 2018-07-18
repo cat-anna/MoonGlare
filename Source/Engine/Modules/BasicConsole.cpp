@@ -20,6 +20,7 @@
 #include <libSpace/src/Container/EnumMapper.h>
 
 #include <Renderer/VirtualCamera.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare::Modules {
 

@@ -7,7 +7,6 @@ namespace Core {
 
     class HandleTable;
     class InputProcessor;
-    class Hooks;	   
 
     class Engine;
 
@@ -18,7 +17,6 @@ namespace Core {
 
 #include "EntityManager.h"
 
-#include "Scripts/nfScripts.h"
 #include "Scene/nfScene.h"
 #include "Component/nfComponent.h"
 

@@ -4,6 +4,7 @@
 #include "Core/HandleTable.h"
 
 namespace MoonGlare::Resources { class StringTables; }
+namespace MoonGlare::Core::Scripts { class ScriptEngine; }
 
 namespace MoonGlare {
 

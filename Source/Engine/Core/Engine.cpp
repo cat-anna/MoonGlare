@@ -13,6 +13,8 @@
 #include <Source/Renderer/Renderer.h>
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Context.h>
+#include <Core/Scripts/ScriptEngine.h>
+
 
 using namespace std::chrono_literals;
 

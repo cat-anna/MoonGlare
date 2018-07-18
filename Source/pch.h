@@ -32,10 +32,6 @@ using wstring = std::wstring;//u16string
 
 #pragma warning ( push, 0 )
 
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>    
-
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/btBulletCollisionCommon.h>
 
@@ -72,9 +68,7 @@ class cRootClass;
 
 #include <libSpace/src/Space.h>
 
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
+#include <Foundation/OrbitLoggerConf.h>
 
 #include <Foundation/MathConstants.h>
 #include <Foundation/StringUtils.h>
@@ -82,18 +76,11 @@ class cRootClass;
 #include <Foundation/xMath.h>
 #include <Foundation/PerfCounters.h>
 
-#include "Foundation/SetGet.h"
+#include "Foundation/Flags.h"
 #include "Foundation/Memory/nMemory.h"
 #include "Foundation/Memory.h"
 #include "Foundation/TemplateUtils.h"
 #include "Foundation/XMLUtils.h"
-#include "Foundation/StreamUtils.h"
-
-namespace Utils {
-namespace Scripts {
-	struct TableDispatcher;
-}
-}
 
 namespace Core {
 	class Console;

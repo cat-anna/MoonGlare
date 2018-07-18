@@ -2,8 +2,11 @@
 #include <MoonGlare.h>
 #include <Engine/Core/DataManager.h>
 
-#include "LuaUtils.h"
-#include <Foundation/LuaUtils.h>
+#include <Foundation/Scripts/ErrorHandling.h>
+#include <Foundation/Scripts/LuaReader.h>
+#include <Core/Scripts/LuaApi.h>
+
+#include "ScriptEngine.h"
 
 #include "Modules/StaticModules.h"
 #include "Modules/LuaRequire.h"
@@ -12,6 +15,7 @@
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
+using namespace MoonGlare::Scripts;
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScriptEngine)
 RegisterApiInstance(ScriptEngine, &ScriptEngine::Instance, "ScriptEngine");
@@ -104,7 +108,7 @@ bool ScriptEngine::ConstructLuaContext() {
 #ifdef DEBUG
     luaopen_debug(m_Lua);
 #endif
-    lua_atpanic(m_Lua, LuaPanic);
+    lua_atpanic(m_Lua, LuaPanicHandler);
 
     lua_newtable(m_Lua);
     lua_setglobal(m_Lua, "global");
@@ -262,7 +266,7 @@ bool ScriptEngine::Call(lua_State *lua, int args, int rets) {
 bool ScriptEngine::ExecuteCode(lua_State *lua, const char* Code, unsigned len, const char* ChunkName, int rets) {
     MoonGlareAssert(Code);
 
-    Utils::Scripts::LuaCStringReader reader(Code, len);
+    LuaCStringReader reader(Code, len);
     int result = lua_load(lua, &reader.Reader, &reader, ChunkName);
 
     switch (result) {

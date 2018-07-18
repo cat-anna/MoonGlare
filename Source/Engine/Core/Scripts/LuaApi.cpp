@@ -8,9 +8,11 @@
 #include <MoonGlare.h>
 #include <cmath>
 
+#include <Core/Scripts/LuaApi.h>
+#include <Core/Scripts/ScriptEngine.h>
+
 #include <Modules/ModuleManager.h>
 #include <Core/Component/ComponentRegister.h>
-
 
 namespace MoonGlare {
 namespace Core {

@@ -15,8 +15,8 @@ public:
     Animation();
     ~Animation();
 
-    DefineRefGetterConst(Name, string);
-    DefineRefGetterConst(FrameSize, math::vec2);
+    //DefineRefGetterConst(Name, string);
+    math::vec2 GetFrameSize() const { return m_FrameSize; }
 
     bool Load(const std::string &fileuri, unsigned StartFrame, unsigned FrameCount, math::uvec2 FrameStripCount, math::uvec2 Spacing, math::vec2 FrameSize, bool Uniform, const emath::fvec2 &ScreenSize);
 

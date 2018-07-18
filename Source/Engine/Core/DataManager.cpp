@@ -8,10 +8,13 @@
 #include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include <Engine/Core/Scripts/iLuaRequire.h>
+#include <Core/Scripts/LuaApi.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 #include <StarVFS/core/nStarVFS.h>
 
 #include <Foundation/Resources/StringTables.h>
+
 
 namespace MoonGlare {
 namespace Core {

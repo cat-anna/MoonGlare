@@ -49,8 +49,6 @@
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-class cRootClass;
-
 #include <lua.hpp>
 #if defined(_USE_API_GENERATOR_)
 #include <ApiGen/ApiDefAutoGen.h>
@@ -69,10 +67,7 @@ class cRootClass;
 #include <libSpace/src/Memory/StackAllocator.h>
 #include <libSpace/src/Memory/BitampAllocator.h>
 
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
-
+#include <Foundation/OrbitLoggerConf.h>
 #include <Foundation/PerfCounters.h>
 
 namespace Core {

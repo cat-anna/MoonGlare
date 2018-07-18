@@ -48,8 +48,6 @@ using wstring = std::wstring;//u16string
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-class cRootClass;
-
 #include "Config/Config.h"
 #include <OrbitLogger/src/OrbitLogger.h>
 #include <StarVFS/core/nfStarVFS.h>
@@ -60,9 +58,7 @@ class cRootClass;
 #include <libSpace/src/Memory/StackAllocator.h>
 #include <libSpace/src/Memory/BitampAllocator.h>
 
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
+#include <Foundation/OrbitLoggerConf.h>
 
 #include <Foundation/PerfCounters.h>
 

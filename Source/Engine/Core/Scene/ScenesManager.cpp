@@ -15,6 +15,7 @@
 #include <Renderer/StaticFog.h>
 
 #include <Renderer/Dereferred/DereferredPipeline.h>
+#include <Core/Scripts/LuaApi.h>
 
 #include <Math.x2c.h>
 #include <StaticFog.x2c.h>

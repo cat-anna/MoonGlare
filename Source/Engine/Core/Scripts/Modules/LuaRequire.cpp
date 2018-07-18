@@ -5,7 +5,11 @@
 
 #include "LuaRequire.h"
 
+#include <Foundation/Scripts/LuaPanic.h>
+
 namespace MoonGlare::Core::Scripts::Modules {
+
+using namespace MoonGlare::Scripts;
 
 static constexpr char InitRequireCode[] =
 R"===(
@@ -217,7 +221,7 @@ int LuaRequireModule::lua_require(lua_State *lua) {
         return 1;
     }
 
-    throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
+    throw LuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }
 
 int LuaRequireModule::lua_dofile(lua_State *lua) {
@@ -227,7 +231,7 @@ int LuaRequireModule::lua_dofile(lua_State *lua) {
     std::string_view name = luaL_checkstring(lua, -1);
 
     if (name[0] != '/') {
-        throw eLuaPanic(fmt::format("Invalid file path '{}'", name.data()));
+        throw LuaPanic(fmt::format("Invalid file path '{}'", name.data()));
     }
 
     std::string uri = "file://" + std::string(name) + ".lua";
@@ -237,10 +241,10 @@ int LuaRequireModule::lua_dofile(lua_State *lua) {
         return 1;
     default:
     case ResultStoreMode::NoResult:
-        throw eLuaPanic(fmt::format("Cannot load file '{}'", name.data()));
+        throw LuaPanic(fmt::format("Cannot load file '{}'", name.data()));
     }
 
-    throw eLuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
+    throw LuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }
 
 } //namespace MoonGlare::Core::Scripts::Modules

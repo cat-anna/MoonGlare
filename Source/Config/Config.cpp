@@ -1,6 +1,8 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 
+#include <Core/Scripts/LuaApi.h>
+
 namespace Config {
 
 static const char* GetConfigName() { return CONFIGURATION_NAME; }

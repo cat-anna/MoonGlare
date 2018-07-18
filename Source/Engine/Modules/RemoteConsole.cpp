@@ -8,8 +8,7 @@
 #include <MoonGlare.h>
 #include <Engine/Modules/iModule.h>
 #include <Foundation/MoonGlareInsider.h>
-
-#include <Foundation/LuaUtils.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>

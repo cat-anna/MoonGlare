@@ -6,7 +6,6 @@ namespace Application {
 
 class GameApplication : public iApplication {
 	SPACERTTI_DECLARE_STATIC_CLASS(GameApplication, cRootClass);
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
 	GameApplication(int argc, char** argv);
 	~GameApplication();

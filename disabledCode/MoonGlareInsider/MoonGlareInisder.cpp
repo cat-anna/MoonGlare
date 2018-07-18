@@ -20,7 +20,7 @@
 #include <Engine/iSoundEngine.h>
 #include <Config/DebugInterface.h>
 
-#include <Foundation/LuaUtils.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare {
 namespace Debug {

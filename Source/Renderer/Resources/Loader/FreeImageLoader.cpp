@@ -53,7 +53,7 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     //FreeImage_FlipVertical(dib);
     //FreeImage_FlipHorizontal(dib);
 
-    PixelFormat pixelFormat;
+    PixelFormat pixelFormat = PixelFormat::RGB8;
     ValueFormat valueFormat = ValueFormat::UnsignedByte;
 
     switch (FreeImage_GetBPP(bitmap)) {

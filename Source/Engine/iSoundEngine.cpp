@@ -8,6 +8,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 #include <Engine/iSoundEngine.h>
+#include <Core/Scripts/LuaApi.h>
 
 namespace MoonGlare {
 namespace Sound {

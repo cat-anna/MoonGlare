@@ -42,6 +42,8 @@
 
 #define DEBUG_LOG_FOLDER	"logs/"
 
+class cRootClass;
+
 namespace Graphic { class cRenderDevice; }
 
 namespace Config {

@@ -28,9 +28,9 @@ namespace XML {
 typedef const char *xml_string;
 
 namespace Captions {
-	static const xml_string XYZ[]  ={ "X", "Y", "Z", "W", };
-	static const xml_string UVW[]  ={ "U", "V", "W", 0, };
-	static const xml_string RGBA[] = { "R", "G", "B", "A", 0 };
+	static const xml_string XYZ[]  = { "X", "Y", "Z", "W", 0, };
+	static const xml_string UVW[]  = { "U", "V", "W", 0, };
+	static const xml_string RGBA[] = { "R", "G", "B", "A", 0, };
 };
 
 struct Value {

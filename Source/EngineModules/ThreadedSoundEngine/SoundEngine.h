@@ -19,7 +19,6 @@ struct SoundEngineSettings;
 class SoundEngine : public iSoundEngine {
 	friend struct SoundEngineDebugApi;
 	SPACERTTI_DECLARE_STATIC_CLASS(SoundEngine, iSoundEngine);
-	DECLARE_EXCACT_SCRIPT_CLASS_GETTER();
 public:
  	SoundEngine(SoundEngineSettings *Settings);
  	~SoundEngine();

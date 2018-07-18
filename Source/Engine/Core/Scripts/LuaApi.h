@@ -1,16 +1,14 @@
-/*
- * LuaApi.h
- *
- *  Created on: 30-07-2013
- *      Author: Paweu
- */
-#ifndef LUAAPI_H_
-#define LUAAPI_H_
+#pragma once
+
+#include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
 
+using namespace MoonGlare::Scripts;
+
+class ScriptEngine;
 class Script;
 
 class ApiInit {
@@ -155,7 +153,7 @@ private:
 template <class T>
 inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, int selfLuaIndex) {
 #if DEBUG
-	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	LuaStackOverflowAssert check(lua);
 	lua_pushvalue(lua, selfLuaIndex);
 	char buf[64];
 	sprintf_s(buf, "%p_%s", OwnerPtr, name);
@@ -167,7 +165,7 @@ inline void PublishSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr, i
 template <class T>
 inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
 #if DEBUG
-	Utils::Scripts::LuaStackOverflowAssert check(lua);
+	LuaStackOverflowAssert check(lua);
 	lua_pushnil(lua);
 	char buf[64];
 	sprintf_s(buf, "%p_%s", OwnerPtr, name);
@@ -179,5 +177,3 @@ inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
 } //namespace Scritps
 } //namespace Core
 } //namespace MoonGlare 
-
-#endif

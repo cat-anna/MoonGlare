@@ -7,7 +7,10 @@
 
 #include "LuaSettings.h"
 
+#include <Foundation/Scripts/ErrorHandling.h>
+
 namespace MoonGlare::Core::Scripts::Modules {
+using namespace MoonGlare::Scripts;
 
 struct LuaSettingsModule::SettingsObject {
     LuaSettingsModule *owner;
@@ -28,12 +31,12 @@ struct LuaSettingsModule::SettingsObject {
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 AddLog(Error, fmt::format("Apply failed(InvalidSettingId): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
                 Core::GetEngine()->Abort();
-                throw eLuaPanic(fmt::format("Invalid setting '{}'", i.second.id.data()));
+                throw LuaPanic(fmt::format("Invalid setting '{}'", i.second.id.data()));
             }
             catch (const std::bad_variant_access &eacces) {
                 AddLog(Error, fmt::format("Apply failed(bad_variant_access): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
                 Core::GetEngine()->Abort();
-                throw eLuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
+                throw LuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
             }
         }
 
@@ -60,14 +63,14 @@ struct LuaSettingsModule::SettingsObject {
         std::string_view provider, id;
         auto *s = FindSetting(rawid, provider, id);
         if (!s)
-            throw eLuaPanic(fmt::format("Cannot find setting {}", id.data()));
+            throw LuaPanic(fmt::format("Cannot find setting {}", id.data()));
 
         try {
             auto vv = s->provider->Get(provider, id);
             return PushValueVariant(lua, vv);
         }
         catch (Settings::iSettingsProvider::InvalidSettingId) {
-            throw eLuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
+            throw LuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
         }
     }
     int lua_Set(lua_State* lua) {
@@ -87,11 +90,11 @@ struct LuaSettingsModule::SettingsObject {
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 __debugbreak();
-                throw eLuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
+                throw LuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
             }
             catch (const std::bad_variant_access &eacces) {
                 __debugbreak();
-                throw eLuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", rawid.data(), eacces.what()));
+                throw LuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", rawid.data(), eacces.what()));
             }
         }
         else {

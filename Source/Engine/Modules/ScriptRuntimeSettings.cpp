@@ -9,6 +9,7 @@
 #include <EngineSettings.x2c.h>
 
 #include "iModule.h"
+#include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare::Modules {
 

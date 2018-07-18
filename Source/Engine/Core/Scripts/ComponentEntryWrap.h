@@ -9,9 +9,11 @@
 #ifndef ComponentEntryWrap_H
 #define ComponentEntryWrap_H
 
-#include <Foundation/LuaUtils.h>
+#include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
 namespace MoonGlare::Core::Scripts::Component {
+
+using namespace MoonGlare::Scripts;
 
 template<typename COMPONENT>
 struct ComponentEntryWrap {
@@ -35,7 +37,7 @@ private:
 protected:
 	template<typename MEMFN, MEMFN fn>
 	static void PushThisClosure(lua_State *lua, Component_t *This) {
-		Utils::Scripts::lua_PushCClosure(lua, &FnWrap<MEMFN, fn>::f, (void*)This );
+		lua_PushCClosure(lua, &FnWrap<MEMFN, fn>::f, (void*)This );
 	}
 	template<typename ENUMCONV, bool READ, typename StackFunc, typename ENUM>
 	static int ProcessEnum(lua_State *lua, ENUM &e, int idx) {
@@ -66,7 +68,7 @@ protected:
 	}
 private:
 	static int Index(lua_State *lua) {
-		Utils::Scripts::LuaStackOverflowAssert check(lua);
+		LuaStackOverflowAssert check(lua);
 		const char *name = lua_tostring(lua, 2);
 
 		lua_getfield(lua, 1, "ComponentInstance");
@@ -95,7 +97,7 @@ private:
 	}
 
 	static int NewIndex(lua_State *lua) {
-		Utils::Scripts::LuaStackOverflowAssert check(lua);
+		LuaStackOverflowAssert check(lua);
 		const char *name = lua_tostring(lua, 2);
 
 		lua_getfield(lua, 1, "ComponentInstance");

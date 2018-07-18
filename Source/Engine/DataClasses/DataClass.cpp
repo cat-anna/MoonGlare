@@ -2,6 +2,7 @@
 #include <MoonGlare.h>
 
 #include <Foundation/CriticalException.h>
+#include <Core/Scripts/LuaApi.h>
 
 namespace MoonGlare {
 namespace DataClasses {
@@ -13,13 +14,14 @@ BasicResource::BasicResource() {
 }
 
 BasicResource::BasicResource(const string& Name): 
-		BaseClass(Name) { 
+		cRootClass(), m_Name(Name) { 
 }
 
 void BasicResource::RegisterScriptApi(ApiInitializer &api) {
 	api
 	.deriveClass<ThisClass, BaseClass>("cBasicResource")
-		//.addFunction("GetDataReader", &ThisClass::GetDataReader)
+        .addFunction("GetName", &BasicResource::GetCharName)
+        //.addFunction("GetDataReader", &ThisClass::GetDataReader)
 	.endClass()
 	;
 }

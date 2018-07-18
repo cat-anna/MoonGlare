@@ -32,4 +32,8 @@ std::string GetSettingsDirectory(const std::string &Product)
 #endif
 }
 
+std::string GetSettingsFilePath(const std::string &Name, const std::string &Product) {
+    return GetSettingsDirectory() + Name;
+}
+
 }

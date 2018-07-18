@@ -9,7 +9,8 @@
 #include "MoonGlareInisder.h"
 #include "ResourceEnumerator.h"
 
-#include <Foundation/LuaUtils.h>
+#include <Core/Scripts/LuaApi.h>
+#include <Foundation/Scripts/LuaWrap.h>
 
 namespace MoonGlare {
 namespace Debug {
@@ -53,9 +54,9 @@ void ResourceEnumerator::finish() {
 int ResourceEnumerator::LuaElement(lua_State *lua) {
 	auto *item = m_Buffer.AllocAndZero<PayLoad_LuaElement_Item>();
 
-	auto name = Utils::Scripts::Lua_to<const char *>(lua, -2);
+	auto name = Scripts::Lua_to<const char *>(lua, -2);
 	auto type = lua_type(lua, -1);
-	auto value = Utils::Scripts::Lua_to<const char *>(lua, -1);
+	auto value = Scripts::Lua_to<const char *>(lua, -1);
 
 	item->LuaType = (u8)type;
 	item->NameLen = (u16)((name ? strlen(name) : 0) + 1);

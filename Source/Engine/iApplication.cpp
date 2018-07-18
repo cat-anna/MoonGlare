@@ -21,6 +21,7 @@
 #include <Renderer/Context.h>
 #include <Renderer/ScriptApi.h>
 #include <Foundation/OS/Path.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 #include "Modules/BasicConsole.h"
 

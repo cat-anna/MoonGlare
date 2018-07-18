@@ -10,10 +10,11 @@
 #include <Core/Scripts/iLuaSettings.h>
 #include "SoundEngine.h"
 
-#include <Foundation/LuaUtils.h>
-
 #include "SoundEngineSettings.h"
 #include "SoundEngineSettings.x2c.h"
+
+#include <Core/Scripts/LuaApi.h>
+#include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare::Modules::ThreadedSoundEngine {
 

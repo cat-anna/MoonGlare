@@ -8,6 +8,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Core/Scripts/LuaApi.h>
+
 namespace MoonGlare {
 namespace Core {
 

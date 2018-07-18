@@ -1,6 +1,5 @@
 #pragma once
-
-
+                       
 #include <OrbitLogger/src/OrbitLogger.h>
 
 namespace OrbitLogger {

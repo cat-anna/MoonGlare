@@ -36,8 +36,8 @@ public:
 
     virtual void OnPostInit() {}
 
-	DefineDirectGetter(Name, const char *);
-protected:
+    auto GetName() { return m_Name; }
+protected:           
 	using BaseClass = ModuleInfo;
 private:
 	const char *m_Name;

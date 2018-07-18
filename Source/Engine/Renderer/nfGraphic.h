@@ -122,10 +122,10 @@ namespace Graphic {
 		struct ModsStatus {
 			unsigned RawValue;
 
-			DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Shift, ShiftPressed);
-			DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Control, ControlPressed);
-			DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Alt, AltPressed);
-			DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Super, SuperPressed);
+			//DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Shift, ShiftPressed);
+			//DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Control, ControlPressed);
+			//DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Alt, AltPressed);
+			//DefineFlagGetter(RawValue, (unsigned)ModiffierFlags::Super, SuperPressed);
 		};
 	};
 }// namespace Graphic
