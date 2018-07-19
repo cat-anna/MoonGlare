@@ -19,33 +19,16 @@ template<class OWNER, class INFO>
 struct Counter {
 	std::atomic<uint64_t> Value = 0;
 	OWNER *Owner = nullptr;
-	std::string OwnerName = GetCouterOwnerName<std::is_base_of<cRootClass, OWNER>::type, OWNER>::Get(nullptr);
+	std::string OwnerName = typeid(OWNER).name();
 	void increment(uint64_t val = 1) { Value += val; }
 	void decrement(uint64_t val = 1) { Value -= val; }
 
 	void SetOwner(OWNER *ptr) {
 		Owner = ptr;
-		OwnerName = GetCouterOwnerName<std::is_base_of<cRootClass, OWNER>::type, OWNER>::Get(ptr);
+		OwnerName = typeid(*ptr).name();
 	}
 	~Counter() {
 		PrintPerfCounter(Value, Owner, OwnerName.c_str(), INFO::Name());
-	}
-};
-
-template<typename OWNER>
-struct GetCouterOwnerName<std::true_type, OWNER> {
-	static std::string Get(OWNER *Owner) {
-		if (Owner)
-			return Owner->GetDynamicTypeInfo()->GetName();
-		else
-			return OWNER::GetStaticTypeInfo()->GetName();
-	}
-};
-
-template<typename OWNER>
-struct GetCouterOwnerName<std::false_type, OWNER> {
-	static std::string Get(OWNER *Owner) {
-		return typeid(OWNER).name();
 	}
 };
 

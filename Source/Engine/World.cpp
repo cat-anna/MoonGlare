@@ -20,7 +20,6 @@ namespace MoonGlare {
 World::World()
 	: m_ScriptEngine(nullptr) {
     runtimeConfiguration = std::make_unique<Core::RuntimeConfiguration>();
-
 }
 
 World::~World() {

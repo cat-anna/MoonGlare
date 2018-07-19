@@ -10,9 +10,6 @@ using namespace MoonGlare;
 #include <Source/Renderer/nfRenderer.h>
 
 #include "Configuration.h"
-#include "WorldUser.h"
-
-#include "JobQueue.h"
 
 #include "Renderer/nfGraphic.h"
 #include "EngineSettings.h"

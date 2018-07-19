@@ -4,7 +4,7 @@
 #include "../ScriptEngine.h"
 #include "StaticModules.h"
 
-#include <iApplication.h>
+#include <Application.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
 
@@ -22,13 +22,12 @@ static const char *GetApplicationName() { return ApplicationName; }
 void StaticModules::InitApplication(lua_State *lua, World *world) {
     DebugLogf(Debug, "Initializing Application module");
     
-    using Application::iApplication;
-    void *app = GetApplication();
+    void *app = world->GetInterface<Application>();
 
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("Application")
-            .addCClosure("Exit", &ClosureObjectCall<iApplication, &iApplication::Exit>, app)
-            .addCClosure("Restart", &ClosureObjectCall<iApplication, &iApplication::Restart>, app)
+            .addCClosure("Exit", &ClosureObjectCall<Application, &Application::Exit>, app)
+            .addCClosure("Restart", &ClosureObjectCall<Application, &Application::Restart>, app)
 
             .addProperty("versionString", GetVersionString)
             .addProperty("compilationDate", GetCompilationDate)

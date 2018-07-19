@@ -1,9 +1,3 @@
-/*
- * ScenesManager.cpp
- *
- *  Created on: 16-12-2013
- *      Author: Paweu
- */
 #include <pch.h>
 #include <libSpace/src/Container/EnumMapper.h>
 
@@ -16,6 +10,8 @@
 
 #include <Renderer/Dereferred/DereferredPipeline.h>
 #include <Core/Scripts/LuaApi.h>
+
+#include "JobQueue.h"
 
 #include <Math.x2c.h>
 #include <StaticFog.x2c.h>

@@ -6,21 +6,17 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef iApplication_H
-#define iApplication_H
 
 namespace MoonGlare::x2c::Settings {
 struct EngineSettings_t;
 }
 
 namespace MoonGlare {
-namespace Application {
 
-class iApplication : public cRootClass {
-    SPACERTTI_DECLARE_CLASS_SINGLETON(iApplication, cRootClass);
+class Application {
 public:
-    iApplication();
-    virtual ~iApplication();
+    Application();
+    virtual ~Application();
 
     void LoadSettings();
     void SaveSettings();
@@ -66,10 +62,4 @@ protected:
     std::unique_ptr<x2c::Settings::EngineSettings_t> m_Configuration;
 };
 
-} //namespace Application
-
-inline Application::iApplication* GetApplication() { return Application::iApplication::Instance(); }
-
 } //namespace MoonGlare
-
-#endif

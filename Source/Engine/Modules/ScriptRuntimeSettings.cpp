@@ -1,6 +1,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/iApplication.h>
+#include <Engine/Application.h>
 #include <Core/Scripts/iLuaSettings.h>
 
 #include <Renderer/Configuration.Renderer.h>
@@ -27,7 +27,7 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::iModule, public Core::
         smod->RegisterProvider("Renderer", this);
         smod->RegisterProvider("Display", this);
         smod->RegisterProvider("Core", this);
-        settings = GetApplication()->GetConfiguration();
+        settings = GetWorld()->GetInterface<Application>()->GetConfiguration();
     }
 
     std::unordered_map<std::string, Setting> GetSettingList(std::string_view prefix) const override {

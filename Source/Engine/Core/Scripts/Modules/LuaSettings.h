@@ -14,10 +14,10 @@ public:
     void RegisterProvider(std::string prefix, Settings::iSettingsProvider *provider) override;
     bool OnRequire(lua_State *lua, std::string_view name) override;
 protected:
+    World *world;
     struct SettingsObject;
 
     std::unordered_map<std::string, Settings::iSettingsProvider *> providerMap;
-
 
     bool scriptApiRegistered = false;
 

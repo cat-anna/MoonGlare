@@ -5,14 +5,12 @@
 #include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
 
 #include <MoonGlare.h>
-#include <Engine/iApplication.h>
 #include "GameApplication.h"
 
 #include <Windows.h>
 
 //#include <libs/src/utils/ParamParser.cpp>
 using namespace std;
-using namespace MoonGlare::Application;
 
 void flag_disableMouseUnhook() {
     //Instance->SetFlags(AppFlag_AllowMouseUnHook, false);
@@ -91,7 +89,7 @@ int main(int argc, char** argv) {
         Params.Parse(argc, argv);
         bool restart = false;
         do {
-            auto app = new GameApplication(argc, argv);
+            auto app = std::make_unique<GameApplication>(argc, argv);
 
             Result = false;
             app->Execute();
@@ -100,7 +98,8 @@ int main(int argc, char** argv) {
             if (restart) {
                 AddLog(Debug, "Performing application restart");
             }
-            iApplication::DeleteInstance();
+
+            app.reset();
         }
         while (restart);
     }

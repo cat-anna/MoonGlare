@@ -59,7 +59,7 @@ public:
 	using cstr = const char *;
 
 	virtual const char* what() const { return m_Msg.c_str(); }
-	eAsserationError(unsigned line, cstr file, cstr fun, cstr check, cstr Msg, const void *sender){
+	eAsserationError(unsigned line, cstr file, cstr fun, cstr check, cstr Msg = 0, const void *sender = 0){
 		std::stringstream ss;
 		buildmsg(ss, line, file, fun, check, Msg);
 	//	if(sender)
@@ -67,17 +67,7 @@ public:
 		ss << "\n";
 		m_Msg = ss.str();
 	}
-	eAsserationError(unsigned line, cstr file, cstr fun, cstr check, cstr Msg = nullptr, const cRootClass *sender = 0) {
-		std::stringstream ss;
-		buildmsg(ss, line, file, fun, check, Msg);
-		if (sender)
-			DescribeSender(ss, sender);
-		ss << "\n";
-		m_Msg = ss.str();
-	}
-
 private:
-	void DescribeSender(std::stringstream &ss, const cRootClass *sender);
 	void buildmsg(std::stringstream &ss, unsigned line, cstr file, cstr fun, cstr check, cstr Msg) {
 		ss << "\n";
 		ss << "Assertion Error!\n"; // for object: [" << root->Info() << "]\n";

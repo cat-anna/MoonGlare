@@ -2,7 +2,7 @@
 #include <nfMoonGlare.h>
 
 #include "../../Engine.h"
-#include <iApplication.h>
+#include <Application.h>
 #include "../ScriptEngine.h"
 
 #include "LuaSettings.h"
@@ -14,6 +14,7 @@ using namespace MoonGlare::Scripts;
 
 struct LuaSettingsModule::SettingsObject {
     LuaSettingsModule *owner;
+    Application *application;
 
     ~SettingsObject() {
         Cancel();
@@ -40,10 +41,10 @@ struct LuaSettingsModule::SettingsObject {
             }
         }
 
-        GetApplication()->SettingsChanged();
+        application->SettingsChanged();
 
         if (needRestart) {
-            GetApplication()->SetRestart(true);
+            application->SetRestart(true);
             Core::GetEngine()->Exit();
         }
     }
@@ -86,7 +87,7 @@ struct LuaSettingsModule::SettingsObject {
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(provider, id, vv);
-                GetApplication()->SettingsChanged();
+                application->SettingsChanged();
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 __debugbreak();
@@ -230,11 +231,11 @@ struct LuaSettingsModule::SettingsObject {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-LuaSettingsModule::LuaSettingsModule(lua_State *lua, World *world) {
+LuaSettingsModule::LuaSettingsModule(lua_State *lua, World *world) : world(world) {
     world->GetScriptEngine()->QuerryModule<iRequireModule>()->RegisterRequire("Settings", this);
 }
 
-LuaSettingsModule::~LuaSettingsModule() {}
+LuaSettingsModule::~LuaSettingsModule() { }
 
 //-------------------------------------------------------------------------------------------------
 
@@ -247,7 +248,7 @@ bool LuaSettingsModule::OnRequire(lua_State *lua, std::string_view name) {
     if (!scriptApiRegistered)
         RegisterScriptApi(lua);
 
-    luabridge::push(lua, SettingsObject{ this });
+    luabridge::push(lua, SettingsObject{ this, world->GetInterface<Application>(), });
 
     return true;
 }

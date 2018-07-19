@@ -1,11 +1,10 @@
-#ifndef GameAppH
-#define GameAppH
+#pragma once
+
+#include <Engine/Application.h>
 
 namespace MoonGlare {
-namespace Application {
 
-class GameApplication : public iApplication {
-	SPACERTTI_DECLARE_STATIC_CLASS(GameApplication, cRootClass);
+class GameApplication : public Application {
 public:
 	GameApplication(int argc, char** argv);
 	~GameApplication();
@@ -16,7 +15,4 @@ private:
 	char** m_argv;
 };
 
-} //namespace Application
 } //namespace MoonGlare
-
-#endif

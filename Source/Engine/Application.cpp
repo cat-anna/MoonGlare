@@ -25,7 +25,7 @@
 
 #include "Modules/BasicConsole.h"
 
-#include <iApplication.h>
+#include "Application.h"
 
 #include <AssetSettings.x2c.h>
 #include <RendererSettings.x2c.h>
@@ -34,28 +34,23 @@
 #include <boost/algorithm/string.hpp>
 
 namespace MoonGlare {
-namespace Application {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(iApplication);
-
-iApplication::iApplication() : BaseClass() {
+Application::Application() {
     m_Flags.m_UintValue = 0;
 
     m_Configuration = std::make_unique<x2c::Settings::EngineSettings_t>();
     m_ConfigurationFileName = OS::GetSettingsDirectory() + "Engine.xml";
-
-    SetThisAsInstance();
 }
 
-iApplication::~iApplication() {}
+Application::~Application() {}
 
 //---------------------------------------------------------------------------------------
 
-bool iApplication::PreSystemInit() {
+bool Application::PreSystemInit() {
     return true;
 }
 
-bool iApplication::PostSystemInit() {
+bool Application::PostSystemInit() {
     GetModulesManager()->OnPostInit();
     Core::GetEngine()->PostSystemInit();
     m_Renderer->GetContext()->HookMouse();
@@ -64,7 +59,7 @@ bool iApplication::PostSystemInit() {
 
 //---------------------------------------------------------------------------------------
 
-void iApplication::LoadSettings() {
+void Application::LoadSettings() {
     if (m_Flags.m_Initialized) {
         throw "Cannot load settings after initialization!";
     }
@@ -87,7 +82,7 @@ void iApplication::LoadSettings() {
     m_Flags.m_SettingsChanged = false;
 }
 
-void iApplication::SaveSettings() {
+void Application::SaveSettings() {
     if (!m_Flags.m_SettingsLoaded) {
         AddLogf(Error, "Settings not loaded!");
         return;
@@ -113,8 +108,9 @@ using FileSystem::MoonGlareFileSystem;
 using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
-void iApplication::Initialize() {
+void Application::Initialize() {
     m_World = std::make_unique<World>();
+    m_World->SetInterface(this);
     auto ModManager = new ModulesManager(m_World.get());
 
     LoadSettings();
@@ -198,7 +194,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_Flags.m_Initialized = true;
 }
 
-void iApplication::LoadDataModules() {
+void Application::LoadDataModules() {
     static const std::string moduleListFileName = OS::GetSettingsDirectory() + "ModuleList.txt";
     std::ifstream file(moduleListFileName, std::ios::in);
                    
@@ -223,7 +219,7 @@ void iApplication::LoadDataModules() {
     }
 }                       
 
-void iApplication::Execute() {
+void Application::Execute() {
     try {
         Initialize();
         MoonGlare::Core::GetEngine()->EngineMain();
@@ -235,7 +231,7 @@ void iApplication::Execute() {
     Finalize();
 }
 
-void iApplication::Finalize() {
+void Application::Finalize() {
 #define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::InstanceExists()) break; if(!WHAT::Instance()->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
 
@@ -278,30 +274,29 @@ void iApplication::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-void iApplication::OnActivate() {
+void Application::OnActivate() {
     m_Flags.m_Active = true;
     AddLogf(Debug, "Application activated");
 }
 
-void iApplication::OnDeactivate() {
+void Application::OnDeactivate() {
     m_Flags.m_Active = false;
     AddLogf(Debug, "Application deactivated");
 }
 
-void iApplication::Exit() {
+void Application::Exit() {
     AddLogf(Debug, "Exit called");
     MoonGlare::Core::GetEngine()->Exit();
 }
 
-void iApplication::Restart() {
+void Application::Restart() {
     m_Flags.m_Restart = true;
     AddLogf(Debug, "Starting restart");
     MoonGlare::Core::GetEngine()->Exit();
 }
 
-const char* iApplication::ExeName() const {
+const char* Application::ExeName() const {
     return "";
 }
 
-} //namespace Application
 } //namespace MoonGlare

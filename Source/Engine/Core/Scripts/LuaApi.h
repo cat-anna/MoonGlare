@@ -174,6 +174,6 @@ inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
 #endif
 }
 
-} //namespace Scritps
+} //namespace Scripts
 } //namespace Core
 } //namespace MoonGlare 

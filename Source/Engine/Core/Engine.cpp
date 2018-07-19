@@ -15,6 +15,7 @@
 #include <Source/Renderer/Context.h>
 #include <Core/Scripts/ScriptEngine.h>
 
+#include "JobQueue.h"
 
 using namespace std::chrono_literals;
 
