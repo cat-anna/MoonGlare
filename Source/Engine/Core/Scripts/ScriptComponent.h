@@ -18,6 +18,7 @@
 
 #include "iLuaRequire.h"
 #include <Core/Scripts/ScriptEngine.h>
+#include <Core/EventDispatcher.h>
 
 namespace MoonGlare::Core::Scripts::Component {
 using namespace MoonGlare::Scripts;
@@ -41,8 +42,10 @@ public:
         struct MapBits_t {
             bool m_Valid : 1; //Entity is not valid or requested to be deleted;
             bool m_Active : 1; //Script has step function and it shall be called
+
             bool m_OnPerSecond : 1;//called when movedata.secondstep is true, need to be activated
             bool m_Step : 1;
+            bool m_Event : 1;
         };
         MapBits_t m_Map;
         uint32_t m_UintValue;
@@ -57,68 +60,22 @@ public:
         FlagsMap m_Flags;
         Entity m_OwnerEntity;	
         Handle m_SelfHandle;
-        std::bitset<Configuration::Core::Events::MaxEventTypes> m_ExistingEventHandlers;
+        uint32_t padding;
 
         void Reset() {
             m_Flags.m_Map.m_Valid = false;
         }
     };
     static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
-//	static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
+	//static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 
     void GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 
     ScriptEntry* GetEntry(Handle h);
     ScriptEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
 
-    template<typename EVENT>
-    void HandleEventTemplate(const EVENT &ev) {
-        auto *entry = GetEntry(ev.m_Destination);
-        if (!entry || !entry->m_Flags.m_Map.m_Valid || !entry->m_Flags.m_Map.m_Active) {
-            return;
-        }
-
-        if (!entry->m_ExistingEventHandlers[EventInfo<EVENT>::GetClassID()]) {
-            return;
-        }
-
-        auto lua = m_ScriptEngine->GetLua();
-        LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-        LuaStackOverflowAssert check(lua);
-        //stack: -	
-
-        int luatop = lua_gettop(lua);
-        lua_pushcclosure(lua, LuaErrorHandler, 0);
-        int errf = lua_gettop(lua);
-
-        int index = entry - &m_Array[0] + 1;
-
-        GetInstancesTable(lua);									//stack: self
-        lua_rawgeti(lua, -1, index);							//stack: self Script/nil
-
-        if (!lua_istable(lua, -1)) {
-            lua_settop(lua, luatop);
-            AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", index);
-            return;
-        }
-
-        lua_getfield(lua, -1, EVENT::EventName);			//stack: self Script func/nil
-        if (lua_isnil(lua, -1)) {
-            AddLogf(Warning, "ScriptComponent: There is no %s function in component at index: %d", EVENT::EventName, index);
-            lua_settop(lua, luatop);
-            entry->m_ExistingEventHandlers[EventInfo<EVENT>::GetClassID()] = false;
-            return;
-        } else {
-            //stack: self Script func
-            lua_insert(lua, -2);							//stack: self func Script 
-            luabridge::Stack<const EVENT*>::push(lua, &ev);  //stack: self func Script event
-
-            if (!LuaSafeCall(lua, 2, 0, EVENT::EventName, errf)) {
-                AddLogf(Error, "Failure during %s call for component #%lu", EVENT::EventName, index);
-            }
-        }
-        lua_settop(lua, luatop);
-    }
+    EventScriptSink* GetEventSink() { return &eventScriptSinkProxy; }
+    void HandleEvent(lua_State* lua, Entity destination);
 protected:
     Scripts::ScriptEngine *m_ScriptEngine;
 
@@ -127,6 +84,14 @@ protected:
     EntityMapper m_EntityMapper;
 
     iRequireModule *requireModule;
+
+    class EventScriptSinkProxy : public EventScriptSink {
+        ScriptComponent * reciver;
+    public:
+        EventScriptSinkProxy(ScriptComponent *r) : reciver(r) {}
+        void HandleEvent(lua_State* lua, Entity destination) override { reciver->HandleEvent(lua, destination); }
+    };
+    EventScriptSinkProxy eventScriptSinkProxy{ this };
 
     void ReleaseComponent(lua_State *lua, size_t Index);
 

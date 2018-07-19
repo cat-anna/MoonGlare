@@ -13,6 +13,8 @@
 #include "AbstractComponent.h"
 #include "TransformComponent.h"
 
+#include <Core/Scripts/ScriptComponent.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -44,7 +46,6 @@ bool ComponentManager::Initialize(ciScene *scene, Entity root) {
 	m_Scene = scene;
     rootEntity = root;
 
-	INITCHECK(m_EventDispatcher.Initialize(GetWorld()));
 					  
 #ifdef PERF_PERIODIC_PRINT
 	Space::MemZero(m_ComponentInfo);
@@ -57,11 +58,15 @@ bool ComponentManager::Initialize(ciScene *scene, Entity root) {
 		}
 	}
 
+    auto sc = GetComponent<Scripts::Component::ScriptComponent>();
+
+    m_EventDispatcher.Initialize(GetWorld(), sc->GetEventSink());
+
 	return true;
 }
 
 bool ComponentManager::Finalize() {
-	CHECK(m_EventDispatcher.Finalize());
+    m_EventDispatcher.Finalize();
 
 	for (size_t i = 0; i < m_UsedCount; ++i) {
 		if (!m_Components[i]->Finalize()) {

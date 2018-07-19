@@ -64,18 +64,10 @@ void BodyComponent::RegisterScriptApi(ApiInitializer &root) {
 bool BodyComponent::Initialize() {
 //	m_Array.MemZeroAndClear();
 
-	auto &ed = GetManager()->GetEventDispatcher();
-
 	m_TransformComponent = GetManager()->GetComponent<Core::Component::TransformComponent>();
 	if (!m_TransformComponent) {
 		AddLogf(Error, "Unable to get TransformComponent instance!");
 		return false;
-	}
-
-	auto sc = GetManager()->GetComponent<Core::Scripts::Component::ScriptComponent>();
-	if (sc) {
-		ed.RegisterTemplate<OnCollisionEnterEvent>(sc);
-		ed.RegisterTemplate<OnCollisionLeaveEvent>(sc);
 	}
 
 	return true;
@@ -215,7 +207,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			ev.m_Destination = be1->m_OwnerEntity;
 			ev.m_Object = be2->m_OwnerEntity;
 			ev.m_Normal = item->second->m_normalWorldOnB;
-			GetManager()->GetEventDispatcher().SendMessage(ev);
+			GetManager()->GetEventDispatcher().Send(ev);
 
 			m_LastCollisions.insert(*item);
 		} else {
@@ -238,7 +230,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		ev.m_Destination = be1->m_OwnerEntity;
 		ev.m_Object = be2->m_OwnerEntity;
 		ev.m_Normal = old.second->m_normalWorldOnB;
-		GetManager()->GetEventDispatcher().SendMessage(ev);
+		GetManager()->GetEventDispatcher().Send(ev);
 	}
 }
 

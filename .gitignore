@@ -1,3 +1,4 @@
 BuildConfiguration.lua
 bin
 .vscode/
+*.dll

@@ -178,6 +178,12 @@ struct CFunc
     return 1;
   }
 
+  static int getGetUpvalue(lua_State* L)
+  {
+      lua_pushvalue(L, lua_upvalueindex(1));
+      return 1;
+  }
+
   //----------------------------------------------------------------------------
   /**
       lua_CFunction to get a variable.

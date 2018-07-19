@@ -45,6 +45,10 @@ ciScene::~ciScene() { }
 
 //----------------------------------------------------------------
 
+void ciScene::SendState(SceneState state) {
+    m_ComponentManager.GetEventDispatcher().Send<SceneStateChangeEvent>({ state, this });
+}
+
 void ciScene::BeginScene() {
     SendState(SceneState::Started);
 }

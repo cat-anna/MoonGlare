@@ -54,6 +54,10 @@ public:
 
     static void RegisterScriptApi(ApiInitializer &root);
 
+    bool BeginCharMode(Entity reciver);
+    void CaptureKey(Entity reciver);
+    void EndCharMode();
+
     //Renderer::iContextInputHandler
     virtual void OnKey(int Key, bool Pressed) override;
     virtual void OnChar(unsigned CharOrKey, bool Pressed) override;
@@ -81,7 +85,10 @@ protected:
     Renderer::iContext *m_Context = nullptr;
 
     bool m_ConsoleActive = false;
-    bool m_CharMode = false;
+    enum class CharMode { None, Console, ScriptChar, ScriptKey, };
+    CharMode m_CharMode = CharMode::None;
+    Entity m_CharReciver = {};
+
 
     void ProcessKeyState(unsigned Id, bool Pressed);
     void ProcessMouseAxis(MouseAxisId Id, float Delta);

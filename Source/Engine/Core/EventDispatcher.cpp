@@ -21,13 +21,13 @@ EventDispatcher::EventDispatcher() {
 	}
 }
 
-bool EventDispatcher::Initialize(World *world) {
+void EventDispatcher::Initialize(World *world, EventScriptSink *sink) {
 	ASSERT(world);
-    return true;
+    scriptEngine = world->GetScriptEngine();
+    eventSink = sink;
 }
 
-bool EventDispatcher::Finalize() {
-	return true;
+void EventDispatcher::Finalize() {
 }
 
 } //namespace Core::MoonGlare 

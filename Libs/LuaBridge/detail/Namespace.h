@@ -576,6 +576,18 @@ private:
 		return *this;
     }
 
+    Class <T>& addStaticString(char const* name, const char* pu)
+    {
+        rawgetfield(L, -2, "__propget");
+        rawgetfield(L, -4, "__propget");
+        lua_pushstring(L, pu);
+        lua_pushcclosure(L, &CFunc::getGetUpvalue, 1);
+        lua_pushvalue(L, -1);
+        rawsetfield(L, -4, name);
+        rawsetfield(L, -2, name);
+        lua_pop(L, 2);
+        return *this;
+    }
     //--------------------------------------------------------------------------
     /**
       Add or replace a static property member.

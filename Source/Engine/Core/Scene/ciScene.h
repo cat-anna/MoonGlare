@@ -38,9 +38,7 @@ protected:
 	Component::ComponentManager m_ComponentManager;
 	SceneDescriptor *m_Descriptor = nullptr;
 
-	void SendState(SceneState state) {
-		m_ComponentManager.GetEventDispatcher().SendMessage<SceneStateChangeEvent>({ state, this });
-	}
+    void SendState(SceneState state);
 
 	bool SpawnChild(const std::string &URI, std::string Name, Entity &out);
 	bool SpawnChildRaw(const char *URI, const char *Name);

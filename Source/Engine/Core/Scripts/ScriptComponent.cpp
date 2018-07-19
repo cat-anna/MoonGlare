@@ -34,6 +34,7 @@ namespace lua {
         HandleUpValue,
     };
 
+    static const char *Function_Event = "OnEvent";
     static const char *Function_Step = "Step";
     static const char *Function_OnCreate = "OnCreate";
     static const char *Function_OnDestroy = "OnDestroy";
@@ -363,6 +364,51 @@ ScriptComponent::ScriptEntry *ScriptComponent::GetEntry(Handle h) {
     return &m_Array[hi];
 }
 
+void ScriptComponent::HandleEvent(lua_State * L, Entity destination) {
+    auto *entry = GetEntry(destination);
+    if (!entry || !entry->m_Flags.m_Map.m_Valid || !entry->m_Flags.m_Map.m_Active || !entry->m_Flags.m_Map.m_Event) {
+        return;
+    }
+
+    LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
+    //LuaStackOverflowAssert check(L);
+    //stack: eventObj
+
+    int luatop = lua_gettop(L);
+    lua_pushcclosure(L, LuaErrorHandler, 0);                    //stack: eventObj errH
+    int errf = lua_gettop(L);
+
+    int index = entry - &m_Array[0] + 1;
+
+    GetInstancesTable(L);									    //stack: eventObj errH instT
+    lua_rawgeti(L, -1, index);							        //stack: eventObj errH instT Script/nil
+
+    if (!lua_istable(L, -1)) {
+        lua_settop(L, luatop);
+        AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", index);
+        return;
+    }
+
+    lua_getfield(L, -1, lua::Function_Event);			        //stack: eventObj errH instT Script func/nil
+    if (lua_isnil(L, -1)) {
+        AddLogf(Warning, "ScriptComponent: There is no %s function in component at index: %d", lua::Function_Event, index);
+        lua_settop(L, luatop);
+        entry->m_Flags.m_Map.m_Event = false;
+        return;
+    }
+    else {
+        //stack: eventObj self Script func
+        lua_insert(L, -2);							             //stack: eventObj errH instT func Script 
+        lua_pushvalue(L, -5);							         //stack: eventObj errH instT func Script eventObj       
+
+        if (!LuaSafeCall(L, 2, 0, lua::Function_Event, errf)) {
+            AddLogf(Error, "Failure during %s call for component #%lu", lua::Function_Event, index);
+        }
+    }
+    lua_settop(L, luatop);
+    lua_pop(L, 1);
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
@@ -420,7 +466,7 @@ bool ScriptComponent::Load(xml_node node, Entity Owner, Handle &hout) {
     entry.m_Flags.m_Map.m_Step = true;
     entry.m_Flags.m_Map.m_Active = se.m_Active;
     entry.m_Flags.m_Map.m_OnPerSecond = se.m_PerSecond;
-    entry.m_ExistingEventHandlers.set();
+    entry.m_Flags.m_Map.m_Event = true;
     m_EntityMapper.SetComponentMapping(entry);
 
     GetObjectRootInstance(lua, Owner);

@@ -12,9 +12,9 @@ enum class SceneState : unsigned {
 };
 
 struct SceneStateChangeEvent {
-	static constexpr char* EventName = "OnSceneStateChangeEvent";
-	static constexpr char* HandlerName = "SceneStateChange";
-	SceneState m_State;
+	static constexpr char* EventName = "OnSceneStateChange";
+    static constexpr char* HandlerName = "OnSceneStateChangeEvent";
+    SceneState m_State;
 	ciScene *m_Scene;
 
 	friend std::ostream& operator<<(std::ostream& out, const SceneStateChangeEvent & dt) {
@@ -30,8 +30,9 @@ struct SceneStateChangeEvent {
 			.beginClass<SceneStateChangeEvent>("cSceneStateChangeEvent")
 				.addData("State", (int SceneStateChangeEvent::*)&SceneStateChangeEvent::m_State, false)
 				.addData("Scene", &SceneStateChangeEvent::m_Scene, false)
-				.addStaticData("Name", EventName, false)
-			.endClass();
+				.addStaticString("EventName", EventName)
+                .addStaticString("HandlerName", HandlerName)
+            .endClass();
 	}
 };
 

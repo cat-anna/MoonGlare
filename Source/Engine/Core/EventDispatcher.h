@@ -12,87 +12,117 @@
 #include "Configuration.Core.h"
 #include "Events.h"
 
+#include <Core/Scripts/ScriptEngine.h>
+
 namespace MoonGlare::Core {
 
-struct EventHandlerInterface {
+class EventHandlerInterface {
 protected:
-	virtual ~EventHandlerInterface() { }
+    virtual ~EventHandlerInterface() { }
+};
+
+class EventScriptSink {
+public:
+    //event data will be on top of the stack
+    virtual void HandleEvent(lua_State* lua, Entity Destination) = 0;
 };
 
 struct BaseEventCallDispatcher {
-	template<typename EVENT>
-	void Dispatch(const EVENT &ev) {
-		AddLog(Event, "Dispatching event: " << ev << " recipients:" << m_Handlers.size());
+    template<typename EVENT>
+    void Dispatch(const EVENT &ev) {
+        AddLog(Event, "Dispatching event: " << ev << " recipients:" << m_Handlers.size());
 
-		for (auto &handler : m_Handlers)
-			handler.Call(&ev);
-	}
+        for (auto &handler : m_Handlers)
+            handler.Call(&ev);
+    }
 
-	template<typename RECIVER, typename EVENT, void(RECIVER::*HANDLER)(const EVENT&)>
-	void AddHandler(RECIVER *reciver) {
-		struct F {
-			static void Call(void *reciver, const void *event) {
-				ASSERT(reciver);
-				ASSERT(event);
-				auto *r = reinterpret_cast<RECIVER*>(reciver);
-				const EVENT &ev = *reinterpret_cast<const EVENT*>(event);
-				(r->*HANDLER)(ev);
-			}
-		};
-		m_Handlers.emplace_back( HandlerCaller { reciver, &F::Call });
+    template<typename RECIVER, typename EVENT, void(RECIVER::*HANDLER)(const EVENT&)>
+    void AddHandler(RECIVER *reciver) {
+        struct F {
+            static void Call(void *reciver, const void *event) {
+                ASSERT(reciver);
+                ASSERT(event);
+                auto *r = reinterpret_cast<RECIVER*>(reciver);
+                const EVENT &ev = *reinterpret_cast<const EVENT*>(event);
+                (r->*HANDLER)(ev);
+            }
+        };
+        for (auto &e : m_Handlers)
+            if (e.m_Reciver == reciver)
+                return; // already registered;
+        m_Handlers.emplace_back( HandlerCaller { reciver, &F::Call });
 #ifdef DEBUG
-		m_Handlers.back().m_Interface = dynamic_cast<EventHandlerInterface*>(reciver);
+        m_Handlers.back().m_Interface = dynamic_cast<EventHandlerInterface*>(reciver);
 #endif
-	}
+    }
 protected:
-	using HandlerFunction = void(*)(void *reciver, const void *event);
-	struct HandlerCaller {
-		void *m_Reciver;
-		HandlerFunction m_Function;
+    using HandlerFunction = void(*)(void *reciver, const void *event);
+    struct HandlerCaller {
+        void *m_Reciver;
+        HandlerFunction m_Function;
 #ifdef DEBUG
-		EventHandlerInterface *m_Interface;
+        EventHandlerInterface *m_Interface;
 #endif
 
-		void Call(const void * event) { m_Function(m_Reciver, event); }
-	};
-	std::vector < HandlerCaller > m_Handlers;
+        void Call(const void * event) { m_Function(m_Reciver, event); }
+    };
+    std::vector < HandlerCaller > m_Handlers;
 };
 
 class EventDispatcher {
-	using Conf = Configuration::Core::Events;
+    using Conf = Configuration::Core::Events;
 public:
+    EventDispatcher();
+    
+    void Initialize(World *world, EventScriptSink *sink);
+    void Finalize();
 
-	EventDispatcher();
-	
-	bool Initialize(World *world);
-	bool Finalize();
+    template<typename EVENT>
+    void Send(const EVENT& event) {
+        auto classid = EventInfo<EVENT>::GetClassID();
+        ASSERT(classid < Conf::MaxEventTypes);
+        m_EventDispatchers[classid].Dispatch(event);
+    }
 
-	template<typename EVENT>
-	void SendMessage(const EVENT& event) {
-		auto classid = EventInfo<EVENT>::GetClassID();
-		ASSERT(classid < Conf::MaxEventTypes);
-		m_EventDispatchers[classid].Dispatch(event);
-	}
+    template<typename EVENT>
+    void SendTo(const EVENT& event, Entity recipient) {
+        AddLog(Event, "Dispatching event: " << event << " recipient:" << recipient);
+        auto classid = EventInfo<EVENT>::GetClassID();
+        ASSERT(classid < Conf::MaxEventTypes);
+        //m_EventDispatchers[classid].Dispatch(event, recipient);
+        SendToScript(event, recipient);
+    }
 
-	template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
-	void Register(RECIVER *reciver) {
-		auto classid = EventInfo<EVENT>::GetClassID();
-		ASSERT(classid < Conf::MaxEventTypes);
-		m_EventDispatchers[classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
-	}
-	template<typename EVENT, typename RECIVER>
-	void Register(RECIVER *reciver) {
-		return Register < EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent) > (reciver);
-	}
-	template<typename EVENT, typename RECIVER>
-	void RegisterTemplate(RECIVER *reciver) {
-		return Register < EVENT, RECIVER, &RECIVER::HandleEventTemplate<EVENT>>(reciver);
-	}
+    template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
+    void Register(RECIVER *reciver) {
+        auto classid = EventInfo<EVENT>::GetClassID();
+        ASSERT(classid < Conf::MaxEventTypes);
+        m_EventDispatchers[classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
+    }
+    template<typename EVENT, typename RECIVER>
+    void Register(RECIVER *reciver) {
+        return Register < EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent) > (reciver);
+    }
+    template<typename EVENT, typename RECIVER>
+    void RegisterTemplate(RECIVER *reciver) {
+        return Register < EVENT, RECIVER, &RECIVER::HandleEventTemplate<EVENT>>(reciver);
+    }
 private:
-	template<typename T>
-	using Array = std::array<T, Conf::MaxEventTypes>;
+    template<typename T>
+    using Array = std::array<T, Conf::MaxEventTypes>;
 
-	Array<BaseEventCallDispatcher> m_EventDispatchers;
+    template<typename EVENT>
+    void SendToScript(const EVENT& event, Entity recipient) {
+        if (!eventSink)
+            return;
+        auto lua = scriptEngine->GetLua();
+        luabridge::push(lua, event);
+        eventSink->HandleEvent(lua, recipient);
+    }
+
+    Array<BaseEventCallDispatcher> m_EventDispatchers;
+    Scripts::ScriptEngine *scriptEngine;
+    EventScriptSink *eventSink;
 };
 
 } //namespace MoonGlare::Core

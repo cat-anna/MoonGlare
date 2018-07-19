@@ -2,9 +2,15 @@
 #include <MoonGlare.h>
 
 #include "InputProcessor.h"
+#include "InputProcessor.Events.h"
+
 #include <Foundation/OS/Path.h>
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
+#include <Core/Scene/ScenesManager.h>
+#include <Core/Scene/ciScene.h>
+
+#include <Core/Scripts/ScriptComponent.h>
 
 #include "iConsole.h"
 
@@ -39,8 +45,12 @@ void InputProcessor::RegisterScriptApi(ApiInitializer &root) {
         .beginClass<InputProcessor>("cInputProcessor")
             .addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
             .addFunction("RegisterKeyboardAxis", &InputProcessor::RegisterKeyboardAxis)
+
+            .addFunction("BeginCharMode", &InputProcessor::BeginCharMode)
+            .addFunction("EndCharMode", &InputProcessor::EndCharMode)
+            .addFunction("CaptureKey", &InputProcessor::CaptureKey)
         .endClass()
-        ;
+        ;                    
 }
 
 //---------------------------------------------------------------------------------------
@@ -109,18 +119,45 @@ bool InputProcessor::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+void InputProcessor::CaptureKey(Entity reciver) {
+    if (m_CharMode != CharMode::None)
+        return;
+    m_CharReciver = reciver;
+    m_CharMode = CharMode::ScriptKey;
+}
+
+bool InputProcessor::BeginCharMode(Entity reciver) {
+    if (m_CharMode != CharMode::None)
+        return false;
+
+    m_CharReciver = reciver;
+    m_Context->EnterCharMode();
+
+    m_CharMode = CharMode::ScriptChar;
+    return true;
+}
+
+void InputProcessor::EndCharMode() {
+    if (m_CharMode == CharMode::ScriptChar) {
+        m_Context->ExitCharMode();
+        m_CharMode = CharMode::None;
+    }
+}
+
+//---------------------------------------------------------------------------------------
+
 bool InputProcessor::ProcessConsoleActivateKey() {
     if (!m_Console || !m_Context)
         return false;
 
     m_ConsoleActive = !m_ConsoleActive;
     if (m_ConsoleActive) {
-        m_CharMode = true;
+        m_CharMode = CharMode::Console;
         m_Context->EnterCharMode();
         m_Console->Activate();
         AddLogf(Debug, "Console activated");
     } else {
-        m_CharMode = false;
+        m_CharMode = CharMode::None;
         m_Context->ExitCharMode();
         m_Console->Deactivate();
         AddLogf(Debug, "Console deactivated");
@@ -130,8 +167,16 @@ bool InputProcessor::ProcessConsoleActivateKey() {
 }
 
 void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
-    if (!m_CharMode || !Pressed)
+    if (m_CharMode == CharMode::None || !Pressed)
         return;
+
+    if (m_CharMode == CharMode::ScriptChar) {
+        auto scene = m_World->GetScenesManager()->CurrentScene();
+        auto &cm = scene->GetComponentManager();
+        auto &ed = cm.GetEventDispatcher();
+        ed.SendTo(InputProcessorOnCharEvent{ (int)key }, m_CharReciver);
+        return;
+    }
 
     if (m_ConsoleActive && m_Console) {
         using Key = ::Graphic::WindowInput::Key;
@@ -154,6 +199,16 @@ bool InputProcessor::Step(const Core::MoveConfig & config) {
 //---------------------------------------------------------------------------------------
 
 void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
+    if (m_CharMode == CharMode::ScriptKey) {
+        if (Pressed) {
+            m_CharMode = CharMode::None;
+            auto scene = m_World->GetScenesManager()->CurrentScene();
+            auto &cm = scene->GetComponentManager();
+            auto &ed = cm.GetEventDispatcher();
+            ed.SendTo(InputProcessorOnKeyEvent{ (int)KeyCode }, m_CharReciver);
+        }
+        return;
+    }
     switch (KeyCode) {
     case Configuration::Console::ActivateKey:
         if (Pressed || ProcessConsoleActivateKey())
