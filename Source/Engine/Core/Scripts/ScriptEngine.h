@@ -121,7 +121,7 @@ private:
     };
     std::unordered_map<std::type_index, DynamicModule> modules;
 
-    template<typename Class, typename Iface>
+    template<typename Class, typename Iface = Class>
     void InstallModule();
 
 //old:

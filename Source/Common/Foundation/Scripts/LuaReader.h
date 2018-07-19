@@ -44,4 +44,16 @@ private:
     const char *m_String;
 };
 
+struct LuaStringWritter {
+    static int Writter(lua_State *L, const void* p, size_t size, void* data) {
+        return ((LuaStringWritter*)data)->Impl(L, p, size);
+    }
+    std::string data;
+private:
+    int Impl(lua_State *L, const void* p, size_t size) {
+        data.append(reinterpret_cast<const char*>(p), size);
+        return 0;
+    }
+};
+
 }

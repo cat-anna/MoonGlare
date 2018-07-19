@@ -11,6 +11,7 @@
 #include "Modules/StaticModules.h"
 #include "Modules/LuaRequire.h"
 #include "Modules/LuaSettings.h"
+#include "Modules/StaticStorage.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -164,6 +165,7 @@ bool ScriptEngine::ConstructLuaContext() {
 
         InstallModule<Modules::LuaRequireModule, iRequireModule>();
         InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
+        InstallModule<Modules::StaticStorageModule>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());

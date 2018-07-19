@@ -98,12 +98,12 @@ bool ScriptComponent::Initialize() {
 
     lua_pushlightuserdata(lua, GetInstancesTableIndex());									 //stack: InstTblIdx
     lua_createtable(lua, m_Array.Capacity(), 0);											 //stack: InstTblIdx InstTbl
-    PublishSelfLuaTable(lua, "ScriptComponent", this, -1);							 //stack: InstTblIdx InstTbl
+    PublishSelfLuaTable(lua, "ScriptComponent", this, -1);							         //stack: InstTblIdx InstTbl
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 
     lua_pushlightuserdata(lua, GetObjectRootTableIndex());									 //stack: Index  
     lua_createtable(lua, 0, 0);																 //stack: Index ORTable
-    PublishSelfLuaTable(lua, "ScriptComponent_OR", this, -1);						 //stack: Index ORTable
+    PublishSelfLuaTable(lua, "ScriptComponent_OR", this, -1);						         //stack: Index ORTable
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 
     if (!InitGameObjectMetaTable(lua)) {
