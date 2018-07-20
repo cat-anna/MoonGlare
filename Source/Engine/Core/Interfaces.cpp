@@ -6,7 +6,6 @@
  */
 #include <pch.h>
 #include <MoonGlare.h>
-#include <Engine/iSoundEngine.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Core/Interfaces.h"
 #include "Core/Component/ComponentRegister.h"
@@ -22,19 +21,14 @@ void Interfaces::DumpLists(ostream &out) {
 	};
 	out << "\nFont class list\n";
 	DataClasses::Fonts::FontClassRegister::GetRegister()->Enumerate(regdump);
-	out << "\nSound types list\n";
-	Sound::SoundClassRegister::GetRegister()->Enumerate(regdump);
 	out << "\n"; 
 	Component::ComponentRegister::Dump(out);
-	out << "\n";
 	out << "\n";
 	auto func = [&out](const Space::ClassListRegisterBase<> *r) {
 		out << r->GetCompilerName() << "\n";
 	};
 	Space::ClassListRegisterBase<>::EnumerateRegisters(func);
 
-	out << "\n";
-	out << "\n";
 	out << "\n";
 }
 
