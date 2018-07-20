@@ -42,17 +42,6 @@ project "Engine"
 		-- "x2c",
 	}
 
-	Features.ApplyAll(Engine.Features)
-
-	ModuleManager:AddModules("Engine")
-
 	postbuildcommands {
 		[["%{cfg.targetdir}/../svfs" -m "%{cfg.targetdir}" -s "rm('.*%%.[^eEdD]..$')" -e RDCExporter:%{cfg.targetdir}/../Modules/Engine.rdc:/ ]],
 	}
-
-	filter "configurations:Debug"
-		Features.ApplyAll(Engine.Debug.Features)
-		defines(Engine.Debug.Defines)
-	filter "configurations:Release"
-		Features.ApplyAll(Engine.Release.Features)
-		defines(Engine.Release.Defines)

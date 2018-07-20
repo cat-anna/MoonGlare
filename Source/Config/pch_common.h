@@ -46,7 +46,6 @@
 #include <locale>
 #include <codecvt>
 
-
 using StringVector = std::vector < std::string >;
 using StringDeque = std::deque < std::string >;
 using StringList = std::list < std::string >;
