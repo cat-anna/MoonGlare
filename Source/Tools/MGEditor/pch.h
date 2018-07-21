@@ -65,10 +65,9 @@ inline std::string ToLower(std::string str) {
 #include <lua.hpp>
 
 #include <Foundation/XMLUtils.h>
-#include <Foundation/SetGet.h>
+#include <Foundation/Flags.h>
 #include "Foundation/Memory/nMemory.h"
 #include "Foundation/Memory.h"
-#include <Foundation/LuaUtils.h>
 #include <Foundation/xMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>

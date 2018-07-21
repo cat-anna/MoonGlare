@@ -84,6 +84,9 @@ public:
 			if (t)
 				ret.emplace_back(ModuleInterfacePair<T>{ ptr, std::move(t) });
 		}
+        auto it = m_CustomInterfaces.find(std::type_index(typeid(T)));
+        if (it != m_CustomInterfaces.end())
+            ret.emplace_back(ModuleInterfacePair<T>{ nullptr, std::any_cast<std::shared_ptr<T>>(it->second) });
 		return std::move(ret);
 	}
 
@@ -97,13 +100,18 @@ public:
 		return ifs.front().m_Interface;
 	}
 
+    template<typename T>
+    void AddInterface(std::shared_ptr<T> intf) {
+        m_CustomInterfaces[std::type_index(typeid(T))] = intf;
+    }
+
 	void LoadSettigs();
 	void SaveSettigs();
 protected:
 	ModuleManager();
 private:
 	std::vector<SharedModule> m_Modules;
-
+    std::unordered_map<std::type_index, std::any> m_CustomInterfaces;
 
 	bool LoadModule(SharedModule module, const std::string &Alias);
 };

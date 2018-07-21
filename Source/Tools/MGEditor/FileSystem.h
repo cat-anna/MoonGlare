@@ -13,6 +13,7 @@
 #include "Notifications.h"
 
 #include <StarVFS/core/nStarVFS.h>
+#include <Foundation/iFileSystem.h>
 
 #include <iFileProcessor.h>
 #include <Module.h>
@@ -29,7 +30,9 @@ class AsyncFileProcessor;
 
 class FileSystem 
 	: public QObject
-	, std::enable_shared_from_this<FileSystem> {
+    , public QtShared::iModule
+	, std::enable_shared_from_this<FileSystem>
+    , public iFileSystem {
 	Q_OBJECT;
 public:
  	FileSystem(QtShared::SharedModuleManager modmgr);
@@ -41,6 +44,20 @@ public:
 	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
 	bool CreateFile(const std::string &uri);
 	bool CreateDirectory(const std::string &uri);
+
+    bool OpenFile(StarVFS::ByteTable &FileData, const std::string& uri) override {
+        return GetFileData(uri, FileData);
+    }
+    bool OpenXML(XMLFile &doc, const std::string& uri) override {
+        __debugbreak();
+        throw false;
+    }
+    bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive) override {
+        __debugbreak();
+        throw false;
+    }
+
+    bool PostInit() override;
 
 	void QueueFileProcessing(const std::string &URI);
 public slots:
@@ -57,7 +74,6 @@ private:
 	Module::SharedDataModule m_Module;
 	std::unordered_map<std::string, std::vector<std::weak_ptr<QtShared::iFileProcessorInfo>>> m_ExtFileProcessorList;
 	std::unique_ptr<AsyncFileProcessor> m_AsyncFileProcessor;
-    QtShared::SharedModuleManager moduleManager;
 
 	bool TranslateURI(const std::string &uri, std::string &out);
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <StarVFS/core/nfStarVFS.h>
+
 namespace MoonGlare {
 
 struct FileInfo {

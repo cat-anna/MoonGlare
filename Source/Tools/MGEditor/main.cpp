@@ -44,8 +44,8 @@ int main(int argc, char *argv[]) {
 
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
-    auto basep = boost::filesystem::path(argv[0]).parent_path();
-    LogCollector::AddLogSink<StdFileLoggerSink>((basep / "logs/MGEditor.log").string().c_str());
+    //auto basep = boost::filesystem::path(argv[0]).parent_path();
+    LogCollector::AddLogSink<StdFileLoggerSink>("logs/MGEditor.log");
 
     using MoonGlare::Editor::MainWindow;
 

@@ -14,24 +14,29 @@
 namespace MoonGlare {
 namespace Editor {
 
+QtShared::ModuleClassRgister::Register<FileSystem> FileSystemReg("FileSystem");
+
 FileSystem::FileSystem(QtShared::SharedModuleManager modmgr) :
-        moduleManager(std::move(modmgr)) {
+        iModule(std::move(modmgr)) {
 
     m_VFS = std::make_shared<StarVFS::StarVFS>();
     connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
 
     m_AsyncFileProcessor = std::make_unique<AsyncFileProcessor>();
     connect(this, &FileSystem::FileProcessorCreated, m_AsyncFileProcessor.get(), &AsyncFileProcessor::FileProcessorCreated);
+}
 
-    for (auto mod : moduleManager->QuerryInterfaces< QtShared::iFileProcessorInfo>()) {
+FileSystem::~FileSystem() {
+}
+
+bool FileSystem::PostInit() {
+    for (auto mod : GetModuleManager()->QuerryInterfaces<QtShared::iFileProcessorInfo>()) {
         for (auto &it : mod.m_Interface->GetSupportedTypes()) {
             m_ExtFileProcessorList[it].push_back(mod.m_Interface);
             AddLogf(Info, "Registered file processor %s -> '%s'", it.c_str(), typeid(*mod.m_Module).name());
         }
     }
-}
-
-FileSystem::~FileSystem() {
+    return true;
 }
 
 bool FileSystem::GetFileData(const std::string &uri, StarVFS::ByteTable & data) {

@@ -20,6 +20,7 @@ enum GlobalChanels : LogChannel {
 	Resources,
 	FSEvent,
 	Event,
+    Sound,
 };
 }
 }

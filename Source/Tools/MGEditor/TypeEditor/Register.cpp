@@ -6,7 +6,7 @@
 
 #include <Source/Engine/Renderer/Light.h>
 #include <Source/Renderer/StaticFog.h>
-#include <EngineModules/RectComponent/Types.h>
+#include <Engine/Modules/RectComponent/Types.h>
 
 #include <Math.x2c.h>
 #include <LightComponent.x2c.h>
