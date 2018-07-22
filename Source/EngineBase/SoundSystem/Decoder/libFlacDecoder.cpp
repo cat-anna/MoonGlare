@@ -40,17 +40,14 @@ public:
             This->position += *bytes;
             return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
         }
-        else
-            return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
     }
 
     static void FlacMetadata(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
         LibFlacDecoder *This = (LibFlacDecoder*)client_data;
 
-        /* print some stats */
         if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-            /* save for later */
-            unsigned total_samples = metadata->data.stream_info.total_samples;
+            //unsigned total_samples = metadata->data.stream_info.total_samples;
             unsigned sample_rate = metadata->data.stream_info.sample_rate;
             unsigned channels = metadata->data.stream_info.channels;
             unsigned bps = metadata->data.stream_info.bits_per_sample;
@@ -69,49 +66,31 @@ public:
             }
             This->streamRate = sample_rate;
             This->format = format;
-            This->bitsPerSample = bps;
-            This->channels = channels;
-//            fprintf(stderr, "sample rate    : %u Hz\n", sample_rate);
-//            fprintf(stderr, "channels       : %u\n", channels);
-//            fprintf(stderr, "bits per sample: %u\n", bps);
-//#ifdef _MSC_VER
-//            fprintf(stderr, "total samples  : %I64u\n", total_samples);
-//#else
-//            fprintf(stderr, "total samples  : %llu\n", total_samples);
-//#endif
         }
     }
 
     static FLAC__StreamDecoderWriteStatus FlacWrite(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data) {
         LibFlacDecoder *This = (LibFlacDecoder*)client_data;
 
-        //if (total_samples == 0) {
-        //    fprintf(stderr, "ERROR: this example only works for FLAC files that have a total_samples count in STREAMINFO\n");
-        //    return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-        //}
-        //if (channels != 2 || bps != 16) {
-        //    fprintf(stderr, "ERROR: this example only supports 16bit stereo streams\n");
-        //    return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-        //}
-
-        /* write decoded PCM samples */
-        //d->buf->append((char*)buffer, frame->header.blocksize * sizeof(FLAC__int32));
+        if (frame->header.channels > 2) { // 0 case is ignored
+            AddLogf(Error, "Invalid flac stream channel count!");
+            return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+        }
 
         auto &pendingBytes = This->pendingBytes;
         char* outBuffer = This->decodeBuffer.get();
-        unsigned bytesPerSample = This->bitsPerSample / 8;
+        unsigned bytesPerSample = frame->header.bits_per_sample / 8;
 
-        unsigned bytesPerChannel = This->channels * bytesPerSample;
+        unsigned bytesPerChannel = frame->header.channels * bytesPerSample;
 
         for (int i = 0; i < frame->header.blocksize; i++) {
-            for (int c = 0; c < This->channels; ++c) {
+            for (int c = 0; c < frame->header.channels; ++c) {
                 auto v = buffer[c][i];
-                //d->buf->append((char*)&v, d->bps / 8);
                 memcpy(outBuffer + pendingBytes, &v, bytesPerSample);
                 pendingBytes += bytesPerSample;
             }
             if(pendingBytes > Configuration::DesiredBufferSize - bytesPerChannel) {
-                AddLogf(Debug, "Decoded buffer size: %d", pendingBytes);
+                //AddLogf(Debug, "Decoded buffer size: %d", pendingBytes);
                 alBufferData(This->currentBufferHandle, This->format, outBuffer, pendingBytes, This->streamRate);
                 This->bufferCompleted = true;
                 This->filledBytes = pendingBytes;
@@ -123,7 +102,7 @@ public:
     }
 
     static void FlacError(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
-        LibFlacDecoder *This = (LibFlacDecoder*)client_data;
+        //LibFlacDecoder *This = (LibFlacDecoder*)client_data;
         AddLogf(Error, "FLAC decoder error: %s", FLAC__StreamDecoderErrorStatusString[status]);
     }
 
@@ -184,7 +163,7 @@ public:
             alBufferData(buffer, format, decodeBuffer.get(), pendingBytes, streamRate);
             bufferCompleted = true;
             filledBytes = pendingBytes;
-            AddLogf(Debug, "Decoded buffer size: %d", filledBytes);
+            //AddLogf(Debug, "Decoded buffer size: %d", filledBytes);
         }
 
         if (decodedBytes)
@@ -207,8 +186,6 @@ private:
 
     ALenum format = 0;
     ALuint streamRate = 0;
-    uint8_t channels = 0;
-    uint8_t bitsPerSample = 0;
 
     size_t pendingBytes = 0;
     size_t filledBytes = 0;

@@ -15,24 +15,21 @@ enum class SourceStatus : uint8_t {
 };
 
 enum class SourceCommand : uint8_t {
-    None, Finalize, ResumePlaying, StopPlaying, Pause, Release,
+    None, Finalize, ResumePlaying, StopPlaying, Pause,// Release,
 };
 
 struct SourceState {
+    //TODO: split for public and private part
     using conf = MoonGlare::SoundSystem::Configuration;
-    template<typename T>
-    using BufferArray = Space::Container::StaticVector<T, conf::MaxBuffersPerSource>;
 
     SourceStatus status = SourceStatus::Invalid;
     SourceCommand command = SourceCommand::None;
     bool streamFinished = false;
-    bool automaticRelease = false;
-    uint8_t firstBuffer = 0;
+    bool releaseOnStop = false;
     uint8_t bufferCount = 0;
-    BufferArray<SoundBuffer> queuedBuffers;
     SoundSource sourceHandle = InvalidSoundSource;
     uint32_t processedBuffers = 0;
-    uint32_t processedBytes= 0;
+    uint32_t processedBytes = 0;
     std::string uri;
     std::unique_ptr<Decoder::iDecoder> decoder;
 

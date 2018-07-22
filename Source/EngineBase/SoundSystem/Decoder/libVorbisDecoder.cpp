@@ -26,8 +26,7 @@ struct OggVorbisFileDeleter {
 
 class LibVorbisDecoder : public iDecoder {
 public:
-    LibVorbisDecoder() { 
-    }
+    LibVorbisDecoder() { }
     ~LibVorbisDecoder() { }
 
     static size_t VorbisRead(void *buffer, size_t size, size_t nmemb, void *ptr) {
@@ -106,13 +105,13 @@ public:
             AddLogf(Error, "Corrupted stream! code:%d [%s]", ret, fileName.c_str());
             return DecodeState::Error;
         }
-        if (*decodedBytes)
+        if (decodedBytes)
             *decodedBytes = totalSize;
 
         if (totalSize == 0)
             return DecodeState::Completed;
 
-        AddLogf(Debug, "Decoded buffer size: %d", totalSize);
+        //AddLogf(Debug, "Decoded buffer size: %d", totalSize);
         alBufferData(buffer, format, buf, totalSize, streamRate);
 
         if (totalSize < sizeof(Configuration::DesiredBufferSize))

@@ -5,13 +5,9 @@
 #include <vector>
 
 #include "../iSoundSystem.h"
-
-#include "AL/al.h"
+#include "../OpenAl.h"
 
 namespace MoonGlare::SoundSystem::Decoder {
-
-using SoundBuffer = ALuint;
-using SoundSource = ALuint;
 
 class iDecoderFactory;
 class iDecoder;

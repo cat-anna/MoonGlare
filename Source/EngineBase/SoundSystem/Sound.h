@@ -11,7 +11,7 @@
 
 namespace MoonGlare::SoundSystem {
 
-class SourceState;
+struct SourceState;
 
 class StandaloneSoundPlayer : public iSound {
 public:
@@ -20,7 +20,7 @@ public:
     void Play() override;
 
 protected:
-    SourceIndex source = 0;
+    SourceIndex source = InvalidSourceIndex;
     SourceState *state = nullptr;
 };
 

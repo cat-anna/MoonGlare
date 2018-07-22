@@ -87,7 +87,7 @@ public:
                 if (decodedBytes)
                     *decodedBytes = static_cast<uint32_t>(chunk.size);
                 gotData = true;
-                AddLogf(Debug, "Decoded buffer size: %u", chunk.size);
+                //AddLogf(Debug, "Decoded buffer size: %u", chunk.size);
             }
             position += sizeof(chunk);
             position += chunk.size;

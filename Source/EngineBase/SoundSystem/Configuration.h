@@ -15,6 +15,7 @@ struct Configuration {
         MaxBuffersPerSource = 4,
 
         ThreadStep = 10, //ms
+        DebugReportInterval = 10 * 1000, //ms
     };
 };
 

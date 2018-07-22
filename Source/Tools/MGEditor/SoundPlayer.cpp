@@ -14,12 +14,15 @@ using namespace QtShared;
 struct SoundPlayerEditor : public iEditor {
     SoundSystem::iSoundSystem *soundSystem;
 
-    SoundPlayerEditor(SoundSystem::iSoundSystem *ss) : soundSystem(ss) {
-    }
+    SoundPlayerEditor(SoundSystem::iSoundSystem *ss) : soundSystem(ss) { }
+    ~SoundPlayerEditor() {}
 
     bool OpenData(const std::string &uri) override {
-        auto p = soundSystem->OpenSound(uri, true);
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        auto ss = soundSystem;
+        std::thread([ss, uri] {
+            auto p = ss->OpenSound(uri, true);
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+        }).detach();
         return true;
     }
 };

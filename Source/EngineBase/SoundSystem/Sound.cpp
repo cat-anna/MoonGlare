@@ -9,10 +9,9 @@ StandaloneSoundPlayer::StandaloneSoundPlayer(SourceIndex source, SourceState *st
 }
 
 StandaloneSoundPlayer::~StandaloneSoundPlayer() {
-    //alDeleteSources(1, &source);
-    //alDeleteBuffers(1, &buffer);
     if (state) {
-        state->command = SourceCommand::Release;
+        //state->command = SourceCommand::StopPlaying;
+        state->releaseOnStop = true;
     }
 }
 

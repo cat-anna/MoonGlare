@@ -70,7 +70,7 @@ public:
         uint32_t totalSize = 0;
         bool finished = false;
         while (!finished && totalSize < Configuration::DesiredBufferSize) {
-            size_t toRead = fileData.byte_size();// std::min(StepSize, fileData.byte_size() - position);
+            size_t toRead = std::min(StepSize, fileData.byte_size() - position);
             size_t remain = std::min(StepSize, Configuration::DesiredBufferSize - totalSize);
 
             size_t done = 0;
@@ -120,7 +120,7 @@ public:
             }
         }
 
-        AddLogf(Debug, "Decoded buffer size: %u", totalSize);
+        //AddLogf(Debug, "Decoded buffer size: %u", totalSize);
         if (totalSize == 0)
             return DecodeState::Completed;
 

@@ -65,7 +65,7 @@ public:
                 break;
             totalSize += r;
         }
-        AddLogf(Debug, "Decoded buffer size: %u", totalSize);
+        //AddLogf(Debug, "Decoded buffer size: %u", totalSize);
         if(totalSize == 0)
             return DecodeState::Completed;
 
@@ -120,6 +120,7 @@ std::vector<DecoderInfo> GetLibModPlugDecoderInfo() {
     di.supportedFormats = std::vector<FormatInfo>{
         FormatInfo{ "xm", "XM", "libmodplug" },
         FormatInfo{ "mod", "mod", "libmodplug" },
+        FormatInfo{ "it", "it", "libmodplug" },
     };
     return { di };
 #endif

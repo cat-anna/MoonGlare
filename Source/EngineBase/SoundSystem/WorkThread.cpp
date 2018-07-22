@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "WorkThread.h"
 #include "Sound.h"
 
@@ -11,11 +13,7 @@ struct WorkThread::Storage {
     template<typename T, size_t S>
     using StaticVector = Space::Container::StaticVector<T, S>;
 
-    //BufferArray<SoundBuffer> allocatedBuffers;
     StaticVector<SoundBuffer, conf::MaxBuffers> standbyBuffers;
-    //BufferArray<BufferState> bufferState;
-
-    //SourceArray<SoundSource> allocatedSources;
     StaticVector<SourceIndex, conf::MaxSources> standbySources;
     StaticVector<SourceIndex, conf::MaxSources> activeSources;
     StaticVector<SourceState, conf::MaxSources> sourceState;
@@ -31,7 +29,7 @@ struct WorkThread::Storage {
     iFileSystem * fileSystem = nullptr;
 
     enum class SourceProcessStatus {
-        Continue, Remove,
+        Continue, ReleaseAndRemove, Remove,
     };
 
     void Step() {
@@ -42,7 +40,17 @@ struct WorkThread::Storage {
             case SourceProcessStatus::Continue:
                 ++i;
                 continue;
-            case SourceProcessStatus::Remove:
+            case SourceProcessStatus::ReleaseAndRemove:
+                ReleaseSource(si);
+                [[fallthrough]];
+            case SourceProcessStatus::Remove: {
+                size_t lastIdx = activeSources.Allocated() - 1;
+                if (i != lastIdx) {
+                    activeSources[i] = activeSources[lastIdx];
+                }
+                activeSources.pop(InvalidSourceIndex);
+                break;
+            }
             default:
                 __debugbreak();
                 //todo
@@ -51,33 +59,36 @@ struct WorkThread::Storage {
     }
 
     SourceProcessStatus ProcessSource(SourceIndex si) {
-        SourceState &state = sourceState[si];
+        SourceState &state = sourceState[(size_t)si];
         bool done = false;
         while (!done) {
             done = true;
             switch (state.status) {
-            case SourceStatus::InitPending:
-                if (!InitializeSource(state)) {
-                    state.status = SourceStatus::FinitPending;
-                    return SourceProcessStatus::Continue;
-                }
-                break;
-            case SourceStatus::Playing: 
-                ProcessPlayState(state);
-                break;
-            case SourceStatus::Paused:
-            case SourceStatus::Stopped:
-                break;
-            case SourceStatus::FinitPending:
-                //todo
-                break;
+                case SourceStatus::InitPending:
+                    if (!InitializeSource(state)) {
+                        state.status = SourceStatus::FinitPending;
+                        return SourceProcessStatus::Continue;
+                    }
+                    break;
+                case SourceStatus::Playing: 
+                    ProcessPlayState(state);
+                    break;
+                case SourceStatus::Paused:
+                    break;
+                case SourceStatus::Stopped:
+                    if (state.releaseOnStop)
+                        return SourceProcessStatus::ReleaseAndRemove;
+                    break;
+                case SourceStatus::FinitPending:
+                    //todo
+                    break;
 
-            case SourceStatus::Invalid:
-            case SourceStatus::Standby:
-            default:
-                //invalid status
-                //todo
-                break;
+                case SourceStatus::Invalid:
+                case SourceStatus::Standby:
+                default:
+                    //invalid status
+                    //todo
+                    break;
             }
 
             switch (state.command) {
@@ -85,29 +96,29 @@ struct WorkThread::Storage {
                     if (state.Playable()) {
                         state.status = SourceStatus::Playing;
                         if (state.status == SourceStatus::Paused) {
-                            alSourcePlay(state.sourceHandle);
+                            AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+                            state.sourceHandle.Play();
                         }
                     }
                     break;
                 case SourceCommand::Pause:
                     if (state.status == SourceStatus::Playing) {
-                        alSourcePause(state.sourceHandle);
+                        AddLogf(Debug, "Playing paused: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+                        state.sourceHandle.Pause();
                         state.status = SourceStatus::Paused;
                     }
                     break;
                 case SourceCommand::StopPlaying:
                     if (state.Playable()) {
                         state.status = SourceStatus::Stopped;
+                        state.sourceHandle.Stop();
                         state.decoder->Reset();
-                        if (state.bufferCount > 0) {
-                            //todo
-                            __debugbreak();
-                            assert(false);
-                        }
+                        ReleaseSourceQueue(state);
+                        AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                     }
                     break;
-                case SourceCommand::Release:
-                    return SourceProcessStatus::Remove;
+                //case SourceCommand::Release:
+                    //return SourceProcessStatus::Remove;
 
                 case SourceCommand::None:
                 case SourceCommand::Finalize:
@@ -122,7 +133,7 @@ struct WorkThread::Storage {
     }
 
     void ProcessPlayState(SourceState & state) {
-        auto loadbuffer = [this, &state](SoundBuffer sb) {
+        auto loadbuffer = [this, &state](SoundBuffer sb) ->bool {
             Decoder::DecodeState s = Decoder::DecodeState::Completed;
             uint32_t bytes = 0;
             if (!state.streamFinished) {
@@ -131,47 +142,59 @@ struct WorkThread::Storage {
                 state.streamFinished = s != Decoder::DecodeState::Continue;
             }
             if (s < Decoder::DecodeState::Completed) {
-                alSourceQueueBuffers(state.sourceHandle, 1, &sb);
-                state.queuedBuffers[state.firstBuffer] = sb;
-                state.firstBuffer = (state.firstBuffer + 1) % conf::MaxBuffersPerSource;
+                state.sourceHandle.QueueBuffer(sb);
                 ++state.bufferCount;
+                return true;
             } else {
-                ReleaseBuffer(sb);
+                return false;
             }
         };
 
         while (true) {
-            ALint processedBuffers = 0;
-            alGetSourcei(state.sourceHandle, AL_BUFFERS_PROCESSED, &processedBuffers);
+            ALint processedBuffers = state.sourceHandle.GetProcessedBuffers();
             if (processedBuffers <= 0)
                 break;
 
             ++state.processedBuffers;
-            auto last = (state.firstBuffer + conf::MaxBuffersPerSource - state.bufferCount) % conf::MaxBuffersPerSource;
-            SoundBuffer sb = state.queuedBuffers[last];
-            alSourceUnqueueBuffers(state.sourceHandle, 1, &sb);
-            loadbuffer(sb);          
+            SoundBuffer sb = state.sourceHandle.UnqueueBuffer();
+            if (!sb)
+                break;
+            --state.bufferCount;
+            if (!loadbuffer(sb)) {
+                ReleaseBuffer(sb);
+            }
         };
 
-        ALint queuedBuffers = 0;
-        alGetSourcei(state.sourceHandle, AL_BUFFERS_QUEUED, &queuedBuffers);
+        ALint queuedBuffers = state.sourceHandle.GetQueuedBuffers();
 
-        bool start = false;
         if (queuedBuffers < conf::MaxBuffersPerSource && !state.streamFinished) {
-            loadbuffer(GetNextBuffer());
+            SoundBuffer b = GetNextBuffer();
+            if(!loadbuffer(b))
+                ReleaseBuffer(b);
             ++queuedBuffers;
-            if (state.bufferCount == 1) {
-                alSourcePlay(state.sourceHandle);
+            if (queuedBuffers == 1 && state.sourceHandle.GetState() != AL_PLAYING) {
+                state.sourceHandle.Play();
+                AddLogf(Debug, "Playback started %s Source:%d", state.uri.c_str(), (int)state.sourceHandle);
             }
+            return;
         }
 
         if (queuedBuffers == 0) {
-            if (state.streamFinished) {
+            if (state.streamFinished && state.sourceHandle.GetState() == AL_STOPPED) {
                 state.status = SourceStatus::Stopped;
-                AddLogf(Debug, "Playing finished: %s processed buffers: %u bytes:%6.2fMib", state.uri.c_str(), state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
-            } else {
-                __debugbreak();
+                AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
             }
+        }
+    }
+
+    void ReleaseSourceQueue(SourceState & state) {
+        while (true) {
+            SoundBuffer b = state.sourceHandle.UnqueueBuffer();
+            if (!b)
+                break;
+            --state.bufferCount;
+            assert(state.bufferCount <= conf::MaxBuffersPerSource);
+            ReleaseBuffer(b);
         }
     }
 
@@ -197,8 +220,8 @@ struct WorkThread::Storage {
             lock_guard lock(sourceAcivationQueueMutex);
 
             while (!sourceAcivationQueue.empty()) {
-                auto ss = sourceAcivationQueue.pop(InvalidSoundSource);
-                if(ss != InvalidSoundSource)
+                auto ss = sourceAcivationQueue.pop(InvalidSourceIndex);
+                if(ss != InvalidSourceIndex)
                     activeSources.push(ss);
             }
         }
@@ -206,42 +229,71 @@ struct WorkThread::Storage {
 
     void Initialize() {
         standbyBuffers.fill(InvalidSoundBuffer);
-        standbySources.fill(InvalidSoundSource);
-        activeSources.fill(InvalidSoundSource);
-        //sourceState.fill(SourceState{});
+        standbySources.fill(InvalidSourceIndex);
+        activeSources.fill(InvalidSourceIndex);
 
         GenBuffers();
         GenSources();
     }
     void Finalize() {
-        __debugbreak();
-        //TODO
+        for (auto &index : activeSources) {
+            ReleaseSource(index);
+        }
+        for (auto &index : sourceAcivationQueue) {
+            ReleaseSource(index);
+        }
+
+        activeSources.ClearAllocation();
+        sourceAcivationQueue.ClearAllocation();
+
+        alDeleteBuffers(standbyBuffers.Allocated(), &standbyBuffers[0]);
+        standbyBuffers.ClearAllocation();
+
+        for (auto index : standbySources) {
+            auto &state = sourceState[(size_t)index];
+
+            alDeleteSources(1, &state.sourceHandle);
+            state.sourceHandle = InvalidSoundSource;
+            state.status = SourceStatus::Invalid;
+
+            assert(state.bufferCount == 0);
+        }
+        standbySources.ClearAllocation();
+        sourceState.ClearAllocation();
+
+#ifdef DEBUG
+        for (size_t index = 0; index < sourceState.Capacity(); ++index) {
+            auto &state = sourceState[index];
+            assert(state.status == SourceStatus::Invalid);
+            assert(state.bufferCount == 0);
+            assert(state.sourceHandle == InvalidSoundSource);     
+        }
+#endif
     }
 
     void ReleaseBuffer(SoundBuffer b) {
         if (b == InvalidSoundBuffer)
             return;
-        alBufferData(b, AL_FORMAT_STEREO8, nullptr, 0, 8000);
+        b.ClearData();
         standbyBuffers.push(b);
     }
+    //ReleaseSource is not threadsafe!!!
     void ReleaseSource(SourceIndex s) {
         if (s == InvalidSourceIndex)
             return;
 
-        auto &state = sourceState[s];
+        auto &state = sourceState[(size_t)s];
         assert(state.status != SourceStatus::Invalid);
-        alSourceStop(state.sourceHandle);
-        for (uint16_t idx = 0; idx < state.bufferCount; ++idx) {
-            uint16_t relidx = (state.firstBuffer + idx) % conf::MaxBuffersPerSource;
-            ReleaseBuffer(state.queuedBuffers[relidx]);
-        }
-        state.bufferCount = state.firstBuffer = 0;
+        state.sourceHandle.Stop();
+        ReleaseSourceQueue(state);
         state.command = SourceCommand::None;
         state.status = SourceStatus::Standby;
         state.decoder.reset();
         standbySources.push(s);
+        AddLogf(Debug, "Released source index:%d handle:%d", (int)s, (int)state.sourceHandle);
     }
 
+    //GetNextSource is not threadsafe!!!
     SourceIndex GetNextSource() {
         if (standbySources.empty()) {
             if (!GenSources())
@@ -250,17 +302,20 @@ struct WorkThread::Storage {
         auto si = standbySources.pop(InvalidSourceIndex);
         if (si == InvalidSourceIndex)
             return InvalidSourceIndex;
-        auto &state = sourceState[si];
+        auto &state = sourceState[(size_t)si];
         assert(state.status == SourceStatus::Standby);
         assert(state.bufferCount == 0);
-        assert(state.firstBuffer == 0);
+        state.processedBuffers = state.processedBytes = 0;
         state.status = SourceStatus::InitPending;
+        state.command = SourceCommand::None;
+        state.releaseOnStop = false;
         state.streamFinished = false;
+        AddLogf(Debug, "Allocated source index:%d handle:%d", (int)si, (int)state.sourceHandle);
         return si;
     }
-    SoundSource GetNextBuffer() {
+    SoundBuffer GetNextBuffer() {
         if (standbyBuffers.empty())
-            if(!GenSources())
+            if(!GenBuffers())
                 return InvalidSoundBuffer;
         return standbyBuffers.pop(InvalidSoundBuffer);
     }
@@ -269,31 +324,33 @@ struct WorkThread::Storage {
         if (allocatedBuffersCount + conf::BufferGenCount > conf::MaxBuffers)
             return false;
         SoundBuffer arr[conf::BufferGenCount] = {};
-        alGenBuffers(conf::BufferGenCount, arr);
+        alGenBuffers(conf::BufferGenCount, &arr[0]);
         standbyBuffers.append_copy(arr, conf::BufferGenCount);
         allocatedBuffersCount += conf::BufferGenCount;
+        AddLogf(Debug, "Generated buffers. New count: %d", (int)allocatedBuffersCount);
         return true;
     }
     bool GenSources() {
         size_t canAlloc = std::min((size_t)conf::SourceGenCount, conf::MaxSources - sourceState.Allocated());
         if (canAlloc == 0)
             return false;
-        SoundSource arr[conf::SourceGenCount] = {};
+        SoundSource::type arr[conf::SourceGenCount] = {};
         alGenSources(canAlloc, arr);
         for (size_t i = 0; i < canAlloc; ++i) {
             size_t index = 0;
             if (!sourceState.Allocate(index)) {
-                __debugbreak;
+                __debugbreak();
                 assert(false);
                 throw false;
                 //todo?
             }
             auto &ss = sourceState[index];
-            standbySources.push(index);
+            standbySources.push(static_cast<SourceIndex>(index));
             ss = {};
             ss.sourceHandle = arr[i];
             ss.status = SourceStatus::Standby;
         }
+        AddLogf(Debug, "Generated sources. New count: %d", (int)sourceState.Allocated());
         return true;
     }
 };
@@ -353,11 +410,23 @@ void WorkThread::ThreadMain() {
 
     std::mutex mtx;
     threadState = ThreadState::Running;
+    auto reportTime = std::chrono::steady_clock::now();
     while (threadState == ThreadState::Running) {
         storage->Step();
 
         std::unique_lock<std::mutex> lock(mtx);
         threadWait.wait_for(lock, std::chrono::milliseconds(Configuration::ThreadStep));
+
+        auto currentTime = std::chrono::steady_clock::now();
+        auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - reportTime).count();
+        if (interval > Configuration::DebugReportInterval) {
+            reportTime = currentTime;
+
+            AddLogf(Debug, "SoundSystem state: ActiveSources:%u StandbySources:%u AllocatedBuffers:%u buffersInUse:%u", 
+                storage->activeSources.Allocated(), storage->standbySources.Allocated(),
+                storage->allocatedBuffersCount, storage->allocatedBuffersCount - storage->standbyBuffers.Allocated()
+                );
+        }
     }
 }
 
@@ -410,7 +479,7 @@ std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start
     if (si == InvalidSourceIndex)
         return nullptr;
 
-    auto &state = storage->sourceState[si];
+    auto &state = storage->sourceState[(size_t)si];
     state.uri = uri;
     state.decoder = factory->CreateDecoder();
     state.status = SourceStatus::InitPending;
@@ -422,6 +491,7 @@ std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start
         Storage::lock_guard lock(storage->sourceAcivationQueueMutex);
         storage->sourceAcivationQueue.push(si);
     }
+    threadWait.notify_one();
     return std::move(p);
 }
 
