@@ -28,19 +28,26 @@ bool ModuleManager::Initialize() {
 	ModuleClassRgister::GetRegister()->Enumerate([this, &ret, self] (auto &ci) {
 		auto ptr = ci.SharedCreate(self);
 		m_Modules.emplace_back(ptr);
-		if (!LoadModule(ptr, ci.Alias)) {
-			ret = false;
-			AddLogf(Error, "Module load failed: %s", ptr->GetModuleName().c_str());
-			return;
-		} else {
-			AddLogf(Info, "Loaded module: %s", ptr->GetModuleName().c_str());
-		}
+        if (ptr->GetModuleName().empty()) {
+            ptr->SetAlias(ci.Alias);
+        }
 	});
+
+  	for (auto &it : m_Modules) {
+        if (!it->Initialize()) {
+            ret = false;
+            AddLogf(Error, "Module init failed: %s", it->GetModuleName().c_str());
+        }
+        else {
+            AddLogf(Info, "Loaded module: %s", it->GetModuleName().c_str());
+        }
+	}
 
 	for (auto &it : m_Modules) {
 		if (!it->PostInit()) {
-			ret = false;
-		}
+            ret = false;
+            AddLogf(Error, "Module post init failed: %s", it->GetModuleName().c_str());
+        }
 	}
 
 	LoadSettigs();
@@ -66,18 +73,6 @@ void ModuleManager::SaveSettigs() {
 	for (auto &item : QuerryInterfaces<QtShared::iSettingsUser>()) {
 		item.m_Interface->SaveSettings();
 	}
-}
-
-
-bool ModuleManager::LoadModule(SharedModule module, const std::string &Alias) {
-	if (!module->Initialize())
-		return false;
-
-	if (module->GetModuleName().empty()) {
-		module->SetAlias(Alias);
-	}
-
-	return true;
 }
 
 } //namespace MoonGlare::QtShared 

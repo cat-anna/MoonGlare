@@ -17,6 +17,8 @@
 #include <Module.h>
 #include <iFileIconProvider.h>
 
+#include "iFileSystemViewerPreview.h"
+
 namespace Ui { class FilesystemViewer; }
 
 namespace MoonGlare {
@@ -35,16 +37,19 @@ struct FileSystemViewerRole {
 
 class FileSystemViewer 
 	: public QtShared::DockWindow
-	, public QtShared::iEditor {
+	, public QtShared::iEditor
+    , public iFileSystemViewerPreview {
 	Q_OBJECT;
 public:
  	FileSystemViewer(QWidget *parent, QtShared::WeakModule module);
  	virtual ~FileSystemViewer();
 
-	virtual bool DoSaveSettings(pugi::xml_node node) const override;
-	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+	bool DoSaveSettings(pugi::xml_node node) const override;
+	bool DoLoadSettings(const pugi::xml_node node) override;
 
-	virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what);
+	bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) override;
+
+    void SetPreviewEditor(QtShared::SharedEditor editor) override;
 protected:
 	void Clear();
 protected slots:
@@ -61,6 +66,7 @@ private:
 	Module::SharedDataModule m_Module;
 	SharedFileSystem m_FileSystem;
 	QtShared::WeakModule m_EditorModule;
+    QtShared::SharedEditor currentPreviewEditor;
 
 	std::shared_ptr<QtShared::FileIconProvider> m_FileIconProvider;
 	std::weak_ptr<QtShared::EditorProvider> m_EditorProvider;//TODO: workaround

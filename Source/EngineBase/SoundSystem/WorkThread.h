@@ -30,6 +30,7 @@ struct SourceState {
     SoundSource sourceHandle = InvalidSoundSource;
     uint32_t processedBuffers = 0;
     uint32_t processedBytes = 0;
+    float processedSeconds = 0;
     std::string uri;
     std::unique_ptr<Decoder::iDecoder> decoder;
 
@@ -62,8 +63,6 @@ private:
     SoundSystem * soundSystem = nullptr;
     iFileSystem * fileSystem = nullptr;
 
-    std::unordered_map<std::string, std::shared_ptr<Decoder::iDecoderFactory>> decoderFactories;
-
     struct Storage;
     std::unique_ptr<Storage> storage;
 
@@ -71,8 +70,6 @@ private:
 
     void InitializeDevice();
     void FinalizeDevice();
-
-    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const std::string &uri);
 };
 
 }

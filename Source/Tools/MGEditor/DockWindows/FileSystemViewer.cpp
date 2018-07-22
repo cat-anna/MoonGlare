@@ -23,7 +23,15 @@ namespace DockWindows {
 
 struct FileSystemViewerInfo 
     : public QtShared::DockWindowModule<FileSystemViewer>
-    , public QtShared::iEditorInfo {
+    , public QtShared::iEditorInfo
+    , public QtShared::iEditorFactory {
+
+    std::any QuerryInterface(const std::type_info &info) override {
+        if (info == typeid(iFileSystemViewerPreview))
+            return std::dynamic_pointer_cast<iFileSystemViewerPreview>(GetInstance());
+        return {}; 
+    }
+
 
     FileSystemViewerInfo(SharedModuleManager modmgr) : DockWindowModule(std::move(modmgr)) {
         SetSettingID("FileSystemViewerInfo");
@@ -31,10 +39,18 @@ struct FileSystemViewerInfo
         SetShortcut("F4");
     }
 
-    virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
+    std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
         return std::vector<FileHandleMethodInfo> {
             FileHandleMethodInfo{ "{DIR}", ICON_16_FOLDER_RESOURCE, "Folder", "{DIR}", },
         };
+    }
+
+    QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) {
+        return std::dynamic_pointer_cast<QtShared::iEditor>(GetInstance());
+    }
+
+    void SetPreviewEditor(QtShared::SharedEditor editor) {
+
     }
 };
 QtShared::ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
@@ -107,7 +123,8 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
     bool folder = !index.data(FileSystemViewerRole::IsFile).toBool();
     if (folder) {
         auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
-        for (auto methodmodule : m_EditorProvider.lock()->GetCreateMethods()) {
+        auto methods = m_EditorProvider.lock()->GetCreateMethods();
+        for (auto methodmodule : methods) {
             if (!methodmodule.m_EditorFactory)
                 continue;
 
@@ -262,6 +279,21 @@ void FileSystemViewer::RefreshTreeView() {
     root.Close();
 
     m_ViewModel->sort(0);
+}
+
+void FileSystemViewer::SetPreviewEditor(QtShared::SharedEditor editor) {
+    if (currentPreviewEditor) {
+        m_Ui->horizontalLayout->removeWidget(dynamic_cast<QWidget*>(currentPreviewEditor.get()));
+        currentPreviewEditor.reset();        
+    }
+    QWidget *w = dynamic_cast<QWidget*>(editor.get());
+    if (!w) {
+        AddLogf(Error, "Editor is not a QWidget");
+        return;
+    }
+    w->setParent(this);
+    m_Ui->horizontalLayout->addWidget(w);
+    currentPreviewEditor = editor;
 }
 
 } //namespace DockWindows 

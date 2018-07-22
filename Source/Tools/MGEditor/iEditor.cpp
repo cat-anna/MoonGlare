@@ -16,24 +16,28 @@ ModuleClassRgister::Register<EditorProvider> EditorProviderReg("EditorProvider")
 EditorProvider::EditorProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
 bool EditorProvider::PostInit() {
-	for (auto &item : GetModuleManager()->QuerryInterfaces<iEditorInfo>()) {
-		auto methodlist = item.m_Interface->GetCreateFileMethods();
-		m_CreateMethods.reserve(methodlist.size());
-		for (auto method : methodlist) {
-			m_CreateMethods.emplace_back(EditorActionInfo{ item.m_Module, item.m_Module->cast<iEditorFactory>(), method });
-		}
-	}
-	return true;
+    for (auto &item : GetModuleManager()->QuerryInterfaces<iEditorInfo>()) {
+        auto methodlist = item.m_Interface->GetCreateFileMethods();
+        m_CreateMethods.reserve(methodlist.size());
+        for (auto method : methodlist) {
+            m_CreateMethods.emplace_back(EditorActionInfo{ item.m_Module, item.m_Module->cast<iEditorFactory>(), method });
+        }
+    }
+
+    std::sort(m_CreateMethods.begin(), m_CreateMethods.end(), [](const EditorActionInfo &a, const EditorActionInfo &b) {
+        return a.m_FileHandleMethod.m_Caption < b.m_FileHandleMethod.m_Caption;
+    });
+    return true;
 }
 
 const EditorProvider::EditorActionInfo EditorProvider::FindOpenEditor(std::string ext) {
-	ext = ToLower(ext);
-	for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
-		for (auto &method : item.m_Interface->GetOpenFileMethods())
-			if (ToLower(method.m_Ext) == ext) {
-				return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
-			}
-	throw EditorNotFoundException();
+    ext = ToLower(ext);
+    for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
+        for (auto &method : item.m_Interface->GetOpenFileMethods())
+            if (ToLower(method.m_Ext) == ext) {
+                return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
+            }
+    throw EditorNotFoundException();
 }
 
 } //namespace QtShared

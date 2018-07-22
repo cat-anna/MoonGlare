@@ -1,36 +1,21 @@
 #include PCH_HEADER
-#include "SoundPlayer.h"
+//#include "iSoundPlayer.h"
 
 #include <icons.h>
 #include "iFileIconProvider.h"
 #include "iEditor.h"
 
 #include <EngineBase/SoundSystem/iSoundSystem.h>
+#include "SoundPlayerView.h"
+#include "DockWindows/iFileSystemViewerPreview.h"
 
 namespace MoonGlare::Editor {
 using namespace QtShared;
 
-
-struct SoundPlayerEditor : public iEditor {
-    SoundSystem::iSoundSystem *soundSystem;
-
-    SoundPlayerEditor(SoundSystem::iSoundSystem *ss) : soundSystem(ss) { }
-    ~SoundPlayerEditor() {}
-
-    bool OpenData(const std::string &uri) override {
-        auto ss = soundSystem;
-        std::thread([ss, uri] {
-            auto p = ss->OpenSound(uri, true);
-            std::this_thread::sleep_for(std::chrono::seconds(10));
-        }).detach();
-        return true;
-    }
-};
-
 struct SoundPlayerModule
     : public iModule
     , public iFileIconInfo
-    , public iSoundPlayer
+    //, public iSoundPlayer
     , public QtShared::iEditorInfo
     , public QtShared::iEditorFactory
 {
@@ -38,9 +23,8 @@ struct SoundPlayerModule
 
     SoundPlayerModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
 
-    void Play(const std::string &uri) override {
-
-    }
+    //void Play(const std::string &uri) override {
+    //}
 
     virtual bool Initialize() {
         if (!iModule::Initialize())
@@ -87,18 +71,14 @@ struct SoundPlayerModule
     }
 
     virtual SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
-        return std::make_shared<SoundPlayerEditor>(soundSystem.get());
+        auto iface = GetModuleManager()->QuerryModule<DockWindows::iFileSystemViewerPreview>();
+        if (!iface)
+            return nullptr;
+        auto player = std::make_shared<SoundPlayerView>(nullptr, soundSystem.get());
+        iface->SetPreviewEditor(player);
+        return player;
     }
 
-    //virtual QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const {
-    //    return std::make_shared<ScriptFileConstructor>(GetModuleManager());
-    //}
-
-    //virtual std::vector<FileHandleMethodInfo> GetCreateFileMethods() const override {
-    //    return std::vector<FileHandleMethodInfo> {
-    //        //FileHandleMethodInfo{ "lua", ICON_16_LUALOGO_RESOURCE, "Script...", "lua", },
-    //    };
-    //}
 };
 ModuleClassRgister::Register<SoundPlayerModule> SoundPlayerReg("SoundPlayer");
 

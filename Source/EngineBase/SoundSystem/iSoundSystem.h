@@ -31,10 +31,13 @@ public:
     virtual ~iSound() {}
 
     virtual void Play() = 0;
-    //virtual void Pause() = 0;
-    //virtual void Stop() = 0;
-    //virtual uint32_t length() const = 0; // in ms
-    //virtual bool IsPlaying() const = 0;
+    virtual void Pause() = 0;
+    virtual void Stop() = 0;
+    virtual float GetDuration() const = 0; // in sec
+    virtual float GetPosition() const = 0; // in sec
+    virtual bool IsPlaying() const = 0;
+
+    virtual void SetStopOnDestroy(bool value) = 0;
 };
 
 class iSoundSystem {

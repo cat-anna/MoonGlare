@@ -55,7 +55,8 @@ class DockWindowModule : public BaseDockWindowModule {
 public:
 	DockWindowModule(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) { }
 
-	virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) {
+protected:
+    virtual std::shared_ptr<DockWindow> CreateInstance(QWidget *parent) {
 		return std::make_shared<DOCK>(parent, WeakModule(shared_from_this()));
 	}
 };

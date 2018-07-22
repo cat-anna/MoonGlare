@@ -16,7 +16,6 @@
 
 #include "../Notifications.h"
 
-
 namespace Ui { class EntityEditor; }
 
 namespace MoonGlare {

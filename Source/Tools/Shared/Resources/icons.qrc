@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/blue_pause.png</file>
+    <file>icons/blue_stop.png</file>
     <file>icons/yellow_sound.png</file>
     <file>icons/3d.png</file>
     <file>icons/blue_circle_left_arrow.png</file>

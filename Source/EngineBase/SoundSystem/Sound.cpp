@@ -6,30 +6,42 @@ namespace MoonGlare::SoundSystem {
 
 StandaloneSoundPlayer::StandaloneSoundPlayer(SourceIndex source, SourceState *state)
     : source(source), state(state) {
+
+    assert(state);
+    state->releaseOnStop = false;
 }
 
 StandaloneSoundPlayer::~StandaloneSoundPlayer() {
-    if (state) {
-        //state->command = SourceCommand::StopPlaying;
-        state->releaseOnStop = true;
-    }
+    state->releaseOnStop = true;
+    if(stopOnDestroy)
+        state->command = SourceCommand::StopPlaying;
 }
 
 void StandaloneSoundPlayer::Play() {
-    //state->command = SourceCommand::ResumePlaying;
-    //if (buffer == 0) {
-    //    alGenBuffers(1, &buffer);
-    //}
-    //decoder->Open();
-    //decoder->ReadEntireStream(buffer);
-    //decoder->Close();
-
-    //if (source == 0) {
-    //    alGenSources(1, &source);
-    //}
-
-    //alSourcei(source, AL_BUFFER, buffer);
-    //alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
-    //alSourcePlay(source);
+    state->command = SourceCommand::ResumePlaying;
 }
+void StandaloneSoundPlayer::Pause() {
+    state->command = SourceCommand::Pause;
+}
+
+void StandaloneSoundPlayer::Stop() {
+    state->command = SourceCommand::StopPlaying;
+}
+
+float StandaloneSoundPlayer::GetDuration() const {
+    return 90;
+}
+
+float StandaloneSoundPlayer::GetPosition() const {
+    return state->processedSeconds + state->sourceHandle.GetTimePosition();
+}
+
+bool StandaloneSoundPlayer::IsPlaying() const {
+    return state->status == SourceStatus::Playing;
+}
+
+void StandaloneSoundPlayer::SetStopOnDestroy(bool value) {
+    stopOnDestroy = value;
+}
+
 }

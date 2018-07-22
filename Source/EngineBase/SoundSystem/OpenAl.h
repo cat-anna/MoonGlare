@@ -32,6 +32,28 @@ struct SoundBuffer {
     void ClearData() const { alBufferData(handle(), AL_FORMAT_STEREO8, nullptr, 0, 8000); }
     void SetData(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq) const { alBufferData(handle(), format, data, size, freq); }
 
+    ALint GetInt(ALenum param) const {
+        ALint r = 0;
+        alGetBufferi(handle(), param, &r);
+        return r;
+    }
+
+    ALfloat GetFloat(ALenum param) const {
+        ALfloat r = 0;
+        alGetSourcef(handle(), param, &r);
+        return r;
+    }
+
+    ALint GetFrequency() const { return GetInt(AL_FREQUENCY); }
+    ALint GetBitsPerSample() const { return GetInt(AL_BITS); }
+    ALint GetChannelCount() const { return GetInt(AL_CHANNELS); }
+    ALint GetDataSize() const { return GetInt(AL_SIZE); }
+    
+    ALint GetBytesPerSecond() const { return  GetChannelCount() * GetFrequency() * (GetBitsPerSample() / 8); }
+
+    ALfloat GetDuration() {
+        return (ALfloat)GetDataSize() / (ALfloat)(GetBytesPerSecond());
+    }
 private:
     type value;
 };

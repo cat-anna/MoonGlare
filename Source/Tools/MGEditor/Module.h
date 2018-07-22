@@ -42,6 +42,8 @@ public:
 		return true;
 	}
 
+    virtual std::any QuerryInterface(const std::type_info &info) { return {}; }
+
 	template <typename T>
 	void SetAlias(T &&t) {
 		m_Alias = std::forward<T>(t);
@@ -80,9 +82,23 @@ public:
 		std::vector<ModuleInterfacePair<T>> ret;
 		ret.reserve(m_Modules.size());
 		for (auto &ptr : m_Modules) {
-			auto t = std::dynamic_pointer_cast<T>(ptr);
-			if (t)
-				ret.emplace_back(ModuleInterfacePair<T>{ ptr, std::move(t) });
+			auto t1 = std::dynamic_pointer_cast<T>(ptr);
+            if (t1) {
+                ret.emplace_back(ModuleInterfacePair<T>{ ptr, std::move(t1) });
+                continue;
+            }
+            try {
+                auto any = ptr->QuerryInterface(typeid(T));
+                if (any.has_value()) {
+                    auto t2 = std::any_cast<std::shared_ptr<T>>(any);
+                    if (t2) {
+                        ret.emplace_back(ModuleInterfacePair<T>{ ptr, std::move(t2) });
+                    }
+                }
+            }
+            catch (const std::bad_any_cast &e) {
+                AddLogf(Error, "Bad any object returned from module %s QuerryInterface [%s]", ptr->GetModuleName().c_str(), e.what());
+            }
 		}
         auto it = m_CustomInterfaces.find(std::type_index(typeid(T)));
         if (it != m_CustomInterfaces.end())
@@ -112,8 +128,6 @@ protected:
 private:
 	std::vector<SharedModule> m_Modules;
     std::unordered_map<std::type_index, std::any> m_CustomInterfaces;
-
-	bool LoadModule(SharedModule module, const std::string &Alias);
 };
 using SharedModuleManager = std::shared_ptr<ModuleManager>;
 

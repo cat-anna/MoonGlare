@@ -13,6 +13,8 @@ struct WorkThread::Storage {
     template<typename T, size_t S>
     using StaticVector = Space::Container::StaticVector<T, S>;
 
+    std::unordered_map<std::string, std::shared_ptr<Decoder::iDecoderFactory>> decoderFactories;
+
     StaticVector<SoundBuffer, conf::MaxBuffers> standbyBuffers;
     StaticVector<SourceIndex, conf::MaxSources> standbySources;
     StaticVector<SourceIndex, conf::MaxSources> activeSources;
@@ -94,11 +96,18 @@ struct WorkThread::Storage {
             switch (state.command) {
                 case SourceCommand::ResumePlaying:
                     if (state.Playable()) {
-                        state.status = SourceStatus::Playing;
                         if (state.status == SourceStatus::Paused) {
                             AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                             state.sourceHandle.Play();
+                        } else
+                        if (state.streamFinished) {
+                            state.decoder->Reset();
+                            state.streamFinished = false;
+                            state.processedBuffers = 0;
+                            state.processedBytes = 0;
+                            state.processedSeconds = 0;
                         }
+                        state.status = SourceStatus::Playing;
                     }
                     break;
                 case SourceCommand::Pause:
@@ -113,6 +122,9 @@ struct WorkThread::Storage {
                         state.status = SourceStatus::Stopped;
                         state.sourceHandle.Stop();
                         state.decoder->Reset();
+                        state.processedBuffers = 0;
+                        state.processedBytes = 0;
+                        state.processedSeconds = 0;
                         ReleaseSourceQueue(state);
                         AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                     }
@@ -155,10 +167,11 @@ struct WorkThread::Storage {
             if (processedBuffers <= 0)
                 break;
 
-            ++state.processedBuffers;
             SoundBuffer sb = state.sourceHandle.UnqueueBuffer();
             if (!sb)
                 break;
+            state.processedSeconds += sb.GetDuration();
+            ++state.processedBuffers;
             --state.bufferCount;
             if (!loadbuffer(sb)) {
                 ReleaseBuffer(sb);
@@ -199,9 +212,12 @@ struct WorkThread::Storage {
     }
 
     bool InitializeSource(SourceState & state) {
-        if (!state.decoder) {
+        auto factory = FindFactory(state.uri);
+        if (!factory)
             return false;
-        }
+        state.decoder = factory->CreateDecoder();
+        if (!state.decoder) 
+            return false;
 
         StarVFS::ByteTable data;
         if (!fileSystem->OpenFile(data, state.uri)) {
@@ -228,6 +244,17 @@ struct WorkThread::Storage {
     }
 
     void Initialize() {
+        //decoderFactories
+        for (auto &decoder : Decoder::iDecoderFactory::GetDecoders()) {
+            for (auto format : decoder.supportedFormats) {
+                decoderFactories[format.fileExtension] = decoder.decoderFactory;
+                AddLogf(System, "Supported audio format: %s %s %s",
+                    format.fileExtension.c_str(),
+                    format.formatName.c_str(),
+                    format.decoderName.c_str());
+            }
+        }
+
         standbyBuffers.fill(InvalidSoundBuffer);
         standbySources.fill(InvalidSourceIndex);
         activeSources.fill(InvalidSourceIndex);
@@ -260,6 +287,7 @@ struct WorkThread::Storage {
         }
         standbySources.ClearAllocation();
         sourceState.ClearAllocation();
+        decoderFactories.clear();
 
 #ifdef DEBUG
         for (size_t index = 0; index < sourceState.Capacity(); ++index) {
@@ -310,6 +338,9 @@ struct WorkThread::Storage {
         state.command = SourceCommand::None;
         state.releaseOnStop = false;
         state.streamFinished = false;
+        state.processedBuffers = 0;
+        state.processedBytes = 0;
+        state.processedSeconds = 0;
         AddLogf(Debug, "Allocated source index:%d handle:%d", (int)si, (int)state.sourceHandle);
         return si;
     }
@@ -353,6 +384,19 @@ struct WorkThread::Storage {
         AddLogf(Debug, "Generated sources. New count: %d", (int)sourceState.Allocated());
         return true;
     }
+
+    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const std::string &uri) {
+        const char *ext = strrchr(uri.c_str(), '.');
+        if (!ext)
+            return nullptr;
+
+        auto it = decoderFactories.find(ext + 1);
+        if (it == decoderFactories.end())
+            return nullptr;
+
+        return it->second;
+    }
+
 };
 
 //-------------------------------------------
@@ -373,17 +417,6 @@ void WorkThread::Initialize() {
     storage->fileSystem = fileSystem;
     storage->Initialize();
 
-    //decoderFactories
-    for (auto &decoder : Decoder::iDecoderFactory::GetDecoders()) {
-        for (auto format : decoder.supportedFormats) {
-            decoderFactories[format.fileExtension] = decoder.decoderFactory;
-            AddLogf(System, "Supported audio format: %s %s %s",
-                format.fileExtension.c_str(),
-                format.formatName.c_str(),
-                format.decoderName.c_str());
-        }
-    }
-
     thread = std::thread([this]() { 
         threadState = ThreadState::Starting;
         ThreadMain(); 
@@ -401,7 +434,6 @@ void WorkThread::Finalize() {
     storage->Finalize();
     storage.reset();
     
-    decoderFactories.clear();
     FinalizeDevice();
 }
 
@@ -467,10 +499,6 @@ void WorkThread::FinalizeDevice() {
 }
 
 std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start, SoundKind kind) {
-    auto factory = FindFactory(uri);
-    if (!factory)
-        return nullptr;
-
     SourceIndex si;
     {
         Storage::lock_guard lock(storage->allocationMutex);
@@ -481,7 +509,6 @@ std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start
 
     auto &state = storage->sourceState[(size_t)si];
     state.uri = uri;
-    state.decoder = factory->CreateDecoder();
     state.status = SourceStatus::InitPending;
     if (start)
         state.command = SourceCommand::ResumePlaying;
@@ -493,18 +520,6 @@ std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start
     }
     threadWait.notify_one();
     return std::move(p);
-}
-
-std::shared_ptr<Decoder::iDecoderFactory> WorkThread::FindFactory(const std::string &uri) {
-    const char *ext = strrchr(uri.c_str(), '.');
-    if (!ext)
-        return nullptr;
-    
-    auto it = decoderFactories.find(ext + 1);
-    if (it == decoderFactories.end())
-        return nullptr;
-
-    return it->second;
 }
 
 }
