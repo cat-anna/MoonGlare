@@ -29,7 +29,8 @@ private:
 	std::unique_ptr<Ui::SoundPlayerView> ui;
     std::unique_ptr<QTimer> timer;
     SoundSystem::iSoundSystem *soundSystem;
-    std::unique_ptr<SoundSystem::iSound> sound;
+    SoundSystem::HandleApi handleApi;
+    SoundSystem::Handle handle = SoundSystem::Handle::Invalid;
 };
 
 } 

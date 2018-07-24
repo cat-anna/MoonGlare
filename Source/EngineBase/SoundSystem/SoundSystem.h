@@ -16,7 +16,7 @@ public:
     void Initialize(iFileSystem *fs) override;
     void Finalize() override;
 
-    std::unique_ptr<iSound> OpenSound(const std::string &uri, bool start, SoundKind kind = SoundKind::Music) override;
+    HandleApi GetHandleApi() override;
     
     std::vector<FormatInfo> GetSupportedFormats() override;
 protected:

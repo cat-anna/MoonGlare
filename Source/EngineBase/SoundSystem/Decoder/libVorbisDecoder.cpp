@@ -37,6 +37,28 @@ public:
         return r;
     }
 
+    static int VorbisSeek(void *ptr, ogg_int64_t offset, int whence) {
+        LibVorbisDecoder *decoder = (LibVorbisDecoder*)ptr;
+        switch (whence) {
+        case SEEK_SET:
+            decoder->position = offset;
+            return 0;
+        case SEEK_CUR:
+            decoder->position += offset;
+            return 0;
+        case SEEK_END:
+            decoder->position = decoder->fileData.byte_size() - offset;
+            return 0;
+        default:
+            return 1;
+        }
+    }
+    static int VorbisClose(void *ptr) { return 0; }
+    static long VorbisTell(void *ptr) {
+        LibVorbisDecoder *decoder = (LibVorbisDecoder*)ptr;
+        return decoder->position;
+    }
+
     bool SetData(StarVFS::ByteTable data, const std::string &fn)  override {
         fileData.swap(data);
         fileName = fn;
@@ -52,6 +74,9 @@ public:
 
         ov_callbacks callbacks = {};
         callbacks.read_func = &VorbisRead;
+        callbacks.close_func = &VorbisClose;
+        callbacks.seek_func = &VorbisSeek;
+        callbacks.tell_func = &VorbisTell;
 
         if (ov_open_callbacks((void*)this, handle.get(), NULL, 0, callbacks) < 0) {
             AddLogf(Error, "Not an ogg/vorbis stream! [%s]", fileName.c_str());
@@ -120,6 +145,9 @@ public:
         return DecodeState::Continue;
     }
 
+    float GetDuration() const override {
+        return ov_time_total(handle.get(), -1);
+    }
 private:
     StarVFS::ByteTable fileData;
     std::string fileName;

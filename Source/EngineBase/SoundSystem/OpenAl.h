@@ -12,11 +12,11 @@ struct SoundSource;
 
 struct SoundBuffer {
     using type = ALuint;
-    constexpr SoundBuffer() : value(0) { }
-    constexpr SoundBuffer(type v) : value(v) {}
+    explicit constexpr SoundBuffer() : value(0) { }
+    explicit constexpr SoundBuffer(type v) : value(v) {}
     SoundBuffer(const SoundBuffer &ss) = default;
     SoundBuffer(SoundBuffer &&ss) = default;
-    SoundBuffer(const SoundSource &ss) = delete;
+    explicit SoundBuffer(const SoundSource &ss) = delete;
 
     type handle() const { return value; }
     operator type() const { return handle(); }
@@ -27,7 +27,9 @@ struct SoundBuffer {
     SoundBuffer& operator =(const SoundSource &v) = delete;
     bool operator ==(const SoundBuffer &v) const { return handle() == v.handle(); }
     bool operator !=(const SoundBuffer &v) const { return handle() != v.handle(); }
-    operator bool() const { return handle() != 0; };
+    explicit operator bool() const { return handle() != 0; };
+
+    bool valid() const { return static_cast<bool>(*this); }
 
     void ClearData() const { alBufferData(handle(), AL_FORMAT_STEREO8, nullptr, 0, 8000); }
     void SetData(ALuint buffer, ALenum format, const ALvoid *data, ALsizei size, ALsizei freq) const { alBufferData(handle(), format, data, size, freq); }
@@ -60,11 +62,11 @@ private:
 
 struct SoundSource {
     using type = ALuint;
-    constexpr SoundSource() : value(0) { }
-    constexpr SoundSource(type v) : value(v) {}
+    explicit constexpr SoundSource() : value(0) { }
+    explicit constexpr SoundSource(type v) : value(v) {}
     SoundSource(const SoundSource &ss) = default;
     SoundSource(SoundSource &&ss) = default;
-    SoundSource(SoundBuffer ss) = delete;
+    explicit SoundSource(SoundBuffer ss) = delete;
 
     type handle() const { return value; }
     operator type() const { return handle(); }
@@ -75,7 +77,9 @@ struct SoundSource {
     SoundSource& operator =(const SoundBuffer &v) = delete;
     bool operator ==(const SoundSource &v) const { return handle() == v.handle(); }
     bool operator !=(const SoundSource &v) const { return handle() != v.handle(); }
-    operator bool() const { return handle() != 0; };
+    explicit operator bool() const { return handle() != 0; };
+
+    bool valid() const { return static_cast<bool>(*this); }
 
     void Play() const { alSourcePlay(handle()); }
     void Stop() const { alSourceStop(handle()); }
@@ -105,7 +109,8 @@ struct SoundSource {
     ALint GetState() const { return GetInt(AL_SOURCE_STATE); }
 
     ALfloat GetTimePosition() const { return GetFloat(AL_SEC_OFFSET); }
-
+    ALint GetBytePosition() const { return GetInt(AL_BYTE_OFFSET); }
+    
     void SetGain(ALfloat gain) const { alGetSourcef(handle(), AL_GAIN, &gain); }
 
     void SetPosition(ALfloat x, ALfloat y, ALfloat z) const { alGetSource3f(handle(), AL_POSITION, &x, &y, &z); }
@@ -114,8 +119,8 @@ private:
     type value;
 };
 
-static constexpr SoundBuffer InvalidSoundBuffer = { 0 };
-static constexpr SoundSource InvalidSoundSource ( 0u );
+static constexpr SoundBuffer InvalidSoundBuffer = SoundBuffer( 0u );
+static constexpr SoundSource InvalidSoundSource = SoundSource( 0u );
 
 static constexpr SourceIndex InvalidSourceIndex = (SourceIndex)0xFFFF;
 

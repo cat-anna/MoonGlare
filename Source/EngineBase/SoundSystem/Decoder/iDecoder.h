@@ -41,6 +41,7 @@ public:
     virtual bool SetData(StarVFS::ByteTable data, const std::string &fileName) = 0;
     virtual bool Reset() = 0;
     virtual DecodeState DecodeBuffer(SoundBuffer buffer, uint32_t *decodedBytes = nullptr) = 0;
+    virtual float GetDuration() const = 0;
 };
 
 }

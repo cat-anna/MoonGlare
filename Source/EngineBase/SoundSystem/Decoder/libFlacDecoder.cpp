@@ -48,9 +48,11 @@ public:
 
         if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
             //unsigned total_samples = metadata->data.stream_info.total_samples;
-            unsigned sample_rate = metadata->data.stream_info.sample_rate;
             unsigned channels = metadata->data.stream_info.channels;
             unsigned bps = metadata->data.stream_info.bits_per_sample;
+            auto streamRate = metadata->data.stream_info.sample_rate;
+            auto totalSamples = metadata->data.stream_info.total_samples;
+            This->duration = static_cast<float>(totalSamples) / static_cast<float>(streamRate);
             int format = 0;
             if (channels == 2) {
                 if (bps == 16)
@@ -64,8 +66,8 @@ public:
                 if (bps == 8)
                     format = AL_FORMAT_MONO8;
             }
-            This->streamRate = sample_rate;
             This->format = format;
+            This->streamRate = streamRate;
         }
     }
 
@@ -83,8 +85,8 @@ public:
 
         unsigned bytesPerChannel = frame->header.channels * bytesPerSample;
 
-        for (int i = 0; i < frame->header.blocksize; i++) {
-            for (int c = 0; c < frame->header.channels; ++c) {
+        for (unsigned i = 0; i < frame->header.blocksize; i++) {
+            for (unsigned c = 0; c < frame->header.channels; ++c) {
                 auto v = buffer[c][i];
                 memcpy(outBuffer + pendingBytes, &v, bytesPerSample);
                 pendingBytes += bytesPerSample;
@@ -137,6 +139,9 @@ public:
         if (!decodeBuffer)
             decodeBuffer.reset(new char[Configuration::DesiredBufferSize]);
 
+        if (!FLAC__stream_decoder_process_until_end_of_metadata(handle.get()))
+            return false;
+
         return true;
     }
 
@@ -178,6 +183,9 @@ public:
         return DecodeState::Continue;
     }
 
+    float GetDuration() const override {
+        return duration;
+    }
 private:
     StarVFS::ByteTable fileData;
     std::string fileName;
@@ -186,11 +194,12 @@ private:
 
     ALenum format = 0;
     ALuint streamRate = 0;
+    float duration = -1;
 
     size_t pendingBytes = 0;
     size_t filledBytes = 0;
     bool bufferCompleted = false;
-    SoundBuffer currentBufferHandle = 0;
+    SoundBuffer currentBufferHandle = SoundBuffer(0);
 
     std::unique_ptr<char[]> decodeBuffer;
 };

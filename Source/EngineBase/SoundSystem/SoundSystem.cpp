@@ -8,17 +8,18 @@ iSoundSystem* iSoundSystem::CreateNew() {
 
 //------------------------------------------------------------------
 
-SoundSystem::SoundSystem(){
-}
-
-SoundSystem::~SoundSystem() {
-}
+SoundSystem::SoundSystem() { }
+SoundSystem::~SoundSystem() { }
 
 Settings SoundSystem::GetSettings() {
+    assert(false);
+    //todo
     return Settings();
 }
 
 void SoundSystem::SetSettings(Settings value) {
+    assert(false);
+    //todo
 }
 
 void SoundSystem::Initialize(iFileSystem * fs) {
@@ -37,8 +38,8 @@ void SoundSystem::Finalize() {
     workThread.reset();
 }
 
-std::unique_ptr<iSound> SoundSystem::OpenSound(const std::string &uri, bool start, SoundKind kind) {
-    return workThread->OpenSound(uri, start, kind);
+HandleApi SoundSystem::GetHandleApi() {
+    return workThread->GetHandleApi();
 }
 
 std::vector<FormatInfo> SoundSystem::GetSupportedFormats() {

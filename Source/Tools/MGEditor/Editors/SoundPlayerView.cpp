@@ -7,13 +7,13 @@
 namespace MoonGlare::Editor {
 
 SoundPlayerView::SoundPlayerView(QWidget * parent, SoundSystem::iSoundSystem *ss)
-    :  QWidget(parent), soundSystem(ss) {
+    :  QWidget(parent), soundSystem(ss), handleApi(ss->GetHandleApi()) {
     ui = std::make_unique<Ui::SoundPlayerView>();
     ui->setupUi(this);
 
-    connect(ui->pushButtonPlay, &QPushButton::clicked, [this]() { sound->Play(); });
-    connect(ui->pushButtonPause, &QPushButton::clicked, [this]() { sound->Pause(); });
-    connect(ui->pushButtonStop, &QPushButton::clicked, [this]() { sound->Stop(); });
+    connect(ui->pushButtonPlay, &QPushButton::clicked, [this]() { handleApi.Play(handle); });
+    connect(ui->pushButtonPause, &QPushButton::clicked, [this]() { handleApi.Pause(handle); });
+    connect(ui->pushButtonStop, &QPushButton::clicked, [this]() { handleApi.Stop(handle); });
 
     timer = std::make_unique<QTimer>();
     connect(timer.get(), &QTimer::timeout, this, &SoundPlayerView::Refresh);
@@ -23,23 +23,32 @@ SoundPlayerView::SoundPlayerView(QWidget * parent, SoundSystem::iSoundSystem *ss
 }
 
 SoundPlayerView::~SoundPlayerView() {
+    handleApi.Close(handle, false);
+    handle = SoundSystem::Handle::Invalid;
     ui.reset();
 }
 
 bool SoundPlayerView::OpenData(const std::string &uri) {
-    sound = soundSystem->OpenSound(uri, true);
-    Refresh();
+    //sound = soundSystem->OpenSound(uri, true);
+
     ui->labelURI->setText(uri.c_str());
+    handle = handleApi.Open(uri, true, SoundSystem::SoundKind::Music, false);
+    if (handle == SoundSystem::Handle::Invalid) {
+        //todo
+    } else {
+
+    }
+
+    Refresh();
     return true;
 }
 
 void SoundPlayerView::Refresh() {
-    float duration = sound->GetDuration();
-
-    float position = sound->GetPosition();
+    float duration = handleApi.GetDuration(handle);
+    float position = handleApi.GetTimePosition(handle);
 
     ui->progressBar->setValue(static_cast<int>((position * 100)));
-    ui->progressBar->setMaximum(static_cast<int>((duration * 100)) * (position < duration));
+    ui->progressBar->setMaximum(static_cast<int>((duration * 100)) * (position <= duration));
 
     auto timeToString = [](float v) {
         float secs;
@@ -51,7 +60,22 @@ void SoundPlayerView::Refresh() {
         return fmt::format("{0:02}:{1:02}.{2:01}", min, sec, msec);
     };
 
-    std::string text = timeToString(position) + "/" + timeToString(duration);
+    std::string text = timeToString(position) + "/" + timeToString(duration) + "  ";
+    switch (handleApi.GetState(handle)) {
+    case SoundSystem::SoundState::Paused:
+        text += "[Paused]";
+        break;
+    case SoundSystem::SoundState::Playing:
+        text += "[Playing]";
+        break;
+    case SoundSystem::SoundState::Stopped:
+        text += "[Stopped]";
+        break;
+    case SoundSystem::SoundState::Invalid:
+    default:
+        text += "[Invalid]";
+        break;
+    }
     ui->labelPosition->setText(text.c_str());
 }
 

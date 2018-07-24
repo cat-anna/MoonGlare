@@ -81,6 +81,9 @@ public:
         return DecodeState::Continue;
     }
 
+    float GetDuration() const override {
+        return static_cast<float>(ModPlug_GetLength(modPlugFile.get())) / 1000.0f;
+    }
 private:
     StarVFS::ByteTable fileData;
     std::string fileName;

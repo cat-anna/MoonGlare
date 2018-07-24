@@ -140,6 +140,9 @@ public:
 
     }
 
+    float GetDuration() const override {
+        return -1.0f;
+    }
 private:
     StarVFS::ByteTable fileData;
     std::string fileName;

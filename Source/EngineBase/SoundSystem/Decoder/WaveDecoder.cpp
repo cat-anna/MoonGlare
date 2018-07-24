@@ -60,11 +60,24 @@ public:
             if (header.bitsPerSample == 8)
                 format = AL_FORMAT_MONO8;
         }
+        
         if (format == 0) {
             AddLogf(Error, "Unsupported wave format: %s", fileName.c_str());
             return false;
         }
 
+        const char *data = (char*)fileData.get();
+        size_t bytes = 0;
+        for (size_t position = sizeof(header); position < fileData.byte_size(); ) {
+            const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + position);
+            const char *dataPtr = data + position + sizeof(chunk);
+            position += sizeof(chunk);
+            position += chunk.size;
+
+            if (chunk.ID == ChunkId::DATA)
+                bytes += chunk.size;
+        }
+        duration = static_cast<float>(bytes) / static_cast<float>(header.sampleRate * header.numChannels * (header.bitsPerSample / 8));
         return true;
     }
 
@@ -97,12 +110,18 @@ public:
             return DecodeState::Completed;
         return DecodeState::LastBuffer;
     }
+
+    float GetDuration() const override {
+        return duration;
+    }
+
 private:
     StarVFS::ByteTable fileData;
     std::string fileName;
     size_t position = 0;
     wav_header_t header = {};
     ALenum format = 0;
+    float duration = -1;
 };
 
 //-------------------------------------------------------------

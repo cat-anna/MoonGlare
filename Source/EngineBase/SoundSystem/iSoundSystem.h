@@ -1,15 +1,12 @@
 #pragma once
 
 #include <Foundation/iFileSystem.h>
+#include "HandleApi.h"
 
 namespace MoonGlare::SoundSystem {
 
 enum class BitDepth {
     Bits16, Bits8,
-};
-
-enum class SoundKind {
-    Music, Effect,
 };
 
 struct Settings {
@@ -26,20 +23,6 @@ struct FormatInfo {
     std::string decoderName;
 };
 
-class iSound {
-public:
-    virtual ~iSound() {}
-
-    virtual void Play() = 0;
-    virtual void Pause() = 0;
-    virtual void Stop() = 0;
-    virtual float GetDuration() const = 0; // in sec
-    virtual float GetPosition() const = 0; // in sec
-    virtual bool IsPlaying() const = 0;
-
-    virtual void SetStopOnDestroy(bool value) = 0;
-};
-
 class iSoundSystem {
 public:
     virtual ~iSoundSystem() {}
@@ -50,7 +33,7 @@ public:
     virtual void Initialize(iFileSystem *fs) = 0;
     virtual void Finalize() = 0;
 
-    virtual std::unique_ptr<iSound> OpenSound(const std::string &uri, bool start = true, SoundKind kind = SoundKind::Music) = 0;
+    virtual HandleApi GetHandleApi() = 0;
 
     virtual std::vector<FormatInfo> GetSupportedFormats() = 0;
 
