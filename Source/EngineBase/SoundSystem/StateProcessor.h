@@ -43,6 +43,7 @@ struct SourceState {
     SourceCommand command = SourceCommand::None;
     bool streamFinished = false;
     bool releaseOnStop = false;
+    bool loop = false;
     uint8_t bufferCount = 0;
     SoundSource sourceHandle = InvalidSoundSource;
     std::string uri;
@@ -84,6 +85,7 @@ public:
     bool Open(Handle handle, const std::string &uri, SoundKind kind);
     float GetDuration(Handle handle) const;
     float GetTimePosition(Handle handle) const;
+    void SetLoop(Handle handle, bool value);
 private:
     iFileSystem * fileSystem = nullptr;
 

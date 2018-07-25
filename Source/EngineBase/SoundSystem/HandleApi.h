@@ -35,6 +35,8 @@ public:
     void Play(Handle handle) const;
     void Pause(Handle handle) const;
     void Stop(Handle handle) const;
+    void SetLoop(Handle handle, bool value) const;
+    bool GetLoop(Handle handle) const;
 
     float GetTimePosition(Handle handle) const;
     float GetDuration(Handle handle) const;

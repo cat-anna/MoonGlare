@@ -103,6 +103,12 @@ void HandleApi::Stop(Handle handle) const {
         stateProcessor->SetCommand(handle, SourceCommand::StopPlaying);
 }
 
+void HandleApi::SetLoop(Handle handle, bool value) const{
+    assert(stateProcessor);
+    if (stateProcessor)
+        stateProcessor->SetLoop(handle, value);
+}
+
 float HandleApi::GetTimePosition(Handle handle) const {
     assert(stateProcessor);
     if (stateProcessor)

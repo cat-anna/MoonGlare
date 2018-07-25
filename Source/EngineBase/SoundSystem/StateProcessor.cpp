@@ -441,6 +441,7 @@ SourceIndex StateProcessor::GetNextSource() {
     state.processedBytes = 0;
     state.processedSeconds = 0;
     state.duration = 0;
+    state.loop = false;
     if (sourceStateGeneration[(size_t)si] == InvalidHandleGeneration)
         ++sourceStateGeneration[(size_t)si];
     AddLogf(Debug, "Allocated source index:%d handle:%d", (int)si, (int)state.sourceHandle);
@@ -585,6 +586,13 @@ float StateProcessor::GetTimePosition(Handle handle) const {
         return -1.0f;
     auto &state = sourceState[(size_t)index];
     return state.processedSeconds + state.sourceHandle.GetTimePosition();
+}
+
+void StateProcessor::SetLoop(Handle handle, bool value) {
+    const auto[valid, index] = CheckHandle(handle);
+    if (!valid)
+        return;
+    sourceState[(size_t)index].loop = value;
 }
 
 //---------------------------
