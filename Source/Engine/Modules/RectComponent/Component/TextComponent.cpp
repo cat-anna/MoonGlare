@@ -12,7 +12,7 @@
 #include <Engine/DataClasses/iFont.h>
 #include "../nfGUI.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
@@ -42,7 +42,7 @@ RegisterComponentID<TextComponent>TextComponentIDReg("Text", true, &TextComponen
 
 //---------------------------------------------------------------------------------------
 
-TextComponent::TextComponent(ComponentManager * Owner)
+TextComponent::TextComponent(SubsystemManager * Owner)
 		: TemplateStandardComponent(Owner) {
 	m_RectTransform = nullptr;
 }

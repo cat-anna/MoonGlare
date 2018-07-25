@@ -18,10 +18,10 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class AbstractComponent;
-using UniqueAbstractComponent = mem::aligned_ptr<AbstractComponent>;
+class AbstractSystem;
+using UniqueAbstractSystem = mem::aligned_ptr<AbstractSystem>;
 
-class ComponentManager;
+class SubsystemManager;
 
 class TransformComponent;
 

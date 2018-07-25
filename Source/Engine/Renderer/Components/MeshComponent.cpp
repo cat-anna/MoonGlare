@@ -9,7 +9,7 @@
 
 #include "MeshComponent.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
@@ -26,7 +26,7 @@ namespace Component {
 ::Space::RTTI::TypeInfoInitializer<MeshComponent, MeshComponentEntry> MeshComponentTypeInfo;
 RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
 
-MeshComponent::MeshComponent(ComponentManager * Owner) 
+MeshComponent::MeshComponent(SubsystemManager * Owner) 
     : TemplateStandardComponent(Owner)
     , m_TransformComponent(nullptr)
 {

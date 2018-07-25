@@ -25,10 +25,10 @@ using namespace MoonGlare::Scripts;
 using namespace Core::Component;
 
 class ScriptComponent
-    : public AbstractComponent
+    : public AbstractSystem
     , public ComponentIDWrap<ComponentID::Script> {
 public:
-    ScriptComponent(ComponentManager *Owner);
+    ScriptComponent(SubsystemManager *Owner);
     virtual ~ScriptComponent();
     virtual bool Initialize() override;
     virtual bool Finalize() override;
@@ -118,7 +118,7 @@ private:
 //support functions
     int lua_GetScriptComponent(lua_State *lua, Entity Owner);
     int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
-    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr);
+    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractSystem *cptr);
     static int lua_DereferenceHandle(lua_State *lua);
     static int lua_SetComponentState(lua_State *lua);
 

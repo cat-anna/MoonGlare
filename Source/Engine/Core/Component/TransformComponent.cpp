@@ -6,9 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <MoonGlare.h>
-#include "ComponentManager.h"
+#include "SubsystemManager.h"
 #include "ComponentRegister.h"
-#include "AbstractComponent.h"
+#include "AbstractSystem.h"
 #include "TransformComponent.h"
 
 //#include <Core/Scene/ciScene.h>
@@ -24,8 +24,8 @@ namespace Component {
 ::Space::RTTI::TypeInfoInitializer<TransformComponent, TransformComponent::TransformEntry> TransformComponentTypeInfo;
 RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", true, &TransformComponent::RegisterScriptApi);
 
-TransformComponent::TransformComponent(ComponentManager * Owner) 
-		: AbstractComponent(Owner) {
+TransformComponent::TransformComponent(SubsystemManager * Owner) 
+		: AbstractSystem(Owner) {
 
 	DebugMemorySetParent(GetManager());
 	DebugMemorySetClassName("TransformComponent");

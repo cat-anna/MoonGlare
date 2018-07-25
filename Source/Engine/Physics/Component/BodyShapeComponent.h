@@ -11,7 +11,7 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 
 namespace MoonGlare {
 namespace Physics {
@@ -63,12 +63,12 @@ struct BodyShapeComponentEntry {
 };                
 
 class BodyShapeComponent
-    : public AbstractComponent
+    : public AbstractSystem
     , public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
 public:                    
     friend struct BodyShapeComponentEntry;
 
-    BodyShapeComponent(Core::Component::ComponentManager *Owner);
+    BodyShapeComponent(Core::Component::SubsystemManager *Owner);
     virtual ~BodyShapeComponent();
 
     virtual bool Initialize() override;

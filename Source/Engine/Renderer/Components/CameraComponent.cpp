@@ -10,7 +10,7 @@
 #include <Renderer/VirtualCamera.h>
 
 #include "CameraComponent.h"
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
@@ -30,7 +30,7 @@ namespace Component {
 ::Space::RTTI::TypeInfoInitializer<CameraComponent, CameraComponentEntry> CameraComponentTypeInfo;
 RegisterComponentID<CameraComponent> CameraComponentReg("Camera", true, &CameraComponent::RegisterScriptApi);
 
-CameraComponent::CameraComponent(ComponentManager *Owner)
+CameraComponent::CameraComponent(SubsystemManager *Owner)
         : TemplateStandardComponent(Owner) 
         , m_TransformComponent(nullptr) {
 }

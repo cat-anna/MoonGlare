@@ -8,9 +8,9 @@
 #include <nfMoonGlare.h>
 #include <Physics/nfPhysics.h>
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include <Core/Component/TransformComponent.h>
 #include "BodyShapeComponent.h"
 #include "BodyComponent.h"
@@ -57,8 +57,8 @@ private:
 ::Space::RTTI::TypeInfoInitializer<BodyShapeComponent, BodyShapeComponentEntry> BodyShapeComponentTypeInfo;
 Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", true, &BodyShapeComponent::RegisterScriptApi);
 
-BodyShapeComponent::BodyShapeComponent(Core::Component::ComponentManager *Owner)
-        : AbstractComponent(Owner) {
+BodyShapeComponent::BodyShapeComponent(Core::Component::SubsystemManager *Owner)
+        : AbstractSystem(Owner) {
 
     m_BodyComponent = nullptr;
     m_TransformComponent = nullptr;

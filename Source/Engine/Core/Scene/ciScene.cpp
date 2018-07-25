@@ -32,12 +32,12 @@ void ciScene::RegisterScriptApi(ApiInitializer &api) {
 bool ciScene::SpawnChildRaw(const char * URI, const char * Name) {
 	Entity e;
 	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name ? Name : "?", URI ? URI : "?");
-	return EntityBuilder(&m_ComponentManager).Build(m_ComponentManager.GetRootEntity(), URI, e, Name) ;
+	return EntityBuilder(&m_SubsystemManager).Build(m_SubsystemManager.GetRootEntity(), URI, e, Name) ;
 }
 
 bool ciScene::SpawnChild(const std::string & URI, std::string Name, Entity & out) {
 	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name.c_str(), URI.c_str());
-	return EntityBuilder(&m_ComponentManager).Build(m_ComponentManager.GetRootEntity(), URI.c_str(), out, std::move(Name)) ;
+	return EntityBuilder(&m_SubsystemManager).Build(m_SubsystemManager.GetRootEntity(), URI.c_str(), out, std::move(Name)) ;
 }
 ciScene::ciScene() { }
 ciScene::~ciScene() { }
@@ -45,7 +45,7 @@ ciScene::~ciScene() { }
 //----------------------------------------------------------------
 
 void ciScene::SendState(SceneState state) {
-    m_ComponentManager.GetEventDispatcher().Send<SceneStateChangeEvent>({ state, this });
+    m_SubsystemManager.GetEventDispatcher().Send<SceneStateChangeEvent>({ state, this });
 }
 
 void ciScene::BeginScene() {
@@ -70,19 +70,19 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
         return false;
     }
 
-    if (!m_ComponentManager.LoadComponents(Node.child("Components"))) {
+    if (!m_SubsystemManager.LoadComponents(Node.child("Components"))) {
         AddLogf(Error, "Failed to load components");
         return false;
     }
 
-    if (!m_ComponentManager.Initialize(this, root)) {
+    if (!m_SubsystemManager.Initialize(this, root)) {
         AddLogf(Error, "Failed to initialize component manager");
         return false;
     }
 
     SendState(SceneState::Created);                  
 
-    EntityBuilder(&m_ComponentManager).Build(root, Node.child("Entities"));
+    EntityBuilder(&m_SubsystemManager).Build(root, Node.child("Entities"));
 
     return true;
 }
@@ -90,7 +90,7 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 bool ciScene::Finalize() {
     //SendState(SceneState::);
 
-    if (!m_ComponentManager.Finalize()) {
+    if (!m_SubsystemManager.Finalize()) {
         AddLogf(Error, "Failed to finalize component manager");
         return false;
     }
@@ -101,7 +101,7 @@ bool ciScene::Finalize() {
 //----------------------------------------------------------------
 
 void ciScene::DoMove(const MoveConfig &conf) {
-    m_ComponentManager.Step(conf);
+    m_SubsystemManager.Step(conf);
 }
 
 //----------------------------------------------------------------

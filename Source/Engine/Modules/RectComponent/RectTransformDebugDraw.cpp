@@ -5,7 +5,7 @@
 #include <MoonGlare.h>
 
 #include "nfGUI.h"
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "Component/RectTransformComponent.h"
 #include "RectTransformDebugDraw.h"

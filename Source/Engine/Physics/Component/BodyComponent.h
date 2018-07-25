@@ -11,7 +11,7 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 
 namespace MoonGlare {
 namespace Physics {
@@ -20,10 +20,10 @@ namespace Component {
 using namespace ::Physics;
 
 class BodyComponent
-		: public Core::Component::AbstractComponent
+		: public Core::Component::AbstractSystem
 		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
 public:
-	BodyComponent(Core::Component::ComponentManager *Owner);
+	BodyComponent(Core::Component::SubsystemManager *Owner);
 	virtual ~BodyComponent();
 
 	virtual bool Initialize() override;

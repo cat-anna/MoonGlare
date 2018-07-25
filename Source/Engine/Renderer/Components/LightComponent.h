@@ -9,7 +9,7 @@
 #ifndef LightComponent_H
 #define LightComponent_H
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include "../Light.h"
 
 namespace MoonGlare {
@@ -57,7 +57,7 @@ static_assert(std::is_pod<LightComponentEntry>::value, "LightComponentEntry must
 class LightComponent 
 	: public TemplateStandardComponent<LightComponentEntry, ComponentID::Light> {
 public:
-	LightComponent(ComponentManager *Owner);
+	LightComponent(SubsystemManager *Owner);
 	virtual ~LightComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

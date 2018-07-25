@@ -26,7 +26,7 @@ using ApiInitFunc = void(*)(ApiInitializer &api);
 
 struct ComponentRegister {
 
-	using ComponentCreateFunc = mem::aligned_ptr<AbstractComponent>(*)(ComponentManager*);
+	using ComponentCreateFunc = mem::aligned_ptr<AbstractSystem>(*)(SubsystemManager*);
 	struct ComponentInfo {
 		ComponentID m_CID;
 		ComponentCreateFunc m_CreateFunc;
@@ -98,7 +98,7 @@ struct RegisterComponentID : public ComponentRegister {
 	}
 private:
 	template<typename CLASS>
-	static mem::aligned_ptr<AbstractComponent> Construct(ComponentManager* cm) { return mem::make_aligned<COMPONENT>(cm); }
+	static mem::aligned_ptr<AbstractSystem> Construct(SubsystemManager* cm) { return mem::make_aligned<COMPONENT>(cm); }
 
 	template<ComponentID value>
 	static int GetCID() {

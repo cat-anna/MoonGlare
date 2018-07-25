@@ -6,9 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "Component/ComponentManager.h"
+#include "Component/SubsystemManager.h"
 #include "Component/ComponentRegister.h"
-#include "Component/AbstractComponent.h"
+#include "Component/AbstractSystem.h"
 #include "EntityBuilder.h"
 
 namespace MoonGlare {
@@ -70,7 +70,7 @@ struct EntityBuilder::ImportData {
 
 //-------------------------------------------------------------------------------------------------
 
-EntityBuilder::EntityBuilder(Component::ComponentManager *Manager)
+EntityBuilder::EntityBuilder(Component::SubsystemManager *Manager)
         : m_Manager(Manager) {
 }
 

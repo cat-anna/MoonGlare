@@ -60,7 +60,7 @@ struct CameraComponentEntry {
 class CameraComponent 
 	: public TemplateStandardComponent<CameraComponentEntry, ComponentID::Camera, MoonGlare::Configuration::Storage::CameraComponent> {
 public:
-	CameraComponent(ComponentManager *Owner);
+	CameraComponent(SubsystemManager *Owner);
 	virtual ~CameraComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

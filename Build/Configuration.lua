@@ -36,7 +36,6 @@ local function SetCommonConfig()
 	--	"BOOST_NO_AUTO_PTR",
 	}
 	includedirs {
-		"../../../../../LibsC",
         dir.bin,
 		dir.base,
 		dir.base .. "Libs",
@@ -52,8 +51,6 @@ local function SetCommonConfig()
 	symbols "On"
 	flags { "NoMinimalRebuild", "MultiProcessorCompile", }
 
-	local GLOBAL_CONFIGURATION_FILE = dir.base .. "GlobalConfiguration.h"
-
 	filter "system:windows"
 		links { "opengl32", "glu32", "gdi32", }
 		defines{ "WINDOWS", "OS_NAME=\"Windows\"" }
@@ -66,13 +63,11 @@ local function SetCommonConfig()
 		buildoptions "-std=c++0y"
 		defines{
 			"GCC",
-			"GLOBAL_CONFIGURATION_FILE='\"" .. GLOBAL_CONFIGURATION_FILE .. "\"'",
 		}
 	filter "action:vs*"
 		links { }
 		defines{
 			"MSVC",
-			"GLOBAL_CONFIGURATION_FILE=\"" .. GLOBAL_CONFIGURATION_FILE .. "\"",
 		}
 		disablewarnings {
 			"4100", -- unreferenced formal parameter
@@ -92,16 +87,15 @@ local function SetCommonConfig()
 			"X32",
 			"PLATFORM_NAME=\"x32\"",
 		}
-		libdirs { "../../../../../LibsC" }		
+		libdirs { }		
 	filter "platforms:x64"
 		architecture "x64"
 		defines {
 			"X64",
 			"PLATFORM_NAME=\"x64\"",
 		}
-		libdirs { "../../../../../LibsC/x64" }
+		libdirs { }
 		
-
 	filter "configurations:Debug"
 		targetdir(dir.target)
 		defines {

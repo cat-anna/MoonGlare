@@ -7,9 +7,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include "ScriptComponent.h"
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/EntityBuilder.h>
 
@@ -71,8 +71,8 @@ namespace lua {
 ::Space::RTTI::TypeInfoInitializer<ScriptComponent, ScriptComponent::ScriptEntry> ScriptComponentTypeInfo;
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", true);
 
-ScriptComponent::ScriptComponent(ComponentManager *Owner)
-    : AbstractComponent(Owner) {
+ScriptComponent::ScriptComponent(SubsystemManager *Owner)
+    : AbstractSystem(Owner) {
 
     DebugMemorySetClassName("ScriptComponent");
     DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
@@ -666,7 +666,7 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
     return lua_MakeComponentInfo(lua, cid, ComponentHandle, cptr);
 }
 
-int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractComponent *cptr) {
+int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractSystem *cptr) {
     LuaStackOverflowAssert check(lua);
 
     lua_createtable(lua, 0, 5);
@@ -699,7 +699,7 @@ int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Hand
 
 int ScriptComponent::lua_DereferenceHandle(lua_State *lua) {
     void *voidcptr = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
-    AbstractComponent *cptr = reinterpret_cast<AbstractComponent*>(voidcptr);
+    AbstractSystem *cptr = reinterpret_cast<AbstractSystem*>(voidcptr);
 
     Handle h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
 
@@ -728,7 +728,7 @@ int ScriptComponent::lua_SetComponentState(lua_State *lua) {
     LuaStackOverflowAssert check(lua);
 
     void *voidcptr = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
-    AbstractComponent *cptr = reinterpret_cast<AbstractComponent*>(voidcptr);
+    AbstractSystem *cptr = reinterpret_cast<AbstractSystem*>(voidcptr);
 
     Handle h = Handle::FromVoidPtr(lua_touserdata(lua, lua_upvalueindex(lua::HandleUpValue)));
     int rets = 0;

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include <Core/Scripts/ScriptComponent.h>
 #include <Core/Scripts/ComponentEntryWrap.h>
 
@@ -91,7 +91,7 @@ public:
     static constexpr char *Name = "RectTransform";
     static constexpr bool PublishID = true;
 
-    RectTransformComponent(ComponentManager *Owner);
+    RectTransformComponent(SubsystemManager *Owner);
     virtual ~RectTransformComponent();
     virtual bool Initialize() override;
     virtual bool Finalize() override;

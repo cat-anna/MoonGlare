@@ -10,7 +10,7 @@ namespace Component {
 } //namespace Core 
 } //namespace MoonGlare 
 
-#include "AbstractComponent.h"
-#include "ComponentManager.h"
+#include "AbstractSystem.h"
+#include "SubsystemManager.h"
 
 #endif

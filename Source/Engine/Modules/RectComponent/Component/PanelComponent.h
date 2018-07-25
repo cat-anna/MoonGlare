@@ -10,7 +10,7 @@
 #define PanelComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include "../Margin.h"
 #include "../Animation.h"
 
@@ -68,7 +68,7 @@ struct PanelComponentEntry {
 class PanelComponent
 	: public TemplateStandardComponent<PanelComponentEntry, ComponentID::Panel> {
 public:
-	PanelComponent(ComponentManager *Owner);
+	PanelComponent(SubsystemManager *Owner);
  	virtual ~PanelComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

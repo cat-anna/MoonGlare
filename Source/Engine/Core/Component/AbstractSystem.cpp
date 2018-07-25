@@ -6,31 +6,31 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include "ComponentManager.h"
-#include "AbstractComponent.h"
+#include "SubsystemManager.h"
+#include "AbstractSystem.h"
 
 namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-AbstractComponent::AbstractComponent(ComponentManager * Owner)
+AbstractSystem::AbstractSystem(SubsystemManager * Owner)
 		: m_Owner(Owner) {
 	m_HandleTable = Owner->GetWorld()->GetHandleTable();
 }
 
-AbstractComponent::~AbstractComponent() {
+AbstractSystem::~AbstractSystem() {
 }
 
-bool AbstractComponent::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
+bool AbstractSystem::PushEntryToLua(Handle h, lua_State *lua, int &luarets) {
 	return false;
 }
 
-bool AbstractComponent::Create(Entity Owner, Handle &hout) {
+bool AbstractSystem::Create(Entity Owner, Handle &hout) {
 	AddLogf(Error, "Abstract function called! class: %s", typeid(*this).name());
 	return false;
 }
 
-bool AbstractComponent::LoadComponentConfiguration(pugi::xml_node node) {
+bool AbstractSystem::LoadComponentConfiguration(pugi::xml_node node) {
 	return true;
 }
 

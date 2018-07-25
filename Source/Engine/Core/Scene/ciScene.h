@@ -20,7 +20,7 @@ public:
 	ciScene();
 	~ciScene();
 
-	Component::ComponentManager& GetComponentManager() { return m_ComponentManager; }
+	Component::SubsystemManager& GetSubsystemManager() { return m_SubsystemManager; }
 	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
 
 	bool Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor);
@@ -35,7 +35,7 @@ public:
 	static void RegisterScriptApi(::ApiInitializer &api);
 
 protected:
-	Component::ComponentManager m_ComponentManager;
+	Component::SubsystemManager m_SubsystemManager;
 	SceneDescriptor *m_Descriptor = nullptr;
 
     void SendState(SceneState state);

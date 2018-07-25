@@ -11,7 +11,7 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include <Core/Scripts/ScriptComponent.h>
 #include <Core/Scripts/ComponentEntryWrap.h>
 
@@ -72,7 +72,7 @@ public:
     static constexpr char *Name = "Mesh";
     static constexpr bool PublishID = true;
 
-    MeshComponent(ComponentManager *Owner);
+    MeshComponent(SubsystemManager *Owner);
     virtual ~MeshComponent();
     virtual bool Initialize() override;
     virtual bool Finalize() override;

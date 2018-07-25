@@ -14,10 +14,10 @@ namespace Core {
 
 class EntityBuilder {
 public:
-    EntityBuilder(Component::ComponentManager *Manager);
+    EntityBuilder(Component::SubsystemManager *Manager);
     ~EntityBuilder();
 
-    static bool Build(Component::ComponentManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+    static bool Build(Component::SubsystemManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
         EntityBuilder eb(Manager);
         return eb.Build(Owner, PatternUri, eout, std::move(Name));
     }
@@ -27,7 +27,7 @@ public:
 
 protected:
     bool LoadComponent(Entity Owner, pugi::xml_node node, Handle &hout);
-    Component::ComponentManager *m_Manager;
+    Component::SubsystemManager *m_Manager;
 
     struct ImportData;
 

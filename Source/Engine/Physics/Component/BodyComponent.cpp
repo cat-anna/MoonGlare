@@ -9,9 +9,9 @@
 
 #include "../DebugDrawer.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include <Core/Component/TransformComponent.h>
 #include <Core/Scripts/ScriptComponent.h> 
 #include "BodyComponent.h"
@@ -29,8 +29,8 @@ namespace Component {
 ::Space::RTTI::TypeInfoInitializer<BodyComponent, BodyComponent::BodyEntry, BodyComponent::BulletMotionStateProxy, BodyComponent::BulletProxyCommon, BodyComponent::BulletRigidBody> BodyComponentTypeInfo;
 Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false, &BodyComponent::RegisterScriptApi);
 
-BodyComponent::BodyComponent(Core::Component::ComponentManager * Owner) 
-		: AbstractComponent(Owner) {
+BodyComponent::BodyComponent(Core::Component::SubsystemManager * Owner) 
+		: AbstractSystem(Owner) {
 
 	DebugMemorySetParent(GetManager());
 	DebugMemorySetClassName("BodyComponent");

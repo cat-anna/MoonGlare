@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 
 #include "LightComponent.h"
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TransformComponent.h>
 
@@ -26,7 +26,7 @@ namespace Component {
 ::Space::RTTI::TypeInfoInitializer<LightComponent, LightComponentEntry, Light::LightBase, Light::PointLight, Light::SpotLight, Light::DirectionalLight, Light::LightAttenuation> LightComponentTypeInfo;
 RegisterComponentID<LightComponent> LightComponentReg("Light", true, &LightComponent::RegisterScriptApi);
 
-LightComponent::LightComponent(ComponentManager * Owner) 
+LightComponent::LightComponent(SubsystemManager * Owner) 
         : TemplateStandardComponent(Owner) 
         , m_TransformComponent(nullptr) {
 }

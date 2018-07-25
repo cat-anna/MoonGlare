@@ -11,17 +11,17 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include "AbstractComponent.h"
+#include "AbstractSystem.h"
 
 namespace MoonGlare {
 namespace Core {
 namespace Component {
 
 class TransformComponent 
-	: public AbstractComponent
+	: public AbstractSystem
 	, public ComponentIDWrap<ComponentID::Transform>{
 public:
-	TransformComponent(ComponentManager *Owner);
+	TransformComponent(SubsystemManager *Owner);
 	virtual ~TransformComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

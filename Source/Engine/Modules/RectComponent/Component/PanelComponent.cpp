@@ -11,7 +11,7 @@
 #include <MoonGlare.h>
 #include "../nfGUI.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
@@ -42,7 +42,7 @@ RegisterComponentID<PanelComponent> PanelComponentIDReg("Panel", true, &PanelCom
 
 //---------------------------------------------------------------------------------------
 
-PanelComponent::PanelComponent(ComponentManager *Owner) 
+PanelComponent::PanelComponent(SubsystemManager *Owner) 
         : TemplateStandardComponent(Owner)
 {
     //memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));

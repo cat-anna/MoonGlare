@@ -10,7 +10,7 @@
 #define TextComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include <Foundation/TextProcessor.h>
 
 #include "../GUIShader.h"
@@ -79,7 +79,7 @@ struct alignas(16) TextComponentEntry {
 class TextComponent
 	: public TemplateStandardComponent<TextComponentEntry, ComponentID::Text> {
 public:
-	TextComponent(ComponentManager *Owner);
+	TextComponent(SubsystemManager *Owner);
 	virtual ~TextComponent();
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;

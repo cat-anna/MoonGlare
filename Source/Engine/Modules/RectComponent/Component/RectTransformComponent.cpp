@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 #include "../nfGUI.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
@@ -34,7 +34,7 @@ static bool gRectTransformDebugDraw = false;
 
 //---------------------------------------------------------------------------------------
 
-RectTransformComponent::RectTransformComponent(ComponentManager *Owner)
+RectTransformComponent::RectTransformComponent(SubsystemManager *Owner)
     : TemplateStandardComponent(Owner) {
 }
 

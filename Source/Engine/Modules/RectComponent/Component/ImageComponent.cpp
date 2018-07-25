@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 #include "../nfGUI.h"
 
-#include <Core/Component/ComponentManager.h>
+#include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include "RectTransformComponent.h"
 
@@ -38,7 +38,7 @@ RegisterComponentID<ImageComponent> ImageComponentIDReg("Image", true, &ImageCom
 
 //---------------------------------------------------------------------------------------
 
-ImageComponent::ImageComponent(ComponentManager *Owner) 
+ImageComponent::ImageComponent(SubsystemManager *Owner) 
         : TemplateStandardComponent(Owner)
 {
     m_RectTransform = nullptr;

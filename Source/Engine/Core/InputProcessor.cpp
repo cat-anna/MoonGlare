@@ -172,7 +172,7 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
 
     if (m_CharMode == CharMode::ScriptChar) {
         auto scene = m_World->GetScenesManager()->CurrentScene();
-        auto &cm = scene->GetComponentManager();
+        auto &cm = scene->GetSubsystemManager();
         auto &ed = cm.GetEventDispatcher();
         ed.SendTo(InputProcessorOnCharEvent{ (int)key }, m_CharReciver);
         return;
@@ -203,7 +203,7 @@ void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
         if (Pressed) {
             m_CharMode = CharMode::None;
             auto scene = m_World->GetScenesManager()->CurrentScene();
-            auto &cm = scene->GetComponentManager();
+            auto &cm = scene->GetSubsystemManager();
             auto &ed = cm.GetEventDispatcher();
             ed.SendTo(InputProcessorOnKeyEvent{ (int)KeyCode }, m_CharReciver);
         }

@@ -10,7 +10,7 @@
 #define ImageComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractComponent.h>
+#include <Core/Component/AbstractSystem.h>
 #include "../Animation.h"
 
 #include "../GUIShader.h"
@@ -74,7 +74,7 @@ struct ImageComponentEntry {
 class ImageComponent 
     : public TemplateStandardComponent<ImageComponentEntry, ComponentID::Image> {
 public:
-    ImageComponent(ComponentManager *Owner);
+    ImageComponent(SubsystemManager *Owner);
     virtual ~ImageComponent();
     virtual bool Initialize() override;
     virtual bool Finalize() override;
