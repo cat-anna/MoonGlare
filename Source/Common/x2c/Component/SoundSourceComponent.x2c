@@ -1,0 +1,60 @@
+Import "ComponentCommon.x2c"
+      
+namespace "MoonGlare.x2c.SoundSystem"
+
+Structure.field.prefix ""
+
+Enum.import {
+	name = "SoundState",
+	location = "::MoonGlare::SoundSystem::SoundState",
+	default = "Stopped",
+    values = { "Playing", "Paused", "Stopped", },
+}
+
+Enum.import {
+	name = "SoundKind",
+	location = "::MoonGlare::SoundSystem::SoundKind",
+	default = "Music",
+    values = { "Music", "Effect", },
+}
+
+--namespace "MoonGlare.x2c.SoundSystem.Component"
+
+Enum.import {
+	name = "PositionMode",
+	location = "::MoonGlare::SoundSystem::Component::PositionMode",
+	default = "Default",
+    values = { "None", "RelativeToListener", "Absolute", },
+}
+
+Structure.new {
+	name = "SoundSourceComponentData",
+	location = "::MoonGlare::SoundSystem::Component::SoundSourceComponentData",
+	fields = {
+		{
+			name = "positionMode",
+			description = "",
+			type = Local.PositionMode,
+			require = true,
+		},	
+		{
+			name = "state",
+			description = "",
+			type = Local.SoundState,
+			require = true,
+		},	
+		{
+			name = "loop",
+			description = "",
+			type = Global.bool,
+			require = false,
+            default = false,
+		},	        
+		{
+			name = "uri",
+			description = "",
+			type = Global.string,
+			require = true,
+		},	    		
+    },
+}
