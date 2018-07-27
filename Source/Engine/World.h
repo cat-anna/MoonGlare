@@ -1,6 +1,6 @@
 #pragma once
 
-#include <any>
+#include <EngineBase/InterfaceMap.h>
 
 #include "Core/EntityManager.h"
 #include "Core/HandleTable.h"
@@ -12,7 +12,7 @@ namespace MoonGlare {
 
 class iConsole;
 
-class World final {
+class World final : public InterfaceMap {
 public:
  	World();
  	~World();
@@ -43,25 +43,6 @@ public:
 
     void SetConsole(iConsole *c) { m_Console = c; }
     void SetStringTables(Resources::StringTables *st) { stringTables = st; }
-
-    template<typename T>
-    void SetInterface(T *t) {
-        auto intf = interfaces.find(std::type_index(typeid(T)));
-        if (intf == interfaces.end())
-            interfaces[std::type_index(typeid(T))] = t;
-        else
-            __debugbreak();
-    }
-    template<typename T>
-    T* GetInterface() {
-        auto intf = interfaces.find(std::type_index(typeid(T)));
-        if (intf == interfaces.end()) {
-            AddLogf(Error, "There is no interface %s", typeid(T).name());
-            __debugbreak();
-            return nullptr;
-        }
-        return std::any_cast<T*>(intf->second);
-    }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
@@ -76,7 +57,6 @@ private:
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
     Resources::StringTables *stringTables = nullptr;
 
-    std::unordered_map<std::type_index, std::any> interfaces;
 };
 
 } //namespace MoonGlare

@@ -82,6 +82,8 @@ bool World::Finalize() {
 		AddLogf(Error, "Failed to finalize EntityManager!");
 	}
 
+    ReleaseAllInterfaces();
+
 	return true;
 }
 

@@ -19,7 +19,7 @@ struct SoundPlayerModule
     , public QtShared::iEditorInfo
     , public QtShared::iEditorFactory
 {
-    std::unique_ptr<SoundSystem::iSoundSystem> soundSystem;
+    std::shared_ptr<SoundSystem::iSoundSystem> soundSystem;
 
     SoundPlayerModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
 
@@ -30,7 +30,7 @@ struct SoundPlayerModule
         if (!iModule::Initialize())
             return false;
 
-        soundSystem.reset(SoundSystem::iSoundSystem::CreateNew());
+        soundSystem = SoundSystem::iSoundSystem::Create();
         soundSystem->Initialize(GetModuleManager()->QuerryModule<iFileSystem>().get());
 
         return true;

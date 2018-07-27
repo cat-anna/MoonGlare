@@ -23,7 +23,9 @@
 #include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
-#include <DirectAnimationComponent.x2c.h>
+//#include <DirectAnimationComponent.x2c.h>
+#include <EngineBase/SoundSystem/Component/SoundSourceComponent.h>
+#include <SoundSourceComponent.x2c.h>
 
 #include "CustomType.h"
 #include "Structure.h"
@@ -74,6 +76,8 @@ enum class ComponentOrder {
     ImageComponent,
     PanelComponent,
     TextComponent,
+
+    SoundSource,
 
     Unknown = 0xFFFF,
 };
@@ -137,17 +141,17 @@ struct MeshComponentDesc {
 //	RegComponent<, EmptySettings >
 //("Mesh", "Mesh", ComponentID::Mesh, {});
 };		
-struct DirectAnimationComponentDesc {
-    using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
-    using Settings_t = EmptySettings;
-    static constexpr char *DisplayName = "DirectAnimation";
-    static constexpr char *Name = "DirectAnimation";
-    static constexpr ComponentID CID = ComponentID::DirectAnimation;
-    static constexpr ComponentID Depend = ComponentID::Transform;
-    static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
-    //	RegComponent<, EmptySettings >
-    //("Mesh", "Mesh", ComponentID::Mesh, {});
-};
+//struct DirectAnimationComponentDesc {
+//    using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
+//    using Settings_t = EmptySettings;
+//    static constexpr char *DisplayName = "DirectAnimation";
+//    static constexpr char *Name = "DirectAnimation";
+//    static constexpr ComponentID CID = ComponentID::DirectAnimation;
+//    static constexpr ComponentID Depend = ComponentID::Transform;
+//    static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
+//    //	RegComponent<, EmptySettings >
+//    //("Mesh", "Mesh", ComponentID::Mesh, {});
+//};
 
 struct ScriptComponentDesc {
     using Entry_t = ScriptComponent::ScriptEntry_t;
@@ -208,7 +212,7 @@ struct PanelComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::PanelComponent;
 };
 struct TextComponentDesc {
-    using Entry_t = TextComponent::TextEntry_t;
+    using Entry_t = x2c::SoundSystem::SoundSourceComponentData_t;
     using Settings_t = TextComponent::TextComponentSettings_t;
     static constexpr char *DisplayName = "Gui.Text";
     static constexpr char *Name = "Text";
@@ -217,6 +221,17 @@ struct TextComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::TextComponent;
 };
 //-------------------------------------
+struct SoundSourceComponentDesc {
+    using Entry_t = x2c::SoundSystem::SoundSourceComponentData_t;
+    using Settings_t = EmptySettings;
+    static constexpr char *DisplayName = "Sound.Source";
+    static constexpr char *Name = "SoundSource";
+    static constexpr ComponentID CID = ComponentID::SoundSource;
+    static constexpr ComponentID Depend = ComponentID::Invalid;
+    static constexpr ComponentOrder Order = ComponentOrder::SoundSource;
+};
+//-------------------------------------
+
 
 struct Register {
     Register() {
@@ -224,6 +239,11 @@ struct Register {
         RegEnum<ImageComponent::ImageScaleMode_TypeInfo>();
         RegEnum<TextComponent::TextAlignMode_TypeInfo>();
         RegEnum<BodyShapeComponent::ColliderType_TypeInfo>();
+
+        RegEnum<x2c::SoundSystem::PositionMode_TypeInfo>();
+        RegEnum<x2c::SoundSystem::SoundKind_TypeInfo>();
+        RegEnum<x2c::SoundSystem::SoundState_TypeInfo>();
+
         RegEnum<bool_TypeInfo>();
 
         RegComponent<ScriptComponentDesc>();
@@ -232,7 +252,7 @@ struct Register {
         RegComponent<LightComponentDesc>();
         RegComponent<CameraComponentDesc>();
         RegComponent<MeshComponentDesc>();
-        RegComponent<DirectAnimationComponentDesc>();
+        //RegComponent<DirectAnimationComponentDesc>();
         
         RegComponent<BodyComponentDesc>();
         RegComponent<BodyShapeComponentDesc>();
@@ -241,6 +261,9 @@ struct Register {
         RegComponent<ImageComponentDesc>();
         RegComponent<PanelComponentDesc>();
         RegComponent<TextComponentDesc>();
+
+        RegComponent<SoundSourceComponentDesc>();
+
 
         RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
     }

@@ -57,7 +57,7 @@ void DereferredPipeline::Finalize() {
 
 void DefferedSink::InitializeDirectionalQuad() {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
-    auto &matm = m_Renderer->GetResourceManager()->GetMaterialManager();
+    //auto &matm = m_Renderer->GetResourceManager()->GetMaterialManager();
     mm.Allocate(quadMesh);
 
     Renderer::Resources::MeshData meshData;
