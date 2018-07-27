@@ -11,7 +11,7 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 
 namespace MoonGlare {
 namespace Physics {
@@ -20,7 +20,7 @@ namespace Component {
 using namespace ::Physics;
 
 class BodyComponent
-		: public Core::Component::AbstractSystem
+		: public Core::Component::AbstractSubsystem
 		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
 public:
 	BodyComponent(Core::Component::SubsystemManager *Owner);
@@ -68,7 +68,7 @@ public:
 
 //		CollisionMask m_CollisionMask;
 
-		Configuration::RuntimeRevision m_Revision;
+        MoonGlare::Configuration::RuntimeRevision m_Revision;
 
 //		SharedShape m_Shape;
 //		vec3 m_BodyAngularFactor;
@@ -133,7 +133,7 @@ public:
 
 	static void RegisterScriptApi(ApiInitializer &api);
 protected:
-	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+	template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 
 	std::unique_ptr<btDefaultCollisionConfiguration> m_CollisionConfiguration;
 	std::unique_ptr<btCollisionDispatcher> m_Dispatcher;

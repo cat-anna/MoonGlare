@@ -10,7 +10,7 @@
 #define PanelComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include "../Margin.h"
 #include "../Animation.h"
 
@@ -43,7 +43,7 @@ struct PanelComponentEntry {
 	char padding[3];
 	PanelComponentEntryFlagsMap m_Flags;
 
-	Configuration::RuntimeRevision m_TransformRevision;
+    MoonGlare::Configuration::RuntimeRevision m_TransformRevision;
 
 	float m_Border;
 	math::vec4 m_Color;

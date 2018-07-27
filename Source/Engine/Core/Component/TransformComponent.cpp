@@ -8,7 +8,7 @@
 #include <MoonGlare.h>
 #include "SubsystemManager.h"
 #include "ComponentRegister.h"
-#include "AbstractSystem.h"
+#include "TemplateStandardComponent.h"
 #include "TransformComponent.h"
 
 //#include <Core/Scene/ciScene.h>
@@ -25,15 +25,7 @@ namespace Component {
 RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", true, &TransformComponent::RegisterScriptApi);
 
 TransformComponent::TransformComponent(SubsystemManager * Owner) 
-		: AbstractSystem(Owner) {
-
-	DebugMemorySetParent(GetManager());
-	DebugMemorySetClassName("TransformComponent");
-	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
-		counter.Allocated = m_Array.Allocated();
-		counter.Capacity = m_Array.Capacity();
-		counter.ElementSize = sizeof(TransformEntry);
-	});
+		: AbstractSubsystem(Owner) {
 }
 
 TransformComponent::~TransformComponent() {}

@@ -174,7 +174,7 @@ void Engine::EngineMain() {
         auto StartTime = clock::now();
         {
             conf.deferredSink->Reset(conf);
-            conf.TimeDelta = tdiff(LastMoveTime, CurrentTime);
+            conf.timeDelta = tdiff(LastMoveTime, CurrentTime);
             conf.globalTime = tdiff(EntryTime, CurrentTime);
             Ctx->Process();
             GetScriptEngine()->Step(conf);

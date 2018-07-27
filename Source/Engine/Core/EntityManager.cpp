@@ -13,12 +13,7 @@
 namespace MoonGlare {
 namespace Core {
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(EntityManager);
-//RegisterApiInstance(EntityManager, &ScriptEngine::Instance, "EntityManager");
-RegisterApiBaseClass(EntityManager, &EntityManager::RegisterScriptApi);
-
 EntityManager::EntityManager() {
-
 	DebugMemorySetClassName("EntityManager");
 	DebugMemoryRegisterCounter("Entities", [this](DebugMemoryCounter& counter) {
 		counter.Allocated = m_Allocator.Allocated();
@@ -27,26 +22,7 @@ EntityManager::EntityManager() {
 	});
 }
 
-EntityManager::~EntityManager() {
-}
-
-//---------------------------------------------------------------------------------------
-
-void EntityManager::RegisterScriptApi(ApiInitializer &root) {
-	//struct T {
-	//	int GetIndex() {
-	//		return ((Entity*)this)->GetIndex();
-	//	}
-	//};
-	//
-	//root
-	//.beginClass<Entity>("cEntity")
-	//.endClass()
-	//
-	//.beginClass<EntityManager>("cEntityManager")
-	//	.addFunction("IsValid", &EntityManager::IsValid)
-	//.endClass();
-}
+EntityManager::~EntityManager() { }
 
 //------------------------------------------------------------------------------------------
 

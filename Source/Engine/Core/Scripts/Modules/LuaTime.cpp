@@ -18,7 +18,7 @@ static int TimeIndex(lua_State *lua) {
 
     switch (Space::Utils::MakeHash32(what)) {
     case "delta"_Hash32:
-        lua_pushnumber(lua, w->GetEngine()->StepData().TimeDelta);
+        lua_pushnumber(lua, w->GetEngine()->StepData().timeDelta);
         return 1;
     case "global"_Hash32:
         lua_pushnumber(lua, w->GetEngine()->StepData().globalTime);

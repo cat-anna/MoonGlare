@@ -1,6 +1,6 @@
 #pragma once
 
-#define ASSERT_HANDLE_TYPE(TYPE, HANDLE) /* TBD */
+#include <EngineBase/Component/Entity.h>
 
 namespace MoonGlare {
 
@@ -106,22 +106,12 @@ namespace MoonGlare {
 
 using Configuration::HashID;
 
-using Entity = Space::Memory::TripleHandle32<
-			Configuration::Entity::GenerationBits,
-			Configuration::Entity::IndexBits,
-			Configuration::Entity::TypeBits//,
-		//	Configuration::Entity::ValueBits
-		>;
+using Entity = MoonGlare::Component::Entity;
+using Handle = MoonGlare::Component::Handle;
 
 using EntityNameHash = uint32_t;
 
-using Handle = Space::Memory::TripleHandle32<
-			Configuration::Handle::GenerationBits,
-			Configuration::Handle::IndexBits,
-			Configuration::Handle::TypeBits
-		>;
-
-using HandleIndex = Handle::Index_t;
+using HandleIndex = uint16_t;
 using HandleType = uint16_t;
 using HandleSet = std::vector<Handle>;
 

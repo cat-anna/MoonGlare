@@ -1,17 +1,10 @@
-/*
- * cInterfacesList.cpp
- *
- *  Created on: 03-11-2013
- *      Author: Paweu
- */
 #include <pch.h>
 #include <MoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Core/Interfaces.h"
 #include "Core/Component/ComponentRegister.h"
 
-namespace MoonGlare {
-namespace Core {
+                      namespace MoonGlare::Core {
 
 void Interfaces::DumpLists(ostream &out) {
 	auto regdump = [&out](const Space::TemplateClassListBase::ClassInfoBase &type) {
@@ -28,9 +21,6 @@ void Interfaces::DumpLists(ostream &out) {
 		out << r->GetCompilerName() << "\n";
 	};
 	Space::ClassListRegisterBase<>::EnumerateRegisters(func);
-
-	out << "\n";
 }
 
-} // namespace Core 
-} //namespace MoonGlare 
+} 

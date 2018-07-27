@@ -14,6 +14,7 @@
 #include "Core/Events.h"
 
 #include <Core/Scripts/LuaApi.h>
+#include <EngineBase/Component/ComponentInfo.h>
 
 namespace Config {
 namespace Debug {
@@ -70,6 +71,16 @@ void Initialize() {
 	//std::thread(&DebugThread).detach();
 #ifdef _BUILDING_ENGINE_
 #endif
+
+    std::stringstream ss;
+    ss << "\n";
+    MoonGlare::Core::Interfaces::DumpLists(ss);
+    ss << "\n";
+    MoonGlare::Core::BaseEventInfo::DumpClasses(ss);
+    ss << "\n";
+    MoonGlare::Component::BaseComponentInfo::Dump(ss);
+    ss << "\n";
+    AddLog(Debug, "DebugInfo: " << ss.str());
 }
 void Finalize() {
 	_ThreadCanContinue = false;
@@ -93,12 +104,6 @@ void Debug::DumpAll(const char* prefixname) {
 
 	std::ofstream ClassInfo((sprintf(buf, "logs/%s_ClassInfo.txt", prefixname), buf));
 	Space::RTTI::Tracker::DumpClasees(ClassInfo);
-
-	std::ofstream ClassLists((sprintf(buf, "logs/%s_ClassLists.txt", prefixname), buf));
-	MoonGlare::Core::Interfaces::DumpLists(ClassLists);
-
-	std::ofstream Events((sprintf(buf, "logs/EventTable.txt"), buf));
-	MoonGlare::Core::BaseEventInfo::DumpClasses(Events);
 }
 
 void Debug::CheckInstances() {

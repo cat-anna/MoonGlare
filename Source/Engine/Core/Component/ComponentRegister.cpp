@@ -6,11 +6,23 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
+#include <EngineBase/Component/iSubsystem.h>
+#include "SubsystemManager.h"
 #include "ComponentRegister.h"
+#include <EngineBase/SoundSystem/Component/SoundSubsystem.h>
 
 namespace MoonGlare {
 namespace Core {
 namespace Component {
+
+//
+struct SoundSubsystemWrap : SoundSystem::Component::SoundSubsystem, ComponentIDWrap<ComponentID::SoundSource> {
+    template<typename ... ARGS>
+    SoundSubsystemWrap(ARGS ... args) : SoundSubsystem(std::forward<ARGS>(args)...) { }
+};
+
+RegisterComponentID<SoundSubsystemWrap> SoundSubsystemIDReg("SoundSource", true, nullptr);
+//&TransformComponent::RegisterScriptApi);
 
 ComponentRegister::MapType *ComponentRegister::s_ComponentMap = nullptr;
 
@@ -23,7 +35,7 @@ void ComponentRegister::Dump(std::ostream &out) {
 
 	for (auto &it : *s_ComponentMap) {
 		char buffer[128];
-		sprintf_s(buffer, "\t%20s 0x%02d\n", it.first.c_str(), (unsigned)it.second->m_CID);
+		sprintf_s(buffer, "\t%20s 0x%02x[%3d]\n", it.first.c_str(), (unsigned)it.second->m_CID, (unsigned)it.second->m_CID);
 		out << buffer;
 	}
 }

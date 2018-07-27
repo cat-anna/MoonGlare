@@ -11,14 +11,14 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include "AbstractSystem.h"
+#include "TemplateStandardComponent.h"
 
 namespace MoonGlare {
 namespace Core {
 namespace Component {
 
 class TransformComponent 
-	: public AbstractSystem
+	: public AbstractSubsystem
 	, public ComponentIDWrap<ComponentID::Transform>{
 public:
 	TransformComponent(SubsystemManager *Owner);
@@ -58,7 +58,7 @@ public:
 		math::Transform m_GlobalTransform;
 //		Physics::Transform m_CenterOfMass;
 
-		Configuration::RuntimeRevision m_Revision;
+		MoonGlare::Configuration::RuntimeRevision m_Revision;
 
 		void Reset() {
 			m_Revision = 0;
@@ -96,13 +96,13 @@ public:
 	TransformEntry* GetEntry(Handle h);	 //return nullptr if h/e is not valid
 	TransformEntry* GetEntry(Entity e);	 //return nullptr if h/e is not valid
 
-	Configuration::RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
+    MoonGlare::Configuration::RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
 	static void RegisterScriptApi(ApiInitializer &root);
 protected:
-	template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+	template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 	Array<TransformEntry> m_Array;
 	EntityMapper m_EntityMapper;
-	Configuration::RuntimeRevision m_CurrentRevision;
+    MoonGlare::Configuration::RuntimeRevision m_CurrentRevision;
 	void ReleaseElement(size_t Index);
 };
 

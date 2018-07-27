@@ -10,7 +10,7 @@
 
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Component/TransformComponent.h>
 #include "BodyShapeComponent.h"
 #include "BodyComponent.h"
@@ -58,18 +58,10 @@ private:
 Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", true, &BodyShapeComponent::RegisterScriptApi);
 
 BodyShapeComponent::BodyShapeComponent(Core::Component::SubsystemManager *Owner)
-        : AbstractSystem(Owner) {
+        : AbstractSubsystem(Owner) {
 
     m_BodyComponent = nullptr;
     m_TransformComponent = nullptr;
-
-    DebugMemorySetParent(GetManager());
-    DebugMemorySetClassName("BodyShapeComponent");
-    DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
-        counter.Allocated = m_Array.Allocated();
-        counter.Capacity = m_Array.Capacity();
-        counter.ElementSize = sizeof(BodyShapeComponentEntry);
-    });
 }
 
 BodyShapeComponent::~BodyShapeComponent() {

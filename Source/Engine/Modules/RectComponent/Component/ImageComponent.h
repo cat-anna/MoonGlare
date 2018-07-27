@@ -10,7 +10,7 @@
 #define ImageComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include "../Animation.h"
 
 #include "../GUIShader.h"
@@ -57,7 +57,7 @@ struct ImageComponentEntry {
     SharedAnimation m_Animation;
     
     math::mat4 m_ImageMatrix;
-    Configuration::RuntimeRevision m_TransformRevision;
+    MoonGlare::Configuration::RuntimeRevision m_TransformRevision;
     
     void SetDirty() { m_Flags.m_Map.m_Dirty = true; m_TransformRevision = 0; }
     void Reset() {

@@ -25,7 +25,7 @@ public:
 
 	static const EventClassInfo& GetEventTypeInfo(EventClassID id) { return s_EventClassesTypeInfo[id]; }
 
-	static void DumpClasses(std::ofstream &output);
+	static void DumpClasses(std::ostream &output);
 protected:
 	template<class T>
 	static EventClassID AllocateEventClass() {

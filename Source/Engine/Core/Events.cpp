@@ -12,7 +12,7 @@ namespace MoonGlare::Core {
 EventClassID BaseEventInfo::s_IdAlloc = 0;
 BaseEventInfo::EventClassesTypeTable BaseEventInfo::s_EventClassesTypeInfo;
 
-void BaseEventInfo::DumpClasses(std::ofstream &output) {
+void BaseEventInfo::DumpClasses(std::ostream &output) {
 	output << "Event classes:\n";
 	output << "\n";
 

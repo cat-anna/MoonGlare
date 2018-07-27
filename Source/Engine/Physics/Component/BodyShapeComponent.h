@@ -11,7 +11,7 @@
 
 #include <libSpace/src/Container/StaticVector.h>
 
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 
 namespace MoonGlare {
 namespace Physics {
@@ -63,7 +63,7 @@ struct BodyShapeComponentEntry {
 };                
 
 class BodyShapeComponent
-    : public AbstractSystem
+    : public AbstractSubsystem
     , public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
 public:                    
     friend struct BodyShapeComponentEntry;
@@ -96,7 +96,7 @@ btBvhTriangleMeshShape
 */
     static void RegisterScriptApi(ApiInitializer &root);
 protected:
-    template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+    template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 
     BodyComponent *m_BodyComponent = nullptr;
     TransformComponent *m_TransformComponent = nullptr;

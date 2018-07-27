@@ -137,7 +137,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         if (!item.m_Flags.m_Map.m_Active)
             continue;
         
-        item.Update(conf.TimeDelta, *rtentry);
+        item.Update(conf.timeDelta, *rtentry);
         
         if (!item.m_Animation || !item.m_Animation->m_DrawEnabled)
             continue;

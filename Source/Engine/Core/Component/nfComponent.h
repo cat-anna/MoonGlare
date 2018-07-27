@@ -18,8 +18,6 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-class AbstractSystem;
-using UniqueAbstractSystem = mem::aligned_ptr<AbstractSystem>;
 
 class SubsystemManager;
 
@@ -48,6 +46,9 @@ enum class ComponentID : uint8_t {
 	Image			= 0x61,
 	Panel			= 0x62,
 	Text			= 0x63,
+
+ //Other
+    SoundSource = 0x70,
 };
 
 //template<ComponentID ID, HandleType HT>

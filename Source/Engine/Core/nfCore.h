@@ -1,5 +1,7 @@
 #pragma once
 
+#include <EngineBase/Component/iSubsystem.h>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -27,12 +29,7 @@ extern const char *VersionString;
 extern const char *ApplicationName;
 extern const char *CompilationDate;
 
-class TextProcessor;
-
-struct MoveConfig { 
-    double TimeDelta = 0.0f;
-    double globalTime = 0.0f;
-
+struct MoveConfig : MoonGlare::Component::SubsystemUpdateData {
 
     emath::fvec2 m_ScreenSize;
 

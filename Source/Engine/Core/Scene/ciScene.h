@@ -7,7 +7,7 @@
 #ifndef CISCENE_H_
 #define CISCENE_H_
 
-#include "../Component/nComponent.h"
+#include "../Component/SubsystemManager.h"
 #include "Scene.Events.h"
 
 namespace MoonGlare::Core::Scene {

@@ -10,7 +10,7 @@
 #define TextComponent_H
 
 #include "nfGUIComponent.h"
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include <Foundation/TextProcessor.h>
 
 #include "../GUIShader.h"

@@ -10,6 +10,7 @@
 #ifndef ScriptComponent_H
 #define ScriptComponent_H
 
+#include <Core/Component/TemplateStandardComponent.h>
 #include <libSpace/src/Container/StaticVector.h>
 #include <Core/Configuration.Core.h>
 
@@ -25,7 +26,7 @@ using namespace MoonGlare::Scripts;
 using namespace Core::Component;
 
 class ScriptComponent
-    : public AbstractSystem
+    : public AbstractSubsystem
     , public ComponentIDWrap<ComponentID::Script> {
 public:
     ScriptComponent(SubsystemManager *Owner);
@@ -79,7 +80,7 @@ public:
 protected:
     Scripts::ScriptEngine *m_ScriptEngine;
 
-    template<class T> using Array = Space::Container::StaticVector<T, Configuration::Storage::ComponentBuffer>;
+    template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
     Array<ScriptEntry> m_Array;
     EntityMapper m_EntityMapper;
 
@@ -118,7 +119,7 @@ private:
 //support functions
     int lua_GetScriptComponent(lua_State *lua, Entity Owner);
     int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
-    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, AbstractSystem *cptr);
+    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, iSubsystem *cptr);
     static int lua_DereferenceHandle(lua_State *lua);
     static int lua_SetComponentState(lua_State *lua);
 

@@ -8,7 +8,7 @@
 #include <nfMoonGlare.h>
 #include "Component/SubsystemManager.h"
 #include "Component/ComponentRegister.h"
-#include "Component/AbstractSystem.h"
+#include "Component/TemplateStandardComponent.h"
 #include "EntityBuilder.h"
 
 namespace MoonGlare {

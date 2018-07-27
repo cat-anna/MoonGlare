@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Scripts/ScriptComponent.h>
 #include <Core/Scripts/ComponentEntryWrap.h>
 
@@ -55,7 +55,7 @@ struct RectTransformComponentEntry {
     math::mat4 m_LocalMatrix;		//not pod
     Rect m_ScreenRect;				//not pod
 
-    Configuration::RuntimeRevision m_Revision;
+    MoonGlare::Configuration::RuntimeRevision m_Revision;
 
     void Recalculate(RectTransformComponentEntry &Parent);
 
@@ -165,7 +165,7 @@ public:
 protected:
     ScriptComponent *m_ScriptComponent;
     RectTransformSettingsFlagsMap m_Flags;
-    Configuration::RuntimeRevision m_CurrentRevision;
+    MoonGlare::Configuration::RuntimeRevision m_CurrentRevision;
     Point m_ScreenSize;
     Renderer::VirtualCamera m_Camera;
 

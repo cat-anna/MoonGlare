@@ -13,6 +13,8 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
+using namespace MoonGlare::Component;
+
 struct LuaMetamethods {
 	lua_CFunction m_Index = nullptr;
 	lua_CFunction m_NewIndex = nullptr;
@@ -26,7 +28,7 @@ using ApiInitFunc = void(*)(ApiInitializer &api);
 
 struct ComponentRegister {
 
-	using ComponentCreateFunc = mem::aligned_ptr<AbstractSystem>(*)(SubsystemManager*);
+	using ComponentCreateFunc = std::unique_ptr<iSubsystem>(*)(SubsystemManager*);
 	struct ComponentInfo {
 		ComponentID m_CID;
 		ComponentCreateFunc m_CreateFunc;
@@ -98,7 +100,7 @@ struct RegisterComponentID : public ComponentRegister {
 	}
 private:
 	template<typename CLASS>
-	static mem::aligned_ptr<AbstractSystem> Construct(SubsystemManager* cm) { return mem::make_aligned<COMPONENT>(cm); }
+	static UniqueSubsystem Construct(SubsystemManager* cm) { return std::make_unique<COMPONENT>(cm); }
 
 	template<ComponentID value>
 	static int GetCID() {

@@ -11,7 +11,7 @@
 
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/AbstractSystem.h>
+#include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Component/TransformComponent.h>
 #include <Core/Scripts/ScriptComponent.h> 
 #include "BodyComponent.h"
@@ -30,16 +30,7 @@ namespace Component {
 Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false, &BodyComponent::RegisterScriptApi);
 
 BodyComponent::BodyComponent(Core::Component::SubsystemManager * Owner) 
-		: AbstractSystem(Owner) {
-
-	DebugMemorySetParent(GetManager());
-	DebugMemorySetClassName("BodyComponent");
-	DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
-		counter.Allocated = m_Array.Allocated();
-		counter.Capacity = m_Array.Capacity();
-		counter.ElementSize = sizeof(BodyEntry);
-	});
-
+		: AbstractSubsystem(Owner) {
 	m_CollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
 	m_Dispatcher = std::make_unique<btCollisionDispatcher>(m_CollisionConfiguration.get());
 	m_Broadphase = std::make_unique<btDbvtBroadphase>();
@@ -184,7 +175,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	CollisionMap cmap;
     m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
 
-	m_DynamicsWorld->stepSimulation(conf.TimeDelta, 1, 1.0f / (60.0f));
+	m_DynamicsWorld->stepSimulation(conf.timeDelta, 1, 1.0f / (60.0f));
 
 	CollisionMap last;
 	last.swap(m_LastCollisions);

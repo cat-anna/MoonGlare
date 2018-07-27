@@ -10,6 +10,7 @@
 #define CameraComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
+#include <Core/Component/TemplateStandardComponent.h>
 
 namespace MoonGlare {
 namespace Renderer {

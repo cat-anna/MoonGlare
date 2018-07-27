@@ -13,6 +13,8 @@
 #include "Modules/LuaSettings.h"
 #include "Modules/StaticStorage.h"
 
+#include <Core/Component/ComponentRegister.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
@@ -54,7 +56,7 @@ void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 #endif
     .endClass()
     .beginClass<MoveConfig>("cMoveConfig")
-        .addData("TimeDelta", &MoveConfig::TimeDelta, false)
+        .addData("TimeDelta", &MoveConfig::timeDelta, false)
         .addData("SecondPeriod", &MoveConfig::m_SecondPeriod, false)
     .endClass();
 }
