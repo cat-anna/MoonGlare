@@ -19,7 +19,6 @@
 
 #include "iLuaRequire.h"
 #include <Core/Scripts/ScriptEngine.h>
-#include <Core/EventDispatcher.h>
 
 namespace MoonGlare::Core::Scripts::Component {
 using namespace MoonGlare::Scripts;

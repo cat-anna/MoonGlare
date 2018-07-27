@@ -54,10 +54,12 @@
 
 #include <pugixml.hpp>
 
+#include <boost/tti/has_member_function.hpp>
+
 #include "Config/Config.h"
 
 #include <lua.hpp>
-#include <Libs/LuaBridge/LuaBridge.h>
+#include <EngineBase/Script/LuaBridge/LuaBridge.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 #include <Foundation/PerfCounters.h>

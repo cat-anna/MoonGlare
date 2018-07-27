@@ -50,12 +50,7 @@
 using namespace Space::Utils::HashLiterals;
 
 #include <lua.hpp>
-#if defined(_USE_API_GENERATOR_)
-#include <ApiGen/ApiDefAutoGen.h>
-#elif defined(_DISABLE_SCRIPT_ENGINE_)
-#else
-#include <Libs/LuaBridge/LuaBridge.h>
-#endif
+#include <EngineBase/Script/LuaBridge/LuaBridge.h>
 
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>

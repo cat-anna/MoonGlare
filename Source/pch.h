@@ -53,12 +53,7 @@ using namespace Space::Utils::HashLiterals;
 
 //scripts
 #include <lua.hpp>
-#if defined(_USE_API_GENERATOR_)
-#include <ApiGen/ApiDefAutoGen.h>
-#elif defined(_DISABLE_SCRIPT_ENGINE_)
-#else
-#include <Libs/LuaBridge/LuaBridge.h>
-#endif
+#include <EngineBase/Script/LuaBridge/LuaBridge.h>
 
 class cRootClass;
 
@@ -82,27 +77,8 @@ class cRootClass;
 #include "Foundation/TemplateUtils.h"
 #include "Foundation/XMLUtils.h"
 
-namespace Core {
-	class Console;
-#if defined(_USE_API_GENERATOR_)
-	typedef ApiDefAutoGen::Namespace ApiInitializer;
-#elif defined(_DISABLE_SCRIPT_ENGINE_)
-	struct DummyApiInitializer {
-		template <class ... Args1, class ... Args2> DummyApiInitializer& beginClass(Args2 ... args) { return *this; }
-		template <class ... Args1, class ... Args2> DummyApiInitializer& deriveClass(Args2 ... args) { return *this; }
-		template <class ... Args1, class ... Args2> DummyApiInitializer& endClass(Args2 ... args) { return *this; }
-		template <class ... Args1, class ... Args2> DummyApiInitializer& beginNamespace(Args2 ... args) { return *this; }
-		template <class ... Args1, class ... Args2> DummyApiInitializer& endNamespace(Args2 ... args) { return *this; }
+#include <EngineBase/Script/ApiInit.h>
 
-		template <class ... Args1, class ... Args2> DummyApiInitializer& addFunction(Args2 ... args) { return *this; }
-		template <class ... Args1, class ... Args2> DummyApiInitializer& addVariable(Args2 ... args) { return *this; }
-	};
-	typedef DummyApiInitializer ApiInitializer;
-#else
-	typedef luabridge::Namespace ApiInitializer;
-#endif
-}
-
-using Core::ApiInitializer;
+using MoonGlare::Script::ApiInitializer;
                        
 #endif

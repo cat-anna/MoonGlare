@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <lua.hpp>
-#include <Libs/LuaBridge/LuaBridge.h>
+#include <EngineBase/Script/LuaBridge/LuaBridge.h>
 
 #include "ScriptApi.h"
 #include "Renderer.h"
