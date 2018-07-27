@@ -17,9 +17,12 @@ void BaseComponentInfo::Dump(std::ostream &output) {
 
         std::string flags;
 #ifdef DEBUG
-        flags += tinfo.pod ? "POD " : "CLASS ";
+        flags += tinfo.pod ? "POD" : "CLASS";
 #endif
-        output << fmt::format("{:2}. {:100} size:{:3} flags:{}\n", 
+        if (tinfo.apiInitFunc)
+            flags += ",SCRIPTAPI";
+
+        output << fmt::format("{:2}. {:100} size:{:3} flags:{:50}\n", 
             i, ttype.name(), tinfo.byteSize, flags);
     }
 }

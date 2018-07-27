@@ -5,18 +5,20 @@
 
 #include "Configuration.h"
 
+#include <EngineBase/Script/ApiInit.h>
+
 namespace MoonGlare::Component {
 
 using ComponentClassId = uint16_t;
 
 class BaseComponentInfo {
 public:
-    static ComponentClassId GetComponentClassesCount() { return idAlloc; }
+    static ComponentClassId GetUsedComponentTypes() { return idAlloc; }
     using Destructor = void(void*);
 
     struct ComponentClassInfo {
         size_t byteSize;
-        //ApiInitializer(*m_ApiInit)(ApiInitializer) = nullptr;
+        Script::ApiInitFunc apiInitFunc;
         const BaseComponentInfo *infoPtr = nullptr;
         Destructor *destructor;
 #ifdef DEBUG
@@ -37,7 +39,7 @@ protected:
     template<class T>
     static ComponentClassId AllocateComponentClass();
 private:
-    static ComponentClassId AllocateID() { return idAlloc++; }
+    static ComponentClassId AllocateId() { return idAlloc++; }
     static ComponentClassId idAlloc;
     using ComponentClassesTypeTable = std::array<ComponentClassInfo, Configuration::MaxComponentTypes>;
     static ComponentClassesTypeTable componentClassesTypeInfo;
@@ -45,28 +47,28 @@ private:
 
 template<class T>
 struct ComponentInfo : public BaseComponentInfo {
-    static ComponentClassId GetClassID() { return classId; }
+    static ComponentClassId GetClassId() { return classId; }
     //static_assert(std::is_pod<T>::value, "Component must be pod type!");
 
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
 private:
-    static ComponentClassId classId;
+    static const ComponentClassId classId;
 };
 
 template<typename T>
-ComponentClassId ComponentInfo<T>::classId = BaseComponentInfo::AllocateComponentClass<T>();
+const ComponentClassId ComponentInfo<T>::classId = BaseComponentInfo::AllocateComponentClass<T>();
 
 template<typename T>
-ComponentClassId ComponentClassIdValue = ComponentInfo<T>::GetClassID();
+ComponentClassId ComponentClassIdValue = ComponentInfo<T>::GetClassId();
 
 template<class T>
 static ComponentClassId BaseComponentInfo::AllocateComponentClass() {
-    auto id = AllocateID();
+    auto id = AllocateId();
     static const ComponentInfo<T> t;
     assert(id < Configuration::MaxComponentTypes);
     componentClassesTypeInfo[id] = {
         sizeof(T),
-        //&T::RegisterLuaApi,
+        Script::GetApiInitFunc<T>(),
         &t,
         &BaseComponentInfo::DestructorFunc<T>,
 #ifdef DEBUG

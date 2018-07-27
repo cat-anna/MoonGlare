@@ -26,7 +26,7 @@ public:
             return nullptr;
         }
         T* ptr = GetComponentMemory<T>(index);
-        return *reinterpret_cast<T*>(ptr);
+        return ptr;
     }
     template<typename T> T& GetComponent(Index index) {
         auto bitmask = MakeBitSet<T>();
@@ -97,7 +97,7 @@ private:
     template<typename T>
     T* GetComponentMemory(Index index) {
         auto[page, offset] = IndexToPage(index);
-        auto id = ComponentInfo<T>::GetClassID();
+        auto id = ComponentClassIdValue<T>;
         void *componentPageMemory = componentPageArray[page][id];
         assert(componentPageMemory);
         T *ptr = reinterpret_cast<T*>(componentPageMemory) + offset;
@@ -105,7 +105,7 @@ private:
     }
     template<typename T>
     T* GetComponentMemory(Index page, Index offset) {
-        auto id = ComponentInfo<T>::GetClassID();
+        auto id = ComponentClassIdValue<T>;
         void *componentPageMemory = componentPageArray[page][id];
         assert(componentPageMemory);
         T *ptr = reinterpret_cast<T*>(componentPageMemory) + offset;
@@ -117,7 +117,7 @@ private:
             assert(false);
             throw std::runtime_error("Invalid index!");
         }
-        uint16_t page = index / Configuration::ComponentsPerPage;
+        uint16_t page = static_cast<uint16_t>(index / Configuration::ComponentsPerPage);
         uint16_t offset = index % Configuration::ComponentsPerPage;
         EnsurePageExists(page);
         return { page, offset, };
@@ -127,21 +127,6 @@ private:
         if (!pageMemory[pageIndex] && !AllocatePage(pageIndex))
             throw std::runtime_error("Cannot allocate page!");
     }
-
-    //void* GetComponent(Index index, ComponentClassId classId) {
-    //    //todo
-    //    return nullptr;
-    //}
-    //void* AllocateComponent(Index index, ComponentClassId classId) {
-    //    //todo
-    //    return nullptr;
-    //}
-    //void ReleaseComponent(Index index, ComponentClassId classId) {
-    //    //todo
-    //}
-    //bool HasComponent(Index index, ComponentClassId classId) {
-    //    //todo
-    //}
 };
 
 }
