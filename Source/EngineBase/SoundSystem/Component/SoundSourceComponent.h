@@ -18,6 +18,7 @@ struct SoundSourceComponent  {
     SoundHandle handle;
     bool looped;
     bool finished;
+    Entity e;
 };
 
 }

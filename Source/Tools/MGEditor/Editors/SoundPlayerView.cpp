@@ -24,7 +24,7 @@ SoundPlayerView::SoundPlayerView(QWidget * parent, SoundSystem::iSoundSystem *ss
 
 SoundPlayerView::~SoundPlayerView() {
     handleApi.Close(handle, false);
-    handle = SoundSystem::Handle::Invalid;
+    handle = SoundSystem::SoundHandle::Invalid;
     ui.reset();
 }
 
@@ -33,7 +33,7 @@ bool SoundPlayerView::OpenData(const std::string &uri) {
 
     ui->labelURI->setText(uri.c_str());
     handle = handleApi.Open(uri, true, SoundSystem::SoundKind::Music, false);
-    if (handle == SoundSystem::Handle::Invalid) {
+    if (handle == SoundSystem::SoundHandle::Invalid) {
         //todo
     } else {
 

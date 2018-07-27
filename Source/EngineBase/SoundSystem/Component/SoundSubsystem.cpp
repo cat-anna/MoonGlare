@@ -1,17 +1,20 @@
 #include <InterfaceMap.h>
 #include "SoundSubsystem.h"
+#include "SoundSourceComponent.h"
 
 #include "../iSoundSystem.h"
 
-#include "SoundSourceComponent.h"
-#include <SoundSourceComponent.x2c.h>
-
 #include <EngineBase/Component/ComponentArray.h>
+#include <EngineBase/Component/EventDispatcher.h>
+
+#include "Events.h"
+
+#include <SoundSourceComponent.x2c.h>
                            
 namespace MoonGlare::SoundSystem::Component {
 
 SoundSubsystem::SoundSubsystem(iSubsystemManager *subsystemManager)
-    : iSubsystem() {
+    : iSubsystem(), subsystemManager(subsystemManager) {
 
     handleApi = subsystemManager->GetInterfaceMap().GetInterface<iSoundSystem>()->GetHandleApi();
     componentArray = &subsystemManager->GetComponentArray();
@@ -23,12 +26,14 @@ void SoundSubsystem::Update(const SubsystemUpdateData &data) {
     componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
 
         if (ssc.looped) {
-            //TODO
+            //TODO        
+            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{}, ssc.e);
             ssc.looped = false;
         }
 
         if (ssc.finished) {
             //TODO
+            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{}, ssc.e);
             ssc.finished = false;
         }
 
@@ -73,6 +78,7 @@ bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
         ssc.wantedState = SoundState::Invalid;
     ssc.uri = entry.uri;
     ssc.handle = handleApi.Open(entry.uri, false, SoundKind::Music, false);
+    ssc.e = Owner;
     handleApi.SetLoop(ssc.handle, entry.loop);
     handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIndex());
     //handleApi.SetSourcePositionMode(ssc.handle, entry.positionMode);

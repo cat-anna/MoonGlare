@@ -30,7 +30,7 @@ private:
     std::unique_ptr<QTimer> timer;
     SoundSystem::iSoundSystem *soundSystem;
     SoundSystem::HandleApi handleApi;
-    SoundSystem::Handle handle = SoundSystem::Handle::Invalid;
+    SoundSystem::SoundHandle handle = SoundSystem::SoundHandle::Invalid;
 };
 
 } 

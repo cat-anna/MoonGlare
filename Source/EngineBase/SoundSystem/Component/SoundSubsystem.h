@@ -35,6 +35,7 @@ private:
 
     HandleApi handleApi;
     ComponentArray *componentArray;
+    iSubsystemManager *subsystemManager;
     PlaybackWatcher playbackWatcher{ this };
 
     void OnPlaybackFinished(SoundHandle handle, UserData userData);
