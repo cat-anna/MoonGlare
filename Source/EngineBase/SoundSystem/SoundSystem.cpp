@@ -2,14 +2,16 @@
 
 namespace MoonGlare::SoundSystem {
 
-iSoundSystem* iSoundSystem::CreateNew() {
-    return new SoundSystem();
+std::shared_ptr<iSoundSystem> iSoundSystem::Create() {
+    return std::make_shared<SoundSystem>();
 }
 
 //------------------------------------------------------------------
 
 SoundSystem::SoundSystem() { }
-SoundSystem::~SoundSystem() { }
+SoundSystem::~SoundSystem() { 
+    Finalize();
+}
 
 Settings SoundSystem::GetSettings() {
     assert(false);
@@ -32,7 +34,7 @@ void SoundSystem::Initialize(iFileSystem * fs) {
 
 void SoundSystem::Finalize() {
     if (!workThread)
-        throw std::runtime_error("Not Initialized");
+        return;
 
     workThread->Finalize();
     workThread.reset();

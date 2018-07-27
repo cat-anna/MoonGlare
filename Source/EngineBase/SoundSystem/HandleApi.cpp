@@ -1,4 +1,3 @@
-
 #include "HandleApi.h"
 #include "StateProcessor.h"
 
@@ -11,38 +10,45 @@ HandleApi::~HandleApi() {
     stateProcessor = nullptr;
 }
 
-bool HandleApi::IsHandleValid(Handle handle) const {
+void HandleApi::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) const {
+    assert(stateProcessor);
+    if (!stateProcessor)
+        return;
+    stateProcessor->SetCallback(handle, iface, userData);
+}
+
+bool HandleApi::IsSoundHandleValid(SoundHandle handle) const {
     assert(stateProcessor);
     if (!stateProcessor)
         return false;
-    return stateProcessor->IsHandleValid(handle);
+    return stateProcessor->IsSoundHandleValid(handle);
 }
 
-void HandleApi::Close(Handle handle, bool ContinuePlaying){
+void HandleApi::Close(SoundHandle handle, bool ContinuePlaying){
     assert(stateProcessor);
     if (stateProcessor) {
         SetReleaseOnStop(handle, !ContinuePlaying);
         if (!ContinuePlaying)
             Stop(handle);
-        stateProcessor->CloseHandle(handle);
+        stateProcessor->CloseSoundHandle(handle);
     }
 }
 
-Handle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
+SoundHandle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
     assert(stateProcessor);
     if (!stateProcessor)
-        return Handle::Invalid;
+        return SoundHandle::Invalid;
 
-    Handle handle = stateProcessor->AllocateSource();
-    if (handle == Handle::Invalid) {
+    SoundHandle handle = stateProcessor->AllocateSource();
+    if (handle == SoundHandle::Invalid) {
         //todo: log error
-        return Handle::Invalid;
+        return SoundHandle::Invalid;
     }
 
     if (!stateProcessor->Open(handle, uri, kind)) {
         stateProcessor->ReleaseSource(handle);
         //todo: log error
-        return Handle::Invalid;
+        return SoundHandle::Invalid;
     }
 
     //std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start, SoundKind kind) {
@@ -64,7 +70,7 @@ Handle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKind kin
     return handle;
 }
 
-SoundState HandleApi::GetState(Handle handle) const {
+SoundState HandleApi::GetState(SoundHandle handle) const {
     assert(stateProcessor);
     if (!stateProcessor)
         return SoundState::Invalid;
@@ -85,76 +91,76 @@ SoundState HandleApi::GetState(Handle handle) const {
     }
 }
 
-void HandleApi::Play(Handle handle) const {
+void HandleApi::Play(SoundHandle handle) const {
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetCommand(handle, SourceCommand::ResumePlaying);
 }
 
-void HandleApi::Pause(Handle handle) const {
+void HandleApi::Pause(SoundHandle handle) const {
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetCommand(handle, SourceCommand::Pause);
 }
 
-void HandleApi::Stop(Handle handle) const {
+void HandleApi::Stop(SoundHandle handle) const {
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetCommand(handle, SourceCommand::StopPlaying);
 }
 
-void HandleApi::SetLoop(Handle handle, bool value) const{
+void HandleApi::SetLoop(SoundHandle handle, bool value) const{
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetLoop(handle, value);
 }
 
-float HandleApi::GetTimePosition(Handle handle) const {
+float HandleApi::GetTimePosition(SoundHandle handle) const {
     assert(stateProcessor);
     if (stateProcessor)
         return stateProcessor->GetTimePosition(handle);
     return -1;
 }
 
-float HandleApi::GetDuration(Handle handle) const {
+float HandleApi::GetDuration(SoundHandle handle) const {
     assert(stateProcessor);
     if (stateProcessor)
         return stateProcessor->GetDuration(handle);
     return -1;
 }
 
-void HandleApi::SetSourceGain(Handle handle, float gain) const {
+void HandleApi::SetSourceGain(SoundHandle handle, float gain) const {
     assert(stateProcessor);
     //todo
 }
 
-float HandleApi::GetSourceGain(Handle handle) const {
+float HandleApi::GetSourceGain(SoundHandle handle) const {
     assert(stateProcessor);
     //todo
     return -1;
 }
 
-void HandleApi::SetSourcePosition(Handle handle, const Vector coord) const {
+void HandleApi::SetSourcePosition(SoundHandle handle, const Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetSourcePosition(Handle handle, Vector coord) const {
+void HandleApi::GetSourcePosition(SoundHandle handle, Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetSourceVelocity(Handle handle, const Vector coord) const {
+void HandleApi::SetSourceVelocity(SoundHandle handle, const Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetSourceVelocity(Handle handle, Vector coord) const {
+void HandleApi::GetSourceVelocity(SoundHandle handle, Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetRelativeToListenerPosition(Handle handle, bool value) {
+void HandleApi::SetRelativeToListenerPosition(SoundHandle handle, bool value) {
     assert(stateProcessor);
     //todo
 }
@@ -170,27 +176,27 @@ float HandleApi::GetListenerGain() const {
     return -1;
 }
 
-void HandleApi::SetListenerPosition(Handle handle, const Vector coord) const {
+void HandleApi::SetListenerPosition(SoundHandle handle, const Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetListenerPosition(Handle handle, Vector coord) const {
+void HandleApi::GetListenerPosition(SoundHandle handle, Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetListenerVelovity(Handle handle, const Vector coord) const {
+void HandleApi::SetListenerVelovity(SoundHandle handle, const Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetListenerVelovity(Handle handle, Vector coord) const {
+void HandleApi::GetListenerVelovity(SoundHandle handle, Vector coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetReleaseOnStop(Handle handle, bool value) {
+void HandleApi::SetReleaseOnStop(SoundHandle handle, bool value) {
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetReleaseOnStop(handle, value);

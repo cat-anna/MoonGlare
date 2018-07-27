@@ -5,9 +5,19 @@
 namespace MoonGlare::SoundSystem {
 
 class StateProcessor;
+using UserData = uintptr_t;
 
-enum class Handle : uint32_t {
+enum class SoundHandle : uint32_t {
     Invalid = 0,
+};
+
+class iPlaybackWatcher {
+public:
+    //TODO: add some safety mechanism
+
+    //virtual void OnStarted(SoundHandle handle, UserData userData) = 0;
+    virtual void OnFinished(SoundHandle handle, UserData userData) {}
+    virtual void OnLoop(SoundHandle handle, UserData userData) {}
 };
 
 enum class SoundState {
@@ -26,37 +36,39 @@ public:
 
     using Vector = float[3];
 
-    bool IsHandleValid(Handle handle) const;
-    void Close(Handle handle, bool ContinuePlaying = false);
-    Handle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Music, bool ReleaseOnStop = true);
+    bool IsSoundHandleValid(SoundHandle handle) const;
+    void Close(SoundHandle handle, bool ContinuePlaying = false);
+    SoundHandle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Music, bool ReleaseOnStop = true);
 
-    SoundState GetState(Handle handle) const;
+    SoundState GetState(SoundHandle handle) const;
 
-    void Play(Handle handle) const;
-    void Pause(Handle handle) const;
-    void Stop(Handle handle) const;
-    void SetLoop(Handle handle, bool value) const;
-    bool GetLoop(Handle handle) const;
+    void SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) const;
 
-    float GetTimePosition(Handle handle) const;
-    float GetDuration(Handle handle) const;
+    void Play(SoundHandle handle) const;
+    void Pause(SoundHandle handle) const;
+    void Stop(SoundHandle handle) const;
+    void SetLoop(SoundHandle handle, bool value) const;
+    bool GetLoop(SoundHandle handle) const;
 
-    void SetSourceGain(Handle handle, float gain) const;
-    float GetSourceGain(Handle handle) const;
-    void SetSourcePosition(Handle handle, const Vector coord) const;
-    void GetSourcePosition(Handle handle, Vector coord) const;
-    void SetSourceVelocity(Handle handle, const Vector coord) const;
-    void GetSourceVelocity(Handle handle, Vector coord) const;
-    void SetRelativeToListenerPosition(Handle handle, bool value);
+    float GetTimePosition(SoundHandle handle) const;
+    float GetDuration(SoundHandle handle) const;
+
+    void SetSourceGain(SoundHandle handle, float gain) const;
+    float GetSourceGain(SoundHandle handle) const;
+    void SetSourcePosition(SoundHandle handle, const Vector coord) const;
+    void GetSourcePosition(SoundHandle handle, Vector coord) const;
+    void SetSourceVelocity(SoundHandle handle, const Vector coord) const;
+    void GetSourceVelocity(SoundHandle handle, Vector coord) const;
+    void SetRelativeToListenerPosition(SoundHandle handle, bool value);
 
     void SetListenerGain(float gain) const;
     float GetListenerGain() const;
-    void SetListenerPosition(Handle handle, const Vector coord) const;
-    void GetListenerPosition(Handle handle, Vector coord) const;
-    void SetListenerVelovity(Handle handle, const Vector coord) const;
-    void GetListenerVelovity(Handle handle, Vector coord) const;
+    void SetListenerPosition(SoundHandle handle, const Vector coord) const;
+    void GetListenerPosition(SoundHandle handle, Vector coord) const;
+    void SetListenerVelovity(SoundHandle handle, const Vector coord) const;
+    void GetListenerVelovity(SoundHandle handle, Vector coord) const;
 
-    void SetReleaseOnStop(Handle handle, bool value);
+    void SetReleaseOnStop(SoundHandle handle, bool value);
 private:
     StateProcessor *stateProcessor = nullptr;
 };

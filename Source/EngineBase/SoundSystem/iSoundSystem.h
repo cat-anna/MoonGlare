@@ -37,7 +37,7 @@ public:
 
     virtual std::vector<FormatInfo> GetSupportedFormats() = 0;
 
-    static iSoundSystem* CreateNew();
+    static std::shared_ptr<iSoundSystem> Create();
 };
 
 }
