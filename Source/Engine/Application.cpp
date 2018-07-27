@@ -31,6 +31,8 @@
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
 
+#include <EngineBase/SoundSystem/iSoundSystem.h>
+
 #include <boost/algorithm/string.hpp>
 
 namespace MoonGlare {
@@ -135,6 +137,10 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Unable to initialize modules manager";
     }
 
+    auto ss = SoundSystem::iSoundSystem::Create();
+    ss->Initialize(GetFileSystem());
+    m_World->SetSharedInterface(ss);
+
     auto scrEngine = new ScriptEngine(m_World.get());
     m_World->SetScriptEngine(scrEngine);
     _init_chk(scrEngine, "Unable to initialize script engine!");
@@ -165,7 +171,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         AddLogf(Error, "Failed to initialize world!");
         throw "Failed to initialize world!";
     }
-
 
     if (m_Configuration->m_Core.m_EnableConsole) {
         auto c = new Modules::BasicConsole();
@@ -236,6 +241,8 @@ void Application::Finalize() {
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
 
     SaveSettings();
+
+    //m_World->GetSharedInterface<SoundSystem::iSoundSystem>()->Finalize();
 
     auto Console = dynamic_cast<Modules::BasicConsole*>(m_World->GetConsole());
     m_World->SetConsole(nullptr);
