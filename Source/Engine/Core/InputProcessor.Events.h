@@ -15,7 +15,7 @@ struct InputProcessorOnCharEvent {
         return out;
     }
 
-    static ApiInitializer RegisterLuaApi(ApiInitializer api) {
+    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
         return api
             .beginClass<InputProcessorOnCharEvent>("InputProcessorOnCharEvent")
                 .addData("char", &InputProcessorOnCharEvent::m_Char, false)
@@ -38,7 +38,7 @@ struct InputProcessorOnKeyEvent {
         return out;
     }
 
-    static ApiInitializer RegisterLuaApi(ApiInitializer api) {
+    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
         return api
             .beginClass<InputProcessorOnKeyEvent>("InputProcessorOnKeyEvent")
                 .addData("key", &InputProcessorOnKeyEvent::m_Key, false)

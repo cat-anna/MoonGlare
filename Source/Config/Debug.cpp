@@ -1,20 +1,12 @@
-/*
- * Debug.cpp
- *
- * Source file for debug configuration
- *
- *  Created on: 03-08-2013
- *      Author: Paweu
- */
 #include <pch.h>
 #ifdef DEBUG
 #include <MoonGlare.h>
 
 #include "Core/Interfaces.h"
-#include "Core/Events.h"
 
 #include <Core/Scripts/LuaApi.h>
 #include <EngineBase/Component/ComponentInfo.h>
+#include <EngineBase/Component/EventInfo.h>
 
 namespace Config {
 namespace Debug {
@@ -72,15 +64,20 @@ void Initialize() {
 #ifdef _BUILDING_ENGINE_
 #endif
 
-    std::stringstream ss;
-    ss << "\n";
-    MoonGlare::Core::Interfaces::DumpLists(ss);
-    ss << "\n";
-    MoonGlare::Core::BaseEventInfo::DumpClasses(ss);
-    ss << "\n";
-    MoonGlare::Component::BaseComponentInfo::Dump(ss);
-    ss << "\n";
-    AddLog(Debug, "DebugInfo: " << ss.str());
+    using DumpFunc = void(*)(std::ostream &out);
+
+    DumpFunc DumpFuncArr[] = {
+        &MoonGlare::Core::Interfaces::DumpLists,
+        &MoonGlare::Component::BaseEventInfo::Dump,
+        &MoonGlare::Component::BaseComponentInfo::Dump,
+    };
+
+    for (auto func : DumpFuncArr) {
+        std::stringstream ss;
+        ss << "\n";
+        func(ss);
+        AddLog(Debug, ss.str());
+    }
 }
 void Finalize() {
 	_ThreadCanContinue = false;
@@ -89,9 +86,6 @@ void Finalize() {
 //---------------------------------------------------------------------------------------
 void Debug::DumpRuntime() {
 	REQUIRE_REIMPLEMENT();
-//#ifndef _DISABLE_LOG_SYSTEM_
-	//GabiLib::GabiTracker::DumpInstances(__CreateLog(Debug));
-//#endif
 }
 
 #ifdef _BUILDING_ENGINE_

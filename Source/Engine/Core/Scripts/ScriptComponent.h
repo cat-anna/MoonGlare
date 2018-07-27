@@ -12,7 +12,6 @@
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include <libSpace/src/Container/StaticVector.h>
-#include <Core/Configuration.Core.h>
 
 #include <Foundation/Scripts/ErrorHandling.h>
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>

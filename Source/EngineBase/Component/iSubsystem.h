@@ -22,6 +22,7 @@ public:
     virtual ~iSubsystemManager() {}
     virtual InterfaceMap& GetInterfaceMap() = 0;
     virtual ComponentArray& GetComponentArray() = 0;
+    virtual EventDispatcher& GetEventDispatcher() = 0;
 };
 
 class iSubsystem {

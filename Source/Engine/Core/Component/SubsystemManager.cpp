@@ -19,13 +19,6 @@ SubsystemManager::SubsystemManager()
     componentArray = std::make_unique<MoonGlare::Component::ComponentArray>();
 
     m_World = GetEngine()->GetWorld();//TODO
-
-    DebugMemorySetClassName("SubsystemManager");
-    DebugMemoryRegisterCounter("IndexUsage", [this](DebugMemoryCounter& counter) {
-        counter.Allocated = m_UsedCount;
-        counter.Capacity = m_ComponentsIDs.size();
-        counter.ElementSize = sizeof(UniqueSubsystem) + sizeof(ComponentID);
-    });
 }
 
 SubsystemManager::~SubsystemManager() {
@@ -55,14 +48,12 @@ bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
 
     auto sc = GetComponent<Scripts::Component::ScriptComponent>();
 
-    m_EventDispatcher.Initialize(GetWorld(), sc->GetEventSink());
+    m_EventDispatcher.SetEventSink(GetWorld()->GetScriptEngine()->GetLua(), sc->GetEventSink());
 
     return true;
 }
 
 bool SubsystemManager::Finalize() {
-    m_EventDispatcher.Finalize();
-
     for (size_t i = 0; i < m_UsedCount; ++i) {
         if (!m_Components[i]->Finalize()) {
             AddLogf(Error, "Failed to initialize component: %s", typeid(*m_Components[i].get()).name());
