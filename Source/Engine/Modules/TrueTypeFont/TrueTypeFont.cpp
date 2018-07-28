@@ -361,6 +361,10 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
                 bitmap.width, bitmap.rows
             );
     }
+    else {
+        //glyph->m_Loaded = true;
+    }
+    FT_Done_Glyph(ffglyph);
     return glyph.get();
 }
 
