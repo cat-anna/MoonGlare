@@ -38,22 +38,32 @@ static_assert(sizeof(SoundHandle) == sizeof(SoundHandleComposite));
 
 struct SourceState {
     //TODO: split for public and private part
+    //TODO: fadein/out support
+    //TODO: make watcherInterface not per stream
     using conf = MoonGlare::SoundSystem::Configuration;
 
     SourceStatus status = SourceStatus::Invalid;
-    SourceCommand command = SourceCommand::None;
+    SourceCommand command = SourceCommand::None;  //atomic?
     bool streamFinished = false;
     bool releaseOnStop = false;
     bool loop = false;
+    bool reopen = false;                     //atomic?
     uint8_t bufferCount = 0;
     SoundSource sourceSoundHandle = InvalidSoundSource;
-    std::string uri;
+    std::unique_ptr<char[]> uri;             //atomic?
     std::unique_ptr<Decoder::iDecoder> decoder;
 
     uint32_t processedBuffers = 0;
     uint32_t processedBytes = 0;
     float processedSeconds = 0;
     float duration = 0;
+
+    void ResetStatistics() {
+        processedBuffers = 0;
+        processedBytes = 0;
+        processedSeconds = 0;
+        duration = 0;
+    }
 
     iPlaybackWatcher *watcherInterface = nullptr;
     UserData userData = 0;
@@ -90,7 +100,10 @@ public:
     float GetDuration(SoundHandle handle) const;
     float GetTimePosition(SoundHandle handle) const;
     void SetLoop(SoundHandle handle, bool value);
+    bool GetLoop(SoundHandle handle);
     void SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData);
+    void ReopenStream(SoundHandle handle, const char *uri);
+    const char *GetStreamURI(SoundHandle handle);
 private:
     iFileSystem * fileSystem = nullptr;
 
@@ -141,7 +154,7 @@ private:
     SourceIndex GetNextSource();
     void ReleaseSource(SourceIndex s);
 
-    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const std::string &uri);
+    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const char* uri);
 
     SoundHandle GetSoundHandle(SourceIndex s);
     std::pair<bool, SourceIndex> CheckSoundHandle(SoundHandle h) const;

@@ -25,11 +25,8 @@ private:
         SoundSubsystem *sss;
     public:
         PlaybackWatcher(SoundSubsystem *sss) : sss(sss) {}
-        void OnFinished(SoundHandle handle, UserData userData) override {
-            sss->OnPlaybackFinished(handle, userData);
-        }
-        void OnLoop(SoundHandle handle, UserData userData) override {
-            sss->OnPlaybackLoop(handle, userData);
+        void OnFinished(SoundHandle handle, bool loop, UserData userData) override {
+            sss->OnPlaybackFinished(handle, loop, userData);
         }
     };
 
@@ -38,8 +35,7 @@ private:
     iSubsystemManager *subsystemManager;
     PlaybackWatcher playbackWatcher{ this };
 
-    void OnPlaybackFinished(SoundHandle handle, UserData userData);
-    void OnPlaybackLoop(SoundHandle handle, UserData userData);
+    void OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData);
 };
 
 }

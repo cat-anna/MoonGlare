@@ -70,6 +70,20 @@ SoundHandle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKin
     return handle;
 }
 
+void HandleApi::ReopenStream(SoundHandle handle, const char *uri) {
+    assert(stateProcessor);
+    if (!stateProcessor)
+        return;
+    stateProcessor->ReopenStream(handle, uri);
+}   
+
+const char *HandleApi::GetStreamURI(SoundHandle handle) {
+    assert(stateProcessor);
+    if (!stateProcessor)
+        return nullptr;
+    return stateProcessor->GetStreamURI(handle);
+}
+
 SoundState HandleApi::GetState(SoundHandle handle) const {
     assert(stateProcessor);
     if (!stateProcessor)
@@ -113,6 +127,13 @@ void HandleApi::SetLoop(SoundHandle handle, bool value) const{
     assert(stateProcessor);
     if (stateProcessor)
         stateProcessor->SetLoop(handle, value);
+}
+
+bool HandleApi::GetLoop(SoundHandle handle) const{
+    assert(stateProcessor);
+    if (stateProcessor)
+        return stateProcessor->GetLoop(handle);
+    return false;
 }
 
 float HandleApi::GetTimePosition(SoundHandle handle) const {

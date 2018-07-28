@@ -7,6 +7,15 @@
 
 namespace MoonGlare::SoundSystem {
 
+char *copystr(const char *str) {
+    if (!str) return nullptr;
+    char *r = new char[strlen(str) + 1];
+    std::strcpy(r, str);
+    return r;
+}
+
+//---------------------------
+
 StateProcessor::StateProcessor(iFileSystem * fs) : fileSystem(fs) { }
 StateProcessor::~StateProcessor() {}
 
@@ -86,7 +95,6 @@ void StateProcessor::CheckOpenAlError() const {
     }
 }
 
-
 //---------------------------
 
 void StateProcessor::Step() {
@@ -164,11 +172,17 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         }
 
+        if (state.reopen) {
+            //todo: ugly
+            state.status = SourceStatus::InitPending;
+            continue;
+        }
+
         switch (state.command) {
         case SourceCommand::ResumePlaying:
             if (state.Playable() && state.status != SourceStatus::Playing) {
                 if (state.status == SourceStatus::Paused) {
-                    AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+                    AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                     state.sourceSoundHandle.Play();
                     CheckOpenAlError();
                 }
@@ -184,7 +198,7 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         case SourceCommand::Pause:
             if (state.status == SourceStatus::Playing) {
-                AddLogf(Debug, "Playing paused: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+                AddLogf(Debug, "Playing paused: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                 state.sourceSoundHandle.Pause();
                 CheckOpenAlError();
                 state.status = SourceStatus::Paused;
@@ -195,11 +209,9 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
                 state.status = SourceStatus::Stopped;
                 state.sourceSoundHandle.Stop();
                 state.decoder->Reset();
-                state.processedBuffers = 0;
-                state.processedBytes = 0;
-                state.processedSeconds = 0;
+                state.ResetStatistics(); 
                 ReleaseSourceBufferQueue(state);
-                AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+                AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
             }
             break;
 
@@ -249,7 +261,7 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
             CheckOpenAlError();
             state.sourceSoundHandle.Play();
             CheckOpenAlError();
-            AddLogf(Debug, "Playback started %s Source:%d", state.uri.c_str(), (int)state.sourceSoundHandle);
+            AddLogf(Debug, "Playback started %s Source:%d", state.uri.get(), (int)state.sourceSoundHandle);
         }
         return;
     }
@@ -258,16 +270,11 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
         if (state.streamFinished && state.sourceSoundHandle.GetState() == AL_STOPPED) {
             CheckOpenAlError();
             state.status = SourceStatus::Stopped;
-            if (state.loop) {
+            if (state.loop) 
                 state.command = SourceCommand::ResumePlaying;
-                if (state.watcherInterface)
-                    state.watcherInterface->OnLoop(GetSoundHandle(index), state.userData);
-            }
-            else {
-                if (state.watcherInterface)
-                    state.watcherInterface->OnFinished(GetSoundHandle(index), state.userData);
-            }
-            AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
+            if (state.watcherInterface)
+                state.watcherInterface->OnFinished(GetSoundHandle(index), state.loop, state.userData);
+            AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
         }
     }
 }
@@ -309,19 +316,22 @@ void StateProcessor::ReleaseSourceBufferQueue(SourceState &state) {
 }
 
 bool StateProcessor::InitializeSource(SourceState &state) {
-    auto factory = FindFactory(state.uri);
+    auto factory = FindFactory(state.uri.get());
     if (!factory)
         return false;
+    state.reopen = false;
+    state.ResetStatistics();
     state.decoder = factory->CreateDecoder();
     if (!state.decoder)
         return false;
 
     StarVFS::ByteTable data;
-    if (!fileSystem->OpenFile(data, state.uri)) {
+    std::string uri = state.uri.get(); //todo this makes a copy!
+    if (!fileSystem->OpenFile(data, uri)) {
         return false;
     }
 
-    if (!state.decoder->SetData(std::move(data), state.uri)) {
+    if (!state.decoder->SetData(std::move(data), uri)) {
         return false;
     }
     if (!state.decoder->Reset())
@@ -445,11 +455,9 @@ SourceIndex StateProcessor::GetNextSource() {
     state.command = SourceCommand::None;
     state.releaseOnStop = false;
     state.streamFinished = false;
-    state.processedBuffers = 0;
-    state.processedBytes = 0;
-    state.processedSeconds = 0;
-    state.duration = 0;
+    state.ResetStatistics();
     state.loop = false;
+    state.reopen = false;
     state.watcherInterface = nullptr;
     state.userData = 0;
     if (sourceStateGeneration[(size_t)si] == InvalidSoundHandleGeneration)
@@ -568,8 +576,7 @@ bool StateProcessor::Open(SoundHandle handle, const std::string &uri, SoundKind 
     if (state.status != SourceStatus::Inactive)
         return false;
 
-    std::string cpy = uri;
-    state.uri.swap(cpy);
+    state.uri.reset(copystr(uri.c_str()));
     assert(!state.decoder);
     state.decoder.reset();
 
@@ -605,6 +612,13 @@ void StateProcessor::SetLoop(SoundHandle handle, bool value) {
     sourceState[(size_t)index].loop = value;
 }
 
+bool StateProcessor::GetLoop(SoundHandle handle) {
+    const auto[valid, index] = CheckSoundHandle(handle);
+    if (!valid)
+        return false;
+    return sourceState[(size_t)index].loop;
+}
+
 void StateProcessor::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) {
     const auto[valid, index] = CheckSoundHandle(handle);
     if (!valid)
@@ -619,10 +633,28 @@ void StateProcessor::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, Us
     state.watcherInterface = iface;
 }
 
+void StateProcessor::ReopenStream(SoundHandle handle, const char *uri) {
+    const auto[valid, index] = CheckSoundHandle(handle);
+    if (!valid)
+        return;
+
+    auto &state = sourceState[(size_t)index];
+    state.uri.reset(copystr(uri));
+    state.reopen = true;
+    state.command = SourceCommand::None;
+}
+
+const char *StateProcessor::GetStreamURI(SoundHandle handle) {
+    const auto[valid, index] = CheckSoundHandle(handle);
+    if (!valid)
+         return nullptr;
+    return sourceState[(size_t)index].uri.get();
+}
+
 //---------------------------
 
-std::shared_ptr<Decoder::iDecoderFactory> StateProcessor::FindFactory(const std::string &uri) {
-    const char *ext = strrchr(uri.c_str(), '.');
+std::shared_ptr<Decoder::iDecoderFactory> StateProcessor::FindFactory(const char *uri) {
+    const char *ext = strrchr(uri, '.');
     if (!ext)
         return nullptr;
 

@@ -13,56 +13,48 @@
                            
 namespace MoonGlare::SoundSystem::Component {
 
+HandleApi SoundSourceComponent::handleApi;
+
+//---------------------------------------------------------
+
 SoundSubsystem::SoundSubsystem(iSubsystemManager *subsystemManager)
     : iSubsystem(), subsystemManager(subsystemManager) {
 
     handleApi = subsystemManager->GetInterfaceMap().GetInterface<iSoundSystem>()->GetHandleApi();
     componentArray = &subsystemManager->GetComponentArray();
+
+    SoundSourceComponent::handleApi = handleApi;
 }
 
-SoundSubsystem::~SoundSubsystem() {}
+SoundSubsystem::~SoundSubsystem() {
+    //todo: remove this workaround
+    componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
+        handleApi.SetCallback(ssc.handle, nullptr, 0);
+        handleApi.Close(ssc.handle, false);
+    });
+
+    SoundSourceComponent::handleApi = HandleApi();
+}
 
 void SoundSubsystem::Update(const SubsystemUpdateData &data) {
     componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
-
-        if (ssc.looped) {
+        if (ssc.finishEvent) {
             //TODO        
-            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{}, ssc.e);
-            ssc.looped = false;
+            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{ handleApi.GetLoop(ssc.handle) }, ssc.e);
+            ssc.finishEvent = false;
         }
 
-        if (ssc.finished) {
-            //TODO
-            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{}, ssc.e);
-            ssc.finished = false;
-        }
+        //if (ssc.uriChanged) {
+        //    handleApi.Close(ssc.handle, false);
+        //    ssc.handle = handleApi.Open(ssc.uri, false, SoundKind::Music, false);
+        //    handleApi.SetCallback(ssc.handle, &playbackWatcher, index);
+        //    ssc.uriChanged = false;
+        //}
 
-        if (ssc.wantedState == SoundState::Invalid)
-            return;
-
-        auto currentState = handleApi.GetState(ssc.handle);
-        if (currentState == SoundState::Invalid) {
-            assert(false);
-            handleApi.Close(ssc.handle, false);
-            ssc.handle = SoundHandle::Invalid;
-            componentArray->RemoveComponent<SoundSourceComponent>(index);
-            return;
-        }
-        if (ssc.wantedState == currentState)
-            return;
-
-        switch (ssc.wantedState) {
-        case SoundState::Playing:
+        if (ssc.autostart) {
+            ssc.autostart = false;
             handleApi.Play(ssc.handle);
-            break;
-        case SoundState::Paused:
-            handleApi.Pause(ssc.handle);
-            break;
-        case SoundState::Stopped:
-            handleApi.Stop(ssc.handle);
-            break;
         }
-        ssc.wantedState = SoundState::Invalid;
     });
 }
 
@@ -73,27 +65,20 @@ bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
 
     SoundSourceComponent &ssc = componentArray->AssignComponent<SoundSourceComponent>(Owner.GetIndex());
 
-    ssc.wantedState = entry.state;
-    if (ssc.wantedState == SoundState::Stopped)
-        ssc.wantedState = SoundState::Invalid;
-    ssc.uri = entry.uri;
-    ssc.handle = handleApi.Open(entry.uri, false, SoundKind::Music, false);
     ssc.e = Owner;
-    handleApi.SetLoop(ssc.handle, entry.loop);
+    ssc.finishEvent = false;
+    ssc.autostart = entry.state == SoundState::Playing;
+    ssc.handle = SoundHandle::Invalid;
+    ssc.handle = handleApi.Open(entry.uri, false, SoundKind::Music, false);
     handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIndex());
-    //handleApi.SetSourcePositionMode(ssc.handle, entry.positionMode);
+
+    return true;
 }
 
-void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, UserData userData) {
+void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData) {
     auto *ssc = componentArray->QuerryComponent<SoundSourceComponent>(userData);
     if (ssc)
-        ssc->finished = true;
-}
-
-void SoundSubsystem::OnPlaybackLoop(SoundHandle handle, UserData userData) {
-    auto *ssc = componentArray->QuerryComponent<SoundSourceComponent>(userData);
-    if (ssc)
-        ssc->looped = true;
+        ssc->finishEvent = true;
 }
 
 }

@@ -16,8 +16,7 @@ public:
     //TODO: add some safety mechanism
 
     //virtual void OnStarted(SoundHandle handle, UserData userData) = 0;
-    virtual void OnFinished(SoundHandle handle, UserData userData) {}
-    virtual void OnLoop(SoundHandle handle, UserData userData) {}
+    virtual void OnFinished(SoundHandle handle, bool loop, UserData userData) {}
 };
 
 enum class SoundState {
@@ -39,6 +38,8 @@ public:
     bool IsSoundHandleValid(SoundHandle handle) const;
     void Close(SoundHandle handle, bool ContinuePlaying = false);
     SoundHandle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Music, bool ReleaseOnStop = true);
+    void ReopenStream(SoundHandle handle, const char *uri);
+    const char *GetStreamURI(SoundHandle handle);
 
     SoundState GetState(SoundHandle handle) const;
 

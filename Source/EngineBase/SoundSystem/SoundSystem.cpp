@@ -3,7 +3,13 @@
 namespace MoonGlare::SoundSystem {
 
 std::shared_ptr<iSoundSystem> iSoundSystem::Create() {
-    return std::make_shared<SoundSystem>();
+    static std::weak_ptr<iSoundSystem> weakPtr;
+    auto ret = weakPtr.lock();
+    if (!ret) {
+        ret = std::make_shared<SoundSystem>();
+        weakPtr = ret;
+    }
+    return ret;
 }
 
 //------------------------------------------------------------------
