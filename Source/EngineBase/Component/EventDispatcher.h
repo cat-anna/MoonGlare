@@ -4,8 +4,6 @@
 #include "Configuration.h"
 #include "EventInfo.h"
 
-//#include <Core/Scripts/ScriptEngine.h>
-
 namespace MoonGlare::Component {
 
 class EventScriptSink {
@@ -46,7 +44,7 @@ protected:
         HandlerFunction m_Function;
         void Call(const void * event) { m_Function(m_Reciver, event); }
     };
-    std::vector < HandlerCaller > m_Handlers;
+    std::vector<HandlerCaller> m_Handlers;
 };
 
 class EventDispatcher {

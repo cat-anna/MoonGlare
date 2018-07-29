@@ -24,7 +24,7 @@ bool ComponentArray::AllocatePage(unsigned pageIndex) {
     offsets.fill(-1);
 
     int offset = 0;
-    for (size_t cindex = 0; cindex < offsets.size(); ++cindex) {
+    for (ComponentClassId cindex = 0; cindex < offsets.size(); ++cindex) {
         auto &info = BaseComponentInfo::GetComponentTypeInfo(cindex);
 
         if (!info.infoPtr)
@@ -59,7 +59,7 @@ void ComponentArray::ReleaseComponents(Index index) {
     if (componentValidArray[index] == 0)
         return;
 
-    for (size_t cindex = 0; cindex < Configuration::MaxComponentTypes; ++cindex) {
+    for (ComponentClassId cindex = 0; cindex < Configuration::MaxComponentTypes; ++cindex) {
         auto &info = BaseComponentInfo::GetComponentTypeInfo(cindex);
         if (!info.infoPtr)
             continue;
@@ -74,7 +74,7 @@ void ComponentArray::ReleaseComponents(Index index) {
 }
 
 void ComponentArray::ReleaseAllComponents() {
-    for (size_t index = 0; index < Configuration::MaxComponent; ++index) {
+    for (ComponentClassId index = 0; index < Configuration::MaxComponent; ++index) {
         ReleaseComponents(index);
     }
 }

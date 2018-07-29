@@ -1,9 +1,3 @@
-/*
- * LuaApi.cpp
- *
- *  Created on: 03-08-2013
- *      Author: Paweu
- */
 #include <pch.h>
 #include <MoonGlare.h>
 #include <cmath>
@@ -13,6 +7,9 @@
 
 #include <Modules/ModuleManager.h>
 #include <Core/Component/ComponentRegister.h>
+
+#include <EngineBase/Component/EventInfo.h>
+#include <EngineBase/Component/ComponentInfo.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -150,6 +147,14 @@ void ApiInit::Initialize(ScriptEngine *s) {
                     continue;
                 nComponent.addProperty(ci.m_Name, ci.m_GetCID, (void(*)(int))nullptr);
             }
+            using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
+            auto maxid = BaseComponentInfo::GetUsedComponentTypes();
+            for (decltype(maxid) it = 0; it < maxid; ++it) {
+                auto &info = BaseComponentInfo::GetComponentTypeInfo(it);
+                if (info.apiInitFunc) {
+                    nComponent.addVariable(info.componentName, const_cast<Component::ComponentClassId*>(&info.id), false);
+                }
+            }
             nComponent.endNamespace();
             ++ApiInitFunctionsRun;
         }
@@ -157,13 +162,11 @@ void ApiInit::Initialize(ScriptEngine *s) {
             auto &ci = *it.second;
             if (!ci.m_ApiRegFunc)
                 continue;
-
+            ++ApiInitFunctionsRun;
             s->GetApiInitializer()
                 .beginNamespace("api")
                     .beginNamespace("Component")
                         .DefferCalls([ci](auto &n) { ci.m_ApiRegFunc(n); });
-
-            ++ApiInitFunctionsRun;
         }
     }
 
@@ -173,14 +176,28 @@ void ApiInit::Initialize(ScriptEngine *s) {
         for (decltype(maxid) it = 0; it < maxid; ++it) {
             auto info = BaseEventInfo::GetEventTypeInfo(it);
             if (info.apiInitFunc) {
+                ++ApiInitFunctionsRun;
                 s->GetApiInitializer()
                     .beginNamespace("api")
-                        .beginNamespace("Events")
+                        .beginNamespace("Event")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }
         }
     }
-
+    {
+        using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
+        auto maxid = BaseComponentInfo::GetUsedComponentTypes();
+        for (decltype(maxid) it = 0; it < maxid; ++it) {
+            auto info = BaseComponentInfo::GetComponentTypeInfo(it);
+            if (info.apiInitFunc) {
+                ++ApiInitFunctionsRun;
+                s->GetApiInitializer()
+                    .beginNamespace("api")
+                        .beginNamespace("Component")
+                            .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
+            }
+        }
+    }
 #ifdef _FEATURE_EXTENDED_PERF_COUNTERS_
     std::chrono::high_resolution_clock::time_point tend = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(tend - tstart).count() / 1000.0f;

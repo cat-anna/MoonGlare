@@ -65,10 +65,10 @@ public:
 
     template<typename T, typename F> void ForEach(F func) {
         auto bitmask = MakeBitSet<T>();
-        for (uint32_t pageIndex = 0; pageIndex < componentPageArray.size(); ++pageIndex) {
+        for (uint16_t pageIndex = 0; pageIndex < componentPageArray.size(); ++pageIndex) {
             if (!pageMemory[pageIndex])
                 continue;
-            for (uint32_t offset = 0; offset < Configuration::ComponentsPerPage; ++offset) {
+            for (uint16_t offset = 0; offset < Configuration::ComponentsPerPage; ++offset) {
                 uint32_t index = pageIndex * Configuration::ComponentsPerPage + offset;
                 if ((componentValidArray[index] & bitmask) != bitmask)
                     continue;
@@ -77,6 +77,13 @@ public:
                 func(index, *t);
             }
         }
+    }
+
+    void* GetComponentPointer(Index index, ComponentClassId cci) {
+        auto bitmask = 1 << cci;
+        if ((componentValidArray[index] & bitmask) == 0)
+            return nullptr;
+        return GetComponentMemory(index, cci);
     }
 
     void ReleaseAllComponents();
@@ -94,6 +101,14 @@ private:
 
     bool AllocatePage(unsigned pageIndex);
 
+    void* GetComponentMemory(Index index, ComponentClassId cci) {
+        assert(cci < Configuration::MaxComponentTypes);
+        auto[page, offset] = IndexToPage(index);
+        char *componentPageMemory = componentPageArray[page][cci];
+        assert(componentPageMemory);
+        auto &info = BaseComponentInfo::GetComponentTypeInfo(cci);
+        return componentPageMemory + offset * info.byteSize;
+    }
     template<typename T>
     T* GetComponentMemory(Index index) {
         auto[page, offset] = IndexToPage(index);

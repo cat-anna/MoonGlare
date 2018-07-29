@@ -1,5 +1,8 @@
 #pragma once
 
+#include <typeinfo>
+#include <string>
+
 #include "Configuration.h"
 
 #include <EngineBase/Script/ApiInit.h>

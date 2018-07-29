@@ -14,13 +14,17 @@ using ComponentClassId = uint16_t;
 class BaseComponentInfo {
 public:
     static ComponentClassId GetUsedComponentTypes() { return idAlloc; }
-    using Destructor = void(void*);
+    using ComponentFunc = void(void*);
+    using ComponentScriptPush = int(void*, lua_State *lua);
 
     struct ComponentClassInfo {
+        ComponentClassId id;
         size_t byteSize;
         Script::ApiInitFunc apiInitFunc;
         const BaseComponentInfo *infoPtr = nullptr;
-        Destructor *destructor;
+        ComponentScriptPush *scriptPush = nullptr;
+        ComponentFunc *destructor = nullptr;
+        const char* componentName = nullptr;
 #ifdef DEBUG
         bool pod = false;
 #endif
@@ -34,8 +38,14 @@ public:
 
     virtual const std::type_info &GetTypeInfo() const = 0;
 protected:
-    template<typename T>
+    template<typename T> 
     static void DestructorFunc(void* ptr) { reinterpret_cast<T*>(ptr)->~T(); }
+    template<typename T>
+    static int ScriptPush(void* ptr, lua_State *lua) { 
+        luabridge::push<T*>(lua, reinterpret_cast<T*>(ptr)); 
+        return 1;
+    }
+
     template<class T>
     static ComponentClassId AllocateComponentClass();
 private:
@@ -67,12 +77,15 @@ static ComponentClassId BaseComponentInfo::AllocateComponentClass() {
     static const ComponentInfo<T> t;
     assert(id < Configuration::MaxComponentTypes);
     componentClassesTypeInfo[id] = {
+        id,
         sizeof(T),
         Script::GetApiInitFunc<T>(),
         &t,
+        &BaseComponentInfo::ScriptPush<T>,
         &BaseComponentInfo::DestructorFunc<T>,
+        T::ComponentName,
 #ifdef DEBUG
-        std::is_pod<T>::value
+        std::is_pod<T>::value,
 #endif
     };
     return id;

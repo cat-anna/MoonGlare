@@ -22,6 +22,9 @@ SubsystemManager::SubsystemManager()
 }
 
 SubsystemManager::~SubsystemManager() {
+    for (size_t i = 0; i < m_UsedCount; ++i) {
+        m_Components[i].reset(); //todo
+    }
 }
 
 //---------------------------------------------------------------------------------------
@@ -34,7 +37,6 @@ bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
     m_Scene = scene;
     rootEntity = root;
 
-                      
 #ifdef PERF_PERIODIC_PRINT
     Space::MemZero(m_ComponentInfo);
 #endif
@@ -49,7 +51,6 @@ bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
     auto sc = GetComponent<Scripts::Component::ScriptComponent>();
 
     m_EventDispatcher.SetEventSink(GetWorld()->GetScriptEngine()->GetLua(), sc->GetEventSink());
-
     return true;
 }
 

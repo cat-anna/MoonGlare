@@ -42,8 +42,7 @@ ScriptEngine::ScriptEngine(World *world) :
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptRuntime, "SCRT");
 }
 
-ScriptEngine::~ScriptEngine() {
-}
+ScriptEngine::~ScriptEngine() { }
 
 //---------------------------------------------------------------------------------------
 

@@ -15,7 +15,7 @@ namespace MoonGlare::Modules {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
 
-using ModuleInfoList =  ModulesManager::ModuleInfoList;
+using ModuleInfoList = ModulesManager::ModuleInfoList;
 
 static ModuleInfoList *_ModuleList = 0;
 

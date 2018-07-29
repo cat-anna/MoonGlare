@@ -7,6 +7,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <EngineBase/Component/ComponentInfo.h>
+#include <EngineBase/Component/ComponentArray.h>
+
 #include <Core/Component/TemplateStandardComponent.h>
 #include "ScriptComponent.h"
 #include <Core/Component/SubsystemManager.h>
@@ -1202,6 +1205,16 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
 
     if (cid == ComponentID::Script) {
         return check.ReturnArgs(This->lua_GetScriptComponent(lua, RequestedOwner));
+    }
+
+    if ((uint32_t)cid < MoonGlare::Component::Configuration::MaxComponentTypes) {
+        auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(static_cast<MoonGlare::Component::ComponentClassId>(cid));
+        if (cinfo.apiInitFunc) {
+            void *cptr = This->GetManager()->GetComponentArray().GetComponentPointer(RequestedOwner.GetIndex(), (uint32_t)cid);
+            if (!cptr)
+                return check.ReturnArgs(0);
+            return check.ReturnArgs(cinfo.scriptPush(cptr, lua));
+        }
     }
 
     return check.ReturnArgs(This->lua_GetComponentInfo(lua, cid, RequestedOwner));
