@@ -27,6 +27,8 @@ public:
     void Initialize();
     void Finalize();
 
+    StateProcessor *GetStateProcessor() { return stateProcessor.get(); }
+
     HandleApi GetHandleApi() { return HandleApi(stateProcessor.get()); }
 private:
     std::thread thread;

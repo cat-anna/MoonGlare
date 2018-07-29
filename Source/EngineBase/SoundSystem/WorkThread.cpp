@@ -80,6 +80,7 @@ void WorkThread::InitializeDevice() {
     if (!name || alcGetError(device) != AL_NO_ERROR)
         name = alcGetString(device, ALC_DEVICE_SPECIFIER);
 
+    AddLogf(Debug, "OpenAl initialized");
     AddLogf(System, "OpenAl version: %d.%d", alGetInteger(ALC_MAJOR_VERSION), alGetInteger(ALC_MINOR_VERSION));
     AddLogf(System, "Sound device used: %s", name);
     AddLogf(System, "Sound device extensions: %s", alcGetString(device, ALC_EXTENSIONS));

@@ -1,13 +1,11 @@
 #pragma once
 
+#include <EngineBase/Settings.h>
+
 namespace MoonGlare::Core::Scripts::Settings {
 
-using ValueVariant = std::variant<nullptr_t, int, float, bool, std::string>;
-
-enum class ApplyMethod {
-    Immediate,
-    Restart,
-};
+using ValueVariant = MoonGlare::Settings::ValueVariant;
+using ApplyMethod = MoonGlare::Settings::ApplyMethod;
 
 struct Setting {
     ApplyMethod applyMethod = ApplyMethod::Restart;

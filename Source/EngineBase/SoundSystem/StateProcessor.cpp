@@ -28,6 +28,20 @@ void StateProcessor::PrintState() const {
 
 //---------------------------
 
+void StateProcessor::SetSettings(SoundSettings value) {
+    settings = value;
+
+    if (value.enabled) {
+        alListenerf(AL_GAIN, value.masterVolume);
+    } else {
+        alListenerf(AL_GAIN, 0.0f);
+    }
+
+    //todo
+}
+
+//---------------------------
+
 void StateProcessor::Initialize() {
     //decoderFactories
     for (auto &decoder : Decoder::iDecoderFactory::GetDecoders()) {

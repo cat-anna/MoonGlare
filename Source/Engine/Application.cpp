@@ -35,6 +35,8 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <EngineBase/Settings.h>
+
 namespace MoonGlare {
 
 Application::Application() {
@@ -42,6 +44,7 @@ Application::Application() {
 
     m_Configuration = std::make_unique<x2c::Settings::EngineSettings_t>();
     m_ConfigurationFileName = OS::GetSettingsDirectory() + "Engine.xml";
+    m_SettingsFileName = OS::GetSettingsDirectory() + "Engine.cfg";
 }
 
 Application::~Application() {}
@@ -65,6 +68,11 @@ void Application::LoadSettings() {
     if (m_Flags.m_Initialized) {
         throw "Cannot load settings after initialization!";
     }
+
+    auto stt = std::make_shared<Settings>();
+    m_World->SetSharedInterface(stt);
+    stt->LoadFromFile(m_SettingsFileName);
+
     m_Configuration->ResetToDefault();
 
     if (!boost::filesystem::is_regular_file(m_ConfigurationFileName.data())) {
@@ -85,6 +93,11 @@ void Application::LoadSettings() {
 }
 
 void Application::SaveSettings() {
+
+    auto stt = m_World->GetSharedInterface<Settings>();
+    if (stt->Changed())
+        stt->SaveToFile(m_SettingsFileName);
+
     if (!m_Flags.m_SettingsLoaded) {
         AddLogf(Error, "Settings not loaded!");
         return;
@@ -126,6 +139,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     _init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
 
+    m_World->SetInterface<iFileSystem>(GetFileSystem());
+
     m_AssetManager = std::make_unique<Asset::AssetManager>();
     if (!m_AssetManager->Initialize(&m_Configuration->m_Assets)) {
         AddLogf(Error, "Unable to initialize asset manager!");
@@ -138,7 +153,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     }
 
     auto ss = SoundSystem::iSoundSystem::Create();
-    ss->Initialize(GetFileSystem());
+    ss->Initialize(*m_World);
     m_World->SetSharedInterface(ss);
 
     auto scrEngine = new ScriptEngine(m_World.get());

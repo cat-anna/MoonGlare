@@ -46,7 +46,7 @@ struct SourceState {
     SourceCommand command = SourceCommand::None;  //atomic?
     bool streamFinished = false;
     bool releaseOnStop = false;
-    bool loop = false;
+    bool loop = false;  //AL_LOOPING ?
     bool reopen = false;                     //atomic?
     uint8_t bufferCount = 0;
     SoundSource sourceSoundHandle = InvalidSoundSource;
@@ -81,6 +81,9 @@ public:
     void Step();
     void Initialize();
     void Finalize();
+
+    SoundSettings GetSettings() const { return settings; }
+    void SetSettings(SoundSettings value);
 
     void PrintState() const;
 
@@ -125,6 +128,7 @@ private:
     StaticVector<SourceIndex, conf::SourceAcivationQueue> sourceAcivationQueue;
 
     uint32_t allocatedBuffersCount = 0;
+    SoundSettings settings;
 
     std::mutex standbySourcesMutex;
     std::mutex sourceAcivationQueueMutex;

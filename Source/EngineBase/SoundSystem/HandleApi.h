@@ -61,6 +61,7 @@ public:
     void SetSourceVelocity(SoundHandle handle, const Vector coord) const;
     void GetSourceVelocity(SoundHandle handle, Vector coord) const;
     void SetRelativeToListenerPosition(SoundHandle handle, bool value);
+    //AL_PITCH AL_DIRECTION    
 
     void SetListenerGain(float gain) const;
     float GetListenerGain() const;

@@ -26,7 +26,7 @@ public:
 
     virtual void Initialize() { }
     virtual void finalize() { }
-    virtual void SetSetings(const Settings& settings) {}
+    virtual void SetSetings(const SoundSettings& settings) {}
 protected:
 };
 

@@ -8,6 +8,7 @@
 #include "LuaSettings.h"
 
 #include <Foundation/Scripts/ErrorHandling.h>
+#include <EngineBase/Settings.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
 using namespace MoonGlare::Scripts;
@@ -15,6 +16,7 @@ using namespace MoonGlare::Scripts;
 struct LuaSettingsModule::SettingsObject {
     LuaSettingsModule *owner;
     Application *application;
+    std::shared_ptr<MoonGlare::Settings> settings;
 
     ~SettingsObject() {
         Cancel();
@@ -63,8 +65,12 @@ struct LuaSettingsModule::SettingsObject {
 
         std::string_view provider, id;
         auto *s = FindSetting(rawid, provider, id);
-        if (!s)
+        if (!s) {
+            if (settings->HasValue(rawid.data())) {
+                return PushValueVariant(lua, settings->GetValue(rawid.data()));
+            }
             throw LuaPanic(fmt::format("Cannot find setting {}", id.data()));
+        }
 
         try {
             auto vv = s->provider->Get(provider, id);
@@ -78,12 +84,17 @@ struct LuaSettingsModule::SettingsObject {
         std::string_view rawid = luaL_checkstring(lua, -2);
 
         std::string_view provider, id;
+        Settings::ApplyMethod am;
+        auto vv = GetValueVariant(lua, -1);
         auto *s = FindSetting(rawid, provider, id);
         if (!s) {
+            if (settings->HasValue(rawid.data())) {
+                am = settings->SetValue(rawid.data(), vv);
+                needRestart = needRestart || am == Settings::ApplyMethod::Restart;
+            } 
             return 0;
         }
 
-        auto vv = GetValueVariant(lua, -1);
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(provider, id, vv);
@@ -120,6 +131,13 @@ struct LuaSettingsModule::SettingsObject {
                 lua_settable(lua, -3);
                 ++cnt;
             }
+        }
+
+        for (auto &item : settings->GetKeys()) {
+            lua_pushinteger(lua, cnt);
+            lua_pushstring(lua, item.c_str());
+            lua_settable(lua, -3);
+            ++cnt;
         }
 
         return 1;
@@ -189,10 +207,9 @@ struct LuaSettingsModule::SettingsObject {
 
     static int PushValueVariant(lua_State *lua, Settings::ValueVariant v) {
         return std::visit([lua](auto &value) -> int {
-            if (std::is_same_v<nullptr_t, std::remove_reference_t<decltype(value)>>) {
+            if constexpr (std::is_same_v<nullptr_t, std::remove_reference_t<decltype(value)>>) {
                 lua_pushnil(lua);
-            }
-            else {
+            } else {
                 luabridge::push(lua, value);
             }
             return 1;
@@ -229,7 +246,6 @@ struct LuaSettingsModule::SettingsObject {
 };
 
 //-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
 
 LuaSettingsModule::LuaSettingsModule(lua_State *lua, World *world) : world(world) {
     world->GetScriptEngine()->QuerryModule<iRequireModule>()->RegisterRequire("Settings", this);
@@ -248,7 +264,7 @@ bool LuaSettingsModule::OnRequire(lua_State *lua, std::string_view name) {
     if (!scriptApiRegistered)
         RegisterScriptApi(lua);
 
-    luabridge::push(lua, SettingsObject{ this, world->GetInterface<Application>(), });
+    luabridge::push(lua, SettingsObject{ this, world->GetInterface<Application>(), world->GetSharedInterface<MoonGlare::Settings>() });
 
     return true;
 }
@@ -275,7 +291,6 @@ void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
         .endNamespace()
         ;
 }
-
 
 } //namespace MoonGlare::Core::Scripts::Modules
                              

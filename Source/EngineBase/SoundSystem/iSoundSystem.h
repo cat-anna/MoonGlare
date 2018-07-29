@@ -1,15 +1,15 @@
 #pragma once
 
-#include <Foundation/iFileSystem.h>
+#include <EngineBase/InterfaceMap.h>
 #include "HandleApi.h"
 
 namespace MoonGlare::SoundSystem {
 
 enum class BitDepth {
-    Bits16, Bits8,
+    Bits16 = 16, Bits8 = 8,
 };
 
-struct Settings {
+struct SoundSettings {
     bool enabled = true;
     float masterVolume = 1.0f;
     float musicVolume = 0.7f;
@@ -27,10 +27,10 @@ class iSoundSystem {
 public:
     virtual ~iSoundSystem() {}
 
-    virtual Settings GetSettings() = 0;
-    virtual void SetSettings(Settings value) = 0;
+    virtual SoundSettings GetSettings() = 0;
+    virtual void SetSettings(SoundSettings value) = 0;
 
-    virtual void Initialize(iFileSystem *fs) = 0;
+    virtual void Initialize(InterfaceMap &ifmap) = 0;
     virtual void Finalize() = 0;
 
     virtual HandleApi GetHandleApi() = 0;
