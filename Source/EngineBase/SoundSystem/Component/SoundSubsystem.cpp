@@ -44,13 +44,6 @@ void SoundSubsystem::Update(const SubsystemUpdateData &data) {
             ssc.finishEvent = false;
         }
 
-        //if (ssc.uriChanged) {
-        //    handleApi.Close(ssc.handle, false);
-        //    ssc.handle = handleApi.Open(ssc.uri, false, SoundKind::Music, false);
-        //    handleApi.SetCallback(ssc.handle, &playbackWatcher, index);
-        //    ssc.uriChanged = false;
-        //}
-
         if (ssc.autostart) {
             ssc.autostart = false;
             handleApi.Play(ssc.handle);
@@ -69,7 +62,7 @@ bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
     ssc.finishEvent = false;
     ssc.autostart = entry.state == SoundState::Playing;
     ssc.handle = SoundHandle::Invalid;
-    ssc.handle = handleApi.Open(entry.uri, false, SoundKind::Music, false);
+    ssc.handle = handleApi.Open(entry.uri, false, entry.kind, false);
     handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIndex());
 
     return true;

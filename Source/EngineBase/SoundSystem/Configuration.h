@@ -16,7 +16,9 @@ struct Configuration {
 
         ThreadStep = 10, //ms
         DebugReportInterval = 10 * 1000, //ms
+
     };
+    static constexpr float EffectThresholdDuration = 1.0f;
 };
 
 }

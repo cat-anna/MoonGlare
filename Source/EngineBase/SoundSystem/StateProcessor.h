@@ -44,11 +44,11 @@ struct SourceState {
 
     SourceStatus status = SourceStatus::Invalid;
     SourceCommand command = SourceCommand::None;  //atomic?
+    SoundKind kind = SoundKind::Auto;
     bool streamFinished = false;
     bool releaseOnStop = false;
     bool loop = false;  //AL_LOOPING ?
     bool reopen = false;                     //atomic?
-    uint8_t bufferCount = 0;
     SoundSource sourceSoundHandle = InvalidSoundSource;
     std::unique_ptr<char[]> uri;             //atomic?
     std::unique_ptr<Decoder::iDecoder> decoder;
@@ -57,6 +57,20 @@ struct SourceState {
     uint32_t processedBytes = 0;
     float processedSeconds = 0;
     float duration = 0;
+
+    void Reset() {
+        ResetStatistics();
+        kind = SoundKind::Auto;
+        status = SourceStatus::Inactive;
+        command = SourceCommand::None;
+        releaseOnStop = false;
+        streamFinished = false;
+        ResetStatistics();
+        loop = false;
+        reopen = false;
+        watcherInterface = nullptr;
+        userData = 0;
+    }
 
     void ResetStatistics() {
         processedBuffers = 0;
@@ -132,6 +146,7 @@ private:
 
     std::mutex standbySourcesMutex;
     std::mutex sourceAcivationQueueMutex;
+    std::mutex activeSourcesMutex;
     using lock_guard = std::lock_guard<std::mutex>;
 
     enum class SourceProcessStatus {
@@ -144,6 +159,7 @@ private:
     SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si);
 
     void ProcessPlayState(SourceIndex index, SourceState &state);
+    void CheckSoundKind(SourceState & state, SoundBuffer b);
     bool LoadBuffer(SourceState &state, SoundBuffer sb);
 
     void ReleaseSourceBufferQueue(SourceState &state);

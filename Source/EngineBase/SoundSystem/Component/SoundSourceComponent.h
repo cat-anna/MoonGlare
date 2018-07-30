@@ -17,8 +17,8 @@ struct SoundSourceComponent  {
     static constexpr char* ComponentName = "SoundSource";
 
     SoundHandle handle;
-    Entity e;        // ugly but acceptable, for now
 
+    Entity e;        // ugly but acceptable, for now
     union {
         uint32_t flags;
         struct {

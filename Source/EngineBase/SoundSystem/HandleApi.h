@@ -24,8 +24,10 @@ enum class SoundState {
 };
 
 enum class SoundKind {
+    Auto,   //autodetected by stream length
     Music,  //played by streaming
     Effect, //decoded to single buffer
+    None,   //?
 };
 
 class HandleApi {
@@ -37,7 +39,7 @@ public:
 
     bool IsSoundHandleValid(SoundHandle handle) const;
     void Close(SoundHandle handle, bool ContinuePlaying = false);
-    SoundHandle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Music, bool ReleaseOnStop = true);
+    SoundHandle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Auto, bool ReleaseOnStop = true);
     void ReopenStream(SoundHandle handle, const char *uri);
     const char *GetStreamURI(SoundHandle handle);
 

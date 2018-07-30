@@ -23,6 +23,9 @@ public:
     T* GetInterface() {
         auto it = interfaces.find(std::type_index(typeid(T)));
         if (it == interfaces.end()) {
+            auto st = GetSharedInterface<T>();
+            if (st)
+                return st.get();
             AddLogf(Error, "There is no interface %s", typeid(T).name());
             __debugbreak();
             return nullptr;
@@ -31,6 +34,7 @@ public:
             return std::any_cast<T*>(it->second);
         }
         catch (const std::bad_any_cast &e) {
+            AddLogf(Error, e.what());
             __debugbreak();
             throw;
         }
@@ -47,6 +51,7 @@ public:
             return std::any_cast<std::shared_ptr<T>>(it->second);
         }
         catch (const std::bad_any_cast &e) {
+            AddLogf(Error, e.what());
             __debugbreak();
             throw;
         }

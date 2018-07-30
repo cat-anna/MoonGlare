@@ -15,7 +15,7 @@ Enum.import {
 	name = "SoundKind",
 	location = "::MoonGlare::SoundSystem::SoundKind",
 	default = "Music",
-    values = { "Music", "Effect", },
+    values = { "Auto", "Music", "Effect", "None", },
 }
 
 --namespace "MoonGlare.x2c.SoundSystem.Component"
@@ -41,6 +41,13 @@ Structure.new {
 			name = "state",
 			description = "",
 			type = Local.SoundState,
+			require = true,
+		},	
+		{
+			name = "kind",
+			description = "",
+			type = Local.SoundKind,
+            default = "Auto",
 			require = true,
 		},	
 		{
