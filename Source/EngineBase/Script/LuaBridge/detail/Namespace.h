@@ -576,11 +576,27 @@ private:
 		return *this;
     }
 
-    Class <T>& addStaticString(char const* name, const char* pu)
+    Class <T>& addStaticString(char const* name, const char* value)
     {
         rawgetfield(L, -2, "__propget");
         rawgetfield(L, -4, "__propget");
-        lua_pushstring(L, pu);
+        lua_pushstring(L, value);
+        lua_pushcclosure(L, &CFunc::getGetUpvalue, 1);
+        lua_pushvalue(L, -1);
+        rawsetfield(L, -4, name);
+        rawsetfield(L, -2, name);
+        lua_pop(L, 2);
+        return *this;
+    }
+
+    template<typename T>
+    Class <T>& addStaticInteger(char const* name, T value)
+    {
+        static_assert(std::is_enum_v<T> || std::is_integral_v<T>);
+        static_assert(sizeof(T) <= sizeof(int));
+        rawgetfield(L, -2, "__propget");
+        rawgetfield(L, -4, "__propget");
+        lua_pushinteger(L, static_cast<int>(value));
         lua_pushcclosure(L, &CFunc::getGetUpvalue, 1);
         lua_pushvalue(L, -1);
         rawsetfield(L, -4, name);

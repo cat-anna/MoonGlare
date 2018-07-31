@@ -70,11 +70,17 @@ SoundHandle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKin
     return handle;
 }
 
-void HandleApi::ReopenStream(SoundHandle handle, const char *uri) {
+void HandleApi::ReopenStream(SoundHandle &handle, const char *uri, SoundKind kind) {
     assert(stateProcessor);
     if (!stateProcessor)
         return;
-    stateProcessor->ReopenStream(handle, uri);
+
+    if (!stateProcessor->IsSoundHandleValid(handle)) {
+        handle = Open(uri, false, kind, false);
+        return;
+    }
+
+    stateProcessor->ReopenStream(handle, uri, kind);
 }   
 
 const char *HandleApi::GetStreamURI(SoundHandle handle) {
@@ -134,6 +140,19 @@ bool HandleApi::GetLoop(SoundHandle handle) const{
     if (stateProcessor)
         return stateProcessor->GetLoop(handle);
     return false;
+}
+
+void HandleApi::SetSoundKind(SoundHandle handle, SoundKind value) const {
+    assert(stateProcessor);
+    if (stateProcessor)
+        stateProcessor->SetSoundKind(handle, value);
+}
+
+SoundKind HandleApi::GetSoundKind(SoundHandle handle) const {
+    assert(stateProcessor);
+    if (stateProcessor)
+        return stateProcessor->GetSoundKind(handle);
+    return SoundKind::None;
 }
 
 float HandleApi::GetTimePosition(SoundHandle handle) const {

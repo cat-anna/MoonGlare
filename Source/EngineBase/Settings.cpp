@@ -47,6 +47,7 @@ void Settings::Deserialize(const std::string &data) {
 
         if (line.empty())
             continue;
+
         auto pos = line.find('=');
         if (pos == std::string::npos) {
             values[line] = true;

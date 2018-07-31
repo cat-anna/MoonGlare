@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Foundation/iFileSystem.h>
+#include <libSpace/src/Utils/ActionQueue.h>
 
 #include "Decoder/iDecoder.h"
 #include "Configuration.h"
@@ -48,7 +49,6 @@ struct SourceState {
     bool streamFinished = false;
     bool releaseOnStop = false;
     bool loop = false;  //AL_LOOPING ?
-    bool reopen = false;                     //atomic?
     SoundSource sourceSoundHandle = InvalidSoundSource;
     std::unique_ptr<char[]> uri;             //atomic?
     std::unique_ptr<Decoder::iDecoder> decoder;
@@ -67,7 +67,6 @@ struct SourceState {
         streamFinished = false;
         ResetStatistics();
         loop = false;
-        reopen = false;
         watcherInterface = nullptr;
         userData = 0;
     }
@@ -99,6 +98,7 @@ public:
     SoundSettings GetSettings() const { return settings; }
     void SetSettings(SoundSettings value);
 
+
     void PrintState() const;
 
     SoundHandle AllocateSource();
@@ -119,8 +119,10 @@ public:
     void SetLoop(SoundHandle handle, bool value);
     bool GetLoop(SoundHandle handle);
     void SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData);
-    void ReopenStream(SoundHandle handle, const char *uri);
+    void ReopenStream(SoundHandle handle, const char *uri, SoundKind kind);
     const char *GetStreamURI(SoundHandle handle);
+    void SetSoundKind(SoundHandle handle, SoundKind value);
+    SoundKind GetSoundKind(SoundHandle handle);
 private:
     iFileSystem * fileSystem = nullptr;
 
@@ -143,10 +145,10 @@ private:
 
     uint32_t allocatedBuffersCount = 0;
     SoundSettings settings;
+    Space::ActionQueue actionQueue;
 
     std::mutex standbySourcesMutex;
     std::mutex sourceAcivationQueueMutex;
-    std::mutex activeSourcesMutex;
     using lock_guard = std::lock_guard<std::mutex>;
 
     enum class SourceProcessStatus {
@@ -173,6 +175,7 @@ private:
     void ActivateSource(SourceIndex index);
     SourceIndex GetNextSource();
     void ReleaseSource(SourceIndex s);
+    void UpdateSourceVolume(SourceState & state);
 
     std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const char* uri);
 

@@ -30,38 +30,23 @@ void StateProcessor::PrintState() const {
 
 void StateProcessor::SetSettings(SoundSettings value) {
     settings = value;
-
-    if (value.enabled) {
-        alListenerf(AL_GAIN, value.masterVolume);
-    } else {
-        alListenerf(AL_GAIN, 0.0f);
-    }
-
-    {
-        lock_guard lock(activeSourcesMutex);
-
-        for (size_t i = 0; i < activeSources.Allocated(); ) {
+    actionQueue.Add([this]{
+        if (settings.enabled) {
+            alListenerf(AL_GAIN, settings.masterVolume);
+        }
+        else {
+            alListenerf(AL_GAIN, 0.0f);
+        }
+        for (size_t i = 0; i < activeSources.Allocated(); ++i) {
             SourceIndex si = activeSources[i];
             SourceState &state = sourceState[(size_t)si];
 
             if (!settings.enabled)
                 state.command = SourceCommand::StopPlaying;
 
-            switch (state.kind) {
-            case SoundKind::Music:
-                state.sourceSoundHandle.SetGain(settings.musicVolume);
-                break;
-            case SoundKind::Effect:
-                state.sourceSoundHandle.SetGain(settings.effectVolume);
-                break;
-            case SoundKind::None:
-            case SoundKind::Auto:
-            default:
-                break;
-                //ignored
-            }
+            UpdateSourceVolume(state);
         }
-    }
+    });
 }
 
 //---------------------------
@@ -133,7 +118,7 @@ void StateProcessor::CheckOpenAlError() const {
 //---------------------------
 
 void StateProcessor::Step() {
-    lock_guard lock(activeSourcesMutex);
+    actionQueue.AsyncDispatchAll();
     ActivateSources();
     for (size_t i = 0; i < activeSources.Allocated(); ) {
         SourceIndex si = activeSources[i];
@@ -208,26 +193,19 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         }
 
-        if (state.reopen) {
-            //todo: ugly
-            state.status = SourceStatus::InitPending;
-            continue;
-        }
-
         switch (state.command) {
         case SourceCommand::ResumePlaying:
-            if (state.Playable() && state.status != SourceStatus::Playing) {
+            if (state.Playable()) {  //  && state.status != SourceStatus::Playing
                 if (state.status == SourceStatus::Paused) {
                     AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                     state.sourceSoundHandle.Play();
                     CheckOpenAlError();
-                }
-                else if (state.streamFinished) {
-                    state.decoder->Reset();
+                } else {
                     state.streamFinished = false;
-                    state.processedBuffers = 0;
-                    state.processedBytes = 0;
-                    state.processedSeconds = 0;
+                    state.decoder->Reset();
+                    state.sourceSoundHandle.Stop();
+                    ReleaseSourceBufferQueue(state);
+                    state.ResetStatistics();
                 }
                 state.status = SourceStatus::Playing;
             }
@@ -294,9 +272,10 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
         } else {
             ++queuedBuffers;
             if (queuedBuffers == 1 && state.sourceSoundHandle.GetState() != AL_PLAYING) {
-                CheckSoundKind(state, b);
                 CheckOpenAlError();
                 state.sourceSoundHandle.Play();
+                CheckOpenAlError();
+                CheckSoundKind(state, b);
                 CheckOpenAlError();
                 AddLogf(Debug, "Playback started %s Source:%d", state.uri.get(), (int)state.sourceSoundHandle);
             }
@@ -321,13 +300,9 @@ void StateProcessor::CheckSoundKind(SourceState & state, SoundBuffer b) {
     while (true) {
         switch (state.kind) {
         case SoundKind::Music:
-            state.sourceSoundHandle.SetGain(settings.musicVolume);
-            return;
         case SoundKind::Effect:
-            state.sourceSoundHandle.SetGain(settings.effectVolume);
-            return;
         case SoundKind::None:
-            state.sourceSoundHandle.SetGain(1.0f);
+            UpdateSourceVolume(state);
             return;
         case SoundKind::Auto:
         default:
@@ -376,7 +351,6 @@ bool StateProcessor::InitializeSource(SourceState &state) {
     auto factory = FindFactory(state.uri.get());
     if (!factory)
         return false;
-    state.reopen = false;
     state.ResetStatistics();
     state.decoder = factory->CreateDecoder();
     if (!state.decoder)
@@ -546,6 +520,24 @@ void StateProcessor::ActivateSource(SourceIndex index) {
     }
 }
 
+void StateProcessor::UpdateSourceVolume(SourceState & state)
+{
+    switch (state.kind) {
+    case SoundKind::Music:
+        state.sourceSoundHandle.SetGain(settings.musicVolume);
+        break;
+    case SoundKind::Effect:
+        state.sourceSoundHandle.SetGain(settings.effectVolume);
+        break;
+    case SoundKind::None:
+        state.sourceSoundHandle.SetGain(1.0f);
+    case SoundKind::Auto:
+    default:
+        break;
+        //ignored
+    }
+}
+
 //---------------------------
 
 SoundHandle StateProcessor::GetSoundHandle(SourceIndex s) {
@@ -686,16 +678,18 @@ void StateProcessor::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, Us
     state.watcherInterface = iface;
 }
 
-void StateProcessor::ReopenStream(SoundHandle handle, const char *uri) {
+void StateProcessor::ReopenStream(SoundHandle handle, const char *uri, SoundKind kind) {
     const auto[valid, index] = CheckSoundHandle(handle);
     if (!valid)
         return;
 
     auto &state = sourceState[(size_t)index];
     state.uri.reset(copystr(uri));
-    state.reopen = true;
-    //state.kind = SoundKind::Auto;               //TODO:?
+    state.kind = kind;
     state.command = SourceCommand::None;
+    actionQueue.Add([this, index] { 
+        sourceState[(size_t)index].status = SourceStatus::InitPending; 
+    });
 }
 
 const char *StateProcessor::GetStreamURI(SoundHandle handle) {
@@ -703,6 +697,23 @@ const char *StateProcessor::GetStreamURI(SoundHandle handle) {
     if (!valid)
          return nullptr;
     return sourceState[(size_t)index].uri.get();
+}
+
+void StateProcessor::SetSoundKind(SoundHandle handle, SoundKind value) {
+    const auto[valid, index] = CheckSoundHandle(handle);
+    if (!valid)
+        return;
+    actionQueue.Add([this, index, value] {
+        sourceState[(size_t)index].kind = value;
+        UpdateSourceVolume(sourceState[(size_t)index]);
+    });
+}
+
+SoundKind StateProcessor::GetSoundKind(SoundHandle handle) {
+    const auto[valid, index] = CheckSoundHandle(handle);
+    if (!valid)
+        return SoundKind::None;
+    return sourceState[(size_t)index].kind;
 }
 
 //---------------------------

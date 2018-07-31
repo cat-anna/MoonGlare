@@ -20,8 +20,8 @@ constexpr inline ApiInitFunc GetApiInitFunc() {
     using Has = detail::has_static_member_function_RegisterScriptApi<T, ApiInitFuncSignature>;
     if constexpr (Has::value) {
         return &T::RegisterScriptApi;
-    }
-    return nullptr;
+    } else
+        return nullptr;
 }
 
 }

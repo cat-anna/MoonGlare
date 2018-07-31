@@ -40,7 +40,7 @@ public:
     bool IsSoundHandleValid(SoundHandle handle) const;
     void Close(SoundHandle handle, bool ContinuePlaying = false);
     SoundHandle Open(const std::string &uri, bool StartPlayback = true, SoundKind kind = SoundKind::Auto, bool ReleaseOnStop = true);
-    void ReopenStream(SoundHandle handle, const char *uri);
+    void ReopenStream(SoundHandle &handle, const char *uri, SoundKind kind = SoundKind::Auto);
     const char *GetStreamURI(SoundHandle handle);
 
     SoundState GetState(SoundHandle handle) const;
@@ -52,6 +52,8 @@ public:
     void Stop(SoundHandle handle) const;
     void SetLoop(SoundHandle handle, bool value) const;
     bool GetLoop(SoundHandle handle) const;
+    void SetSoundKind(SoundHandle handle, SoundKind value) const;
+    SoundKind GetSoundKind(SoundHandle handle) const;
 
     float GetTimePosition(SoundHandle handle) const;
     float GetDuration(SoundHandle handle) const;

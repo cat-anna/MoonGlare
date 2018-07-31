@@ -35,7 +35,7 @@ struct SoundSourceComponent  {
                 .addStaticString("ComponentName", ComponentName)
                 .addFunction("Play", &SoundSourceComponent::Play)
                 .addFunction("Pause", &SoundSourceComponent::Pause)
-                .addFunction("Stopped", &SoundSourceComponent::Stop)
+                .addFunction("Stop", &SoundSourceComponent::Stop)
 
                 .addProperty("State", &SoundSourceComponent::GetState)
                 .addProperty("Position", &SoundSourceComponent::GetPosition)
@@ -43,6 +43,7 @@ struct SoundSourceComponent  {
 
                 .addProperty("File", &SoundSourceComponent::GetURI, &SoundSourceComponent::SetUri)
                 .addProperty("Loop", &SoundSourceComponent::GetLoop, &SoundSourceComponent::SetLoop)
+                .addProperty("Kind", &SoundSourceComponent::GetKind, &SoundSourceComponent::SetKind)
             .endClass();
     }
 
@@ -53,9 +54,34 @@ private:
     bool GetLoop() const { return handleApi.GetLoop(handle); }
     void SetLoop(bool v) { handleApi.SetLoop(handle, v); }
 
+    const char* GetKind() const { 
+        switch (handleApi.GetSoundKind(handle)) {
+        case SoundKind::Auto: return "Auto";
+        case SoundKind::Music: return "Music";
+        case SoundKind::Effect: return "Effect";
+        case SoundKind::None:
+        default:
+            return "None";
+        }
+    }
+    void SetKind(const char* v) { 
+        auto hash = Space::Utils::MakeHash32(v);
+        switch (hash) {
+        case "Music"_Hash32:
+            return handleApi.SetSoundKind(handle, SoundKind::Music);
+        case "Effect"_Hash32:
+            return handleApi.SetSoundKind(handle, SoundKind::Effect);
+        case "None"_Hash32:
+            return handleApi.SetSoundKind(handle, SoundKind::None);
+        case "Auto"_Hash32:
+        default:
+            return handleApi.SetSoundKind(handle, SoundKind::Auto);
+        }
+    }
+
     void Play() { handleApi.Play(handle); }
-    void Pause() { handleApi.Pause(handle); }
-    void Stop() { handleApi.Stop(handle); }
+    void Pause() { handleApi.Pause(handle); autostart = false; }
+    void Stop() { handleApi.Stop(handle); autostart = false; }
 
     float GetPosition() const { return handleApi.GetTimePosition(handle); }
     float GetDuration() const { return handleApi.GetDuration(handle); }

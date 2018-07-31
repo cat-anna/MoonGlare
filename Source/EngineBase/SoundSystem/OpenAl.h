@@ -111,10 +111,10 @@ struct SoundSource {
     ALfloat GetTimePosition() const { return GetFloat(AL_SEC_OFFSET); }
     ALint GetBytePosition() const { return GetInt(AL_BYTE_OFFSET); }
     
-    void SetGain(ALfloat gain) const { alGetSourcef(handle(), AL_GAIN, &gain); }
+    void SetGain(ALfloat gain) const { alSourcef(handle(), AL_GAIN, gain); }
 
-    void SetPosition(ALfloat x, ALfloat y, ALfloat z) const { alGetSource3f(handle(), AL_POSITION, &x, &y, &z); }
-    void SetValocity(ALfloat x, ALfloat y, ALfloat z) const { alGetSource3f(handle(), AL_VELOCITY, &x, &y, &z); }
+    void SetPosition(ALfloat x, ALfloat y, ALfloat z) const { alSource3f(handle(), AL_POSITION, x, y, z); }
+    void SetValocity(ALfloat x, ALfloat y, ALfloat z) const { alSource3f(handle(), AL_VELOCITY, x, y, z); }
 private:
     type value;
 };
