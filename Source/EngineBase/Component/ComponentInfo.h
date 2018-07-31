@@ -24,6 +24,7 @@ public:
         const BaseComponentInfo *infoPtr = nullptr;
         ComponentScriptPush *scriptPush = nullptr;
         ComponentFunc *destructor = nullptr;
+        ComponentFunc *constructor = nullptr;
         const char* componentName = nullptr;
 #ifdef DEBUG
         bool pod = false;
@@ -40,6 +41,8 @@ public:
 protected:
     template<typename T> 
     static void DestructorFunc(void* ptr) { reinterpret_cast<T*>(ptr)->~T(); }
+    template<typename T>
+    static void ConstructorFunc(void* ptr) { new (ptr) T (); }
     template<typename T>
     static int ScriptPush(void* ptr, lua_State *lua) { 
         luabridge::push<T*>(lua, reinterpret_cast<T*>(ptr)); 
@@ -83,6 +86,7 @@ static ComponentClassId BaseComponentInfo::AllocateComponentClass() {
         &t,
         &BaseComponentInfo::ScriptPush<T>,
         &BaseComponentInfo::DestructorFunc<T>,
+        &BaseComponentInfo::ConstructorFunc<T>,
         T::ComponentName,
 #ifdef DEBUG
         std::is_pod<T>::value,

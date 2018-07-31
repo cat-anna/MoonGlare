@@ -41,6 +41,19 @@ public:
         //__debugbreak();
         //throw false;
     //}
+    bool CreateComponent(Index index, ComponentClassId cci) {
+        auto bitmask = 1 << cci;
+        if ((componentValidArray[index] & bitmask) != 0)
+            return true;
+
+        auto &info = BaseComponentInfo::GetComponentTypeInfo(cci);
+        void *ptr = GetComponentPointer(index, cci);
+        if (!info.pod) {
+            info.constructor(ptr);
+        }
+        componentValidArray[index] |= bitmask;
+        return true;
+    }
     template<typename T, typename ... ARGS> T& AssignComponent(Index index, ARGS&& ... args) {
         auto bitmask = MakeBitSet<T>();
         T* ptr = GetComponentMemory<T>(index);
@@ -59,10 +72,13 @@ public:
         }
     }
     template<typename ... T> bool HasComponent(Index index) {
-        auto bitmask = MakeBitSet<T>();
+        auto bitmask = MakeBitSet<T...>();
         return (componentValidArray[index] & bitmask) == bitmask;
     }
-
+    bool HasComponent(Index index, ComponentClassId cci) {
+        auto bitmask = 1 << cci;
+        return (componentValidArray[index] & bitmask) == bitmask;
+    }
     template<typename T, typename F> void ForEach(F func) {
         auto bitmask = MakeBitSet<T>();
         for (uint16_t pageIndex = 0; pageIndex < componentPageArray.size(); ++pageIndex) {

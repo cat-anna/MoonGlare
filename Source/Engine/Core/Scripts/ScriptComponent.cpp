@@ -361,6 +361,8 @@ ScriptComponent::ScriptEntry *ScriptComponent::GetEntry(Handle h) {
 }
 
 void ScriptComponent::HandleEvent(lua_State * L, Entity destination) {
+    if (!GetManager()->GetWorld()->GetEntityManager()->IsValid(destination))
+        return;
     auto *entry = GetEntry(destination);
     if (!entry || !entry->m_Flags.m_Map.m_Valid || !entry->m_Flags.m_Map.m_Active || !entry->m_Flags.m_Map.m_Event) {
         return;
@@ -882,6 +884,21 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
         AddLogf(Error, "GameObject::CreateComponent: Error: Attempt to create component for invalid object! cid: %d", cid);
         lua_pushnil(lua);
         return 1;
+    }
+
+    if ((uint32_t)cid < MoonGlare::Component::Configuration::MaxComponentTypes) {
+        auto cidx = static_cast<MoonGlare::Component::ComponentClassId>(cid);
+        if (!This->GetManager()->GetComponentArray().HasComponent(Owner.GetIndex(), cidx)) {
+            This->GetManager()->GetComponentArray().CreateComponent(Owner.GetIndex(), cidx);
+        }
+        
+        auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(cidx);
+        if (cinfo.apiInitFunc) {
+            void *cptr = This->GetManager()->GetComponentArray().GetComponentPointer(Owner.GetIndex(), (uint32_t)cidx);
+            if (!cptr)
+                return 0;
+            return cinfo.scriptPush(cptr, lua);
+        }
     }
     
     auto *cptr = This->GetManager()->GetComponent(cid);
