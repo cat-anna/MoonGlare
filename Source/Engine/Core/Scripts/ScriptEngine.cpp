@@ -12,6 +12,7 @@
 #include "Modules/LuaRequire.h"
 #include "Modules/LuaSettings.h"
 #include "Modules/StaticStorage.h"
+#include "Modules/LuaFilesystem.h"
 
 #include <Core/Component/ComponentRegister.h>
 
@@ -167,6 +168,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<Modules::LuaRequireModule, iRequireModule>();
         InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
         InstallModule<Modules::StaticStorageModule>();
+        InstallModule<Modules::LuaFileSystemModule>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());
@@ -316,7 +318,17 @@ void ScriptEngine::InstallModule() {
         throw std::runtime_error(std::string("Attempt to re-register iface ") + typeid(Iface).name());
     }
 
-    mod.basePtr = std::make_unique<Class>(m_Lua, m_world);
+    auto uptr = std::make_unique<Class>(m_Lua, m_world);
+    m_world->SetInterface<Iface>(uptr.get());
+    mod.basePtr = std::move(uptr);
+
+    auto regFunc = MoonGlare::Script::GetApiInitFunc<Class>();
+    if (regFunc) {
+        luabridge::getGlobalNamespace(m_Lua)
+            .beginNamespace("api")
+                .DefferCalls(regFunc)
+            .endNamespace();
+    }
 }
 
 } //namespace Scripts

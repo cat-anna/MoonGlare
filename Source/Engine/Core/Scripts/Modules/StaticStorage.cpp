@@ -14,7 +14,7 @@
 namespace MoonGlare::Core::Scripts::Modules {
 using namespace MoonGlare::Scripts;
 
-static const char* StorageFileName = "Data.lua";
+static const char* StorageFileName = "StaticStorage.lua";
 
 StaticStorageModule::StaticStorageModule(lua_State *lua, World *world) {
     scriptEngine = world->GetScriptEngine();
