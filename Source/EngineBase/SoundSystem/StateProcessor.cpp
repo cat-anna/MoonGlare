@@ -29,8 +29,9 @@ void StateProcessor::PrintState() const {
 //---------------------------
 
 void StateProcessor::SetSettings(SoundSettings value) {
-    settings = value;
-    actionQueue.Add([this]{
+    actionQueue.Add([this, value]{
+        bool enChanged = value.enabled != settings.enabled;
+        settings = value;
         if (settings.enabled) {
             alListenerf(AL_GAIN, settings.masterVolume);
         }
@@ -45,6 +46,9 @@ void StateProcessor::SetSettings(SoundSettings value) {
                 state.command = SourceCommand::StopPlaying;
 
             UpdateSourceVolume(state);
+            if(enChanged && settings.enabled && state.watcherInterface) {
+                state.watcherInterface->OnFinished(GetSoundHandle(si), state.loop, state.userData);
+            }
         }
     });
 }
@@ -616,16 +620,13 @@ bool StateProcessor::Open(SoundHandle handle, const std::string &uri, SoundKind 
         return false;
 
     auto &state = sourceState[(size_t)index];
-    state.kind = kind;
     assert(state.status == SourceStatus::Inactive);
     if (state.status != SourceStatus::Inactive)
         return false;
 
+    state.kind = kind;
     state.uri.reset(copystr(uri.c_str()));
     assert(!state.decoder);
-    state.decoder.reset();
-
-    //todo: kind
 
     return true;
 }

@@ -1,13 +1,12 @@
 #include <InterfaceMap.h>
 #include "SoundSubsystem.h"
 #include "SoundSourceComponent.h"
+#include "SoundStreamFinishedEvent.h"
 
 #include "../iSoundSystem.h"
 
 #include <EngineBase/Component/ComponentArray.h>
 #include <EngineBase/Component/EventDispatcher.h>
-
-#include "Events.h"
 
 #include <SoundSourceComponent.x2c.h>
                            
@@ -24,6 +23,8 @@ SoundSubsystem::SoundSubsystem(iSubsystemManager *subsystemManager)
     componentArray = &subsystemManager->GetComponentArray();
 
     SoundSourceComponent::handleApi = handleApi;
+
+    subsystemManager->GetEventDispatcher().Register<ComponentCreatedEvent>(this);
 }
 
 SoundSubsystem::~SoundSubsystem() {
@@ -40,7 +41,7 @@ void SoundSubsystem::Update(const SubsystemUpdateData &data) {
     componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
         if (ssc.finishEvent) {
             //TODO        
-            subsystemManager->GetEventDispatcher().SendTo(SoundStreamFinished{ handleApi.GetLoop(ssc.handle) }, ssc.e);
+            subsystemManager->GetEventDispatcher().Send(SoundStreamFinishedEvent{ ssc.e,ssc.e });
             ssc.finishEvent = false;
         }
 
@@ -49,6 +50,18 @@ void SoundSubsystem::Update(const SubsystemUpdateData &data) {
             handleApi.Play(ssc.handle);
         }
     });
+}
+
+void SoundSubsystem::HandleEvent(const ComponentCreatedEvent &ev) {
+    SoundSourceComponent &ssc = componentArray->GetComponent<SoundSourceComponent>(ev.sender.GetIndex());
+    ssc.handle = handleApi.Open("", false);
+    handleApi.SetCallback(ssc.handle, &playbackWatcher, ev.sender.GetIndex());
+}
+
+void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData) {
+    auto *ssc = componentArray->QuerryComponent<SoundSourceComponent>(userData);
+    if (ssc)
+        ssc->finishEvent = true;
 }
 
 bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
@@ -66,12 +79,6 @@ bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
     handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIndex());
 
     return true;
-}
-
-void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData) {
-    auto *ssc = componentArray->QuerryComponent<SoundSourceComponent>(userData);
-    if (ssc)
-        ssc->finishEvent = true;
 }
 
 }

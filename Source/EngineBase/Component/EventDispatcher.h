@@ -1,10 +1,16 @@
 #pragma once
 
+#include <boost/tti/has_member_data.hpp>
+
 #include "nfComponent.h"
 #include "Configuration.h"
-#include "EventInfo.h"
+#include "EventInfo.h"    
 
 namespace MoonGlare::Component {
+
+namespace detail {
+    BOOST_TTI_HAS_MEMBER_DATA(recipient)
+}
 
 class EventScriptSink {
 public:
@@ -57,32 +63,27 @@ public:
     void Send(const EVENT& event) {
         auto classid = EventInfo<EVENT>::GetClassId();
         assert(classid < Configuration::MaxEventTypes);
-        eventDispatchers[classid].Dispatch(event);
+        eventDispatchers[classid].Dispatch(event);      
+        using Has = detail::has_member_data_recipient<EVENT, Entity>;
+        if constexpr (Has::value) {
+            SendToScript(event, event.recipient);
+        }
     }
 
-    template<typename EVENT>
-    void SendTo(const EVENT& event, Entity recipient) {
-        AddLog(Event, "Dispatching event: " << event << " recipient:" << recipient);
-        auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Configuration::MaxEventTypes);
-        //m_EventDispatchers[classid].Dispatch(event, recipient);
-        SendToScript(event, recipient);
-    }
+    //TODO: Queue
 
     template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
     void Register(RECIVER *reciver) {
         auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Conf::MaxEventTypes);
+        assert(classid < Configuration::MaxEventTypes);
         eventDispatchers[classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
     }
     template<typename EVENT, typename RECIVER>
     void Register(RECIVER *reciver) {
         return Register < EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent) > (reciver);
     }
-    template<typename EVENT, typename RECIVER>
-    void RegisterTemplate(RECIVER *reciver) {
-        return Register < EVENT, RECIVER, &RECIVER::HandleEventTemplate<EVENT>>(reciver);
-    }
+
+    //TODO: queue event
 private:
     template<typename T>
     using Array = std::array<T, Configuration::MaxEventTypes>;

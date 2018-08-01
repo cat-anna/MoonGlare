@@ -4,6 +4,7 @@
 
 #include <EngineBase/Component/nfComponent.h>
 #include <EngineBase/Component/iSubsystem.h>
+#include <EngineBase/Component/ComponentCreatedEvent.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
@@ -20,6 +21,8 @@ public:
     void Update(const SubsystemUpdateData &data) override;
 
     bool Load(pugi::xml_node node, Entity Owner, Handle &hout) override;
+
+    void HandleEvent(const ComponentCreatedEvent &ev);
 private:
     class PlaybackWatcher : public SoundSystem::iPlaybackWatcher {
         SoundSubsystem *sss;
@@ -36,6 +39,7 @@ private:
     PlaybackWatcher playbackWatcher{ this };
 
     void OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData);
+
 };
 
 }

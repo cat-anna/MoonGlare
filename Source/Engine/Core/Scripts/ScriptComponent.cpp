@@ -9,6 +9,7 @@
 
 #include <EngineBase/Component/ComponentInfo.h>
 #include <EngineBase/Component/ComponentArray.h>
+#include <EngineBase/Component/ComponentCreatedEvent.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include "ScriptComponent.h"
@@ -890,6 +891,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
         auto cidx = static_cast<MoonGlare::Component::ComponentClassId>(cid);
         if (!This->GetManager()->GetComponentArray().HasComponent(Owner.GetIndex(), cidx)) {
             This->GetManager()->GetComponentArray().CreateComponent(Owner.GetIndex(), cidx);
+            This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, Owner, (ComponentClassId)cid });
         }
         
         auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(cidx);
@@ -910,6 +912,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 
     Handle hout;
     if (cptr->Create(Owner, hout)) {
+        This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, Owner, (ComponentClassId)cid });
         return This->lua_MakeComponentInfo(lua, cid, hout, cptr);
     } else {
         AddLogf(Error, "GameObject::CreateComponent: Error: Failure during component creation! cid: %d", cid);

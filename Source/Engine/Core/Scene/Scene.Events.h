@@ -10,7 +10,7 @@ enum class SceneState : unsigned {
 };
 
 struct SceneStateChangeEvent {
-    static constexpr char* EventName = "OnSceneStateChange";
+    static constexpr char* EventName = "SceneStateChange";
     static constexpr char* HandlerName = "OnSceneStateChangeEvent";
     SceneState m_State;
     ciScene *m_Scene;
@@ -23,7 +23,7 @@ struct SceneStateChangeEvent {
         return out;
     }
 
-    static ApiInitializer RegisterLuaApi(ApiInitializer api) {
+    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
         return api
             .beginClass<SceneStateChangeEvent>("cSceneStateChangeEvent")
                 .addData("State", (int SceneStateChangeEvent::*)&SceneStateChangeEvent::m_State, false)

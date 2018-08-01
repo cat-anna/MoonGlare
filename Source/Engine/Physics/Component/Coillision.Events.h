@@ -16,7 +16,7 @@ inline Entity ExtractEntity(const OWNER *owner) {
 }
 
 struct OnCollisionEnterEvent {
-    static constexpr char* EventName = "OnCollisionEnter";
+    static constexpr char* EventName = "CollisionEnter";
     static constexpr char* HandlerName = "OnCollisionEnterEvent";
 
     Entity m_Destination;
@@ -45,7 +45,7 @@ struct OnCollisionEnterEvent {
 };
 
 struct OnCollisionLeaveEvent {
-    static constexpr char* EventName = "OnCollisionLeave";
+    static constexpr char* EventName = "CollisionLeave";
     static constexpr char* HandlerName = "OnCollisionLeaveEvent";
 
     Entity m_Destination;

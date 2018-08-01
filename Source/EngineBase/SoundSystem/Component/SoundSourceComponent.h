@@ -18,14 +18,9 @@ struct SoundSourceComponent  {
 
     SoundHandle handle;
 
-    Entity e;        // ugly but acceptable, for now
-    union {
-        uint32_t flags;
-        struct {
-            bool finishEvent;  // ugly but acceptable, for now
-            bool autostart;  // ugly but acceptable, for now
-        };
-    };
+    Entity e;          // ugly but acceptable, for now
+    bool finishEvent;  // ugly but acceptable, for now
+    bool autostart;    // ugly but acceptable, for now
 
     static HandleApi handleApi;  // ugly but acceptable, for now
 
