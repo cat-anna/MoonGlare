@@ -3,10 +3,9 @@
 #include <Foundation/iFileSystem.h>
 
 #include "../iDynamicModule.h"
-#include "../iLuaSettings.h"
 #include "../iLuaRequire.h"
 
-namespace MoonGlare::Core::Scripts::Modules {
+namespace MoonGlare::Scripts::Modules {
 
 class LuaFileSystemModule : public iDynamicScriptModule, public iRequireRequest {
 public:
@@ -24,4 +23,4 @@ protected:
     int EnumerateFolder(lua_State *lua);
 };
 
-} //namespace MoonGlare::Core::Script::Modules
+} //namespace MoonGlare::Scripts::Modules

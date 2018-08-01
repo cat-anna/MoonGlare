@@ -50,7 +50,7 @@
 using namespace Space::Utils::HashLiterals;
 
 #include <lua.hpp>
-#include <EngineBase/Script/LuaBridge/LuaBridge.h>
+#include <EngineBase/Scripts/LuaBridge/LuaBridge.h>
 
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>

@@ -5,7 +5,7 @@
 
 #include "Configuration.h"
 
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 
 namespace MoonGlare::Component {
 
@@ -19,7 +19,7 @@ public:
 
 	struct EventClassInfo {
         size_t byteSize;
-        Script::ApiInitFunc apiInitFunc;
+        Scripts::ApiInitFunc apiInitFunc;
         const BaseEventInfo *infoPtr = nullptr;
         const char *EventName;
         const char *HandlerName;
@@ -63,7 +63,7 @@ EventClassId BaseEventInfo::AllocateEventClass() {
     assert(id < Configuration::MaxEventTypes);
     GetEventClassesTypeInfo()[id] = {
         sizeof(T),
-        Script::GetApiInitFunc<T>(),
+        Scripts::GetApiInitFunc<T>(),
         &t,
         T::EventName,
         T::HandlerName,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../HandleApi.h"
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
@@ -24,7 +24,7 @@ struct SoundSourceComponent  {
 
     static HandleApi handleApi;  // ugly but acceptable, for now
 
-    static Script::ApiInitializer RegisterScriptApi(Script::ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SoundSourceComponent>("SoundSourceComponent")
                 .addStaticString("ComponentName", ComponentName)

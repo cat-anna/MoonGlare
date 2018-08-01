@@ -53,7 +53,7 @@ using namespace Space::Utils::HashLiterals;
 
 //scripts
 #include <lua.hpp>
-#include <EngineBase/Script/LuaBridge/LuaBridge.h>
+#include <EngineBase/Scripts/LuaBridge/LuaBridge.h>
 
 class cRootClass;
 
@@ -77,8 +77,8 @@ class cRootClass;
 #include "Foundation/TemplateUtils.h"
 #include "Foundation/XMLUtils.h"
 
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 
-using MoonGlare::Script::ApiInitializer;
+using MoonGlare::Scripts::ApiInitializer;
                        
 #endif

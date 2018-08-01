@@ -1,9 +1,11 @@
 #pragma once
 
-#include "../iDynamicModule.h"
-#include "../iLuaRequire.h"
+
+#include <EngineBase/Scripts/iLuaRequire.h>
+#include <EngineBase/Scripts/iDynamicModule.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
+using namespace MoonGlare::Scripts;
 
 class LuaRequireModule : public iDynamicScriptModule, public iRequireModule {
 public:

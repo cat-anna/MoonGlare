@@ -15,4 +15,8 @@ static constexpr uint32_t MaxComponent = MaxComponentPages * ComponentsPerPage;
 
 static constexpr uint32_t MaxEventTypes = 16;
 
+//------
+
+static constexpr uint32_t EventDispatcherQueueSize = 16 * 1024; //bytes
+
 }

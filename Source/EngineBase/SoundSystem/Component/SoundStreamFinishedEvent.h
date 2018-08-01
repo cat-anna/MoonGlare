@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
@@ -21,7 +21,7 @@ struct SoundStreamFinishedEvent {
         return out;
     }
 
-    static Script::ApiInitializer RegisterScriptApi(Script::ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SoundStreamFinishedEvent>("SoundStreamFinishedEvent")
                 .addData("Sender", &SoundStreamFinishedEvent::sender, false)

@@ -16,7 +16,7 @@
 #include <Foundation/Scripts/ErrorHandling.h>
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
-#include "iLuaRequire.h"
+#include <EngineBase/Scripts/iLuaRequire.h>
 #include <Core/Scripts/ScriptEngine.h>
 
 namespace MoonGlare::Core::Scripts::Component {

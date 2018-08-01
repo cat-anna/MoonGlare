@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 #include "ComponentInfo.h"
 
 namespace MoonGlare::Component {
@@ -24,7 +24,7 @@ struct ComponentCreatedEvent {
         return out;
     }
 
-    static Script::ApiInitializer RegisterScriptApi(Script::ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<ComponentCreatedEvent>("ComponentCreatedEvent")
                 .addData("Sender", &ComponentCreatedEvent::sender, false)

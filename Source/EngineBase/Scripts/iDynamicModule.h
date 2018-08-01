@@ -1,10 +1,10 @@
 #pragma once
 
-namespace MoonGlare::Core::Scripts {
+namespace MoonGlare::Scripts {
 
 class iDynamicScriptModule {
 public:
     virtual ~iDynamicScriptModule() {}
 };
 
-} //namespace MoonGlare::Core::Script
+} //namespace MoonGlare::Scripts

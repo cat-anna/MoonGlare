@@ -6,7 +6,7 @@
 
 #include <MoonGlare.h>
 #include "iModule.h"
-#include <Core/Scripts/iLuaRequire.h>
+#include <EngineBase/Scripts/iLuaRequire.h>
 #include <Core/Scripts/ScriptEngine.h>
 
 #include <Renderer/Renderer.h>

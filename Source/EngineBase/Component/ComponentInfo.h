@@ -5,7 +5,7 @@
 
 #include "Configuration.h"
 
-#include <EngineBase/Script/ApiInit.h>
+#include <EngineBase/Scripts/ApiInit.h>
 
 namespace MoonGlare::Component {
 
@@ -20,7 +20,7 @@ public:
     struct ComponentClassInfo {
         ComponentClassId id;
         size_t byteSize;
-        Script::ApiInitFunc apiInitFunc;
+        Scripts::ApiInitFunc apiInitFunc;
         const BaseComponentInfo *infoPtr = nullptr;
         ComponentScriptPush *scriptPush = nullptr;
         ComponentFunc *destructor = nullptr;
@@ -82,7 +82,7 @@ static ComponentClassId BaseComponentInfo::AllocateComponentClass() {
     componentClassesTypeInfo[id] = {
         id,
         sizeof(T),
-        Script::GetApiInitFunc<T>(),
+        Scripts::GetApiInitFunc<T>(),
         &t,
         &BaseComponentInfo::ScriptPush<T>,
         &BaseComponentInfo::DestructorFunc<T>,

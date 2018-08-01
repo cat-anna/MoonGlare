@@ -8,7 +8,7 @@
 
 #include "LuaFilesystem.h"
 
-namespace MoonGlare::Core::Scripts::Modules {
+namespace MoonGlare::Scripts::Modules {
 
 LuaFileSystemModule::LuaFileSystemModule(lua_State *lua, InterfaceMap *world) {
     world->GetInterface<iRequireModule>()->RegisterRequire("FileSystem", this);
@@ -134,4 +134,4 @@ int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
 }
 
 
-} //namespace MoonGlare::Core::Script::Modules
+} //namespace MoonGlare::Scripts::Modules

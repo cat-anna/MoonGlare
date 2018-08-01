@@ -1,6 +1,9 @@
 #pragma once
 
-namespace MoonGlare::Core::Scripts {
+#include <string>
+#include <string_view>
+
+namespace MoonGlare::Scripts {
 
 class iRequireRequest {
 public:
@@ -13,4 +16,4 @@ public:
     virtual bool Querry(lua_State *lua, std::string_view name) = 0;
 };
 
-} //namespace MoonGlare::Core::Script
+} //namespace MoonGlare::Scripts

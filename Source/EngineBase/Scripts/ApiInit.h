@@ -4,7 +4,7 @@
 
 #include <boost/tti/has_static_member_function.hpp>
 
-namespace MoonGlare::Script {
+namespace MoonGlare::Scripts {
 
 using ApiInitializer = luabridge::Namespace;
 

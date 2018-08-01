@@ -59,7 +59,7 @@
 #include "Config/Config.h"
 
 #include <lua.hpp>
-#include <EngineBase/Script/LuaBridge/LuaBridge.h>
+#include <EngineBase/Scripts/LuaBridge/LuaBridge.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 #include <Foundation/PerfCounters.h>

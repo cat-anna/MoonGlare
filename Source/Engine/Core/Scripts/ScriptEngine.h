@@ -1,10 +1,12 @@
 #pragma once
 
-#include "iDynamicModule.h"
+#include <EngineBase/Scripts/iDynamicModule.h>
 
 namespace MoonGlare {
 namespace Core {
 namespace Scripts {
+
+using namespace MoonGlare::Scripts;
 
 class ScriptEngine final : public cRootClass {
     SPACERTTI_DECLARE_CLASS_SINGLETON(ScriptEngine, cRootClass);
