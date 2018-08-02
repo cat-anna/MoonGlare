@@ -129,7 +129,7 @@ bool EntityEditorWindow::Create(const std::string &LocationURI, const QtShared::
     std::string name = qname.toLocal8Bit().constData();
     std::string URI = LocationURI + name + ".epx";
 
-    auto fs = MainWindow::Get()->GetFilesystem();
+    auto fs = moduleManager->QuerryModule<FileSystem>();
     if (!fs->CreateFile(URI)) {
         ErrorMessage("Failed during creating epx file");
         AddLog(Hint, "Failed to create epx: " << m_CurrentPatternFile);
@@ -175,7 +175,7 @@ bool EntityEditorWindow::OpenData(const std::string &file) {
     try {
         pugi::xml_document xdoc;
 
-        auto fs = MainWindow::Get()->GetFilesystem();
+        auto fs = moduleManager->QuerryModule<FileSystem>();
         StarVFS::ByteTable bt;
         if (!fs->GetFileData(file, bt)) {
             //todo: log sth
@@ -225,7 +225,7 @@ bool EntityEditorWindow::SaveData() {
         StarVFS::ByteTable bt;
         bt.from_string(ss.str());
 
-        auto fs = MainWindow::Get()->GetFilesystem();
+        auto fs = moduleManager->QuerryModule<FileSystem>();
         if (!fs->SetFileData(m_CurrentPatternFile.c_str(), bt)) {
             //todo: log sth
             return false;

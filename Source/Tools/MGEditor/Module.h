@@ -6,6 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
+
+#include <EngineBase/InterfaceMap.h>
+
 #ifndef EditorModule_H
 #define EditorModule_H
 
@@ -120,12 +123,24 @@ public:
     void AddInterface(std::shared_ptr<T> intf) {
         m_CustomInterfaces[std::type_index(typeid(T))] = intf;
     }
+    InterfaceMap& GetInterfaceMap() { return interfaceMap; }
+
+    template<typename T, typename O>
+    void RegisterInterface(O *o) {
+        auto optr = o->shared_from_this();
+        auto tptr = std::dynamic_pointer_cast<T>(optr);
+        if (tptr)
+            interfaceMap.SetSharedInterface(tptr);
+        else
+            __debugbreak();
+    }
 
 	void LoadSettigs();
 	void SaveSettigs();
 protected:
 	ModuleManager();
 private:
+    InterfaceMap interfaceMap;
 	std::vector<SharedModule> m_Modules;
     std::unordered_map<std::type_index, std::any> m_CustomInterfaces;
 };

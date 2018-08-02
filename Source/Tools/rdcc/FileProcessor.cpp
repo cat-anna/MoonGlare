@@ -23,9 +23,10 @@ void FileProcessorDispatcher::ProcessFile(InputFileInfo inputFileInfo) {
 
     SharedFileProcessor proc;
     auto procit = fileProcessorsByExtension.find(inputFileInfo.extension);
-    if (procit == fileProcessorsByExtension.end())
+    if (procit == fileProcessorsByExtension.end()) {
         proc = unknownTypeFileProcessor;
-    else
+        printf("Cannot find file processor for '%s' ", inputFileInfo.fileName.c_str());
+    } else
         proc = procit->second;
 
     if (!proc)

@@ -162,15 +162,14 @@ void ScriptFileProcessor::InitLua() {
     throw std::runtime_error("Unable to Execute internal lua processor script!");
 }
 
-void ScriptFileProcessor::ReportIssue(MoonGlare::QtShared::Issue issue)
-{
+void ScriptFileProcessor::ReportIssue(MoonGlare::QtShared::Issue issue) {
     auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
     issue.internalID = MakeIssueId();
     reporter->ReportIssue(std::move(issue));  
 }
 
 void ScriptFileProcessor::ExecuteScript() {
-    auto fs = MainWindow::Get()->GetFilesystem();
+    auto fs = module->GetModuleManager()->QuerryModule<FileSystem>();
     StarVFS::ByteTable bt;
     if (!fs->GetFileData(m_URI, bt)) {
         //todo: log sth
@@ -214,6 +213,8 @@ void ScriptFileProcessor::ExecuteScript() {
        // std::string errorstr = lua_tostring(lua, -1);
        // ParseError(errorstr, QtShared::Issue::Type::Warning);
        // AddLogf(Hint, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
+        auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
+        reporter->DeleteIssue(MakeIssueId());
         break;
     }
     case LUA_ERRSYNTAX: {

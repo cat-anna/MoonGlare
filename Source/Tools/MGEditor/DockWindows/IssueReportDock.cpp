@@ -36,6 +36,9 @@ QtShared::ModuleClassRgister::Register<IssueReportDockInfo> IssueReportDockInfoR
 
 //----------------------------------------------------------------------------------
 
+static const int IssueRole = Qt::UserRole + 1;
+static const int IssueInternalIdRole = Qt::UserRole + 2;
+
 IssueReport::IssueReport(QWidget * parent, QtShared::SharedModuleManager modmgr)
     :  QtShared::DockWindow(parent), moduleManager(std::move(modmgr)) {
 
@@ -85,11 +88,11 @@ bool IssueReport::DoLoadSettings(const pugi::xml_node node) {
 //----------------------------------------------------------------------------------
 
 void IssueReport::Refresh() {
-    errorCount = 0;
-    m_ViewModel->removeRows(0, m_ViewModel->rowCount());
-    auto issuereporteer = moduleManager->QuerryModule<QtShared::IssueReporter>();
-    for (auto &item : issuereporteer->CurrentIssues()) {
-        IssueCreated(*item);
+    if (m_ViewModel->rowCount() > 0) {
+        setWindowTitle(fmt::format("Active issues [{}]", m_ViewModel->rowCount()).c_str());
+    }
+    else {
+        setWindowTitle("Active issues");
     }
 }
 
@@ -100,7 +103,7 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
     QStandardItem *qitm;
     QList<QStandardItem*> cols;
     cols << (qitm = new QStandardItem());
-
+                      
     switch (issue.type) {
     default:
     case QtShared::Issue::Type::Unknown:
@@ -109,7 +112,6 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
     case QtShared::Issue::Type::Error:
         qitm->setText("Error");
         qitm->setBackground(QBrush(QColor(255, 0, 0, 128)));
-        ++errorCount;
 //        m_Ui->
       //  titleBarWidget()->s
         break;
@@ -127,29 +129,32 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
         break;
     }
 
-    if (errorCount > 0) {
-        setWindowTitle(fmt::format("Active issues [{}]", errorCount).c_str());
-    }
-    else {
-        setWindowTitle("Active issues");
-    }
-
-
     cols << new QStandardItem(issue.group.c_str());
     cols << new QStandardItem(issue.message.c_str());
     if (issue.fileName) {
         cols << new QStandardItem(fmt::format("{}({})", issue.fileName.value_or(""), issue.sourceLine.value_or(0)).c_str());
     }
 
-    qitm->setData(QVariant::fromValue(issue));
+    qitm->setData(QVariant::fromValue(issue), IssueRole);
+    qitm->setData(QString(issue.internalID.c_str()), IssueInternalIdRole);
 
     auto root = m_ViewModel->invisibleRootItem();
     root->appendRow(cols);
+    Refresh();
 }
 
-void IssueReport::IssueRemoved(QtShared::Issue) {
+void IssueReport::IssueRemoved(QtShared::Issue issue) {
+    auto root = m_ViewModel->invisibleRootItem();
+    QString iid = issue.internalID.c_str();
+    for (int row = 0; row < root->rowCount(); ++row) {
+        auto ch = root->child(row);
+        auto qstr = ch->data(IssueInternalIdRole).toString();
+        if (qstr == iid) {
+            root->removeRow(row);
+            break;
+        }
+    }
     Refresh();
-    //TODO: proper implementation!
 }
 
 //----------------------------------------------------------------------------------

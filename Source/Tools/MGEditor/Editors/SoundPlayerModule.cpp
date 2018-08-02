@@ -26,16 +26,21 @@ struct SoundPlayerModule
     //void Play(const std::string &uri) override {
     //}
 
-    virtual bool Initialize() {
+    bool Initialize() override {
         if (!iModule::Initialize())
             return false;
-
         soundSystem = SoundSystem::iSoundSystem::Create();
-        soundSystem->Initialize(GetModuleManager()->QuerryModule<iFileSystem>().get());
 
         return true;
     }
-    virtual bool Finalize() {
+    bool PostInit() override {
+        if (!iModule::PostInit())
+            return false;
+
+        soundSystem->Initialize(GetModuleManager()->GetInterfaceMap());
+        return true;
+    }
+    bool Finalize() override {
         if (!iModule::Finalize())
             return false;
 
@@ -46,7 +51,7 @@ struct SoundPlayerModule
         return true;
     }
 
-    virtual std::vector<FileIconInfo> GetFileIconInfo() const override {
+    std::vector<FileIconInfo> GetFileIconInfo() const override {
         if (!soundSystem)
             return { };
 
@@ -58,7 +63,7 @@ struct SoundPlayerModule
         return std::move(ret);
     }
 
-    virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override { 
+    std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override { 
         if (!soundSystem)
             return {};
 
@@ -70,7 +75,7 @@ struct SoundPlayerModule
         return std::move(ret);
     }
 
-    virtual SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
+    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
         auto iface = GetModuleManager()->QuerryModule<DockWindows::iFileSystemViewerPreview>();
         if (!iface)
             return nullptr;

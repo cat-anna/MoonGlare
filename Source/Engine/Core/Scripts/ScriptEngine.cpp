@@ -114,9 +114,6 @@ bool ScriptEngine::ConstructLuaContext() {
 #endif
     lua_atpanic(m_Lua, LuaPanicHandler);
 
-    lua_newtable(m_Lua);
-    lua_setglobal(m_Lua, "global");
-
 #ifdef DEBUG
     luabridge::setHideMetatables(false);
 #else

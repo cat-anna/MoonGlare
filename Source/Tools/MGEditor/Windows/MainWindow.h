@@ -42,7 +42,6 @@ public:
 	~MainWindow();
 	static MainWindow* Get();
 
-	SharedFileSystem GetFilesystem() { return m_FileSystem; }
 	SharedData* GetSharedData() { return &m_SharedData; }
 protected:
 	void closeEvent(QCloseEvent * event);
@@ -64,7 +63,6 @@ private:
 	SharedData m_SharedData;
 
 	Module::SharedDataModule m_DataModule;
-	SharedFileSystem m_FileSystem;
 	void NewModule(const std::string& MasterFile);
 	void OpenModule(const std::string& MasterFile);
 	void CloseModule();

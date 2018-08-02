@@ -59,7 +59,7 @@ public:
 
         std::string URI = LocationURI + name + ".lua";
 
-        auto fs = MainWindow::Get()->GetFilesystem();
+        auto fs = m_ModuleManager->QuerryModule<FileSystem>();
         if (!fs->CreateFile(URI)) {
             m_UserQuestions->ErrorMessage("Failed during creating lua file");
             AddLog(Hint, "Failed to create lua file: " << URI);

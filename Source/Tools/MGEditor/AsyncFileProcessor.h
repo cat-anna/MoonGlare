@@ -6,37 +6,38 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef AsyncFileProcessor_H
-#define AsyncFileProcessor_H
 
 #include <iFileProcessor.h>
+#include <Module.h>
 
 namespace MoonGlare {
 namespace Editor {
 
 class AsyncFileProcessor 
-	: public QObject {
+	: public QObject
+    , public QtShared::iModule
+    , public QtShared::iJobProcessor {
 	Q_OBJECT;
 public:
- 	AsyncFileProcessor();
+ 	AsyncFileProcessor(QtShared::SharedModuleManager modmgr);
  	virtual ~AsyncFileProcessor();
+
+    void Queue(QtShared::SharedFileProcessor processor)override;
 signals:
 	void FileProcessingFinished(QtShared::SharedFileProcessor);
-public slots:
-	void FileProcessorCreated(QtShared::SharedFileProcessor);
 protected:
-	bool m_ThreadCanWork;
+    size_t jobcount = 0;
+    bool m_ThreadCanWork;
 	std::condition_variable m_QueueEmpty;
 	std::list<QtShared::SharedFileProcessor> m_Queue;
 	std::mutex m_Mutex;
 	std::thread m_Thread;
 
 	void ThreadEntry();
+    void ExecuteJob(MoonGlare::QtShared::SharedFileProcessor processor);
 protected slots:
 	void JobFinished(QtShared::SharedFileProcessor);
 };
 
 } //namespace Editor 
 } //namespace MoonGlare 
-
-#endif

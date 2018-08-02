@@ -35,7 +35,6 @@ protected slots:
     void ShowContextMenu(const QPoint &);
     void ItemDoubleClicked(const QModelIndex&);
 private: 
-    int errorCount = 0;
     QtShared::SharedModuleManager moduleManager;
     std::unique_ptr<Ui::IssueReportDock> m_Ui;
     std::unique_ptr<QStandardItemModel> m_ViewModel;

@@ -1,4 +1,3 @@
-
 local class = oo.Class()
 
 function class:Init(Owner, playListUri)

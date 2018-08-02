@@ -27,7 +27,6 @@ public:
             if (st)
                 return st.get();
             AddLogf(Error, "There is no interface %s", typeid(T).name());
-            __debugbreak();
             return nullptr;
         }
         try {
@@ -44,7 +43,6 @@ public:
         auto it = sharedInterfaces.find(std::type_index(typeid(T)));
         if (it == sharedInterfaces.end()) {
             AddLogf(Error, "There is no shared interface %s", typeid(T).name());
-            __debugbreak();
             return nullptr;
         }
         try {

@@ -69,7 +69,7 @@ FileSystemViewer::FileSystemViewer(QWidget * parent, QtShared::WeakModule module
     m_Ui = std::make_unique<Ui::FilesystemViewer>();
     m_Ui->setupUi(this);
 
-    m_FileSystem = MainWindow::Get()->GetFilesystem();
+    m_FileSystem = mm->QuerryModule<FileSystem>();
 
     m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));

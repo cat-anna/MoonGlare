@@ -135,7 +135,7 @@ bool SceneEditor::Create(const std::string & LocationURI, const QtShared::iEdito
 
 	std::string URI = LocationURI + name + ".sdx";
 
-	auto fs = MainWindow::Get()->GetFilesystem();
+	auto fs = moduleManager->QuerryModule<FileSystem>();
 	if (!fs->CreateFile(URI)) {
 		ErrorMessage("Failed during creating sdx file");
 		AddLog(Hint, "Failed to create sdx file: " << URI);
@@ -160,7 +160,7 @@ bool SceneEditor::OpenData(const std::string &URI) {
 	try {
 		pugi::xml_document xdoc;
 
-		auto fs = MainWindow::Get()->GetFilesystem();
+		auto fs = moduleManager->QuerryModule<FileSystem>();
 		StarVFS::ByteTable bt;
 		if (!fs->GetFileData(URI, bt)) {
 			//todo: log sth
@@ -234,7 +234,7 @@ bool SceneEditor::SaveData() {
 		xdoc.save(ss);
 		StarVFS::ByteTable bt;
 		bt.from_string(ss.str());
-		auto fs = MainWindow::Get()->GetFilesystem();
+		auto fs = moduleManager->QuerryModule<FileSystem>();
 		if (!fs->SetFileData(m_SceneURI, bt)) {
 			AddLog(Hint, "Failed to write sdx file: " << m_SceneURI);
 			throw false;

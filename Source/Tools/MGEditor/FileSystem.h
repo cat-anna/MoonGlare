@@ -6,10 +6,10 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef FileSystem_H
-#define FileSystem_H
 
 #include <qobject.h>
+#include <QFileSystemWatcher>
+
 #include "Notifications.h"
 
 #include <StarVFS/core/nStarVFS.h>
@@ -31,7 +31,6 @@ class AsyncFileProcessor;
 class FileSystem 
 	: public QObject
     , public QtShared::iModule
-	, std::enable_shared_from_this<FileSystem>
     , public iFileSystem {
 	Q_OBJECT;
 public:
@@ -56,7 +55,8 @@ public:
         __debugbreak();
         throw false;
     }
-
+    
+    bool Initialize() override;
     bool PostInit() override;
 
 	void QueueFileProcessing(const std::string &URI);
@@ -64,7 +64,6 @@ public slots:
 	void Reload();
 signals:
 	void Changed();
-	void FileProcessorCreated(QtShared::SharedFileProcessor);
 protected slots:
 	void ProjectChanged(Module::SharedDataModule datamod);
 private:
@@ -73,14 +72,20 @@ private:
 	std::string m_BasePath;
 	Module::SharedDataModule m_Module;
 	std::unordered_map<std::string, std::vector<std::weak_ptr<QtShared::iFileProcessorInfo>>> m_ExtFileProcessorList;
-	std::unique_ptr<AsyncFileProcessor> m_AsyncFileProcessor;
+    QtShared::SharedJobProcessor jobProcessor;
+    QtShared::SharedJobFence jobFence;
+    QFileSystemWatcher fsWatcher;
+    QTimer watcherTimeout;
+    std::set<std::string> changedPaths;
 
 	bool TranslateURI(const std::string &uri, std::string &out);
+
+    void UpdateFsWatcher();
+    void HandleDirectoryChanged(const std::string &URI);
+    void RefreshChangedPaths();
 };
 
 using SharedFileSystem = std::shared_ptr<FileSystem>;
 
 } //namespace Editor 
 } //namespace MoonGlare 
-
-#endif

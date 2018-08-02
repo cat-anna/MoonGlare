@@ -53,7 +53,7 @@ local function SetCommonConfig()
 
 	filter "system:windows"
 		links { "opengl32", "glu32", "gdi32", }
-		defines{ "WINDOWS", "OS_NAME=\"Windows\"" }
+		defines{ "WINDOWS", "OS_NAME=\"Windows\"", "_SCL_SECURE_NO_WARNINGS" }
 	filter "system:linux"
 		links { "GL", "GLU", "X11", "Xxf86vm", "Xrandr", "Xi", "rt", }
 		defines{ "LINUX", "OS_NAME=\"Linux\"" }

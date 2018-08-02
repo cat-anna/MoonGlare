@@ -12,6 +12,24 @@
 namespace MoonGlare {
 namespace QtShared {
 
+class iJobFence {
+public:
+    virtual ~iJobFence() {}
+    virtual void lock() = 0;
+    virtual bool try_lock() = 0;
+    virtual void unlock() = 0;
+};
+
+using SharedJobFence = std::shared_ptr<iJobFence>;
+
+class MutexJobFence : public iJobFence {
+public:
+    std::recursive_mutex mtx;
+    void lock() override { mtx.lock(); }
+    bool try_lock() override { return mtx.try_lock(); }
+    void unlock() override { mtx.unlock(); }
+};
+
 struct FileProcessorFileInfo {
     std::string m_Ext;
     std::string m_Icon;
@@ -32,8 +50,13 @@ public:
     virtual ProcessResult ProcessFile() = 0;
 
     virtual void HandlePostProcess() {};
+
+    SharedJobFence GetFence() { return fence; }
+    void SetFence(SharedJobFence f) { fence = f; }
 protected:
     std::string m_URI;
+private:
+    SharedJobFence fence;
 };
 
 using SharedFileProcessor = std::shared_ptr<iFileProcessor>;
@@ -44,6 +67,14 @@ public:
     virtual SharedFileProcessor CreateFileProcessor(std::string URI) = 0;
     virtual std::vector<std::string> GetSupportedTypes() { return{}; }
 };
+
+class iJobProcessor {
+public:
+    virtual ~iJobProcessor() { }
+
+    virtual void Queue(SharedFileProcessor processor) = 0;
+};
+using SharedJobProcessor = std::shared_ptr<iJobProcessor>;
 
 } //namespace QtShared 
 } //namespace MoonGlare 

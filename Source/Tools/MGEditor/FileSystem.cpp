@@ -5,6 +5,9 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
+
+#include <QDirIterator>
+
 #include "FileSystem.h"
 
 #include <StarVFS/core/Container/FolderContainer.h>
@@ -17,16 +20,32 @@ namespace Editor {
 QtShared::ModuleClassRgister::Register<FileSystem> FileSystemReg("FileSystem");
 
 FileSystem::FileSystem(QtShared::SharedModuleManager modmgr) :
-        iModule(std::move(modmgr)) {
+        iModule(std::move(modmgr)), fsWatcher(this) {
 
     m_VFS = std::make_shared<StarVFS::StarVFS>();
+    jobFence = std::make_shared<QtShared::MutexJobFence>();
+
     connect(Notifications::Get(), SIGNAL(ProjectChanged(Module::SharedDataModule)), this, SLOT(ProjectChanged(Module::SharedDataModule)));
 
-    m_AsyncFileProcessor = std::make_unique<AsyncFileProcessor>();
-    connect(this, &FileSystem::FileProcessorCreated, m_AsyncFileProcessor.get(), &AsyncFileProcessor::FileProcessorCreated);
+    connect(&fsWatcher, &QFileSystemWatcher::directoryChanged, [this](const QString &path) { HandleDirectoryChanged(path.toLocal8Bit().begin()); });
+    connect(&fsWatcher, &QFileSystemWatcher::fileChanged, [this](const QString &path) { HandleDirectoryChanged(path.toLocal8Bit().begin()); });
+
+    watcherTimeout.setInterval(1000);
+    watcherTimeout.setSingleShot(true);
+    connect(&watcherTimeout, &QTimer::timeout, [this]() { RefreshChangedPaths(); });
+
 }
 
 FileSystem::~FileSystem() {
+}
+
+bool FileSystem::Initialize() {
+    if (!iModule::Initialize())
+        return false;
+
+    GetModuleManager()->RegisterInterface<iFileSystem>(this);
+
+    return true;
 }
 
 bool FileSystem::PostInit() {
@@ -36,6 +55,7 @@ bool FileSystem::PostInit() {
             AddLogf(Info, "Registered file processor %s -> '%s'", it.c_str(), typeid(*mod.m_Module).name());
         }
     }
+    jobProcessor = GetModuleManager()->QuerryModule<QtShared::iJobProcessor>();
     return true;
 }
 
@@ -169,10 +189,38 @@ void FileSystem::QueueFileProcessing(const std::string & URI) {
                 AddLogf(Error, "Failed to create file processor: %s", typeid(*proc.get()).name());
                 continue;
             }
-            emit FileProcessorCreated(processor);
+            AddLogf(Info, "Queued processing of file %s", URI.c_str());
+            processor->SetFence(jobFence);
+            jobProcessor->Queue(processor);
             //m_QueuedFileProcessors.push_back(std::move(processor));
         }
     }
+}
+
+void FileSystem::HandleDirectoryChanged(const std::string &URI) {
+    AddLogf(Info, "Directory changed: %s", URI.c_str());
+    changedPaths.insert(URI);
+    watcherTimeout.start();
+}
+
+void FileSystem::RefreshChangedPaths() {
+    AddLogf(Info, "Processing changed paths");
+    std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
+
+    for (auto &item : changedPaths) {
+        if (item.find(m_BasePath) != 0) {
+            continue;
+        }
+        auto uri = "file://" + item.substr(m_BasePath.size() - 1);
+        if (boost::filesystem::is_regular_file(item)) {
+            QueueFileProcessing(uri);
+            continue;
+        }
+        if (boost::filesystem::is_directory(item)) {
+            //TODO
+        }
+    }
+    changedPaths.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -180,13 +228,31 @@ void FileSystem::QueueFileProcessing(const std::string & URI) {
 void FileSystem::ProjectChanged(Module::SharedDataModule datamod) {
     m_Module = datamod;
     if (m_Module) {
+        std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
         m_BasePath = m_Module->GetBaseDirectory();
+        UpdateFsWatcher();
         Reload();
     }
 }
 
+void FileSystem::UpdateFsWatcher() {
+    fsWatcher.removePaths(fsWatcher.directories());
+    QStringList list;
+    QDirIterator it(m_BasePath.c_str(), QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        auto v = it.next();
+        std::string fn = QDir(v).dirName().toLocal8Bit().data();
+        if (fn != "." && fn != "..") {
+            list.push_back(v);
+        }
+    }
+    list.push_back(m_BasePath.c_str());
+    fsWatcher.addPaths(list);
+}
+
 void FileSystem::Reload() {
     LOCK_MUTEX(m_Mutex);
+    std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
     if (m_VFS->GetContainerCount() == 0) {
 
         auto Load = [this](std::string path) {
