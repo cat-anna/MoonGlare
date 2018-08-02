@@ -74,7 +74,7 @@ AssimpProcessor::ProcessResult AssimpProcessor::ProcessFile() {
   //      ModelEnum->set.insert(pieces_match[1]);
   //  }
 
-    ModelEnum->set.insert(m_URI);
+    ModelEnum->Add(m_URI);
 
     return ProcessResult::Success;
 }

@@ -21,6 +21,7 @@ public:
 
     std::optional<std::string> fileName;
     std::optional<int> sourceLine;
+    std::optional<int> sourceColumn;
 
     std::string internalID;
 };

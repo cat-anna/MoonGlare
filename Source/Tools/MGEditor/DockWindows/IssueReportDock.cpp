@@ -50,7 +50,8 @@ IssueReport::IssueReport(QWidget * parent, QtShared::SharedModuleManager modmgr)
     m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Type"));
     m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Group"));
     m_ViewModel->setHorizontalHeaderItem(2, new QStandardItem("Message"));
-    m_ViewModel->setHorizontalHeaderItem(3, new QStandardItem("File"));
+    m_ViewModel->setHorizontalHeaderItem(3, new QStandardItem("Line"));
+    m_ViewModel->setHorizontalHeaderItem(4, new QStandardItem("File"));
     m_Ui->treeView->setModel(m_ViewModel.get());
     m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -58,7 +59,8 @@ IssueReport::IssueReport(QWidget * parent, QtShared::SharedModuleManager modmgr)
     m_Ui->treeView->setColumnWidth(0, 70);
     m_Ui->treeView->setColumnWidth(1, 100);
     m_Ui->treeView->setColumnWidth(2, 400);
-    m_Ui->treeView->setColumnWidth(3, 200);
+    m_Ui->treeView->setColumnWidth(3, 50);
+    m_Ui->treeView->setColumnWidth(4, 200);
 
     auto issuereporteer = moduleManager->QuerryModule<QtShared::IssueReporter>();
     connect(issuereporteer.get(), &QtShared::IssueReporter::IssueCreated, this, &IssueReport::IssueCreated);
@@ -131,9 +133,17 @@ void IssueReport::IssueCreated(QtShared::Issue issue) {
 
     cols << new QStandardItem(issue.group.c_str());
     cols << new QStandardItem(issue.message.c_str());
-    if (issue.fileName) {
-        cols << new QStandardItem(fmt::format("{}({})", issue.fileName.value_or(""), issue.sourceLine.value_or(0)).c_str());
+    {
+        std::string txt;
+        if (issue.sourceLine.has_value()) {
+            txt += std::to_string(issue.sourceLine.value_or(0));
+            if (issue.sourceColumn.has_value()) {
+                txt += ":" + std::to_string(issue.sourceColumn.value_or(0));
+            }
+        }
+        cols << new QStandardItem(txt.c_str());
     }
+    cols << new QStandardItem(issue.fileName.value_or("").c_str());
 
     qitm->setData(QVariant::fromValue(issue), IssueRole);
     qitm->setData(QString(issue.internalID.c_str()), IssueInternalIdRole);

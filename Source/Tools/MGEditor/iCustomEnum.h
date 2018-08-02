@@ -26,12 +26,25 @@ struct SetEnum : public QtShared::iCustomEnum {
         return type;
     }
     virtual std::vector<EnumValue> GetValues() const {
-        std::vector<EnumValue> ret;
-        for (auto &s : set)
-            ret.emplace_back(EnumValue{ s });
+        std::vector<EnumValue> ret;       
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            for (auto &s : set)
+                ret.emplace_back(EnumValue{ s });
+        }
         return std::move(ret);
     }
 
+    void Add(std::string value) {
+        std::lock_guard<std::mutex> lock(mutex);
+        set.insert(std::move(value));
+    }
+    void Remove(std::string value) {
+        std::lock_guard<std::mutex> lock(mutex);
+        set.erase(std::move(value));
+    }
+private:
+    mutable std::mutex mutex;
     std::set<std::string> set;
     std::string type;
 };

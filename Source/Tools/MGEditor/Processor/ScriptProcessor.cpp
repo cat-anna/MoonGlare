@@ -24,20 +24,6 @@ namespace MoonGlare {
 namespace Editor {
 namespace Processor {
                                   
-struct ScriptListEnum : public QtShared::iCustomEnum {
-    virtual std::string GetEnumTypeName() const {
-        return "string:Script.Script";
-    }
-    virtual std::vector<EnumValue> GetValues() const {
-        std::vector<EnumValue> ret;
-        for (auto &s : scriptSet)
-            ret.emplace_back(EnumValue{ s });
-        return std::move(ret);
-    }
-
-    std::set<std::string> scriptSet;
-};
-  
 //----------------------------------------------------------------------------------
 
 struct ScriptFileProcessorInfo
@@ -48,7 +34,7 @@ struct ScriptFileProcessorInfo
 
     ScriptFileProcessorInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
-    std::shared_ptr<ScriptListEnum>  scriptListEnum = std::make_shared<ScriptListEnum>();
+    std::shared_ptr<QtShared::SetEnum>  scriptListEnum = std::make_shared<QtShared::SetEnum>("string:Script.Script");
 
     QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
         return std::make_shared<ScriptFileProcessor>(this, std::move(URI));
@@ -184,7 +170,7 @@ void ScriptFileProcessor::ExecuteScript() {
         std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\.\/]+)\.lua)", std::regex::icase);
         std::smatch pieces_match;
         if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
-            module->scriptListEnum->scriptSet.insert(pieces_match[1]);
+            module->scriptListEnum->Add(pieces_match[1]);
         }
     }
 
