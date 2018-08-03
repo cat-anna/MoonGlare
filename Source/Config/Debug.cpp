@@ -5,8 +5,8 @@
 #include "Core/Interfaces.h"
 
 #include <Core/Scripts/LuaApi.h>
-#include <EngineBase/Component/ComponentInfo.h>
-#include <EngineBase/Component/EventInfo.h>
+#include <Foundation/Component/ComponentInfo.h>
+#include <Foundation/Component/EventInfo.h>
 
 namespace Config {
 namespace Debug {

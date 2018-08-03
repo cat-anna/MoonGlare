@@ -8,8 +8,8 @@
 #include <Modules/ModuleManager.h>
 #include <Core/Component/ComponentRegister.h>
 
-#include <EngineBase/Component/EventInfo.h>
-#include <EngineBase/Component/ComponentInfo.h>
+#include <Foundation/Component/EventInfo.h>
+#include <Foundation/Component/ComponentInfo.h>
 
 namespace MoonGlare {
 namespace Core {

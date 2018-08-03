@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Scripts/iDynamicModule.h>
+#include <Foundation/Scripts/iDynamicModule.h>
 
 namespace MoonGlare {
 namespace Core {

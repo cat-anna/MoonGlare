@@ -3,7 +3,7 @@
 #include <libSpace/src/Container/StaticVector.h>
 #include "ComponentRegister.h"
 
-#include <EngineBase/Component/iSubsystem.h>
+#include <Foundation/Component/iSubsystem.h>
 
 namespace MoonGlare::Core::Component {
 

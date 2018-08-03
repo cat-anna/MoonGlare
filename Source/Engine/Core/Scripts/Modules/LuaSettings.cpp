@@ -8,7 +8,7 @@
 #include "LuaSettings.h"
 
 #include <Foundation/Scripts/ErrorHandling.h>
-#include <EngineBase/Settings.h>
+#include <Foundation/Settings.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
 using namespace MoonGlare::Scripts;

@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <EngineBase/Scripts/iLuaRequire.h>
-#include <EngineBase/Scripts/iDynamicModule.h>
+#include <Foundation/Scripts/iLuaRequire.h>
+#include <Foundation/Scripts/iDynamicModule.h>
 
 namespace MoonGlare::Core::Scripts::Modules {
 using namespace MoonGlare::Scripts;

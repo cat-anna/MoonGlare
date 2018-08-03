@@ -6,7 +6,7 @@
 #include <Engine/Core/Configuration.Runtime.h>
 #include <Engine/Core/Scene/ScenesManager.h>
 #include <Engine/DataClasses/iFont.h>
-#include <EngineBase/Scripts/iLuaRequire.h>
+#include <Foundation/Scripts/iLuaRequire.h>
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
 

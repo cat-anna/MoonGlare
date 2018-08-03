@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Component/Entity.h>
+#include <Foundation/Component/Entity.h>
 
 namespace MoonGlare {
 

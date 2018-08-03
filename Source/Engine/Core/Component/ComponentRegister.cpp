@@ -6,10 +6,10 @@
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include <EngineBase/Component/iSubsystem.h>
+#include <Foundation/Component/iSubsystem.h>
 #include "SubsystemManager.h"
 #include "ComponentRegister.h"
-#include <EngineBase/SoundSystem/Component/SoundSubsystem.h>
+#include <Foundation/SoundSystem/Component/SoundSubsystem.h>
 
 namespace MoonGlare {
 namespace Core {

@@ -7,9 +7,9 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <EngineBase/Component/ComponentInfo.h>
-#include <EngineBase/Component/ComponentArray.h>
-#include <EngineBase/Component/ComponentCreatedEvent.h>
+#include <Foundation/Component/ComponentInfo.h>
+#include <Foundation/Component/ComponentArray.h>
+#include <Foundation/Component/ComponentCreatedEvent.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include "ScriptComponent.h"

@@ -39,7 +39,6 @@ project "MGEditor"
 
         "Foundation",
         "ToolBase",
-        "EngineBase", 
     }
 
     filter "action:vs*"

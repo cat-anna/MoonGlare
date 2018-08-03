@@ -4,10 +4,10 @@ group "Common"
 project "Foundation"
 	kind "StaticLib"
 
-	-- SetPCH { hdr = "pch.h", src = "pch.cpp", }
-	-- forceincludes {
-		-- "pch.h",
-	-- }
+	SetPCH { hdr = "pch.h", src = "pch.cpp", }
+	forceincludes {
+		"pch.h",
+	}
 
 	defines {
 		"BT_EULER_DEFAULT_ZYX",
@@ -19,6 +19,7 @@ project "Foundation"
 	}
 	includedirs {
 		".",
+		"%{cfg.objdir}",		
 	}
 
 	filter "configurations:Debug"

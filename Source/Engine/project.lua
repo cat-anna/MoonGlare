@@ -39,7 +39,6 @@ project "Engine"
 		"Renderer",
 		"Assets",
 		"Foundation",
-        "EngineBase",
 		-- "x2c",
 	}
 

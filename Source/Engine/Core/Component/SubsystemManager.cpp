@@ -8,7 +8,7 @@
 #include "TransformComponent.h"
 
 #include <Core/Scripts/ScriptComponent.h>
-#include <EngineBase/Component/ComponentArray.h>
+#include <Foundation/Component/ComponentArray.h>
 
 namespace MoonGlare::Core::Component {
 

@@ -13,7 +13,7 @@
 #include "Modules/LuaSettings.h"
 #include "Modules/StaticStorage.h"
 
-#include <EngineBase/Scripts/Modules/LuaFilesystem.h>
+#include <Foundation/Scripts/Modules/LuaFilesystem.h>
 
 #include <Core/Component/ComponentRegister.h>
 

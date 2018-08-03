@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/InterfaceMap.h>
+#include <Foundation/InterfaceMap.h>
 
 #include "Core/EntityManager.h"
 #include "Core/HandleTable.h"

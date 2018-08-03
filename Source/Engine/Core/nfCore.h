@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Component/iSubsystem.h>
+#include <Foundation/Component/iSubsystem.h>
 
 namespace MoonGlare {
 namespace Core {

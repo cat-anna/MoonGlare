@@ -1,7 +1,7 @@
 #pragma once
 
-#include <EngineBase/Component/EventDispatcher.h>
-#include <EngineBase/Component/iSubsystem.h>
+#include <Foundation/Component/EventDispatcher.h>
+#include <Foundation/Component/iSubsystem.h>
 
 namespace MoonGlare::Core::Component {
 

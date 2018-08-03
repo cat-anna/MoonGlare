@@ -31,11 +31,11 @@
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
 
-#include <EngineBase/SoundSystem/iSoundSystem.h>
+#include <Foundation/SoundSystem/iSoundSystem.h>
 
 #include <boost/algorithm/string.hpp>
 
-#include <EngineBase/Settings.h>
+#include <Foundation/Settings.h>
 
 namespace MoonGlare {
 

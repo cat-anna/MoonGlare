@@ -1,5 +1,5 @@
 #include <lua.hpp>
-#include <EngineBase/Scripts/LuaBridge/LuaBridge.h>
+#include <Foundation/Scripts/LuaBridge/LuaBridge.h>
 
 #include "ScriptApi.h"
 #include "Renderer.h"

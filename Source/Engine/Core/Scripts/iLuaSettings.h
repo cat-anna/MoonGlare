@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EngineBase/Settings.h>
+#include <Foundation/Settings.h>
 
 namespace MoonGlare::Core::Scripts::Settings {
 
