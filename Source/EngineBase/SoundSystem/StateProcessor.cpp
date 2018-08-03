@@ -210,6 +210,7 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
                     state.sourceSoundHandle.Stop();
                     ReleaseSourceBufferQueue(state);
                     state.ResetStatistics();
+                    state.duration = state.decoder->GetDuration();
                 }
                 state.status = SourceStatus::Playing;
             }
@@ -637,10 +638,9 @@ float StateProcessor::GetDuration(SoundHandle handle) const {
         return -1.0f;
     auto &state = sourceState[(size_t)index];
     if (state.duration <= 0) {
-
+        //TODO:?
     }
     return state.duration;
-        //return sourceState[(size_t)index].decoder->getd;
 }
 
 float StateProcessor::GetTimePosition(SoundHandle handle) const {
