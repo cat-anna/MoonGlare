@@ -13,6 +13,7 @@
 
 #include <Core/EntityBuilder.h>
 
+#include "ciScene.h"
 #include "Scene.Events.h"
 
 namespace MoonGlare {

@@ -147,6 +147,8 @@ void SubsystemManager::Step(const MoveConfig &config) {
 #endif
     }
 
+    m_EventDispatcher.Step();
+
 #ifdef PERF_PERIODIC_PRINT
     if (config.m_SecondPeriod) {
         std::string oss;

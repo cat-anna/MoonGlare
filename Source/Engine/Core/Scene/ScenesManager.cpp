@@ -12,6 +12,7 @@
 #include <Core/Scripts/LuaApi.h>
 
 #include "JobQueue.h"
+#include "ciScene.h"
 
 #include <Math.x2c.h>
 #include <StaticFog.x2c.h>

@@ -39,12 +39,6 @@ SoundSubsystem::~SoundSubsystem() {
 
 void SoundSubsystem::Update(const SubsystemUpdateData &data) {
     componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
-        if (ssc.finishEvent) {
-            //TODO        
-            subsystemManager->GetEventDispatcher().Send(SoundStreamFinishedEvent{ ssc.e,ssc.e });
-            ssc.finishEvent = false;
-        }
-
         if (ssc.autostart) {
             ssc.autostart = false;
             handleApi.Play(ssc.handle);
@@ -55,13 +49,12 @@ void SoundSubsystem::Update(const SubsystemUpdateData &data) {
 void SoundSubsystem::HandleEvent(const ComponentCreatedEvent &ev) {
     SoundSourceComponent &ssc = componentArray->GetComponent<SoundSourceComponent>(ev.sender.GetIndex());
     ssc.handle = handleApi.Open("", false);
-    handleApi.SetCallback(ssc.handle, &playbackWatcher, ev.sender.GetIndex());
+    handleApi.SetCallback(ssc.handle, &playbackWatcher, ev.sender.GetIntValue());
 }
 
 void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, bool loop, UserData userData) {
-    auto *ssc = componentArray->QuerryComponent<SoundSourceComponent>(userData);
-    if (ssc)
-        ssc->finishEvent = true;
+    Entity e = Entity::FromIntValue(userData);
+    subsystemManager->GetEventDispatcher().Queue(SoundStreamFinishedEvent{ e, e });
 }
 
 bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
@@ -72,11 +65,10 @@ bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
     SoundSourceComponent &ssc = componentArray->AssignComponent<SoundSourceComponent>(Owner.GetIndex());
 
     ssc.e = Owner;
-    ssc.finishEvent = false;
     ssc.autostart = entry.state == SoundState::Playing;
     ssc.handle = SoundHandle::Invalid;
     ssc.handle = handleApi.Open(entry.uri, false, entry.kind, false);
-    handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIndex());
+    handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIntValue());
 
     return true;
 }

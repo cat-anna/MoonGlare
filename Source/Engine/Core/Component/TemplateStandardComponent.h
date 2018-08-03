@@ -5,6 +5,9 @@
 
 #include <Foundation/Component/iSubsystem.h>
 
+#include "nfComponent.h"
+#include "SubsystemManager.h"
+
 namespace MoonGlare::Core::Component {
 
 using namespace MoonGlare::Component;

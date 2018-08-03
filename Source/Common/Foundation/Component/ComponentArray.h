@@ -29,7 +29,6 @@ public:
         return ptr;
     }
     template<typename T> T& GetComponent(Index index) {
-        auto bitmask = MakeBitSet<T>();
         T* ptr = QuerryComponent<T>(index);
         if (!ptr) {
             __debugbreak();

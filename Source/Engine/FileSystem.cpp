@@ -10,6 +10,7 @@
 
 #include <StarVFS/core/nStarVFS.h>
 #include <Core/Scripts/LuaApi.h>
+#include "Core/DataManager.h"
 
 namespace MoonGlare {
 namespace FileSystem {

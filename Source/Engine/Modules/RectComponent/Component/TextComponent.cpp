@@ -10,6 +10,8 @@
 
 #include <MoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
+#include "Engine/Core/DataManager.h"
+
 #include "../nfGUI.h"
 
 #include <Core/Component/SubsystemManager.h>

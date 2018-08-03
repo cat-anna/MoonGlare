@@ -6,6 +6,8 @@
 #include "Configuration.h"
 #include "EventInfo.h"    
 
+#include <Foundation/Memory/DynamicBuffer.h>
+
 namespace MoonGlare::Component {
 
 namespace detail {
@@ -56,7 +58,7 @@ protected:
 class EventDispatcher {
 public:
     EventDispatcher();
-    
+    void Step();
     void SetEventSink(lua_State *lua, EventScriptSink *sink);
 
     template<typename EVENT>
@@ -70,7 +72,14 @@ public:
         }
     }
 
-    //TODO: Queue
+    template<typename EVENT>
+    void Queue(const EVENT& event) {
+        AddLog(Event, "Queued event: " << event);
+        std::lock_guard<std::mutex> lock(bufferMutex);
+        auto buf = buffer.Allocate<QueuedEvent<EVENT>>();
+        buf->event = event;
+        buf->sendFunc = reinterpret_cast<BaseQueuedEvent::SendFunc>(&EventDispatcher::SendQueuedEvent<EVENT>);
+    }
 
     template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
     void Register(RECIVER *reciver) {
@@ -80,10 +89,8 @@ public:
     }
     template<typename EVENT, typename RECIVER>
     void Register(RECIVER *reciver) {
-        return Register < EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent) > (reciver);
+        return Register<EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent)>(reciver);
     }
-
-    //TODO: queue event
 private:
     template<typename T>
     using Array = std::array<T, Configuration::MaxEventTypes>;
@@ -96,9 +103,24 @@ private:
         }
     }
 
+    struct BaseQueuedEvent {
+        using SendFunc = void(EventDispatcher::*)(const BaseQueuedEvent&);
+        SendFunc sendFunc;
+    };
+
+    template<typename EVENT>
+    struct QueuedEvent : public BaseQueuedEvent {
+        EVENT event;
+    };
+    
+    template<typename EVENT>
+    void SendQueuedEvent(const QueuedEvent<EVENT> &qev) { Send(qev.event); }
+
     Array<BaseEventCallDispatcher> eventDispatchers;
     lua_State *luaState;
     EventScriptSink *eventSink;
+    std::mutex bufferMutex;
+    Memory::DynamicBuffer<Configuration::EventDispatcherQueueSize> buffer;
 };
 
 }

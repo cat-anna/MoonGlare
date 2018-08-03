@@ -19,7 +19,6 @@ struct SoundSourceComponent  {
     SoundHandle handle;
 
     Entity e;          // ugly but acceptable, for now
-    bool finishEvent;  // ugly but acceptable, for now
     bool autostart;    // ugly but acceptable, for now
 
     static HandleApi handleApi;  // ugly but acceptable, for now
@@ -28,6 +27,7 @@ struct SoundSourceComponent  {
         return api
             .beginClass<SoundSourceComponent>("SoundSourceComponent")
                 .addStaticString("ComponentName", ComponentName)
+
                 .addFunction("Play", &SoundSourceComponent::Play)
                 .addFunction("Pause", &SoundSourceComponent::Pause)
                 .addFunction("Stop", &SoundSourceComponent::Stop)

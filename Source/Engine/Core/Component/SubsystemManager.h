@@ -50,11 +50,10 @@ private:
     std::array<ComponentID, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
     size_t m_UsedCount;
     Entity rootEntity;
-    EventDispatcher m_EventDispatcher;
     ciScene *m_Scene;
     World *m_World;
-
     std::unique_ptr<ComponentArray> componentArray;
+    EventDispatcher m_EventDispatcher;
 
 #ifdef PERF_PERIODIC_PRINT
     std::array<ComponentInfo, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentInfo;
