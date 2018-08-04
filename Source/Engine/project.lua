@@ -10,7 +10,7 @@ project "Engine"
 
 	filter 'files:**.lua'
 		buildmessage 'Processing %{file.name} with bin2c'
-		buildcommands 'bin2c -o "%{cfg.objdir}%{file.basename}".lua.h -n %{file.basename}_lua "%{file.relpath}"'
+		buildcommands '%{bin2c} -o "%{cfg.objdir}%{file.basename}".lua.h -n %{file.basename}_lua "%{file.relpath}"'
 		buildoutputs '%{cfg.objdir}%{file.basename}.lua.h'
 
 	SetPCH { hdr = "pch.h", src = "../pch.cpp", }
