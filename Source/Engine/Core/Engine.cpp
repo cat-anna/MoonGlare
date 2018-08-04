@@ -21,7 +21,7 @@ using namespace std::chrono_literals;
 namespace MoonGlare {
 namespace Core {
 
-const char *VersionString = "0.1.0 build 512";
+const char *VersionString = "0.2.0 build 512";
 const char *ApplicationName = "MoonGlare engine";
 const char *CompilationDate = __DATE__ " at " __TIME__;
 
@@ -31,17 +31,10 @@ SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
 
 Engine::Engine(World *world) :
         cRootClass(),
-        m_Running(false),
-
-        m_LastFPS(0),
-        m_SkippedFrames(0),
-        m_FrameTimeSlice(1.0f),
-
         m_Dereferred(),
-
         m_World(world)
 {
-    MoonGlareAssert(m_World);
+    assert(m_World);
     
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Performance, "PERF");
 
@@ -76,8 +69,6 @@ void Engine::Finalize() {
 }
 
 void Engine::PostSystemInit() {
-    //GetSoundEngine()->ScanForSounds();
-
     if (!m_World->PostSystemInit()) {
         AddLogf(Error, "World PostSystemInit failed!");
         throw "World PostSystemInit failed!";

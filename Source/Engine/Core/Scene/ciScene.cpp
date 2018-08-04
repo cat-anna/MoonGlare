@@ -20,26 +20,11 @@ namespace MoonGlare {
 namespace Core {
 namespace Scene {
 
-RegisterApiNonClass(ciScene, &ciScene::RegisterScriptApi);
-
-void ciScene::RegisterScriptApi(ApiInitializer &api) {
-	api
-    .beginNamespace("api")
-	    .beginClass<ciScene>("iScene")
-		    .addFunction("SpawnChild", &ciScene::SpawnChildRaw)
-	    .endClass();
-}
-
-bool ciScene::SpawnChildRaw(const char * URI, const char * Name) {
-	Entity e;
-	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name ? Name : "?", URI ? URI : "?");
-	return EntityBuilder(&m_SubsystemManager).Build(m_SubsystemManager.GetRootEntity(), URI, e, Name) ;
-}
-
 bool ciScene::SpawnChild(const std::string & URI, std::string Name, Entity & out) {
 	AddLogf(Debug, "Spawning child: '%s' from '%s'", Name.c_str(), URI.c_str());
 	return EntityBuilder(&m_SubsystemManager).Build(m_SubsystemManager.GetRootEntity(), URI.c_str(), out, std::move(Name)) ;
 }
+
 ciScene::ciScene() { }
 ciScene::~ciScene() { }
 
@@ -57,12 +42,8 @@ void ciScene::EndScene() {
     SendState(SceneState::Paused);
 }
 
-bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor) {
-    ASSERT(Descriptor);
-    
+bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity) {
     AddLog(Debug, "Initializing scene: " << Name);
-
-    m_Descriptor = Descriptor;
 
     Entity root;
     auto em = GetEngine()->GetWorld()->GetEntityManager();
@@ -89,13 +70,10 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 }
 
 bool ciScene::Finalize() {
-    //SendState(SceneState::);
-
     if (!m_SubsystemManager.Finalize()) {
         AddLogf(Error, "Failed to finalize component manager");
         return false;
     }
-
     return true;
 }
 

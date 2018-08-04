@@ -596,8 +596,11 @@ void ScriptComponent::GetObjectRootInstance(lua_State *lua, Entity Owner) {
     lua_pushvalue(lua, -1);													//stack: OR GO GO
     lua_setfield(lua, -3, lua::GameObjectName);								//stack: OR GO
 
-    LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -1);	
-    LuaSetField(lua, Owner.GetVoidPtr(), lua::EntityMemberName, -2);	
+    Lua_push(lua, Owner.GetVoidPtr());
+    lua_setfield(lua, -2, lua::EntityMemberName);
+
+    Lua_push(lua, Owner.GetVoidPtr());
+    lua_setfield(lua, -3, lua::EntityMemberName);
 
     GetGameObjectMetaTable(lua);											//stack: OR GO GO_MT
     lua_setmetatable(lua, -2);												//stack: OR GO

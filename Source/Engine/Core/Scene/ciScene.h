@@ -16,14 +16,12 @@ struct SceneDescriptor;
 
 class ciScene {
 public:
-	ciScene(const ciScene&) = delete;
 	ciScene();
 	~ciScene();
 
 	Component::SubsystemManager& GetSubsystemManager() { return m_SubsystemManager; }
-	SceneDescriptor* GetSceneDescriptor() const { return m_Descriptor; }
 
-	bool Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity, SceneDescriptor *Descriptor);
+	bool Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEntity);
 	bool Finalize();
 
 //old
@@ -31,9 +29,6 @@ public:
 	void EndScene();
 
 	void DoMove(const MoveConfig &conf);
-
-	static void RegisterScriptApi(::ApiInitializer &api);
-
 protected:
 	Component::SubsystemManager m_SubsystemManager;
 	SceneDescriptor *m_Descriptor = nullptr;
@@ -41,8 +36,6 @@ protected:
     void SendState(SceneState state);
 
 	bool SpawnChild(const std::string &URI, std::string Name, Entity &out);
-	bool SpawnChildRaw(const char *URI, const char *Name);
-
 };
 
 } //namespace MoonGlare::Core::Scene

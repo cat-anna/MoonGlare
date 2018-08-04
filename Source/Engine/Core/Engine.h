@@ -34,10 +34,10 @@ protected:
 
     std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
 
-    volatile bool m_Running;	
-    float m_FrameTimeSlice;		
-    unsigned m_LastFPS;			
-    unsigned m_SkippedFrames;	
+    bool m_Running = false;
+    float m_FrameTimeSlice = 1.0f;		
+    unsigned m_LastFPS = 0;			
+    unsigned m_SkippedFrames = 0;	
 
     MoveConfig stepData;
 };

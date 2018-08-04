@@ -81,9 +81,6 @@ public:
 
     void SetSceneChangeFence(SceneChangeFence type, bool value);
 
-//later
-    //preload scene => takes sid and prepares scene; SwitchToScene shall be instant
-
 #ifdef DEBUG_DUMP
     void DumpAllDescriptors(std::ostream& out);
 #endif
@@ -112,7 +109,6 @@ protected:
     bool LoadNextScene(const std::string &SID);					// load scene and execute it
     bool LoadNextScene(SceneDescriptor *descriptor);			// load scene and execute it
     bool LoadSceneData(SceneDescriptor *descriptor);			// load scene
-    bool SetNextSceneDescriptor(SceneDescriptor *descriptor);	// set scene as next
 
     void ProcessPreviousScene(SceneDescriptor *descriptor);
     

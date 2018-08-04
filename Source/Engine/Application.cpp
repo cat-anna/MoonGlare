@@ -257,8 +257,6 @@ void Application::Finalize() {
 
     SaveSettings();
 
-    //m_World->GetSharedInterface<SoundSystem::iSoundSystem>()->Finalize();
-
     auto Console = dynamic_cast<Modules::BasicConsole*>(m_World->GetConsole());
     m_World->SetConsole(nullptr);
     if (Console) {

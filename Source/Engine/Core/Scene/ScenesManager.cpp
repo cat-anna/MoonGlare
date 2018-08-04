@@ -235,7 +235,7 @@ bool ScenesManager::LoadScene(const std::string &SID) {
         return false;
     }
 
-    SetNextSceneDescriptor(m_LoadingSceneDescriptor);
+    m_NextSceneDescriptor = m_LoadingSceneDescriptor;
 
     JobQueue::QueueJob([this, sd] {
         while (m_NextSceneDescriptor)
@@ -262,7 +262,8 @@ bool ScenesManager::LoadNextScene(SceneDescriptor *descriptor) {
         return false;
     }
 
-    return SetNextSceneDescriptor(descriptor);
+    m_NextSceneDescriptor = descriptor;
+    return true;
 }
 
 bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
@@ -305,7 +306,7 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
 
         auto ptr = std::make_unique<ciScene>();
         auto RootEntity = m_World->GetEntityManager()->GetRootEntity();
-        if (!ptr->Initialize(xmlroot, descriptor->m_SID, RootEntity, descriptor)) {
+        if (!ptr->Initialize(xmlroot, descriptor->m_SID, RootEntity)) {
             AddLogf(Error, "Failed to initialize scene '%s'", descriptor->m_SID.c_str());
             break;
         }
@@ -317,12 +318,6 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
     descriptor->m_Flags.m_LoadInProgress = false;
     m_LoadingInProgress = false;
     return descriptor->m_Flags.m_Loaded;
-}
-
-bool ScenesManager::SetNextSceneDescriptor(SceneDescriptor *descriptor) {
-    m_NextSceneDescriptor = descriptor;
-    //TODO
-    return true;
 }
 
 void ScenesManager::ProcessPreviousScene(SceneDescriptor *descriptor) {

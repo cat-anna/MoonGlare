@@ -1,9 +1,7 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
 
-#include "../ScriptEngine.h"
 #include "StaticModules.h"
-
 #include <Application.h>
 
 namespace MoonGlare::Core::Scripts::Modules {

@@ -3,17 +3,16 @@
 #include <Engine/Core/DataManager.h>
 
 #include <Foundation/Scripts/ErrorHandling.h>
-#include <Foundation/Scripts/LuaReader.h>
 #include <Core/Scripts/LuaApi.h>
 
 #include "ScriptEngine.h"
 
 #include "Modules/StaticModules.h"
-#include "Modules/LuaRequire.h"
 #include "Modules/LuaSettings.h"
-#include "Modules/StaticStorage.h"
 
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
+#include <Foundation/Scripts/Modules/StaticStorage.h>
+#include <Foundation/Scripts/Modules/LuaRequire.h>
 
 #include <Core/Component/ComponentRegister.h>
 
@@ -163,10 +162,11 @@ bool ScriptEngine::ConstructLuaContext() {
         Modules::StaticModules::InitTime(m_Lua, m_world);
         Modules::StaticModules::InitThread(m_Lua, m_world);
 
-        InstallModule<Modules::LuaRequireModule, iRequireModule>();
+        using namespace MoonGlare::Scripts::Modules;
+        InstallModule<LuaRequireModule, iRequireModule>();
         InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
-        InstallModule<Modules::StaticStorageModule>();
-        InstallModule<MoonGlare::Scripts::Modules::LuaFileSystemModule>();
+        InstallModule<StaticStorageModule>();
+        InstallModule<LuaFileSystemModule>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());
@@ -243,49 +243,6 @@ void ScriptEngine::PrintMemoryUsage() const {
 float ScriptEngine::GetMemoryUsage() const {
     LOCK_MUTEX(m_Mutex);
     return (float)lua_gc(m_Lua, LUA_GCCOUNT, 0) + (float)lua_gc(m_Lua, LUA_GCCOUNTB, 0) / 1024.0f;
-}
-
-//---------------------------------------------------------------------------------------
-
-bool ScriptEngine::Call(lua_State *lua, int args, int rets) {
-    switch (lua_pcall(lua, args, rets, 0)) {
-    case 0:
-        return true;
-    case LUA_ERRRUN:
-        AddLog(Error, "Call error: a runtime error!");
-        break;
-    case LUA_ERRERR:                    
-        AddLog(Error, "Call error: error while running the error handler function!");
-        break;
-    case LUA_ERRMEM:
-        AddLog(Error, "Call error: Memory allocation failed!");
-        break;
-    }
-    AddLog(Error, "Call error message: " << lua_tostring(lua, -1));
-    lua_pop(lua, 1);
-    return false;
-}
-
-bool ScriptEngine::ExecuteCode(lua_State *lua, const char* Code, unsigned len, const char* ChunkName, int rets) {
-    MoonGlareAssert(Code);
-
-    LuaCStringReader reader(Code, len);
-    int result = lua_load(lua, &reader.Reader, &reader, ChunkName);
-
-    switch (result) {
-    case 0:
-        AddLogf(Debug, "Loaded lua chunk: '%s'", ChunkName ? ChunkName : "?");
-        return Call(lua, 0, rets);
-    case LUA_ERRSYNTAX:
-        AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName ? ChunkName : "?", lua_tostring(lua, -1), Code);
-        break;
-    case LUA_ERRMEM:
-        AddLog(Error, "Unable to load script: Memory allocation failed!");
-        break;
-    }
-
-    lua_pop(lua, 1);
-    return false;
 }
 
 //---------------------------------------------------------------------------------------

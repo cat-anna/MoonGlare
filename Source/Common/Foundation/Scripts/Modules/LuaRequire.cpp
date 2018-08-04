@@ -1,75 +1,20 @@
-#include <pch.h>
-#include <nfMoonGlare.h>
-
-#include "../ScriptEngine.h"
-
 #include "LuaRequire.h"
 
+#include <Foundation/Scripts/ExecuteCode.h>
 #include <Foundation/Scripts/LuaPanic.h>
 
-namespace MoonGlare::Core::Scripts::Modules {
+namespace MoonGlare::Scripts::Modules {
 
-using namespace MoonGlare::Scripts;
-
-static constexpr char InitRequireCode[] =
-R"===(
-         
-)==="
-#ifdef DEBUG_SCRIPTAPI
-R"===(
-
-local org_require = require
-
-require = {  }
-require.__index = require
-require.__call = function(self, ...) return org_require(...) end
-require.cache = require_cache
-require_cache = nil
-                                                            
-function require.reload(name)
-    local req = require(name)
-    local new = dofile(name)
-
-    if type(req.onBeforeReload) == "function" then
-        req:onBeforeReload()        
-    end
-
-    for k,v in pairs(new) do
-        req[k] = v
-    end
-
-    if type(req.onAfterReload) == "function" then
-        req:onAfterReload()        
-    end
-end
-
-function require.reloadAll()
-    local loaded = {}
-    for k,_ in pairs(require.cache) do
-        if k:sub(1,1) == "/" then
-            table.insert(loaded, k)
-        end
-    end
-    for _,v in ipairs(loaded) do
-        require.reload(v)        
-    end
-end
-
-setmetatable(require, require)
-         
-)==="
-#endif
-;
+#include <LuaRequire.lua.h>
 
 //-------------------------------------------------------------------------------------------------
 
-using ResultStoreMode = LuaRequireModule::ResultStoreMode;
-
-LuaRequireModule::LuaRequireModule(lua_State *lua, World *world) : world(world) {
+LuaRequireModule::LuaRequireModule(lua_State *lua, InterfaceMap *world) {
     DebugLogf(Debug, "Initializing Require module");
 
-    MoonGlareAssert(world);
-    MoonGlareAssert(lua);
+    filesystem = world->GetInterface<iFileSystem>();
+
+    assert(filesystem);
 
     lua_newtable(lua); //table for cache           // cache
 
@@ -95,9 +40,11 @@ LuaRequireModule::LuaRequireModule(lua_State *lua, World *world) : world(world) 
 
     lua_pop(lua, 1);
 
-    if (!world->GetScriptEngine()->ExecuteCode(std::string(InitRequireCode), "InitRequireCode")) {
+#ifdef DEBUG_SCRIPTAPI
+    if (!ExecuteString(lua, LuaRequire_lua, LuaRequire_lua_size, "InitRequireCode")) {
         throw std::runtime_error("LuaRequireModule execute code failed!");
     }
+#endif
 }
 
 LuaRequireModule::~LuaRequireModule() {}
@@ -170,14 +117,14 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
     return false;
 }
 
-ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::string &uri) {
+LuaRequireModule::ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::string &uri) {
     StarVFS::ByteTable bt;
-    if (!GetFileSystem()->OpenFile(bt, uri)) {
+    if (!filesystem->OpenFile(bt, uri)) {
         AddLogf(Warning, "Cannot open file %s", uri.c_str());
         return ResultStoreMode::NoResult;
     }
 
-    if (!world->GetScriptEngine()->ExecuteCode(lua, bt.c_str(), bt.byte_size(), uri.c_str(), 1)) {
+    if (!MoonGlare::Scripts::ExecuteString(lua, bt.c_str(), bt.byte_size(), uri.c_str(), 1)) {
         AddLogf(Error, "Script execution failed: %s", uri.c_str());
         return ResultStoreMode::NoResult;
     }
@@ -185,7 +132,7 @@ ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::s
     return ResultStoreMode::Store;
 }
 
-ResultStoreMode LuaRequireModule::HandleFileRequest(lua_State *lua, std::string_view name) {
+LuaRequireModule::ResultStoreMode LuaRequireModule::HandleFileRequest(lua_State *lua, std::string_view name) {
     if (name[0] != '/') {
         return ResultStoreMode::NoResult;
     }
@@ -194,13 +141,13 @@ ResultStoreMode LuaRequireModule::HandleFileRequest(lua_State *lua, std::string_
     return TryLoadFileScript(lua, uri);
 }
 
-ResultStoreMode LuaRequireModule::HandleScriptSearch(lua_State *lua, std::string_view name) {
+LuaRequireModule::ResultStoreMode LuaRequireModule::HandleScriptSearch(lua_State *lua, std::string_view name) {
     //TODO: improve script search
     std::string uri = "file:///Scripts/" + std::string(name) + ".lua";
     return TryLoadFileScript(lua, uri);
 }
 
-ResultStoreMode LuaRequireModule::HandleModuleRequest(lua_State *lua, std::string_view name) {
+LuaRequireModule::ResultStoreMode LuaRequireModule::HandleModuleRequest(lua_State *lua, std::string_view name) {
     auto it = scriptRequireMap.find(name.data());
     if (it != scriptRequireMap.end()) {
         if (it->second->OnRequire(lua, name))
@@ -247,4 +194,4 @@ int LuaRequireModule::lua_dofile(lua_State *lua) {
     throw LuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }
 
-} //namespace MoonGlare::Core::Scripts::Modules
+}

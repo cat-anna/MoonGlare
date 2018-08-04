@@ -30,10 +30,8 @@ SubsystemManager::~SubsystemManager() {
 //---------------------------------------------------------------------------------------
 
 bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
-    if (!scene) {
-        AddLog(Error, "No scene pointer!");
-        return false;
-    }
+    assert(scene);
+
     m_Scene = scene;
     rootEntity = root;
 

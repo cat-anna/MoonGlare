@@ -1,7 +1,6 @@
 #include <pch.h>
 #include <nfMoonGlare.h>
-#include <Core/Engine.h>
-#include <Core/Scripts/ScriptEngine.h>
+#include <Foundation/Scripts/ExecuteCode.h>
 #include <Core/Scene/ScenesManager.h>
 
 #include "StaticModules.h"
@@ -14,7 +13,7 @@ void StaticModules::ThreadStep(lua_State *lua, World *world) {
     lua_pushlightuserdata(lua, (void*)LuaThread_lua);
     lua_gettable(lua, LUA_REGISTRYINDEX);
 
-    if (!world->GetScriptEngine()->Call(lua, 0, 2))
+    if (!MoonGlare::Scripts::CallFunction(lua, 0, 2)) 
         return;
 
     bool change = static_cast<bool>(lua_toboolean(lua, -2));
@@ -25,8 +24,8 @@ void StaticModules::ThreadStep(lua_State *lua, World *world) {
     lua_pop(lua, 2);
 }
 
-void StaticModules::InitThread(lua_State *lua, World *world) {
-    if (!world->GetScriptEngine()->ExecuteCode((const char *)LuaThread_lua, LuaThread_lua_size, "LuaThread", 1)) {
+void StaticModules::InitThread(lua_State *lua, World *world) {      
+    if (!MoonGlare::Scripts::ExecuteString(lua, (char*)LuaThread_lua, LuaThread_lua_size, "LuaThread", 1)) {
         throw std::runtime_error("InitThread module execute code failed!");
     }
   //  auto t = lua_type(lua, -1);

@@ -1,24 +1,17 @@
-#include <pch.h>
-#include <nfMoonGlare.h>
-
-#include "../../Engine.h"
-#include "../ScriptEngine.h"
-
 #include "StaticStorage.h"
-
-#include <Foundation/Scripts/ErrorHandling.h>
 
 #include <Foundation/OS/Path.h>
 #include <Foundation/OS/File.h>
 
-namespace MoonGlare::Core::Scripts::Modules {
-using namespace MoonGlare::Scripts;
+#include <Foundation/Scripts/ErrorHandling.h>
+#include <Foundation/Scripts/ExecuteCode.h>
+
+namespace MoonGlare::Scripts::Modules {
 
 static const char* StorageFileName = "StaticStorage.lua";
 
-StaticStorageModule::StaticStorageModule(lua_State *lua, World *world) {
-    scriptEngine = world->GetScriptEngine();
-    scriptEngine->QuerryModule<iRequireModule>()->RegisterRequire("StaticStorage", this);
+StaticStorageModule::StaticStorageModule(lua_State *lua, InterfaceMap *world)  : luaState(lua) {
+    world->GetInterface<iRequireModule>()->RegisterRequire("StaticStorage", this);
 }
 
 StaticStorageModule::~StaticStorageModule() {
@@ -46,7 +39,7 @@ bool StaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
 
         std::string data;
         if (OS::GetFileContent(OS::GetSettingsFilePath(StorageFileName), data) ) {
-            if (scriptEngine->ExecuteCode("return " + data, "StaticStorageData", 1)) {
+            if (ExecuteString(lua, "return " + data, "StaticStorageData", 1)) {
                 lua_pushlightuserdata(lua, this);
                 lua_pushvalue(lua, -2);
                 lua_settable(lua, LUA_REGISTRYINDEX);
@@ -71,7 +64,8 @@ bool StaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
 }
 
 void StaticStorageModule::SaveStorage() {
-    lua_State *lua = scriptEngine->GetLua();
+    lua_State *lua = luaState;
+
     int luatop = lua_gettop(lua);
     lua_pushcclosure(lua, LuaErrorHandler, 0);                    //stack: errH
     int errf = lua_gettop(lua);

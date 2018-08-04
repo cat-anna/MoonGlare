@@ -20,10 +20,4 @@ inline bool LuaSafeCall(lua_State *lua, int args, int rets, const char *CaleeNam
 	}
 }
 
-template<typename T>
-inline void LuaSetField(lua_State *lua, T t, const char *Name, int index) {
-	Lua_push(lua, t);
-	lua_setfield(lua, index - 1, Name); // -1 -> to include pushed value
-}
-
 } //namespace MoonGlare::Scripts 
