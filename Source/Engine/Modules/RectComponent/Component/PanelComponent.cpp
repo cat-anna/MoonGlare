@@ -187,6 +187,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
         shb.Set<Uniform::PanelAspect>(ps[0] / ps[1], key);
 
         shb.Set<Uniform::Border>(item.m_Border, key);
+        shb.Set<Uniform::FrameCount>(emath::ivec2(0,0), key);
 
 //		Queue.PushCommand<Renderer::Commands::Texture2DBind>(key)->m_Texture = item.m_Texture->Handle();
         Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.vaoHandle.deviceHandle);

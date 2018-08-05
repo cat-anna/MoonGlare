@@ -27,6 +27,8 @@ struct GUIShaderDescriptor {
 		Border,
 		PanelSize,
 		PanelAspect,
+        FrameCount,
+        FrameIndex,
 		MaxValue,
 
 		DiffuseColor = BaseColor,
@@ -44,7 +46,9 @@ struct GUIShaderDescriptor {
 		case Uniform::TileMode: return "gTileMode";
 		case Uniform::Border: return "gPanelBorder";
 		case Uniform::PanelSize: return "gPanelSize";
-		case Uniform::PanelAspect: return "gPanelAspect";
+        case Uniform::PanelAspect: return "gPanelAspect";
+        case Uniform::FrameCount: return "gFrameCount";
+        case Uniform::FrameIndex: return "gFrameIndex";
 
 		default: return nullptr;
 		}

@@ -42,8 +42,6 @@ Structure.new {
 			description = "",
 			type = Local.string,
 		},
-
-        --old
         {
 			name = "Speed",
 			description = "",
@@ -66,18 +64,6 @@ Structure.new {
 			description = "",
 			type = Vec2,
             default = { x=1, y=1, },
-		},
-        {
-			name = "Spacing",
-			description = "",
-			type = Vec2,
-            default = { x=0, y=0, },
-		},
-        {
-			name = "FrameSize",
-			description = "",
-			type = Vec2,
-            default = { x=0, y=0, },
 		},
 	},
 }

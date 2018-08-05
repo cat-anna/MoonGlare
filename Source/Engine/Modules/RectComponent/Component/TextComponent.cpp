@@ -150,6 +150,7 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 		shb.Set<Uniform::BaseColor>(emath::fvec4(1,1,1,1), key);
 		shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 		shb.Set<Sampler::DiffuseMap>(entry.m_FontResources.m_Texture, key);
+        shb.Set<Uniform::FrameCount>(emath::ivec2(0, 0), key);
 
 		auto vaob = conf.m_BufferFrame->GetResourceManager()->GetVAOResource().GetVAOBuilder(Queue, entry.m_FontResources.m_VAO);
 		Queue.PushCommand<Renderer::Commands::VAOBindResource>(key)->m_VAO = vaob.m_HandlePtr;
