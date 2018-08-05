@@ -93,7 +93,7 @@ bool TrueTypeFont::DoFinalize() {
 }
 
 //----------------------------------------------------------------
-
+//
 //  _                    _ 	___________________
 // | |                  | |					   |topline
 // | |_  __  __   __ _  | |	___________________|_______________	baseline
@@ -313,7 +313,7 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
     FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ffglyph;
  
     // This Reference Will Make Accessing The Bitmap Easier.
-    FT_Bitmap& bitmap=bitmap_glyph->bitmap;
+    FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
     glyph->m_BitmapSize = Graphic::vec2(bitmap.width, bitmap.rows);
     glyph->m_Position = Graphic::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
@@ -360,8 +360,7 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
                 bitmap_glyph->left, bitmap_glyph->top,
                 bitmap.width, bitmap.rows
             );
-    }
-    else {
+    } else {
         //glyph->m_Loaded = true;
     }
     FT_Done_Glyph(ffglyph);

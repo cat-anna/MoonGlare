@@ -13,7 +13,7 @@ enum class PositionMode : uint8_t {
     Default = RelativeToListener,
 };
 
-struct SoundSourceComponent  {
+struct alignas(8) SoundSourceComponent  {
     static constexpr char* ComponentName = "SoundSource";
 
     SoundHandle handle;

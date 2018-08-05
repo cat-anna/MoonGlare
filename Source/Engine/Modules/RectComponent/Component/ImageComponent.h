@@ -2,7 +2,6 @@
 
 #include "nfGUIComponent.h"
 #include <Core/Component/TemplateStandardComponent.h>
-#include "../Animation.h"
 
 #include "../GUIShader.h"
 

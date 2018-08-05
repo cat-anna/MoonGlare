@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Foundation/SetGet.h>
+#include <Libs/OrbitLogger/src/OrbitLogger.h>
+
 #include <Foundation/Memory/nMemory.h>
 #include <Foundation/Memory.h>
 

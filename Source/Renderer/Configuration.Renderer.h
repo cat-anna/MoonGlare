@@ -59,11 +59,11 @@ struct CommandBucket {
     static constexpr uint32_t MaxBuckets = 1024;
     static constexpr uint32_t MaxCommands = 4096;
 
-    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 128 * 1024;
+    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 256 * 1024;
 };
 
 struct CommandQueue {
-    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 64 * 1024; 
+    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 128 * 1024; 
     static constexpr uint32_t CommandLimit = 4096;
     static constexpr uint32_t BytesPerCommand = ArgumentMemoryBuffer / CommandLimit;
 };
