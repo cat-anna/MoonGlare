@@ -6,39 +6,206 @@
 /*--END OF HEADER BLOCK--*/
 
 #include PCH_HEADER
-#include "AssimpImporter.h"
 
 #include <icons.h>
 #include <Module.h>
 #include <iEditor.h>
+#include <iFileProcessor.h>
 #include <iFileIconProvider.h>
+#include "../FileSystem.h"
+
+#pragma warning ( push, 0 )
+#include <assimp/Importer.hpp>     
+#include <assimp/scene.h>          
+#include <assimp/postprocess.h>  
+#pragma warning ( pop )
+
+#include <DataModels/EditableEntity.h>
 
 namespace MoonGlare::Editor::Importer {
 
+using QtShared::DataModels::EditableEntity;
+
+struct AssimpImporter 
+    : public QtShared::iFileProcessor 
+    , public QtShared::iEditor {
+
+    AssimpImporter(QtShared::SharedModuleManager modmgr, std::string URI) : QtShared::iFileProcessor(std::move(URI)), moduleManager(modmgr) { }
+            
+    bool OpenData(const std::string &URI)  override {
+        m_URI = URI;
+        ProcessFile();
+        return true; 
+    }
+
+    void StoreResult() {
+        auto fs = moduleManager->QuerryModule<FileSystem>();
+        if (!fs->CreateFile(outputFile)) {
+            //ErrorMessage("Failed during creating epx file");
+            AddLog(Hint, "Failed to create epx: " << outputFile);
+            //return;// false;
+        }
+
+        //m_BaseEntity->GetName() = name;
+
+        //SetModiffiedState(true);
+        //Refresh();
+        //AddLog(Hint, "Created epx file: " << URI);
+
+        pugi::xml_document xdoc;
+        if (!entity->Write(xdoc.append_child("Entity"))) {
+            //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
+            throw false;
+        }
+
+        std::stringstream ss;
+        xdoc.save(ss);
+        StarVFS::ByteTable bt;
+        bt.from_string(ss.str());
+
+        if (!fs->SetFileData(outputFile.c_str(), bt)) {
+            //todo: log sth
+            return;// false;
+        }
+
+        //SetModiffiedState(false);
+        //AddLog(Hint, "Saved epx: " << m_CurrentPatternFile);
+    }
+
+    void Import() {
+        entity = std::make_unique<EditableEntity>();
+
+        std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
+        queue.emplace_back(entity.get(), scene->mRootNode);
+
+        while (!queue.empty()) {
+            auto item = queue.back();
+            queue.pop_back();
+            EditableEntity* parent = item.first;
+            auto node = item.second;
+
+            parent->SetName(node->mName.data);
+
+            //out << nodeline <<  << "\n";
+
+            //if (node->mNumMeshes > 0) {
+            //    out << nodeline << propline << "Meshes[" << node->mNumMeshes << "]:";
+            //    for (unsigned i = 0; i < node->mNumMeshes; ++i) {
+            //        out << " " << node->mMeshes[i];
+            //    }
+            //    out << "\n";
+            //}
+
+            aiQuaternion q;
+            aiVector3D pos;
+            aiVector3D scale;
+            node->mTransformation.Decompose(scale, q, pos);
+            //out << nodeline << propline << "Position: " << pos << "\n";
+            //out << nodeline << propline << "Quaternion: " << q << "\n";
+            //out << nodeline << propline << "Scale: " << scale << "\n";
+
+            auto transform = parent->AddComponent(Core::ComponentID::Transform);
+            auto trio = transform->GetValuesEditor();
+            trio->Set("Position.x", std::to_string(pos.x));
+            trio->Set("Position.y", std::to_string(pos.y));
+            trio->Set("Position.z", std::to_string(pos.z));
+            trio->Set("Scale.x", std::to_string(scale.x));
+            trio->Set("Scale.y", std::to_string(scale.y));
+            trio->Set("Scale.z", std::to_string(scale.z));
+            trio->Set("Rotation.x", std::to_string(q.x));
+            trio->Set("Rotation.y", std::to_string(q.y));
+            trio->Set("Rotation.z", std::to_string(q.z));
+            trio->Set("Rotation.w", std::to_string(q.w));
+
+            if (node->mNumMeshes == 1) {
+                auto mesh = parent->AddComponent(Core::ComponentID::Mesh);
+                auto meio = mesh->GetValuesEditor();
+                std::string meshpath = m_URI + "@mesh://";
+                auto meshNode = scene->mMeshes[node->mMeshes[0]];
+                if (meshNode->mName.length == 0)
+                    meshpath += "*" + std::to_string(node->mMeshes[0]);
+                else
+                    meshpath += meshNode->mName.data;
+                meio->Set("Model", meshpath);
+                meio->Set("Visible", "true");
+            }
+
+            for (int i = node->mNumChildren - 1; i >= 0; --i) {
+                auto ch = node->mChildren[i];
+                if( ch->mNumMeshes == 1 )
+                    queue.emplace_back(parent->AddChild(), ch);
+            }
+        }
+
+
+        entity->SetName(boost::filesystem::path(m_URI).filename().string());
+    }
+
+    ProcessResult ProcessFile() override {
+        outputFile = m_URI + ".epx";
+        try {
+            auto fs = moduleManager->QuerryModule<FileSystem>();
+            StarVFS::ByteTable bt;
+            if (!fs->GetFileData(m_URI, bt)) {
+                //todo: log sth
+                throw std::runtime_error("Unable to read file: " + m_URI);
+            }
+            if (bt.byte_size() == 0) {
+                //todo: log sth
+            }
+
+            Assimp::Importer importer;
+            unsigned flags = aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */
+                aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
+
+            scene = importer.ReadFileFromMemory(bt.get(), bt.byte_size(), flags, strrchr(m_URI.c_str(), '.'));
+
+            if (!scene) {
+                return ProcessResult::UnknownFailure;
+            }
+
+            //output
+
+            Import();
+            StoreResult();
+        }
+        catch (...) {
+            return ProcessResult::UnknownFailure;
+
+        }
+        return ProcessResult::Success;
+    }
+private:
+    const aiScene* scene;
+    Assimp::Importer importer;
+    QtShared::SharedModuleManager moduleManager;
+    std::string outputFile;
+    std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
+};
+//----------------------------------------------------------------------------------
+
 class AssimpImporterInfo
 	: public QtShared::iModule	
-	, public QtShared::iEditorInfo {
+	, public QtShared::iEditorInfo
+    , public QtShared::iEditorFactory {
 public:
 	AssimpImporterInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
 	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
 		return std::vector<FileHandleMethodInfo> {
-//			FileHandleMethodInfo{ "epx", ICON_16_ENTITYPATTERN_RESOURCE, "Edit entity pattern", "open", },
+			FileHandleMethodInfo{ "blend", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
+			FileHandleMethodInfo{ "3ds", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
+			FileHandleMethodInfo{ "fbx", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
 		};
 	}
+
+    QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
+        return std::make_shared<AssimpImporter>(GetModuleManager(), "");
+    }
 };
 
 QtShared::ModuleClassRgister::Register<AssimpImporterInfo> AssimpImporterInfoReg("AssimpImporter");
 
 //----------------------------------------------------------------------------------
 
-AssimpImporter::AssimpImporter() {
-
-}
-
-AssimpImporter::~AssimpImporter() {
-
-}
-
 } //namespace MoonGlare::Editor::Importer 
-

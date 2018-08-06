@@ -39,7 +39,8 @@ struct AssimpProcessor
     ProcessResult ProcessFile() override {
         ModelEnum->Add(m_URI);
 
-        std::string nodesubPath = m_URI + "@node://";
+        //std::string nodesubPath = m_URI + "@node://";
+        std::string meshsubPath = m_URI + "@mesh://";
 
         try {
             auto fs = moduleManager->QuerryModule<FileSystem>();
@@ -63,23 +64,31 @@ struct AssimpProcessor
                 return ProcessResult::UnknownFailure;
             }
 
-            std::vector<std::pair<std::string, const aiNode*>> queue;
-            queue.emplace_back("", scene->mRootNode);
+            //std::vector<std::pair<std::string, const aiNode*>> queue;
+            //queue.emplace_back("", scene->mRootNode);
 
-            while (!queue.empty()) {
-                auto item = queue.back();
-                queue.pop_back();
-                auto path = item.first;
-                auto node = item.second;
+            //while (!queue.empty()) {
+            //    auto item = queue.back();
+            //    queue.pop_back();
+            //    auto path = item.first;
+            //    auto node = item.second;
 
-                path += std::string("/") + node->mName.data;
+            //    path += std::string("/") + node->mName.data;
 
-                if (node->mNumMeshes > 0) {
-                    ModelEnum->Add(nodesubPath + path);// +fmt::format(" [{}]", node->mNumMeshes));
-                }
+            //    if (node->mNumMeshes > 0) {
+            //        ModelEnum->Add(nodesubPath + path);// +fmt::format(" [{}]", node->mNumMeshes));
+            //    }
 
-                for (int i = node->mNumChildren - 1; i >= 0; --i) {
-                    queue.emplace_back(path, node->mChildren[i]);
+            //    for (int i = node->mNumChildren - 1; i >= 0; --i) {
+            //        queue.emplace_back(path, node->mChildren[i]);
+            //    }
+            //}
+
+            for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
+                auto mesh = scene->mMeshes[i];
+                ModelEnum->Add(meshsubPath + "*" + std::to_string(i));
+                if (mesh->mName.length > 0) {
+                    ModelEnum->Add(meshsubPath + mesh->mName.data);
                 }
             }
         }
