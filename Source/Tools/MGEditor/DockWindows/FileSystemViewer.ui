@@ -39,9 +39,6 @@
     <item>
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="spacing">
-        <number>2</number>
-       </property>
        <property name="leftMargin">
         <number>2</number>
        </property>
@@ -55,10 +52,115 @@
         <number>2</number>
        </property>
        <item>
-        <widget class="QTreeView" name="treeView">
-         <property name="indentation">
-          <number>10</number>
+        <widget class="QSplitter" name="splitter">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
          </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="lineWidth">
+          <number>3</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QTreeView" name="treeView">
+          <property name="indentation">
+           <number>10</number>
+          </property>
+         </widget>
+         <widget class="QWidget" name="rightPanel" native="true">
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>1</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QWidget" name="widget_3" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>20</height>
+              </size>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="buttonCloseRightPanel">
+                <property name="maximumSize">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>X</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="rightPanelContent" native="true"/>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>

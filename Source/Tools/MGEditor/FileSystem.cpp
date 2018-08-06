@@ -205,22 +205,25 @@ void FileSystem::HandleDirectoryChanged(const std::string &URI) {
 
 void FileSystem::RefreshChangedPaths() {
     AddLogf(Info, "Processing changed paths");
-    std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
+    {
+        std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
 
-    for (auto &item : changedPaths) {
-        if (item.find(m_BasePath) != 0) {
-            continue;
+        for (auto &item : changedPaths) {
+            if (item.find(m_BasePath) != 0) {
+                continue;
+            }
+            if (boost::filesystem::is_regular_file(item)) {
+                auto uri = "file://" + item.substr(m_BasePath.size() - 1);
+                QueueFileProcessing(uri);
+                continue;
+            }
+            if (boost::filesystem::is_directory(item)) {
+                //TODO
+            }
         }
-        auto uri = "file://" + item.substr(m_BasePath.size() - 1);
-        if (boost::filesystem::is_regular_file(item)) {
-            QueueFileProcessing(uri);
-            continue;
-        }
-        if (boost::filesystem::is_directory(item)) {
-            //TODO
-        }
+        changedPaths.clear();
     }
-    changedPaths.clear();
+    Reload();
 }
 
 //-----------------------------------------------------------------------------

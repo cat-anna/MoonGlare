@@ -49,9 +49,7 @@ struct FileSystemViewerInfo
         return std::dynamic_pointer_cast<QtShared::iEditor>(GetInstance());
     }
 
-    void SetPreviewEditor(QtShared::SharedEditor editor) {
-
-    }
+    void SetPreviewEditor(QtShared::SharedEditor editor) { }
 };
 QtShared::ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
 
@@ -85,7 +83,12 @@ FileSystemViewer::FileSystemViewer(QWidget * parent, QtShared::WeakModule module
     m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
     m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("File"));
     m_Ui->treeView->setColumnWidth(0, 200);
+
+    SetPreviewEditor(nullptr);
+
+    connect(m_Ui->buttonCloseRightPanel, &QPushButton::clicked, [this] { SetPreviewEditor(nullptr); });
 }
 
 FileSystemViewer::~FileSystemViewer() {
@@ -208,8 +211,7 @@ void FileSystemViewer::Clear() {
 }
 
 void FileSystemViewer::RefreshTreeView() {
-    m_ViewModel->clear();
-    m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("File"));
+    //m_ViewModel->clear();
 
     decltype(m_VFSItemMap) currmap;
     auto svfs = m_FileSystem->GetVFS();
@@ -218,17 +220,23 @@ void FileSystemViewer::RefreshTreeView() {
     processitem = [&](StarVFS::FileID fid) -> bool {
         QStandardItem *parent = nullptr;
         QStandardItem *item = nullptr;
-        std::swap(m_VFSItemMap[fid], item);
+        item = m_VFSItemMap[fid];
+        m_VFSItemMap[fid] = nullptr;
+
 
         auto h = svfs->OpenFile(fid);
         if (!h)
             return true;
 
+        std::string n = h.GetName();
+
         if (!item) {
             auto pid = h.GetParrentID();
             parent = currmap[pid];
-            if (!parent)
+            if (!parent) {
                 parent = m_ViewModel->invisibleRootItem();
+                currmap[pid] = parent;
+            }
 
             QList<QStandardItem*> cols;
             cols << (item = new QStandardItem(h.GetName()));
@@ -269,31 +277,45 @@ void FileSystemViewer::RefreshTreeView() {
         return true;
     };
 
-    currmap.swap(m_VFSItemMap);
     for (auto &it : currmap)
-        delete it.second;
+        if (it.second && it.second != m_ViewModel->invisibleRootItem()) {
+            delete it.second;
+        }
 
     auto root = svfs->OpenFile("/");
     //processitem(root.GetFID());
     root.EnumerateChildren(processitem);
     root.Close();
 
+    currmap.swap(m_VFSItemMap);
+
+    for (auto &it : currmap)
+        if (it.second && it.second != m_ViewModel->invisibleRootItem()) {
+            delete it.second;
+        }
+
     m_ViewModel->sort(0);
 }
 
 void FileSystemViewer::SetPreviewEditor(QtShared::SharedEditor editor) {
     if (currentPreviewEditor) {
-        m_Ui->horizontalLayout->removeWidget(dynamic_cast<QWidget*>(currentPreviewEditor.get()));
+        m_Ui->verticalLayout_2->removeWidget(dynamic_cast<QWidget*>(currentPreviewEditor.get()));
         currentPreviewEditor.reset();        
     }
     QWidget *w = dynamic_cast<QWidget*>(editor.get());
     if (!w) {
-        AddLogf(Error, "Editor is not a QWidget");
+        if (editor) {
+            AddLogf(Error, "Editor is not a QWidget");
+        }
+
+        m_Ui->rightPanel->setVisible(false);
         return;
     }
+
     w->setParent(this);
-    m_Ui->horizontalLayout->addWidget(w);
+    m_Ui->verticalLayout_2->addWidget(w);
     currentPreviewEditor = editor;
+    m_Ui->rightPanel->setVisible(true);
 }
 
 } //namespace DockWindows 

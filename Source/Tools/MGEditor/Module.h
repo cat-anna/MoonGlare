@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <EngineBase/InterfaceMap.h>
+#include <Foundation/InterfaceMap.h>
 
 #ifndef EditorModule_H
 #define EditorModule_H
