@@ -23,6 +23,7 @@ public:
  	virtual ~AsyncFileProcessor();
 
     void Queue(QtShared::SharedFileProcessor processor)override;
+    size_t GetQueuedJobCount() override;
 signals:
 	void FileProcessingFinished(QtShared::SharedFileProcessor);
 protected:

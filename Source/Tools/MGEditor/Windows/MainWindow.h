@@ -5,6 +5,7 @@
 #include <Notifications.h>
 #include <qtUtils.h>
 #include <iEditor.h>
+#include <iFileProcessor.h>
 #include <ChangesManager.h>
 
 #include <Module.h>
@@ -55,8 +56,12 @@ protected:
 	bool PostInit() override;
 private:
 	std::unique_ptr<Ui::MainWindow> m_Ui;
+    QTimer refreshTimer;
+
+    QLabel *jobProcessorStatus = nullptr;
 
 	std::shared_ptr<QtShared::EditorProvider> m_EditorProvider;
+    QtShared::SharedJobProcessor jobProcessor;
 
 //	std::vector<QtShared::SharedBaseDockWindowModule> m_DockWindows;
 	std::unordered_map<std::string, QtShared::SharedBaseDockWindowModule> m_Editors;
@@ -68,6 +73,7 @@ private:
 	void CloseModule();
 
 public slots:
+    void RefreshStatus();
 	void OpenFileEditor(const std::string& FileURI);
 //	void CreateFileEditor(const std::string& URI, std::shared_ptr<SharedData::FileCreatorInfo> info);
 protected slots:

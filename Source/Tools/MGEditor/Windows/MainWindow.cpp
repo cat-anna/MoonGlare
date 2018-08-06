@@ -1,5 +1,6 @@
 #include PCH_HEADER
 #include <qobject.h>
+#include <qlabel.h>
 #include "EditorSettings.h"
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -46,6 +47,19 @@ MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
         InputConfigurator ic(this, GetModuleManager(), m_DataModule->GetInputSettingsFile());
         ic.exec();
     });
+
+    refreshTimer.setSingleShot(false);
+    refreshTimer.setInterval(500);
+    connect(&refreshTimer, &QTimer::timeout, this, &MainWindow::RefreshStatus);
+    refreshTimer.start();
+
+    jobProcessorStatus = new QLabel(nullptr);
+    jobProcessorStatus->setText("Idle");
+    jobProcessorStatus->setMinimumSize({100, 0});
+    jobProcessorStatus->setAlignment(Qt::AlignCenter);
+    m_Ui->statusBar->addPermanentWidget(jobProcessorStatus, 0);
+
+    m_Ui->statusBar->showMessage("", 500);
 }
 
 MainWindow::~MainWindow() {
@@ -55,6 +69,7 @@ MainWindow::~MainWindow() {
 bool MainWindow::PostInit() {
     auto mm = GetModuleManager();
     m_EditorProvider = mm->QuerryModule<QtShared::EditorProvider>();
+    jobProcessor = mm->QuerryModule<QtShared::iJobProcessor>();
 
     for (auto &item : mm->QuerryInterfaces<QtShared::BaseDockWindowModule>()) {
         if (item.m_Interface->IsMainMenu()) {
@@ -64,6 +79,19 @@ bool MainWindow::PostInit() {
     }
 
     return true;
+}
+
+void MainWindow::RefreshStatus() {   
+    if (jobProcessor) {
+        auto jobs = jobProcessor->GetQueuedJobCount();
+        if (jobs > 0) {
+            jobProcessorStatus->setText(("Queued Jobs: " + std::to_string(jobs)).c_str());
+            jobProcessorStatus->setStyleSheet("QLabel { background-color : red; }");
+        } else {
+            jobProcessorStatus->setText("Idle");
+            jobProcessorStatus->setStyleSheet("QLabel { }");
+        }
+    }
 }
 
 MainWindow* MainWindow::Get() {

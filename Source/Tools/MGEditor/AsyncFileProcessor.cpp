@@ -28,6 +28,11 @@ AsyncFileProcessor::~AsyncFileProcessor() {
     m_Thread.join();
 }
 
+size_t AsyncFileProcessor::GetQueuedJobCount() {
+    LOCK_MUTEX(m_Mutex);
+    return m_Queue.size();
+}
+
 void AsyncFileProcessor::JobFinished(QtShared::SharedFileProcessor p) {
     p->HandlePostProcess();
 }
@@ -73,8 +78,7 @@ void AsyncFileProcessor::ThreadEntry() {
     }
 }
 
-void AsyncFileProcessor::ExecuteJob(MoonGlare::QtShared::SharedFileProcessor processor)
-{
+void AsyncFileProcessor::ExecuteJob(MoonGlare::QtShared::SharedFileProcessor processor) {
     ++jobcount;
     AddLogf(Info, "Fetched job #%u", jobcount);
     auto result = processor->ProcessFile();
@@ -91,4 +95,3 @@ void AsyncFileProcessor::ExecuteJob(MoonGlare::QtShared::SharedFileProcessor pro
 
 } //namespace Editor 
 } //namespace MoonGlare 
-

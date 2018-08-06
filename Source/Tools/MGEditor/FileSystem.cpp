@@ -251,8 +251,15 @@ void FileSystem::UpdateFsWatcher() {
 }
 
 void FileSystem::Reload() {
+    if (jobProcessor->GetQueuedJobCount() > 0) {
+        return;
+    }
+
     LOCK_MUTEX(m_Mutex);
+
     std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
+
+    bool processFiles = false;
     if (m_VFS->GetContainerCount() == 0) {
 
         auto Load = [this](std::string path) {
@@ -263,6 +270,7 @@ void FileSystem::Reload() {
             }
             return true;
         };
+        processFiles = true;
         Load("./MoonGlare/DataModules/Base/");
         Load("./MoonGlare/DataModules/Debug/");
         Load(m_BasePath);
@@ -300,9 +308,11 @@ void FileSystem::Reload() {
         return true;
     };
 
-    auto root = svfs->OpenFile("/");
-    root.EnumerateChildren(processitem);
-    root.Close();
+    if (processFiles) {
+        auto root = svfs->OpenFile("/");
+        root.EnumerateChildren(processitem);
+        root.Close();
+    }
 }
 
 } //namespace Editor 
