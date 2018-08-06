@@ -45,6 +45,10 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
             }
 
             menu.addSeparator();
+            menu.addAction("Send", [this, item]() {
+                Send(item->text().replace("|", "\n"), false);
+            });
+            menu.addSeparator();
             menu.addAction("Edit", [this, item]() {
                 m_Ui->plainTextEdit->setPlainText(item->text().replace("|", "\n"));
             });
@@ -81,9 +85,9 @@ void MainWindow::RemoveAll(const QString &text) {
 }
 
 void MainWindow::Send(const QString &text, bool addToHistory) {
+    auto t = text;
+    t.replace("\n", "|");
     if (addToHistory) {
-        auto t = text;
-        t.replace("\n", "|");
         RemoveAll(t);
         m_Ui->listWidget->insertItem(0, t);
         Save();
@@ -91,9 +95,7 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
 
     std::string txt = text.toUtf8().data();
     recon->Send(txt);
-    auto t = text;
-    t.replace("\n", "|");
-    m_Ui->statusbar->showMessage(QString("Send ") + t, 5000);
+    m_Ui->statusbar->showMessage(QString("Send ") + text, 5000);
 }
 
 static const std::string HistoryFileName = MoonGlare::OS::GetSettingsDirectory() + "ReconHistory.txt";
