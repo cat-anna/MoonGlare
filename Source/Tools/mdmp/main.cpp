@@ -7,6 +7,9 @@
 #include <vector>
 #include <map>
 
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+
 #pragma warning ( push, 0 )
 
 #include <assimp/Importer.hpp>     
@@ -38,6 +41,43 @@ const std::map<aiPrimitiveType, const char*> & getFields<aiPrimitiveType>() {
 	return values;
 }
 
+template<>
+const std::map<aiTextureMapping, const char*> & getFields<aiTextureMapping>() {
+    static const std::map<aiTextureMapping, const char*> values = {
+        { aiTextureMapping_UV, "UV" },
+        { aiTextureMapping_SPHERE, "SPHERE" },
+        { aiTextureMapping_CYLINDER, "CYLINDER" },
+        { aiTextureMapping_BOX, "BOX" },
+        { aiTextureMapping_PLANE, "PLANE" },
+        { aiTextureMapping_OTHER, "OTHER" },
+    };
+    return values;
+}
+
+template<>
+const std::map<aiTextureMapMode, const char*> & getFields<aiTextureMapMode>() {
+    static const std::map<aiTextureMapMode, const char*> values = {
+        { aiTextureMapMode_Wrap, "Wrap" },
+        { aiTextureMapMode_Clamp, "Clamp" },
+        { aiTextureMapMode_Decal, "Decal" },
+        { aiTextureMapMode_Mirror, "Mirror" },
+    };
+    return values;
+}
+
+template<>
+const std::map<aiTextureOp, const char*> & getFields<aiTextureOp>() {
+    static const std::map<aiTextureOp, const char*> values = {
+        { aiTextureOp_Multiply, "Multiply" },
+        { aiTextureOp_Add, "Add" },
+        { aiTextureOp_Subtract, "Subtract" },
+        { aiTextureOp_Divide, "Divide" },
+        { aiTextureOp_SmoothAdd, "SmoothAdd" },
+        { aiTextureOp_SignedAdd, "SignedAdd" },
+    };
+    return values;
+}
+
 template<typename T>
 std::string tobitfield(unsigned t) {
 	std::stringstream ss;
@@ -64,6 +104,24 @@ std::string tobitfield(unsigned t) {
 	return ss.str();
 }
 
+template<typename T>
+std::string convertEnum(T t) {
+    std::stringstream ss;
+    ss << tohex(t) << " [";
+
+    auto &fields = getFields<T>();
+    
+    auto it = fields.find(t);
+    if (it == fields.end()) {
+        ss << "?";
+    } else {
+        ss << it->second;
+    }
+
+    ss << "]";
+    return ss.str();
+}
+
 std::ostream& operator <<(std::ostream &out, const aiColor3D& vec) {
 	out << "(" << vec.r << ";" << vec.g << ";" << vec.b << ")";
 	return out;
@@ -79,7 +137,12 @@ std::ostream& operator <<(std::ostream &out, const aiQuaternion& vec) {
 	return out;
 }
 
-struct DumpCfg {};
+struct DumpCfg {
+    bool dumpTextures = false;
+    std::string path;
+    std::string output;
+    std::string dumpPath;
+};
 
 void DumpStructure(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	std::vector<std::pair<int, const aiNode*>> queue;
@@ -93,7 +156,7 @@ void DumpStructure(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		auto node = item.second;
 
 		std::string nodeline;
-		for (unsigned i = 0; i < level; ++i)
+		for (int i = 0; i < level; ++i)
 			nodeline += "\t";
 
 		out << nodeline << node->mName.data << "\n";
@@ -126,11 +189,12 @@ void DumpMeshes(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		return;
 
 	out << "MESHES[" << scene->mNumMeshes << "]:\n";
-	for (int i = 0; i < scene->mNumMeshes; ++i) {
+	for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
 		auto mesh = scene->mMeshes[i];
 
 		out << i << "\n";
-		out << "\tPrimitives: " << tobitfield<aiPrimitiveType>(mesh->mPrimitiveTypes) << "\n";
+        out << "\tName: " << mesh->mName.data << "\n";
+        out << "\tPrimitives: " << tobitfield<aiPrimitiveType>(mesh->mPrimitiveTypes) << "\n";
 		out << "\tNumVertices: " << mesh->mNumVertices << "\n";
 		out << "\tNumFaces: " << mesh->mNumFaces << "\n";
 		//mVertices
@@ -150,6 +214,80 @@ void DumpMeshes(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	}
 }
 
+void DumpMaterialProps(DumpCfg & cfg, std::ostream & out, aiMaterial * mat) {
+    out << "\tProperties[" << mat->mNumProperties << "]:\n";
+    for (unsigned p = 0; p < mat->mNumProperties; ++p) {
+        auto prop = mat->mProperties[p];
+        out << "\t\t";
+        out << prop->mKey.data << " = ";
+
+        const char *pname = prop->mKey.data;
+        unsigned int type = 0;
+        unsigned int idx = 0;
+
+        try {
+            unsigned cnt = 1;
+            if (aiColor4D v;  mat->Get(pname, type, idx, &v, &cnt) == aiReturn_SUCCESS) {
+                out << v.r << " " << v.g << " " << v.b << " " << v.a << " [" << cnt << "]" << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+
+        try {
+            unsigned cnt = 1;
+            if (aiColor3D v;  mat->Get(pname, type, idx, &v, &cnt) == aiReturn_SUCCESS) {
+                out << v.r << " " << v.g << " " << v.b << " [" << cnt << "]" << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+
+        try {
+            unsigned cnt = 16;
+            if (float v[16];  mat->Get(pname, type, idx, v, &cnt) == aiReturn_SUCCESS) {
+                auto *vp = v;
+                for (; cnt; --cnt, ++vp) {
+                    out << *vp << ";";
+                }
+                out << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+
+        try {
+            unsigned cnt = 16;
+            if (int v[16];  mat->Get(pname, type, idx, v, &cnt) == aiReturn_SUCCESS) {
+                auto *vp = v;
+                for (; cnt; --cnt, ++vp) {
+                    out << *vp << ";";
+                }
+                out << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+
+        try {
+            if (aiString v;  mat->Get(pname, type, idx, v) == aiReturn_SUCCESS) {
+                out << v.data << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+        try {
+            unsigned cnt = 1024;
+            if (char v[1024];  mat->Get(pname, type, idx, v, &cnt) == aiReturn_SUCCESS) {
+                out << v << "[" << cnt << "]" << "\n";
+                continue;
+            }
+        }
+        catch (...) {}
+        out << "\n";
+    }
+}
+
 void DumpMaterials(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	if (!scene->HasMaterials())
 		return;
@@ -160,26 +298,27 @@ void DumpMaterials(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		unsigned int uvindex = 0;
 		float blend = 0;
 		aiTextureOp op = (aiTextureOp) 0;
-		aiTextureMapMode mapmode = (aiTextureMapMode) 0;
+        aiTextureMapMode mapmode[2] = {};
 
-		if (mat->GetTexture(textype, texidx, &path, &mapping, &uvindex, &blend, &op, &mapmode) != AI_SUCCESS) {
+		if (mat->GetTexture(textype, texidx, &path, &mapping, &uvindex, &blend, &op, mapmode) != AI_SUCCESS) {
 			out << "\t\t\tError!\n";
 			return;
 		}
 
 		out << "\t\t\tpath: " << path.data << "\n";
-		out << "\t\t\tmapping: " << tohex((int) mapping) << "\n";
+		out << "\t\t\tmapping: " << convertEnum<aiTextureMapping>(mapping) << "\n";
 		out << "\t\t\tuvindex: " << uvindex << "\n";
 		out << "\t\t\tblend: " << blend << "\n";
-		out << "\t\t\top: " << tohex((int) op) << "\n";
-		out << "\t\t\tmapmode: " << tohex((int) mapmode) << "\n";
+		out << "\t\t\top: " << convertEnum<aiTextureOp>(op) << "\n";
+        out << "\t\t\tmapmode: " << convertEnum<aiTextureMapMode>(mapmode[0]) << " ; " << convertEnum<aiTextureMapMode>(mapmode[1]) << "\n";
 	};
 
 	out << "MATERIALS[" << scene->mNumMaterials << "]:\n";
-	for (int i = 0; i < scene->mNumMaterials; ++i) {
+	for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
 		auto mat = scene->mMaterials[i];
 
 		out << i << "\n";
+        DumpMaterialProps(cfg, out, mat);
 
 		static const std::vector<std::pair<aiTextureType, const char *>> TexTypes{
 			{ aiTextureType_DIFFUSE, "Diffuse" },
@@ -203,9 +342,9 @@ void DumpMaterials(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 				continue;
 
 			out << "\t\t" << type.second << ":\n";
-			for (unsigned i = 0; i < c; ++i) {
-				out << "\t\t" << i << "\n";
-				dumptexture(mat, type.first, i);
+			for (unsigned i2 = 0; i2 < c; ++i2) {
+				out << "\t\t" << i2 << "\n";
+				dumptexture(mat, type.first, i2);
 			}
 		}
 	}
@@ -214,14 +353,22 @@ void DumpMaterials(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 void DumpTextures(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	if (!scene->HasTextures())
 		return;
+    if (cfg.dumpTextures) {
+        boost::filesystem::create_directories(cfg.dumpPath);
+    }
 
 	out << "TEXTURES[" << scene->mNumTextures << "]:\n";
-	for (int i = 0; i < scene->mNumTextures; ++i) {
+	for (unsigned i = 0; i < scene->mNumTextures; ++i) {
 		auto tex = scene->mTextures[i];
 		if (tex->mHeight == 0) {
 			out << i << " - binary data\n";
 			out << "\tSize: " << tex->mWidth << "\n";
 			out << "\tType: " << tex->achFormatHint << "\n";
+        if (cfg.dumpTextures) {
+            std::ofstream of(cfg.dumpPath + "tex" + std::to_string(i) + "." + tex->achFormatHint, std::ios::binary | std::ios::out);
+            of.write((char*)tex->pcData, tex->mWidth);
+            of.close();
+        }
 		} else {
 			out << i << " - Raw image\n";
 			out << "\tWidth: " << tex->mWidth << "\n";
@@ -234,7 +381,7 @@ void DumpLights(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	if (!scene->HasLights())
 		return;
 	out << "LIGHTS[" << scene->mNumLights << "]:\n";
-	for (int i = 0; i < scene->mNumLights; ++i) {
+	for (unsigned i = 0; i < scene->mNumLights; ++i) {
 		auto light = scene->mLights[i];
 		out << i << "\n";
 
@@ -257,7 +404,7 @@ void DumpAnimations(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 	if (!scene->HasAnimations())
 		return;
 	out << "ANIMATIONS[" << scene->mNumAnimations << "]:\n";
-	for (int i = 0; i < scene->mNumAnimations; ++i) {
+	for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
 		auto anim = scene->mAnimations[i];
 
 		out << i << "\n";
@@ -267,7 +414,7 @@ void DumpAnimations(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		out << "\tChannels: " << anim->mNumChannels << "\n";
 		out << "\tMeshChannels: " << anim->mNumMeshChannels << "\n";
 
-		for (int j = 0; j < anim->mNumChannels; ++j) {
+		for (unsigned j = 0; j < anim->mNumChannels; ++j) {
 			auto ch = anim->mChannels[j];
 			out << "\t > CHANNEL " << j << "\n";
 			out << "\t\tName: " << ch->mNodeName.data << "\n";
@@ -287,7 +434,9 @@ void DumpCameras(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 }
 
 void DumpScene(DumpCfg & cfg, const aiScene *scene) {
-	auto &out = std::cout;
+    std::ofstream of(cfg.output);
+
+    std::ostream &out = of;
 	DumpStructure(cfg, scene, out);
 	DumpMeshes(cfg, scene, out);
 	DumpMaterials(cfg, scene, out);
@@ -298,20 +447,51 @@ void DumpScene(DumpCfg & cfg, const aiScene *scene) {
 }
 
 int main(int argc, char ** argv) {
-
 	DumpCfg cfg;
-	//TODO: load cfg
 
-	const char *path;
-	if (argc < 2) {
-		path = R"(d:\Programowanie\Projekty\!gry\MoonGlare\MazeGame\modules\MazeGame\Models\KnightStatue\knight_statue.blend)";
-	} else {
-		path = argv[1];
-	}
+    namespace po = boost::program_options;
+
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help", "produce this help message")
+        ("dump-textures", "dump textures")
+        ("input", po::value<std::string>(), "input file")
+        ("output", po::value<std::string>(), "output")
+        ;
+    
+    po::positional_options_description p;
+    p.add("input", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).
+        options(desc).positional(p).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help") || !vm.count("input")) {
+        std::cout << desc << "\n";
+        return 1;
+    }
+
+    if (vm.count("dump-textures")) {
+        cfg.dumpTextures = true;
+    }
+
+    cfg.path = vm["input"].as<std::string>();
+    cfg.output = cfg.path + ".mdmp";
+    cfg.dumpPath = cfg.path + ".dump/";
+
+    if (vm.count("output")) {
+        cfg.output = vm["output"].as<std::string>();
+    }
 
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path,
-											 aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType);
+	const aiScene* scene = importer.ReadFile(cfg.path.c_str(), 0
+											//| aiProcess_JoinIdenticalVertices /* aiProcess_PreTransformVertices | */
+                                            | aiProcess_Triangulate 
+                                            //| aiProcess_GenUVCoords 
+                                            //| aiProcess_SortByPType
+                                        );
 
 	if (!scene) {
 		std::cout << "Unable to open file!\n";
@@ -321,8 +501,8 @@ int main(int argc, char ** argv) {
 	try {
 		DumpScene(cfg, scene);
 	}
-	catch (...) {
-
+	catch (std::exception e) {
+        std::cout << e.what();
 	}
 
 	return 0;
