@@ -58,7 +58,7 @@ protected slots:
 	void RefreshFilesystem();
 	void RefreshTreeView();
 	void ProjectChanged(Module::SharedDataModule datamod);
-	void OpenItem();
+    void OpenFileEditor(const MoonGlare::QtShared::EditorProvider::EditorActionInfo &editorAction, const std::string &fullpath);
 private: 
 	std::unique_ptr<Ui::FilesystemViewer> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;

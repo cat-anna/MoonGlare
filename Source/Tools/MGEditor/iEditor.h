@@ -59,9 +59,11 @@ struct EditorProvider :	iModule {
 	//SharedModule GetExtensionHandler(const std::string &ext) const;
 	const EditorActionInfo FindOpenEditor(std::string ext);
 	
-	const std::vector<EditorActionInfo>& GetCreateMethods() const { return m_CreateMethods; }
+    const std::vector<EditorActionInfo>& GetCreateMethods() const { return m_CreateMethods; }
+    std::vector<EditorActionInfo> GetOpenMethods(std::string ext) const;
 public:
-	std::vector<EditorActionInfo> m_CreateMethods;
+    std::vector<EditorActionInfo> m_CreateMethods;
+    std::vector<EditorActionInfo> m_OpenMethods;
 	//std::unordered_map<std::string, SharedModule> m_ExtensionHandlers;
 };
 

@@ -22,16 +22,39 @@ bool EditorProvider::PostInit() {
         for (auto method : methodlist) {
             m_CreateMethods.emplace_back(EditorActionInfo{ item.m_Module, item.m_Module->cast<iEditorFactory>(), method });
         }
+
+        for (auto &method : item.m_Interface->GetOpenFileMethods()) {
+            m_OpenMethods.emplace_back(EditorActionInfo{ item.m_Module, item.m_Module->cast<iEditorFactory>(), method });
+        }
     }
 
     std::sort(m_CreateMethods.begin(), m_CreateMethods.end(), [](const EditorActionInfo &a, const EditorActionInfo &b) {
         return a.m_FileHandleMethod.m_Caption < b.m_FileHandleMethod.m_Caption;
     });
+    std::sort(m_OpenMethods.begin(), m_OpenMethods.end(), [](const EditorActionInfo &a, const EditorActionInfo &b) {
+        return a.m_FileHandleMethod.m_Caption < b.m_FileHandleMethod.m_Caption;
+    });
     return true;
+}
+
+std::vector<EditorProvider::EditorActionInfo> EditorProvider::GetOpenMethods(std::string ext) const {
+    ext = ToLower(ext);
+    if (ext.front() == '.')
+        ext = ext.substr(1);
+
+    std::vector<EditorProvider::EditorActionInfo> r;
+    for (auto &method : m_OpenMethods) {
+        if (ToLower(method.m_FileHandleMethod.m_Ext) == ext)
+            r.emplace_back(method);
+    }
+    return r;
 }
 
 const EditorProvider::EditorActionInfo EditorProvider::FindOpenEditor(std::string ext) {
     ext = ToLower(ext);
+    if (ext.front() == '.')
+        ext = ext.substr(1);
+
     for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
         for (auto &method : item.m_Interface->GetOpenFileMethods())
             if (ToLower(method.m_Ext) == ext) {

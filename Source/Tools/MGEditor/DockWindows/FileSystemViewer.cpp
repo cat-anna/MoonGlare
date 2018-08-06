@@ -123,6 +123,8 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
     QModelIndex index = m_Ui->treeView->indexAt(point);
     auto itemptr = m_ViewModel->itemFromIndex(index);
 
+    std::string fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
+
     bool folder = !index.data(FileSystemViewerRole::IsFile).toBool();
     if (folder) {
         auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
@@ -133,27 +135,36 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
 
             auto &method = methodmodule.m_FileHandleMethod;
 
-            CreateMenu->addAction(QIcon(method.m_Icon.c_str()), method.m_Caption.c_str(), [this, methodmodule, index]() {
-                auto qstr = index.data(FileSystemViewerRole::FileURI).toString();
-                std::string URI = qstr.toLocal8Bit().constData();
-
-                QtShared::iEditorFactory::EditorRequestOptions ero;
-                auto editor = methodmodule.m_EditorFactory->GetEditor(methodmodule.m_FileHandleMethod, ero);
-                if (!editor) {
-                    AddLogf(Error, "Failure during editor creation!");
-                    ErrorMessage("Cannot create editor!");
-                    return;
-                }
-
-                if (!editor->Create(URI, methodmodule.m_FileHandleMethod)) {
-                    AddLogf(Error, "Failure during creation!");
-                    ErrorMessage("Cannot create registered file!");
-                }
+            CreateMenu->addAction(QIcon(method.m_Icon.c_str()), method.m_Caption.c_str(), [this, methodmodule, fullpath]() {
+                OpenFileEditor(methodmodule, fullpath);
             });
         }
-
     } else {
-        menu.addAction("Open", this, &FileSystemViewer::OpenItem);
+        auto methods = m_EditorProvider.lock()->GetOpenMethods(boost::filesystem::path(fullpath).extension().string());
+        if (methods.size() == 0) {
+            menu.addAction("Open")->setEnabled(false);
+        } else {
+            bool single = methods.size() == 1;
+
+            QMenu *openItem;
+            if (!single)
+                openItem = menu.addMenu("Open...");
+
+            for (auto &method : methods) {
+                auto action = [this, fullpath, method]() {
+                    OpenFileEditor(method, fullpath);
+                };
+
+                if (single) {
+                    auto item = menu.addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
+                    item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
+                }
+                else {
+                    auto item = openItem->addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
+                    item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
+                }
+            }
+        }
     }
 
     menu.addSeparator();
@@ -178,14 +189,17 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
         RefreshTreeView();
     });
 
+    menu.addAction("Collapse all", [this]() {
+        m_Ui->treeView->collapseAll();
+    });
+    menu.addAction("Expand all", [this]() {
+        m_Ui->treeView->expandAll();
+    });
+
     menu.exec(m_Ui->treeView->mapToGlobal(point));
 }
 
 void FileSystemViewer::ItemDoubleClicked(const QModelIndex&) {
-    OpenItem();
-}
-
-void FileSystemViewer::OpenItem() {
     auto selection = m_Ui->treeView->selectionModel()->currentIndex();
     auto parent = selection.parent();
 
@@ -194,7 +208,54 @@ void FileSystemViewer::OpenItem() {
         return;
 
     std::string fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
-    MainWindow::Get()->OpenFileEditor(fullpath);
+
+    try {
+        auto editorAction = m_EditorProvider.lock()->FindOpenEditor(boost::filesystem::path(fullpath).extension().string());
+
+        OpenFileEditor(editorAction, fullpath);
+    }
+    catch (...) {
+    }
+}
+
+void FileSystemViewer::OpenFileEditor(const MoonGlare::QtShared::EditorProvider::EditorActionInfo &editorAction, const std::string &fullpath) {
+    try {
+        if (editorAction.m_EditorFactory) {
+            QtShared::iEditorFactory::EditorRequestOptions ero;
+            auto editorptr = editorAction.m_EditorFactory->GetEditor(editorAction.m_FileHandleMethod, ero);
+            if (editorptr->OpenData(fullpath, editorAction.m_FileHandleMethod))
+                return;
+            throw false;
+        }
+        else {
+            auto dockinfo = editorAction.m_Module->cast<QtShared::BaseDockWindowModule>();
+            if (!dockinfo)
+                throw false;
+
+            auto inst = dockinfo->GetInstance(this);
+            auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
+            if (!editor) {
+                AddLogf(Error, "Editing in not supported by %s", typeid(*inst).name());
+                ErrorMessage("Editing not supported!");
+                return;
+            }
+
+            if (editor->OpenData(fullpath)) {
+                inst->show();
+            }
+            else {
+                throw false;
+            }
+        }
+    }
+    catch (bool) {
+        ErrorMessage("Failed to open file!");
+        AddLog(Error, "Failed to open file!");
+    }
+    catch (QtShared::EditorNotFoundException &) {
+        AddLog(Warning, "No associated editor with selected file type!");
+        ErrorMessage("No associated editor with selected file type!");
+    }
 }
 
 void FileSystemViewer::RefreshFilesystem() {

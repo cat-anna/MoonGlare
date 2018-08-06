@@ -68,7 +68,6 @@ MainWindow::~MainWindow() {
 
 bool MainWindow::PostInit() {
     auto mm = GetModuleManager();
-    m_EditorProvider = mm->QuerryModule<QtShared::EditorProvider>();
     jobProcessor = mm->QuerryModule<QtShared::iJobProcessor>();
 
     for (auto &item : mm->QuerryInterfaces<QtShared::BaseDockWindowModule>()) {
@@ -263,52 +262,6 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
 //-----------------------------------------
 
-void MainWindow::OpenFileEditor(const std::string& FileURI) {
-    const char *ext = strrchr(FileURI.c_str(), '.');
-    if (!ext) {
-        //ErrorMessage("Unknown file type!");
-        return;
-    }
-    ++ext;
-
-    try {
-        auto editorAction = m_EditorProvider->FindOpenEditor(ext);
-
-        if (editorAction.m_EditorFactory) {
-            QtShared::iEditorFactory::EditorRequestOptions ero;
-            auto editorptr = editorAction.m_EditorFactory->GetEditor(editorAction.m_FileHandleMethod, ero);
-            if (editorptr->OpenData(FileURI, editorAction.m_FileHandleMethod))
-                return;
-            throw false;
-        } else {
-            auto dockinfo = editorAction.m_Module->cast<QtShared::BaseDockWindowModule>();
-            if (!dockinfo)
-                throw false;
-
-            auto inst = dockinfo->GetInstance(this);
-            auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
-            if (!editor) {
-                AddLogf(Error, "Editing in not supported by %s", typeid(*inst).name());
-                ErrorMessage("Editing not supported!");
-                return;
-            }
-
-            if (editor->OpenData(FileURI)) {
-                inst->show();
-            } else {
-                throw false;
-            }
-        }
-    }
-    catch (bool) {
-        ErrorMessage("Failed to open file!");
-        AddLog(Error, "Failed to open file!");
-    }
-    catch (QtShared::EditorNotFoundException &) {
-        AddLog(Warning, "No associated editor with selected file type!");
-        ErrorMessage("No associated editor with selected file type!");
-    }
-}
     /*
 void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
     auto inst = info->m_DockEditor->GetInstance();
