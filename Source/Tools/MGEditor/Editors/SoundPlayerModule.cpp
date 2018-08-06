@@ -5,7 +5,7 @@
 #include "iFileIconProvider.h"
 #include "iEditor.h"
 
-#include <EngineBase/SoundSystem/iSoundSystem.h>
+#include <Foundation/SoundSystem/iSoundSystem.h>
 #include "SoundPlayerView.h"
 #include "DockWindows/iFileSystemViewerPreview.h"
 
@@ -83,8 +83,8 @@ struct SoundPlayerModule
         iface->SetPreviewEditor(player);
         return player;
     }
-
 };
+
 ModuleClassRgister::Register<SoundPlayerModule> SoundPlayerReg("SoundPlayer");
 
 }

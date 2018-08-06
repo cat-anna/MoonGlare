@@ -24,7 +24,7 @@
 #include <Scene.x2c.h>
 
 //#include <DirectAnimationComponent.x2c.h>
-#include <EngineBase/SoundSystem/Component/SoundSourceComponent.h>
+#include <Foundation/SoundSystem/Component/SoundSourceComponent.h>
 #include <SoundSourceComponent.x2c.h>
 
 #include "CustomType.h"
@@ -39,7 +39,6 @@ namespace TypeEditor {
 
 using namespace x2c::Component;
 
-using ComponentID = Core::Component::ComponentID;
 using ComponentID = Core::Component::ComponentID;
 
 //----------------------------------------------------------------------------------

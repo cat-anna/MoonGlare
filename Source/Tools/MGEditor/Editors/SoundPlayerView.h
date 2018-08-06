@@ -3,7 +3,7 @@
 #include <qwidget.h>
 #include <iEditor.h>
 
-#include <EngineBase/SoundSystem/iSoundSystem.h>
+#include <Foundation/SoundSystem/iSoundSystem.h>
 
 namespace Ui { class SoundPlayerView; }
 

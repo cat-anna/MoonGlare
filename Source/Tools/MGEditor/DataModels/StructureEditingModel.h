@@ -11,6 +11,8 @@
 #include <iSettingsUser.h>      
 #include <Module.h>
 
+#include "EditableEntity.h"
+
 namespace MoonGlare {
 namespace QtShared {
 namespace DataModels {

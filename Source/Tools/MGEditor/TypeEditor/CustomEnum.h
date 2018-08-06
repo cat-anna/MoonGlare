@@ -12,6 +12,8 @@ public:
 
     void SetValue(const std::string &in) override;
     std::string GetValue()override;
+protected:
+    void showPopup() override;
 private:
     std::shared_ptr<QtShared::iCustomEnum> customEnum;
 };
