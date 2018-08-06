@@ -6,6 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 
+#include <fmt/format.h>
+
 #include <icons.h>
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
@@ -18,11 +20,80 @@
 
 #include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
-#include "AssimpProcessor.h"
+
+#pragma warning ( push, 0 )
+#include <assimp/Importer.hpp>     
+#include <assimp/scene.h>          
+#include <assimp/postprocess.h>  
+#pragma warning ( pop )
 
 namespace MoonGlare {
 namespace Editor {
 namespace Processor {
+
+struct AssimpProcessor
+    : public QtShared::iFileProcessor {
+
+    AssimpProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum ModelEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), ModelEnum(ModelEnum), moduleManager(modmgr) { }
+
+    ProcessResult ProcessFile() override {
+        ModelEnum->Add(m_URI);
+
+        std::string nodesubPath = m_URI + "@node://";
+
+        try {
+            auto fs = moduleManager->QuerryModule<FileSystem>();
+            StarVFS::ByteTable bt;
+            if (!fs->GetFileData(m_URI, bt)) {
+                //todo: log sth
+                throw std::runtime_error("Unable to read file: " + m_URI);
+            }
+            if (bt.byte_size() == 0) {
+                //todo: log sth
+            }
+
+            Assimp::Importer importer;
+            unsigned flags = aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */
+                aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
+
+            const aiScene* scene = importer.ReadFileFromMemory(bt.get(), bt.byte_size(), flags, strrchr(m_URI.c_str(), '.'));
+
+            if (!scene) {
+                //std::cout << "Unable to open file!\n";
+                return ProcessResult::UnknownFailure;
+            }
+
+            std::vector<std::pair<std::string, const aiNode*>> queue;
+            queue.emplace_back("", scene->mRootNode);
+
+            while (!queue.empty()) {
+                auto item = queue.back();
+                queue.pop_back();
+                auto path = item.first;
+                auto node = item.second;
+
+                path += std::string("/") + node->mName.data;
+
+                if (node->mNumMeshes > 0) {
+                    ModelEnum->Add(nodesubPath + path);// +fmt::format(" [{}]", node->mNumMeshes));
+                }
+
+                for (int i = node->mNumChildren - 1; i >= 0; --i) {
+                    queue.emplace_back(path, node->mChildren[i]);
+                }
+            }
+        }
+        catch (...) {
+            return ProcessResult::UnknownFailure;
+
+        }
+        return ProcessResult::Success;
+    }
+private:
+    QtShared::SharedSetEnum ModelEnum;
+    QtShared::SharedModuleManager moduleManager;
+};
+
 
 //----------------------------------------------------------------------------------
 
@@ -37,7 +108,7 @@ struct AssimpProcessorModule
     QtShared::SharedSetEnum ModelListEnum = std::make_shared<QtShared::SetEnum>("string:Mesh.Model");
 
     QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
-        return std::make_shared<AssimpProcessor>(ModelListEnum, std::move(URI));
+        return std::make_shared<AssimpProcessor>(GetModuleManager(), ModelListEnum, std::move(URI));
     }
 
     std::vector<std::string> GetSupportedTypes() {
@@ -59,25 +130,6 @@ struct AssimpProcessorModule
 QtShared::ModuleClassRgister::Register<AssimpProcessorModule> AssimpProcessorModuleReg("AssimpProcessorModule");
 
 //----------------------------------------------------------------------------------
-
-AssimpProcessor::AssimpProcessor(QtShared::SharedSetEnum ModelEnum, std::string URI)
-        : QtShared::iFileProcessor(std::move(URI)), ModelEnum(ModelEnum) {
-}
-
-
-AssimpProcessor::ProcessResult AssimpProcessor::ProcessFile() {
-
-    //file exists, so insert it into custom enum set
-  //  std::regex pieces_regex(R"(file\:\/\/(\/[-_a-z0-9\.\/]+\.[_a-z0-9]+))", std::regex::icase);
-  //  std::smatch pieces_match;
-  //  if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
-  //      ModelEnum->set.insert(pieces_match[1]);
-  //  }
-
-    ModelEnum->Add(m_URI);
-
-    return ProcessResult::Success;
-}
 
 } //namespace Processor 
 } //namespace Editor 

@@ -100,10 +100,6 @@ ScriptFileProcessor::ScriptFileProcessor(ScriptFileProcessorInfo *Module, std::s
         : QtShared::iFileProcessor(std::move(URI)), module(Module) {
 }
 
-std::string ScriptFileProcessor::MakeIssueId() {
-    return "ScriptFileProcessor|" + m_URI + "|CompilationError";
-}
-
 ScriptFileProcessor::ProcessResult ScriptFileProcessor::ProcessFile()  {
     try {
         InitLua();

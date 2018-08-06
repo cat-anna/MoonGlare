@@ -26,10 +26,6 @@ struct XMLProcessor
 
     XMLProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum xmlEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), xmlEnum(xmlEnum), moduleManager(modmgr) { }
 
-    std::string MakeIssueId() {
-        return "XMLProcessor|" + m_URI + "|Error";
-    }
-
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
         StarVFS::ByteTable bt;

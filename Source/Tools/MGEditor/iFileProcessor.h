@@ -55,6 +55,10 @@ public:
     void SetFence(SharedJobFence f) { fence = f; }
 protected:
     std::string m_URI;
+
+    std::string MakeIssueId(const std::string &type = "Error") {
+        return fmt::format("{}|" + m_URI + "|{}", typeid(*this).name(), type);
+    }
 private:
     SharedJobFence fence;
 };
@@ -73,6 +77,7 @@ public:
     virtual ~iJobProcessor() { }
 
     virtual void Queue(SharedFileProcessor processor) = 0;
+    virtual size_t GetQueuedJobCount() = 0;
 };
 using SharedJobProcessor = std::shared_ptr<iJobProcessor>;
 

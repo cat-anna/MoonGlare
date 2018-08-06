@@ -30,8 +30,6 @@ private:
 	void ProcessOutput();
 	void Finalize();
 
-    std::string MakeIssueId();
-
 	std::unique_ptr<lua_State, LuaWrap::LuaDeleter> m_Lua;
 };
 

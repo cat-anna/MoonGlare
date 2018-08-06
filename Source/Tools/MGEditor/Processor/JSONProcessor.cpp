@@ -26,10 +26,6 @@ struct JSONProcessor
 
     JSONProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum jsonEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), jsonEnum(jsonEnum), moduleManager(modmgr) { }
 
-    std::string MakeIssueId() {
-        return "JSONProcessor|" + m_URI + "|Error";
-    }
-
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
         StarVFS::ByteTable bt;
