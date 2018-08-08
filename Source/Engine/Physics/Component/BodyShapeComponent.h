@@ -108,7 +108,7 @@ protected:
     bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
 
     std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadByName(const std::string &name, xml_node node);
-    std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadShape(xml_node node);
+    std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadShape(xml_node node, Entity Owne);
 };
 
 } //namespace Component 

@@ -174,7 +174,7 @@ struct BodyComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::BodyComponent;
 };
 struct BodyShapeComponentDesc {
-    using Entry_t = BodyShapeComponent::ColliderComponent;
+    using Entry_t = BodyShapeComponent::ColliderComponent_t;
     using Settings_t = EmptySettings;
     static constexpr char *DisplayName = "BodyShape";
     static constexpr char *Name = "BodyShape";

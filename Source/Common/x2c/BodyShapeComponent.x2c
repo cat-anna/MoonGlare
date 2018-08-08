@@ -1,6 +1,8 @@
+Import "Component/ComponentCommon.x2c"
+
 namespace "MoonGlare.x2c.Component.BodyShapeComponent"
 
---Use(Global.MoonGlare.x2c.Math.Vec3)
+Use(Global.MoonGlare.x2c.Math.Vec3)
 
 Structure.new {
     name = "CapsuleYBodyShape",
@@ -30,8 +32,9 @@ Structure.new {
     description = "tbd",
     fields = {
         { name = "type", type = ColliderType, description = "tbd", },
-        { name = "radius", type = float, description = "Only for Capsule/Cylinder shapes", },
-        { name = "height", type = float, description = "Only for Capsule/Cylinder shapes", },
+        { name = "size", type = Vec3, default = { x = 0, y = 0, z = 0, }, },
+        { name = "radius", type = float, description = "tbd", default = 0, },
+        { name = "height", type = float, description = "tbd", default = 0, },
     },
 }
 

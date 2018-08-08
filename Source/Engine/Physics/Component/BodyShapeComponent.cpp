@@ -12,12 +12,12 @@
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Component/TransformComponent.h>
+#include <Renderer/Components/MeshComponent.h>
 #include "BodyShapeComponent.h"
 #include "BodyComponent.h"
 
 #include <Math.x2c.h>
 #include <BodyShapeComponent.x2c.h>
-
 
 #include <Renderer/Renderer.h>
 #include <Renderer/Resources/ResourceManager.h>
@@ -156,18 +156,23 @@ bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexo
 
 std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::LoadByName(const std::string &name, xml_node node) {
     switch (Space::Utils::MakeHash32(name.c_str())) {
-    case "Box"_Hash32:
-        return { std::make_unique<btBoxShape>(btVector3{ 1,1,1 }), ColliderType::Box};// convert(bbs.m_Size) / 2.0f);
+    case "Box"_Hash32: {
+        x2c::Component::BodyShapeComponent::ColliderComponent_t cbs;
+        cbs.ResetToDefault();
+        if (!cbs.Read(node))
+            break;
+        return { std::make_unique<btBoxShape>(btVector3{ cbs.m_size[0],cbs.m_size[1],cbs.m_size[2] }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
+    }
     case "Sphere"_Hash32:
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case "Capsule"_Hash32:
     case "CapsuleY"_Hash32:
     {
-        x2c::Component::BodyShapeComponent::CapsuleYBodyShape cbs;
+        x2c::Component::BodyShapeComponent::CapsuleYBodyShape_t cbs;
         cbs.ResetToDefault();
         if (!cbs.Read(node))
             break;
-        return { std::make_unique<btCapsuleShape>(cbs.radius, cbs.height), ColliderType::Capsule };
+        return { std::make_unique<btCapsuleShape>(cbs.m_radius, cbs.m_height), ColliderType::Capsule };
     }
     //case "Cylinder"_Hash32:
     //case "CylinderY"_Hash32:
@@ -186,25 +191,59 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     return { nullptr , ColliderType::Unknown};
 }
 
-std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::LoadShape(xml_node node) {
-    x2c::Component::BodyShapeComponent::ColliderComponent cc;
+std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::LoadShape(xml_node node, Entity Owner) {
+    x2c::Component::BodyShapeComponent::ColliderComponent_t cc;
     cc.ResetToDefault();
     if (!cc.Read(node))
         return { nullptr , ColliderType::Unknown };
 
-    switch (cc.type) {
-    case ColliderType::Box:
-        return { std::make_unique<btBoxShape>(btVector3{ 1,1,1 }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
+    switch (cc.m_type) {
+    case ColliderType::Box: {
+        x2c::Component::BodyShapeComponent::ColliderComponent_t cbs;
+        cbs.ResetToDefault();
+        if (!cbs.Read(node))
+            break;
+        return { std::make_unique<btBoxShape>(btVector3{ cbs.m_size[0],cbs.m_size[1],cbs.m_size[2] }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
+    }
     case ColliderType::Capsule:
-        return { std::make_unique<btCapsuleShape>(cc.radius, cc.height), ColliderType::Capsule };
+        return { std::make_unique<btCapsuleShapeZ>(cc.m_radius, cc.m_height), ColliderType::Capsule };
     //case ColliderType::CapsuleY:
     //    return std::make_unique<btCapsuleShape>(cc.radius, cc.height);
     //case ColliderType::ConvexMesh:
     //    break;
     case ColliderType::Sphere:
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
-    case ColliderType::TriangleMesh:
+    case ColliderType::TriangleMesh: {
+        auto meshC = GetManager()->GetComponent<Renderer::Component::MeshComponent>();
+        if (meshC) {
+            auto me = meshC->GetEntry(Owner);
+            auto meshH = me->meshHandle;
+            auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
+            auto mdata = mm.GetMeshData(meshH);
+            while (mdata->verticles.empty())
+                std::this_thread::yield();
+
+            while (mdata->index.empty())
+                std::this_thread::yield();
+
+            btIndexedMesh mesh;
+            mesh.m_indexType = PHY_INTEGER;
+            mesh.m_vertexType = PHY_FLOAT;
+            mesh.m_numVertices = mdata->verticles.size();
+            mesh.m_numTriangles = mdata->index.size() / 3;
+            mesh.m_vertexStride = 12;
+            mesh.m_triangleIndexStride = 12;
+            mesh.m_triangleIndexBase = (unsigned char*)&(mdata->index[0]);
+            mesh.m_vertexBase = (unsigned char*)&(mdata->verticles[0]);
+
+            auto inft = new btTriangleIndexVertexArray();
+            inft->addIndexedMesh(mesh);
+
+                //(float*)&mdata->verticles[0], mdata->verticles.size(), 12)
+            return { std::make_unique<btBvhTriangleMeshShape>(inft, true), ColliderType::TriangleMesh };
+        }
         break;
+    }
     default:
         break;
     }
@@ -227,7 +266,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
         shape = LoadByName(ShapeName, ShapeNode);
     }
     else {
-        shape = LoadShape(node);
+        shape = LoadShape(node, Owner);
     }
 
 
@@ -239,6 +278,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_Flags.m_Map.m_Valid = true;
     //entry.
     if (shape.first) {
+        shape.first->setMargin(0.1/2);
         entry.SetShapeInternal(std::move(shape.first));
     }
     
