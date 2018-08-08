@@ -72,7 +72,73 @@ struct AssimpImporter
         //AddLog(Hint, "Saved epx: " << m_CurrentPatternFile);
     }
 
-    void Import() {
+    void ImportBodyShapeComponent(const aiNode * node, EditableEntity * parent) {
+        if (node->mNumMeshes != 1)
+            return;
+
+        MeshInfo mi = meshes[node->mMeshes[0]];
+        auto shapeC = parent->AddComponent(Core::ComponentID::BodyShape);
+        auto shio = shapeC->GetValuesEditor();
+        shio->Set("type", "4");
+        shio->Set("size.x", std::to_string(std::max(mi.boxSize.x / 2, 0.01f)));
+        shio->Set("size.y", std::to_string(std::max(mi.boxSize.y / 2, 0.01f)));
+        shio->Set("size.z", std::to_string(std::max(mi.boxSize.z / 2, 0.01f)));
+    }
+
+    void ImportBodyComponent(const aiNode * node, EditableEntity * parent) {
+        auto bodyC = parent->AddComponent(Core::ComponentID::Body);
+        auto bdio = bodyC->GetValuesEditor();
+        bdio->Set("Kinematic", "1");
+    }
+
+    void ImportTransformComponent(const aiNode * node, EditableEntity * parent) {
+        aiQuaternion q;
+        aiVector3D pos;
+        aiVector3D scale;
+        node->mTransformation.Decompose(scale, q, pos);
+
+        auto transform = parent->AddComponent(Core::ComponentID::Transform);
+        auto trio = transform->GetValuesEditor();
+        trio->Set("Position.x", std::to_string(pos.x));
+        trio->Set("Position.y", std::to_string(pos.y));
+        trio->Set("Position.z", std::to_string(pos.z));
+
+
+        trio->Set("Scale.x", std::to_string(scale.x));
+        trio->Set("Scale.y", std::to_string(scale.y));
+        trio->Set("Scale.z", std::to_string(scale.z));
+
+        trio->Set("Rotation.x", std::to_string(q.x));
+        trio->Set("Rotation.y", std::to_string(q.y));
+        trio->Set("Rotation.z", std::to_string(q.z));
+        trio->Set("Rotation.w", std::to_string(q.w));
+    }
+
+    void ImportMeshComponent(const aiNode * node, EditableEntity * parent) {
+        if (node->mNumMeshes == 1) {
+            auto mesh = parent->AddComponent(Core::ComponentID::Mesh);
+            auto meio = mesh->GetValuesEditor();
+            std::string meshpath = m_URI + "@mesh://";
+            auto meshNode = scene->mMeshes[node->mMeshes[0]];
+            if (meshNode->mName.length == 0)
+                meshpath += "*" + std::to_string(node->mMeshes[0]);
+            else
+                meshpath += meshNode->mName.data;
+            meio->Set("Model", meshpath);
+            meio->Set("Visible", "true");
+        }
+    }
+
+    void ImportLightComponent( EditableEntity * parent) {
+        //auto it = sceneLights.find(parent->GetName());
+        //if (it == sceneLights.end())
+        //    return;
+        //auto light = it->second;
+        //auto lightC = parent->AddComponent(Core::ComponentID::Light);
+        //auto liio = lightC->GetValuesEditor();
+    }
+
+    void ImportEntities() {
         entity = std::make_unique<EditableEntity>();
 
         std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
@@ -86,49 +152,11 @@ struct AssimpImporter
 
             parent->SetName(node->mName.data);
 
-            //out << nodeline <<  << "\n";
-
-            //if (node->mNumMeshes > 0) {
-            //    out << nodeline << propline << "Meshes[" << node->mNumMeshes << "]:";
-            //    for (unsigned i = 0; i < node->mNumMeshes; ++i) {
-            //        out << " " << node->mMeshes[i];
-            //    }
-            //    out << "\n";
-            //}
-
-            aiQuaternion q;
-            aiVector3D pos;
-            aiVector3D scale;
-            node->mTransformation.Decompose(scale, q, pos);
-            //out << nodeline << propline << "Position: " << pos << "\n";
-            //out << nodeline << propline << "Quaternion: " << q << "\n";
-            //out << nodeline << propline << "Scale: " << scale << "\n";
-
-            auto transform = parent->AddComponent(Core::ComponentID::Transform);
-            auto trio = transform->GetValuesEditor();
-            trio->Set("Position.x", std::to_string(pos.x));
-            trio->Set("Position.y", std::to_string(pos.y));
-            trio->Set("Position.z", std::to_string(pos.z));
-            trio->Set("Scale.x", std::to_string(scale.x));
-            trio->Set("Scale.y", std::to_string(scale.y));
-            trio->Set("Scale.z", std::to_string(scale.z));
-            trio->Set("Rotation.x", std::to_string(q.x));
-            trio->Set("Rotation.y", std::to_string(q.y));
-            trio->Set("Rotation.z", std::to_string(q.z));
-            trio->Set("Rotation.w", std::to_string(q.w));
-
-            if (node->mNumMeshes == 1) {
-                auto mesh = parent->AddComponent(Core::ComponentID::Mesh);
-                auto meio = mesh->GetValuesEditor();
-                std::string meshpath = m_URI + "@mesh://";
-                auto meshNode = scene->mMeshes[node->mMeshes[0]];
-                if (meshNode->mName.length == 0)
-                    meshpath += "*" + std::to_string(node->mMeshes[0]);
-                else
-                    meshpath += meshNode->mName.data;
-                meio->Set("Model", meshpath);
-                meio->Set("Visible", "true");
-            }
+            ImportTransformComponent(node, parent);
+            ImportMeshComponent(node, parent);
+            ImportLightComponent(parent);
+            ImportBodyComponent(node, parent);
+            ImportBodyShapeComponent(node, parent);
 
             for (int i = node->mNumChildren - 1; i >= 0; --i) {
                 auto ch = node->mChildren[i];
@@ -137,8 +165,45 @@ struct AssimpImporter
             }
         }
 
-
         entity->SetName(boost::filesystem::path(m_URI).filename().string());
+    }
+
+    void GatherMeshes() {
+        meshes.clear();
+        if (!scene->HasMeshes())
+            return;       
+        meshes.resize(scene->mNumMeshes);
+        for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
+            auto mesh = scene->mMeshes[i];
+            
+            auto &mi = meshes[i];
+            auto &maxs = mi.boxSize;
+            maxs = { 0,0,0 };
+
+            aiVector3D center = { 0,0,0 };
+            for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
+                center += mesh->mVertices[vertid];
+            }
+            center /= (float)mesh->mNumVertices;
+
+            for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
+                aiVector3D vertex = mesh->mVertices[vertid];
+
+                for (int v = 0; v < 3; ++v) {
+                    maxs[v] = std::max(maxs[v], abs(center[v] - vertex[v]));
+                }
+            }
+        }
+    }
+
+    void GatherLights() {
+        sceneLights.clear();
+        if (!scene->HasLights())
+            return;
+        for (unsigned i = 0; i < scene->mNumLights; ++i) {
+            auto light = scene->mLights[i];
+            sceneLights[light->mName.data] = light;
+        }
     }
 
     ProcessResult ProcessFile() override {
@@ -166,7 +231,10 @@ struct AssimpImporter
 
             //output
 
-            Import();
+            GatherLights();
+            GatherMeshes();
+
+            ImportEntities();
             StoreResult();
         }
         catch (...) {
@@ -181,6 +249,12 @@ private:
     QtShared::SharedModuleManager moduleManager;
     std::string outputFile;
     std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
+    std::map<std::string, const aiLight*> sceneLights;
+
+    struct MeshInfo {
+        math::fvec3 boxSize = { 1,1,1 };
+    };
+    std::vector<MeshInfo> meshes;
 };
 //----------------------------------------------------------------------------------
 
