@@ -97,9 +97,6 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	if (Config::Current::EnableFlags::PhysicsDebugDraw) {
         DebugDraw(conf);
 	}
-	
-	if(!Config::Current::EnableFlags::Physics)
-		return;
 
 	for (size_t i = 0; i < m_Array.Allocated(); ++i) {//ignore root entry
 		auto &item = m_Array[i];
@@ -117,6 +114,9 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = m_TransformComponent->GetCurrentRevision();
+            item.m_Revision = tcentry->m_Revision;
+            if(item.m_Flags.m_Map.m_Kinematic)
+                ((btRigidBody&)body).setWorldTransform(tcentry->m_GlobalTransform);
             if (item.m_Flags.m_Map.m_HasShape) {
                 auto *shape = ((btRigidBody&)body).getCollisionShape();
                 if (shape) {
@@ -126,15 +126,13 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
             }
 		} else {
 			if (tcentry) {
-				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || tcentry->m_Revision == 0)) {
-					if (item.m_Revision != tcentry->m_Revision) {
-						((btRigidBody&) body).setWorldTransform(tcentry->m_LocalTransform);
+				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || item.m_Revision != tcentry->m_Revision)) {
+						((btRigidBody&) body).setWorldTransform(tcentry->m_GlobalTransform);
 						auto *shape = ((btRigidBody&) body).getCollisionShape();
 						if (shape)
 							shape->setLocalScaling(tcentry->m_GlobalScale);
 						m_DynamicsWorld->updateSingleAabb(&body);
 						item.m_Revision = tcentry->m_Revision;
-					}
 				}
 			} else {
 				item.m_Flags.m_Map.m_Valid = false;
@@ -171,6 +169,9 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			}
 		}
 	};
+
+    if (!Config::Current::EnableFlags::Physics)
+        return;
 
 	CollisionMap cmap;
     m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
@@ -301,10 +302,10 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	//body.setFriction(phprop.Friction);
 	body.setSleepingThresholds(0.1f, 0.1f);
 //	entry.m_CollisionMask = CollisionMask();		//TODO:
-	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic;
+	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic && entry.m_Mass > 0;
 	entry.m_Flags.m_Map.m_WantsCollisionEvent = bodyentry.m_WantsCollisionEvent;
 
-	if (entry.m_Mass == 0.0f) {
+	if (entry.m_Mass <= 0.0f) {
 		body.setActivationState(DISABLE_SIMULATION);
     }
     else {

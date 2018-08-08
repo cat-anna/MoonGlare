@@ -121,11 +121,12 @@ void TransformComponent::Step(const MoveConfig & conf) {
 		if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
 			auto *ParentEntry = GetEntry(ParentEntity);
 
-			if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) {
+			if ((ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1) && !item.m_Flags.m_Map.m_Dirty) {
 				//nothing to do, nothing changed;
 			} else {
 				item.Recalculate(ParentEntry);
 				item.m_Revision = m_CurrentRevision;
+                item.m_Flags.m_Map.m_Dirty = false;
 			}
 		//	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
 		} else {

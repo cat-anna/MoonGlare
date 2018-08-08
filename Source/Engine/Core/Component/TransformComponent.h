@@ -68,25 +68,21 @@ public:
 		math::vec3 GetPosition() const { return convert(m_LocalTransform.getOrigin()); }
 		void SetPosition(math::vec3 pos) { 
 			m_LocalTransform.setOrigin(convert(pos)); 
-			m_Revision = 0;
 			m_Flags.m_Map.m_Dirty = true;
 		}
 		math::vec4 GetRotation() const { return convert(m_LocalTransform.getRotation()); }
 		void SetRotation(math::vec4 rot) { 
 			m_LocalTransform.setRotation(convert(rot));
-			m_Revision = 0;
             m_Flags.m_Map.m_Dirty = true;
         }
 		math::vec3 GetScale() const { return convert(m_LocalScale); }
 		void SetScale(math::vec3 s) { 
 			m_LocalScale = convert(s);
-			m_Revision = 0;
 			m_Flags.m_Map.m_Dirty = true;
 		}
 		math::Transform GetTransform() const { return m_LocalTransform; }
 		void SetTransform(const math::Transform &s) {
 			m_LocalTransform = s;
-			m_Revision = 0;
 			m_Flags.m_Map.m_Dirty = true;
 		}
 	};
