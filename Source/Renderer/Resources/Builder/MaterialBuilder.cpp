@@ -1,10 +1,10 @@
-#include "../nfRenderer.h"
-#include "../Configuration.Renderer.h"
-#include "../Material.h"
+#include "../../nfRenderer.h"
+#include "../../Configuration.Renderer.h"
+#include "../../Material.h"
 
 #include "MaterialBuilder.h"
-#include "ResourceManager.h"
-#include "MaterialManager.h"
+#include "../ResourceManager.h"
+#include "../MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources {
 

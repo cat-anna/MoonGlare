@@ -59,8 +59,8 @@ using namespace Space::Utils::HashLiterals;
 #include <libSpace/src/Memory/BitampAllocator.h>
 
 #include <Foundation/OrbitLoggerConf.h>
-
 #include <Foundation/PerfCounters.h>
+#include <Foundation/xMath.h>
 
 #pragma warning (error: 4324)
 

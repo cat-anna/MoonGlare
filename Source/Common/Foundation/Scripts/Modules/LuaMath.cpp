@@ -1,15 +1,20 @@
-#include <pch.h>
-#include <MoonGlare.h>
 #include <cmath>
+#include <functional>
 #include "Math.h"
 #include "StaticModules.h"
 
-#include <functional>
+#include <bullet/LinearMath/btVector3.h>
+#include <bullet/LinearMath/btQuaternion.h>
+#include <bullet/LinearMath/btTransform.h>
+#include <glm/glm.hpp>
 #include <eigen3/Eigen/Core>
 
-::Space::RTTI::TypeInfoInitializer<Eigen::Vector2f, Eigen::Vector3f, Eigen::Vector4f, Eigen::Matrix4f> EigenTypeInfo;
+#include <Foundation/xMath.h>
+#include <Foundation/TemplateUtils.h>
 
-namespace MoonGlare::Core::Scripts::Modules {
+//::Space::RTTI::TypeInfoInitializer<Eigen::Vector2f, Eigen::Vector3f, Eigen::Vector4f, Eigen::Matrix4f> EigenTypeInfo;
+
+namespace MoonGlare::Scripts::Modules {
 
 #define NN(a)   \
 if (!a)    __debugbreak();
@@ -345,13 +350,18 @@ void ScriptMathGlobal(lua_State *lua) {
         .addProperty("Zero", &StaticVec<math::vec3, float, 0, 0, 0>)
         .addProperty("One", &StaticVec<math::vec3, float, 1, 1, 1>)
 
-        .addProperty("Up", &StaticVec<math::vec3, float, 0, 1, 0>)
-        .addProperty("Down", &StaticVec<math::vec3, float, 0, -1, 0>)
+        .addProperty("Up", &StaticVec<math::vec3, float, 0, 0, 1>)
+        .addProperty("Down", &StaticVec<math::vec3, float, 0, 0, -1>)
+
+        .addProperty("Forward", &StaticVec<math::vec3, float, 1, 0, 0>)
+        .addProperty("Backward", &StaticVec<math::vec3, float, -1, 0, 0>)
+
+        .addProperty("Left", &StaticVec<math::vec3, float, 0, 1, 0>)
+        .addProperty("Right", &StaticVec<math::vec3, float, 0, -1, 0>)
 
         .addProperty("X", &StaticVec<math::vec3, float, 1, 0, 0>)
         .addProperty("Y", &StaticVec<math::vec3, float, 0, 1, 0>)
         .addProperty("Z", &StaticVec<math::vec3, float, 0, 0, 1>)
-
     .endNamespace()
         
     .beginNamespace("Vec2")
@@ -360,16 +370,19 @@ void ScriptMathGlobal(lua_State *lua) {
 
         .addProperty("Zero", &StaticVec<math::vec2, float, 0, 0>)
         .addProperty("One", &StaticVec<math::vec2, float, 1, 1>)
+
+        .addProperty("X", &StaticVec<math::vec2, float, 1, 0>)
+        .addProperty("Y", &StaticVec<math::vec2, float, 0, 1>)
     .endNamespace()
     ;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-void StaticModules::InitMath(lua_State *lua, World *world) {
+void InitLuaMath(lua_State *lua) {
     DebugLogf(Debug, "Initializing Math module");
     ScriptMathGlobal(lua);
     ScriptMathClasses(lua);
 }
 
-} //namespace MoonGlare::Core::Scripts::Modules
+} //namespace MoonGlare::Scripts::Modules

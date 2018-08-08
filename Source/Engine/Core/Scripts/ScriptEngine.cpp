@@ -13,6 +13,7 @@
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
 #include <Foundation/Scripts/Modules/StaticStorage.h>
 #include <Foundation/Scripts/Modules/LuaRequire.h>
+#include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
 
@@ -154,17 +155,19 @@ bool ScriptEngine::ConstructLuaContext() {
     lua_settable(m_Lua, LUA_REGISTRYINDEX);						//stack: ... index ctable
 
     try {
-        Modules::StaticModules::InitStrings(m_Lua, m_world);
-        Modules::StaticModules::InitApplication(m_Lua, m_world);
-        Modules::StaticModules::InitPrint(m_Lua, m_world);
-        Modules::StaticModules::InitMath(m_Lua, m_world);
-        Modules::StaticModules::InitRandom(m_Lua, m_world);
-        Modules::StaticModules::InitTime(m_Lua, m_world);
-        Modules::StaticModules::InitThread(m_Lua, m_world);
-
         using namespace MoonGlare::Scripts::Modules;
+        using namespace MoonGlare::Core::Scripts::Modules;
+
+        InstallStaticModules(m_Lua);
+
+        StaticModules::InitStrings(m_Lua, m_world);
+        StaticModules::InitApplication(m_Lua, m_world);
+        StaticModules::InitPrint(m_Lua, m_world);
+        StaticModules::InitTime(m_Lua, m_world);
+        StaticModules::InitThread(m_Lua, m_world);
+
         InstallModule<LuaRequireModule, iRequireModule>();
-        InstallModule<Modules::LuaSettingsModule, Settings::iLuaSettingsModule>();
+        InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
         InstallModule<StaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
     }

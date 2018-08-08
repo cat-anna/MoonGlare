@@ -1,10 +1,6 @@
-#include <pch.h>
-#include <nfMoonGlare.h>
-
-#include "../ScriptEngine.h"
 #include "StaticModules.h"
 
-namespace MoonGlare::Core::Scripts::Modules {
+namespace MoonGlare::Scripts::Modules {
 
 struct RandomObject {
     RandomObject() : mt(std::random_device()()) { }
@@ -66,10 +62,10 @@ void RandomNamespace(lua_State *lua) {
         ;
 }
 
-void StaticModules::InitRandom(lua_State *lua, World *world) {
+void InitLuaRandom(lua_State *lua) {
     DebugLogf(Debug, "Initializing Random module");
 
     RandomNamespace(lua);
 }
 
-} //namespace MoonGlare::Core::Scripts::Modules
+} //namespace MoonGlare::Scripts::Modules

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Foundation/iFileSystem.h>
+#include <Foundation/Scripts/ApiInit.h>
 
 enum class DataPath {
     Root,
@@ -83,7 +84,7 @@ public:
     bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
     bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
 
-    static void RegisterDebugScriptApi(ApiInitializer &api);
+    static void RegisterDebugScriptApi(Scripts::ApiInitializer &api);
     void DumpStructure(std::ostream &out) const;
 private:
     struct StarVFSCallback : public StarVFS::StarVFSCallback {

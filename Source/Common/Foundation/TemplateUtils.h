@@ -79,7 +79,7 @@ private:
 	}
 };
 
-template<class CLASS, class RET, RET(CLASS::*FUNC)(const string&)>
+template<class CLASS, class RET, RET(CLASS::*FUNC)(const std::string&)>
 struct CastStringParameter {
 	using fun_t = RET (CLASS::*)(const char *);
 
@@ -87,9 +87,9 @@ struct CastStringParameter {
 		return reinterpret_cast<fun_t>(&cast<FUNC>);
 	}
 private:
-	template<RET(CLASS::*FUNC)(const string&)>
+	template<RET(CLASS::*FUNC)(const std::string&)>
 	RET cast(const char *ptr) {
-		string s(ptr);
+		std::string s(ptr);
 		return (((CLASS*)this)->*FUNC)(s);
 	}
 };
