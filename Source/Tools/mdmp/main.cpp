@@ -42,6 +42,33 @@ const std::map<aiPrimitiveType, const char*> & getFields<aiPrimitiveType>() {
 }
 
 template<>
+const std::map<aiLightSourceType, const char*> & getFields<aiLightSourceType>() {
+    static const std::map<aiLightSourceType, const char*> values = {
+    { aiLightSource_UNDEFINED, "undefined" },
+    { aiLightSource_DIRECTIONAL, "directional" },
+    { aiLightSource_POINT, "point" },
+    { aiLightSource_SPOT, "spot" },
+    { aiLightSource_AMBIENT, "ambient" },
+    { aiLightSource_AREA, "area" },
+    };
+    return values;
+}
+
+template<>
+const std::map<aiMetadataType, const char*> & getFields<aiMetadataType>() {
+    static const std::map<aiMetadataType, const char*> values = {
+    { AI_BOOL, "bool" },
+    { AI_INT32, "int32" },
+    { AI_UINT64, "uint32" },
+    { AI_FLOAT, "float" },
+    { AI_DOUBLE, "double" },
+    { AI_AISTRING, "string" },
+    { AI_AIVECTOR3D, "vec3d" },
+    };
+    return values;
+}
+
+template<>
 const std::map<aiTextureMapping, const char*> & getFields<aiTextureMapping>() {
     static const std::map<aiTextureMapping, const char*> values = {
         { aiTextureMapping_UV, "UV" },
@@ -176,6 +203,13 @@ void DumpStructure(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		out << nodeline << propline << "Position: " << pos << "\n";
 		out << nodeline << propline << "Quaternion: " << q << "\n";
 		out << nodeline << propline << "Scale: " << scale << "\n";
+        if (node->mMetaData && node->mMetaData->mNumProperties > 0) {
+            out << nodeline << propline << "PROPERTIES[" << node->mMetaData->mNumProperties << "]:";
+            for (unsigned mdi = 0; mdi < node->mMetaData->mNumProperties; ++mdi)
+                out << " " << node->mMetaData->mKeys[mdi].data 
+                    << "<" << convertEnum(node->mMetaData->mValues[mdi].mType) << ">";
+            out << "\n";
+        }
 
 		++level;
 		for (int i = node->mNumChildren - 1; i >= 0; --i) {
@@ -386,7 +420,7 @@ void DumpLights(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		out << i << "\n";
 
 		out << "\tName: " << light->mName.data << "\n";
-		out << "\tType: " << (int) light->mType << "\n";
+		out << "\tType: " << convertEnum(light->mType) << "\n";
 		out << "\tPosition: " << light->mPosition << "\n";
 		out << "\tDirection: " << light->mDirection << "\n";
 		out << "\tAttenuationConstant: " << light->mAttenuationConstant << "\n";
