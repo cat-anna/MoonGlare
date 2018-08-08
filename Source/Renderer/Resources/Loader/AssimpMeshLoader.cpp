@@ -21,8 +21,8 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     importer = std::make_unique<Assimp::Importer>();
 
     auto loadflags =
-        //aiProcess_JoinIdenticalVertices |
-        aiProcess_PreTransformVertices |
+        aiProcess_JoinIdenticalVertices |
+        //aiProcess_PreTransformVertices |
         aiProcess_Triangulate |
         //aiProcess_GenUVCoords |
         //aiProcess_SortByPType |
@@ -42,13 +42,51 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     LoadMeshes(storage);
 }
 
+int AssimpMeshLoader::GetMeshIndex() const {
+    static constexpr std::string_view meshProto = "mesh://";
+
+    if (subpath.empty())
+    {
+        return 0;
+    }
+
+    if (subpath.find(meshProto) != 0) {
+        __debugbreak();
+        return -1;
+    }
+
+    const char *beg = subpath.c_str() + meshProto.size();
+
+    if (*beg == '*') {
+        ++beg;
+        char *end = nullptr;
+        long r = strtol(beg, &end, 10);
+        if (end == beg) {
+            __debugbreak();
+            return -1;
+        }
+        return r;
+    }
+
+    std::string name(beg);
+    for (unsigned i = 0; i < scene->mNumMeshes; i++) {
+        auto mesh = scene->mMeshes[i];
+        if (name == mesh->mName.data) {
+            return i;
+        }
+    }
+
+    __debugbreak();
+    return -1;
+}
+
 void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     uint32_t NumVertices = 0, NumIndices = 0;
 
-    if (scene->mNumMeshes > MeshConf::SubMeshLimit) {
-        AddLog(Error, "SubMeshLimit exceeded");
-        return;
-    }
+    //if (scene->mNumMeshes > MeshConf::SubMeshLimit) {
+    //    AddLog(Error, "SubMeshLimit exceeded");
+    //    return;
+    //}
 
     auto builder = owner.GetBuilder(storage.m_Queue, handle);
 
@@ -65,18 +103,23 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     std::array<LoadInfo, meshes.size()> loadInfo;
     loadInfo.fill({});
 
-    for (size_t i = 0; i < scene->mNumMeshes; i++) {
-        meshes[i].valid = true;
-        meshes[i].numIndices = scene->mMeshes[i]->mNumFaces * 3;
-        meshes[i].baseVertex = static_cast<uint16_t>(NumVertices);
-        meshes[i].baseIndex = static_cast<uint16_t>(NumIndices * sizeof(uint32_t));
-        meshes[i].elementMode = GL_TRIANGLES;
-        meshes[i].indexElementType = GL_UNSIGNED_INT;
-
-        loadInfo[i].baseIndex = NumIndices;
-
-        NumVertices += scene->mMeshes[i]->mNumVertices;
-        NumIndices += meshes[i].numIndices;
+    int meshId = GetMeshIndex();
+    if (meshId < 0) {
+        __debugbreak();
+        return;
+    }
+          
+    {
+        auto mesh = scene->mMeshes[meshId];
+        meshes[0].valid = true;
+        meshes[0].numIndices = mesh->mNumFaces * 3;
+        meshes[0].baseVertex = static_cast<uint16_t>(NumVertices);
+        meshes[0].baseIndex = static_cast<uint16_t>(NumIndices * sizeof(uint32_t));
+        meshes[0].elementMode = GL_TRIANGLES;
+        meshes[0].indexElementType = GL_UNSIGNED_INT;
+        loadInfo[0].baseIndex = NumIndices;
+        NumVertices = mesh->mNumVertices;
+        NumIndices = meshes[0].numIndices;
     }
 
     MeshData meshData;
@@ -85,10 +128,12 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     meshData.normals.resize(NumVertices);
     meshData.index.resize(NumIndices);
 
-    for (size_t i = 0; i < scene->mNumMeshes; i++) {
-        const aiMesh* mesh = scene->mMeshes[i];
+    //for (size_t i = 0; i < scene->mNumMeshes; i++)
+    {
+        size_t i = 0;
+        const aiMesh* mesh = scene->mMeshes[meshId];
 
-        LoadMaterial(scene->mMeshes[i]->mMaterialIndex, materials[i], storage);
+        LoadMaterial(mesh->mMaterialIndex, materials[i], storage);
 
         auto MeshVerticles = &meshData.verticles[meshes[i].baseVertex];
         auto MeshTexCords = &meshData.UV0[meshes[i].baseVertex];
@@ -147,6 +192,10 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
         return;
     }
 
+    Configuration::TextureLoad TexConfig = Configuration::TextureLoad::Default();
+
+    TexConfig.m_Edges = Configuration::Texture::Edges::Repeat; //TODO: read from matterial
+
     if (Path.data[0] == '*') {
         auto matb = materialManager.GetMaterialBuilder(h, true);
         matb.SetDiffuseMap();
@@ -165,8 +214,9 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
             //raw image bytes
             auto matH = matb.m_MaterialPtr->m_DiffuseMap;
 
-            PostTask([matH, texptr](ResourceLoadStorage &storage) {
-                FreeImageLoader::LoadTexture(storage, matH, texptr->pcData, texptr->mWidth);
+
+            PostTask([matH, texptr, TexConfig](ResourceLoadStorage &storage) {
+                FreeImageLoader::LoadTexture(storage, matH, texptr->pcData, texptr->mWidth, TexConfig);
             });
         }
         else {
@@ -176,7 +226,7 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
     }
     else {
         auto matb = materialManager.GetMaterialBuilder(h, true);
-        matb.SetDiffuseMap(baseURI + Path.data);
+        matb.SetDiffuseMap(baseURI + Path.data, TexConfig);
         matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
     }
 }

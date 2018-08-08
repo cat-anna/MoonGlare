@@ -132,7 +132,7 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     m_frame = frame;
 
     if (config.m_SecondPeriod) {
-        AddLogf(Performance, "Mesh counter: %u", meshcouter);
+        //AddLogf(Performance, "Mesh counter: %u", meshcouter);
     }
     meshcouter = 0;
 

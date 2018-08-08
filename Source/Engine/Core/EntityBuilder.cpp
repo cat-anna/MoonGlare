@@ -105,6 +105,9 @@ bool EntityBuilder::Build(Entity Owner, pugi::xml_node node, std::string Name) {
 
     Import(data, node, -1);
     data.Prepare();
+#ifdef DEBUG_DUMP
+    data.Dump(Name, Name);
+#endif
     Spawn(data, Owner);
     return true;
 }

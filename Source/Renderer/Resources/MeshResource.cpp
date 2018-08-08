@@ -94,8 +94,19 @@ bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     }
     loadedMeshes[uri] = hout;
 
-    auto request = std::make_shared<Loader::AssimpMeshLoader>(hout, *this, resourceManager->GetMaterialManager());
-    resourceManager->GetLoaderIf()->QueueRequest(uri, request);
+    std::string subpath;
+    std::string fileuri;
+
+    auto pos = uri.find('@');
+    if (pos == std::string::npos) {
+        fileuri = uri;
+    } else {
+        fileuri = uri.substr(0, pos);
+        subpath = uri.substr(pos + 1);
+    }
+
+    auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), hout, *this, resourceManager->GetMaterialManager());
+    resourceManager->GetLoaderIf()->QueueRequest(fileuri, request);
 
     return true;
 }
