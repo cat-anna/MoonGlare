@@ -197,9 +197,9 @@ inline math::vec3 SphericalToCartesian(const math::vec2 *vec) {
     return glm::normalize(math::vec3(
         sinf(th) * cosf(fi)
         ,
-        cos(th)
-        ,
         sinf(th) * sinf(fi)
+        ,
+        cos(th)
     ));
 }
 
