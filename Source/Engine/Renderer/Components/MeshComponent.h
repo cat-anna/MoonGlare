@@ -61,7 +61,7 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
         m_Flags.m_Map.m_Valid = false;
     }
 };     
-//	static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
+//static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
 //static_assert(std::is_pod_v<MeshComponentEntry>);
 
 class MeshComponent

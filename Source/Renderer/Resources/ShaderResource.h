@@ -11,7 +11,7 @@
 #include "../Configuration.Renderer.h"
 
 #include <Assets/AssetLoaderInterface.h>
-#include "ShaderBuilder.h"
+#include "Builder/ShaderBuilder.h"
 
 namespace MoonGlare::Renderer::Resources {
 

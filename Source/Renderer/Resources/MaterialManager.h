@@ -6,7 +6,7 @@
 #include "../Material.h"
 
 #ifdef NEED_MATERIAL_BUILDER
-#include "MaterialBuilder.h"
+#include "builder/MaterialBuilder.h"
 #endif
 
 namespace MoonGlare::Renderer::Resources {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../nfRenderer.h"
-#include "../Configuration.Renderer.h"
-#include "../Material.h"
+#include "../../nfRenderer.h"
+#include "../../Configuration.Renderer.h"
+#include "../../Material.h"
 
 namespace MoonGlare::Renderer::Resources {
 
