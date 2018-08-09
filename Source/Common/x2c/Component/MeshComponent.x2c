@@ -13,10 +13,17 @@ Structure.new {
 			default = true,
 		},	
 		{
-			name = "Model",
+			name = "Mesh",
 			description = "",
 			type = Types.string,
 			default = "",
 		},			
+		{
+			name = "Material",
+			description = "",
+			type = Types.string,
+			default = "",
+            required = false,
+		},		
 	},
 }

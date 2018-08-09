@@ -115,9 +115,10 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 }
 
 bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {	
-    std::string name = node.child("Model").text().as_string(0);
-    if (name.empty()) {
-        AddLogf(Error, "Attempt to load nameless Model!");
+    std::string meshUri = node.child("Mesh").text().as_string("");
+    std::string materialUri = node.child("Material").text().as_string("");
+    if (meshUri.empty()) {
+        AddLogf(Error, "Attempt to load nameless Mesh!");
         return false;
     }
     size_t index;
@@ -129,15 +130,15 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
 
-    if (name.find("file://") == 0) {
+    if (meshUri.find("file://") == 0) {
         auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
-        if (!mm.LoadMesh(name, entry.meshHandle)) {
+        if (!mm.LoadMesh(meshUri, materialUri, entry.meshHandle)) {
             AddLogf(Error, "Mesh load failed!");
             return false;
         }
     }
     else {
-        AddLog(Error, fmt::format("Invalid mesh uri: '{}'", name));
+        AddLog(Error, fmt::format("Invalid mesh uri: '{}'", meshUri));
         return false;
     }
 

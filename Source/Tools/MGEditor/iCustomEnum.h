@@ -50,10 +50,16 @@ private:
 };
 using SharedSetEnum = std::shared_ptr<SetEnum>;
 
+
+class CustomEnumProvider;
+
 class iCustomEnumSupplier {
 public:
     virtual ~iCustomEnumSupplier() {}
-    virtual std::vector<std::shared_ptr<iCustomEnum>> GetCustomEnums() const = 0;
+    virtual std::vector<std::shared_ptr<iCustomEnum>> GetCustomEnums() const { return {}; };
+    virtual std::vector<std::shared_ptr<iCustomEnum>> GetCustomEnums(CustomEnumProvider *provider) {
+        return GetCustomEnums();
+    }
 };
 
 class CustomEnumProvider : public iModule {
@@ -61,9 +67,28 @@ public:
     CustomEnumProvider(SharedModuleManager modmgr);
     bool PostInit() override;
 
+    template<typename EnumType = SetEnum>
+    std::shared_ptr<EnumType> CreateEnum(const std::string &Typename) {
+        auto base = std::const_pointer_cast<iCustomEnum>(GetEnum(Typename));
+        std::shared_ptr<EnumType> wanted;
+        if (!base) {
+            wanted = std::make_shared<EnumType>(Typename);
+            RegisterEnum(wanted);
+        }
+        else {
+            wanted = std::dynamic_pointer_cast<EnumType>(base);
+            if (!wanted)
+                return nullptr;
+        }
+
+        return wanted;
+    }
+
     const std::shared_ptr<iCustomEnum> GetEnum(const std::string &Typename) const;
 private:
-    std::unordered_map<std::string, std::weak_ptr<iCustomEnum>> enumMap;
+    std::unordered_map<std::string, std::shared_ptr<iCustomEnum>> enumMap;
+
+    void RegisterEnum(std::shared_ptr<iCustomEnum> e);
 };
 
 } //namespace QtShared 

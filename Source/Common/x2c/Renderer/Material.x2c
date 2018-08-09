@@ -1,0 +1,44 @@
+Import "../Math.x2c"
+
+namespace "MoonGlare.x2c.Renderer"
+
+Use(Global.MoonGlare.x2c.Math.RGBA)
+
+Enum.import {
+    name = "TextureEdges",
+    location = "MoonGlare::Renderer::Configuration::Texture::Edges",
+    default = "Clamp",
+    values = {
+        "Repeat",
+        "Clamp",
+    }
+}
+
+Structure.new {
+    name = "MapConfig",
+    description = "",
+    fields = {
+        { name = "Enabled", type = Types.bool, default = false, },
+        { name = "MapURI", type = Types.string, default = "", },
+        { name = "Edges", type = Local.TextureEdges, },    
+        --uvindex
+        --blend
+        --blendmode
+    },
+}
+
+Structure.new {
+    name = "Material",
+    description = "",
+    fields = {
+        { name = "DiffuseColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
+        { name = "SpecularColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
+
+        { name = "Shiness", type = Types.float, default = 32, },
+
+        { name = "DiffuseMap", type = Local.MapConfig, },
+        { name = "NormalMap", type = Local.MapConfig, },
+        { name = "SpecularMap", type = Local.MapConfig, },
+        { name = "ShinessMap", type = Local.MapConfig, },
+    },
+}

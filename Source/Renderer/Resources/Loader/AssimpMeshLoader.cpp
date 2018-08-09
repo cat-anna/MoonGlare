@@ -15,6 +15,10 @@
 #include <Commands/MemoryCommands.h>
 #include "MeshUpdate.h"
 
+#include <Common.x2c.h>
+#include <Math.x2c.h>
+#include <Material.x2c.h>
+
 namespace MoonGlare::Renderer::Resources::Loader {
 
 void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
@@ -39,6 +43,13 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
+    if (!material.empty()) {
+        if (material.find(ModelURI) != 0) 
+            customMaterial = true;
+         else 
+            material = material.substr(ModelURI.size() + 1);
+    }
+                      
     LoadMeshes(storage);
 }
 
@@ -65,6 +76,8 @@ int AssimpMeshLoader::GetMeshIndex() const {
             __debugbreak();
             return -1;
         }
+        if (r > (int)scene->mNumMeshes)
+            return -1;
         return r;
     }
 
@@ -77,6 +90,37 @@ int AssimpMeshLoader::GetMeshIndex() const {
     }
 
     __debugbreak();
+    return -1;
+}
+
+int AssimpMeshLoader::GetMaterialIndex() const {
+    static constexpr std::string_view proto = "material://";
+
+    if (material.empty())
+    {
+        return -1;
+    }
+      
+    if (material.find(proto) != 0) {
+        __debugbreak();
+        return -1;
+    }
+
+    const char *beg = material.c_str() + proto.size();
+
+    if (*beg == '*') {
+        ++beg;
+        char *end = nullptr;
+        long r = strtol(beg, &end, 10);
+        if (end == beg) {
+            __debugbreak();
+            return -1;
+        }
+        if (r > (int)scene->mNumMaterials)
+            return -1;
+        return r;
+    }
+
     return -1;
 }
 
@@ -94,14 +138,10 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         size_t baseIndex;
     };
 
-    MeshConf::SubMeshArray meshes;
-    meshes.fill({});
+    MeshConf::SubMesh meshes = {};
+    MaterialResourceHandle materials = {};
 
-    MeshConf::SubMeshMaterialArray materials;
-    materials.fill({});
-
-    std::array<LoadInfo, meshes.size()> loadInfo;
-    loadInfo.fill({});
+    LoadInfo loadInfo;
 
     int meshId = GetMeshIndex();
     if (meshId < 0) {
@@ -111,15 +151,15 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
           
     {
         auto mesh = scene->mMeshes[meshId];
-        meshes[0].valid = true;
-        meshes[0].numIndices = mesh->mNumFaces * 3;
-        meshes[0].baseVertex = static_cast<uint16_t>(NumVertices);
-        meshes[0].baseIndex = static_cast<uint16_t>(NumIndices * sizeof(uint32_t));
-        meshes[0].elementMode = GL_TRIANGLES;
-        meshes[0].indexElementType = GL_UNSIGNED_INT;
-        loadInfo[0].baseIndex = NumIndices;
+        meshes.valid = true;
+        meshes.numIndices = mesh->mNumFaces * 3;
+        meshes.baseVertex = static_cast<uint16_t>(NumVertices);
+        meshes.baseIndex = static_cast<uint16_t>(NumIndices * sizeof(uint32_t));
+        meshes.elementMode = GL_TRIANGLES;
+        meshes.indexElementType = GL_UNSIGNED_INT;
+        loadInfo.baseIndex = NumIndices;
         NumVertices = mesh->mNumVertices;
-        NumIndices = meshes[0].numIndices;
+        NumIndices = meshes.numIndices;
     }
 
     MeshData meshData;
@@ -130,14 +170,19 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
 
     //for (size_t i = 0; i < scene->mNumMeshes; i++)
     {
-        size_t i = 0;
         const aiMesh* mesh = scene->mMeshes[meshId];
 
-        LoadMaterial(mesh->mMaterialIndex, materials[i], storage);
+        materialManager.Allocate(materials);
+        //TODO: check for success
 
-        auto MeshVerticles = &meshData.verticles[meshes[i].baseVertex];
-        auto MeshTexCords = &meshData.UV0[meshes[i].baseVertex];
-        auto MeshNormals = &meshData.normals[meshes[i].baseVertex];
+        if (!customMaterial)
+            LoadMaterial(mesh->mMaterialIndex, materials, storage);
+        else 
+            LoadCustomMaterial(materials);
+
+        auto MeshVerticles = &meshData.verticles[meshes.baseVertex];
+        auto MeshTexCords = &meshData.UV0[meshes.baseVertex];
+        auto MeshNormals = &meshData.normals[meshes.baseVertex];
 
         for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
             aiVector3D &vertex = mesh->mVertices[vertid];
@@ -155,7 +200,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
             MeshNormals[vertid] = glm::fvec3(normal.x, normal.y, normal.z);
         }
 
-        auto meshIndices = &meshData.index[loadInfo[i].baseIndex];
+        auto meshIndices = &meshData.index[loadInfo.baseIndex];
         for (size_t face = 0; face < mesh->mNumFaces; face++) {
             aiFace *f = &mesh->mFaces[face];
             THROW_ASSERT(f->mNumIndices == 3, 0);
@@ -168,13 +213,38 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     meshData.UpdateBoundary();
     owner.SetMeshData(handle, std::move(meshData));
 
-    auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle , owner);
+    auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle, owner);
     task->materialArray = materials;
     task->meshArray = meshes;
     loader->QueueTask(std::move(task));
 }
 
-void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, ResourceLoadStorage &storage) {
+void AssimpMeshLoader::LoadCustomMaterial(MaterialResourceHandle h) {
+    LoadFile(material, [this, h](StarVFS::ByteTable & data, ResourceLoadStorage & storage) {
+        x2c::Renderer::Material_t matData;
+        pugi::xml_document xdoc;
+        xdoc.load(data.c_str());
+        matData.Read(xdoc.document_element());
+
+        auto matH = h;
+        auto matb = materialManager.GetMaterialBuilder(matH, false);
+        matb.SetDiffuseColor(emath::MathCast<emath::fvec4>(matData.m_DiffuseColor));
+        Configuration::TextureLoad TexConfig = Configuration::TextureLoad::Default();
+
+        if (matData.m_DiffuseMap.m_Enabled) {
+            TexConfig.m_Edges = matData.m_DiffuseMap.m_Edges;
+            matb.SetDiffuseMap(matData.m_DiffuseMap.m_MapURI, TexConfig);
+        }
+    });
+}
+
+void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, ResourceLoadStorage &storage) {
+    if (!material.empty()) {
+        auto m = GetMaterialIndex();
+        if (m >= 0)
+            index = m;
+    }
+
     if (index >= scene->mNumMaterials) {
         AddLogf(Error, "Invalid material index");
         return;
@@ -197,7 +267,7 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle &h, R
     TexConfig.m_Edges = Configuration::Texture::Edges::Repeat; //TODO: read from matterial
 
     if (Path.data[0] == '*') {
-        auto matb = materialManager.GetMaterialBuilder(h, true);
+        auto matb = materialManager.GetMaterialBuilder(h, false);
         matb.SetDiffuseMap();
         matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
 

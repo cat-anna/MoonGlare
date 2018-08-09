@@ -22,6 +22,13 @@
 
 #include <DataModels/EditableEntity.h>
 
+#include <gl/glew.h>
+#include <Renderer/Configuration.Renderer.h>
+
+#include <Common.x2c.h>
+#include <Math.x2c.h>
+#include <Material.x2c.h>
+
 namespace MoonGlare::Editor::Importer {
 
 using QtShared::DataModels::EditableEntity;
@@ -30,46 +37,70 @@ struct AssimpImporter
     : public QtShared::iFileProcessor 
     , public QtShared::iEditor {
 
-    AssimpImporter(QtShared::SharedModuleManager modmgr, std::string URI) : QtShared::iFileProcessor(std::move(URI)), moduleManager(modmgr) { }
+    AssimpImporter(QtShared::SharedModuleManager modmgr, std::string URI) 
+        : QtShared::iFileProcessor(std::move(URI)), moduleManager(modmgr) { 
+    
+    }
             
     bool OpenData(const std::string &URI)  override {
         m_URI = URI;
+
+        auto dotpos = URI.rfind(".");
+        if (dotpos == std::string::npos || dotpos < URI.rfind("/")) {
+            outputDirectory = URI + ".imported";
+        } 
+        else {
+            outputDirectory = URI.substr(0, dotpos); 
+        }
+
         ProcessFile();
         return true; 
     }
 
     void StoreResult() {
         auto fs = moduleManager->QuerryModule<FileSystem>();
-        if (!fs->CreateFile(outputFile)) {
-            //ErrorMessage("Failed during creating epx file");
-            AddLog(Hint, "Failed to create epx: " << outputFile);
-            //return;// false;
+
+        if (!fs->CreateDirectory(outputDirectory)) {
+            __nop();
+            //todo
+            return;
         }
 
-        //m_BaseEntity->GetName() = name;
-
-        //SetModiffiedState(true);
-        //Refresh();
-        //AddLog(Hint, "Created epx file: " << URI);
-
-        pugi::xml_document xdoc;
-        if (!entity->Write(xdoc.append_child("Entity"))) {
-            //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
-            throw false;
-        }
-
+        auto storeFile = [&](const std::string &fname, StarVFS::ByteTable &bt) {
+            auto outf = outputDirectory + "/" + fname;
+            if (!fs->CreateFile(outf)) {
+                __debugbreak();
+                //ErrorMessage("Failed during creating epx file");
+                AddLog(Hint, "Failed to create file: " << outf);
+                //return;// false;
+            }
+            if (!fs->SetFileData(outf, bt)) {
+                __debugbreak();
+                AddLog(Hint, "Failed to write file: " << outf);
+                //todo: log sth
+                //return;// false;
+            }
+        };
+        
         std::stringstream ss;
-        xdoc.save(ss);
+        ss << ".gitignore" << "\n";
+
+        for (auto &item : generatedFiles) {
+            ss << item.first << "\n";
+            storeFile(item.first, item.second);
+        }
+
+        StarVFS::ByteTable gi;
+        gi.from_string(ss.str());
+        storeFile(".gitignore", gi);
+    }
+
+    static StarVFS::ByteTable XmlToData(pugi::xml_document &doc) {
+        std::stringstream ss;
+        doc.save(ss);
         StarVFS::ByteTable bt;
         bt.from_string(ss.str());
-
-        if (!fs->SetFileData(outputFile.c_str(), bt)) {
-            //todo: log sth
-            return;// false;
-        }
-
-        //SetModiffiedState(false);
-        //AddLog(Hint, "Saved epx: " << m_CurrentPatternFile);
+        return std::move(bt);
     }
 
     void ImportBodyShapeComponent(const aiNode * node, EditableEntity * parent) {
@@ -116,15 +147,17 @@ struct AssimpImporter
 
     void ImportMeshComponent(const aiNode * node, EditableEntity * parent) {
         if (node->mNumMeshes == 1) {
-            auto mesh = parent->AddComponent(Core::ComponentID::Mesh);
-            auto meio = mesh->GetValuesEditor();
-            std::string meshpath = m_URI + "@mesh://";
+            std::string meshPath = "@mesh://";
             auto meshNode = scene->mMeshes[node->mMeshes[0]];
             if (meshNode->mName.length == 0)
-                meshpath += "*" + std::to_string(node->mMeshes[0]);
+                meshPath += "*" + std::to_string(node->mMeshes[0]);
             else
-                meshpath += meshNode->mName.data;
-            meio->Set("Model", meshpath);
+                meshPath += meshNode->mName.data;
+
+            auto mesh = parent->AddComponent(Core::ComponentID::Mesh);
+            auto meio = mesh->GetValuesEditor();
+            meio->Set("Mesh", m_URI + meshPath);
+            meio->Set("Material", outputDirectory + "/" + materialNames[meshNode->mMaterialIndex]);
             meio->Set("Visible", "true");
         }
     }
@@ -139,6 +172,8 @@ struct AssimpImporter
     }
 
     void ImportEntities() {
+        std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
+
         entity = std::make_unique<EditableEntity>();
 
         std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
@@ -166,6 +201,136 @@ struct AssimpImporter
         }
 
         entity->SetName(boost::filesystem::path(m_URI).filename().string());
+
+        pugi::xml_document xdoc;
+        if (!entity->Write(xdoc.append_child("Entity"))) {
+            //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
+            throw false;
+        }
+        generatedFiles["entity.epx"] = XmlToData(xdoc);
+    }
+
+    void ImportTextures() {
+        if (!scene->HasTextures())
+            return;
+
+        textureNames.resize(scene->mNumTextures);
+        for (unsigned i = 0; i < scene->mNumTextures; ++i) {
+            auto tex = scene->mTextures[i];
+            if (tex->mHeight == 0) {
+                std::string path = fmt::format("texture_{:02}.{}", i, (const char*)tex->achFormatHint);
+                textureNames[i] = path;
+                generatedFiles[path].copy_from(tex->pcData, tex->mWidth);
+            }
+            else {
+                __debugbreak();
+                throw false;
+                //out << "\tHeight: " << tex->mHeight << "\n";
+            }
+        }
+    }
+
+    void ImportMaterials() {
+        if (!scene->HasMaterials())
+            return;
+
+        auto getFloaProp = [](aiMaterial *mat, const char *name, float default) -> float {
+            try {
+                unsigned cnt = 1;
+                float v = 0;
+                if (mat->Get(name, 0, 0, &v, &cnt) == aiReturn_SUCCESS) {
+                    return v;
+                }
+            }
+            catch (...) {}
+            return default;
+        };
+
+        auto getVec4Prop = [](aiMaterial *mat, const char *name) -> math::fvec4 {
+            try {
+                unsigned cnt = 4;
+                float v[4] = { 1,1,1,1 };
+                if (mat->Get(name, 0, 0, v, &cnt) == aiReturn_SUCCESS) {
+                    __nop();
+                }
+                return math::fvec4{ v[0], v[1], v[2], v[3] };
+            }
+            catch (...) { }
+            return {};
+        };
+
+        auto getStringProp = [](aiMaterial *mat, const char *name) -> std::string {
+            try {
+                if (aiString v;  mat->Get(name, 0, 0, v) == aiReturn_SUCCESS) {
+                    return v.data;
+                }
+                return "";
+            }
+            catch (...) {}
+            return "";
+        };
+
+        materialNames.resize(scene->mNumMaterials);
+        for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
+            auto mat = scene->mMaterials[i];
+
+            x2c::Renderer::Material_t matData;
+            matData.ResetToDefault();
+
+            aiString path;
+            aiTextureMapping mapping = (aiTextureMapping)0;
+            unsigned int uvindex = 0;
+            float blend = 0;
+            aiTextureOp op = (aiTextureOp)0;
+            aiTextureMapMode mapmode[2] = {};
+
+            auto loadMap = [&](aiTextureType texType, x2c::Renderer::MapConfig_t &map) {
+                if (mat->GetTextureCount(texType) > 0) {
+                    if (mat->GetTexture(texType, 0, &path, &mapping, &uvindex, &blend, &op, mapmode) == AI_SUCCESS) {
+                        map.m_Enabled = true;
+                        if (path.data[0] == '*') {
+                            int index = strtol(&path.data[1], nullptr, 10);
+                            map.m_MapURI = outputDirectory + "/" + textureNames[index];
+                        }
+                        else {
+                            //__debugbreak();
+                        }
+                        switch (mapmode[0]) {
+                        case aiTextureMapMode_Wrap:
+                            map.m_Edges = Renderer::Configuration::Texture::Edges::Repeat;
+                                break;
+                        case aiTextureMapMode_Clamp:
+                        case aiTextureMapMode_Decal:
+                        case aiTextureMapMode_Mirror:
+                        default:
+                            map.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+                        }
+                    }
+                }
+            };
+
+            loadMap(aiTextureType_DIFFUSE, matData.m_DiffuseMap);
+            loadMap(aiTextureType_SPECULAR, matData.m_SpecularMap);
+            loadMap(aiTextureType_NORMALS, matData.m_NormalMap);
+            loadMap(aiTextureType_SHININESS, matData.m_ShinessMap);
+            
+            matData.m_DiffuseColor = getVec4Prop(mat, "$clr.diffuse");
+            matData.m_SpecularColor = getVec4Prop(mat, "$clr.specular");
+            matData.m_Shiness = getFloaProp(mat, "$mat.shininess", 32);
+
+            pugi::xml_document xdoc;
+            matData.Write(xdoc.append_child("Material"));
+
+            std::string fname;
+            std::string matName = getStringProp(mat, "?mat.name");
+            if(matName.empty())
+                fname = fmt::format("material_{:02}.mat", i);
+            else
+                fname = fmt::format("material_{}.mat", matName);
+
+            materialNames[i] = fname;
+            generatedFiles[fname] = XmlToData(xdoc);
+        }
     }
 
     void GatherMeshes() {
@@ -207,7 +372,6 @@ struct AssimpImporter
     }
 
     ProcessResult ProcessFile() override {
-        outputFile = m_URI + ".epx";
         try {
             auto fs = moduleManager->QuerryModule<FileSystem>();
             StarVFS::ByteTable bt;
@@ -219,7 +383,6 @@ struct AssimpImporter
                 //todo: log sth
             }
 
-            Assimp::Importer importer;
             unsigned flags = aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */
                 aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
 
@@ -234,10 +397,13 @@ struct AssimpImporter
             GatherLights();
             GatherMeshes();
 
+            ImportTextures();
+            ImportMaterials();
             ImportEntities();
+
             StoreResult();
         }
-        catch (...) {
+        catch (const std::exception &e) {
             return ProcessResult::UnknownFailure;
 
         }
@@ -247,14 +413,18 @@ private:
     const aiScene* scene;
     Assimp::Importer importer;
     QtShared::SharedModuleManager moduleManager;
-    std::string outputFile;
-    std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
     std::map<std::string, const aiLight*> sceneLights;
 
     struct MeshInfo {
         math::fvec3 boxSize = { 1,1,1 };
     };
     std::vector<MeshInfo> meshes;
+
+    std::vector<std::string> textureNames;
+    std::vector<std::string> materialNames;
+
+    std::string outputDirectory;
+    std::map<std::string, StarVFS::ByteTable> generatedFiles;
 };
 //----------------------------------------------------------------------------------
 

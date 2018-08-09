@@ -81,7 +81,7 @@ bool MeshManager::IsHandleValid(HandleType &h) const {
 
 //---------------------------------------------------------------------------------------
 
-bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
+bool MeshManager::LoadMesh(const std::string &uri, const std::string &material, HandleType &hout) {
     auto cache = loadedMeshes.find(uri);
     if (cache != loadedMeshes.end() && IsHandleValid(cache->second)) {
         AddLogf(Performance, "mesh load cache hit");
@@ -105,7 +105,7 @@ bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
         subpath = uri.substr(pos + 1);
     }
 
-    auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), hout, *this, resourceManager->GetMaterialManager());
+    auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), material, hout, *this, resourceManager->GetMaterialManager());
     resourceManager->GetLoaderIf()->QueueRequest(fileuri, request);
 
     return true;

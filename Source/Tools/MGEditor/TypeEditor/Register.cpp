@@ -263,7 +263,6 @@ struct Register {
 
         RegComponent<SoundSourceComponentDesc>();
 
-
         RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
     }
 
