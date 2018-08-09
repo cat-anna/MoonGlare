@@ -222,8 +222,8 @@ void FileSystem::RefreshChangedPaths() {
             }
         }
         changedPaths.clear();
+        Reload();
     }
-    Reload();
 }
 
 //-----------------------------------------------------------------------------

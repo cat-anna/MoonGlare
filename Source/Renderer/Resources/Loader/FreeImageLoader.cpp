@@ -24,7 +24,7 @@ void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceH
     int flags = 0;
     switch (fif) {
     case FIF_PNG:
-        flags |= PNG_IGNOREGAMMA;
+        //flags |= PNG_IGNOREGAMMA;
         break;
     default:
         break;
@@ -42,7 +42,7 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     RendererAssert(bitmap);
 
     switch (fif) {
-  //  case FIF_PNG: //png images need to be flipped
+    //case FIF_PNG: //png images need to be flipped
  //          FreeImage_FlipVertical(bitmap);
         break;
     default:
@@ -56,13 +56,16 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     PixelFormat pixelFormat = PixelFormat::RGB8;
     ValueFormat valueFormat = ValueFormat::UnsignedByte;
 
+    auto mask = FreeImage_GetBlueMask(bitmap);
+    
     switch (FreeImage_GetBPP(bitmap)) {
     case 32:
-        SwapRedAndBlue(bitmap);
+        if (mask != FI_RGBA_RED_MASK)
+            SwapRedAndBlue(bitmap);
         pixelFormat = PixelFormat::RGBA8;
         break;
     case 24:
-        if (fif != FIF_PNG)
+        if (mask != FI_RGBA_RED_MASK)
             SwapRedAndBlue(bitmap);
         pixelFormat = PixelFormat::RGB8;
         break;
