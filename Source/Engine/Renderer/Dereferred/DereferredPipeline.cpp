@@ -82,7 +82,7 @@ void DefferedSink::InitializeDirectionalQuad() {
     auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(quadMesh, mm);
     task->materialArray = {};
     task->meshArray = {};
-    auto &mesh = task->meshArray[0];
+    auto &mesh = task->meshArray;
     mesh.valid = true;
     mesh.indexElementType = GL_UNSIGNED_INT;
     mesh.numIndices = 6;
@@ -108,11 +108,11 @@ void DefferedSink::Initialize(Renderer::RendererFacade *Renderer) {
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
 
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", sphereMesh)) {     //TODO: remove direct uri
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", "", sphereMesh)) {     //TODO: remove direct uri
         AddLog(Error, "Cannot load sphere mesh!");
         throw std::runtime_error("Cannot load sphere mesh!");
     }
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", "", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
         AddLog(Error, "Cannot load cone mesh!");
         throw std::runtime_error("Cannot load cone mesh!");
     }
@@ -329,36 +329,38 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basep
     }
 
 
-    for (size_t i = 0; i < meshes->size(); ++i) {
+    //for (size_t i = 0; i < meshes->size(); ++i) 
+    {
+        size_t i = 0;
+        auto &mesh = *meshes;
+        auto &mat = *materials;
 
-        auto &mesh = (*meshes)[i];
-        auto &mat = (*materials)[i];
+        if (mesh.valid)
+        {
 
-        if (!mesh.valid)
-            break;               
+            ++meshcouter;
 
-        ++meshcouter;
+            using Sampler = GeometryShaderDescriptor::Sampler;
+            using Uniform = GeometryShaderDescriptor::Uniform;
 
-        using Sampler = GeometryShaderDescriptor::Sampler;
-        using Uniform = GeometryShaderDescriptor::Uniform;
+            if (mat.deviceHandle) {
+                m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+                m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->m_DiffuseMap);
+            }
+            else {
+                m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+                m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
+            }
 
-        if (mat.deviceHandle) {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->m_DiffuseMap);
+            auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            garg->m_NumIndices = mesh.numIndices;
+            garg->m_IndexValueType = mesh.indexElementType;
+            garg->m_BaseIndex = mesh.baseIndex;
+            garg->m_BaseVertex = mesh.baseVertex;
+
+            auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            *larg = *garg;
         }
-        else {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
-        }
-
-        auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        garg->m_NumIndices = mesh.numIndices;
-        garg->m_IndexValueType = mesh.indexElementType;
-        garg->m_BaseIndex = mesh.baseIndex;
-        garg->m_BaseVertex = mesh.baseVertex;
-
-        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        *larg = *garg;
     }
 }
 
@@ -438,10 +440,10 @@ void DefferedSink::SubmitPointLight(const Renderer::Light::PointLight & linfo) {
     m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
 
     auto garg = m_PointLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = (*mesh)[0].numIndices;
-    garg->m_IndexValueType = (*mesh)[0].indexElementType;
-    garg->m_BaseIndex = (*mesh)[0].baseIndex;
-    garg->m_BaseVertex = (*mesh)[0].baseVertex;
+    garg->m_NumIndices = (*mesh).numIndices;
+    garg->m_IndexValueType = (*mesh).indexElementType;
+    garg->m_BaseIndex = (*mesh).baseIndex;
+    garg->m_BaseVertex = (*mesh).baseVertex;
 
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
@@ -534,10 +536,10 @@ void DefferedSink::SubmitSpotLight(const Renderer::Light::SpotLight &linfo) {
 
     m_SpotLightQueue->MakeCommand<Commands::VAOBindResource>(coneMesh.deviceHandle);
     auto garg = m_SpotLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = (*mesh)[0].numIndices;
-    garg->m_IndexValueType = (*mesh)[0].indexElementType;
-    garg->m_BaseIndex = (*mesh)[0].baseIndex;
-    garg->m_BaseVertex = (*mesh)[0].baseVertex;
+    garg->m_NumIndices = (*mesh).numIndices;
+    garg->m_IndexValueType = (*mesh).indexElementType;
+    garg->m_BaseIndex = (*mesh).baseIndex;
+    garg->m_BaseVertex = (*mesh).baseVertex;
 
     //m_Buffer.BeginLightingPass();
     m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT4);

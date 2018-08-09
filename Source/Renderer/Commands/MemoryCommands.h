@@ -11,8 +11,8 @@ struct MemoryStore {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_trivially_constructible_v<T>);
 
-    T *dest;
     T data;
+    T *dest;
 
     void Run() {
         memcpy(dest, &data, sizeof(T));

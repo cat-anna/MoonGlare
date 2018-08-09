@@ -52,14 +52,14 @@ void MeshBuilder::UpdateVAO() {
     vaoBuilder.UnBindVAO();
 }
 
-void MeshBuilder::Set(const Conf::SubMeshArray &meshes) {
+void MeshBuilder::Set(const Conf::SubMesh &meshes) {
     subMeshArray = {};
-    queue.MakeCommand<Commands::MemoryStore<Conf::SubMeshArray>>(&subMeshArray, meshes);
+    queue.MakeCommand<Commands::MemoryStore<Conf::SubMesh>>(meshes, &subMeshArray);
 }
 
-void MeshBuilder::Set(const Conf::SubMeshMaterialArray &materials) {
+void MeshBuilder::Set(MaterialResourceHandle materials) {
     subMeshMaterialArray = {};
-    queue.MakeCommand<Commands::MemoryStore<Conf::SubMeshMaterialArray>>(&subMeshMaterialArray, materials);
+    queue.MakeCommand<Commands::MemoryStore<MaterialResourceHandle>>(materials, &subMeshMaterialArray);
 }
 
 } //namespace MoonGlare::Renderer::Resources::Builder

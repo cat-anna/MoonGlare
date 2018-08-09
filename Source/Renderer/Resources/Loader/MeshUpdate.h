@@ -11,8 +11,11 @@ public:
 
     void Do(ResourceLoadStorage &storage) override;
 
-    Renderer::Configuration::Mesh::SubMeshArray meshArray;
-    Renderer::Configuration::Mesh::SubMeshMaterialArray materialArray;
+    char __padding[12];
+
+    Renderer::Configuration::Mesh::SubMesh meshArray;
+
+    MaterialResourceHandle materialArray;
 
 private:
     MeshManager &owner;

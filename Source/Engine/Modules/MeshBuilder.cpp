@@ -116,6 +116,7 @@ struct MeshBuilder {
     }
 
     void Update() {
+#if 0
         if (verticles.empty())
             return;
 
@@ -124,10 +125,8 @@ struct MeshBuilder {
         auto &mm = resmgr->GetMeshManager();
         auto &matm = resmgr->GetMaterialManager();
 
-        Renderer::Configuration::Mesh::SubMeshArray meshArray;
-        Renderer::Configuration::Mesh::SubMeshMaterialArray materialArray;
-        meshArray.fill({});
-        materialArray.fill({});
+        Renderer::Configuration::Mesh::SubMesh meshArray = {};
+        Renderer::MaterialResourceHandle materialArray = {};
 
         std::vector<uint32_t> meshIndex;
 
@@ -172,6 +171,7 @@ struct MeshBuilder {
         task->materialArray = materialArray;
         task->meshArray = meshArray;
         rf->GetAsyncLoader()->QueueTask(task);
+#endif
     }
 
     void Clear() {

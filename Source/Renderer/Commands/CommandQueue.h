@@ -70,6 +70,7 @@ public:
     typename CMD::Argument* PushCommand(CommandKey SortKey = CommandKey()) {
         auto *argptr = AllocateMemory<CMD::Argument>(CMD::ArgumentSize());
         if (IsFull() || !argptr) {
+            __debugbreak();
             AddLogf(Warning, "Command queue is full. Command %s has not been allocated!", typeid(CMD).name());
             return nullptr;
         }

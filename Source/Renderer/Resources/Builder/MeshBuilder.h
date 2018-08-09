@@ -15,14 +15,14 @@ class MeshBuilder final {
 public:
     void AllocateVAO();
     void UpdateVAO();
-    void Set(const Conf::SubMeshArray &meshes);
-    void Set(const Conf::SubMeshMaterialArray &materials);
+    void Set(const Conf::SubMesh &meshes);
+    void Set(MaterialResourceHandle materials);
     void Commit();
 
     VAOBuilder vaoBuilder;
     MeshManager &meshManager;
-    Conf::SubMeshArray &subMeshArray;
-    Conf::SubMeshMaterialArray &subMeshMaterialArray;
+    Conf::SubMesh &subMeshArray;
+    MaterialResourceHandle &subMeshMaterialArray;
     MeshResourceHandle handle;
     MeshData &meshData;
     Commands::CommandQueue &queue;

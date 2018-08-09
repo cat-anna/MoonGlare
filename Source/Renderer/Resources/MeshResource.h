@@ -70,18 +70,18 @@ public:
 }
 #endif
 
-    bool LoadMesh(const std::string &uri, HandleType &hout);
+    bool LoadMesh(const std::string &uri, const std::string &material, HandleType &hout);
 
     bool IsHandleValid(HandleType &h) const;
 
-    const Conf::SubMeshArray* GetMeshes(HandleType h) {
+    const Conf::SubMesh* GetMeshes(HandleType h) {
         if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
             //TODO
             return nullptr;
         }
         return &subMesh[h.index];
     }
-    const Conf::SubMeshMaterialArray *GetMaterials(HandleType h) {
+    const MaterialResourceHandle *GetMaterials(HandleType h) {
         if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
             //TODO
             return nullptr;
@@ -128,8 +128,8 @@ private:
     Array<Device::VAOHandle> deviceHandle;
     Array<MeshFlags> meshFlags;
 
-    Array<Conf::SubMeshArray> subMesh;
-    Array<Conf::SubMeshMaterialArray> materialHandle;
+    Array<Conf::SubMesh> subMesh;
+    Array<MaterialResourceHandle> materialHandle;
 
     Array<Conf::VAOBuffers> vaoBuffer;
     Array<HandleType::Generation_t> generations;

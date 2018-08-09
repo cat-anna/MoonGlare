@@ -35,8 +35,6 @@ struct Mesh {
     };
     static_assert(sizeof(SubMesh) == 16);
 
-    using SubMeshArray = std::array<SubMesh, SubMeshLimit>;
-    using SubMeshMaterialArray = std::array<MaterialResourceHandle, SubMeshLimit>;
 };
 
 } //namespace MoonGlare::Renderer::Configuration
