@@ -62,6 +62,8 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
         return false;
     }
 
+    em->RegisterEventSink(&m_SubsystemManager.GetEventDispatcher());
+
     SendState(SceneState::Created);                  
 
     EntityBuilder(&m_SubsystemManager).Build(root, Node.child("Entities"));
@@ -70,6 +72,9 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 }
 
 bool ciScene::Finalize() {
+    auto em = GetEngine()->GetWorld()->GetEntityManager();
+    em->UnregisterEventSink(&m_SubsystemManager.GetEventDispatcher());
+
     if (!m_SubsystemManager.Finalize()) {
         AddLogf(Error, "Failed to finalize component manager");
         return false;

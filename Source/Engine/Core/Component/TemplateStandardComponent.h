@@ -18,13 +18,17 @@ public:
         m_HandleTable = Owner->GetWorld()->GetHandleTable();
     }
 
-    virtual ~AbstractSubsystem() { }
-
-    void Update(const SubsystemUpdateData &conf) override { 
+    void Step(const SubsystemUpdateData &conf) override {
         Step(reinterpret_cast<const MoveConfig&>(conf));
     };
+
+    bool Load(ComponentReader &reader, Entity parent, Entity owner) override { 
+        Handle h;
+        return Load(reader.node, owner, h);
+    }
     
     virtual void Step(const MoveConfig &conf) { }
+    virtual bool Load(pugi::xml_node node, Entity Owner, Handle &hout) { return true; }
 
     SubsystemManager* GetManager() { return m_Owner; }
 protected:

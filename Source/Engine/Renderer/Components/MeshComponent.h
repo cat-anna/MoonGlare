@@ -15,6 +15,8 @@
 #include <Core/Scripts/ScriptComponent.h>
 #include <Core/Scripts/ComponentEntryWrap.h>
 
+#include <Foundation/Component/EntityEvents.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -25,8 +27,6 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
     union FlagsMap {
         struct MapBits_t {
             bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-            bool m_MeshValid : 1;
-            bool m_MeshHandleChanged : 1;
             bool m_Visible : 1;
         };
         MapBits_t m_Map;
@@ -40,22 +40,17 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 
     FlagsMap m_Flags;
     Entity m_Owner;
-    Handle m_SelfHandle;
 
     Renderer::MeshResourceHandle meshHandle;
+    Renderer::MaterialResourceHandle materialHandle;
 
     bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
     void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
 
-    void SetMeshHandle(Renderer::MeshResourceHandle h) {
-        meshHandle = h;
-        m_Flags.m_Map.m_MeshHandleChanged = true;
-    }
+    void SetMeshHandle(Renderer::MeshResourceHandle h) { meshHandle = h; }
     Renderer::MeshResourceHandle GetMeshHandle() const { return meshHandle; }
-    //void SetModel(const char *name) {
-    //    m_ModelName = name;
-    //    m_Flags.m_Map.m_MeshHandleChanged = true;
-    //}
+    void SetMaterialHandle(Renderer::MaterialResourceHandle h) { materialHandle = h; }
+    Renderer::MaterialResourceHandle GetMaterialHandle() const { return materialHandle; }
     
     void Reset() {
         m_Flags.m_Map.m_Valid = false;
@@ -72,6 +67,8 @@ public:
     static constexpr char *Name = "Mesh";
     static constexpr bool PublishID = true;
 
+    void HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event);
+
     MeshComponent(SubsystemManager *Owner);
     virtual ~MeshComponent();
     virtual bool Initialize() override;
@@ -79,8 +76,6 @@ public:
     virtual void Step(const Core::MoveConfig &conf) override;
     virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
     virtual bool Create(Entity Owner, Handle &hout) override;
-
-
 
     using MeshEntry = MeshComponentEntry;
 
@@ -107,8 +102,18 @@ public:
         //}
     }
 
+    MeshComponentEntry* GetEntry2(Entity e) {
+        auto index = entityMapper.GetIndex(e);
+        return &m_Array[index];
+    }
+    MeshComponentEntry* GetEntry2(ComponentIndex index) {
+        return &m_Array[index];
+    }
+
     static void RegisterScriptApi(ApiInitializer &root);
 private:
+    Core::EntityArrayMapper<> entityMapper;
+
     template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
     
     TransformComponent *m_TransformComponent;

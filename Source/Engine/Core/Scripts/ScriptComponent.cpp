@@ -9,7 +9,7 @@
 
 #include <Foundation/Component/ComponentInfo.h>
 #include <Foundation/Component/ComponentArray.h>
-#include <Foundation/Component/ComponentCreatedEvent.h>
+#include <Foundation/Component/ComponentEvents.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include "ScriptComponent.h"
@@ -660,6 +660,11 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
         return 0;
     }
 
+    int r = cptr->PushToLua(lua, Owner);
+    if (r > 0) {
+        return r;
+    }
+
     if (!cptr->GetInstanceHandle(Owner, ComponentHandle)) {
         AddLogf(Debug, "ScripComponent::GetComponent: no component instance for requested object");
         return 0;
@@ -894,7 +899,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
         auto cidx = static_cast<MoonGlare::Component::ComponentClassId>(cid);
         if (!This->GetManager()->GetComponentArray().HasComponent(Owner.GetIndex(), cidx)) {
             This->GetManager()->GetComponentArray().CreateComponent(Owner.GetIndex(), cidx);
-            This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, Owner, (ComponentClassId)cid });
+            This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, (ComponentClassId)cid });
         }
         
         auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(cidx);
@@ -915,7 +920,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 
     Handle hout;
     if (cptr->Create(Owner, hout)) {
-        This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, Owner, (ComponentClassId)cid });
+        This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, (ComponentClassId)cid });
         return This->lua_MakeComponentInfo(lua, cid, hout, cptr);
     } else {
         AddLogf(Error, "GameObject::CreateComponent: Error: Failure during component creation! cid: %d", cid);
@@ -998,19 +1003,20 @@ int ScriptComponent::lua_DoSpawn(lua_State *lua, Entity Owner) {
 
     auto OptPosition = GetOptionalField<math::vec3>(lua, 2, "Position");
     auto OptRotation = GetOptionalField<math::vec4>(lua, 2, "Rotation");    
+    //TODO: OptName
 
     auto cm = This->GetManager();
     if (OptPosition.has_value() || OptRotation.has_value()) {
         auto *tc = cm->GetComponent<TransformComponent>();
-        auto entry = tc->GetEntry(Child);
-        if (!entry) {
+        auto entry = tc->GetComponentIndex(Child);
+        if (entry == ComponentIndex::Invalid) {
             AddLogf(Error, "GameObject::SpawnChild: Child does not have transform component!");
         }
         else {
             if (OptPosition.has_value())
-                entry->SetPosition(*OptPosition);
+                tc->SetPosition(entry, emath::MathCast<emath::fvec3>(*OptPosition));
             if (OptRotation.has_value())
-                entry->SetRotation(*OptRotation);
+                tc->SetRotation(entry, emath::MathCast<emath::Quaternion>(*OptRotation));
         }
     }
 

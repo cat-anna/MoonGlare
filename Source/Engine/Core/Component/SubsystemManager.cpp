@@ -135,7 +135,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
 #endif
 
     for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
-        m_Components[i]->Update(config);
+        m_Components[i]->Step(config);
 #ifdef PERF_PERIODIC_PRINT
         auto StopTime = std::chrono::steady_clock::now();
         std::chrono::duration<float> delta = StopTime - ComponentStartTime;

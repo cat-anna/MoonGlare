@@ -288,7 +288,7 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
     }
 }
 
-void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH) {
+void DefferedSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH) {
     //TODO
 
 
@@ -313,14 +313,14 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basep
     {
         using Uniform = Shaders::ShadowMapShaderDescriptor::Uniform;
         m_ShadowShader.m_Queue = m_LightGeometryQueue;
-        m_ShadowShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
+        m_ShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
         m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
 
     {
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
-        m_GeometryShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(ModelMatrix));
+        m_GeometryShader.Set<Uniform::ModelMatrix>(ModelMatrix);
 
         m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
         m_GeometryShader.Set<Sampler::DiffuseMap>(Renderer::Device::InvalidTextureHandle);
@@ -331,13 +331,11 @@ void DefferedSink::Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basep
 
     //for (size_t i = 0; i < meshes->size(); ++i) 
     {
-        size_t i = 0;
         auto &mesh = *meshes;
         auto &mat = *materials;
 
         if (mesh.valid)
         {
-
             ++meshcouter;
 
             using Sampler = GeometryShaderDescriptor::Sampler;

@@ -50,8 +50,12 @@ void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
 //------------------------------------------------------------------------------------------
 
 bool MeshComponent::Initialize() {
+    auto &ed = GetManager()->GetEventDispatcher();
+    ed.Register<MoonGlare::Component::EntityDestructedEvent>(this);
+
 //	m_Array.MemZeroAndClear();
     m_Array.fill(MeshEntry());
+    entityMapper.Fill(ComponentIndex::Zero);
 
     m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
     if (!m_TransformComponent) {
@@ -65,6 +69,19 @@ bool MeshComponent::Initialize() {
 bool MeshComponent::Finalize() {
     return true;
 }
+
+//------------------------------------------------------------------------------------------
+
+void MeshComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event) {
+    auto index = entityMapper.GetIndex(event.entity);
+    if (index >= m_Array.Allocated())
+        return;
+
+    m_Array[index].m_Flags.m_Map.m_Valid = false;
+    entityMapper.SetIndex(event.entity, ComponentIndex::Invalid);
+}
+
+//------------------------------------------------------------------------------------------
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
 
@@ -81,29 +98,25 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
             continue;
         }
 
-        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            //mark and continue but set valid to false to avoid further checks
-            continue;
-        }
-
         if (!item.m_Flags.m_Map.m_Visible) {
             continue;
         }
 
-        auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
-        if (!tcentry) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
+        auto tindex = m_TransformComponent->GetComponentIndex(item.m_Owner);
+        if (tindex == ComponentIndex::Invalid) {
+            //item.m_Flags.m_Map.m_Valid = false;
+            //LastInvalidEntry = i;
+            //++InvalidEntryCount;
             //mark and continue but set valid to false to avoid further checks
             continue;
         }
 
+        auto &tr = m_TransformComponent->GetTransform(tindex);
         if (item.meshHandle.deviceHandle) {//dirty valid check
-            conf.deferredSink->Mesh(tcentry->m_GlobalMatrix, emath::MathCast<emath::fvec3>(convert(tcentry->m_GlobalTransform.getOrigin())), item.meshHandle);
+            conf.deferredSink->Mesh(
+                tr.matrix(),
+                tr.translation(),
+                item.meshHandle);
             continue;
         }
     }
@@ -113,6 +126,8 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
         ReleaseElement(LastInvalidEntry);
     }
 }
+
+//------------------------------------------------------------------------------------------
 
 bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {	
     std::string meshUri = node.child("Mesh").text().as_string("");
@@ -142,21 +157,13 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
         return false;
     }
 
-    Handle &ch = hout;
-    if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
-        AddLogf(Error, "Failed to allocate handle!");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-
     entry.m_Owner = Owner;
-    entry.m_SelfHandle = ch;
 
     entry.m_Flags.m_Map.m_Valid = true;
-    entry.m_Flags.m_Map.m_MeshHandleChanged = false;
     entry.m_Flags.m_Map.m_Visible = node.child("Visible").text().as_bool(true);
 
-    m_EntityMapper.SetHandle(entry.m_Owner, ch);
+    //m_EntityMapper.SetHandle(entry.m_Owner, ch);
+    entityMapper.SetIndex(Owner, index);
 
     return true;
 }
@@ -166,7 +173,6 @@ void MeshComponent::ReleaseElement(size_t Index) {
 
     if (lastidx == Index) {
         auto &last = m_Array[lastidx];
-        GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
         last.Reset();
     } else {
         auto &last = m_Array[lastidx];
@@ -174,10 +180,6 @@ void MeshComponent::ReleaseElement(size_t Index) {
 
         std::swap(last, item);
 
-        if (!GetHandleTable()->SetHandleIndex(this, item.m_SelfHandle, Index)) {
-            AddLogf(Error, "Failed to move MeshComponent handle index!");
-        }
-        GetHandleTable()->Release(this, last.m_SelfHandle); // handle may be already released; no need to check for failure
         last.Reset();
     }
     m_Array.DeallocateLast();
@@ -193,21 +195,10 @@ bool MeshComponent::Create(Entity Owner, Handle &hout) {
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
 
-    Handle &ch = hout;
-    if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
-        AddLogf(Error, "Failed to allocate handle!");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-
     entry.m_Owner = Owner;
-    entry.m_SelfHandle = ch;
 
     entry.m_Flags.m_Map.m_Valid = true;
-    entry.m_Flags.m_Map.m_MeshHandleChanged = false;
     entry.m_Flags.m_Map.m_Visible = true;
-
-    m_EntityMapper.SetHandle(entry.m_Owner, ch);
 
     return true;
 }

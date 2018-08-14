@@ -54,6 +54,8 @@
 
 #include <pugixml.hpp>
 
+#include <Eigen/Geometry>
+
 #include <boost/tti/has_member_function.hpp>
 
 #include "Config/Config.h"

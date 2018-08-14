@@ -47,7 +47,7 @@ struct DefferedSink {
     void Initialize(Renderer::RendererFacade *Renderer);
 
     bool MeshVisibilityTest(const emath::fvec3 &position, float radius);
-    void Mesh(const math::mat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH);
+    void Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH);
 
     void SubmitDirectionalLight(const Renderer::Light::LightBase &linfo);
     void SubmitPointLight(const Renderer::Light::PointLight &linfo);

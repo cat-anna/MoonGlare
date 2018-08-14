@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Foundation/Component/EntityArrayMapper.h>
+#include "../Configuration.h"
+#include "nfCore.h"
+
 namespace MoonGlare::Core {
 
 class EntityManager final 
@@ -56,6 +60,9 @@ public:
     bool GetFirstChildByName(Entity ParentE, EntityNameHash hashname, Entity &eout);
     bool GetFirstChildByName(Entity ParentE, const char *Name, Entity &eoute);
     bool GetRawFlags(Entity Owner, EntityFlags &flagsout);
+
+    void RegisterEventSink(MoonGlare::Component::EventDispatcher* ed) { eventSinks.insert(ed); }
+    void UnregisterEventSink(MoonGlare::Component::EventDispatcher* ed) { eventSinks.erase(ed); }
 private: 
     Array<Entity> m_Parent;
     Array<EntityFlags> m_Flags;
@@ -69,9 +76,7 @@ private:
     Entity m_Root;
     std::vector<Entity> m_ReleaseQueue;
 
-    //using EntitySet = std::set<Entity>;
-    //using EntityNameMap = std::unordered_map<std::string, EntitySet>;
-    //EntityNameMap m_EntityNameMap;
+    std::set<MoonGlare::Component::EventDispatcher*> eventSinks;
 
     bool IsAllocated(Entity entity) const {
         auto index = entity.GetIndex();
@@ -99,6 +104,9 @@ protected:
     Array m_Array;
 };
 
-using EntityMapper = BaseEntityMapper < Handle >;
+using EntityMapper = BaseEntityMapper<Handle>;
+
+template<typename T = MoonGlare::Component::iSubsystem::ComponentIndex>
+using EntityArrayMapper = MoonGlare::Component::EntityArrayMapper<T, Configuration::Entity::IndexLimit>;
 
 } 

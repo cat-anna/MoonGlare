@@ -40,7 +40,7 @@ struct CameraComponentEntry {
 	Handle m_SelfHandle;
 	Handle m_TransformHandle;
 
-	math::RawMat4 m_ProjectionMatrix;
+	emath::fmat4 m_ProjectionMatrix;
 
 	VirtualCamera m_Camera;
 

@@ -59,7 +59,6 @@ public:
 
 	struct BodyEntry {
 		Handle m_SelfHandle;
-		Handle m_TransformHandle;
 		Entity m_OwnerEntity;
 		FlagsMap m_Flags;
 
@@ -85,7 +84,6 @@ public:
 	struct BulletProxyCommon {
 		BodyComponent *m_BodyComponent;
 		Handle m_EntryHandle;
-		Handle m_TransformHandle;
 		Core::Component::TransformComponent *m_Transform;
 		Entity m_Entity;
 
@@ -94,26 +92,29 @@ public:
 			m_BodyComponent = bc;
 			m_Entity = e;
 		}
-		void SetTransform(Core::Component::TransformComponent *Transform, Handle th) {
-			m_TransformHandle = th;
+		void SetTransform(Core::Component::TransformComponent *Transform) {
 			m_Transform = Transform;
 		}
 
 		void getWorldTransform(btTransform & centerOfMassWorldTrans) const {
-			auto *entry = m_Transform->GetEntry(m_TransformHandle);
-			if (entry) {
-				centerOfMassWorldTrans = entry->m_LocalTransform;
+			auto index = m_Transform->GetComponentIndex(m_Entity);
+			if (index != ComponentIndex::Invalid) {
+                centerOfMassWorldTrans.setFromOpenGLMatrix(m_Transform->GetTransform(index).data());
 			}
 		}
 		void setWorldTransform(const btTransform & centerOfMassWorldTrans) {
-			auto *entry = m_Transform->GetEntry(m_TransformHandle);
-			if (entry) {
+            auto index = m_Transform->GetComponentIndex(m_Entity);
+            if (index != ComponentIndex::Invalid) {
 			//	entry->m_LocalTransform = centerOfMassWorldTrans;
-				entry->SetTransform(centerOfMassWorldTrans);
+				//entry->SetTransform(centerOfMassWorldTrans);
 			//	entry->m_Revision = m_Transform->GetCurrentRevision();
-				//auto *be = m_BodyComponent->GetEntry(m_EntryHandle);
-				//if (be)
-				//	be->m_Revision = entry->m_Revision;
+                //centerOfMassWorldTrans.getOpenGLMatrix()
+				auto *be = m_BodyComponent->GetEntry(m_EntryHandle);
+				if (be)
+					be->m_Revision = m_Transform->GetRevision(index);
+
+                m_Transform->SetPosition(index, emath::MathCast<emath::fvec3>(centerOfMassWorldTrans.getOrigin()));
+                m_Transform->SetRotation(index, emath::MathCast<emath::Quaternion>(centerOfMassWorldTrans.getRotation()));
 			}
 		}
 	};

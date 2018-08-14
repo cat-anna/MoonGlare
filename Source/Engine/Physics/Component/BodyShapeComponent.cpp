@@ -216,7 +216,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     case ColliderType::TriangleMesh: {
         auto meshC = GetManager()->GetComponent<Renderer::Component::MeshComponent>();
         if (meshC) {
-            auto me = meshC->GetEntry(Owner);
+            auto me = meshC->GetEntry2(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
             auto mdata = mm.GetMeshData(meshH);
@@ -281,13 +281,6 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
         shape.first->setMargin(0.1/2);
         entry.SetShapeInternal(std::move(shape.first));
     }
-    
-//	auto tcEntry = m_TransformComponent->GetEntry(Owner);
-//	if (!tcEntry) {
-//		AddLog(Warning, "Cannot get TransformComponent");
-//	} else {
-//		entry.m_Shape->setLocalScaling(tcEntry->m_GlobalScale);
-//	}
 
     return true;
 }

@@ -135,7 +135,6 @@ void Engine::EngineMain() {
     // if (FrameTimeDelta < m_FrameTimeSlice * 0.8f) 
         //continue;
 
-
         if (FrameTimeDelta + 0.001f < m_FrameTimeSlice) {
             auto remain = m_FrameTimeSlice - FrameTimeDelta;
             glFlush();

@@ -37,7 +37,7 @@ SoundSubsystem::~SoundSubsystem() {
     SoundSourceComponent::handleApi = HandleApi();
 }
 
-void SoundSubsystem::Update(const SubsystemUpdateData &data) {
+void SoundSubsystem::Step(const SubsystemUpdateData &data) {
     componentArray->ForEach<SoundSourceComponent>([this](uint32_t index, SoundSourceComponent& ssc) {
         if (ssc.autostart) {
             ssc.autostart = false;
@@ -57,18 +57,18 @@ void SoundSubsystem::OnPlaybackFinished(SoundHandle handle, bool loop, UserData 
     subsystemManager->GetEventDispatcher().Queue(SoundStreamFinishedEvent{ e, e });
 }
 
-bool SoundSubsystem::Load(pugi::xml_node node, Entity Owner, Handle &hout) {
+bool SoundSubsystem::Load(ComponentReader &reader, Entity parent, Entity owner) {
     x2c::SoundSystem::SoundSourceComponentData_t entry;
-    if(!entry.Read(node))
+    if(!reader.Read(entry))
         return false;
 
-    SoundSourceComponent &ssc = componentArray->AssignComponent<SoundSourceComponent>(Owner.GetIndex());
+    SoundSourceComponent &ssc = componentArray->AssignComponent<SoundSourceComponent>(owner.GetIndex());
 
-    ssc.e = Owner;
+    ssc.e = owner;
     ssc.autostart = entry.state == SoundState::Playing;
     ssc.handle = SoundHandle::Invalid;
     ssc.handle = handleApi.Open(entry.uri, false, entry.kind, false);
-    handleApi.SetCallback(ssc.handle, &playbackWatcher, Owner.GetIntValue());
+    handleApi.SetCallback(ssc.handle, &playbackWatcher, owner.GetIntValue());
 
     return true;
 }

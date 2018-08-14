@@ -24,7 +24,6 @@ struct EntityImport {
 struct ComponentImport {
     int32_t entityIndex = 1;
     bool enabled = true;
-    Handle handle{};
     pugi::xml_node xmlNode;
 };
 
@@ -79,7 +78,7 @@ EntityBuilder::~EntityBuilder() {
 
 //-------------------------------------------------------------------------------------------------
 
-bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+bool EntityBuilder::Build(Entity parent, const char *PatternUri, Entity &eout, std::string Name) {
     ImportData data;
 
     EntityImport ei;
@@ -93,14 +92,14 @@ bool EntityBuilder::Build(Entity Owner, const char *PatternUri, Entity &eout, st
     data.Dump(Name, PatternUri);
 #endif
 
-    Spawn(data, Owner);
+    Spawn(data, parent);
 
     eout = data.entities[0].entity;
 
     return true;
 }
 
-bool EntityBuilder::Build(Entity Owner, pugi::xml_node node, std::string Name) {
+bool EntityBuilder::Build(Entity parent, pugi::xml_node node, std::string Name) {
     ImportData data;
 
     Import(data, node, -1);
@@ -108,13 +107,13 @@ bool EntityBuilder::Build(Entity Owner, pugi::xml_node node, std::string Name) {
 #ifdef DEBUG_DUMP
     data.Dump(Name, Name);
 #endif
-    Spawn(data, Owner);
+    Spawn(data, parent);
     return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-void EntityBuilder::Spawn(ImportData &data, Entity Owner) {
+void EntityBuilder::Spawn(ImportData &data, Entity parent) {
     auto world = m_Manager->GetWorld();
     auto em = world->GetEntityManager();
 
@@ -122,13 +121,13 @@ void EntityBuilder::Spawn(ImportData &data, Entity Owner) {
         if (!ei.enabled)
             continue;
 
-        Entity parent;
+        Entity thisParent;
         if (ei.parentIndex >= 0)
-            parent = data.entities[ei.parentIndex].entity;
+            thisParent = data.entities[ei.parentIndex].entity;
         else
-            parent = Owner;
+            thisParent = parent;
 
-        if (!em->Allocate(parent, ei.entity, ei.name)) {
+        if (!em->Allocate(thisParent, ei.entity, ei.name)) {
             AddLogf(Error, "Failed to allocate entity!");
             return;
         }         
@@ -140,16 +139,25 @@ void EntityBuilder::Spawn(ImportData &data, Entity Owner) {
         ComponentID::Body,
     };
 
-    auto SpawnComponents = [this, Owner, &data](std::vector<ComponentImport>& cs) {
+    auto SpawnComponents = [this, parent, &data](std::vector<ComponentImport>& cs) {
         for (auto &ci : cs) {
             if (!ci.enabled)
                 continue; 
-            Entity parent;
-            if (ci.entityIndex >= 0)
-                parent = data.entities[ci.entityIndex].entity;
-            else
-                parent = Owner;
-            LoadComponent(parent, ci.xmlNode, ci.handle);
+            Entity thisParent = {};
+            Entity thisOwner = {};
+            if (ci.entityIndex >= 0) {
+                auto &e = data.entities[ci.entityIndex];
+                thisOwner = e.entity;
+                if (e.parentIndex >= 0)
+                    thisParent = data.entities[e.parentIndex].entity;
+                else
+                    thisParent = parent;
+            }
+            else {
+                __debugbreak();
+                //owner = O/wner;
+            }
+            LoadComponent(thisParent, thisOwner, ci.xmlNode);
         }
     };
 
@@ -248,7 +256,7 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
 
 //-------------------------------------------------------------------------------------------------
 
-bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & hout) {
+bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node node) {
     ComponentID cid = ComponentID::Invalid;
 
     if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
@@ -262,7 +270,7 @@ bool EntityBuilder::LoadComponent(Entity Owner, pugi::xml_node node, Handle & ho
         return false;
     }
 
-    if (!c->Load(node, Owner, hout)) {
+    if (!c->Load(MoonGlare::Component::ComponentReader{ node }, parent, owner)) {
         AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
         return false;
     }

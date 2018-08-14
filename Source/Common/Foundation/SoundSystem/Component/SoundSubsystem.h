@@ -4,7 +4,7 @@
 
 #include <Foundation/Component/nfComponent.h>
 #include <Foundation/Component/iSubsystem.h>
-#include <Foundation/Component/ComponentCreatedEvent.h>
+#include <Foundation/Component/ComponentEvents.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
@@ -18,9 +18,9 @@ public:
     explicit SoundSubsystem(iSubsystemManager *subsystemManager);
     virtual ~SoundSubsystem();
 
-    void Update(const SubsystemUpdateData &data) override;
+    void Step(const SubsystemUpdateData &data) override;
 
-    bool Load(pugi::xml_node node, Entity Owner, Handle &hout) override;
+    bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
     void HandleEvent(const ComponentCreatedEvent &ev);
 private:

@@ -23,6 +23,8 @@
 
 #include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
+#include <Foundation/Math/Geometry.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -116,8 +118,8 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
         GotActive = true;
         ActiveId = i;
 
-        auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
-        if (!tcentry) {
+        auto tcindex = m_TransformComponent->GetComponentIndex(item.m_Owner);
+        if (tcindex == ComponentIndex::Invalid) {
             item.m_Flags.m_Map.m_Valid = false;
             LastInvalidEntry = i;
             ++InvalidEntryCount;
@@ -125,18 +127,27 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
 
-        auto &tr = tcentry->m_GlobalTransform;
-        auto q = tr.getRotation();
-        auto p = convert(tr.getOrigin());
-        auto d = convert(quatRotate(q, Physics::vec3(0, 1, 0)));
+        auto &tr = m_TransformComponent->GetTransform(tcindex);
+
+        //tr.v
+        emath::Quaternion up = { 0,0,1,0 };
+        auto q = emath::Quaternion(tr.linear());
+        emath::Quaternion rotatedP = q * up * q.inverse();
+
+        emath::fvec3 d = rotatedP.vec();
+        emath::fvec3 p = tr.translation();
+
+        //auto p = emath::MathCast<math::fvec3>((emath::fvec3)tr.translation());
+        //auto d = convert(quatRotate(convert(emath::MathCast<math::fvec4>(q)), Physics::vec3(0, 1, 0)));
 
         auto &cam = conf.deferredSink->m_Camera;
-        cam.m_Position =  emath::MathCast<emath::fvec3>(p);
-        cam.m_Direction = emath::MathCast<emath::fvec3>(d);
+        cam.m_Position = p;// emath::MathCast<emath::fvec3>(p);
+        cam.m_Direction = d;// emath::MathCast<emath::fvec3>(d);
 
         //RInput->m_Camera.UpdateMatrix();
-        auto view = glm::lookAt(p, p - d, math::vec3(0, 0, 1));
-        cam.m_ProjectionMatrix = emath::MathCast<emath::fmat4>((math::mat4&)item.m_ProjectionMatrix * view);
+        //auto view = glm::lookAt(p, p - d, math::vec3(0, 0, 1));
+        auto view = emath::LookAt(p, (emath::fvec3)(p - d), emath::fvec3(0, 0, 1));
+        cam.m_ProjectionMatrix = item.m_ProjectionMatrix * view;
     }
 
     if (InvalidEntryCount > 0) {
@@ -165,12 +176,6 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_Flags.ClearAll();
     if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
         AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-
-    if (!m_TransformComponent->GetInstanceHandle(Owner, entry.m_TransformHandle)) {
-        AddLog(Error, "Cannot get handle to TransformComponent instance!");
         //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
         return false;
     }
@@ -208,17 +213,18 @@ bool CameraComponent::Create(Entity Owner, Handle & hout) {
 
 void CameraComponentEntry::ResetProjectionMatrix(const emath::fvec2 &ScreenSize) {
     float Aspect = ScreenSize[0] / ScreenSize[1];
+    float Near = 0.1f, Far = 1.0e4f;// TODO;
     if (m_Flags.m_Map.m_Orthogonal) {
-        m_ProjectionMatrix = glm::ortho(0.0f, Aspect, 1.0f, 0.0f);
-
+        m_ProjectionMatrix = emath::Ortho(0.0f, Aspect, 1.0f, 0.0f, Near, Far);
         //	void VirtualCamera::SetOrthogonal(float Width, float Height) {
         //		m_UseViewMatrix = false;
         //		UpdateMatrix();
         //		m_WorldMatrix = m_ProjectionMatrix;
         //	}
     } else {
-        float Near = 0.1f, Far = 1.0e4f;// TODO;
-        m_ProjectionMatrix = glm::perspective(glm::radians(m_FoV), Aspect, Near, Far);
+        m_ProjectionMatrix = emath::Perspective(
+            m_FoV
+            , Aspect, Near, Far);
 
         //	void VirtualCamera::SetPerspective(float Aspect, float FoV, float Near, float Far) {
         //		m_UseViewMatrix = true;

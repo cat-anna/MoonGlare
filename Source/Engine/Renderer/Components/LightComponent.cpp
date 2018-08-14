@@ -19,6 +19,8 @@
 
 #include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
+#include <Foundation/Math/Geometry.h>
+
 namespace MoonGlare {
 namespace Renderer {
 namespace Component {
@@ -103,8 +105,8 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
     
-        auto *tcentry = m_TransformComponent->GetEntry(item.m_Owner);
-        if (!tcentry) {
+        auto tcindex= m_TransformComponent->GetComponentIndex(item.m_Owner);
+        if (tcindex == ComponentIndex::Invalid) {
             item.m_Flags.m_Map.m_Valid = false;
             LastInvalidEntry = i;
             ++InvalidEntryCount;
@@ -112,7 +114,7 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
 
-        auto &tr = tcentry->m_GlobalTransform;
+        const auto &tr = m_TransformComponent->GetTransform(tcindex);
 
         switch (item.m_Type) {
         case Light::LightType::Spot: {
@@ -123,16 +125,23 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
 
             //TODO: SpotLigt calculations can be optimized later
 
-            auto dir = convert(quatRotate(tr.getRotation(), Physics::vec3(0, 0, 1)));
-            auto pos = convert(tr.getOrigin());
+            //emath::Quaternion rotatedP = q * up * q.inverse();
+            //emath::fvec3 d = rotatedP.vec();
+
+            emath::fvec4 dir4 = tr * emath::fvec4(0, 0, 1, 0);
+            emath::fvec3 dir = { dir4.x(), dir4.y(), dir4.z() };
+
+            //auto dir = convert(quatRotate(tr.getRotation(), Physics::vec3(0, 0, 1)));
+            emath::fvec3 pos = tr.translation();// convert(tr.getOrigin());
             float infl = sl.GetLightInfluenceRadius();
 
-            math::mat4 ViewMatrix = glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
-            math::mat4 ProjectionMatrix = glm::perspective(glm::radians(90.0f), 1.0f, 0.01f, infl + 0.1f);
-            math::mat4 mat;
-            tr.getOpenGLMatrix(&mat[0][0]);
+            emath::fmat4 ViewMatrix = emath::LookAt(pos, emath::fvec3(pos - dir), emath::fvec3(0, 1, 0));// glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
+            emath::fmat4 ProjectionMatrix = emath::Perspective(90.0f, 1.0f, 0.01f, infl + 0.1f);
 
-            sl.m_PositionMatrix = glm::scale(mat, math::vec3(infl));
+            auto scaled = tr;
+            scaled.scale(infl);
+
+            sl.m_PositionMatrix = scaled.data();
             sl.m_ViewMatrix = ProjectionMatrix * ViewMatrix;
             sl.m_Position = pos;
             sl.m_Direction = dir;
@@ -141,18 +150,20 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
         case Light::LightType::Point: {
-
             Light::PointLight pl;
             pl.m_Base = item.m_Base;
             pl.m_Attenuation = item.m_Attenuation;
             float infl = pl.GetLightInfluenceRadius();
-            pl.m_Position = convert(tr.getOrigin());
-            if (!conf.deferredSink->PointLightVisibilityTest(emath::MathCast<emath::fvec3>((math::fvec3)pl.m_Position), infl))
+
+            emath::fvec3 pos = tr.translation();
+            pl.m_Position = pos.data();// convert(tr.getOrigin());
+            if (!conf.deferredSink->PointLightVisibilityTest(pos, infl))
                 continue;
 
-            math::mat4 mat;
-            tr.getOpenGLMatrix(&mat[0][0]);
-            pl.m_PositionMatrix = glm::scale(mat, math::vec3(infl));
+            auto scaled = tr;
+            scaled.scale(infl);
+
+            pl.m_PositionMatrix = scaled.data();
 
             conf.deferredSink->SubmitPointLight(pl);
             continue;

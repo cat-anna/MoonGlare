@@ -17,16 +17,16 @@ public:
     EntityBuilder(Component::SubsystemManager *Manager);
     ~EntityBuilder();
 
-    static bool Build(Component::SubsystemManager *Manager, Entity Owner, const char *PatternUri, Entity &eout, std::string Name) {
+    static bool Build(Component::SubsystemManager *Manager, Entity parent, const char *PatternUri, Entity &eout, std::string Name) {
         EntityBuilder eb(Manager);
-        return eb.Build(Owner, PatternUri, eout, std::move(Name));
+        return eb.Build(parent, PatternUri, eout, std::move(Name));
     }
 
-    bool Build(Entity Owner, const char *PatternUri, Entity &eout, std::string Name = std::string());
-    bool Build(Entity Owner, pugi::xml_node node, std::string Name = std::string());
+    bool Build(Entity parent, const char *PatternUri, Entity &eout, std::string Name = std::string());
+    bool Build(Entity parent, pugi::xml_node node, std::string Name = std::string());
 
 protected:
-    bool LoadComponent(Entity Owner, pugi::xml_node node, Handle &hout);
+    bool LoadComponent(Entity parent, Entity owner, pugi::xml_node node);
     Component::SubsystemManager *m_Manager;
 
     struct ImportData;
@@ -34,7 +34,7 @@ protected:
     void Import(ImportData &data, const char *PatternUri, int32_t entityIndex);
     void Import(ImportData &data, pugi::xml_node node, int32_t entityIndex);
 
-    void Spawn(ImportData &data, Entity Owner);
+    void Spawn(ImportData &data, Entity parent);
 };
 
 } //namespace Core 

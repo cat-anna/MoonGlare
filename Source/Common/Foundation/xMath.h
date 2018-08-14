@@ -141,6 +141,7 @@ namespace math {
 		operator const math::fvec3&() const { return reinterpret_cast<const math::fvec3&>(*this); }
 		void operator = (const math::fvec3& other) { reinterpret_cast<math::fvec3&>(*this) = other; }
 		void operator = (const emath::fvec3& other) { reinterpret_cast<math::fvec3&>(*this) = emath::MathCast<math::fvec3>(other); }
+        void operator = (const float *mat3) { memcpy(m_Raw, mat3, sizeof(m_Raw)); }
 
 		float& operator[](size_t idx) { return m_Raw[idx]; };
 		const float& operator[](size_t idx) const { return m_Raw[idx]; };
@@ -160,7 +161,8 @@ namespace math {
 		operator const math::fvec4&() const { return reinterpret_cast<const math::fvec4&>(*this); }
 		void operator = (const math::fvec4& other) { reinterpret_cast<math::fvec4&>(*this) = other; }
 		void operator = (const emath::fvec4& other) { reinterpret_cast<math::fvec4&>(*this) = emath::MathCast<math::fvec4>(other); }
-							   
+        void operator = (const float *mat4) { memcpy(m_Raw, mat4, sizeof(m_Raw)); }
+
 		float& operator[](size_t idx) { return m_Raw[idx]; };
 		const float& operator[](size_t idx) const { return m_Raw[idx]; };
 
@@ -173,7 +175,8 @@ namespace math {
 		RawVec4 m_Mat[4];
 
 		operator const math::mat4&() const { return reinterpret_cast<const math::mat4&>(*this); }
-		void operator = (const math::mat4& other) { reinterpret_cast<math::mat4&>(*this) = other; }
+        void operator = (const float *mat16) { memcpy(m_Mat, mat16, sizeof(m_Mat)); }
+        void operator = (const math::mat4& other) { reinterpret_cast<math::mat4&>(*this) = other; }
 		void operator = (const emath::fmat4& other) { reinterpret_cast<math::mat4&>(*this) = emath::MathCast<math::mat4>(other); }
 
 		RawVec4& operator[](size_t idx) { return m_Mat[idx]; };

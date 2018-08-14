@@ -107,32 +107,38 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			//++InvalidEntryCount;
 			continue;
 		}
+        auto tcindex = m_TransformComponent->GetComponentIndex(item.m_OwnerEntity);
 
-		auto *tcentry = m_TransformComponent->GetEntry(item.m_TransformHandle);
 		auto &body = m_BulletRigidBody[i];
+
+        auto tobtTransform = [](auto &entry) -> btTransform {
+            btTransform tr;
+            tr.setFromOpenGLMatrix(entry.data());
+            return tr;
+        };
 
 		if (item.m_Revision == 0) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = m_TransformComponent->GetCurrentRevision();
-            item.m_Revision = tcentry->m_Revision;
+            item.m_Revision = m_TransformComponent->GetRevision(tcindex);
             if(item.m_Flags.m_Map.m_Kinematic)
-                ((btRigidBody&)body).setWorldTransform(tcentry->m_GlobalTransform);
+                ((btRigidBody&)body).setWorldTransform(tobtTransform(m_TransformComponent->GetTransform(tcindex)));
             if (item.m_Flags.m_Map.m_HasShape) {
                 auto *shape = ((btRigidBody&)body).getCollisionShape();
                 if (shape) {
-                    shape->setLocalScaling(tcentry->m_GlobalScale);
+                    shape->setLocalScaling(emath::MathCast<btVector3>(m_TransformComponent->GetGlobalScale(tcindex)));
                     m_DynamicsWorld->updateSingleAabb(&body);
                 }
             }
 		} else {
-			if (tcentry) {
-				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || item.m_Revision != tcentry->m_Revision)) {
-						((btRigidBody&) body).setWorldTransform(tcentry->m_GlobalTransform);
-						auto *shape = ((btRigidBody&) body).getCollisionShape();
-						if (shape)
-							shape->setLocalScaling(tcentry->m_GlobalScale);
-						m_DynamicsWorld->updateSingleAabb(&body);
-						item.m_Revision = tcentry->m_Revision;
+			if (tcindex != ComponentIndex::Invalid) {
+				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || item.m_Revision != m_TransformComponent->GetRevision(tcindex))) {
+					((btRigidBody&) body).setWorldTransform(tobtTransform(m_TransformComponent->GetTransform(tcindex)));
+					auto *shape = ((btRigidBody&) body).getCollisionShape();
+					if (shape)
+						shape->setLocalScaling(emath::MathCast<btVector3>(m_TransformComponent->GetGlobalScale(tcindex)));
+					m_DynamicsWorld->updateSingleAabb(&body);
+                    item.m_Revision = m_TransformComponent->GetRevision(tcindex);
 				}
 			} else {
 				item.m_Flags.m_Map.m_Valid = false;
@@ -233,12 +239,6 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 //	Handle &h = hout;
 //	HandleIndex index = m_Allocated++;
 
-	Handle TCHandle;
-	if (!m_TransformComponent->GetInstanceHandle(Owner, TCHandle)) {
-		AddLogf(Error, "Failed get transform handle!");
-		return false;
-	}
-
 	size_t index;
 	if (!m_Array.Allocate(index)) {
 		AddLogf(Error, "Failed to allocate index!");
@@ -257,15 +257,14 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	entry.m_SelfHandle = hout;
 
 	entry.m_Revision = 0;
-	entry.m_TransformHandle = TCHandle;
 
 	auto &body = m_BulletRigidBody[index];
 	auto &motionstste = m_MotionStateProxy[index];
 
 	body.Reset(this, hout, Owner);
-	body.SetTransform(m_TransformComponent, TCHandle);
+	body.SetTransform(m_TransformComponent);
 	motionstste.Reset(this, hout, Owner);
-	motionstste.SetTransform(m_TransformComponent, TCHandle);
+	motionstste.SetTransform(m_TransformComponent);
 
 //	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
 	//body.setCollisionShape(cs);
