@@ -24,8 +24,10 @@ using usvec3 = Eigen::Matrix<uint16_t, 3, 1>;
 using usvec4 = Eigen::Matrix<uint16_t, 4, 1>;
 
 using fmat3 = Eigen::Matrix3f;
-using fmat4 = Eigen::Matrix4f;
+using fmat4 = Eigen::Matrix4f;  
 
+using Transform = Eigen::Affine3f;
+using Quaternion = Eigen::Quaternionf;
 
 template<class T, class S>
 T MathCast(const S& s) {
@@ -41,6 +43,36 @@ template<>
 inline glm::fmat4 MathCast(const fmat4 &s) {
     return *reinterpret_cast<const glm::fmat4*>(s.data());
 }
+
+template<>
+inline glm::fvec4 MathCast(const Quaternion &s) {
+    return { s.x(), s.y(), s.z(), s.w(), };
+}
+
+template<>
+inline Quaternion MathCast(const glm::fvec4 &s) {
+    return {  s.w, s.x, s.y, s.z, };
+}
+
+#ifdef BT_VECTOR3_H
+template<>
+inline fvec3 MathCast(const btVector3 &s) {
+    return  { s.x(), s.y(), s.z(), };
+}
+template<>
+inline Quaternion MathCast(const btQuaternion &s) {
+    return  { s.w(), s.x(), s.y(), s.z(), };
+}
+
+template<>
+inline btVector3 MathCast(const fvec3 &s) {
+    return  { s.x(), s.y(), s.z(), };
+}
+template<>
+inline btQuaternion MathCast(const Quaternion &s) {
+    return  { s.w(), s.x(), s.y(), s.z(), };
+}
+#endif
 
 #define GEN_2(SRC, DST) 										\
     template<>inline DST ## 2 MathCast(const SRC ## 2 &s) {		\

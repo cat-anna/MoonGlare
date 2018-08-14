@@ -3,7 +3,6 @@
 
 //container without lock policy
 #include "DynamicMultiArray.h"
-#include "StaticMultiArray.h"
 #include "StaticGenerationBuffer.h"
 
 #include "LockPolicy.h"

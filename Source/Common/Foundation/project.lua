@@ -22,6 +22,9 @@ project "Foundation"
 	files {
 		"**",
 	}
+    excludes {
+        "./**Test.*"
+    }
 	includedirs {
 		".",
 		"%{cfg.objdir}",		

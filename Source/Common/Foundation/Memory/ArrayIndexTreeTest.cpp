@@ -21,13 +21,10 @@ TEST_CASE("AddChild", "[ArrayIndexTree]")
 
     auto first = ait.Allocate();
     REQUIRE(first == 0);
-    auto second = ait.Allocate();
+    auto second = ait.Allocate(first);
     REQUIRE(second == 1);
-    auto third = ait.Allocate();
+    auto third = ait.Allocate(first);
     REQUIRE(third == 2);
-
-    ait.AddChild(first, second);
-    ait.AddChild(first, third);
 
     REQUIRE(ait.firstChild[first] == third);
 

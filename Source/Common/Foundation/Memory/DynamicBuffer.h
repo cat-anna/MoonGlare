@@ -19,13 +19,13 @@ struct DynamicBuffer {
         Value = 0xFADE,
     };
 
-    struct alignas(1) EntryHeader {
+    struct EntryHeader {
         Magic magic;
         ElementSize size;
     };
 
     template<typename T>
-    struct alignas(1) Entry : public EntryHeader {
+    struct Entry : public EntryHeader {
         T t;
     };
 

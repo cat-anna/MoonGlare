@@ -23,8 +23,6 @@ public:
 struct BaseEventCallDispatcher {
     template<typename EVENT>
     void Dispatch(const EVENT &ev) {
-        AddLog(Event, "Dispatching event: " << ev << " recipients:" << m_Handlers.size());
-
         for (auto &handler : m_Handlers)
             handler.Call(&ev);
     }
@@ -63,6 +61,7 @@ public:
 
     template<typename EVENT>
     void Send(const EVENT& event) {
+        AddLog(Event, "Dispatching event: " << event);
         auto classid = EventInfo<EVENT>::GetClassId();
         assert(classid < Configuration::MaxEventTypes);
         eventDispatchers[classid].Dispatch(event);      
