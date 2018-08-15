@@ -38,7 +38,7 @@ namespace Component {
 //---------------------------------------------------------------------------------------
 
 ::Space::RTTI::TypeInfoInitializer<PanelComponent, PanelComponentEntry> PanelComponentTypeInfo;
-RegisterComponentID<PanelComponent> PanelComponentIDReg("Panel", true, &PanelComponent::RegisterScriptApi);
+RegisterComponentID<PanelComponent> PanelComponentIDReg("Panel");
 
 //---------------------------------------------------------------------------------------
 
@@ -55,8 +55,8 @@ PanelComponent::~PanelComponent() {
 
 //---------------------------------------------------------------------------------------
 
-void PanelComponent::RegisterScriptApi(ApiInitializer & root) {
-    root
+MoonGlare::Scripts::ApiInitializer PanelComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
         .beginClass<PanelComponentEntry>("cPanelComponentEntry")
             .addProperty("Color", &PanelComponentEntry::GetColor, &PanelComponentEntry::SetColor)
             .addProperty("Border", &PanelComponentEntry::GetBorder, &PanelComponentEntry::SetBorder)
@@ -111,14 +111,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
 
-        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            continue;
-        }
-
-        auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
+        auto *rtentry = m_RectTransform->GetEntry(item.m_Owner);
         if (!rtentry) {
             LastInvalidEntry = i;
             ++InvalidEntryCount;
@@ -206,7 +199,7 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 
 //---------------------------------------------------------------------------------------
 
-bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool PanelComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
     size_t index;
     if (!m_Array.Allocate(index)) {
         AddLogf(Error, "Failed to allocate index!");
@@ -214,22 +207,17 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     }
     auto &entry = m_Array[index];
     entry.Reset();
-    if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-        AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-    hout = entry.m_SelfHandle;
-    entry.m_OwnerEntity = Owner;
+
+    entry.m_Owner = owner;
 
     x2c::Component::PanelComponent::PanelEntry_t pe;
     pe.ResetToDefault();
-    if (!pe.Read(node)) {
+    if (!reader.Read(pe)) {
         AddLog(Error, "Failed to read ImageEntry!");
         return false;
     }
 
-    auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
+    auto *rtentry = m_RectTransform->GetEntry(entry.m_Owner);
     if (rtentry) {
     } else {
         //TODO:??
@@ -248,7 +236,7 @@ bool PanelComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
     entry.m_Flags.m_Map.m_Valid = true;
     entry.m_Flags.m_Map.m_Dirty = true;
-    m_EntityMapper.SetComponentMapping(entry);
+    m_EntityMapper.SetIndex(owner, index);
     return true;
 }
 

@@ -30,21 +30,19 @@ namespace Renderer {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<CameraComponent, CameraComponentEntry> CameraComponentTypeInfo;
-RegisterComponentID<CameraComponent> CameraComponentReg("Camera", true, &CameraComponent::RegisterScriptApi);
+RegisterComponentID<CameraComponent> CameraComponentReg("Camera");
 
 CameraComponent::CameraComponent(SubsystemManager *Owner)
         : TemplateStandardComponent(Owner) 
         , m_TransformComponent(nullptr) {
 }
 
-CameraComponent::~CameraComponent() {
-
-}
+CameraComponent::~CameraComponent() { }
 
 //------------------------------------------------------------------------------------------
 
-void CameraComponent::RegisterScriptApi(ApiInitializer & root) {
-    root
+MoonGlare::Scripts::ApiInitializer CameraComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
         .beginClass<CameraComponentEntry>("cCameraComponentEntry")
             .addProperty("Active", &CameraComponentEntry::GetActive, &CameraComponentEntry::SetActive)
         .endClass()
@@ -92,13 +90,6 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
 
-        if (!GetHandleTable()->IsValid(item.m_SelfHandle)) {
-            AddLogf(Error, "CameraComponent: invalid entity at index %d", i);
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            continue;
-        }
         if (!item.m_Flags.m_Map.m_Active) {
             //camera is not active, continue
             continue;
@@ -156,15 +147,14 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
     }
 }
 
-bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool CameraComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
     x2c::Component::CameraComponent::CameraEntry_t ce;
     ce.ResetToDefault();
-    if (!ce.Read(node)) {
+    if (!reader.Read(ce)) {
         AddLogf(Error, "Failed to read CameraComponent entry!");
         return false;
     }
 
-    Handle &h = hout;
     size_t index;
     if (!m_Array.Allocate(index)) {
         AddLog(Error, "Failed to allocate index");
@@ -174,14 +164,7 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
-    if (!GetHandleTable()->Allocate(this, Owner, h, index)) {
-        AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-
-    entry.m_SelfHandle = h;
-    entry.m_Owner = Owner;
+    entry.m_Owner = owner;
 
     entry.m_Flags.m_Map.m_Orthogonal = ce.m_Orthogonal;
     entry.m_FoV = ce.m_FoV;
@@ -196,17 +179,13 @@ bool CameraComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 //	}
 
     entry.m_Flags.m_Map.m_Active = ce.m_Active;
-    m_EntityMapper.SetHandle(Owner, h);
+    m_EntityMapper.SetIndex(owner, index);
 
     auto s = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef();
     entry.ResetProjectionMatrix(s);
                                 
     entry.m_Flags.m_Map.m_Valid = true;
     return true;
-}
-
-bool CameraComponent::Create(Entity Owner, Handle & hout) {
-    return false;
 }
 
 //-------------------------------------------------------------------------------------------------

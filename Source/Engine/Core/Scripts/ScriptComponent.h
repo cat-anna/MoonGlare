@@ -10,6 +10,8 @@
 #ifndef ScriptComponent_H
 #define ScriptComponent_H
 
+#include <Foundation/Component/EntityEvents.h>
+
 #include <Core/Component/TemplateStandardComponent.h>
 #include <libSpace/src/Container/StaticVector.h>
 
@@ -32,8 +34,9 @@ public:
     virtual bool Initialize() override;
     virtual bool Finalize() override;
     virtual void Step(const MoveConfig &conf) override;
-    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-    virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+    virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
+
+    void HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event);
 
     using LuaHandle = int;
 
@@ -58,7 +61,6 @@ public:
     struct ScriptEntry {
         FlagsMap m_Flags;
         Entity m_OwnerEntity;	
-        Handle m_SelfHandle;
         uint32_t padding;
 
         void Reset() {
@@ -70,8 +72,12 @@ public:
 
     void GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
 
-    ScriptEntry* GetEntry(Handle h);
-    ScriptEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
+    ScriptEntry* GetEntry(Entity e) { 
+        auto index = m_EntityMapper.GetIndex(e);
+        if (index == ComponentIndex::Invalid)
+            return nullptr;
+        return &m_Array[index];
+    }
 
     EventScriptSink* GetEventSink() { return &eventScriptSinkProxy; }
     void HandleEvent(lua_State* lua, Entity destination);
@@ -80,7 +86,7 @@ protected:
 
     template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
     Array<ScriptEntry> m_Array;
-    EntityMapper m_EntityMapper;
+    EntityArrayMapper<> m_EntityMapper;
 
     iRequireModule *requireModule;
 
@@ -117,7 +123,7 @@ private:
 //support functions
     int lua_GetScriptComponent(lua_State *lua, Entity Owner);
     int lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner);
-    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Handle h, iSubsystem *cptr);
+    int lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Entity owner, iSubsystem *cptr);
     static int lua_DereferenceHandle(lua_State *lua);
     static int lua_SetComponentState(lua_State *lua);
 

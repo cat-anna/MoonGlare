@@ -30,7 +30,7 @@ namespace MoonGlare::GUI::Component {
 //---------------------------------------------------------------------------------------
 
 ::Space::RTTI::TypeInfoInitializer<ImageComponent, ImageComponentEntry> ImageComponentTypeInfo;
-RegisterComponentID<ImageComponent> ImageComponentIDReg("Image", true, &ImageComponent::RegisterScriptApi);
+RegisterComponentID<ImageComponent> ImageComponentIDReg("Image");
 
 //---------------------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ ImageComponent::~ImageComponent() {
 
 //---------------------------------------------------------------------------------------
 
-void ImageComponent::RegisterScriptApi(ApiInitializer & root) {
-    root
+MoonGlare::Scripts::ApiInitializer ImageComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
     .beginClass<ImageComponentEntry>("cImageComponentEntry")
         .addProperty("Color", &ImageComponentEntry::GetColor, &ImageComponentEntry::SetColor)
         .addProperty("Speed", &ImageComponentEntry::GetSpeed, &ImageComponentEntry::SetSpeed)
@@ -116,14 +116,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
 
-        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            continue;
-        }
-
-        auto *rtentry = m_RectTransform->GetEntry(item.m_OwnerEntity);
+        auto *rtentry = m_RectTransform->GetEntry(item.m_Owner);
         if (!rtentry) {
             LastInvalidEntry = i;
             ++InvalidEntryCount;
@@ -168,7 +161,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
 //---------------------------------------------------------------------------------------
 
-bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool ImageComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
     size_t index;
     if (!m_Array.Allocate(index)) {
         AddLogf(Error, "Failed to allocate index!");
@@ -176,17 +169,12 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     }
     auto &entry = m_Array[index];
     entry.Reset();
-    if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-        AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-    hout = entry.m_SelfHandle;
-    entry.m_OwnerEntity = Owner;
+
+    entry.m_Owner = owner;
 
     x2c::Component::ImageComponent::ImageEntry_t ie;
     ie.ResetToDefault();
-    if (!ie.Read(node)) {
+    if (!reader.Read(ie)) {
         AddLog(Error, "Failed to read ImageEntry!");
         return false;
     }
@@ -208,7 +196,7 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_FrameCount = ie.m_FrameStripCount;
     entry.m_Position = entry.m_StartFrame;
 
-    auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
+    auto *rtentry = m_RectTransform->GetEntry(entry.m_Owner);
     if (rtentry) {
         entry.Update(0.0f, *rtentry);
     } else {
@@ -217,7 +205,7 @@ bool ImageComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 
     entry.m_Flags.m_Map.m_Valid = true;
     entry.m_Flags.m_Map.m_Dirty = true;
-    m_EntityMapper.SetComponentMapping(entry);
+    m_EntityMapper.SetIndex(owner, index);
     return true;
 }
 

@@ -43,15 +43,7 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 
     Renderer::MeshResourceHandle meshHandle;
     Renderer::MaterialResourceHandle materialHandle;
-
-    bool IsVisible() const { return m_Flags.m_Map.m_Visible; }
-    void SetVisible(bool v) { m_Flags.m_Map.m_Visible = v; }
-
-    void SetMeshHandle(Renderer::MeshResourceHandle h) { meshHandle = h; }
-    Renderer::MeshResourceHandle GetMeshHandle() const { return meshHandle; }
-    void SetMaterialHandle(Renderer::MaterialResourceHandle h) { materialHandle = h; }
-    Renderer::MaterialResourceHandle GetMaterialHandle() const { return materialHandle; }
-    
+   
     void Reset() {
         m_Flags.m_Map.m_Valid = false;
     }
@@ -59,62 +51,25 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 //static_assert((sizeof(MeshEntry) % 16) == 0, "Invalid MeshEntry size!");
 //static_assert(std::is_pod_v<MeshComponentEntry>);
 
-class MeshComponent
-    : public TemplateStandardComponent<MeshComponentEntry, ComponentID::Mesh> 
-    , public Core::Scripts::Component::ComponentEntryWrap<MeshComponent>
-{
+class MeshComponent                                                               
+    : public TemplateStandardComponent<MeshComponentEntry, ComponentID::Mesh> {
 public:
-    static constexpr char *Name = "Mesh";
-    static constexpr bool PublishID = true;
-
     void HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event);
+    int PushToLua(lua_State *lua, Entity owner) override;
 
     MeshComponent(SubsystemManager *Owner);
     virtual ~MeshComponent();
     virtual bool Initialize() override;
-    virtual bool Finalize() override;
     virtual void Step(const Core::MoveConfig &conf) override;
-    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-    virtual bool Create(Entity Owner, Handle &hout) override;
+    virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
+    virtual bool Create(Entity Owner) override;
 
     using MeshEntry = MeshComponentEntry;
 
-    template<bool Read, typename StackFunc>
-    static bool ProcessProperty(lua_State *lua, MeshComponentEntry *e, uint32_t hash, int &luarets, int validx) {
-        switch (hash) {
-        case "Visible"_Hash32:
-            luarets = StackFunc::funcProp<bool>(lua, e, &MeshComponentEntry::IsVisible, &MeshComponentEntry::SetVisible, validx);
-            break;
-        default:
-            return false;
-        }
-        if (!Read) {
-        //	e->SetDirty();
-        }
-        return true;
-    }
-
-    template<typename StackFunc, typename Entry>
-    static bool QuerryFunction(lua_State *lua, Entry *e, uint32_t hash, int &luarets, int validx, MeshComponent *This) {
-        //switch (hash) {
-        //default:
-            return false;
-        //}
-    }
-
-    MeshComponentEntry* GetEntry2(Entity e) {
-        auto index = entityMapper.GetIndex(e);
-        return &m_Array[index];
-    }
-    MeshComponentEntry* GetEntry2(ComponentIndex index) {
-        return &m_Array[index];
-    }
-
-    static void RegisterScriptApi(ApiInitializer &root);
+    static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 private:
-    Core::EntityArrayMapper<> entityMapper;
-
     template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
+    struct LuaWrapper;
     
     TransformComponent *m_TransformComponent;
 

@@ -35,7 +35,6 @@ struct LightComponentEntry {
 
 	FlagsMap m_Flags;
 	Entity m_Owner;
-	Handle m_SelfHandle;
 
 	Light::LightBase m_Base;
 	Light::LightType m_Type;
@@ -62,12 +61,11 @@ public:
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
 	virtual void Step(const Core::MoveConfig &conf) override;
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-	virtual bool Create(Entity Owner, Handle &hout) override;
+	virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
 	using LightEntry = ComponentEntry;
 
-	static void RegisterScriptApi(ApiInitializer &root);
+	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 private:
 	template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 	TransformComponent *m_TransformComponent;

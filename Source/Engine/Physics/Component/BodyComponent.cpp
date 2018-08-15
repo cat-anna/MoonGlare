@@ -27,7 +27,7 @@ namespace Physics {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<BodyComponent, BodyComponent::BodyEntry, BodyComponent::BulletMotionStateProxy, BodyComponent::BulletProxyCommon, BodyComponent::BulletRigidBody> BodyComponentTypeInfo;
-Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false, &BodyComponent::RegisterScriptApi);
+Core::Component::RegisterComponentID<BodyComponent> BodyComponentIDReg("Body", false);
 
 BodyComponent::BodyComponent(Core::Component::SubsystemManager * Owner) 
 		: AbstractSubsystem(Owner) {
@@ -42,12 +42,12 @@ BodyComponent::~BodyComponent() {}
 
 //---------------------------------------------------------------------------------------
 
-void BodyComponent::RegisterScriptApi(ApiInitializer &root) {
-//	root
+MoonGlare::Scripts::ApiInitializer BodyComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+	return root
 //		.beginClass<InputProcessor>("cInputProcessor")
 //			.addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
 //		.endClass()
-//		;
+		;
 }
 
 //---------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 
 //---------------------------------------------------------------------------------------
 
-bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
+bool BodyComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 //	auto *ht = GetManager()->GetWorld()->GetHandleTable();
 //	Handle &h = hout;
 //	HandleIndex index = m_Allocated++;
@@ -247,23 +247,17 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 	
 	auto &entry = m_Array[index];
 	entry.m_Flags.ClearAll();
-	if (!GetHandleTable()->Allocate(this, Owner, hout, index)) {
-		AddLog(Error, "Failed to allocate handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
 
-	entry.m_OwnerEntity = Owner;
-	entry.m_SelfHandle = hout;
+	entry.m_OwnerEntity = owner;
 
 	entry.m_Revision = 0;
 
 	auto &body = m_BulletRigidBody[index];
 	auto &motionstste = m_MotionStateProxy[index];
 
-	body.Reset(this, hout, Owner);
+	body.Reset(this, owner);
 	body.SetTransform(m_TransformComponent);
-	motionstste.Reset(this, hout, Owner);
+	motionstste.Reset(this, owner);
 	motionstste.SetTransform(m_TransformComponent);
 
 //	auto cs = new btBoxShape(vec3(0.5f, 0.5f, 0.5f) * 2.0f);
@@ -272,7 +266,7 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 
 	x2c::Component::BodyComponent::BodyEntry_t bodyentry;
 	bodyentry.ResetToDefault();
-	if (!bodyentry.Read(node)) {	
+	if (!reader.Read(bodyentry)) {	
 		AddLog(Error, "Failed to read BodyEntry!");
 		return false;
 	}
@@ -330,34 +324,27 @@ bool BodyComponent::Load(xml_node node, Entity Owner, Handle &hout) {
 //	entry.m_SelfHandle = h;
 //	entry.m_OwnerEntity = Owner;
 
-	m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
+	m_EntityMapper.SetIndex(owner, index);
 	entry.m_Flags.m_Map.m_Valid = true;
 	return true;
 }
 
-bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionShape * ptr) {
-	auto *ht = GetHandleTable();
-	HandleIndex index;
-	if (!ht->GetHandleIndex(this, BodyHandle, index)) {
-		AddLogf(Error, "Cannot set shape to invalid handle!");
-		return false;
-	}
-	if (!ht->IsValid(ShapeHandle) && ptr) {
-		AddLogf(Error, "Cannot set shape using invalid handle!");
-		return false;
-	}
-
-	auto &entry = m_Array[index];
+bool BodyComponent::SetShape(Entity owner, btCollisionShape * ptr) {
+    auto index = m_EntityMapper.GetIndex(owner);
+    if (index == ComponentIndex::Invalid)
+        return false;
+    auto &entry = m_Array[index];
 	auto &body = m_BulletRigidBody[index];
 
-	vec3 internia;
+	btVector3 internia;
 	body.setCollisionShape(ptr);
 	if (ptr) {
 		if (entry.m_Mass > 0.0f) {
 			ptr->calculateLocalInertia(entry.m_Mass, internia);
 		} else {
-			internia = vec3(0, 0, 0);
+			internia = btVector3(0, 0, 0);
 		}
+
 		body.setMassProps(entry.m_Mass, internia);
       //  if (!entry.m_Flags.m_Map.m_HasShape) {
         m_DynamicsWorld->removeRigidBody(&body);
@@ -375,31 +362,11 @@ bool BodyComponent::SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionS
 
 //-------------------------------------------------------------------------------------------------
 
-bool BodyComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
-	auto h = m_EntityMapper.GetHandle(Owner);
-	if (!GetHandleTable()->IsValid(this, h)) {
-		return false;
-	}
-	hout = h;
-	return true;
-}
-
-BodyComponent::BodyEntry *BodyComponent::GetEntry(Handle h) {
-	auto *ht = GetHandleTable();
-	HandleIndex hi;
-	if (!ht->GetHandleIndex(this, h, hi)) {
-		return nullptr;
-	}
-	return  &m_Array[hi];
-}
-
-BodyComponent::BulletRigidBody *BodyComponent::GetRigidBody(Handle h) {
-	auto *ht = GetHandleTable();
-	HandleIndex hi;
-	if (!ht->GetHandleIndex(this, h, hi)) {
-		return nullptr;
-	}
-	return  &m_BulletRigidBody[hi];
+BodyComponent::BulletRigidBody *BodyComponent::GetRigidBody(Entity e) {
+    auto index = m_EntityMapper.GetIndex(e);
+    if (index == ComponentIndex::Invalid)
+        return nullptr;
+	return  &m_BulletRigidBody[index];
 }
 
 //-------------------------------------------------------------------------------------------------

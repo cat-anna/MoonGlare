@@ -9,6 +9,8 @@
 #ifndef ComponentRegister_H
 #define ComponentRegister_H
 
+#include <Foundation/Scripts/ApiInit.h>
+
 namespace MoonGlare {
 namespace Core {
 namespace Component {
@@ -24,8 +26,6 @@ struct LuaMetamethods {
 	constexpr operator bool() const { return m_Index || m_NewIndex; }
 };
 
-using ApiInitFunc = void(*)(ApiInitializer &api);
-
 struct ComponentRegister {
 
 	using ComponentCreateFunc = std::unique_ptr<iSubsystem>(*)(SubsystemManager*);
@@ -36,7 +36,7 @@ struct ComponentRegister {
 		struct {
 			bool m_RegisterID : 1;
 		} m_Flags;
-		ApiInitFunc m_ApiRegFunc;
+		MoonGlare::Scripts::ApiInitFunc m_ApiRegFunc;
 		int(*m_GetCID)();
 		const LuaMetamethods* m_EntryMetamethods;
 	};
@@ -77,10 +77,10 @@ private:
 
 template<class COMPONENT>
 struct RegisterComponentID : public ComponentRegister {
-	RegisterComponentID(const char *Name, bool PublishToLua = true, void(*ApiRegFunc)(ApiInitializer &api) = nullptr) {
+	RegisterComponentID(const char *Name, bool PublishToLua = true, MoonGlare::Scripts::ApiInitFunc ApiRegFunc = nullptr) {
 		m_ComponentInfo.m_Name = Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
-		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc;
+		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc ? ApiRegFunc : MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
 		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
 		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
@@ -91,7 +91,7 @@ struct RegisterComponentID : public ComponentRegister {
 	RegisterComponentID() {
 		m_ComponentInfo.m_Name = COMPONENT::Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = COMPONENT::PublishID;
-		m_ComponentInfo.m_ApiRegFunc = &COMPONENT::RegisterScriptApi;
+		m_ComponentInfo.m_ApiRegFunc = MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
 		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
 		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;

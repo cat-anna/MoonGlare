@@ -55,7 +55,7 @@ private:
 //---------------------------------------------------------------------------------------
 
 ::Space::RTTI::TypeInfoInitializer<BodyShapeComponent, BodyShapeComponentEntry> BodyShapeComponentTypeInfo;
-Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape", true, &BodyShapeComponent::RegisterScriptApi);
+Core::Component::RegisterComponentID<BodyShapeComponent> BodyShapeComponentIDReg("BodyShape");
 
 BodyShapeComponent::BodyShapeComponent(Core::Component::SubsystemManager *Owner)
         : AbstractSubsystem(Owner) {
@@ -69,8 +69,8 @@ BodyShapeComponent::~BodyShapeComponent() {
 
 //---------------------------------------------------------------------------------------
 
-void BodyShapeComponent::RegisterScriptApi(ApiInitializer &root) {
-    root
+MoonGlare::Scripts::ApiInitializer BodyShapeComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
         .beginClass<btCollisionShape>("cbtCollisionShape")
         .endClass()
         .beginClass<BodyShapeComponentEntry>("cBodyShapeComponentEntry")
@@ -116,7 +116,7 @@ void BodyShapeComponent::Step(const Core::MoveConfig & conf) {
 
 //---------------------------------------------------------------------------------------
 
-bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexout) {
+bool BodyShapeComponent::BuildEntry(Entity Owner, size_t & indexout) {
     size_t &index = indexout;
     if (!m_Array.Allocate(index)) {
         AddLogf(Error, "Failed to allocate index!");
@@ -126,21 +126,10 @@ bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexo
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
     entry.m_Shape.reset();
-    if (!GetHandleTable()->Allocate(this, Owner, hout, index)) {
-        AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
 
     entry.m_OwnerEntity = Owner;
-    entry.m_SelfHandle = hout;
 
-    if (!m_BodyComponent->GetInstanceHandle(Owner, entry.m_BodyHandle)) {
-        AddLogf(Warning, "Entity does not have body!");
-        return false;
-    }
-
-    auto bodyentry = m_BodyComponent->GetEntry(entry.m_BodyHandle);
+    auto bodyentry = m_BodyComponent->GetEntry(Owner);
     if (!bodyentry) {
         AddLogf(Error, "Cannot get BodyComponent entry!");
         return false;
@@ -149,7 +138,7 @@ bool BodyShapeComponent::BuildEntry(Entity Owner, Handle & hout, size_t & indexo
     entry.m_BodyComponent = m_BodyComponent;
     entry.shapeComponent = this;
 
-    m_EntityMapper.SetHandle(Owner, entry.m_SelfHandle);
+    m_EntityMapper.SetIndex(Owner, index);
 
     return true;
 }
@@ -198,25 +187,25 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
         return { nullptr , ColliderType::Unknown };
 
     switch (cc.m_type) {
-    case ColliderType::Box: {
+    case x2c::Component::BodyShapeComponent::ColliderType::Box: {
         x2c::Component::BodyShapeComponent::ColliderComponent_t cbs;
         cbs.ResetToDefault();
         if (!cbs.Read(node))
             break;
         return { std::make_unique<btBoxShape>(btVector3{ cbs.m_size[0],cbs.m_size[1],cbs.m_size[2] }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
     }
-    case ColliderType::Capsule:
+    case x2c::Component::BodyShapeComponent::ColliderType::Capsule:
         return { std::make_unique<btCapsuleShapeZ>(cc.m_radius, cc.m_height), ColliderType::Capsule };
     //case ColliderType::CapsuleY:
     //    return std::make_unique<btCapsuleShape>(cc.radius, cc.height);
     //case ColliderType::ConvexMesh:
     //    break;
-    case ColliderType::Sphere:
+    case x2c::Component::BodyShapeComponent::ColliderType::Sphere:
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
-    case ColliderType::TriangleMesh: {
+    case x2c::Component::BodyShapeComponent::ColliderType::TriangleMesh: {
         auto meshC = GetManager()->GetComponent<Renderer::Component::MeshComponent>();
         if (meshC) {
-            auto me = meshC->GetEntry2(Owner);
+            auto me = meshC->GetEntry(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
             auto mdata = mm.GetMeshData(meshH);
@@ -250,9 +239,10 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     return { nullptr , ColliderType::Unknown };
 }
 
-bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool BodyShapeComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
+    auto node = reader.node;
     size_t index;
-    if (!BuildEntry(Owner, hout, index)) {
+    if (!BuildEntry(owner, index)) {
         AddLog(Error, "Failed to build entry!");
         return false;
     }
@@ -266,7 +256,7 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
         shape = LoadByName(ShapeName, ShapeNode);
     }
     else {
-        shape = LoadShape(node, Owner);
+        shape = LoadShape(node, owner);
     }
 
 
@@ -285,9 +275,9 @@ bool BodyShapeComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     return true;
 }
 
-bool BodyShapeComponent::Create(Entity Owner, Handle &hout) {
+bool BodyShapeComponent::Create(Entity Owner) {
     size_t index;
-    if (!BuildEntry(Owner, hout, index)) {
+    if (!BuildEntry(Owner, index)) {
         AddLog(Error, "Failed to build entry!");
         return false;
     }
@@ -299,17 +289,8 @@ bool BodyShapeComponent::Create(Entity Owner, Handle &hout) {
 
 //---------------------------------------------------------------------------------------
 
-bool BodyShapeComponent::GetInstanceHandle(Entity Owner, Handle & hout) {
-    auto h = m_EntityMapper.GetHandle(Owner);
-    if (!GetHandleTable()->IsValid(this, h)) {
-        return false;
-    }
-    hout = h;
-    return true;
-}
-
-bool BodyShapeComponent::PushEntryToLua(Handle h, lua_State * lua, int &luarets) {
-    auto entry = GetEntry(h);
+bool BodyShapeComponent::PushEntryToLua(Entity h, lua_State * lua, int &luarets) {
+    auto *entry = GetEntry(h);
     if (!entry) {
         return true;
     }
@@ -320,21 +301,12 @@ bool BodyShapeComponent::PushEntryToLua(Handle h, lua_State * lua, int &luarets)
     return true;
 }
 
-BodyShapeComponentEntry * BodyShapeComponent::GetEntry(Handle h) {
-    auto *ht = GetHandleTable();
-    HandleIndex hi;
-    if (!ht->GetHandleIndex(this, h, hi)) {
-        return nullptr;
-    }
-    return  &m_Array[hi];
-}
-
 //---------------------------------------------------------------------------------------
 
 bool BodyShapeComponentEntry::SetShapeInternal(std::unique_ptr<btCollisionShape> shape) {
     m_Shape.swap(shape);
 
-    if (!m_BodyComponent->SetShape(m_SelfHandle, m_BodyHandle, m_Shape.get())) {
+    if (!m_BodyComponent->SetShape(m_OwnerEntity, m_Shape.get())) {
         AddLogf(Error, "Failed to set body shape!");
         return false;
     }

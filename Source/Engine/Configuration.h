@@ -32,38 +32,6 @@ namespace MoonGlare {
             };
         };
 
-        namespace Handle {
-            enum {
-                GenerationBits = 16,
-                IndexBits = 12,
-                TypeBits = 4,
-                ValueBits = 0,
-
-                GenerationLimit = 1 << GenerationBits,
-                IndexLimit = 1 << IndexBits,
-                TypeLimit = 1 << TypeBits,
-
-                EntryCheckPerStep = 8,
-            };
-
-            struct Types {
-                enum {
-                    Invalid,
-                    Object,
-                };
-            };
-        };
-
-        namespace HandleType {
-            enum e : uint8_t {
-                Invalid,
-                Entity,
-                Component,
-                Resource,
-                StaticResource,
-            };
-        };
-
         namespace Storage {
             enum {
                 TinyBuffer = 32,
@@ -107,13 +75,11 @@ namespace MoonGlare {
 using Configuration::HashID;
 
 using Entity = MoonGlare::Component::Entity;
-using Handle = MoonGlare::Component::Handle;
 
 using EntityNameHash = uint32_t;
 
-using HandleIndex = uint16_t;
-using HandleType = uint16_t;
-using HandleSet = std::vector<Handle>;
+//using HandleIndex = uint16_t;
+//using HandleType = uint16_t;
 
 } //namespace MoonGlare
 
@@ -123,25 +89,9 @@ inline std::ostream& operator<<(std::ostream &o, MoonGlare::Entity e) {
     return o << buf;
 }
 
-inline std::ostream& operator<<(std::ostream &o, MoonGlare::Handle h) {
-    char buf[128];
-    sprintf_s(buf, "(Handle; Index:%d; Type:%d; Generation:%d)", h.GetIndex(), h.GetType(), h.GetGeneration());
-    return o << buf;
-}
-
 #ifdef LUABRIDGE_LUABRIDGE_HEADER
 
 namespace luabridge {
-
-template <>
-struct Stack <MoonGlare::Handle> {
-    static void push(lua_State* L, MoonGlare::Handle h) {
-        lua_pushlightuserdata(L, h.GetVoidPtr());
-    }
-    static MoonGlare::Handle get(lua_State* L, int index) {
-        return MoonGlare::Handle::FromVoidPtr(lua_touserdata(L, index));
-    }
-};
 
 template <>
 struct Stack <MoonGlare::Entity> {

@@ -35,11 +35,6 @@ bool World::Initialize() {
 		return false;
 	}
 
-	if (!m_HandleTable.Initialize(&m_EntityManager)) {
-		AddLogf(Error, "Failed to initialize HandleTable!");
-		return false;
-	}
-
 	m_InputProcessor = std::make_unique<Core::InputProcessor>();
 	if (!m_InputProcessor->Initialize(this)) {
 		AddLogf(Error, "Failed to initialize InputProcessor");
@@ -72,10 +67,6 @@ bool World::Finalize() {
 			AddLogf(Error, "Failed to finalize InputProcessor");
 		}
 		m_InputProcessor.reset();
-	}
-
-	if (!m_HandleTable.Finalize()) {
-		AddLogf(Error, "Failed to finalize HandleTable!");
 	}
 
 	if (!m_EntityManager.Finalize()) {
@@ -112,12 +103,6 @@ bool World::PreSystemShutdown() {
 }
 
 bool World::Step(const Core::MoveConfig & config) {
-	if (!m_EntityManager.Step(config)) {
-		AddLog(Error, "Failed to Step EntityManager");
-	}
-	if (!m_HandleTable.Step(config)) {
-		AddLog(Error, "Failed to Step HandleTable");
-	}
 	if (!m_InputProcessor->Step(config)) {
 		AddLog(Error, "Failed to Step InputProcessor");
 	}

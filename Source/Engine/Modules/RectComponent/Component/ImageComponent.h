@@ -25,8 +25,7 @@ union ImageComponentEntryFlagsMap {
 };
 
 struct ImageComponentEntry {
-    Handle m_SelfHandle;
-    Entity m_OwnerEntity;
+    Entity m_Owner;
     char padding[3];
     ImageComponentEntryFlagsMap m_Flags;
 
@@ -90,9 +89,9 @@ public:
     virtual bool Initialize() override;
     virtual bool Finalize() override;
     virtual void Step(const Core::MoveConfig &conf) override;
-    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+    virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
-    static void RegisterScriptApi(ApiInitializer &root);
+    static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
     RectTransformComponent *m_RectTransform;
     Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;

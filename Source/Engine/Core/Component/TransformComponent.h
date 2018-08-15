@@ -5,6 +5,8 @@
 #include <Foundation/Component/iSubsystem.h>
 #include <Foundation/Component/EntityEvents.h>
 
+#include <Core/Scripts/ScriptComponent.h>
+
 #include "../../Configuration.h"
 #include "../EntityManager.h"
 #include "nfComponent.h"
@@ -50,9 +52,10 @@ public:
     RuntimeRevision GetRevision(ComponentIndex ci) const { return values.revision[ci]; }
 
     RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
-	static void RegisterScriptApi(ApiInitializer &root);
+	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
-    SubsystemManager * subSystemManager;
+    SubsystemManager *subSystemManager;
+    Scripts::Component::ScriptComponent *scriptComponent;
     MoonGlare::Configuration::RuntimeRevision m_CurrentRevision = 0;
 
     struct LuaWrapper;
@@ -86,6 +89,7 @@ protected:
             entityMapper.Fill(ElementIndex::Invalid);
         }
         void SwapValues(ElementIndex a, ElementIndex b) {
+            entityMapper.Swap(owner[a], owner[b]);
             std::swap(owner[a], owner[b]);
             std::swap(flags[a], flags[b]);
             std::swap(scale[a], scale[b]);
@@ -93,18 +97,15 @@ protected:
             std::swap(position[a], position[b]);
             std::swap(quaternion[a], quaternion[b]);
             std::swap(globalTransform[a], globalTransform[b]);
-
-            entityMapper.SetIndex(owner[a], a);
-            entityMapper.SetIndex(owner[b], b);
         }
         void ReleaseElement(ElementIndex e, ElementIndex parent) {
             entityMapper.SetIndex(owner[e], InvalidIndex);
             component->ElementRemoved(e);
+            //owner[e] = Entity::Invalid;
             owner[e] = {};
         }
         void InitElemenent(ElementIndex e, ElementIndex parent){
         }
-
     };
     //static_assert(std::is_trivial_v<Values>);
     Values values;

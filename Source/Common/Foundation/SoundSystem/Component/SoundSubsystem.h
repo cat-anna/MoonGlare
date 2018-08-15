@@ -11,7 +11,6 @@ namespace MoonGlare::SoundSystem::Component {
 using namespace MoonGlare::Component;
 
 using MoonGlare::Component::Entity;
-using MoonGlare::Component::Handle;
 
 class SoundSubsystem : public iSubsystem {
 public:

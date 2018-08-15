@@ -24,7 +24,7 @@ namespace Renderer {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<MeshComponent, MeshComponentEntry> MeshComponentTypeInfo;
-RegisterComponentID<MeshComponent> MeshComponentReg("Mesh", true, &MeshComponent::RegisterScriptApi);
+RegisterComponentID<MeshComponent> MeshComponentReg("Mesh");
 
 MeshComponent::MeshComponent(SubsystemManager * Owner) 
     : TemplateStandardComponent(Owner)
@@ -37,14 +37,50 @@ MeshComponent::~MeshComponent() {
 
 //------------------------------------------------------------------------------------------
 
-void MeshComponent::RegisterScriptApi(ApiInitializer & root) {
-    root
-    .beginClass<MeshEntry>("cMeshEntry")
-        .addProperty("Visible", &MeshEntry::IsVisible, &MeshEntry::SetVisible)
-        .addProperty("MeshHandle", &MeshEntry::GetMeshHandle, &MeshEntry::SetMeshHandle)
-      //  .addFunction("SetModel", &MeshEntry::SetModel)
+struct MeshComponent::LuaWrapper {
+    MeshComponent *component;
+    //ScriptComponent *scriptComponent;
+
+    Entity owner;
+    mutable ComponentIndex index;
+
+    void Check() const {
+        //if (transformComponent->componentIndexRevision != indexRevision) {
+        index = component->GetComponentIndex(owner);
+        //}
+        if (index == ComponentIndex::Invalid) {
+            __debugbreak();
+            throw Scripts::LuaPanic("Attempt to dereference deleted RectTransform component!");
+        }
+    }
+
+    bool IsVisible() const { Check(); return component->GetEntry(index)->m_Flags.m_Map.m_Visible; }
+    void SetVisible(bool v) { Check(); component->GetEntry(index)->m_Flags.m_Map.m_Visible = v; }
+
+
+    void SetMeshHandle(Renderer::MeshResourceHandle h) { Check(); component->GetEntry(index)->meshHandle = h; }
+    Renderer::MeshResourceHandle GetMeshHandle() const { Check(); return component->GetEntry(index)->meshHandle; }
+    void SetMaterialHandle(Renderer::MaterialResourceHandle h) { Check(); component->GetEntry(index)->materialHandle = h; }
+    Renderer::MaterialResourceHandle GetMaterialHandle() const { Check(); return component->GetEntry(index)->materialHandle; }
+};
+
+MoonGlare::Scripts::ApiInitializer MeshComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
+    .beginClass<LuaWrapper>("MeshComponent")
+        .addProperty("Visible", &LuaWrapper::IsVisible, &LuaWrapper::SetVisible)
+        .addProperty("MeshHandle", &LuaWrapper::GetMeshHandle, &LuaWrapper::SetMeshHandle)
+        .addProperty("MaterialHandle", &LuaWrapper::GetMaterialHandle, &LuaWrapper::SetMaterialHandle)
     .endClass()
     ;
+}
+
+int MeshComponent::PushToLua(lua_State *lua, Entity owner) {
+    auto index = m_EntityMapper.GetIndex(owner);
+    if (index == Component::ComponentIndex::Invalid)
+        return 0;
+    LuaWrapper lw{ this, owner, index, };
+    luabridge::push<LuaWrapper>(lua, lw);
+    return 1;
 }
 
 //------------------------------------------------------------------------------------------
@@ -55,7 +91,6 @@ bool MeshComponent::Initialize() {
 
 //	m_Array.MemZeroAndClear();
     m_Array.fill(MeshEntry());
-    entityMapper.Fill(ComponentIndex::Zero);
 
     m_TransformComponent = GetManager()->GetComponent<TransformComponent>();
     if (!m_TransformComponent) {
@@ -66,25 +101,20 @@ bool MeshComponent::Initialize() {
     return true;
 }
 
-bool MeshComponent::Finalize() {
-    return true;
-}
-
 //------------------------------------------------------------------------------------------
 
 void MeshComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event) {
-    auto index = entityMapper.GetIndex(event.entity);
+    auto index = m_EntityMapper.GetIndex(event.entity);
     if (index >= m_Array.Allocated())
         return;
 
     m_Array[index].m_Flags.m_Map.m_Valid = false;
-    entityMapper.SetIndex(event.entity, ComponentIndex::Invalid);
+    m_EntityMapper.SetIndex(event.entity, ComponentIndex::Invalid);
 }
 
 //------------------------------------------------------------------------------------------
 
 void MeshComponent::Step(const Core::MoveConfig &conf) {
-
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;
 
@@ -129,7 +159,8 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
 
 //------------------------------------------------------------------------------------------
 
-bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {	
+bool MeshComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
+    auto node = reader.node;
     std::string meshUri = node.child("Mesh").text().as_string("");
     std::string materialUri = node.child("Material").text().as_string("");
     if (meshUri.empty()) {
@@ -157,14 +188,14 @@ bool MeshComponent::Load(xml_node node, Entity Owner, Handle &hout) {
         return false;
     }
 
-    entry.m_Owner = Owner;
+    entry.m_Owner = owner;
 
     entry.m_Flags.m_Map.m_Valid = true;
     entry.m_Flags.m_Map.m_Visible = node.child("Visible").text().as_bool(true);
 
     //m_EntityMapper.SetHandle(entry.m_Owner, ch);
-    entityMapper.SetIndex(Owner, index);
-
+    m_EntityMapper.SetIndex(owner, index);
+   
     return true;
 }
 
@@ -185,7 +216,7 @@ void MeshComponent::ReleaseElement(size_t Index) {
     m_Array.DeallocateLast();
 }
 
-bool MeshComponent::Create(Entity Owner, Handle &hout) {
+bool MeshComponent::Create(Entity Owner) {
     size_t index;
     if (!m_Array.Allocate(index)) {
         AddLogf(Error, "Failed to allocate index!");
@@ -196,7 +227,7 @@ bool MeshComponent::Create(Entity Owner, Handle &hout) {
     entry.m_Flags.ClearAll();
 
     entry.m_Owner = Owner;
-
+                            
     entry.m_Flags.m_Map.m_Valid = true;
     entry.m_Flags.m_Map.m_Visible = true;
 

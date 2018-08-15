@@ -51,16 +51,9 @@ enum class ComponentID : uint8_t {
     SoundSource = 0x70,
 };
 
-//template<ComponentID ID, HandleType HT>
-//struct ComponentIDWrap {
-//	constexpr static ComponentID GetComponentID() { return static_cast<ComponentID>(ID); };
-//	constexpr static HandleType GetHandleType() { return static_cast<HandleType>(HT); };
-//};
-
 template<ComponentID VALUE>
 struct ComponentIDWrap {
 	constexpr static ComponentID GetComponentID() { return VALUE; };
-	constexpr static ComponentID GetHandleType() { return VALUE; };
 };
 
 } //namespace Component 

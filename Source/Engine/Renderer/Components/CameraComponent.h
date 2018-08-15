@@ -37,8 +37,6 @@ struct CameraComponentEntry {
 
 	FlagsMap m_Flags;
 	Entity m_Owner;
-	Handle m_SelfHandle;
-	Handle m_TransformHandle;
 
 	emath::fmat4 m_ProjectionMatrix;
 
@@ -66,11 +64,10 @@ public:
 	virtual bool Initialize() override;
 	virtual bool Finalize() override;
 	virtual void Step(const Core::MoveConfig &conf) override;
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
-	virtual bool Create(Entity Owner, Handle &hout) override;
+	virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
 	using CameraEntry = CameraComponentEntry;
-	static void RegisterScriptApi(ApiInitializer &root);
+	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
 	TransformComponent *m_TransformComponent;
 };

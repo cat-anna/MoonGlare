@@ -26,7 +26,7 @@ namespace Renderer {
 namespace Component {
 
 ::Space::RTTI::TypeInfoInitializer<LightComponent, LightComponentEntry, Light::LightBase, Light::PointLight, Light::SpotLight, Light::DirectionalLight, Light::LightAttenuation> LightComponentTypeInfo;
-RegisterComponentID<LightComponent> LightComponentReg("Light", true, &LightComponent::RegisterScriptApi);
+RegisterComponentID<LightComponent> LightComponentReg("Light");
 
 LightComponent::LightComponent(SubsystemManager * Owner) 
         : TemplateStandardComponent(Owner) 
@@ -38,9 +38,9 @@ LightComponent::~LightComponent() {
 
 //------------------------------------------------------------------------------------------
 
-void LightComponent::RegisterScriptApi(ApiInitializer & root) {
+MoonGlare::Scripts::ApiInitializer LightComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
     using LightAttenuation = Renderer::Light::LightAttenuation;
-    root
+    return root
         .beginClass<LightAttenuation>("cLightAttenuation")
             .addProperty("Constant", &LightAttenuation::Constant, &LightAttenuation::SetConstant )
             .addProperty("Linear", &LightAttenuation::Linear, &LightAttenuation::SetLinear)
@@ -93,14 +93,6 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             continue;
         }
     
-        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            //mark and continue but set valid to false to avoid further checks
-            continue;
-        }
-
         if (!item.m_Flags.m_Map.m_Active) {
             continue;
         }
@@ -186,10 +178,10 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
     }
 }
 
-bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool LightComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
     x2c::Component::LightComponent::LightEntry_t le;
     le.ResetToDefault();
-    if (!le.Read(node)) {
+    if (!reader.Read(le)) {
         AddLogf(Error, "Failed to read LightComponent entry!");
         return false;
     }
@@ -214,15 +206,7 @@ bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
 
-    Handle &ch = hout;
-    if (!GetHandleTable()->Allocate(this, Owner, ch, index)) {
-        AddLogf(Error, "Failed to allocate handle!");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-
-    entry.m_Owner = Owner;
-    entry.m_SelfHandle = ch;
+    entry.m_Owner = owner;
 
     entry.m_Base.m_AmbientIntensity = le.m_AmbientIntensity;
     entry.m_Base.m_DiffuseIntensity = le.m_DiffuseIntensity;
@@ -234,13 +218,9 @@ bool LightComponent::Load(xml_node node, Entity Owner, Handle & hout) {
     entry.m_Flags.m_Map.m_Active = le.m_Active;
     entry.m_Base.m_Flags.m_CastShadows = le.m_CastShadows;
 
-    m_EntityMapper.SetHandle(entry.m_Owner, ch);
+    m_EntityMapper.SetIndex(entry.m_Owner, index);
     entry.m_Flags.m_Map.m_Valid = true;
     return true;
-}
-
-bool LightComponent::Create(Entity Owner, Handle & hout) {
-    return false;
 }
 
 } //namespace Component 

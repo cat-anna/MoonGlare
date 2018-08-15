@@ -17,53 +17,46 @@ namespace MoonGlare {
 namespace Physics {
 namespace Component {
 
-using namespace ::Physics;
+using namespace MoonGlare::Component;
 
 class BodyComponent
-		: public Core::Component::AbstractSubsystem
-		, public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
+        : public Core::Component::AbstractSubsystem
+        , public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
 public:
-	BodyComponent(Core::Component::SubsystemManager *Owner);
-	virtual ~BodyComponent();
+    BodyComponent(Core::Component::SubsystemManager *Owner);
+    virtual ~BodyComponent();
 
-	virtual bool Initialize() override;
-	virtual bool Finalize() override;
+    virtual bool Initialize() override;
+    virtual bool Finalize() override;
 
-	virtual void Step(const Core::MoveConfig &conf) override;
-	virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+    virtual void Step(const Core::MoveConfig &conf) override;
+    virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
-	virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+    virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
 
-	virtual bool LoadComponentConfiguration(pugi::xml_node node) override;
+    void DebugDraw(const Core::MoveConfig & conf);
 
-	//virtual bool Create(Entity Owner, Handle &hout);
-	//virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
+    union FlagsMap {
+        struct MapBits_t {
+            bool m_Valid : 1; //Entity is not valid or requested to be deleted;
+            bool m_Kinematic : 1;
+            bool m_HasShape : 1;
+            bool m_WantsCollisionEvent : 1;
+        };
+        MapBits_t m_Map;
+        uint32_t m_UintValue;
 
-	void DebugDraw(const Core::MoveConfig & conf);
+        void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
+        void ClearAll() { m_UintValue = 0; }
 
-	union FlagsMap {
-		struct MapBits_t {
-			bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-			bool m_Kinematic : 1;
-			bool m_HasShape : 1;
-			bool m_WantsCollisionEvent : 1;
-		};
-		MapBits_t m_Map;
-		uint32_t m_UintValue;
+        static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
+    };
 
-		void SetAll() { m_UintValue = 0; m_UintValue = ~m_UintValue; }
-		void ClearAll() { m_UintValue = 0; }
+    struct BodyEntry {
+        Entity m_OwnerEntity;
+        FlagsMap m_Flags;
 
-		static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
-	};
-
-	struct BodyEntry {
-		Handle m_SelfHandle;
-		Entity m_OwnerEntity;
-		FlagsMap m_Flags;
-
-		Handle m_ShapeHandle;
-		float m_Mass;
+        float m_Mass;
 
 //		CollisionMask m_CollisionMask;
 
@@ -71,88 +64,90 @@ public:
 
 //		SharedShape m_Shape;
 //		vec3 m_BodyAngularFactor;
-	};
+    };
 
-	BodyEntry* GetEntry(Handle h);	
-	BodyEntry* GetEntry(Entity e) { return GetEntry(m_EntityMapper.GetHandle(e)); }
+    BodyEntry* GetEntry(Entity e) { 
+        auto index = m_EntityMapper.GetIndex(e);
+        if (index == ComponentIndex::Invalid)
+            return nullptr;
+        return &m_Array[index];
+    }
 
-	struct BulletRigidBody;
-	BulletRigidBody* GetRigidBody(Handle h);	 //return nullptr if h/e is not valid
+    struct BulletRigidBody;
+    BulletRigidBody* GetRigidBody(Entity e);	 //return nullptr if h/e is not valid
 
-	bool SetShape(Handle ShapeHandle, Handle BodyHandle, btCollisionShape *ptr);
+    bool SetShape(Entity owner, btCollisionShape *ptr);
 
-	struct BulletProxyCommon {
-		BodyComponent *m_BodyComponent;
-		Handle m_EntryHandle;
-		Core::Component::TransformComponent *m_Transform;
-		Entity m_Entity;
+    struct BulletProxyCommon {
+        BodyComponent *m_BodyComponent;
+        Core::Component::TransformComponent *m_Transform;
+        Entity m_Entity;
 
-		void Reset(BodyComponent *bc, Handle eh, Entity e) {
-			m_EntryHandle = eh;
-			m_BodyComponent = bc;
-			m_Entity = e;
-		}
-		void SetTransform(Core::Component::TransformComponent *Transform) {
-			m_Transform = Transform;
-		}
+        void Reset(BodyComponent *bc, Entity e) {
+            m_BodyComponent = bc;
+            m_Entity = e;
+        }
+        void SetTransform(Core::Component::TransformComponent *Transform) {
+            m_Transform = Transform;
+        }
 
-		void getWorldTransform(btTransform & centerOfMassWorldTrans) const {
-			auto index = m_Transform->GetComponentIndex(m_Entity);
-			if (index != ComponentIndex::Invalid) {
-                centerOfMassWorldTrans.setFromOpenGLMatrix(m_Transform->GetTransform(index).data());
-			}
-		}
-		void setWorldTransform(const btTransform & centerOfMassWorldTrans) {
+        void getWorldTransform(btTransform & centerOfMassWorldTrans) const {
             auto index = m_Transform->GetComponentIndex(m_Entity);
             if (index != ComponentIndex::Invalid) {
-			//	entry->m_LocalTransform = centerOfMassWorldTrans;
-				//entry->SetTransform(centerOfMassWorldTrans);
-			//	entry->m_Revision = m_Transform->GetCurrentRevision();
+                centerOfMassWorldTrans.setFromOpenGLMatrix(m_Transform->GetTransform(index).data());
+            }
+        }
+        void setWorldTransform(const btTransform & centerOfMassWorldTrans) {
+            auto index = m_Transform->GetComponentIndex(m_Entity);
+            if (index != ComponentIndex::Invalid) {
+            //	entry->m_LocalTransform = centerOfMassWorldTrans;
+                //entry->SetTransform(centerOfMassWorldTrans);
+            //	entry->m_Revision = m_Transform->GetCurrentRevision();
                 //centerOfMassWorldTrans.getOpenGLMatrix()
-				auto *be = m_BodyComponent->GetEntry(m_EntryHandle);
-				if (be)
-					be->m_Revision = m_Transform->GetRevision(index);
+                auto *be = m_BodyComponent->GetEntry(m_Entity);
+                if (be)
+                    be->m_Revision = m_Transform->GetRevision(index);
 
                 m_Transform->SetPosition(index, emath::MathCast<emath::fvec3>(centerOfMassWorldTrans.getOrigin()));
                 m_Transform->SetRotation(index, emath::MathCast<emath::Quaternion>(centerOfMassWorldTrans.getRotation()));
-			}
-		}
-	};
+            }
+        }
+    };
 
-	struct BulletMotionStateProxy : public btMotionState, public BulletProxyCommon {
-		BulletMotionStateProxy() {}
-		///synchronizes world transform from user to physics
-		virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const override { BulletProxyCommon::getWorldTransform(centerOfMassWorldTrans); }
-		///synchronizes world transform from physics to user
-		///Bullet only calls the update of worldtransform for active objects
-		virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override { BulletProxyCommon::setWorldTransform(centerOfMassWorldTrans); }
-	};
+    struct BulletMotionStateProxy : public btMotionState, public BulletProxyCommon {
+        BulletMotionStateProxy() {}
+        ///synchronizes world transform from user to physics
+        virtual void getWorldTransform(btTransform& centerOfMassWorldTrans) const override { BulletProxyCommon::getWorldTransform(centerOfMassWorldTrans); }
+        ///synchronizes world transform from physics to user
+        ///Bullet only calls the update of worldtransform for active objects
+        virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override { BulletProxyCommon::setWorldTransform(centerOfMassWorldTrans); }
+    };
 
-	struct BulletRigidBody : public btRigidBody, public BulletProxyCommon {
-		BulletRigidBody() :btRigidBody(0.0f, nullptr, nullptr) {}
-	};
+    struct BulletRigidBody : public btRigidBody, public BulletProxyCommon {
+        BulletRigidBody() :btRigidBody(0.0f, nullptr, nullptr) {}
+    };
 
-	static void RegisterScriptApi(ApiInitializer &api);
+    static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer api);
 protected:
-	template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
+    template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 
-	std::unique_ptr<btDefaultCollisionConfiguration> m_CollisionConfiguration;
-	std::unique_ptr<btCollisionDispatcher> m_Dispatcher;
-	std::unique_ptr<btBroadphaseInterface> m_Broadphase;
-	std::unique_ptr<btConstraintSolver> m_Solver;
-	std::unique_ptr<btDiscreteDynamicsWorld> m_DynamicsWorld;
-	std::unique_ptr<BulletDebugDrawer> m_DebugDrawer;
+    std::unique_ptr<btDefaultCollisionConfiguration> m_CollisionConfiguration;
+    std::unique_ptr<btCollisionDispatcher> m_Dispatcher;
+    std::unique_ptr<btBroadphaseInterface> m_Broadphase;
+    std::unique_ptr<btConstraintSolver> m_Solver;
+    std::unique_ptr<btDiscreteDynamicsWorld> m_DynamicsWorld;
+    std::unique_ptr<BulletDebugDrawer> m_DebugDrawer;
 
-	Core::Component::TransformComponent *m_TransformComponent;
+    Core::Component::TransformComponent *m_TransformComponent;
 
-	Array<BodyEntry> m_Array;
-	Array<BulletMotionStateProxy> m_MotionStateProxy;
-	Array<BulletRigidBody> m_BulletRigidBody;
-	Core::EntityMapper m_EntityMapper;
+    Array<BodyEntry> m_Array;
+    Array<BulletMotionStateProxy> m_MotionStateProxy;
+    Array<BulletRigidBody> m_BulletRigidBody;
+    Core::EntityArrayMapper<> m_EntityMapper;
 
-	using CollisionKey = std::tuple<const btCollisionObject*, const btCollisionObject*>;
-	using CollisionMap = std::map<CollisionKey, const btManifoldPoint*>;
-	CollisionMap m_LastCollisions;
+    using CollisionKey = std::tuple<const btCollisionObject*, const btCollisionObject*>;
+    using CollisionMap = std::map<CollisionKey, const btManifoldPoint*>;
+    CollisionMap m_LastCollisions;
 };
 
 } //namespace Component 

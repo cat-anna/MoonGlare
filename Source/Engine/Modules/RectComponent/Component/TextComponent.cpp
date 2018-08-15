@@ -40,7 +40,7 @@ namespace Component {
 //---------------------------------------------------------------------------------------
 
 ::Space::RTTI::TypeInfoInitializer<TextComponent, TextComponentEntry> TextComponentTypeInfo;
-RegisterComponentID<TextComponent>TextComponentIDReg("Text", true, &TextComponent::RegisterScriptApi);
+RegisterComponentID<TextComponent>TextComponentIDReg("Text");
 
 //---------------------------------------------------------------------------------------
 
@@ -54,8 +54,8 @@ TextComponent::~TextComponent() {
 
 //---------------------------------------------------------------------------------------
 
-void TextComponent::RegisterScriptApi(ApiInitializer & root) {
-	root
+MoonGlare::Scripts::ApiInitializer TextComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+	return root
 		.beginClass<TextComponentEntry>("cTextComponentEntry")
 			.addProperty("Color", &TextComponentEntry::GetColor, &TextComponentEntry::SetColor)
 			.addProperty("Text", &TextComponentEntry::GetText, &TextComponentEntry::SetText)
@@ -123,15 +123,10 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 			continue;
 		}
 
-		if (!GetHandleTable()->IsValid(this, entry.m_SelfHandle)) {
-			entry.m_Flags.m_Map.m_Valid = false;
-			LastInvalidEntry = i;
-			++InvalidEntryCount;
-			continue;
-		}
-
-		auto *rtentry = m_RectTransform->GetEntry(entry.m_OwnerEntity);
+		auto *rtentry = m_RectTransform->GetEntry(entry.m_Owner);
 		if (!rtentry) {
+            AddLog(Hint, "Invalid: owner: " << entry.m_Owner);
+
 			LastInvalidEntry = i;
 			++InvalidEntryCount;
 			continue;
@@ -161,14 +156,14 @@ void TextComponent::Step(const Core::MoveConfig & conf) {
 	}
 
 	if (InvalidEntryCount > 0) {
-		AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
+		AddLogf(Performance, "TextComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
 		TrivialReleaseElement(LastInvalidEntry);
 	}
 }
 
 //---------------------------------------------------------------------------------------
 
-bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
+bool TextComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 	size_t index;
 	if (!m_Array.Allocate(index)) {
 		AddLogf(Error, "Failed to allocate index!");
@@ -176,17 +171,11 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	}
 	auto &entry = m_Array[index];
 	entry.Reset();
-	if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-		AddLog(Error, "Failed to allocate handle");
-		//no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-		return false;
-	}
-	hout = entry.m_SelfHandle;
-	entry.m_OwnerEntity = Owner;
+	entry.m_Owner = owner;
 
 	x2c::Component::TextComponent::TextEntry_t te;
 	te.ResetToDefault();
-	if (!te.Read(node)) {
+	if (!reader.Read(te)) {
 		AddLog(Error, "Failed to read ImageEntry!");
 		return false;
 	}
@@ -206,7 +195,7 @@ bool TextComponent::Load(xml_node node, Entity Owner, Handle & hout) {
 	entry.m_Flags.m_Map.m_Valid = true;
 	entry.m_Flags.m_Map.m_Dirty = true;
 	entry.m_Flags.m_Map.m_TextDirty = true;
-	m_EntityMapper.SetComponentMapping(entry);
+	m_EntityMapper.SetIndex(owner, index);
 	return true;
 }
 

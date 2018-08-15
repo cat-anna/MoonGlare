@@ -84,28 +84,6 @@ private:
     }
 };
 
-template<class T>
-struct BaseEntityMapper {
-     using Array = EntityManager::Array<T>;
-
-    const T& GetHandle(Entity e) const {
-        return m_Array[e.GetIndex()];
-    }
-
-    void SetHandle(Entity e, const T &h) {
-        m_Array[e.GetIndex()] = h;
-    }
-
-    template<typename T>
-    void SetComponentMapping(const T &entry) {
-        return SetHandle(entry.m_OwnerEntity, entry.m_SelfHandle);
-    }
-protected:
-    Array m_Array;
-};
-
-using EntityMapper = BaseEntityMapper<Handle>;
-
 template<typename T = MoonGlare::Component::iSubsystem::ComponentIndex>
 using EntityArrayMapper = MoonGlare::Component::EntityArrayMapper<T, Configuration::Entity::IndexLimit>;
 

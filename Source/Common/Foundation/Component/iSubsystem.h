@@ -38,10 +38,7 @@ class iSubsystem {
 public:
     virtual ~iSubsystem() {}
 
-    using ComponentIndex = enum : uint32_t { 
-        Zero = 0,
-        Invalid = 0xFFFFFFFF, 
-    };
+    using ComponentIndex = MoonGlare::Component::ComponentIndex;
     using Entity = MoonGlare::Component::Entity;
 
     virtual void Step(const SubsystemUpdateData &conf) { }
@@ -53,15 +50,10 @@ public:
     virtual bool Initialize() { return true; }
     virtual bool Finalize() { return true; }
 
-    virtual bool GetInstanceHandle(Entity Owner, Handle &hout) { return false; }
-
-    virtual bool Create(Entity Owner, Handle &hout) {
-        AddLogf(Error, "Abstract function called! class: %s", typeid(*this).name());
-        return false;
-    }
+    virtual bool Create(Entity Owner) { return false; }
 
     virtual bool LoadComponentConfiguration(pugi::xml_node node) { return true; }
-    virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets) { return false; }
+    virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }
 
     //virtual void OnEntityDestroyed(Entity e) { }
     //virtual void OnEntityCrated(Entity e) { }

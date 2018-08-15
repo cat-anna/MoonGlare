@@ -19,13 +19,12 @@
 #include <Source/Renderer/Renderer.h>
 #include <Core/Scripts/LuaApi.h>
 
-
 #include "../RectTransformDebugDraw.h"
 
 namespace MoonGlare::GUI::Component {
 
 ::Space::RTTI::TypeInfoInitializer<RectTransformComponent, RectTransformComponentEntry> RectTransformComponentTypeInfo;
-RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg;
+RegisterComponentID<RectTransformComponent> RectTransformComponentIDReg("RectTransform");
 RegisterDebugApi(RectTransformComponent, &RectTransformComponent::RegisterDebugScriptApi, "Debug");
 
 #ifdef DEBUG
@@ -35,7 +34,7 @@ static bool gRectTransformDebugDraw = false;
 //---------------------------------------------------------------------------------------
 
 RectTransformComponent::RectTransformComponent(SubsystemManager *Owner)
-    : TemplateStandardComponent(Owner) {
+    : AbstractSubsystem(Owner) {
 }
 
 RectTransformComponent::~RectTransformComponent() {
@@ -43,7 +42,118 @@ RectTransformComponent::~RectTransformComponent() {
 
 //---------------------------------------------------------------------------------------
 
-void RectTransformComponent::RegisterScriptApi(ApiInitializer & root) {
+struct RectTransformComponent::LuaWrapper {
+    RectTransformComponent *component;
+    ScriptComponent *scriptComponent;
+
+    Entity owner;
+    mutable ComponentIndex index;
+
+    void Check() const {
+        //if (transformComponent->componentIndexRevision != indexRevision) {
+        index = component->GetComponentIndex(owner);
+        //}
+        if (index == ComponentIndex::Invalid) {
+            __debugbreak();
+            throw Scripts::LuaPanic("Attempt to dereference deleted RectTransform component!");
+        }
+    }
+    void SetDirty() { component->values.entry[index].m_Flags.m_Map.m_Dirty = true; }
+
+    math::fvec2 GetPosition() const { Check(); return component->values.entry[index].m_Position; }
+    void SetPosition(math::vec2 pos) { Check(); SetDirty(); component->values.entry[index].m_Position = pos; }
+
+    math::fvec2 GetSize() const { Check(); return component->values.entry[index].m_Size; }
+    void SetSize(math::vec2 pos) { Check(); SetDirty(); component->values.entry[index].m_Size = pos; }
+
+    math::fvec2 GetScreenPosition() const { Check(); return component->values.entry[index].m_ScreenRect.LeftTop; }
+    void SetScreenPosition(math::vec2 pos) { Check(); SetDirty(); component->values.entry[index].m_ScreenRect.LeftTop = pos; }
+
+    const char* GetAlignMode() const { Check(); return AlignModeEnum::ToString(component->values.entry[index].m_AlignMode).c_str(); }
+    void SetAlignMode(const char *val) { Check(); SetDirty(); component->values.entry[index].m_AlignMode = AlignModeEnum::ConvertSafe(val); }
+
+    math::vec2 PixelToCurrent(math::vec2 pos) const { return component->PixelToCurrent(pos); }
+
+    int FindChildByName(lua_State *lua) {
+        Check();
+        std::string_view name = lua_tostring(lua, 2);
+        if (name.empty())
+            return 0;
+
+        auto *em = component->GetManager()->GetWorld()->GetEntityManager();
+        for (auto childIndex : component->values.TraverseTree(index)) {
+            Entity e = component->values.owner[childIndex];
+            std::string n;
+            if (em->GetEntityName(e, n) && name == n) {
+                return scriptComponent->GetGameObject(lua, e);
+            }
+        }
+        return 0;
+    }
+
+    int FindChildAtPosition(lua_State *lua) {
+        Check();
+        auto pos = luabridge::Stack<math::vec2>::get(lua, 2);
+
+        pos += component->GetRootEntry().m_ScreenRect.LeftTop;
+
+        auto *ParentEntry = &component->values.entry[component->values.parentIndex[index]];
+        if (!ParentEntry->m_ScreenRect.IsPointInside(pos))
+            return false;
+
+        for (auto childIndex : component->values.TraverseTree(index)) {
+            auto *entry = &component->values.entry[childIndex];
+            if (entry->m_ScreenRect.IsPointInside(pos)) {
+                Entity e = component->values.owner[childIndex];
+                return scriptComponent->GetGameObject(lua, e);
+            }
+        }
+        return 0; 
+    }
+
+    int GetParent(lua_State *lua) {
+        Check();
+        auto parentIndex = component->values.parentIndex[index];
+        if (parentIndex == component->values.InvalidIndex) 
+            return 0;
+        auto parentEntity = component->values.owner[parentIndex];
+        return scriptComponent->GetGameObject(lua, parentEntity);
+    }
+    int GetFirstChild(lua_State *lua) {
+        Check();
+        auto firstChild = component->values.firstChild[index];
+        if (firstChild == component->values.InvalidIndex) 
+            return 0;
+        auto childEntity = component->values.owner[firstChild];
+        return scriptComponent->GetGameObject(lua, childEntity);
+    }
+    int GetNextSibling(lua_State *lua) {
+        Check();
+        auto nextSibling = component->values.nextSibling[index];
+        if (nextSibling == component->values.InvalidIndex) 
+            return 0;
+        auto siblingEntity = component->values.owner[nextSibling];
+        return scriptComponent->GetGameObject(lua, siblingEntity);
+    }
+};
+
+MoonGlare::Scripts::ApiInitializer RectTransformComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+    return root
+        .beginClass<LuaWrapper>("RectTransformComponent")
+            .addCFunction("GetParent", &LuaWrapper::GetParent)
+            .addCFunction("GetFirstChild", &LuaWrapper::GetFirstChild)
+            .addCFunction("GetNextSibling", &LuaWrapper::GetNextSibling)
+            .addCFunction("FindChildByName", &LuaWrapper::FindChildByName)
+
+            .addCFunction("FindChildAtPosition", &LuaWrapper::FindChildAtPosition)
+            .addFunction("PixelToCurrent", &LuaWrapper::PixelToCurrent)
+
+            .addProperty("Position", &LuaWrapper::GetPosition, &LuaWrapper::SetPosition)
+            .addProperty("Size", &LuaWrapper::GetSize, &LuaWrapper::SetSize)
+            .addProperty("ScreenPosition", &LuaWrapper::GetScreenPosition, &LuaWrapper::SetScreenPosition)
+            .addProperty("AlignMode", &LuaWrapper::GetAlignMode, &LuaWrapper::SetAlignMode)
+        .endClass()
+        ;
 }
 
 void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
@@ -58,34 +168,31 @@ void RectTransformComponent::RegisterDebugScriptApi(ApiInitializer & root) {
     ;
 }
 
-//---------------------------------------------------------------------------------------
-
-int RectTransformComponent::FindChild(lua_State *lua) {
-    void *voidThis = lua_touserdata(lua, lua_upvalueindex(1));
-    RectTransformComponent *This = reinterpret_cast<RectTransformComponent*>(voidThis);
-
-    lua_getfield(lua, 1, "Handle");
-    Handle Owner = Handle::FromVoidPtr(lua_touserdata(lua, -1));
-    lua_pop(lua, 1);
-
-    auto pos = luabridge::Stack<math::vec2>::get(lua, 2);
-
-    Entity e;
-    if (!This->FindChildByPosition(Owner, pos, e)) {
-        lua_pushnil(lua);
-        return 1;
-    }
-
-    This->m_ScriptComponent->GetObjectRootInstance(lua, e);
-
+int RectTransformComponent::PushToLua(lua_State *lua, Entity owner) {
+    auto index = values.entityMapper.GetIndex(owner);
+    if (index == values.InvalidIndex)
+        return 0;
+    LuaWrapper lw{ this, m_ScriptComponent, owner, index, };
+    luabridge::push<LuaWrapper>(lua, lw);
     return 1;
+}
+
+//------------------------------------------------------------------------------------------
+
+void RectTransformComponent::ElementRemoved(Values::ElementIndex index) {
+    AddLog(Hint, "ElementRemoved: index: " << index << " owner: " << values.owner[index]);
+    GetManager()->GetWorld()->GetEntityManager()->Release(values.owner[index]);
 }
 
 //---------------------------------------------------------------------------------------
 
 bool RectTransformComponent::Initialize() {
-    memset(&m_Array, 0, m_Array.Capacity() * sizeof(m_Array[0]));
-    m_CurrentRevision = 1;
+    values.Clear();             
+    values.component = this;
+    m_CurrentRevision = 0;
+
+    auto &ed = GetManager()->GetEventDispatcher();
+    ed.Register<Component::EntityDestructedEvent>(this);
 
     m_ScriptComponent = GetManager()->GetComponent<ScriptComponent>();
     if (!m_ScriptComponent) {
@@ -93,17 +200,12 @@ bool RectTransformComponent::Initialize() {
         return false;
     }
 
-    m_Array.ClearAllocation();
-    size_t index;
-    if (!m_Array.Allocate(index)) {
-        AddLogf(Error, "Failed to allocate index!");
-        return false;
-    }
+    size_t index = values.Allocate();
 
-    auto &RootEntry = m_Array[index];
+    auto &RootEntry = values.entry[index];
     RootEntry.m_Flags.ClearAll();
     RootEntry.m_Flags.m_Map.m_Valid = true;
-    RootEntry.m_OwnerEntity = GetManager()->GetRootEntity();
+    values.owner[index] = GetManager()->GetRootEntity();
 
     m_ScreenSize = emath::MathCast<math::fvec2>(GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSizef());
 
@@ -125,70 +227,53 @@ bool RectTransformComponent::Initialize() {
     auto &rb = RootEntry.m_ScreenRect;
     m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y, -100.0f, 100.0f);
 
-    if (!GetHandleTable()->Allocate(this, RootEntry.m_OwnerEntity, RootEntry.m_SelfHandle, index)) {
-        AddLog(Error, "Failed to allocate root handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-    m_EntityMapper.SetComponentMapping(RootEntry);
+    values.entityMapper.SetIndex(values.owner[index], index);
 
-    return true;
-}
-
-bool RectTransformComponent::Finalize() {
     return true;
 }
 
 //---------------------------------------------------------------------------------------
 
+void RectTransformComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event) {
+    auto index = values.entityMapper.GetIndex(event.entity);
+    if (index == values.InvalidIndex)
+        return;
+
+    AddLog(Hint, "HandleEvent: index: " << index << " owner: " << values.owner[index]);
+
+    //begin destruction
+    values.RemoveBranch(index);
+}
+
+//---------------------------------------------------------------------------------------
+
 void RectTransformComponent::Step(const Core::MoveConfig & conf) {
-    auto *EntityManager = GetManager()->GetWorld()->GetEntityManager();
+    ++m_CurrentRevision;
+    //TODO: revision will overrun each 800 days of execution!!!!
+    //if (m_CurrentRevision < 1) { m_CurrentRevision = 1; }
 
-    size_t LastInvalidEntry = 0;
-    size_t InvalidEntryCount = 0;
-
-    for (size_t i = 1; i < m_Array.Allocated(); ++i) {//ignore root entry
-        auto &item = m_Array[i];
+    for (size_t i = 1; i < values.Allocated(); ++i) {//ignore root entry
+        auto &item = values.entry[i];
 
         if (!item.m_Flags.m_Map.m_Valid) {
             //mark and continue
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
             continue;
         }
 
-        if (!GetHandleTable()->IsValid(this, item.m_SelfHandle)) {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            continue;
-        }
+        auto parentIndex = values.parentIndex[i];
+        assert(parentIndex != values.InvalidIndex);
 
-        Entity ParentEntity;
-        if (EntityManager->GetParent(item.m_OwnerEntity, ParentEntity)) {
-            auto *ParentEntry = GetEntry(ParentEntity);
-
-            if (ParentEntry->m_Revision <= item.m_Revision && m_CurrentRevision > 1 && !item.m_Flags.m_Map.m_Dirty) {
-                //nothing to do, nothing changed;
-                item.m_Flags.m_Map.m_Changed = false;
-            } else {
-                item.Recalculate(*ParentEntry);
-                item.m_Revision = m_CurrentRevision;
-                item.m_Flags.m_Map.m_Changed = true;
-            }
-            //	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
+        auto *ParentEntry = &values.entry[parentIndex];
+        if (ParentEntry->m_Revision <= item.m_Revision && !item.m_Flags.m_Map.m_Dirty) {
+            //nothing to do, nothing changed;
+            item.m_Flags.m_Map.m_Changed = false;
         } else {
-            item.m_Flags.m_Map.m_Valid = false;
-            LastInvalidEntry = i;
-            ++InvalidEntryCount;
-            continue;
-            //mark and continue but set valid to false to avoid further processing
+            item.Recalculate(*ParentEntry);
+            item.m_Revision = m_CurrentRevision;
+            item.m_Flags.m_Map.m_Changed = true;
+            //item.m_Flags.m_Map.m_Dirty = false;
         }
-    }
-
-    if (InvalidEntryCount > 0) {
-        AddLogf(Performance, "TransformComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
-        TrivialReleaseElement(LastInvalidEntry);
+        //	item.m_GlobalScale = ParentEntry->m_GlobalScale * item.m_LocalScale;
     }
 
 #ifdef DEBUG
@@ -198,48 +283,26 @@ void RectTransformComponent::Step(const Core::MoveConfig & conf) {
         debugDraw->DebugDraw(conf, this);
     }
 #endif
-
-    ++m_CurrentRevision;
-    if (m_CurrentRevision < 1) {
-        m_CurrentRevision = 1;
-    }
 }
 
 //---------------------------------------------------------------------------------------
 
-bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
-    size_t index;
-    if (!m_Array.Allocate(index)) {
-        AddLogf(Error, "Failed to allocate index!");
+bool RectTransformComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
+    auto parentIndex = values.entityMapper.GetIndex(parent);
+    if (parentIndex == values.InvalidIndex) {
         return false;
     }
-    auto &entry = m_Array[index];
+
+    size_t index = values.Allocate(parentIndex);
+    values.entityMapper.SetIndex(owner, index);
+
+    auto &entry = values.entry[index];
     entry.m_Flags.ClearAll();
-    if (!GetHandleTable()->Allocate(this, Owner, entry.m_SelfHandle, index)) {
-        AddLog(Error, "Failed to allocate handle");
-        //no need to deallocate entry. It will be handled by internal garbage collecting mechanism
-        return false;
-    }
-    hout = entry.m_SelfHandle;
-    entry.m_OwnerEntity = Owner;
-
-    Entity Parent;
-    if (!GetManager()->GetWorld()->GetEntityManager()->GetParent(Owner, Parent)) {
-        AddLog(Error, "Failed to get Parent!");
-        return false;
-    }
-
-    auto ParentEntry = GetEntry(Parent);
-    if (!ParentEntry) {
-        AddLog(Error, "Failed to get ParentEntry!");
-        return false;
-    }
-
-    entry.m_Flags.m_Map.m_Dirty = true;
+    values.owner[index] = owner;
 
     x2c::Component::RectTransformComponent::RectTransformEntry_t rte;
     rte.ResetToDefault();
-    if (!rte.Read(node)) {
+    if (!reader.Read(rte)) {
         AddLog(Error, "Failed to read RectTransfromEntry!");
         return false;
     }
@@ -280,11 +343,14 @@ bool RectTransformComponent::Load(xml_node node, Entity Owner, Handle &hout) {
         }
     } 
 
-    entry.Recalculate(*ParentEntry);
+    entry.Recalculate(values.entry[parentIndex]);
     entry.m_Revision = m_CurrentRevision;
 
+    values.entry[parentIndex].m_Flags.m_Map.m_Dirty = true;
+
     entry.m_Flags.m_Map.m_Valid = true;
-    m_EntityMapper.SetComponentMapping(entry);
+    entry.m_Flags.m_Map.m_Dirty = true;
+    
     return true;
 }
 
@@ -299,55 +365,6 @@ bool RectTransformComponent::LoadComponentConfiguration(pugi::xml_node node) {
     m_Flags.m_Map.m_UniformMode = rts.m_UniformMode;
     
     return true;
-}
-
-//---------------------------------------------------------------------------------------
-
-bool RectTransformComponent::FindChildByPosition(Handle Parent, math::vec2 pos, Entity &eout) {
-    auto ParentEntry = GetEntry(Parent);
-    if (!ParentEntry) {
-        AddLogf(Error, "Attempt to find child by position of null parent!");
-        return false;
-    }
-
-    pos += GetRootEntry().m_ScreenRect.LeftTop;
-
-    if (!ParentEntry->m_ScreenRect.IsPointInside(pos))
-        return false;
-
-    auto em = GetManager()->GetWorld()->GetEntityManager();
-    struct T {
-        static bool f(Core::EntityManager *em, RectTransformComponent *rtc, Entity Owner, const math::vec2 &pos, Entity &eout) {
-            if (!em->IsValid(Owner))
-                return false;
-            
-            auto entry = rtc->GetEntry(Owner);
-
-            if (entry) {
-                if (!entry->m_ScreenRect.IsPointInside(pos))
-                    return false;
-            }
-
-            Entity child;
-            if (!em->GetFistChild(Owner, child)) {
-                eout = Owner;
-                return true;
-            }
-
-            do {
-                if (f(em, rtc, child, pos, eout)) {
-                    return true;
-                }
-            } while (em->GetNextSibling(child, child));
-
-            eout = Owner;
-            return true;
-        }
-    };
-    auto Owner = ParentEntry->m_OwnerEntity;
-    if (!em->GetFistChild(Owner, Owner))
-        return false;
-    return T::f(em, this, Owner, pos, eout);
 }
 
 //---------------------------------------------------------------------------------------

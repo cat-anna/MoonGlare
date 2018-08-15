@@ -44,10 +44,8 @@ struct BodyShapeComponentEntry {
         static_assert(sizeof(MapBits_t) <= sizeof(decltype(m_UintValue)), "Invalid Function map elements size!");
     };
 
-    Handle m_SelfHandle;
     Entity m_OwnerEntity;
     FlagsMap m_Flags;
-    Handle m_BodyHandle;
     BodyComponent *m_BodyComponent;
     BodyShapeComponent *shapeComponent;
     std::unique_ptr<btCollisionShape> m_Shape;
@@ -76,15 +74,17 @@ public:
 
     virtual void Step(const Core::MoveConfig &conf) override;
 
-    virtual bool Load(xml_node node, Entity Owner, Handle &hout) override;
+    virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) override;
 
-    virtual bool GetInstanceHandle(Entity Owner, Handle &hout) override;
+    virtual bool PushEntryToLua(Entity e, lua_State *lua, int &luarets);
+    bool Create(Entity Owner) override;
 
-    virtual bool Create(Entity Owner, Handle &hout);
-    virtual bool PushEntryToLua(Handle h, lua_State *lua, int &luarets);
-
-    BodyShapeComponentEntry* GetEntry(Handle h);
-    BodyShapeComponentEntry* GetEntry(Entity e);
+    BodyShapeComponentEntry* GetEntry(Entity e) {
+        auto index = m_EntityMapper.GetIndex(e);
+        if (index == ComponentIndex::Invalid)
+            return nullptr;
+        return &m_Array[index];
+    }
 
 //	virtual bool LoadComponentConfiguration(pugi::xml_node node);
 /*
@@ -94,7 +94,7 @@ btCapsuleShapeZ
 btConvexHullShape
 btBvhTriangleMeshShape
 */
-    static void RegisterScriptApi(ApiInitializer &root);
+    static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
     template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 
@@ -103,9 +103,9 @@ protected:
 
     Array<BodyShapeComponentEntry> m_Array;
 
-    Core::EntityMapper m_EntityMapper;
+    Core::EntityArrayMapper<> m_EntityMapper;
 
-    bool BuildEntry(Entity Owner, Handle &hout, size_t &indexout);
+    bool BuildEntry(Entity Owner, size_t &indexout);
 
     std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadByName(const std::string &name, xml_node node);
     std::pair<std::unique_ptr<btCollisionShape>, ColliderType> LoadShape(xml_node node, Entity Owne);
