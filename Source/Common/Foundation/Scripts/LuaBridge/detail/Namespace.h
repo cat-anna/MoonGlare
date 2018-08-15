@@ -40,7 +40,7 @@ private:
 
   lua_State* const L;
   int mutable m_stackSize;
-
+  std::string m_location;
 private:
   //============================================================================
   /**
@@ -490,6 +490,9 @@ private:
         lua_insert (L, -3);
         lua_insert (L, -2);
       }
+
+      addStaticString("ClassName", name);
+      addStaticString("FullClassName", (parent->GetLocation() + "." + name).c_str());
     }
 
     //==========================================================================
@@ -531,6 +534,9 @@ private:
       lua_rawsetp (L, LUA_REGISTRYINDEX, ClassInfo <T>::getClassKey ());
       lua_pushvalue (L, -3);
       lua_rawsetp (L, LUA_REGISTRYINDEX, ClassInfo <T>::getConstKey ());
+
+      addStaticString("ClassName", name);
+      addStaticString("FullClassName", (parent->GetLocation() + "." + name).c_str());
     }
 
     //--------------------------------------------------------------------------
@@ -939,6 +945,10 @@ private:
   {
     m_stackSize = parent->m_stackSize + 1;
     parent->m_stackSize = 0;
+    if (parent->m_location.empty())
+        m_location = name;
+    else
+        m_location = parent->m_location + "." + name;
 
     assert (lua_istable (L, -1));
     rawgetfield (L, -1, name);
@@ -978,6 +988,14 @@ private:
     child->m_stackSize = 1;
     child->pop (1);
 
+    auto pos = m_location.rfind('.');
+    if (pos == std::string::npos) {
+        m_location = "";
+    } else {
+        m_location = m_location.substr(0, pos);
+    }
+
+
     // It is not necessary or valid to call
     // endNamespace() for the global namespace!
     //
@@ -995,9 +1013,18 @@ private:
     m_stackSize = child->m_stackSize - 3;
     child->m_stackSize = 3;
     child->pop (3);
+
+    auto pos = m_location.rfind('.');
+    if (pos == std::string::npos) {
+        m_location = "";
+    }
+    else {
+        m_location = m_location.substr(0, pos);
+    }
   }
 
 public:
+    const std::string &GetLocation() const { return m_location; }
   //----------------------------------------------------------------------------
   /**
       Copy Constructor.
@@ -1010,6 +1037,7 @@ public:
   {
     m_stackSize = other.m_stackSize;
     other.m_stackSize = 0;
+    m_location = other.m_location;
   }
 
   //----------------------------------------------------------------------------

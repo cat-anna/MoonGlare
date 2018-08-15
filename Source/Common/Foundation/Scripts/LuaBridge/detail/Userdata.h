@@ -413,8 +413,10 @@ private:
       assert (lua_istable (L, -1));
 #else
       bool ch = lua_istable (L, -1);
-      if(!ch)
-    	  throw LuaBrigeException("An attempt to push nonexistent user type!");
+      if (!ch) {
+          __debugbreak();
+          throw LuaBrigeException("An attempt to push nonexistent user type!");
+      }
 #endif
       lua_setmetatable (L, -2);
     }
@@ -438,8 +440,10 @@ private:
       assert (lua_istable (L, -1));
 #else
       bool ch = lua_istable (L, -1);
-      if(!ch)
-    	  throw LuaBrigeException("An attempt to push nonexistent user type!");
+      if (!ch) {
+          __debugbreak();
+          throw LuaBrigeException("An attempt to push nonexistent user type!");
+      }
 #endif
       lua_setmetatable (L, -2);
     }
