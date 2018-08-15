@@ -143,10 +143,7 @@ private:
     static int lua_Destroy(lua_State *lua);
     static int lua_SetName(lua_State *lua);
     static int lua_GetName(lua_State *lua);
-    static int lua_FindChild(lua_State *lua);
     static int lua_GameObjectGetComponent(lua_State *lua);
-    static int lua_GetParent(lua_State *lua);
-    static int lua_GetFirstChild(lua_State *lua);
     static int lua_GetGameObject(lua_State *lua);
 }; 											
 
