@@ -1,17 +1,21 @@
 
 local function dofmt(...)
+    local n = select("#", ...);
+    local inv = { ... }
     local out = { }
-    for i,v in ipairs({...}) do
-        if v == nil then
+    for i=1,n do
+        if inv[i] == nil then
             out[i] = "[NIL]"
         else        
-            out[i] = tostring(v)
+            out[i] = tostring(inv[i])
         end
     end
     return table.concat(out, " ")
 end
 
-function print(...) Log.Console(dofmt(...)) end
+function print(...) 
+    Log.Console(dofmt(...))
+end
 function warning(...) Log.Warning(dofmt(...)) end
 function hint(...) Log.Hint(dofmt(...)) end
 function DebugPrint(...) Log.Debug(dofmt(...)) end
