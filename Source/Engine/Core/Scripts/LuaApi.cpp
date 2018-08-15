@@ -166,7 +166,10 @@ void ApiInit::Initialize(ScriptEngine *s) {
             s->GetApiInitializer()
                 .beginNamespace("api")
                     .beginNamespace("Component")
-                        .DefferCalls([ci](auto &n) { ci.m_ApiRegFunc(n); });
+                        .DefferCalls([ci](auto &n) { ci.m_ApiRegFunc(n); })
+                    //.endNamespace()
+                //.endNamespace()
+                ;
         }
     }
 

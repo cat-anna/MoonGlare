@@ -74,7 +74,7 @@ public:
     template<typename EVENT>
     void Queue(const EVENT& event) {
         AddLog(Event, "Queued event: " << event);
-        std::lock_guard<std::mutex> lock(bufferMutex);
+        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
         auto buf = buffer.Allocate<QueuedEvent<EVENT>>();
         buf->event = event;
         buf->sendFunc = reinterpret_cast<BaseQueuedEvent::SendFunc>(&EventDispatcher::SendQueuedEvent<EVENT>);
@@ -118,7 +118,7 @@ private:
     Array<BaseEventCallDispatcher> eventDispatchers;
     lua_State *luaState;
     EventScriptSink *eventSink;
-    std::mutex bufferMutex;
+    std::recursive_mutex bufferMutex;
     Memory::DynamicBuffer<Configuration::EventDispatcherQueueSize> buffer;
 };
 

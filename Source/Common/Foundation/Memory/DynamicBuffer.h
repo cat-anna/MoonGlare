@@ -48,11 +48,17 @@ struct DynamicBuffer {
         const void *memory;
     };
 
+    struct EndIterator {
+        EndIterator(const size_t &pos, const DynamicBuffer& db) : position(pos), bufref(db) { }
+        size_t Limit() const { return position; }
+    private:
+        const size_t &position;
+        const DynamicBuffer &bufref;
+    };
     struct Iterator {
         Iterator(size_t pos, const DynamicBuffer& db) : position(pos), bufref(db) { }
-        bool operator != (const Iterator &other) const {
-            return position != other.position;
-        }
+        bool operator != (const Iterator &other) const { return position != other.position; }
+        bool operator != (const EndIterator &other) const { return position != other.Limit(); }
         void operator++() {
             position += GetEntry()->size;
         }
@@ -81,7 +87,7 @@ struct DynamicBuffer {
     };
 
     Iterator begin() const { return Iterator(0, *this); }
-    Iterator end() const { return Iterator(allocatedBytes, *this); }
+    EndIterator end() const { return EndIterator(allocatedBytes, *this); }
 private:
     size_t allocatedBytes;
     ArrayType buffer;

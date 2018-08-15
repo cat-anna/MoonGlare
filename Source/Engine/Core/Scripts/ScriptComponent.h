@@ -67,10 +67,10 @@ public:
             m_Flags.m_Map.m_Valid = false;
         }
     };
-    static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
+    //static_assert((sizeof(ScriptEntry) % 8) == 0, "Invalid ScriptEntry size!");
 	//static_assert(std::is_pod<ScriptEntry>::value, "ScriptEntry must be pod!");
 
-    void GetObjectRootInstance(lua_State *lua, Entity Owner);//returns false on error; Owner shall be valid; returns OR GO on success and nothing on failure
+    int GetGameObject(lua_State *lua, Entity Owner);
 
     ScriptEntry* GetEntry(Entity e) { 
         auto index = m_EntityMapper.GetIndex(e);
@@ -89,6 +89,8 @@ protected:
     EntityArrayMapper<> m_EntityMapper;
 
     iRequireModule *requireModule;
+
+    void GetObjectRootInstance(lua_State *lua, Entity Owner); //returns OR GO on success and never fails
 
     class EventScriptSinkProxy : public EventScriptSink {
         ScriptComponent * reciver;

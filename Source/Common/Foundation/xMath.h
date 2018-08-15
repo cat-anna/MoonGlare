@@ -1,15 +1,5 @@
 #pragma once
 
-#ifdef BT_VECTOR3_H
-
-namespace Physics {
-	using vec3 = btVector3;
-	using Quaternion = btQuaternion;
-	using Transform = btTransform;
-}
-
-#endif
-
 namespace emath {
 using fvec2 = Eigen::Vector2f;
 using fvec3 = Eigen::Vector3f;
@@ -121,8 +111,8 @@ namespace math {
 	typedef glm::uvec4 uvec4;
 
 #ifdef BT_VECTOR3_H
-    using Transform = Physics::Transform;
-	using Quaternion = Physics::Quaternion;
+    using Transform = btTransform;
+	using Quaternion = btQuaternion;
 #endif
 
 	template<class T>
@@ -191,8 +181,8 @@ namespace math {
 
 #ifdef BT_VECTOR3_H
 
-inline Physics::vec3 convert(const math::vec3& src) { return Physics::vec3(src[0], src[1], src[2]); }
-inline math::vec3 convert(const Physics::vec3& src) { return math::vec3(src[0], src[1], src[2]); }
+inline btVector3 convert(const math::vec3& src) { return btVector3(src[0], src[1], src[2]); }
+inline math::vec3 convert(const btVector3& src) { return math::vec3(src[0], src[1], src[2]); }
 
 inline math::Quaternion convert(const math::vec4& src) { return math::Quaternion(src[0], src[1], src[2], src[3]); }
 inline math::vec4 convert(const math::Quaternion& src) { return math::vec4(src[0], src[1], src[2], src[3]); }

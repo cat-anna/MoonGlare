@@ -529,6 +529,13 @@ bool ExtracEntityFromArgument(lua_State *lua, int location, Entity &e, bool Allo
 
 //-------------------------------------------------------------------------------------------------
 
+int ScriptComponent::GetGameObject(lua_State *lua, Entity Owner) {
+    GetObjectRootInstance(lua, Owner);
+    lua_insert(lua, -2);											//stack: GO OR
+    lua_pop(lua, 1);												//stack: GO
+    return 1;
+}
+
 void ScriptComponent::GetObjectRootInstance(lua_State *lua, Entity Owner) {
     LuaStackOverflowAssert check(lua);
 

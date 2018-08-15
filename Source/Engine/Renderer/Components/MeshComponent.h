@@ -13,7 +13,6 @@
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Scripts/ScriptComponent.h>
-#include <Core/Scripts/ComponentEntryWrap.h>
 
 #include <Foundation/Component/EntityEvents.h>
 

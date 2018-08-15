@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace Physics {
+namespace MoonGlare::Physics {
 
 class BulletDebugDrawer : public btIDebugDraw {
 public:
@@ -29,5 +29,4 @@ private:
     Renderer::ShaderResourceHandleBase shaderHandle;
 };
 
-} //namespace Physics 
-
+}

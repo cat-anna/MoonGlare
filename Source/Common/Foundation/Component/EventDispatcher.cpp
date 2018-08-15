@@ -22,7 +22,7 @@ void EventDispatcher::Step() {
     if (buffer.Empty())
         return;
 
-    std::lock_guard<std::mutex> lock(bufferMutex);
+    std::lock_guard<std::recursive_mutex> lock(bufferMutex);
 
     for (auto item : buffer) {
         const BaseQueuedEvent *base = reinterpret_cast<const BaseQueuedEvent*>(item.memory);

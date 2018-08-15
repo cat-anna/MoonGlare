@@ -14,12 +14,11 @@
 
 namespace MoonGlare::Core::Component {
 
-RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform", true, &TransformComponent::RegisterScriptApi);
+RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
 
 TransformComponent::TransformComponent(SubsystemManager * Owner)
 		: iSubsystem(), subSystemManager(Owner) {
     
-    values.Clear();
     values.component = this;
 
     m_CurrentRevision = 0;
@@ -31,6 +30,13 @@ bool TransformComponent::Initialize() {
     auto &ed = GetManager()->GetEventDispatcher();
     ed.Register<Component::EntityDestructedEvent>(this);
 
+    scriptComponent = GetManager()->GetComponent<Scripts::Component::ScriptComponent>();
+    if (!scriptComponent) {
+        AddLog(Error, "Failed to get ScriptComponent instance!");
+        return false;
+    }
+
+    values.Clear();
     ComponentIndex index = values.Allocate();
 
     values.flags[index].ClearAll();
@@ -54,45 +60,78 @@ bool TransformComponent::Initialize() {
 //---------------------------------------------------------------------------------------
 
 struct TransformComponent::LuaWrapper {
-    TransformComponent *transformComponent;
+    TransformComponent *component;
+    Scripts::Component::ScriptComponent *scriptComponent;
     Entity owner;
     mutable ComponentIndex index;
 
     void Check() const {
         //if (transformComponent->componentIndexRevision != indexRevision) {
-            index = transformComponent->GetComponentIndex(owner);
+            index = component->GetComponentIndex(owner);
         //}
+        if (index == ComponentIndex::Invalid) {
+            __debugbreak();
+            throw Scripts::LuaPanic("Attempt to dereference deleted Transform component! ");
+        }
     }
 
-    math::vec3 GetPosition() const { 
+    math::vec3 GetPosition() const { Check(); return emath::MathCast<math::fvec3>(component->GetPosition(index)); }
+    void SetPosition(math::vec3 pos) { Check(); component->SetPosition(index, emath::MathCast<emath::fvec3>(pos)); }
+    math::vec4 GetRotation() const {  Check(); return emath::MathCast<math::fvec4>(component->GetRotation(index)); }
+    void SetRotation(math::vec4 rot) { Check(); component->SetRotation(index, emath::MathCast<emath::Quaternion>(rot)); }
+    math::vec3 GetScale() const { Check(); return emath::MathCast<math::fvec3>(component->GetScale(index)); }
+    void SetScale(math::vec3 s) { Check(); component->SetScale(index, emath::MathCast<emath::fvec3>(s)); }
+
+    int FindChildByName(lua_State *lua) {
         Check();
-        return emath::MathCast<math::fvec3>(transformComponent->GetPosition(index));
+        std::string_view name = lua_tostring(lua, 2);
+        if (name.empty())
+            return 0;
+
+        auto *em = component->GetManager()->GetWorld()->GetEntityManager();
+        for (auto childIndex : component->values.TraverseTree(index)) {
+            Entity e = component->values.owner[childIndex];
+            std::string n;
+            if (em->GetEntityName(e, n) && name == n) {
+                return scriptComponent->GetGameObject(lua, e);
+            }
+        }
+        return 0;
     }
-    void SetPosition(math::vec3 pos) {
+    int GetParent(lua_State *lua) {
         Check();
-        transformComponent->SetPosition(index, emath::MathCast<emath::fvec3>(pos));
+        auto parentIndex = component->values.parentIndex[index];
+        if (parentIndex == component->values.InvalidIndex)
+            return 0;
+        auto parentEntity = component->values.owner[parentIndex];
+        return scriptComponent->GetGameObject(lua, parentEntity);
     }
-    math::vec4 GetRotation() const { 
+    int GetFirstChild(lua_State *lua) {
         Check();
-        return emath::MathCast<math::fvec4>(transformComponent->GetRotation(index));
+        auto firstChild = component->values.firstChild[index];
+        if (firstChild == component->values.InvalidIndex)
+            return 0;
+        auto childEntity = component->values.owner[firstChild];
+        return scriptComponent->GetGameObject(lua, childEntity);
     }
-    void SetRotation(math::vec4 rot) {
+    int GetNextSibling(lua_State *lua) {
         Check();
-        transformComponent->SetRotation(index, emath::MathCast<emath::Quaternion>(rot));
-    }
-    math::vec3 GetScale() const { 
-        Check();
-        return emath::MathCast<math::fvec3>(transformComponent->GetScale(index));
-    }
-    void SetScale(math::vec3 s) {
-        Check();
-        transformComponent->SetScale(index, emath::MathCast<emath::fvec3>(s));
+        auto nextSibling = component->values.nextSibling[index];
+        if (nextSibling == component->values.InvalidIndex)
+            return 0;
+        auto siblingEntity = component->values.owner[nextSibling];
+        return scriptComponent->GetGameObject(lua, siblingEntity);
     }
 };
 
-void TransformComponent::RegisterScriptApi(ApiInitializer &root) {
-	root
+MoonGlare::Scripts::ApiInitializer TransformComponent::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
+	return root
 	.beginClass<LuaWrapper>("TransformComponent")
+        .addCFunction("GetParent", &LuaWrapper::GetParent)
+        .addCFunction("GetFirstChild", &LuaWrapper::GetFirstChild)
+        .addCFunction("GetNextSibling", &LuaWrapper::GetNextSibling)
+        .addCFunction("FindChildByName", &LuaWrapper::FindChildByName)
+
 		.addProperty("Position", &LuaWrapper::GetPosition, &LuaWrapper::SetPosition)
 		.addProperty("Rotation", &LuaWrapper::GetRotation, &LuaWrapper::SetRotation)
 		.addProperty("Scale", &LuaWrapper::GetScale, &LuaWrapper::SetScale)
@@ -107,7 +146,7 @@ int TransformComponent::PushToLua(lua_State *lua, Entity owner) {
     auto index = values.entityMapper.GetIndex(owner);
     if (index == values.InvalidIndex)
         return 0;
-    LuaWrapper lw{ this, owner, index, };
+    LuaWrapper lw{ this, scriptComponent, owner, index, };
     luabridge::push<LuaWrapper>(lua, lw);
     return 1;
 }
@@ -133,7 +172,6 @@ void TransformComponent::ElementRemoved(Values::ElementIndex index) {
 
 void TransformComponent::Step(const SubsystemUpdateData & conf) {
     ++m_CurrentRevision;
-    
     //TODO: revision will overrun each 800 days of execution!!!!
     //if (m_CurrentRevision < 1) { m_CurrentRevision = 1; }
 

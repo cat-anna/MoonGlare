@@ -76,8 +76,8 @@ inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b)
     // Based on Stan Melax's article in Game Programming Gems
     math::Quaternion q;
     // Copy, since cannot modify local
-    Physics::vec3 v0 = convert(a);
-    Physics::vec3 v1 = convert(b);
+    btVector3 v0 = convert(a);
+    btVector3 v1 = convert(b);
 
     v0.normalize();
     v1.normalize();
@@ -88,14 +88,14 @@ inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b)
         return convert(math::Quaternion::getIdentity());
     }
     if (d < (1e-6f - 1.0f)) {
-        if (v1 != Physics::vec3(0, 0, 0)) {
+        if (v1 != btVector3(0, 0, 0)) {
             // rotate 180 degrees about the fallback axis
             q = math::Quaternion(v1, glm::radians(180.0f));
         } else {
             // Generate an axis
-            Physics::vec3 axis = Physics::vec3(1, 0, 0).cross(v0);
+            btVector3  axis = btVector3(1, 0, 0).cross(v0);
             if (axis.length2() < 1e-06f * 1e-06f) // pick another if colinear
-                axis = Physics::vec3(0, 1, 0).cross(v0);
+                axis = btVector3(0, 1, 0).cross(v0);
             axis.normalize();
             q = math::Quaternion(axis, glm::radians(180.0f));
         }
@@ -103,7 +103,7 @@ inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b)
         float s = sqrtf((1 + d) * 2);
         float invs = 1 / s;
 
-        Physics::vec3 c = v0.cross(v1);
+        btVector3 c = v0.cross(v1);
 
         c *= invs;
         q = math::Quaternion(c.getX(), c.getY(), c.getZ(), s * 0.5f);

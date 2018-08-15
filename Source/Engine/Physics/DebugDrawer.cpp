@@ -21,7 +21,7 @@
 #include <Renderer/Renderer.h>
 #include <Engine/Renderer/Dereferred/DereferredPipeline.h>
 
-namespace Physics {
+namespace MoonGlare::Physics {
 
 struct BtDebugDrawShaderDescriptor {
     enum class InLayout {
@@ -166,4 +166,4 @@ int BulletDebugDrawer::getDebugMode(void) const {
         0;
 }
 
-} //namespace Physics 
+}

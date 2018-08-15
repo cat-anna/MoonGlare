@@ -19,12 +19,18 @@ BOOST_TTI_HAS_MEMBER_FUNCTION(SwapValues)
 BOOST_TTI_HAS_MEMBER_FUNCTION(GetElementName)
 BOOST_TTI_HAS_MEMBER_FUNCTION(ClearArrays)
 
+template<typename T, typename IsEnumType> struct ArrayIndexTreeIndexType { };
+template<typename T> struct ArrayIndexTreeIndexType<T, std::true_type> { using IntType = std::underlying_type_t<T>; };
+template<typename T> struct ArrayIndexTreeIndexType<T, std::false_type> { using IntType = T; };
+
 } // namespace detail
 
 template <typename ElementIndex_t, ElementIndex_t ElementLimit_v, typename CALLBACK = void>
 struct alignas(16) ArrayIndexTree
 {
     using ElementIndex = ElementIndex_t;
+    using ElementIndexIntType = typename detail::ArrayIndexTreeIndexType<typename ElementIndex, typename std::is_enum<typename ElementIndex_t>::type>::IntType;
+
     static constexpr ElementIndex ElementLimit = ElementLimit_v;
     static constexpr ElementIndex InvalidIndex = ElementIndex(~(ElementIndex(0)));
     static_assert(std::is_integral_v<ElementIndex> || std::is_enum_v<ElementIndex>);
@@ -155,7 +161,7 @@ struct alignas(16) ArrayIndexTree
     }
 
     ElementIndex Allocated() { return allocated; }
-    ElementIndex LastIndex() const { return (ElementIndex)((std::underlying_type_t<ElementIndex>)allocated - 1); }
+    ElementIndex LastIndex() const { return (ElementIndex)((ElementIndexIntType)allocated - 1); }
 
     ElementIndex Allocate(ElementIndex parent = InvalidIndex)
     {
@@ -172,9 +178,6 @@ struct alignas(16) ArrayIndexTree
         auto remove = [this](ElementIndex i) -> ElementIndex {
             ElementIndex r = i;
 
-            if constexpr (HasReleaseCallback())
-                reinterpret_cast<CALLBACK *>(this)->ReleaseElement(i, parentIndex[i]);
-
             // static int idx = 0;
             // DrawDiagram("remove_" + std::to_string(idx) + ".dot");
             // std::cout << "STORED REMOVE " << idx << "\n";
@@ -187,6 +190,10 @@ struct alignas(16) ArrayIndexTree
                 SatisfyChildIndexConstraint(i);
             }
             // RemoveReferences(r);
+
+            if constexpr (HasReleaseCallback())
+                reinterpret_cast<CALLBACK *>(this)->ReleaseElement(r, parentIndex[r]);
+
             RemoveLast();
 
             return r;
@@ -504,10 +511,10 @@ public:
 private:
     ElementIndex NextIndex() { 
         ElementIndex ei = allocated;
-        allocated = (ElementIndex)((std::underlying_type_t<ElementIndex>)allocated + 1);
+        allocated = (ElementIndex)((ElementIndexIntType)allocated + 1);
         return ei; 
     };
-    void RemoveLast() { allocated = (ElementIndex)((std::underlying_type_t<ElementIndex>)allocated - 1); }
+    void RemoveLast() { allocated = (ElementIndex)((ElementIndexIntType)allocated - 1); }
 
     void AddChild(ElementIndex parent, ElementIndex child)
     {
@@ -566,7 +573,7 @@ private:
     }
 
     template<typename STARTER>
-    ElementIndexVector Vectorize(STARTER st) {
+    ElementIndexVector Vectorize(STARTER st) const {
         ElementIndexVector r;
         for (ElementIndex idx : st) r.emplace_back(idx);
         return r;
