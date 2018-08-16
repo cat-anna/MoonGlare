@@ -3,11 +3,20 @@
 
 oo = { }
 
-function oo.Inherit(base)
+function oo.Inherit(baseClass)
     local class = { }
 
-    class.__index = class
+    local isfName = type(baseClass) == "string"
+    local base = baseClass
+    if isfName then
+        base = require(baseClass)
+        class.BaseClassName = baseClass
+    end
+
+    class.IsClass = true
     class.BaseClass = base
+    
+    class.__index = class
 
     setmetatable(class, base)
 

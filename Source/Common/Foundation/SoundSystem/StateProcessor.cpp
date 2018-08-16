@@ -184,7 +184,7 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         case SourceStatus::FinitPending:
             //assert(false);
-            __debugbreak();
+            //__debugbreak();
             //todo
             break;
 

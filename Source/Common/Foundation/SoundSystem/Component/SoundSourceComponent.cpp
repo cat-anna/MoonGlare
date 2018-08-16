@@ -96,6 +96,7 @@ bool SoundSourceComponent::Create(Entity owner) {
     values.owner[index] = owner;
     values.soundHandle[index] = values.handleApi.Open("", false);
     values.handleApi.SetCallback(values.soundHandle[index], &playbackWatcher, owner.GetIntValue());
+    values.entityMapper.SetIndex(owner, index);
     return true;
 }
 
