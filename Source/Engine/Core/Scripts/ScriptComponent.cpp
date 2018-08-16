@@ -7,8 +7,6 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
-#include <Foundation/Component/ComponentInfo.h>
-#include <Foundation/Component/ComponentArray.h>
 #include <Foundation/Component/ComponentEvents.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
@@ -616,7 +614,7 @@ int ScriptComponent::lua_GetScriptComponent(lua_State *lua, Entity Owner) {
     return check.ReturnArgs(1);
 }
 
-int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entity Owner) {
+int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentId cid, Entity Owner) {
 
     auto cptr = GetManager()->GetComponent(cid);
     if (!cptr) {
@@ -632,7 +630,7 @@ int ScriptComponent::lua_GetComponentInfo(lua_State *lua, ComponentID cid, Entit
     return lua_MakeComponentInfo(lua, cid, Owner, cptr);
 }
 
-int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentID cid, Entity owner, iSubsystem *cptr) {
+int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, ComponentId cid, Entity owner, iSubsystem *cptr) {
     LuaStackOverflowAssert check(lua);
 
     lua_createtable(lua, 0, 5);
@@ -738,11 +736,11 @@ int ScriptComponent::lua_DestroyComponent(lua_State *lua) {
     //void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     //ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
-    //ComponentID cid;
+    //ComponentId cid;
     //if (This->GetHandleTable()->GetOwnerCID(h, cid)) {
-    //    switch (static_cast<ComponentID>(cid)) {
-    //    case ComponentID::Transform:
-    //    case ComponentID::RectTransform:
+    //    switch (static_cast<ComponentId>(cid)) {
+    //    case ComponentId::Transform:
+    //    case ComponentId::RectTransform:
     //        AddLogf(Error, "ScriptComponent::DestroyComponent: Error: Cannot release component of cid: %d", cid);
     //        lua_pushboolean(lua, 0);
     //        return 1;
@@ -831,7 +829,7 @@ int ScriptComponent::lua_SetActive(lua_State * lua) {
 //-------------------------------------------------------------------------------------------------
 
 int ScriptComponent::lua_CreateComponent(lua_State *lua) {
-    ComponentID cid;
+    ComponentId cid;
 
     if (!lua_istable(lua, -2)) {
         AddLogf(Error, "GameObject::CreateComponent: Error: Invalid self argument");
@@ -841,7 +839,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
 
     switch (lua_type(lua, -1)) {
     case LUA_TNUMBER:
-        cid = static_cast<ComponentID>(lua_tointeger(lua, -1));
+        cid = static_cast<ComponentId>(lua_tointeger(lua, -1));
         break;
     case LUA_TSTRING:
         if(ComponentRegister::GetComponentID(lua_tostring(lua, -1), cid))
@@ -861,28 +859,13 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
     Entity Owner = Entity::FromVoidPtr(lua_touserdata(lua, -1));
     lua_pop(lua, 1);												//stack: self cid
 
-    if (!This->GetManager()->GetWorld()->GetEntityManager()->IsValid(Owner)) {
+    auto *em = This->GetManager()->GetWorld()->GetEntityManager();
+    if (!em->IsValid(Owner)) {
         AddLogf(Error, "GameObject::CreateComponent: Error: Attempt to create component for invalid object! cid: %d", cid);
         lua_pushnil(lua);
         return 1;
     }
-
-    if ((uint32_t)cid < MoonGlare::Component::Configuration::MaxComponentTypes) {
-        auto cidx = static_cast<MoonGlare::Component::ComponentClassId>(cid);
-        if (!This->GetManager()->GetComponentArray().HasComponent(Owner.GetIndex(), cidx)) {
-            This->GetManager()->GetComponentArray().CreateComponent(Owner.GetIndex(), cidx);
-            This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, (ComponentClassId)cid });
-        }
-        
-        auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(cidx);
-        if (cinfo.apiInitFunc) {
-            void *cptr = This->GetManager()->GetComponentArray().GetComponentPointer(Owner.GetIndex(), (uint32_t)cidx);
-            if (!cptr)
-                return 0;
-            return cinfo.scriptPush(cptr, lua);
-        }
-    }
-    
+   
     auto *cptr = This->GetManager()->GetComponent(cid);
     if (!cptr) {
         AddLogf(Error, "GameObject::CreateComponent: Error: Invalid argument #1: There is no component cid: %d", cid);
@@ -891,7 +874,7 @@ int ScriptComponent::lua_CreateComponent(lua_State *lua) {
     }
 
     if (cptr->Create(Owner)) {
-        This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, (ComponentClassId)cid });
+        This->GetManager()->GetEventDispatcher().Send(ComponentCreatedEvent{ Owner, (uint32_t)cid });
         return This->lua_MakeComponentInfo(lua, cid, Owner, cptr);
     } else {
         AddLogf(Error, "GameObject::CreateComponent: Error: Failure during component creation! cid: %d", cid);
@@ -1107,7 +1090,7 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
     LuaStackOverflowAssert check(lua);
     int argc = lua_gettop(lua);
 
-    ComponentID cid = ComponentID::Invalid;
+    ComponentId cid = ComponentId::Invalid;
     const char *cname = nullptr;
     Entity RequestedOwner = {};
     bool HaveOwner = false;
@@ -1124,7 +1107,7 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
     case 2:
         switch (lua_type(lua, 2)) {
         case LUA_TNUMBER:
-            cid = static_cast<ComponentID>(lua_tointeger(lua, 2));
+            cid = static_cast<ComponentId>(lua_tointeger(lua, 2));
             break;
         case LUA_TSTRING:
             cname = lua_tostring(lua, 2);
@@ -1166,18 +1149,8 @@ int ScriptComponent::lua_GameObjectGetComponent(lua_State * lua) {
     void *voidthis = lua_touserdata(lua, lua_upvalueindex(lua::SelfPtrUpValue));
     ScriptComponent *This = reinterpret_cast<ScriptComponent*>(voidthis);
 
-    if (cid == ComponentID::Script) {
+    if (cid == ComponentId::Script) {
         return check.ReturnArgs(This->lua_GetScriptComponent(lua, RequestedOwner));
-    }
-
-    if ((uint32_t)cid < MoonGlare::Component::Configuration::MaxComponentTypes) {
-        auto cinfo = MoonGlare::Component::BaseComponentInfo::GetComponentTypeInfo(static_cast<MoonGlare::Component::ComponentClassId>(cid));
-        if (cinfo.apiInitFunc) {
-            void *cptr = This->GetManager()->GetComponentArray().GetComponentPointer(RequestedOwner.GetIndex(), (uint32_t)cid);
-            if (!cptr)
-                return check.ReturnArgs(0);
-            return check.ReturnArgs(cinfo.scriptPush(cptr, lua));
-        }
     }
 
     return check.ReturnArgs(This->lua_GetComponentInfo(lua, cid, RequestedOwner));

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Foundation/Component/Configuration.h>
 #include <Foundation/Component/EntityArrayMapper.h>
 #include "../Configuration.h"
 #include "nfCore.h"
@@ -9,9 +10,9 @@ namespace MoonGlare::Core {
 class EntityManager final 
     : public Config::Current::DebugMemoryInterface {
 public:
-    template<class T> using Array = std::array<T, Configuration::Entity::IndexLimit>;
+    template<class T> using Array = std::array<T, Component::Configuration::EntityLimit>;
     template<class ... ARGS>
-    using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Configuration::Entity::IndexLimit, ARGS...>;
+    using GenerationsAllocator_t = Space::Memory::StaticMultiAllocator<Component::Configuration::EntityLimit, ARGS...>;
     using Generations_t = Space::Memory::GenerationRandomAllocator<GenerationsAllocator_t, Entity>;
 
     EntityManager();
@@ -63,8 +64,5 @@ private:
         return m_Allocator.IsHandleValid(entity) && m_Flags[index].m_Map.m_Valid;
     }
 };
-
-template<typename T = MoonGlare::Component::iSubsystem::ComponentIndex>
-using EntityArrayMapper = MoonGlare::Component::EntityArrayMapper<T, Configuration::Entity::IndexLimit>;
 
 } 

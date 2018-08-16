@@ -1,18 +1,15 @@
 #pragma once
 
 #include <Foundation/Scripts/ApiInit.h>
-#include "ComponentInfo.h"
 
 namespace MoonGlare::Component {
-
-//TODO: ComponentDestructedEvent
 
 struct ComponentCreatedEvent {
     static constexpr char* EventName = "ComponentCreated";
     static constexpr char* HandlerName = "OnComponentCreatedEvent";
 
     Entity sender;
-    ComponentClassId ccid;
+    uint32_t ccid;     //TODO
 
     friend std::ostream& operator<<(std::ostream& out, const ComponentCreatedEvent & e) {
         out << "ComponentCreatedEvent["
@@ -43,7 +40,7 @@ struct ComponentDestructedEvent {
     static constexpr char* HandlerName = "OnComponentDestructedEvent";
 
     Entity sender;
-    ComponentClassId ccid;
+    uint32_t ccid;
 
     friend std::ostream& operator<<(std::ostream& out, const ComponentDestructedEvent & e) {
         out << "ComponentCreatedEvent["

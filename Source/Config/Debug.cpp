@@ -5,7 +5,6 @@
 #include "Core/Interfaces.h"
 
 #include <Core/Scripts/LuaApi.h>
-#include <Foundation/Component/ComponentInfo.h>
 #include <Foundation/Component/EventInfo.h>
 
 namespace Config {
@@ -69,7 +68,6 @@ void Initialize() {
     DumpFunc DumpFuncArr[] = {
         &MoonGlare::Core::Interfaces::DumpLists,
         &MoonGlare::Component::BaseEventInfo::Dump,
-        &MoonGlare::Component::BaseComponentInfo::Dump,
     };
 
     for (auto func : DumpFuncArr) {

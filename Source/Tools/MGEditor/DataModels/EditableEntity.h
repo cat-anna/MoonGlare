@@ -70,7 +70,7 @@ public:
 
     EditableEntity* AddChild();
     void DeleteChild(EditableEntity *c);
-    EditableComponent* AddComponent(Core::ComponentID cid);
+    EditableComponent* AddComponent(Core::ComponentId cid);
     void DeleteComponent(EditableComponent *c);
     void Delete() { GetParent()->DeleteChild(this); }
 
@@ -123,7 +123,7 @@ public:
     std::unique_ptr<ValuesIO> GetValuesEditor() { return std::make_unique<ValuesIO>(GetValues()); }
 
     static UniqueEditableComponent CreateComponent(EditableEntity *Parent, pugi::xml_node node);
-    static UniqueEditableComponent CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentID cid);
+    static UniqueEditableComponent CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentId cid);
 protected:
     EditableEntity * m_Parent;
     TypeEditor::SharedComponentInfo m_ComponentInfo;

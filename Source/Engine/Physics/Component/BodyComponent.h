@@ -21,7 +21,7 @@ using namespace MoonGlare::Component;
 
 class BodyComponent
         : public Core::Component::AbstractSubsystem
-        , public Core::Component::ComponentIDWrap<Core::Component::ComponentID::Body> {
+        , public Core::Component::ComponentIdWrap<Core::Component::ComponentId::Body> {
 public:
     BodyComponent(Core::Component::SubsystemManager *Owner);
     virtual ~BodyComponent();
@@ -143,7 +143,7 @@ protected:
     Array<BodyEntry> m_Array;
     Array<BulletMotionStateProxy> m_MotionStateProxy;
     Array<BulletRigidBody> m_BulletRigidBody;
-    Core::EntityArrayMapper<> m_EntityMapper;
+    EntityArrayMapper<> m_EntityMapper;
 
     using CollisionKey = std::tuple<const btCollisionObject*, const btCollisionObject*>;
     using CollisionMap = std::map<CollisionKey, const btManifoldPoint*>;

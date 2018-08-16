@@ -29,7 +29,7 @@ struct ComponentImport {
 
 struct EntityBuilder::ImportData {
     std::vector<EntityImport> entities;
-    std::map<ComponentID, std::vector<ComponentImport>> components;
+    std::map<Component::ComponentId, std::vector<ComponentImport>> components;
     std::vector<XMLFile> xmlFiles;
 
     void Prepare() {
@@ -133,10 +133,10 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
         }         
     }
 
-    std::array<ComponentID, 3> ComponentOrder = {
-        ComponentID::Transform,
-        ComponentID::RectTransform,
-        ComponentID::Body,
+    std::array<ComponentId, 3> ComponentOrder = {
+        ComponentId::Transform,
+        ComponentId::RectTransform,
+        ComponentId::Body,
     };
 
     auto SpawnComponents = [this, parent, &data](std::vector<ComponentImport>& cs) {
@@ -170,7 +170,7 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
     }
     
     std::vector<ComponentImport> scripts;
-    auto scrit = data.components.find(ComponentID::Script);
+    auto scrit = data.components.find(ComponentId::Script);
     if (scrit != data.components.end()) {
         scrit->second.swap(scripts);
         data.components.erase(scrit);
@@ -219,7 +219,7 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
             ci.xmlNode = it;
             ci.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
 
-            ComponentID cid = ComponentID::Invalid;
+            ComponentId cid = ComponentId::Invalid;
             if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
                 AddLogf(Warning, "Unknown component!");
                 continue;
@@ -257,7 +257,7 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
 //-------------------------------------------------------------------------------------------------
 
 bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node node) {
-    ComponentID cid = ComponentID::Invalid;
+    ComponentId cid = ComponentId::Invalid;
 
     if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
         AddLogf(Warning, "Unknown component!");

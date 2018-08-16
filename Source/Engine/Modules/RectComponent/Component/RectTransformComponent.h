@@ -80,7 +80,7 @@ using Core::Scripts::Component::ScriptComponent;
 
 class RectTransformComponent 
     : public AbstractSubsystem
-    , public ComponentIDWrap<ComponentID::RectTransform> {
+    , public ComponentIdWrap<ComponentId::RectTransform> {
 public:
     static constexpr char *Name = "RectTransform";
     static constexpr bool PublishID = true;
@@ -136,7 +136,7 @@ protected:
         Array<Entity>                       owner;
         Array<RectTransformComponentEntry>  entry;
 
-        Core::EntityArrayMapper<ElementIndex>  entityMapper;
+        EntityArrayMapper<>  entityMapper;
 
         RectTransformComponent      *component;
 

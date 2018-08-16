@@ -124,34 +124,6 @@ bool ScriptEngine::ConstructLuaContext() {
     lua_createtable(m_Lua, 0, 0);								//stack: ... index ctable
     MoonGlare::Core::Scripts::PublishSelfLuaTable(m_Lua, "ComponentEntryMT", this, -1);
 
-    for (auto &cit : Component::ComponentRegister::GetComponentMap()) {
-        auto &cinfo = *cit.second;
-        if (!cinfo.m_EntryMetamethods)
-            continue;
-        auto &emt = *cinfo.m_EntryMetamethods;
-
-        if (!emt)
-            continue;
-        
-        if (!emt.m_Index || !emt.m_NewIndex) {
-            AddLogf(Error, "Invalid component mt set!");
-            continue;
-        }
-
-        lua_pushinteger(m_Lua, static_cast<int>(cinfo.m_CID));	//stack: ... index ctable cid cmt
-        lua_createtable(m_Lua, 0, 0);							//stack: ... index ctable cid cmt
-
-        if (emt.m_Index) {
-            lua_pushcclosure(m_Lua, emt.m_Index, 0);
-            lua_setfield(m_Lua, -2, "__index");
-        }
-        if (emt.m_NewIndex) {
-            lua_pushcclosure(m_Lua, emt.m_NewIndex, 0);
-            lua_setfield(m_Lua, -2, "__newindex");
-        }
-            
-        lua_settable(m_Lua, -3);								//stack: ... index ctable 
-    }
     lua_settable(m_Lua, LUA_REGISTRYINDEX);						//stack: ... index ctable
 
     try {
@@ -250,7 +222,7 @@ float ScriptEngine::GetMemoryUsage() const {
 
 //---------------------------------------------------------------------------------------
 
-bool ScriptEngine::GetComponentEntryMT(ComponentID cid) {
+bool ScriptEngine::GetComponentEntryMT(ComponentId cid) {
     auto lua = GetLua();
     GetComponentMTTable(lua);
 

@@ -183,7 +183,8 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
                 return SourceProcessStatus::ReleaseAndRemove;
             break;
         case SourceStatus::FinitPending:
-            assert(false);
+            //assert(false);
+            __debugbreak();
             //todo
             break;
 
@@ -270,7 +271,7 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
     ALint queuedBuffers = state.sourceSoundHandle.GetQueuedBuffers();
     CheckOpenAlError();
 
-    if (queuedBuffers < conf::MaxBuffersPerSource && !state.streamFinished) {
+    if (queuedBuffers < Configuration::MaxBuffersPerSource && !state.streamFinished) {
         SoundBuffer b = GetNextBuffer();
         if (!LoadBuffer(state, b)) {
             ReleaseBuffer(b);
@@ -380,13 +381,13 @@ bool StateProcessor::InitializeSource(SourceState &state) {
 //---------------------------
 
 bool StateProcessor::GenBuffers() {
-    if (allocatedBuffersCount + conf::BufferGenCount > conf::MaxBuffers)
+    if (allocatedBuffersCount + Configuration::BufferGenCount > Configuration::MaxBuffers)
         return false;
-    SoundBuffer arr[conf::BufferGenCount] = {};
-    alGenBuffers(conf::BufferGenCount, &arr[0]);
+    SoundBuffer arr[Configuration::BufferGenCount] = {};
+    alGenBuffers(Configuration::BufferGenCount, &arr[0]);
     CheckOpenAlError();
-    standbyBuffers.append_copy(arr, conf::BufferGenCount);
-    allocatedBuffersCount += conf::BufferGenCount;
+    standbyBuffers.append_copy(arr, Configuration::BufferGenCount);
+    allocatedBuffersCount += Configuration::BufferGenCount;
     AddLogf(Debug, "Generated buffers. New count: %d", (int)allocatedBuffersCount);
     return true;
 }
@@ -408,10 +409,10 @@ void StateProcessor::ReleaseBuffer(SoundBuffer b) {
 //---------------------------
 
 bool StateProcessor::GenSources() {
-    size_t canAlloc = std::min((size_t)conf::SourceGenCount, conf::MaxSources - sourceState.Allocated());
+    size_t canAlloc = std::min((size_t)Configuration::SourceGenCount, Configuration::MaxSources - sourceState.Allocated());
     if (canAlloc == 0)
         return false;
-    SoundSource::type arr[conf::SourceGenCount] = {};
+    SoundSource::type arr[Configuration::SourceGenCount] = {};
     alGenSources(canAlloc, arr);
     CheckOpenAlError();
     lock_guard lock(standbySourcesMutex);
@@ -561,7 +562,7 @@ std::pair<bool, SourceIndex> StateProcessor::CheckSoundHandle(SoundHandle handle
     hc.handle = handle;
     if (hc.generation == InvalidSoundHandleGeneration)
         return { false, InvalidSourceIndex };
-    if (hc.index >= static_cast<SourceIndex>(conf::MaxSources))
+    if (hc.index >= static_cast<SourceIndex>(Configuration::MaxSources))
         return { false, InvalidSourceIndex };
     if (sourceStateGeneration[(size_t)hc.index] != hc.generation)
         return { false, InvalidSourceIndex };

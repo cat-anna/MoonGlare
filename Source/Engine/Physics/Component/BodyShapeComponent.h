@@ -62,7 +62,7 @@ struct BodyShapeComponentEntry {
 
 class BodyShapeComponent
     : public AbstractSubsystem
-    , public ComponentIDWrap<Core::Component::ComponentID::BodyShape> {
+    , public ComponentIdWrap<Core::Component::ComponentId::BodyShape> {
 public:                    
     friend struct BodyShapeComponentEntry;
 
@@ -103,7 +103,7 @@ protected:
 
     Array<BodyShapeComponentEntry> m_Array;
 
-    Core::EntityArrayMapper<> m_EntityMapper;
+    EntityArrayMapper<> m_EntityMapper;
 
     bool BuildEntry(Entity Owner, size_t &indexout);
 

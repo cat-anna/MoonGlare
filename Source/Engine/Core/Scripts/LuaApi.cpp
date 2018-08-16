@@ -9,7 +9,6 @@
 #include <Core/Component/ComponentRegister.h>
 
 #include <Foundation/Component/EventInfo.h>
-#include <Foundation/Component/ComponentInfo.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -147,14 +146,6 @@ void ApiInit::Initialize(ScriptEngine *s) {
                     continue;
                 nComponent.addProperty(ci.m_Name, ci.m_GetCID, (void(*)(int))nullptr);
             }
-            using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
-            auto maxid = BaseComponentInfo::GetUsedComponentTypes();
-            for (decltype(maxid) it = 0; it < maxid; ++it) {
-                auto &info = BaseComponentInfo::GetComponentTypeInfo(it);
-                if (info.apiInitFunc) {
-                    nComponent.addVariable(info.componentName, const_cast<Component::ComponentClassId*>(&info.id), false);
-                }
-            }
             nComponent.endNamespace();
             ++ApiInitFunctionsRun;
         }
@@ -183,20 +174,6 @@ void ApiInit::Initialize(ScriptEngine *s) {
                 s->GetApiInitializer()
                     .beginNamespace("api")
                         .beginNamespace("Event")
-                            .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
-            }
-        }
-    }
-    {
-        using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
-        auto maxid = BaseComponentInfo::GetUsedComponentTypes();
-        for (decltype(maxid) it = 0; it < maxid; ++it) {
-            auto info = BaseComponentInfo::GetComponentTypeInfo(it);
-            if (info.apiInitFunc) {
-                ++ApiInitFunctionsRun;
-                s->GetApiInitializer()
-                    .beginNamespace("api")
-                        .beginNamespace("Component")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }
         }

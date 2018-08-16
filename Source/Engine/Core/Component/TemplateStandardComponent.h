@@ -27,10 +27,10 @@ private:
     SubsystemManager * m_Owner;
 };
 
-template<typename ELEMENT, ComponentID CID, size_t BUFFER = MoonGlare::Configuration::Storage::ComponentBuffer>
+template<typename ELEMENT, ComponentId CID, size_t BUFFER = MoonGlare::Configuration::Storage::ComponentBuffer>
 class TemplateStandardComponent 
 	: public AbstractSubsystem
-	, public ComponentIDWrap<CID> {
+	, public ComponentIdWrap<CID> {
 public:
 	using ComponentEntry = ELEMENT;
 

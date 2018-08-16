@@ -42,7 +42,7 @@ public:
     std::recursive_mutex& GetLuaMutex() { return m_Mutex; }
 
     //result will be on top of lua stack, on fail stack remain unchanged
-    bool GetComponentEntryMT(ComponentID cid);
+    bool GetComponentEntryMT(ComponentId cid);
     
     template<typename T>
     void RegisterLuaSettings(T *t, const char *Name) {

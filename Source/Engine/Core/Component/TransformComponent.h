@@ -17,7 +17,7 @@ using namespace MoonGlare::Component;
 
 class TransformComponent 
 	: public iSubsystem
-	, public ComponentIDWrap<ComponentID::Transform>
+	, public ComponentIdWrap<ComponentId::Transform>
 {
 public:
 	TransformComponent(SubsystemManager *Owner);
@@ -81,12 +81,20 @@ protected:
         Array<emath::Quaternion>    quaternion;
         Array<emath::Transform>     globalTransform;
 
-        EntityArrayMapper<ElementIndex>  entityMapper;
+        EntityArrayMapper<>  entityMapper;
 
         TransformComponent      *component;
 
         void ClearArrays() {
-            entityMapper.Fill(ElementIndex::Invalid);
+            owner.fill({});
+            flags.fill({});
+            revision.fill(0);
+            scale.fill({});
+            globalScale.fill({});
+            position.fill({});
+            quaternion.fill({});
+            globalTransform.fill({});
+            entityMapper.Clear();
         }
         void SwapValues(ElementIndex a, ElementIndex b) {
             entityMapper.Swap(owner[a], owner[b]);

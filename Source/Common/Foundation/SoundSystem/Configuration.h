@@ -1,8 +1,6 @@
 #pragma once
 
-namespace MoonGlare::SoundSystem {
-
-struct Configuration {
+namespace MoonGlare::SoundSystem::Configuration {
     enum {
         MaxBuffers = 256,
         BufferGenCount = 16,
@@ -19,6 +17,5 @@ struct Configuration {
 
     };
     static constexpr float EffectThresholdDuration = 3.0f;
-};
 
 }

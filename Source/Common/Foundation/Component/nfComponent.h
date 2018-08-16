@@ -13,7 +13,6 @@ class iSubsystemManager;
 class iSubsystem;
 using UniqueSubsystem = std::unique_ptr<iSubsystem>;
 
-class ComponentArray;
 class EventDispatcher;
 
 }

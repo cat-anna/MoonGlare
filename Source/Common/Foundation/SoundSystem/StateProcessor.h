@@ -41,7 +41,6 @@ struct SourceState {
     //TODO: split for public and private part
     //TODO: fadein/out support
     //TODO: make watcherInterface not per stream
-    using conf = MoonGlare::SoundSystem::Configuration;
 
     SourceStatus status = SourceStatus::Invalid;
     SourceCommand command = SourceCommand::None;  //atomic?
@@ -126,22 +125,20 @@ public:
 private:
     iFileSystem * fileSystem = nullptr;
 
-    using conf = MoonGlare::SoundSystem::Configuration;
-
     template<typename T, size_t S>
     using StaticVector = Space::Container::StaticVector<T, S>;
 
     std::unordered_map<std::string, std::shared_ptr<Decoder::iDecoderFactory>> decoderFactories;
 
-    StaticVector<SoundBuffer, conf::MaxBuffers> standbyBuffers;
-    StaticVector<SourceIndex, conf::MaxSources> activeSources;
-    StaticVector<SourceState, conf::MaxSources> sourceState;
-    StaticVector<SoundHandleGeneration, conf::MaxSources> sourceStateGeneration;
+    StaticVector<SoundBuffer, Configuration::MaxBuffers> standbyBuffers;
+    StaticVector<SourceIndex, Configuration::MaxSources> activeSources;
+    StaticVector<SourceState, Configuration::MaxSources> sourceState;
+    StaticVector<SoundHandleGeneration, Configuration::MaxSources> sourceStateGeneration;
 
     //access protected by standbySourcesMutex;
-    StaticVector<SourceIndex, conf::MaxSources> standbySources;
+    StaticVector<SourceIndex, Configuration::MaxSources> standbySources;
     //access protected by sourceAcivationQueueMutex;
-    StaticVector<SourceIndex, conf::SourceAcivationQueue> sourceAcivationQueue;
+    StaticVector<SourceIndex, Configuration::SourceAcivationQueue> sourceAcivationQueue;
 
     uint32_t allocatedBuffersCount = 0;
     SoundSettings settings;

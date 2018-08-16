@@ -9,8 +9,8 @@ namespace DataModels {
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-using Core::Component::ComponentID;
-using Core::Component::ComponentID;
+using Core::Component::ComponentId;
+using Core::Component::ComponentId;
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ void EditableEntity::DeleteChild(EditableEntity * c) {
     m_Children.pop_back();
 }
 
-EditableComponent* EditableEntity::AddComponent(Core::ComponentID cid) {
+EditableComponent* EditableEntity::AddComponent(Core::ComponentId cid) {
     auto child = EditableComponent::CreateComponent(this, cid);
     if (!child) {
         //TODO: log sth
@@ -227,11 +227,11 @@ bool EditableEntity::DeserializeToChild(std::string &out) {
 //----------------------------------------------------------------------------------
 
 UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, pugi::xml_node node) {
-    ComponentID cid = ComponentID::Invalid;
+    ComponentId cid = ComponentId::Invalid;
 
     auto idxml = node.attribute("Id");
     if (idxml) {
-        cid = static_cast<ComponentID>(idxml.as_uint(0));
+        cid = static_cast<ComponentId>(idxml.as_uint(0));
     }
     else {
         auto namexml = node.attribute("Name");
@@ -242,12 +242,12 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
         auto ci = TypeEditor::ComponentInfo::GetComponentInfo(namexml.as_string(""));
         if (ci)
             cid = ci->m_CID;
-        if (cid == (ComponentID)ComponentID::Invalid) {
+        if (cid == (ComponentId)ComponentId::Invalid) {
             AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
         }
     }
 
-    if (cid == (ComponentID)ComponentID::Invalid)
+    if (cid == (ComponentId)ComponentId::Invalid)
         return nullptr;
 
     auto ret = CreateComponent(Parent, cid);
@@ -264,7 +264,7 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
     return std::move(ret);
 }
 
-UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentID cid) {
+UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, MoonGlare::Core::ComponentId cid) {
     auto ci = TypeEditor::ComponentInfo::GetComponentInfo(cid);
     if (!ci) {
         AddLogf(Error, "Unknown component id: %d", (int)cid);

@@ -82,9 +82,9 @@ If `GameObject` is removed all its children as removed as well.
 
 ### GameObject interface
 TODO
-#### GameObject:GetComponent(ComponentID [, Owner])
+#### GameObject:GetComponent(ComponentId [, Owner])
 TODO
-#### GameObject:CreateComponent(ComponentID)
+#### GameObject:CreateComponent(ComponentId)
 TODO
 #### GameObject:SpawnChild(TODO)
 TODO
@@ -143,7 +143,7 @@ This function enables/disables calling of *Step* function. Function must be defi
 This function enables/disables whole script instance.
 In disabled state no function will be called from Engine to instance. However internal calls are allowed.
 
-#### Class:GetComponent(ComponentID [, Owner])
+#### Class:GetComponent(ComponentId [, Owner])
 This function is shortcut for [GameObject:GetComponent](#gameobject-getcomponent-componentid-owner-)
 
 #Event subsystem

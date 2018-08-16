@@ -30,7 +30,7 @@ struct ComponentRegister {
 
 	using ComponentCreateFunc = std::unique_ptr<iSubsystem>(*)(SubsystemManager*);
 	struct ComponentInfo {
-		ComponentID m_CID;
+		ComponentId m_CID;
 		ComponentCreateFunc m_CreateFunc;
 		const char *m_Name;
 		struct {
@@ -38,7 +38,6 @@ struct ComponentRegister {
 		} m_Flags;
 		MoonGlare::Scripts::ApiInitFunc m_ApiRegFunc;
 		int(*m_GetCID)();
-		const LuaMetamethods* m_EntryMetamethods;
 	};
 
 	using MapType = std::unordered_map < std::string, const ComponentInfo* >;
@@ -48,13 +47,13 @@ struct ComponentRegister {
 			return nullptr;
 		return it->second;
 	}
-	static const ComponentInfo* GetComponentInfo(ComponentID cid) {
+	static const ComponentInfo* GetComponentInfo(ComponentId cid) {
 		for (auto &it : *s_ComponentMap)
 			if (it.second->m_CID == cid)
 				return it.second;
 		return nullptr;
 	}
-	static bool GetComponentID(const char *Name, ComponentID &cidout) {
+	static bool GetComponentID(const char *Name, ComponentId &cidout) {
 		auto *ci = GetComponentInfo(Name);
 		if (!ci)
 			return false;
@@ -64,7 +63,7 @@ struct ComponentRegister {
 	static const MapType& GetComponentMap() { return *s_ComponentMap; }
 	static void Dump(std::ostream &out);
 
-	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentID &out);
+	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentId &out);
 protected:
 	static void SetComponent(const ComponentInfo *ci) {
 		if (!s_ComponentMap)
@@ -81,10 +80,9 @@ struct RegisterComponentID : public ComponentRegister {
 		m_ComponentInfo.m_Name = Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
 		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc ? ApiRegFunc : MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
-		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
+		m_ComponentInfo.m_CID = COMPONENT::GetComponentId();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
-		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
-		m_ComponentInfo.m_EntryMetamethods = nullptr;// &COMPONENT::EntryMetamethods;
+		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentId()>;
 		SetComponent(&m_ComponentInfo);
 	}
 
@@ -92,17 +90,16 @@ struct RegisterComponentID : public ComponentRegister {
 		m_ComponentInfo.m_Name = COMPONENT::Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = COMPONENT::PublishID;
 		m_ComponentInfo.m_ApiRegFunc = MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
-		m_ComponentInfo.m_CID = COMPONENT::GetComponentID();
+		m_ComponentInfo.m_CID = COMPONENT::GetComponentId();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
-		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentID()>;
-		m_ComponentInfo.m_EntryMetamethods = &COMPONENT::EntryMetamethods;
+		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentId()>;
 		SetComponent(&m_ComponentInfo);
 	}
 private:
 	template<typename CLASS>
 	static UniqueSubsystem Construct(SubsystemManager* cm) { return std::make_unique<COMPONENT>(cm); }
 
-	template<ComponentID value>
+	template<ComponentId value>
 	static int GetCID() {
 		return static_cast<int>(value);
 	}

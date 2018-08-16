@@ -82,7 +82,7 @@ struct ImageComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class ImageComponent 
-    : public TemplateStandardComponent<ImageComponentEntry, ComponentID::Image> {
+    : public TemplateStandardComponent<ImageComponentEntry, ComponentId::Image> {
 public:
     ImageComponent(SubsystemManager *Owner);
     virtual ~ImageComponent();

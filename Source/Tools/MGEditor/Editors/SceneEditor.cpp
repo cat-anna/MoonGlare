@@ -351,13 +351,13 @@ void SceneEditor::RefreshComponentTree() {
 
 	auto *root = m_ComponentModel->invisibleRootItem();
 
-	std::map<Core::ComponentID, QStandardItem*> Deps;
-	Deps[(Core::ComponentID)Core::Component::ComponentID::Invalid] = root;
+	std::map<Core::ComponentId, QStandardItem*> Deps;
+	Deps[(Core::ComponentId)Core::Component::ComponentId::Invalid] = root;
 
-	auto GetParent = [&Deps](Core::ComponentID cid) {
+	auto GetParent = [&Deps](Core::ComponentId cid) {
 		auto it = Deps.find(cid);
 		if (it == Deps.end())
-			return Deps[(Core::ComponentID)Core::Component::ComponentID::Invalid];
+			return Deps[(Core::ComponentId)Core::Component::ComponentId::Invalid];
 		return it->second;
 	};
 

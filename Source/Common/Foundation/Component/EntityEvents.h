@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Foundation/Scripts/ApiInit.h>
-#include "ComponentInfo.h"
 
 namespace MoonGlare::Component {
 

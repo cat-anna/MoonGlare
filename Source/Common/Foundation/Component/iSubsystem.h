@@ -21,7 +21,6 @@ class iSubsystemManager {
 public:
     virtual ~iSubsystemManager() {}
     virtual InterfaceMap& GetInterfaceMap() = 0;
-    virtual ComponentArray& GetComponentArray() = 0;
     virtual EventDispatcher& GetEventDispatcher() = 0;
 };
 
@@ -44,13 +43,12 @@ public:
     virtual void Step(const SubsystemUpdateData &conf) { }
     virtual int PushToLua(lua_State *lua, Entity owner) { return 0; };
     virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) { return true; }
+    virtual bool Create(Entity owner) { return false; }
 
     //todo: remove old interface
 
     virtual bool Initialize() { return true; }
     virtual bool Finalize() { return true; }
-
-    virtual bool Create(Entity Owner) { return false; }
 
     virtual bool LoadComponentConfiguration(pugi::xml_node node) { return true; }
     virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }

@@ -64,7 +64,7 @@ struct PanelComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class PanelComponent
-	: public TemplateStandardComponent<PanelComponentEntry, ComponentID::Panel> {
+	: public TemplateStandardComponent<PanelComponentEntry, ComponentId::Panel> {
 public:
 	PanelComponent(SubsystemManager *Owner);
  	virtual ~PanelComponent();

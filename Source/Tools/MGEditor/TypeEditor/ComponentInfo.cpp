@@ -32,7 +32,7 @@ SharedComponentInfo ComponentInfo::GetComponentInfo(const std::string & Name) {
 	return it->second;
 }
 
-SharedComponentInfo ComponentInfo::GetComponentInfo(MoonGlare::Core::ComponentID CID) {
+SharedComponentInfo ComponentInfo::GetComponentInfo(MoonGlare::Core::ComponentId CID) {
 	if (!gCidMap)
 		return nullptr;
 	auto it = gCidMap->find(CID);

@@ -8,15 +8,12 @@
 #include "TransformComponent.h"
 
 #include <Core/Scripts/ScriptComponent.h>
-#include <Foundation/Component/ComponentArray.h>
 
 namespace MoonGlare::Core::Component {
 
 SubsystemManager::SubsystemManager() 
     : m_UsedCount(0)
     , m_Scene(nullptr) {
-
-    componentArray = std::make_unique<MoonGlare::Component::ComponentArray>();
 
     m_World = GetEngine()->GetWorld();//TODO
 }
@@ -75,7 +72,7 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
     }
 
     for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
-        ComponentID cid = ComponentID::Invalid;
+        ComponentId cid = ComponentId::Invalid;
 
         if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
             AddLogf(Warning, "Unknown component!");
@@ -111,7 +108,7 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
 
 //---------------------------------------------------------------------------------------
 
-bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, ComponentID cid) {
+bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, ComponentId cid) {
     if (m_UsedCount >= m_Components.size()) {
         AddLogf(Error, "Not enough space to install component: %s", typeid(*cptr.get()).name());
         return false;
@@ -168,7 +165,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
 #endif
 }
 
-iSubsystem* SubsystemManager::GetComponent(ComponentID cid) {
+iSubsystem* SubsystemManager::GetComponent(ComponentId cid) {
 
     //TODO: some smart search
     for (size_t i = 0; i < m_UsedCount; ++i) {

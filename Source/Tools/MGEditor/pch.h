@@ -80,5 +80,3 @@ using namespace Space::Utils::HashLiterals;
 #include <Engine/Configuration.h>
 
 #include <boost/filesystem.hpp>
-
-Q_DECLARE_METATYPE(MoonGlare::Handle);
