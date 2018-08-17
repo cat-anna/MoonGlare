@@ -14,11 +14,13 @@ struct EntityArrayMapper {
     static_assert(std::is_integral_v<IndexType> || std::is_enum_v<IndexType>);
 
     using Array = std::array<IndexType, SizeLimit>;
+    static constexpr IndexType InvalidIndex = InvalidValue;
 
-    void Clear() { Fill(InvalidValue); }
+
+    void Clear() { Fill(InvalidIndex); }
     void Fill(IndexType t) { mapper.fill(t); }
     IndexType GetIndex(Entity e) const { return mapper[e.GetIndex()]; }
-    void ClearIndex(Entity e) { mapper[e.GetIndex()] = InvalidValue; }
+    void ClearIndex(Entity e) { mapper[e.GetIndex()] = InvalidIndex; }
     void SetIndex(Entity e, IndexType h) { mapper[e.GetIndex()] = h; }
     void SetIndex(Entity e, size_t h) { mapper[e.GetIndex()] = (IndexType)h; }
     void Swap(Entity a, Entity b) {

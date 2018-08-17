@@ -18,6 +18,8 @@
 #include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
+#include <Foundation/Component/EntityManager.h>
+
 namespace MoonGlare::Core::Scene {
 
 SceneDescriptor::SceneDescriptor() : m_Ptr() {
@@ -305,7 +307,7 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor) {
         descriptor->staticFog = sc.m_StaticFog;
 
         auto ptr = std::make_unique<ciScene>();
-        auto RootEntity = m_World->GetEntityManager()->GetRootEntity();
+        auto RootEntity = m_World->GetEntityManager().GetRootEntity();
         if (!ptr->Initialize(xmlroot, descriptor->m_SID, RootEntity)) {
             AddLogf(Error, "Failed to initialize scene '%s'", descriptor->m_SID.c_str());
             break;

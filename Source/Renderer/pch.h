@@ -56,7 +56,6 @@ using namespace Space::Utils::HashLiterals;
 
 #include <libSpace/src/Memory/Memory.h>
 #include <libSpace/src/Memory/StackAllocator.h>
-#include <libSpace/src/Memory/BitampAllocator.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 #include <Foundation/PerfCounters.h>

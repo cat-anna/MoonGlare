@@ -51,7 +51,7 @@ struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponent
 //static_assert(std::is_pod_v<MeshComponentEntry>);
 
 class MeshComponent                                                               
-    : public TemplateStandardComponent<MeshComponentEntry, ComponentId::Mesh> {
+    : public TemplateStandardComponent<MeshComponentEntry, SubSystemId::Mesh> {
 public:
     void HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event);
     int PushToLua(lua_State *lua, Entity owner) override;

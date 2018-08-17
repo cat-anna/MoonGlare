@@ -25,14 +25,9 @@ using namespace MoonGlare::Component;
 class SubsystemManager;
 class TransformComponent;
 
-template<ComponentId VALUE>
-struct ComponentIdWrap {
-    constexpr static ComponentId GetComponentId() { return VALUE; };
-};
-
 } //namespace Component 
 
-using Component::ComponentId;
+using Component::SubSystemId;
 
 } //namespace Core 
 } //namespace MoonGlare 

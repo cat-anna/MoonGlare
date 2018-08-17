@@ -2,47 +2,46 @@
 
 #include <type_traits>
 #include <cassert>
+#include <array>
 
 namespace MoonGlare::Memory {
 
 template<class T, T SIZE>
-struct StaticIndexQueue  {
+struct StaticIndexStack {
     using Item = T;
-    static constexpr Item Size = SIZE;
+    static constexpr T Size = SIZE;
 
     static_assert(std::is_integral<Item>::value, "Item type for StaticIndexQueue must be an integer type");
 
     void Clear() {
         position = 0;
-        count = Size;
         for (Item i = 0; i < (Item)Size; ++i)
             memory[i] = i;
     }
 
-    bool Empty() const { return count == 0; }
-    Item Count() const { return count; }
+    bool empty() const { return position == 0; }
+    T count() const { return position; }
 
-    bool Allocate(Item &itm) {
-        if (Empty())
+    bool get(Item &itm) {
+        if (empty())
             return false;
         itm = memory[position];
-        ++position;
-        --count;
-        if (position >= Size)
-            position = 0;
+        --position;
         return true;
     }
 
-    bool Release(Item itm) {
-        if (count >= Size)
+    bool push(Item itm) {
+        if (position >= Size)
             return false;
-        memory[(position + count) % Size] = itm;
-        ++count;
+        memory[position] = itm;
+        ++position;
         return true;
     }
 private:
-    size_t position, count;
-    std::array<Item, Size> memory;
+    T position;
+    std::array<T, Size> memory;
 };
+
+static_assert(std::is_trivial_v<StaticIndexStack<uint32_t, 32>>);
 
 }

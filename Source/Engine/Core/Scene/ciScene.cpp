@@ -9,12 +9,12 @@
 #include <MoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include <Core/Scripts/LuaApi.h>
-
-
 #include <Core/EntityBuilder.h>
-
+                                   
 #include "ciScene.h"
 #include "Scene.Events.h"
+
+#include <Foundation/Component/EntityManager.h>
 
 namespace MoonGlare {
 namespace Core {
@@ -46,8 +46,8 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
     AddLog(Debug, "Initializing scene: " << Name);
 
     Entity root;
-    auto em = GetEngine()->GetWorld()->GetEntityManager();
-    if (!em->Allocate(OwnerEntity, root, std::move(Name))) {
+    auto &em = GetEngine()->GetWorld()->GetEntityManager();
+    if (!em.Allocate(OwnerEntity, root, std::move(Name))) {
         AddLogf(Error, "Failed to allocate scene entity!");
         return false;
     }
@@ -62,7 +62,7 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
         return false;
     }
 
-    em->RegisterEventSink(&m_SubsystemManager.GetEventDispatcher());
+    em.RegisterEventSink(&m_SubsystemManager.GetEventDispatcher());
 
     SendState(SceneState::Created);                  
 
@@ -72,8 +72,8 @@ bool ciScene::Initialize(pugi::xml_node Node, std::string Name, Entity OwnerEnti
 }
 
 bool ciScene::Finalize() {
-    auto em = GetEngine()->GetWorld()->GetEntityManager();
-    em->UnregisterEventSink(&m_SubsystemManager.GetEventDispatcher());
+    auto &em = GetEngine()->GetWorld()->GetEntityManager();
+    em.UnregisterEventSink(&m_SubsystemManager.GetEventDispatcher());
 
     if (!m_SubsystemManager.Finalize()) {
         AddLogf(Error, "Failed to finalize component manager");

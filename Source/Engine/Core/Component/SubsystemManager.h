@@ -23,17 +23,17 @@ public:
 
     template<class T, class ... ARGS>
     bool InstallComponent(ARGS ... args) {
-        return InsertComponent(std::make_unique<T>(this, std::forward<ARGS>(args)...), T::GetComponentId());
+        return InsertComponent(std::make_unique<T>(this, std::forward<ARGS>(args)...), T::GetSubSystemId());
     }
 
     void Step(const MoveConfig &config);
 
     template<class T> 
     T* GetComponent() {
-        return dynamic_cast<T*>(GetComponent(T::GetComponentId()));
+        return dynamic_cast<T*>(GetComponent(T::GetSubSystemId()));
     }
 
-    iSubsystem* GetComponent(ComponentId cid);
+    iSubsystem* GetComponent(SubSystemId cid);
 
     ciScene* GetScene() { return m_Scene; }
     World* GetWorld() { return m_World; }
@@ -46,7 +46,7 @@ public:
     };
 private:
     std::array<UniqueSubsystem, MoonGlare::Configuration::Storage::MaxComponentCount> m_Components;
-    std::array<ComponentId, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
+    std::array<SubSystemId, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
     size_t m_UsedCount;
     Entity rootEntity;
     ciScene *m_Scene;
@@ -57,7 +57,7 @@ private:
     std::array<ComponentInfo, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentInfo;
 #endif
 
-    bool InsertComponent(UniqueSubsystem cptr, ComponentId cid);
+    bool InsertComponent(UniqueSubsystem cptr, SubSystemId cid);
 };
 
 } 

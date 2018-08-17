@@ -2,8 +2,6 @@
 
 #include <Foundation/InterfaceMap.h>
 
-#include "Core/EntityManager.h"
-
 namespace MoonGlare::Resources { class StringTables; }
 namespace MoonGlare::Core::Scripts { class ScriptEngine; }
 
@@ -24,7 +22,7 @@ public:
 
 	bool Step(const Core::MoveConfig &config);
 
-	Core::EntityManager* GetEntityManager() { return &m_EntityManager; }
+	Component::EntityManager& GetEntityManager() { return *entityManager; }
 	Core::InputProcessor* GetInputProcessor() { return m_InputProcessor.get(); }
     Core::RuntimeConfiguration* GetRuntimeConfiguration() { return runtimeConfiguration.get(); }
 
@@ -46,7 +44,7 @@ private:
 	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
     std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
 
-	Core::EntityManager m_EntityManager;
+    std::unique_ptr<Component::EntityManager> entityManager;
 
 	//not owning
     iConsole *m_Console = nullptr;

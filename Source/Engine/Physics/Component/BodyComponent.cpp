@@ -18,6 +18,8 @@
 
 #include "Coillision.Events.h"
 
+#include <Foundation/Component/EntityManager.h>
+
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <BodyComponent.x2c.h>
@@ -197,8 +199,8 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			BodyEntry *be1 = &m_Array[std::get<0>(item->first)->getUserIndex()];
 			BodyEntry *be2 = &m_Array[std::get<1>(item->first)->getUserIndex()];
 			const std::string *name1 = nullptr, *name2 = nullptr;
-			world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
-			world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
+			world->GetEntityManager().GetEntityName(be1->m_OwnerEntity, name1);
+			world->GetEntityManager().GetEntityName(be2->m_OwnerEntity, name2);
 		//	AddLogf(Warning, "new col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
 
 			OnCollisionEnterEvent ev;
@@ -220,8 +222,8 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		BodyEntry *be1 = &m_Array[std::get<0>(old.first)->getUserIndex()];
 		BodyEntry *be2 = &m_Array[std::get<1>(old.first)->getUserIndex()];
 		const std::string *name1 = nullptr, *name2 = nullptr;
-		world->GetEntityManager()->GetEntityName(be1->m_OwnerEntity, name1);
-		world->GetEntityManager()->GetEntityName(be2->m_OwnerEntity, name2);
+		world->GetEntityManager().GetEntityName(be1->m_OwnerEntity, name1);
+		world->GetEntityManager().GetEntityName(be2->m_OwnerEntity, name2);
 	//	AddLogf(Warning, "old col %s->%s", name1 ? name1->c_str() : "?", name2 ? name2->c_str() : "?");
 
 		OnCollisionLeaveEvent ev;

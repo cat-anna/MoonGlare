@@ -72,7 +72,7 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
     }
 
     for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
-        ComponentId cid = ComponentId::Invalid;
+        SubSystemId cid = SubSystemId::Invalid;
 
         if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
             AddLogf(Warning, "Unknown component!");
@@ -108,7 +108,7 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
 
 //---------------------------------------------------------------------------------------
 
-bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, ComponentId cid) {
+bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, SubSystemId cid) {
     if (m_UsedCount >= m_Components.size()) {
         AddLogf(Error, "Not enough space to install component: %s", typeid(*cptr.get()).name());
         return false;
@@ -165,7 +165,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
 #endif
 }
 
-iSubsystem* SubsystemManager::GetComponent(ComponentId cid) {
+iSubsystem* SubsystemManager::GetComponent(SubSystemId cid) {
 
     //TODO: some smart search
     for (size_t i = 0; i < m_UsedCount; ++i) {

@@ -21,7 +21,7 @@ enum class PositionMode : uint8_t {
     Default = RelativeToListener,
 };
 
-class SoundSourceComponent : public iSubsystem {
+class SoundSourceComponent : public iSubsystem, public SubSystemIdWrap<SubSystemId::SoundSource> {
 public:
     explicit SoundSourceComponent(iSubsystemManager *subsystemManager);
     virtual ~SoundSourceComponent();

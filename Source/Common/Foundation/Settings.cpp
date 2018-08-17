@@ -94,19 +94,7 @@ std::vector<std::string> Settings::GetKeys() const {
 
 //---------------------------------------------------------
 
-bool Settings::HasValue(const std::string &key) const {
-    auto it = values.find(key);
-    return it != values.end();
-}
-
-std::string Settings::GetString(const std::string &key, const std::string &default) {
-    auto it = values.find(key);
-    if (it == values.end()) {
-#ifdef DEBUG
-        SetValue(key, default);
-#endif
-        return default;
-    }
+std::string Settings::ToString(const ValueVariant &vv) {
     return std::visit([](auto &value) -> std::string {
         using type_t = std::remove_cv_t<std::remove_reference_t<decltype(value)>>;
         if constexpr (std::is_same_v<nullptr_t, type_t>)
@@ -123,7 +111,23 @@ std::string Settings::GetString(const std::string &key, const std::string &defau
             __debugbreak();
             throw std::runtime_error("reached unreachable code!");
         }
-    }, it->second);
+    }, vv);
+}
+
+bool Settings::HasValue(const std::string &key) const {
+    auto it = values.find(key);
+    return it != values.end();
+}
+
+std::string Settings::GetString(const std::string &key, const std::string &default) {
+    auto it = values.find(key);
+    if (it == values.end()) {
+#ifdef DEBUG
+        SetValue(key, default);
+#endif
+        return default;
+    }
+    return ToString(it->second);
 }
 
 int Settings::GetInt(const std::string &key, int default) {

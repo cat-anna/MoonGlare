@@ -27,7 +27,7 @@ using namespace Core::Component;
 
 class ScriptComponent
     : public AbstractSubsystem
-    , public ComponentIdWrap<ComponentId::Script> {
+    , public SubSystemIdWrap<SubSystemId::Script> {
 public:
     ScriptComponent(SubsystemManager *Owner);
     virtual ~ScriptComponent();
@@ -124,8 +124,8 @@ private:
     bool InitGameObjectMetaTable(lua_State *lua);
 //support functions
     int lua_GetScriptComponent(lua_State *lua, Entity Owner);
-    int lua_GetComponentInfo(lua_State *lua, ComponentId cid, Entity Owner);
-    int lua_MakeComponentInfo(lua_State *lua, ComponentId cid, Entity owner, iSubsystem *cptr);
+    int lua_GetComponentInfo(lua_State *lua, SubSystemId cid, Entity Owner);
+    int lua_MakeComponentInfo(lua_State *lua, SubSystemId cid, Entity owner, iSubsystem *cptr);
     static int lua_DereferenceHandle(lua_State *lua);
     static int lua_SetComponentState(lua_State *lua);
 

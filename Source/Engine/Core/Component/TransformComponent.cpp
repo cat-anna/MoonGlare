@@ -1,4 +1,3 @@
-
 #include <pch.h>
 #include <MoonGlare.h>
 
@@ -7,6 +6,7 @@
 #include "ComponentRegister.h"
 
 #include <Foundation/Component/EventDispatcher.h>
+#include <Foundation/Component/EntityManager.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -19,6 +19,9 @@ RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
 TransformComponent::TransformComponent(SubsystemManager * Owner)
 		: iSubsystem(), subSystemManager(Owner) {
     
+    entityManager = Owner->GetInterfaceMap().GetInterface<Component::EntityManager>();
+    assert(entityManager);
+           
     values.component = this;
 
     m_CurrentRevision = 0;
@@ -88,7 +91,7 @@ struct TransformComponent::LuaWrapper {
         if (name.empty())
             return 0;
 
-        auto *em = component->GetManager()->GetWorld()->GetEntityManager();
+        auto *em = component->entityManager;
         for (auto childIndex : component->values.TraverseTree(index)) {
             Entity e = component->values.owner[childIndex];
             std::string n;
@@ -165,7 +168,7 @@ void TransformComponent::HandleEvent(const MoonGlare::Component::EntityDestructe
 //------------------------------------------------------------------------------------------
 
 void TransformComponent::ElementRemoved(Values::ElementIndex index) {
-    GetManager()->GetWorld()->GetEntityManager()->Release(values.owner[index]);
+    entityManager->Release(values.owner[index]);
 }
 
 //------------------------------------------------------------------------------------------

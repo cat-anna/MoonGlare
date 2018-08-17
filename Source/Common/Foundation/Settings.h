@@ -49,6 +49,7 @@ private:
     std::vector<std::weak_ptr<iChangeCallback>> callbackList;
     bool changed = false;
     ApplyMethod NotifyChange(const std::string &key);
+    static std::string ToString(const ValueVariant &vv);
 };
 
 }

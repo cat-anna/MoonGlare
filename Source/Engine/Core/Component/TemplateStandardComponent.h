@@ -4,6 +4,7 @@
 #include "ComponentRegister.h"
 
 #include <Foundation/Component/iSubsystem.h>
+#include <Foundation/Component/EntityArrayMapper.h>
 
 #include "nfComponent.h"
 #include "SubsystemManager.h"
@@ -27,10 +28,10 @@ private:
     SubsystemManager * m_Owner;
 };
 
-template<typename ELEMENT, ComponentId CID, size_t BUFFER = MoonGlare::Configuration::Storage::ComponentBuffer>
+template<typename ELEMENT, SubSystemId CID, size_t BUFFER = MoonGlare::Configuration::Storage::ComponentBuffer>
 class TemplateStandardComponent 
 	: public AbstractSubsystem
-	, public ComponentIdWrap<CID> {
+	, public SubSystemIdWrap<CID> {
 public:
 	using ComponentEntry = ELEMENT;
 

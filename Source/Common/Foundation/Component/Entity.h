@@ -8,7 +8,15 @@ namespace MoonGlare::Component {
 
 using Entity = Space::Memory::DoubleHandle32<Configuration::EntityIndexBitCount>;
 
-enum class SubsystemInstance : uint32_t { Invalid = 0, };
+struct EntityHasher {
+    std::size_t operator()(const Entity& k) const {
+        return std::hash<void*>()(k.GetVoidPtr());
+    };
+};
+
+using EntityNameHash = uint32_t;
+
+enum class SubSystemInstance : uint32_t { Invalid = 0, };
 
 //Component [instance] index
 using ComponentIndex = enum : uint32_t {
@@ -16,8 +24,9 @@ using ComponentIndex = enum : uint32_t {
     Invalid = 0xFFFFFFFF,
 };
 
-enum class ComponentId : uint8_t {
-    Invalid = 0,
+enum class SubSystemId : uint8_t {
+    Invalid = 0x00,
+    //SubSystemManager = 0x01,
 
 //Core 
     Script = 0x11,
@@ -42,6 +51,11 @@ enum class ComponentId : uint8_t {
 //Other
     SoundSource = 0x70,
     SoundListener = 0x71,
+};
+
+template<SubSystemId VALUE>
+struct SubSystemIdWrap {
+    constexpr static SubSystemId GetSubSystemId() { return VALUE; };
 };
 
 }

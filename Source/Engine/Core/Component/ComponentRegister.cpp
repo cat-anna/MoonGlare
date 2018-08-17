@@ -15,12 +15,7 @@ namespace MoonGlare {
 namespace Core {
 namespace Component {
 
-struct SoundSubsystemWrap : SoundSystem::Component::SoundSourceComponent, ComponentIdWrap<ComponentId::SoundSource> {
-    template<typename ... ARGS>
-    SoundSubsystemWrap(ARGS ... args) : SoundSourceComponent(std::forward<ARGS>(args)...) { }
-};
-
-RegisterComponentID<SoundSubsystemWrap> SoundSubsystemIDReg("SoundSource");
+RegisterComponentID<SoundSystem::Component::SoundSourceComponent> SoundSourceComponentReg("SoundSource");
 
 ComponentRegister::MapType *ComponentRegister::s_ComponentMap = nullptr;
 
@@ -38,11 +33,11 @@ void ComponentRegister::Dump(std::ostream &out) {
 	}
 }
 
-bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentId & out) {
+bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, SubSystemId & out) {
 	auto idxml = node.attribute("Id");
 	if (idxml) {
-		out = static_cast<ComponentId>(idxml.as_uint(0));
-		return out != (ComponentId)ComponentId::Invalid;
+		out = static_cast<SubSystemId>(idxml.as_uint(0));
+		return out != (SubSystemId)SubSystemId::Invalid;
 	} else {
 		auto namexml = node.attribute("Name");
 		if (!namexml) {
@@ -50,7 +45,7 @@ bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, ComponentId & out
 			return false;
 		}
 		if (GetComponentID(namexml.as_string(""), out)) {
-			return out != (ComponentId)ComponentId::Invalid;
+			return out != (SubSystemId)SubSystemId::Invalid;
 		} else {
 			AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
 			return false;

@@ -4,7 +4,6 @@
 #include <Foundation/Memory/ArrayIndexTree.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
-#include <Core/EntityManager.h>
 #include <Core/Scripts/ScriptComponent.h>
 
 #include <Renderer/VirtualCamera.h>
@@ -80,7 +79,7 @@ using Core::Scripts::Component::ScriptComponent;
 
 class RectTransformComponent 
     : public AbstractSubsystem
-    , public ComponentIdWrap<ComponentId::RectTransform> {
+    , public SubSystemIdWrap<SubSystemId::RectTransform> {
 public:
     static constexpr char *Name = "RectTransform";
     static constexpr bool PublishID = true;
@@ -123,6 +122,7 @@ public:
     }
 protected:
     ScriptComponent *m_ScriptComponent;
+    Component::EntityManager *entityManager;
     RectTransformSettingsFlagsMap m_Flags;
     MoonGlare::Configuration::RuntimeRevision m_CurrentRevision;
     Point m_ScreenSize;

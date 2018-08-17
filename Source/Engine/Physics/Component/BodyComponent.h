@@ -21,7 +21,7 @@ using namespace MoonGlare::Component;
 
 class BodyComponent
         : public Core::Component::AbstractSubsystem
-        , public Core::Component::ComponentIdWrap<Core::Component::ComponentId::Body> {
+        , public Core::Component::SubSystemIdWrap<Core::Component::SubSystemId::Body> {
 public:
     BodyComponent(Core::Component::SubsystemManager *Owner);
     virtual ~BodyComponent();

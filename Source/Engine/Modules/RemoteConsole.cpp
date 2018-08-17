@@ -36,7 +36,7 @@ struct RemoteConsoleModule : public iModule {
         auto stt = GetWorld()->GetInterface<Settings>();
         if (stt) {
             enabled = stt->GetBool("RemoteConsole.Enabled", enabled);
-            port = stt->GetInt("RemoteConsole.Port", port);
+            port = (uint16_t)stt->GetInt("RemoteConsole.Port", port);
         }
 
         if (enabled) {

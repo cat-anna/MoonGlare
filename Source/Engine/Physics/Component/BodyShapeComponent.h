@@ -62,7 +62,7 @@ struct BodyShapeComponentEntry {
 
 class BodyShapeComponent
     : public AbstractSubsystem
-    , public ComponentIdWrap<Core::Component::ComponentId::BodyShape> {
+    , public SubSystemIdWrap<Core::Component::SubSystemId::BodyShape> {
 public:                    
     friend struct BodyShapeComponentEntry;
 

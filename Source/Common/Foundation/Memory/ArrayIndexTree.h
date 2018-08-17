@@ -9,10 +9,8 @@
 
 #include <boost/tti/has_member_function.hpp>
 
-namespace MoonGlare::Memory
-{
-namespace detail
-{
+namespace MoonGlare::Memory {
+namespace detail {
 BOOST_TTI_HAS_MEMBER_FUNCTION(ReleaseElement)
 BOOST_TTI_HAS_MEMBER_FUNCTION(InitElemenent)
 BOOST_TTI_HAS_MEMBER_FUNCTION(SwapValues)
@@ -580,8 +578,7 @@ private:
     }
 };
 
-namespace detail
-{
+namespace detail {
 struct TestArrayIndexTree : public ArrayIndexTree<uint32_t, 16, TestArrayIndexTree> { };
 static_assert(std::is_trivial_v<TestArrayIndexTree>);
 static_assert(std::is_trivially_constructible_v<TestArrayIndexTree>);

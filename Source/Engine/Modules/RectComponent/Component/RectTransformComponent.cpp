@@ -19,6 +19,8 @@
 #include <Source/Renderer/Renderer.h>
 #include <Core/Scripts/LuaApi.h>
 
+#include <Foundation/Component/EntityManager.h>
+
 #include "../RectTransformDebugDraw.h"
 
 namespace MoonGlare::GUI::Component {
@@ -35,6 +37,8 @@ static bool gRectTransformDebugDraw = false;
 
 RectTransformComponent::RectTransformComponent(SubsystemManager *Owner)
     : AbstractSubsystem(Owner) {
+    entityManager = Owner->GetInterfaceMap().GetInterface<Component::EntityManager>();
+    assert(entityManager);
 }
 
 RectTransformComponent::~RectTransformComponent() {
@@ -80,7 +84,7 @@ struct RectTransformComponent::LuaWrapper {
         if (name.empty())
             return 0;
 
-        auto *em = component->GetManager()->GetWorld()->GetEntityManager();
+        auto *em = component->entityManager;
         for (auto childIndex : component->values.TraverseTree(index)) {
             Entity e = component->values.owner[childIndex];
             std::string n;
@@ -180,8 +184,7 @@ int RectTransformComponent::PushToLua(lua_State *lua, Entity owner) {
 //------------------------------------------------------------------------------------------
 
 void RectTransformComponent::ElementRemoved(Values::ElementIndex index) {
-    AddLog(Hint, "ElementRemoved: index: " << index << " owner: " << values.owner[index]);
-    GetManager()->GetWorld()->GetEntityManager()->Release(values.owner[index]);
+    entityManager->Release(values.owner[index]);
 }
 
 //---------------------------------------------------------------------------------------

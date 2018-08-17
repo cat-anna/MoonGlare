@@ -30,7 +30,7 @@ struct ComponentRegister {
 
 	using ComponentCreateFunc = std::unique_ptr<iSubsystem>(*)(SubsystemManager*);
 	struct ComponentInfo {
-		ComponentId m_CID;
+		SubSystemId m_CID;
 		ComponentCreateFunc m_CreateFunc;
 		const char *m_Name;
 		struct {
@@ -47,13 +47,13 @@ struct ComponentRegister {
 			return nullptr;
 		return it->second;
 	}
-	static const ComponentInfo* GetComponentInfo(ComponentId cid) {
+	static const ComponentInfo* GetComponentInfo(SubSystemId cid) {
 		for (auto &it : *s_ComponentMap)
 			if (it.second->m_CID == cid)
 				return it.second;
 		return nullptr;
 	}
-	static bool GetComponentID(const char *Name, ComponentId &cidout) {
+	static bool GetComponentID(const char *Name, SubSystemId &cidout) {
 		auto *ci = GetComponentInfo(Name);
 		if (!ci)
 			return false;
@@ -63,7 +63,7 @@ struct ComponentRegister {
 	static const MapType& GetComponentMap() { return *s_ComponentMap; }
 	static void Dump(std::ostream &out);
 
-	static bool ExtractCIDFromXML(pugi::xml_node node, ComponentId &out);
+	static bool ExtractCIDFromXML(pugi::xml_node node, SubSystemId &out);
 protected:
 	static void SetComponent(const ComponentInfo *ci) {
 		if (!s_ComponentMap)
@@ -80,26 +80,16 @@ struct RegisterComponentID : public ComponentRegister {
 		m_ComponentInfo.m_Name = Name;
 		m_ComponentInfo.m_Flags.m_RegisterID = PublishToLua;
 		m_ComponentInfo.m_ApiRegFunc = ApiRegFunc ? ApiRegFunc : MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
-		m_ComponentInfo.m_CID = COMPONENT::GetComponentId();
+		m_ComponentInfo.m_CID = COMPONENT::GetSubSystemId();
 		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
-		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentId()>;
-		SetComponent(&m_ComponentInfo);
-	}
-
-	RegisterComponentID() {
-		m_ComponentInfo.m_Name = COMPONENT::Name;
-		m_ComponentInfo.m_Flags.m_RegisterID = COMPONENT::PublishID;
-		m_ComponentInfo.m_ApiRegFunc = MoonGlare::Scripts::GetApiInitFunc<COMPONENT>();
-		m_ComponentInfo.m_CID = COMPONENT::GetComponentId();
-		m_ComponentInfo.m_CreateFunc = &Construct<COMPONENT>;
-		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetComponentId()>;
+		m_ComponentInfo.m_GetCID = &GetCID<COMPONENT::GetSubSystemId()>;
 		SetComponent(&m_ComponentInfo);
 	}
 private:
 	template<typename CLASS>
 	static UniqueSubsystem Construct(SubsystemManager* cm) { return std::make_unique<COMPONENT>(cm); }
 
-	template<ComponentId value>
+	template<SubSystemId value>
 	static int GetCID() {
 		return static_cast<int>(value);
 	}

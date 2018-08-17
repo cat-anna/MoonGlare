@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Foundation/Memory/BitampAllocator.h>
+
 #include "Device/Types.h"
 #include "Handles.h"
 
@@ -73,7 +75,7 @@ struct IndexBuffer {
 };
 struct Resources {
     template<size_t SIZE>
-    using BitmapAllocator = ::Space::Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
+    using BitmapAllocator = Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
 
     static constexpr uint32_t AsyncQueueCount = 2;
     static constexpr uint32_t QueueMemory = 10 * 1024 * 1024;

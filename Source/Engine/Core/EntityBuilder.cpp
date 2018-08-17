@@ -11,6 +11,8 @@
 #include "Component/TemplateStandardComponent.h"
 #include "EntityBuilder.h"
 
+#include <Foundation/Component/EntityManager.h>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -29,7 +31,7 @@ struct ComponentImport {
 
 struct EntityBuilder::ImportData {
     std::vector<EntityImport> entities;
-    std::map<Component::ComponentId, std::vector<ComponentImport>> components;
+    std::map<Component::SubSystemId, std::vector<ComponentImport>> components;
     std::vector<XMLFile> xmlFiles;
 
     void Prepare() {
@@ -115,7 +117,7 @@ bool EntityBuilder::Build(Entity parent, pugi::xml_node node, std::string Name) 
 
 void EntityBuilder::Spawn(ImportData &data, Entity parent) {
     auto world = m_Manager->GetWorld();
-    auto em = world->GetEntityManager();
+    auto &em = world->GetEntityManager();
 
     for (auto &ei : data.entities) {
         if (!ei.enabled)
@@ -127,16 +129,16 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
         else
             thisParent = parent;
 
-        if (!em->Allocate(thisParent, ei.entity, ei.name)) {
+        if (!em.Allocate(thisParent, ei.entity, ei.name)) {
             AddLogf(Error, "Failed to allocate entity!");
             return;
         }         
     }
 
-    std::array<ComponentId, 3> ComponentOrder = {
-        ComponentId::Transform,
-        ComponentId::RectTransform,
-        ComponentId::Body,
+    std::array<SubSystemId, 3> ComponentOrder = {
+        SubSystemId::Transform,
+        SubSystemId::RectTransform,
+        SubSystemId::Body,
     };
 
     auto SpawnComponents = [this, parent, &data](std::vector<ComponentImport>& cs) {
@@ -170,7 +172,7 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
     }
     
     std::vector<ComponentImport> scripts;
-    auto scrit = data.components.find(ComponentId::Script);
+    auto scrit = data.components.find(SubSystemId::Script);
     if (scrit != data.components.end()) {
         scrit->second.swap(scripts);
         data.components.erase(scrit);
@@ -219,7 +221,7 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
             ci.xmlNode = it;
             ci.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
 
-            ComponentId cid = ComponentId::Invalid;
+            SubSystemId cid = SubSystemId::Invalid;
             if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
                 AddLogf(Warning, "Unknown component!");
                 continue;
@@ -257,7 +259,7 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
 //-------------------------------------------------------------------------------------------------
 
 bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node node) {
-    ComponentId cid = ComponentId::Invalid;
+    SubSystemId cid = SubSystemId::Invalid;
 
     if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
         AddLogf(Warning, "Unknown component!");

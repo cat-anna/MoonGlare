@@ -108,7 +108,7 @@ struct AssimpImporter
             return;
 
         MeshInfo mi = meshes[node->mMeshes[0]];
-        auto shapeC = parent->AddComponent(Core::ComponentId::BodyShape);
+        auto shapeC = parent->AddComponent(Core::SubSystemId::BodyShape);
         auto shio = shapeC->GetValuesEditor();
         shio->Set("type", "4");
         shio->Set("size.x", std::to_string(std::max(mi.boxSize.x / 2, 0.01f)));
@@ -117,7 +117,7 @@ struct AssimpImporter
     }
 
     void ImportBodyComponent(const aiNode * node, EditableEntity * parent) {
-        auto bodyC = parent->AddComponent(Core::ComponentId::Body);
+        auto bodyC = parent->AddComponent(Core::SubSystemId::Body);
         auto bdio = bodyC->GetValuesEditor();
         bdio->Set("Kinematic", "1");
     }
@@ -128,7 +128,7 @@ struct AssimpImporter
         aiVector3D scale;
         node->mTransformation.Decompose(scale, q, pos);
 
-        auto transform = parent->AddComponent(Core::ComponentId::Transform);
+        auto transform = parent->AddComponent(Core::SubSystemId::Transform);
         auto trio = transform->GetValuesEditor();
         trio->Set("Position.x", std::to_string(pos.x));
         trio->Set("Position.y", std::to_string(pos.y));
@@ -154,7 +154,7 @@ struct AssimpImporter
             else
                 meshPath += meshNode->mName.data;
 
-            auto mesh = parent->AddComponent(Core::ComponentId::Mesh);
+            auto mesh = parent->AddComponent(Core::SubSystemId::Mesh);
             auto meio = mesh->GetValuesEditor();
             meio->Set("Mesh", m_URI + meshPath);
             meio->Set("Material", outputDirectory + "/" + materialNames[meshNode->mMaterialIndex]);
@@ -167,7 +167,7 @@ struct AssimpImporter
         //if (it == sceneLights.end())
         //    return;
         //auto light = it->second;
-        //auto lightC = parent->AddComponent(Core::ComponentId::Light);
+        //auto lightC = parent->AddComponent(Core::SubSystemId::Light);
         //auto liio = lightC->GetValuesEditor();
     }
 

@@ -76,7 +76,7 @@ struct alignas(16) TextComponentEntry {
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
 
 class TextComponent
-	: public TemplateStandardComponent<TextComponentEntry, ComponentId::Text> {
+	: public TemplateStandardComponent<TextComponentEntry, SubSystemId::Text> {
 public:
 	TextComponent(SubsystemManager *Owner);
 	virtual ~TextComponent();

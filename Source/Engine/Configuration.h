@@ -53,7 +53,6 @@ using Configuration::HashID;
 
 using Entity = MoonGlare::Component::Entity;
 
-using EntityNameHash = uint32_t;
 
 } //namespace MoonGlare
 

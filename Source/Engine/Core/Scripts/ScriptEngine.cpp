@@ -222,7 +222,7 @@ float ScriptEngine::GetMemoryUsage() const {
 
 //---------------------------------------------------------------------------------------
 
-bool ScriptEngine::GetComponentEntryMT(ComponentId cid) {
+bool ScriptEngine::GetComponentEntryMT(SubSystemId cid) {
     auto lua = GetLua();
     GetComponentMTTable(lua);
 

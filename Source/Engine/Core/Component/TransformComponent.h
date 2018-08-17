@@ -8,7 +8,6 @@
 #include <Core/Scripts/ScriptComponent.h>
 
 #include "../../Configuration.h"
-#include "../EntityManager.h"
 #include "nfComponent.h"
 
 namespace MoonGlare::Core::Component {
@@ -17,7 +16,7 @@ using namespace MoonGlare::Component;
 
 class TransformComponent 
 	: public iSubsystem
-	, public ComponentIdWrap<ComponentId::Transform>
+	, public SubSystemIdWrap<SubSystemId::Transform>
 {
 public:
 	TransformComponent(SubsystemManager *Owner);
@@ -56,6 +55,7 @@ public:
 protected:
     SubsystemManager *subSystemManager;
     Scripts::Component::ScriptComponent *scriptComponent;
+    Component::EntityManager *entityManager;
     MoonGlare::Configuration::RuntimeRevision m_CurrentRevision = 0;
 
     struct LuaWrapper;

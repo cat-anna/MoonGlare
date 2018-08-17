@@ -124,7 +124,6 @@ using LockGuard = std::lock_guard < std::mutex >;
 
 #include <Foundation/OrbitLoggerConf.h>
 
-#include <libSpace/src/Memory/BitampAllocator.h>
 #include <libSpace/src/Container/StaticVector.h>
 #include <libSpace/src/Container/StaticAllocationBuffer.h>
 #include <libSpace/src/Utils/FmtStream.h>

@@ -19,20 +19,20 @@ struct ComponentInfo;
 using SharedComponentInfo = std::shared_ptr<const ComponentInfo>;
 
 struct ComponentInfo {
-	MoonGlare::Core::ComponentId m_CID;
+	MoonGlare::Core::SubSystemId m_CID;
 	std::string m_Name;
 	std::string m_DisplayName;
-	MoonGlare::Core::ComponentId m_Requirement;
+	MoonGlare::Core::SubSystemId m_Requirement;
 	SharedStructureInfo m_EntryStructure;
 	SharedStructureInfo m_SettingsStructure;
 	unsigned m_DefautltIndex = 0xFFFF;
 
-	using CIDMapType = std::unordered_map < MoonGlare::Core::ComponentId, SharedComponentInfo>;
+	using CIDMapType = std::unordered_map < MoonGlare::Core::SubSystemId, SharedComponentInfo>;
 	using NameMapType = std::unordered_map < std::string, SharedComponentInfo>;
 
 	static void RegisterComponentInfo(SharedComponentInfo typeinfo);
 	static SharedComponentInfo GetComponentInfo(const std::string &Name);
-	static SharedComponentInfo GetComponentInfo(MoonGlare::Core::ComponentId CID);
+	static SharedComponentInfo GetComponentInfo(MoonGlare::Core::SubSystemId CID);
 	static const NameMapType& GetComponents();
 };
 
