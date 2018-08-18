@@ -5,7 +5,7 @@ namespace MoonGlare::SoundSystem::Configuration {
         MaxBuffers = 256,
         BufferGenCount = 16,
 
-        DesiredBufferSize = 512 * 1024, //bytes
+        DesiredBufferSize = 1024 * 1024, //bytes
 
         MaxSources = 64,
         SourceAcivationQueue = 16,
@@ -16,6 +16,5 @@ namespace MoonGlare::SoundSystem::Configuration {
         DebugReportInterval = 10 * 1000, //ms
 
     };
-    static constexpr float EffectThresholdDuration = 3.0f;
-
+    static constexpr float EffectThresholdDuration = 5.0f;
 }

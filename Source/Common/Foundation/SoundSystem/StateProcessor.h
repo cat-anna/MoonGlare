@@ -43,7 +43,7 @@ struct SourceState {
     //TODO: make watcherInterface not per stream
 
     SourceStatus status = SourceStatus::Invalid;
-    SourceCommand command = SourceCommand::None;  //atomic?
+    std::atomic<SourceCommand> command = SourceCommand::None;  //atomic?
     SoundKind kind = SoundKind::Auto;
     bool streamFinished = false;
     bool releaseOnStop = false;

@@ -198,7 +198,8 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         }
 
-        switch (state.command) {
+        auto cmd = state.command.exchange(SourceCommand::None);
+        switch (cmd) {
         case SourceCommand::ResumePlaying:
             if (state.Playable()) {  //  && state.status != SourceStatus::Playing
                 if (state.status == SourceStatus::Paused) {
@@ -244,8 +245,6 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
         default:
             assert(false);
         }
-
-        state.command = SourceCommand::None;
     }
     return SourceProcessStatus::Continue;
 }
@@ -426,7 +425,7 @@ bool StateProcessor::GenSources() {
         }
         auto &ss = sourceState[index];
         standbySources.push(static_cast<SourceIndex>(index));
-        ss = {};
+        ss.Reset();
         ss.sourceSoundHandle = arr[i];
         ss.status = SourceStatus::Standby;
     }
