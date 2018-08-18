@@ -47,8 +47,3 @@ function ToggleRectTransformDebugDraw()
 	Debug.Flags.RectTransformComponent.DebugDraw = val;
 	return 0;
 end
-
-
--- Hooks.RegisterReciver(DebugHooks)
-print "Debug context initialized"
-

@@ -3,12 +3,13 @@
 #include <OrbitLoggerConf.h>
 
 #include "ErrorHandling.h"
+#include "LuaStackOverflowAssert.h"
 
 namespace MoonGlare::Scripts {
 
 int LuaErrorHandler(lua_State *L) {
     const char *cs = lua_tostring(L, -1);
-    AddLogf(ScriptRuntime, "Lua Error: %s", cs);
+    //AddLogf(ScriptRuntime, : %s", cs);
 
     lua_getfield(L, LUA_GLOBALSINDEX, "debug");
     if (lua_isnil(L, -1)) {
@@ -23,36 +24,35 @@ int LuaErrorHandler(lua_State *L) {
     lua_call(L, 2, 1);
 
     cs = lua_tostring(L, -1);
-    AddLogf(ScriptRuntime, "Trace: %s", cs);
+    AddLogf(ScriptRuntime, "Lua Error : %s", cs);
 
     lua_pop(L, 2);
     return 0;
 }
 
-int LuaTraceback(lua_State *L) {
-#ifdef DEBUG
-    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
-    if (lua_isnil(L, -1)) {
-        return 0;
-    }
-    lua_getfield(L, -1, "traceback");
-    if (lua_isnil(L, -1)) {
-        return 0;
-    }
-    lua_pushvalue(L, 1);
-    lua_pushinteger(L, 2);
-    lua_call(L, 2, 1);
+int LuaTraceback(lua_State *lua) {
+    LuaStackOverflowAssert check(lua);
 
-    const char *cs = lua_tostring(L, 1);
-    AddLogf(Error, "Lua callstack:\n%s", cs);
-    lua_pop(L, 2);
-#endif
-    return 0;
+    lua_getfield(lua, LUA_GLOBALSINDEX, "debug");
+    if (lua_isnil(lua, -1)) {
+        return 0;
+    }
+    lua_getfield(lua, -1, "traceback");
+    if (lua_isnil(lua, -1)) {
+        return 0;
+    }
+    lua_pushvalue(lua, -3);
+    lua_call(lua, 1, 1);
+
+    const char *cs = lua_tostring(lua, -1);
+    AddLogf(ScriptRuntime, "%s", cs);
+    lua_pop(lua, 3);
+    return check.ReturnArgs(-1);
 }
 
 int LuaPanicHandler(lua_State *L) {
     const char *m = lua_tostring(L, 1);
-    AddLogf(Error, "Lua panic! message: %s", m);
+    AddLogf(ScriptRuntime, "Lua panic! message: %s", m);
     LuaTraceback(L);
     if (!m)
         throw LuaPanic("NO MESSAGE");

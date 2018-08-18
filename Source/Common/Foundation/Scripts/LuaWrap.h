@@ -21,8 +21,8 @@ inline void Lua_push(lua_State *lua, void* t) { lua_pushlightuserdata(lua, t); }
 
 template <typename T, typename ... ARGS>
 inline void Lua_push(lua_State *lua, T&& t, ARGS&& ... args) {
-	Lua_push(lua, std::forward<T>(t));
-	Lua_push(lua, std::forward<ARGS>(args)...);
+    Lua_push(lua, std::forward<T>(t));
+    Lua_push(lua, std::forward<ARGS>(args)...);
 }
 
 template<class T> bool inline Lua_is(lua_State *lua, int idx);
@@ -37,8 +37,21 @@ template<> inline bool Lua_is<unsigned>(lua_State *lua, int idx) { return lua_is
 
 template<class ... ARGS>
 void lua_PushCClosure(lua_State *lua, lua_CFunction cfunc, ARGS&& ...args) {
-	Lua_push(lua, std::forward<ARGS>(args)...);
-	lua_pushcclosure(lua, cfunc, sizeof...(ARGS));
+    Lua_push(lua, std::forward<ARGS>(args)...);
+    lua_pushcclosure(lua, cfunc, sizeof...(ARGS));
+}
+
+template<typename T>
+static std::optional<T> GetTableField(lua_State *lua, int idx, const char *field) {
+    lua_getfield(lua, idx, field);
+    if (lua_isnil(lua, -1)) {
+        lua_pop(lua, 1);
+        return std::nullopt;
+    } else {
+        auto t = luabridge::Stack<T>::get(lua, lua_gettop(lua));
+        lua_pop(lua, 1);
+        return std::move(t);
+    }
 }
 
 }

@@ -6,7 +6,10 @@
 namespace MoonGlare::Scripts {
 
 int LuaErrorHandler(lua_State *L);
+
+// Wants single string parameter, pops it from stack 
 int LuaTraceback(lua_State *L);
+
 int LuaPanicHandler(lua_State *L);
 
 inline bool LuaSafeCall(lua_State *lua, int args, int rets, const char *CaleeName, int errf = 0) {

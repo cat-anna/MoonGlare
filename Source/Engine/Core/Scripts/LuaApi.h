@@ -2,14 +2,11 @@
 
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
-namespace MoonGlare {
-namespace Core {
-namespace Scripts {
+namespace MoonGlare::Core::Scripts {
 
 using namespace MoonGlare::Scripts;
 
 class ScriptEngine;
-class Script;
 
 class ApiInit {
 public:
@@ -174,6 +171,4 @@ inline void HideSelfLuaTable(lua_State *lua, const char *name, T *OwnerPtr) {
 #endif
 }
 
-} //namespace Scripts
-} //namespace Core
-} //namespace MoonGlare 
+}

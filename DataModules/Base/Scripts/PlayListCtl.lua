@@ -1,4 +1,4 @@
-local class = oo.Class()
+local class = oo.Inherit("ScriptComponent")
 
 function class:Init(Owner, playListUri)
     self.Owner = Owner
