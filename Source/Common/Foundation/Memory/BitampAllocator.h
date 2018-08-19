@@ -73,8 +73,8 @@ struct LinearAtomicBitmapAllocator : public BitmapAllocatorBase<SIZE, ITEMTYPE, 
 		return false;
 	}
 
-	bool Release(Index_t indexout) {
-		auto slotbit = SplitIndex(indexout);
+	bool Release(Index_t index) {
+		auto slotbit = SplitIndex(index);
 		auto mask = MakeMask(slotbit.bit);
 		if ((m_AtomicArray[slotbit.slot].fetch_and(~mask) & mask) == 0) {
 			return false;

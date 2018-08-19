@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pugixml.hpp>
+#include <boost/noncopyable.hpp>
 
 #include "../InterfaceMap.h"
 #include "Entity.h"
@@ -8,16 +9,12 @@
 
 namespace MoonGlare::Component {
 
-enum class SubsystemId : uint8_t {
-    Invalid = 0xFF,
-};
-
 struct SubsystemUpdateData {
     double timeDelta = 0.0f;
     double globalTime = 0.0f;
 };
 
-class iSubsystemManager {
+class iSubsystemManager : private boost::noncopyable {
 public:
     virtual ~iSubsystemManager() {}
     virtual InterfaceMap& GetInterfaceMap() = 0;
@@ -33,7 +30,7 @@ struct ComponentReader {
     }
 };
 
-class iSubsystem {
+class iSubsystem : private boost::noncopyable {
 public:
     virtual ~iSubsystem() {}
 
@@ -53,7 +50,6 @@ public:
     virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }
 protected:
     iSubsystem() {}
-private:
 };
 
 using UniqueSubsystem = std::unique_ptr<iSubsystem>;

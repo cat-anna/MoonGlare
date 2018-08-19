@@ -1,8 +1,10 @@
 #pragma once
 
+#include <boost/noncopyable.hpp>
+
 namespace MoonGlare::Scripts {
 
-class iDynamicScriptModule {
+class iDynamicScriptModule : private boost::noncopyable {
 public:
     virtual ~iDynamicScriptModule() {}
 };

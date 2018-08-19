@@ -41,18 +41,19 @@ template<typename T> inline std::string ToString(T *vec) {
     return oss.str();
 }
 template<typename T, typename A, int ... ints> inline T StaticVec() { return T(static_cast<A>(ints)...); }
-template<typename T> inline T VecClamp(T *v, T *min, T *max) {
-    T ret = *v;
+template<typename T> inline T VecClamp(const T &v, const T &min, const T &max) {
+    //NN(v); NN(min); NN(max);
+    T ret = v;
     for (int i = 0; i < ret.length(); ++i) {
-        if (ret[i] < (*min)[i])
-            ret[i] = (*min)[i];
+        if (ret[i] < min[i])
+            ret[i] = min[i];
         else
-            if (ret[i] > (*max)[i])
-                ret[i] = (*max)[i];
+            if (ret[i] > max[i])
+                ret[i] = max[i];
     }
     return ret;
 }
-template<typename T> inline void VecClampSelf(T *v, T *min, T *max) { *v = VecClamp(v, min, max); }
+template<typename T> inline void VecClampSelf(T *v, const T &min, const T &max) { *v = VecClamp(*v, min, max); }
 
 //Quaternions/Vec4
 
@@ -122,7 +123,6 @@ inline math::vec4 QuaternionFromAxisAngle(float x, float y, float z, float a) {
 }
 inline int lua_NewQuaternion(lua_State *lua) {
     int argc = lua_gettop(lua);
-    luabridge::dumpLuaState(lua);
     switch (argc) {
     case 1:
         luabridge::Stack<math::vec4>::push(lua, math::vec4());
@@ -138,13 +138,13 @@ inline int lua_NewQuaternion(lua_State *lua) {
     case 4:
         break;
     case 5:
-        if (lua_isnumber(lua, -4) && lua_isnumber(lua, -3) && lua_isnumber(lua, -2) && lua_isnumber(lua, -1)) {
+        if (lua_isnumber(lua, 2) && lua_isnumber(lua, 3) && lua_isnumber(lua, 4) && lua_isnumber(lua, 5)) {
             luabridge::Stack<math::vec4>::push(lua,
                                                math::vec4(
-                                                   static_cast<float>(lua_tonumber(lua, -4)),
-                                                   static_cast<float>(lua_tonumber(lua, -3)),
-                                                   static_cast<float>(lua_tonumber(lua, -2)),
-                                                   static_cast<float>(lua_tonumber(lua, -1))));
+                                                   static_cast<float>(lua_tonumber(lua, 2)),
+                                                   static_cast<float>(lua_tonumber(lua, 3)),
+                                                   static_cast<float>(lua_tonumber(lua, 4)),
+                                                   static_cast<float>(lua_tonumber(lua, 5))));
             return 1;
         }
     default:
@@ -166,7 +166,6 @@ template<> inline std::string ToString<math::vec3>(math::vec3 *vec) {
 }
 inline int lua_NewVec3(lua_State *lua) {
     int argc = lua_gettop(lua);
-    luabridge::dumpLuaState(lua);
     switch (argc) {
     case 1:
         luabridge::Stack<math::vec3>::push(lua, math::vec3());
@@ -218,7 +217,6 @@ template<> inline std::string ToString<math::vec2>(math::vec2 *vec) {
 }
 inline int lua_NewVec2(lua_State *lua) {
     int argc = lua_gettop(lua);
-    luabridge::dumpLuaState(lua);
     switch (argc) {
     case 1:
         luabridge::Stack<math::vec2>::push(lua, math::vec2());
@@ -266,7 +264,7 @@ struct VecCommon {
             .addProperty<float>("Length", &VecLength<VEC>)
 
             .addFunction("Normalize", Utils::Template::InstancedStaticCall<VEC, void>::callee<VecNormalize>())
-            .addFunction("Clamp", Utils::Template::InstancedStaticCall<VEC, void, VEC*, VEC*>::callee<VecClampSelf>())
+            .addFunction("Clamp", Utils::Template::InstancedStaticCall<VEC, void, const VEC&, const VEC&>::callee<VecClampSelf>())
 
             .addFunction("__tostring", Utils::Template::InstancedStaticCall<VEC, std::string>::callee<ToString>())
             .addFunction("__mul", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecMul>())
