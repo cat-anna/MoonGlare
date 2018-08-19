@@ -9,6 +9,7 @@
 
 #include "Modules/StaticModules.h"
 #include "Modules/LuaSettings.h"
+#include "ScriptObject.h"
 
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
 #include <Foundation/Scripts/Modules/StaticStorage.h>
@@ -142,6 +143,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
         InstallModule<StaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
+        InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {
         AddLogf(Error, "Exception during static module init '%s'", e.what());

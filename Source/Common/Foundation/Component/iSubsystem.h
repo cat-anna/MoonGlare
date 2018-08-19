@@ -40,21 +40,17 @@ public:
     using ComponentIndex = MoonGlare::Component::ComponentIndex;
     using Entity = MoonGlare::Component::Entity;
 
+    virtual bool Initialize() { return true; }
+    virtual bool Finalize() { return true; }
     virtual void Step(const SubsystemUpdateData &conf) { }
     virtual int PushToLua(lua_State *lua, Entity owner) { return 0; };
     virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) { return true; }
     virtual bool Create(Entity owner) { return false; }
 
-    //todo: remove old interface
-
-    virtual bool Initialize() { return true; }
-    virtual bool Finalize() { return true; }
+    //TODO: remove old interface
 
     virtual bool LoadComponentConfiguration(pugi::xml_node node) { return true; }
     virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }
-
-    //virtual void OnEntityDestroyed(Entity e) { }
-    //virtual void OnEntityCrated(Entity e) { }
 protected:
     iSubsystem() {}
 private:

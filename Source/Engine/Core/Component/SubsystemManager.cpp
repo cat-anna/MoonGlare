@@ -33,7 +33,7 @@ bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
     rootEntity = root;
 
 #ifdef PERF_PERIODIC_PRINT
-    Space::MemZero(m_ComponentInfo);
+    m_ComponentInfo.fill({});
 #endif
     
     for (size_t i = 0; i < m_UsedCount; ++i) {
@@ -63,7 +63,7 @@ bool SubsystemManager::Finalize() {
 
 bool SubsystemManager::LoadComponents(pugi::xml_node node) {
 #ifdef PERF_PERIODIC_PRINT
-    Space::MemZero(m_ComponentInfo);
+    m_ComponentInfo.fill({});
 #endif
     m_UsedCount = 0;
     if (!node) {
@@ -122,29 +122,27 @@ bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, SubSystemId cid) {
 }
 
 void SubsystemManager::Step(const MoveConfig &config) {
-    if (m_UsedCount == 0) {
-        // nothing to do
-        return;
+
+#ifndef PERF_PERIODIC_PRINT
+    for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
+        m_Components[i]->Step(config);
     }
-#ifdef PERF_PERIODIC_PRINT
+
+#else
     auto StepStartTime = std::chrono::steady_clock::now();
     auto ComponentStartTime = StepStartTime;
-#endif
 
     for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
         m_Components[i]->Step(config);
-#ifdef PERF_PERIODIC_PRINT
         auto StopTime = std::chrono::steady_clock::now();
         std::chrono::duration<float> delta = StopTime - ComponentStartTime;
         m_ComponentInfo[i].m_TotalStepDuration += delta.count();
         ++m_ComponentInfo[i].m_PeriodCount;
         ComponentStartTime = StopTime;
-#endif
     }
 
     m_EventDispatcher.Step();
 
-#ifdef PERF_PERIODIC_PRINT
     if (config.m_SecondPeriod) {
         std::string oss;
         oss.reserve(1024);
@@ -162,6 +160,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
          
         AddLogf(Performance, "SubsystemManager:%p  %sTotal:%7.5fms", this, oss.c_str(), sum);
     }
+
 #endif
 }
 

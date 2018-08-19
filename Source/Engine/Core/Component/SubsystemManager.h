@@ -4,7 +4,6 @@
 #include <Foundation/Component/iSubsystem.h>
 
 namespace MoonGlare::Core::Component {
-
 using namespace MoonGlare::Component;
 
 class SubsystemManager final  

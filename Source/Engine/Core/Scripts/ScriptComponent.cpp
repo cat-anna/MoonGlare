@@ -46,23 +46,18 @@ namespace lua {
 ::Space::RTTI::TypeInfoInitializer<ScriptComponent, ScriptComponent::ScriptEntry> ScriptComponentTypeInfo;
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", true);
 
-static ScriptObject *gScriptObject = nullptr;  //TODO: this is ugly!
+ScriptComponent::ScriptComponent(SubsystemManager *owner)
+    : iSubsystem(), subSystemManager(owner) {
 
-ScriptComponent::ScriptComponent(SubsystemManager *Owner)
-    : AbstractSubsystem(Owner) {
+    auto &ed = GetManager()->GetEventDispatcher();
+    ed.Register<Component::EntityDestructedEvent>(this);
 }
 
 ScriptComponent::~ScriptComponent() {
 }
 
-ApiInitializer ScriptComponent::RegisterScriptApi(ApiInitializer root) {
-    return GameObject::RegisterScriptApi(root);
-}
 
 bool ScriptComponent::Initialize() {
-    auto &ed = GetManager()->GetEventDispatcher();
-    ed.Register<Component::EntityDestructedEvent>(this);
-
     m_Array.MemZeroAndClear();
     m_EntityMapper.Fill(ComponentIndex::Invalid);
 
@@ -78,9 +73,15 @@ bool ScriptComponent::Initialize() {
     PublishSelfLuaTable(lua, "ScriptComponent", this, -1);							         //stack: InstTblIdx InstTbl
     lua_settable(lua, LUA_REGISTRYINDEX);													 //stack: -
 
-    requireModule = m_ScriptEngine->QuerryModule<iRequireModule>();
+    requireModule = GetManager()->GetInterfaceMap().GetInterface<iRequireModule>();
     if (!requireModule) {
-        AddLogf(Error, "QuerryModule<iRequireModule> failed!");
+        AddLogf(Error, "GetInterface<iRequireModule> failed!");
+        return false;
+    }
+
+    scriptObject = GetManager()->GetInterfaceMap().GetInterface<ScriptObject>();
+    if (!scriptObject) {
+        AddLogf(Error, "GetInterface<ScriptObject> failed!");
         return false;
     }
 
@@ -91,11 +92,6 @@ bool ScriptComponent::Initialize() {
         GetManager()->GetWorld()->SetSharedInterface<GameObjectTable>(gameObjectTable);
     }
     
-    if (!gScriptObject) {
-        gScriptObject = new ScriptObject();
-        gScriptObject->Init(lua, requireModule);
-    }
-
     return true;
 }
 
@@ -108,6 +104,39 @@ bool ScriptComponent::Finalize() {
     lua_settable(lua, LUA_REGISTRYINDEX);
     return true;
 }
+
+ApiInitializer ScriptComponent::RegisterScriptApi(ApiInitializer root) {
+    return GameObject::RegisterScriptApi(root);
+}
+
+int ScriptComponent::PushToLua(lua_State *lua, Entity owner) {
+    auto index = m_EntityMapper.GetIndex(owner);
+    if (index == ComponentIndex::Invalid) {
+        return 0;
+    }
+
+    auto &e = m_Array[index];
+    if (!e.m_Flags.m_Map.m_Valid) {
+        return 0;
+    }
+
+    int luatop = lua_gettop(lua);
+    LuaStackOverflowAssert check(lua);
+
+    //stack: -
+    GetInstancesTable(lua);				    //stack: insttable
+    lua_rawgeti(lua, -1, index + 1);		//stack: insttable script/nil
+
+    if (!lua_istable(lua, -1)) {
+        lua_settop(lua, luatop);
+        return 0;
+    }
+
+    lua_insert(lua, -2);
+    lua_pop(lua, 1);
+
+    return check.ReturnArgs(1);
+};
 
 //-------------------------------------------------------------------------------------------------
 
@@ -190,7 +219,7 @@ void ScriptComponent::HandleEvent(lua_State * L, Entity destination) {
 
 //-------------------------------------------------------------------------------------------------
 
-void ScriptComponent::Step(const MoveConfig & conf) {
+void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
     if (m_Array.empty()) {
         return;
     }
@@ -202,6 +231,8 @@ void ScriptComponent::Step(const MoveConfig & conf) {
 
     lua_pushcclosure(lua, LuaErrorHandler, 0);
     int errf = lua_gettop(lua);
+
+    auto &conf = *reinterpret_cast<const MoveConfig*> (&xconf);//TODO: this is ugly!
 
     GetInstancesTable(lua);									//stack: self
     luabridge::Stack<const MoveConfig*>::push(lua, &conf);  //stack: self movedata
@@ -468,51 +499,13 @@ int ScriptComponent::GetGameObject(lua_State *lua, Entity Owner) {
 
 //-------------------------------------------------------------------------------------------------
 
-int ScriptComponent::lua_GetScriptComponent(lua_State *lua, Entity Owner) {
-    auto index = m_EntityMapper.GetIndex(Owner);
-    if (index == ComponentIndex::Invalid)
-        return 0;
-    
-    auto &e = m_Array[index];
-    if (!e.m_Flags.m_Map.m_Valid) {
-        return 0;
-    }
-
-    int luatop = lua_gettop(lua);
-    LuaStackOverflowAssert check(lua);
-
-    //stack: -
-    GetInstancesTable(lua);				//stack: insttable
-    lua_rawgeti(lua, -1, index + 1);		//stack: insttable script/nil
-
-    if (!lua_istable(lua, -1)) {
-        lua_settop(lua, luatop);
-        return 0;
-    }
-    
-    lua_insert(lua, -2);
-    lua_pop(lua, 1);
-
-    return check.ReturnArgs(1);
-}
-
-int ScriptComponent::lua_GetComponentInfo(lua_State *lua, SubSystemId cid, Entity Owner) {
+int ScriptComponent::lua_GetComponentInfo(lua_State *lua, SubSystemId cid, Entity owner) {
 
     auto cptr = GetManager()->GetComponent(cid);
     if (!cptr) {
         AddLogf(Error, "GetComponent: Error: There is no component %d", cid);
         return 0;
     }
-
-    int r = cptr->PushToLua(lua, Owner);
-    if (r > 0) {
-        return r;
-    }
-
-    return lua_MakeComponentInfo(lua, cid, Owner, cptr);
-}
-
-int ScriptComponent::lua_MakeComponentInfo(lua_State *lua, SubSystemId cid, Entity owner, iSubsystem *cptr) {
     LuaStackOverflowAssert check(lua);
 
     lua_createtable(lua, 0, 5);

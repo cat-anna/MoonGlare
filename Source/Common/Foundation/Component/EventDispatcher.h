@@ -20,6 +20,16 @@ public:
     virtual void HandleEvent(lua_State* lua, Entity Destination) = 0;
 };
 
+template<typename T>
+class EventScriptSinkProxy : public EventScriptSink {
+    T *reciver;
+public:
+    EventScriptSinkProxy(T *r) : reciver(r) {}
+    void HandleEvent(lua_State* lua, Entity destination) override {
+        reciver->HandleEvent(lua, destination);
+    }
+};
+
 struct BaseEventCallDispatcher {
     template<typename EVENT>
     void Dispatch(const EVENT &ev) {
