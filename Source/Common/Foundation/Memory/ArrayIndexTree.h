@@ -17,15 +17,20 @@ BOOST_TTI_HAS_MEMBER_FUNCTION(SwapValues)
 BOOST_TTI_HAS_MEMBER_FUNCTION(GetElementName)
 BOOST_TTI_HAS_MEMBER_FUNCTION(ClearArrays)
 
-template<typename T, typename IsEnumType> struct ArrayIndexTreeIndexType { };
-template<typename T> struct ArrayIndexTreeIndexType<T, std::true_type> { using IntType = std::underlying_type_t<T>; };
-template<typename T> struct ArrayIndexTreeIndexType<T, std::false_type> { using IntType = T; };
+template<typename T, typename IsEnumType> struct ArrayIndexTreeIndexType {};
+template<typename T> struct ArrayIndexTreeIndexType<T, std::true_type> {
+    using IntType = std::underlying_type_t<T>;
+};
+template<typename T> struct ArrayIndexTreeIndexType<T, std::false_type> {
+    using IntType = T;
+};
+
+struct ArrayIndexTreeCallback { };
 
 } // namespace detail
 
-template <typename ElementIndex_t, ElementIndex_t ElementLimit_v, typename CALLBACK = void>
-struct alignas(16) ArrayIndexTree
-{
+template <typename ElementIndex_t, ElementIndex_t ElementLimit_v, typename CALLBACK = detail::ArrayIndexTreeCallback>
+struct alignas(16) ArrayIndexTree {
     using ElementIndex = ElementIndex_t;
     using ElementIndexIntType = typename detail::ArrayIndexTreeIndexType<typename ElementIndex, typename std::is_enum<typename ElementIndex_t>::type>::IntType;
 
@@ -36,36 +41,31 @@ struct alignas(16) ArrayIndexTree
     using ElementIndexVector = std::vector<ElementIndex>;
 
     static constexpr bool HasCallback = std::is_class_v<CALLBACK>;
-    static constexpr bool HasReleaseCallback()
-    {
+    static constexpr bool HasReleaseCallback() {
         if constexpr (HasCallback)
             return detail::has_member_function_ReleaseElement<void (CALLBACK::*)(ElementIndex, ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasInitCallback()
-    {
+    static constexpr bool HasInitCallback() {
         if constexpr (HasCallback)
             return detail::has_member_function_InitElemenent<void (CALLBACK::*)(ElementIndex, ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasSwapCallback()
-    {
+    static constexpr bool HasSwapCallback() {
         if constexpr (HasCallback)
             return detail::has_member_function_SwapValues<void (CALLBACK::*)(ElementIndex, ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasGetNameCallback()
-    {
+    static constexpr bool HasGetNameCallback() {
         if constexpr (HasCallback)
             return false;// detail::has_member_function_GetElementName<std::string(CALLBACK::*) (ElementIndex)const>::value;
         else
             return false;
     }
-    static constexpr bool HasClearCallback()
-    {
+    static constexpr bool HasClearCallback() {
         if constexpr (HasCallback)
             return detail::has_member_function_ClearArrays<void(CALLBACK::*) ()>::value;
         else
@@ -81,11 +81,9 @@ struct alignas(16) ArrayIndexTree
             return std::to_string(index);
     }
 
-    void DrawDiagram(std::ostream &out) const
-    {
+    void DrawDiagram(std::ostream &out) const {
         out << "digraph {\n";
-        for (ElementIndex index = 0; index < ElementLimit; ++index)
-        {
+        for (ElementIndex index = 0; index < ElementLimit; ++index) {
             std::string name = ElementToString(index);
 
             if (nextSibling[index] != InvalidIndex)
@@ -99,12 +97,10 @@ struct alignas(16) ArrayIndexTree
             if (firstChild[index] != InvalidIndex)
                 out << "" << name << " -> " << ElementToString(firstChild[index]) << " [style=bold];\n";
 
-            if (firstChild[index] != InvalidIndex)
-            {
+            if (firstChild[index] != InvalidIndex) {
                 out << "{ rank=same; ";
                 ElementIndex fchild = firstChild[index];
-                if (fchild != InvalidIndex)
-                {
+                if (fchild != InvalidIndex) {
                     out << ElementToString(fchild) << "; ";
                     for (ElementIndex child = nextSibling[fchild]; child != InvalidIndex && child != fchild; child = nextSibling[child])
                         out << ElementToString(child) << "; ";
@@ -114,26 +110,22 @@ struct alignas(16) ArrayIndexTree
                 out << "};\n";
             }
             if (index >= allocated &&
-                (nextSibling[index] != InvalidIndex || prevSibling[index] != InvalidIndex || parentIndex[index] != InvalidIndex || firstChild[index] != InvalidIndex))
-            {
+                (nextSibling[index] != InvalidIndex || prevSibling[index] != InvalidIndex || parentIndex[index] != InvalidIndex || firstChild[index] != InvalidIndex)) {
                 out << "{ style=filled; color=blue; " << ElementToString(index) << "; };\n";
             }
         }
         out << "}";
     }
 
-    void DrawDiagram(const std::string &fname) const
-    {
+    void DrawDiagram(const std::string &fname) const {
         std::ofstream of(fname);
         DrawDiagram(of);
     }
 
-    void DumpArrays(std::ostream &out) const
-    {
+    void DumpArrays(std::ostream &out) const {
         auto dumpArray = [&](const char *name, const Array<ElementIndex> &arr) {
             out << name << " -> ";
-            for (auto it : arr)
-            {
+            for (auto it : arr) {
                 out << "\t"
                     << (it == InvalidIndex ? std::string("x") : std::to_string(it));
             }
@@ -147,8 +139,7 @@ struct alignas(16) ArrayIndexTree
 
     //---------------------------------------------------------
 
-    void Clear()
-    {
+    void Clear() {
         if constexpr (HasClearCallback())
             reinterpret_cast<CALLBACK *>(this)->ClearArrays();
         allocated = (ElementIndex)0;
@@ -158,11 +149,14 @@ struct alignas(16) ArrayIndexTree
         prevSibling.fill(InvalidIndex);
     }
 
-    ElementIndex Allocated() { return allocated; }
-    ElementIndex LastIndex() const { return (ElementIndex)((ElementIndexIntType)allocated - 1); }
+    ElementIndex Allocated() {
+        return allocated;
+    }
+    ElementIndex LastIndex() const {
+        return (ElementIndex)((ElementIndexIntType)allocated - 1);
+    }
 
-    ElementIndex Allocate(ElementIndex parent = InvalidIndex)
-    {
+    ElementIndex Allocate(ElementIndex parent = InvalidIndex) {
         auto e = NextIndex();
         if (parent != InvalidIndex)
             AddChild(parent, e);
@@ -171,8 +165,7 @@ struct alignas(16) ArrayIndexTree
         return e;
     }
 
-    void RemoveBranch(ElementIndex rootIndex)
-    {
+    void RemoveBranch(ElementIndex rootIndex) {
         auto remove = [this](ElementIndex i) -> ElementIndex {
             ElementIndex r = i;
 
@@ -182,8 +175,7 @@ struct alignas(16) ArrayIndexTree
             // ++idx;
 
             r = LastIndex();
-            if (i < r)
-            {
+            if (i < r) {
                 SwapIndexes(r, i);  //move is sufficient
                 SatisfyChildIndexConstraint(i);
             }
@@ -198,29 +190,24 @@ struct alignas(16) ArrayIndexTree
         };
 
         ElementIndex currentIndex = rootIndex;
-        for (;;)
-        {
+        for (;;) {
             auto child = firstChild[currentIndex];
             if (child == InvalidIndex)
                 break;
             currentIndex = child;
         }
 
-        while (currentIndex != rootIndex)
-        {
+        while (currentIndex != rootIndex) {
             currentIndex = remove(currentIndex);
 
             ElementIndex sibling = nextSibling[currentIndex];
             assert(prevSibling[currentIndex] == InvalidIndex);
-            if (sibling == InvalidIndex)
-            {
+            if (sibling == InvalidIndex) {
                 auto parent = parentIndex[currentIndex];
                 RemoveReferences(currentIndex);
                 currentIndex = parent;
                 continue;
-            }
-            else
-            {
+            } else {
                 auto parent = parentIndex[currentIndex];
                 firstChild[parent] = sibling;
 
@@ -230,19 +217,16 @@ struct alignas(16) ArrayIndexTree
             }
 
             bool done = false;
-            for (ElementIndex child = sibling; child != InvalidIndex;)
-            {
+            for (ElementIndex child = sibling; child != InvalidIndex;) {
                 auto fchild = firstChild[child];
-                if (fchild == InvalidIndex)
-                {
+                if (fchild == InvalidIndex) {
                     currentIndex = child;
                     done = true;
                     break;
                 }
                 child = fchild;
             }
-            if (!done)
-            {
+            if (!done) {
                 RemoveReferences(currentIndex);
                 currentIndex = sibling;
             }
@@ -257,8 +241,7 @@ struct alignas(16) ArrayIndexTree
 
     //---------------------------------------------------------
 
-    class DFSIterator
-    {
+    class DFSIterator {
         const ArrayIndexTree *tree;
         ElementIndex currentIndex;
 
@@ -269,29 +252,26 @@ struct alignas(16) ArrayIndexTree
         DFSIterator(const DFSIterator &) = default;
         DFSIterator(DFSIterator &&) = default;
 
-        bool operator!=(const DFSIterator &ti) const
-        {
+        bool operator!=(const DFSIterator &ti) const {
             return currentIndex != ti.currentIndex;
         }
 
-        ElementIndex operator*() { return currentIndex; }
+        ElementIndex operator*() {
+            return currentIndex;
+        }
 
-        void operator++()
-        {
+        void operator++() {
             ElementIndex sibling = tree->nextSibling[currentIndex];
-            if (sibling == InvalidIndex)
-            {
+            if (sibling == InvalidIndex) {
                 auto parent = tree->parentIndex[currentIndex];
                 // assert
                 currentIndex = parent;
                 return;
             }
 
-            for (ElementIndex child = sibling; child != InvalidIndex;)
-            {
+            for (ElementIndex child = sibling; child != InvalidIndex;) {
                 auto fchild = tree->firstChild[child];
-                if (fchild == InvalidIndex)
-                {
+                if (fchild == InvalidIndex) {
                     currentIndex = child;
                     return;
                 }
@@ -303,8 +283,7 @@ struct alignas(16) ArrayIndexTree
     };
 
     template <typename DFSIteratorType>
-    class DFSIteratorStarter
-    {
+    class DFSIteratorStarter {
         ArrayIndexTree *tree;
         ElementIndex rootIndex;
 
@@ -312,11 +291,9 @@ struct alignas(16) ArrayIndexTree
         DFSIteratorStarter(ArrayIndexTree *tree, ElementIndex rootIndex)
             : tree(tree), rootIndex(rootIndex) {}
 
-        DFSIteratorType begin()
-        {
+        DFSIteratorType begin() {
             ElementIndex currentIndex = rootIndex;
-            for (;;)
-            {
+            for (;;) {
                 auto child = tree->firstChild[currentIndex];
                 if (child == InvalidIndex)
                     break;
@@ -324,25 +301,21 @@ struct alignas(16) ArrayIndexTree
             }
             return DFSIteratorType{ tree, currentIndex };
         }
-        DFSIteratorType end()
-        {
+        DFSIteratorType end() {
             return DFSIteratorType{ tree, tree->parentIndex[rootIndex] };
         }
     };
 
-    DFSIteratorStarter<DFSIterator> TraverseTree(ElementIndex startIndex)
-    {
+    DFSIteratorStarter<DFSIterator> TraverseTree(ElementIndex startIndex) {
         return DFSIteratorStarter<DFSIterator>(this, startIndex);
     }
-    ElementIndexVector TraverseTreeVector(ElementIndex startIndex)
-    {
+    ElementIndexVector TraverseTreeVector(ElementIndex startIndex) {
         return Vectorize(TraverseTree(startIndex));
     }
 
     //---------------------------------------------------------
 
-    class LinearIterator
-    {
+    class LinearIterator {
         ElementIndex currentIndex;
 
     public:
@@ -351,36 +324,40 @@ struct alignas(16) ArrayIndexTree
         LinearIterator(const LinearIterator &) = default;
         LinearIterator(LinearIterator &&) = default;
 
-        bool operator!=(const LinearIterator &ti) const
-        {
+        bool operator!=(const LinearIterator &ti) const {
             return currentIndex != ti.currentIndex;
         }
 
-        ElementIndex operator*() { return currentIndex; }
+        ElementIndex operator*() {
+            return currentIndex;
+        }
 
-        void operator++() { ++currentIndex; }
+        void operator++() {
+            ++currentIndex;
+        }
     };
 
-    class LinearTraverseStarter
-    {
+    class LinearTraverseStarter {
         ElementIndex startIndex, lastIndex;
 
     public:
         LinearTraverseStarter(ElementIndex startIndex, ElementIndex lastIndex)
             : startIndex(startIndex), lastIndex(lastIndex) {}
-        LinearIterator begin() { return LinearIterator{ startIndex }; }
-        LinearIterator end() { return LinearIterator{ lastIndex }; }
+        LinearIterator begin() {
+            return LinearIterator{ startIndex };
+        }
+        LinearIterator end() {
+            return LinearIterator{ lastIndex };
+        }
     };
 
     LinearTraverseStarter LinearTraverse(ElementIndex startIndex = 0,
-            ElementIndex lastIndex = InvalidIndex) const
-    {
+        ElementIndex lastIndex = InvalidIndex) const {
         return LinearTraverseStarter(
             startIndex, lastIndex == InvalidIndex ? allocated : lastIndex);
     }
     ElementIndexVector LinearTraverseVector(ElementIndex startIndex = 0,
-            ElementIndex lastIndex = InvalidIndex) const
-    {
+        ElementIndex lastIndex = InvalidIndex) const {
         return Vectorize(LinearTraverse(startIndex, lastIndex));
     }
 
@@ -394,8 +371,7 @@ struct alignas(16) ArrayIndexTree
     using Array = typename std::array<T, ElementLimit>;
 
     //TODO: MoveIndex(ElementIndex src, ElementIndex dst)
-    void SwapIndexes(ElementIndex a, ElementIndex b)
-    {
+    void SwapIndexes(ElementIndex a, ElementIndex b) {
         assert(a != InvalidIndex);
         assert(b != InvalidIndex);
 
@@ -418,8 +394,7 @@ struct alignas(16) ArrayIndexTree
             auto &aprev = prevSibling[a];
             auto &bprev = prevSibling[b];
 
-            if (anext == b)
-            { // right next to each other
+            if (anext == b) { // right next to each other
                 anext = bnext;
                 bprev = aprev;
 
@@ -431,9 +406,7 @@ struct alignas(16) ArrayIndexTree
 
                 bnext = a;
                 aprev = b;
-            }
-            else if (bnext == a)
-            { // right next to each other
+            } else if (bnext == a) { // right next to each other
                 bnext = anext;
                 aprev = bprev;
 
@@ -445,9 +418,7 @@ struct alignas(16) ArrayIndexTree
 
                 anext = b;
                 bprev = a;
-            }
-            else
-            {
+            } else {
                 auto p = bprev;
                 auto n = bnext;
 
@@ -507,28 +478,27 @@ public:
     Array<ElementIndex> prevSibling;
 
 private:
-    ElementIndex NextIndex() { 
+    ElementIndex NextIndex() {
         ElementIndex ei = allocated;
         allocated = (ElementIndex)((ElementIndexIntType)allocated + 1);
-        return ei; 
+        return ei;
     };
-    void RemoveLast() { allocated = (ElementIndex)((ElementIndexIntType)allocated - 1); }
+    void RemoveLast() {
+        allocated = (ElementIndex)((ElementIndexIntType)allocated - 1);
+    }
 
-    void AddChild(ElementIndex parent, ElementIndex child)
-    {
+    void AddChild(ElementIndex parent, ElementIndex child) {
         assert(parent != InvalidIndex);
         assert(child != InvalidIndex);
 
         parentIndex[child] = parent;
-        if (firstChild[parent] != InvalidIndex)
-        {
+        if (firstChild[parent] != InvalidIndex) {
             auto fchild = firstChild[parent];
             InsertBefore(fchild, child);
         }
         firstChild[parent] = child;
     }
-    void InsertBefore(ElementIndex before, ElementIndex index)
-    {
+    void InsertBefore(ElementIndex before, ElementIndex index) {
         assert(before != InvalidIndex);
         assert(index != InvalidIndex);
         auto prevBefore = prevSibling[before];
@@ -538,8 +508,7 @@ private:
         if (prevBefore != InvalidIndex)
             nextSibling[prevBefore] = index;
     }
-    void RemoveReferences(ElementIndex e)
-    {
+    void RemoveReferences(ElementIndex e) {
         assert(e != InvalidIndex);
         auto prev = prevSibling[e];
         auto next = nextSibling[e];
@@ -559,11 +528,9 @@ private:
         parentIndex[e] = InvalidIndex;
         firstChild[e] = InvalidIndex;
     }
-    void SatisfyChildIndexConstraint(ElementIndex e)
-    {
+    void SatisfyChildIndexConstraint(ElementIndex e) {
         assert(e != InvalidIndex);
-        for (ElementIndex c = e; parentIndex[c] > c;)
-        {
+        for (ElementIndex c = e; parentIndex[c] > c;) {
             if (parentIndex[c] == InvalidIndex)
                 break;
             SwapIndexes(c, parentIndex[c]);
@@ -579,7 +546,7 @@ private:
 };
 
 namespace detail {
-struct TestArrayIndexTree : public ArrayIndexTree<uint32_t, 16, TestArrayIndexTree> { };
+struct TestArrayIndexTree : public ArrayIndexTree<uint32_t, 16, TestArrayIndexTree> {};
 static_assert(std::is_trivial_v<TestArrayIndexTree>);
 static_assert(std::is_trivially_constructible_v<TestArrayIndexTree>);
 static_assert((sizeof(TestArrayIndexTree) % 16) == 0);
