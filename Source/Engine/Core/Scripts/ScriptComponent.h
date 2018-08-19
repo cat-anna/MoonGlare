@@ -9,6 +9,8 @@
 #include <Foundation/Component/EntityArrayMapper.h>
 #include <Foundation/Component/EventDispatcher.h>
 
+#include <Foundation/TimerDispatcher.h>
+
 #include <libSpace/src/Container/StaticVector.h>
 
 #include <Core/Scripts/ScriptEngine.h>
@@ -43,9 +45,7 @@ public:
             bool m_Valid : 1; //Entity is not valid or requested to be deleted;
             bool m_Active : 1; //Script has step function and it shall be called
 
-            bool m_OnPerSecond : 1;//called when movedata.secondstep is true, need to be activated
             bool m_Step : 1;
-            //bool m_Event : 1;
         };
         MapBits_t m_Map;
         uint32_t m_UintValue;
@@ -79,6 +79,12 @@ public:
 
     EventScriptSink* GetEventSink() { return &eventScriptSinkProxy; }
 
+    struct TimerData {
+        Entity owner;
+        int timerId;
+    };
+    auto &GetTimerDispatcher() { return timerDispatcher; } //TODO: this is ugly
+
     static ApiInitializer RegisterScriptApi(ApiInitializer root);
 protected:
     SubsystemManager *subSystemManager;
@@ -91,6 +97,7 @@ protected:
     template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
     Array<ScriptEntry> m_Array;
     EntityArrayMapper<> m_EntityMapper;
+    TimerDispatcher<TimerData, 1024> timerDispatcher;
 
     void ReleaseComponent(lua_State *lua, size_t Index);
 

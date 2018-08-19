@@ -15,3 +15,9 @@ do {                                                                            
     if(lua) { lua_pushstring(lua, msg.c_str()); LuaTraceback(lua); }                                        \
 } while (false) 
 
+#define ReportMissingFunction(lua, FuncName)                                                                \
+do {                                                                                                        \
+    auto msg = fmt::format("System : Warning : Missing function : Function '{}' is not defined", FuncName );\
+    AddLogf(ScriptRuntime, msg.c_str());                                                                    \
+} while (false)                                                                                             \
+

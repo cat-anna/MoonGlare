@@ -16,6 +16,7 @@
 #include "Core/Engine.h"
 
 #include <Foundation/Component/EntityManager.h>
+#include <Foundation/HandleTable.h>
 
 namespace MoonGlare {
 
@@ -34,6 +35,9 @@ bool World::Initialize() {
 
     entityManager = std::make_unique<Component::EntityManager>();
     SetInterface<Component::EntityManager>(entityManager.get());
+
+    handleTable = std::make_unique<HandleTable>();
+    SetInterface<HandleTable>(handleTable.get());
 
 	m_InputProcessor = std::make_unique<Core::InputProcessor>();
 	if (!m_InputProcessor->Initialize(this)) {
@@ -71,6 +75,7 @@ bool World::Finalize() {
 	}
 
     entityManager.reset();
+    handleTable.reset();
 
     ReleaseAllInterfaces();
 

@@ -8,6 +8,7 @@ namespace MoonGlare::Core::Scripts { class ScriptEngine; }
 namespace MoonGlare {
 
 class iConsole;
+class HandleTable;
 
 class World final : public InterfaceMap {
 public:
@@ -45,6 +46,7 @@ private:
     std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
 
     std::unique_ptr<Component::EntityManager> entityManager;
+    std::unique_ptr<HandleTable> handleTable;
 
 	//not owning
     iConsole *m_Console = nullptr;

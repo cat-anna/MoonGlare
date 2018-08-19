@@ -54,4 +54,8 @@ static std::optional<T> GetTableField(lua_State *lua, int idx, const char *field
     }
 }
 
+inline int GetAbsoluteindex(lua_State *lua, int i) {
+    return (i > 0 ? i : lua_gettop(lua) + i + 1);
+}
+
 }

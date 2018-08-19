@@ -32,12 +32,6 @@ namespace lua {
         EntityUpValue,
     };
 
-//Script instance callable functions
-    static const char *Function_Step = "Step";
-    static const char *Function_OnCreate = "OnCreate";
-    static const char *Function_OnDestroy = "OnDestroy";
-    static const char *Function_PerSecond = "PerSecond";
-
 //TODO: check:
     static const char *DereferenceHandleName = "Get";
     static const char *ComponentSetStateName = "Set";
@@ -47,7 +41,7 @@ namespace lua {
 RegisterComponentID<ScriptComponent> ScriptComponent("Script", true);
 
 ScriptComponent::ScriptComponent(SubsystemManager *owner)
-    : iSubsystem(), subSystemManager(owner) {
+    : iSubsystem(), subSystemManager(owner), timerDispatcher(*owner->GetWorld()) {
 
     auto &ed = GetManager()->GetEventDispatcher();
     ed.Register<Component::EntityDestructedEvent>(this);
@@ -55,7 +49,6 @@ ScriptComponent::ScriptComponent(SubsystemManager *owner)
 
 ScriptComponent::~ScriptComponent() {
 }
-
 
 bool ScriptComponent::Initialize() {
     m_Array.MemZeroAndClear();
@@ -91,6 +84,8 @@ bool ScriptComponent::Initialize() {
         gameObjectTable->Clear();
         GetManager()->GetWorld()->SetSharedInterface<GameObjectTable>(gameObjectTable);
     }
+
+    //TODO: set timerDispatcher.currentTime;
     
     return true;
 }
@@ -104,6 +99,8 @@ bool ScriptComponent::Finalize() {
     lua_settable(lua, LUA_REGISTRYINDEX);
     return true;
 }
+
+//-------------------------------------------------------------------------------------------------
 
 ApiInitializer ScriptComponent::RegisterScriptApi(ApiInitializer root) {
     return GameObject::RegisterScriptApi(root);
@@ -150,7 +147,7 @@ void ScriptComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEv
     gameObjectTable->Release(event.entity);
 }
 
-void ScriptComponent::HandleEvent(lua_State * L, Entity destination) {
+void ScriptComponent::HandleEvent(lua_State *lua, Entity destination) {
     if (!GetManager()->GetWorld()->GetEntityManager().IsValid(destination))
         return;
     auto *entry = GetEntry(destination);
@@ -163,58 +160,42 @@ void ScriptComponent::HandleEvent(lua_State * L, Entity destination) {
     int index = m_EntityMapper.GetIndex(destination);
 
     LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
-    LuaStackOverflowAssert check(L);
+    LuaStackOverflowAssert check(lua);
 
-    int luatop = lua_gettop(L);
+    int luatop = lua_gettop(lua);
 
     //stack: eventObj
 
-    lua_getfield(L, -1, "HandlerName");
-    if (lua_isnil(L, -1)) {
+    lua_getfield(lua, -1, "HandlerName");
+    if (lua_isnil(lua, -1)) {
         //TODO
         __debugbreak();
-        lua_settop(L, luatop);
+        lua_settop(lua, luatop);
         return;
     }
     
-    const char *HandlerName = lua_tostring(L, -1);
+    const char *HandlerName = lua_tostring(lua, -1);
     
-    lua_pushcclosure(L, LuaErrorHandler, 0);                    //stack: eventObj HandlerName errH
-    int errf = lua_gettop(L);
+    lua_pushcclosure(lua, LuaErrorHandler, 0);                      //stack: eventObj HandlerName errH
+    int errf = lua_gettop(lua);
 
-    GetInstancesTable(L);									    //stack: eventObj HandlerName errH instT
-    lua_rawgeti(L, -1, index);							        //stack: eventObj HandlerName errH instT Script/nil
+    GetInstancesTable(lua);									        //stack: eventObj HandlerName errH instT
+    lua_rawgeti(lua, -1, index);							        //stack: eventObj HandlerName errH instT Script/nil
 
-    if (!lua_istable(L, -1)) {
-        lua_settop(L, luatop);
+    if (!lua_istable(lua, -1)) {
+        lua_settop(lua, luatop);
         AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", index);
         //TODO: change message and channel to SCRT
         return;
     }
 
     //stack: eventObj HandlerName errH instT Script
-    lua_pushvalue(L, -4);                                       //stack: eventObj HandlerName errH instT Script HandlerName 
-    lua_gettable(L, -2);		                                //stack: eventObj HandlerName errH instT Script func/nil
 
-    if (lua_isnil(L, -1)) {
-        AddLogf(Warning, "ScriptComponent: There is no %s function in component at index: %d", HandlerName, index);
-        lua_settop(L, luatop);
-        //TODO: change message and channel to SCRT; no message?
-        //entry->m_Flags.m_Map.m_Event = false;
-        return;
-    }
+    lua_pushvalue(lua, -5);							             //stack: eventObj HandlerName errH instT func Script eventObj       
+    ScriptObject::CallFunction(lua, HandlerName, 1, errf);
 
-    // stack: eventObj HandlerName errH instT Script func
-    lua_insert(L, -2);							             //stack: eventObj HandlerName errH instT func Script 
-    lua_pushvalue(L, -6);							         //stack: eventObj HandlerName errH instT func Script eventObj       
-
-    if (!LuaSafeCall(L, 2, 0, HandlerName, errf)) {
-        AddLogf(Error, "Failure during %s call for component #%lu", HandlerName, index);
-        //TODO: change message and channel to SCRT
-    }
-
-    lua_settop(L, luatop);         //clear all temp values on stack
-    lua_pop(L, 1);                 //remove event object
+    lua_settop(lua, luatop);         //clear all temp values on stack
+    lua_pop(lua, 1);                 //remove event object
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -234,13 +215,44 @@ void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
 
     auto &conf = *reinterpret_cast<const MoveConfig*> (&xconf);//TODO: this is ugly!
 
-    GetInstancesTable(lua);									//stack: self
-    luabridge::Stack<const MoveConfig*>::push(lua, &conf);  //stack: self movedata
+    timerDispatcher.Step(conf.globalTime, [this, lua, errf](Handle handle, TimerData &td) {
+        auto *entry = GetEntry(td.owner);
+        if (!entry || !entry->m_Flags.m_Map.m_Valid || !entry->m_Flags.m_Map.m_Active) {
+            return;
+        }
+
+        int index = m_EntityMapper.GetIndex(td.owner);
+
+        LOCK_MUTEX_NAMED(m_ScriptEngine->GetLuaMutex(), lock);
+        LuaStackOverflowAssert check(lua);
+
+        int luatop = lua_gettop(lua);
+
+        //stack: -
+          
+        GetInstancesTable(lua);									    //stack: instT
+        lua_rawgeti(lua, -1, index + 1);						    //stack: instT Script/nil
+
+        if (!lua_istable(lua, -1)) {
+            lua_settop(lua, luatop);
+            AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", index);
+            //TODO: change message and channel to SCRT
+            return;
+        }
+
+        // stack: instT Script
+
+        ScriptObject::OnTimer(lua, td.timerId, handle, errf);
+   
+        lua_settop(lua, luatop);         //clear all temp values on stack
+    });
+
+    GetInstancesTable(lua);									//stack: instT
+    luabridge::Stack<const MoveConfig*>::push(lua, &conf);  //stack: instT movedata
+    int movedataIndex = lua_gettop(lua);
 
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;
-
-    int luatop = lua_gettop(lua);
 
     for (size_t i = 0; i < m_Array.Allocated(); ++i) {
         auto &item = m_Array[i];
@@ -253,54 +265,23 @@ void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
 
         if (!item.m_Flags.m_Map.m_Active) 
             continue; // entry is not active. nothing todo.
-        
-        if (!((item.m_Flags.m_Map.m_OnPerSecond && conf.m_SecondPeriod) || item.m_Flags.m_Map.m_Step))
+        if (!item.m_Flags.m_Map.m_Step)
             continue; // there is no function which can be called. nothing todo.
 
         lua_rawgeti(lua, -2, i + 1);		//stack: self movedata Script/nil
 
         if (!lua_istable(lua, -1)) {
-            lua_settop(lua, luatop);
-            AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", i + 1);
+            lua_settop(lua, movedataIndex);
+            AddLog(Error, "ScriptComponent: nil in lua script table at index: %d", i + 1);
             continue;
         }
 
-        int luascrtop = lua_gettop(lua);
-            
-        if (item.m_Flags.m_Map.m_Step) {
-            lua_pushvalue(lua, -1);								// stack: self movedata script script
-            lua_getfield(lua, -1, lua::Function_Step);			//stack: self movedata script script Step/nil
-            if (lua_isnil(lua, -1)) {
-                item.m_Flags.m_Map.m_Step = false;
-                AddLogf(Warning, "ScriptComponent: There is no Step function in component at index: %d, disabling", i);
-            } else {
-                //stack: self movedata script script Step
-                lua_insert(lua, -2);							//stack: self movedata script Step script
-                lua_pushvalue(lua, -4);							//stack: self movedata script Step script movedata
+        //stack: self movedata Script
 
-                if (!LuaSafeCall(lua, 2, 0, lua::Function_Step, errf)) {
-                    AddLogf(Error, "Failure during OnStep call for component #%lu", i);
-                }
-            }
+        if (!ScriptObject::Step(lua, movedataIndex, errf)) {
+            item.m_Flags.m_Map.m_Step = false;
+            AddLog(ScriptRuntime, "System : Warning : Missing function : Function 'Step' is not defined for entity: " << item.m_OwnerEntity);
         }
-
-        if (item.m_Flags.m_Map.m_OnPerSecond && conf.m_SecondPeriod) {
-            lua_settop(lua, luascrtop);							//stack: self movedata script 
-            lua_pushvalue(lua, -1);								//stack: self movedata script script
-            lua_getfield(lua, -1, lua::Function_PerSecond);		//stack: self movedata script script persec/nil
-            if (lua_isnil(lua, -1)) {
-                item.m_Flags.m_Map.m_OnPerSecond = false;
-                AddLogf(Warning, "ScriptComponent: There is no PerSecond function in component at index: %d, disabling", i);
-            } else {
-                //stack: self movedata script script persec
-                lua_insert(lua, -2);						//stack: self movedata script persec script 
-                if (!LuaSafeCall(lua, 1, 0, lua::Function_Step, errf)) {
-                    AddLogf(Error, "Failure during PerSecond call for component #%lu", i);
-                }
-            }
-        }
-
-        lua_settop(lua, luatop);
     }
 
     lua_pop(lua, 3); //stack: -
@@ -309,6 +290,7 @@ void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
         AddLogf(Performance, "ScriptComponent:%p InvalidEntryCount:%lu LastInvalidEntry:%lu", this, InvalidEntryCount, LastInvalidEntry);
         ReleaseComponent(lua, LastInvalidEntry);
     }
+
 }
 
 void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
@@ -320,25 +302,19 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
 
     GetInstancesTable(lua);						//stack: InstancesTable
     lua_pushinteger(lua, LuaIndex);				//stack: InstancesTable LuaIndex
-    lua_gettable(lua, -2);						//stack: InstancesTable Script
+    lua_gettable(lua, -2);						//stack: InstancesTable Script/nil
 
     if (lua_isnil(lua, -1)) {
         AddLogf(Error, "ScriptComponent: nil in lua Object script table at index: 1");
         lua_pop(lua, 1);							    //stack: InstancesTable 
     } else {
-        lua_getfield(lua, -1, lua::Function_OnDestroy); //stack: InstancesTable Script OnDestroy/nil
-        if (lua_isnil(lua, -1)) {
-            lua_pop(lua, 2);                            //stack: InstancesTable 
-        } else {
-            lua_pushcclosure(lua, LuaErrorHandler, 0);  //stack: InstancesTable Script OnDestroy errH
-            lua_insert(lua, -3);                        //stack: InstancesTable errH Script OnDestroy 
-            lua_pushvalue(lua, -2);			            //stack: InstancesTable errH Script OnDestroy Script
-            if (!LuaSafeCall(lua, 1, 0, lua::Function_OnDestroy, -3)) {
-                //	nothing there, nothing more to be logged
-            }
-            //stack: InstancesTable errH Script
-            lua_pop(lua, 2);                            //stack: InstancesTable 
-        }
+        //stack: InstancesTable Script
+        int errf = lua_gettop(lua);
+        lua_pushcclosure(lua, LuaErrorHandler, 0);      //stack: InstancesTable Script errH
+        lua_insert(lua, -1);                            //stack: InstancesTable errH Script 
+
+        ScriptObject::OnDestroy(lua, errf);
+        lua_pop(lua, 1);                                //stack: InstancesTable
     }
 
     //stack: InstancesTable
@@ -425,7 +401,7 @@ bool ScriptComponent::Load(ComponentReader &reader, Entity parent, Entity owner)
     entry.m_Flags.m_Map.m_Valid = true;
     entry.m_Flags.m_Map.m_Step = true;
     entry.m_Flags.m_Map.m_Active = se.m_Active;
-    entry.m_Flags.m_Map.m_OnPerSecond = se.m_PerSecond;
+    //entry.m_Flags.m_Map.m_OnPerSecond = se.m_PerSecond;
     //entry.m_Flags.m_Map.m_Event = true;
     m_EntityMapper.SetIndex(owner, index);
 
@@ -455,18 +431,7 @@ bool ScriptComponent::Load(ComponentReader &reader, Entity parent, Entity owner)
     lua_pop(lua, 1);
 
     //stack: Script
-                                                                         
-    lua_getfield(lua, -1, lua::Function_OnCreate);				//stack: Script OnCreate/nil
-    if (lua_isnil(lua, -1)) {
-        lua_pop(lua, 1);										//stack: Script
-    } else {
-        lua_pushvalue(lua, -2);									//stack: Script OnCreate Script
-        if (!LuaSafeCall(lua, 1, 0, lua::Function_OnCreate, errf)) {
-            //no need for more logging
-        }
-        //stack: Script result
-        lua_pop(lua, 1);										
-    }
+    ScriptObject::OnCreate(lua, errf);
 
     //stack: errf Script 
     lua_settop(lua, top);
