@@ -126,6 +126,7 @@ void CodeEditor::resizeEvent(QResizeEvent *e) {
 void CodeEditor::updateLineNumberAreaWidth(int newBlockCount) {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
+
 void CodeEditor::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;
     if (!isReadOnly()) {
@@ -139,6 +140,7 @@ void CodeEditor::highlightCurrentLine() {
     }
     setExtraSelections(extraSelections);
 }
+
 void CodeEditor::updateLineNumberArea(const QRect &rect, int dy) {
     if (dy)
         lineNumberArea->scroll(0, dy);

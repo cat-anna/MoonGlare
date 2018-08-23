@@ -311,7 +311,7 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
         //stack: InstancesTable Script
         int errf = lua_gettop(lua);
         lua_pushcclosure(lua, LuaErrorHandler, 0);      //stack: InstancesTable Script errH
-        lua_insert(lua, -1);                            //stack: InstancesTable errH Script 
+        lua_insert(lua, -2);                            //stack: InstancesTable errH Script 
 
         ScriptObject::OnDestroy(lua, errf);
         lua_pop(lua, 1);                                //stack: InstancesTable

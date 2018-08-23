@@ -241,7 +241,6 @@ struct Register {
 
         RegEnum<x2c::SoundSystem::PositionMode_TypeInfo>();
         RegEnum<x2c::SoundSystem::SoundKind_TypeInfo>();
-        RegEnum<x2c::SoundSystem::SoundState_TypeInfo>();
 
         RegEnum<bool_TypeInfo>();
 

@@ -128,9 +128,9 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
             continue;
         }
 
-        if (!item.m_Flags.m_Map.m_Visible) {
-            continue;
-        }
+        //if (!item.m_Flags.m_Map.m_Visible) {
+        //    continue;
+        //}
 
         auto tindex = m_TransformComponent->GetComponentIndex(item.m_Owner);
         if (tindex == ComponentIndex::Invalid) {
