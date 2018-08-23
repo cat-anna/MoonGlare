@@ -8,6 +8,8 @@ class iRendererFacade {
 public:
 
     virtual iContext* GetContext() = 0;
+
+    virtual void SetConfiguration(Configuration::RuntimeConfiguration Configuration) = 0;
 };
 
 }

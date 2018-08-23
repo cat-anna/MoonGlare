@@ -10,7 +10,6 @@
 #include "Frame.h"
 
 #include "Renderer.h"
-#include "Context.h"
 
 #include "TextureRenderTask.h"
 
@@ -60,10 +59,6 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
     for (auto &q : m_SubQueueTable)
         q.Clear();
 
-    auto ctx = rfacade->GetContextImpl();
-    RendererAssert(ctx);
-    ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
-    
     m_FrameResourceStorage.Initialize(rfacade->GetConfiguration());
     flags.shadowsEnabled = rfacade->GetConfiguration()->m_Shadow.m_ShadowMapSize != Configuration::Shadow::ShadowMapSize::Disable;
 

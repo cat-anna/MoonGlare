@@ -11,7 +11,6 @@
 
 #include <Source/Renderer/Renderer.h>
 #include <Source/Renderer/RenderDevice.h>
-#include <Source/Renderer/Context.h>
 #include <Core/Scripts/ScriptEngine.h>
 
 #include "JobQueue.h"
@@ -96,7 +95,7 @@ void Engine::EngineMain() {
     m_Running = true; 
 
     auto Device = m_Renderer->GetDevice();
-    auto Ctx = m_Renderer->GetContextImpl();
+    auto Ctx = m_Renderer->GetContext();
 
     MoveConfig &conf = stepData;
     conf.deferredSink = m_Dereferred->GetDefferedSink();
@@ -125,7 +124,6 @@ void Engine::EngineMain() {
     clock::time_point TitleRefresh = EntryTime;
 
     Ctx->SetVisible(true);
-    bool odd = true;
 
     while (m_Running) {
         CurrentTime = clock::now();
@@ -151,7 +149,6 @@ void Engine::EngineMain() {
 
         LastFrame = CurrentTime;
         conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
-        odd = odd || conf.m_SecondPeriod;
 
         m_ActionQueue.DispatchPendingActions();
 
@@ -186,36 +183,19 @@ void Engine::EngineMain() {
             using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
             Device->ProcessPendingCtrlQueues();
-            if (odd) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                glFlush();
-                cmdl.Execute();
-                glFlush();
-                frame->GetFirstWindowLayer().Execute();
-                Ctx->Flush();
-
-            }
-            else {
-                frame->GetCommandLayers().Execute<Layer::Controll, Layer::PreRender>();
-            }
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glFlush();
+            cmdl.Execute();
+            glFlush();
+            frame->GetFirstWindowLayer().Execute();
+            Ctx->Flush();
 
             Device->ReleaseFrame(frame);
-
-            //glFlush();
-            //glFinish();
-            //glFlush();
         }
 
-        auto RenderTime = clock::now();
-        {
-            //glFinish();
-            //Ctx->Flush();
-        }
         auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
-
-        odd = !odd;
 
         if(conf.m_SecondPeriod) {
             TitleRefresh = CurrentTime;
@@ -224,12 +204,11 @@ void Engine::EngineMain() {
             double sum = tdiff(StartTime, EndTime);
             //if (Config::Current::EnableFlags::ShowTitleBarDebugInfo) {
                 char Buffer[256];
-                sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.2f rti:%.1f swp:%.1f sum:%.1f fill:%.1f",
+                sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f st:%.2f rti:%.1f sum:%.1f fill:%.1f",
                         tdiff(BeginTime, CurrentTime), m_LastFPS, Device->FrameCounter(), m_SkippedFrames,
                         tdiff(StartTime, MoveTime) * 1000.0f,
                         tdiff(MoveTime, SortTime) * 1000.0f,
-                        tdiff(SortTime, RenderTime) * 1000.0f,
-                        tdiff(RenderTime, EndTime) * 1000.0f,
+                        tdiff(SortTime, EndTime) * 1000.0f,
                         (sum) * 1000.0f,
                         (sum / m_FrameTimeSlice) * 100.0f
                         );

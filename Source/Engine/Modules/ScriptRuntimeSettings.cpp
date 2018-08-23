@@ -4,6 +4,8 @@
 #include <Core/Scripts/iLuaSettings.h>
 
 #include <Renderer/Configuration.Renderer.h>
+#include <Renderer/iContext.h>
+
 #include <AssetSettings.x2c.h>
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
@@ -67,16 +69,16 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::iModule, public Core::
             Set<float>(settings->m_Renderer.m_Shadow.m_ShadowMapSize, value);
             break;
         case "Display.Width"_Hash32:
-            Set<float>(settings->m_Display.m_Width, value);
+            Set<float>(settings->m_Display.width, value);
             break;
         case "Display.Height"_Hash32:
-            Set<float>(settings->m_Display.m_Height, value);
+            Set<float>(settings->m_Display.height, value);
             break;
         case "Display.Monitor"_Hash32:
-            Set<float>(settings->m_Display.m_Monitor, value);
+            Set<float>(settings->m_Display.monitor, value);
             break;
         case "Display.FullScreen"_Hash32:
-            settings->m_Display.m_FullScreen = std::get<bool>(value);
+            settings->m_Display.fullScreen = std::get<bool>(value);
             break;
         case "Core.LangCode"_Hash32:
             settings->m_Core.m_LangCode = std::get<std::string>(value);
@@ -93,13 +95,13 @@ struct ScriptRuntimeSettings : public MoonGlare::Modules::iModule, public Core::
         case "Renderer.Shadow.ShadowMapSize"_Hash32 :
             return static_cast<int>(settings->m_Renderer.m_Shadow.m_ShadowMapSize);
         case "Display.Width"_Hash32 :
-            return static_cast<int>(settings->m_Display.m_Width);
+            return static_cast<int>(settings->m_Display.width);
         case "Display.Height"_Hash32 :
-            return static_cast<int>(settings->m_Display.m_Height);
+            return static_cast<int>(settings->m_Display.height);
         case "Display.Monitor"_Hash32 :
-            return static_cast<int>(settings->m_Display.m_Monitor);
+            return static_cast<int>(settings->m_Display.monitor);
         case "Display.FullScreen"_Hash32 :
-            return settings->m_Display.m_FullScreen;
+            return settings->m_Display.fullScreen;
         case "Core.LangCode"_Hash32:
             return settings->m_Core.m_LangCode;
         default:

@@ -4,7 +4,7 @@
 #include "ScriptApi.h"
 #include "Renderer.h"
 #include "RenderDevice.h"
-#include "Context.h"
+#include "Device/GLFWContext.h"
 #include "Resources/ResourceManager.h"
 
 namespace MoonGlare::Renderer {
@@ -58,7 +58,7 @@ struct ContextApi {
        //m_RendererFacade->GetContextImpl()->CaptureScreenShot();
     }
     int GetMonitorCount() {
-        return m_RendererFacade->GetContextImpl()->GetMonitorCount();
+        return Device::GLFWContext::GetMonitorCount();
     }
     int GetMonitorModes(lua_State *lua) {
         int monitorid = lua_tointeger(lua, -1);
@@ -69,7 +69,7 @@ struct ContextApi {
         if (monitorid < 0 || monitorid > c)
             return 0;
 
-        auto modes = m_RendererFacade->GetContextImpl()->GetMonitorModes(monitorid);
+        auto modes = Device::GLFWContext::GetMonitorModes(monitorid);
         const GLFWvidmode* currmode = glfwGetVideoMode(mont[monitorid]);
 
         lua_createtable(lua, 0, 0);
@@ -81,13 +81,13 @@ struct ContextApi {
             lua_pushinteger(lua, index);
             lua_createtable(lua, 0, 0);
 
-            lua_pushinteger(lua, mode.m_Height);
+            lua_pushinteger(lua, mode.height);
             lua_setfield(lua, -2, "Height");
 
-            lua_pushinteger(lua, mode.m_Width);
+            lua_pushinteger(lua, mode.width);
             lua_setfield(lua, -2, "Width");
 
-            if (currmode->height == mode.m_Height && currmode->width == mode.m_Width) {
+            if (currmode->height == mode.height && currmode->width == mode.width) {
                 lua_pushboolean(lua, 1);
                 lua_setfield(lua, -2, "Current");
             }

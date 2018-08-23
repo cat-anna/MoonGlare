@@ -38,7 +38,6 @@ using UniqueRenderer = std::unique_ptr<RendererFacade>;
 
 class Frame;
 class RenderDevice;
-class Context;
 class ScriptApi;
 
 class iAsyncLoader;
@@ -47,15 +46,6 @@ class iAsyncFileSystemRequest;
 class alignas(16) TextureRenderTask;
 
 struct alignas(16) VirtualCamera;
-
-struct ContextCreationInfo {
-    uint32_t m_Width = 800;
-    uint32_t m_Height = 600;
-    int32_t m_Monitor = -1;
-    bool m_FullScreen = false;
-    const char *m_Title = "";
-    bool visible = true;
-};
 
 namespace Commands {
     class alignas(16) CommandQueue;

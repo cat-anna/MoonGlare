@@ -58,6 +58,8 @@ Structure.import {
 
 --------------------------------------------------------------
 
+Structure.field.prefix ""
+
 Structure.import {
     name = "Display",
     location = "MoonGlare::Renderer::ContextCreationInfo",
@@ -65,30 +67,32 @@ Structure.import {
     fields = {
         {
             description = "",
-            name = "Width",
+            name = "width",
             type = u32,
             default = 1024,
         },
         {
             description = "",
-            name = "Height",
+            name = "height",
             type = u32,
             default = 768,
         },
         {
             description = "",
-            name = "Monitor",
+            name = "monitor",
             type = s32,
             default = -1,
         },
         {
             description = "",
-            name = "FullScreen",
+            name = "fullScreen",
             type = bool,
             default = false,
         },
     },
 }
+
+Structure.field.prefix "m_"
 
 --------------------------------------------------------------
 
