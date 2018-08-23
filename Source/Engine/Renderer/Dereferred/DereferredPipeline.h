@@ -65,12 +65,12 @@ protected:
     Renderer::Commands::CommandQueue *m_SpotLightQueue = nullptr;
     Renderer::Commands::CommandQueue *m_SpotLightShadowQueue = nullptr;
 
-    Renderer::Resources::ShaderBuilder<GeometryShaderDescriptor> m_GeometryShader;
-    Renderer::Resources::ShaderBuilder<Shaders::ShadowMapShaderDescriptor> m_ShadowShader;
-    Renderer::Resources::ShaderBuilder<DirectionalLightShaderDescriptor> m_DirectionalLightShader;
-    Renderer::Resources::ShaderBuilder<PointLightShaderDescriptor> m_PointLightShader;
-    Renderer::Resources::ShaderBuilder<StencilLightShaderDescriptor> m_StencilShader;
-    Renderer::Resources::ShaderBuilder<SpotLightShaderDescriptor> m_SpotShader;
+    Renderer::Resources::Shader::ShaderBuilder<GeometryShaderDescriptor> m_GeometryShader;
+    Renderer::Resources::Shader::ShaderBuilder<Shaders::ShadowMapShaderDescriptor> m_ShadowShader;
+    Renderer::Resources::Shader::ShaderBuilder<DirectionalLightShaderDescriptor> m_DirectionalLightShader;
+    Renderer::Resources::Shader::ShaderBuilder<PointLightShaderDescriptor> m_PointLightShader;
+    Renderer::Resources::Shader::ShaderBuilder<StencilLightShaderDescriptor> m_StencilShader;
+    Renderer::Resources::Shader::ShaderBuilder<SpotLightShaderDescriptor> m_SpotShader;
 
     Renderer::ShaderResourceHandle<Shaders::ShadowMapShaderDescriptor> m_ShaderShadowMapHandle{};
     Renderer::ShaderResourceHandle<SpotLightShaderDescriptor> m_ShaderLightSpotHandle{};

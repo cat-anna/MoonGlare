@@ -26,14 +26,10 @@ public:
     bool Initialize(const x2c::Settings::AssetSettings_t *Configuration);
     bool Finalize();
 
-    Shader::Loader* GetShaderLoader() { return m_ShaderLoader.get(); }
-
-    ShaderCodeLoader* GetShaderCodeLoader() const override;
     TextureLoader* GetTextureLoader() const override;
     bool ReadFile(const std::string &URI, StarVFS::ByteTable &out) override;
 private:
     std::unique_ptr<FileSystem> m_FileSystem;
-    std::unique_ptr<Shader::Loader> m_ShaderLoader;
     std::unique_ptr<Texture::Loader> m_TextureLoader;
 
     const x2c::Settings::AssetSettings_t *m_Configuration = nullptr;

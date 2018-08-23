@@ -24,9 +24,10 @@ iAsyncLoader* ResourceManager::GetLoaderIf() {
     return m_AsyncLoader.get();
 }
 
-bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets) {
+bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets, iFileSystem *fileSystem) {
     RendererAssert(Renderer);
     RendererAssert(Assets);
+    RendererAssert(fileSystem);
 
     m_RendererFacade = Renderer;
     m_AssetLoader = Assets;
@@ -38,7 +39,7 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
 
     vaoManager = mem::make_aligned<VAOResource>(this);
 
-    if (!m_ShaderResource.Initialize(this, m_AssetLoader->GetShaderCodeLoader())) {
+    if (!m_ShaderResource.Initialize(this, fileSystem)) {
         AddLogf(Error, "ShaderResource initialization failed!");
         return true;
     }

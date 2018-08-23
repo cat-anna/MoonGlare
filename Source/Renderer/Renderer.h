@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Foundation/iFileSystem.h>
+
 #include "Configuration.Renderer.h"
 
 #include <Assets/AssetLoaderInterface.h>
@@ -20,7 +22,7 @@ public:
 
    
 
-    bool Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets);
+    bool Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets, iFileSystem *fileSystem);
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */

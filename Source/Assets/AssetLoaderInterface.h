@@ -2,25 +2,6 @@
 
 namespace MoonGlare::Asset {
 
-class ShaderCodeLoader {
-public:
-    virtual ~ShaderCodeLoader() {}
-
-    enum class ShaderType : uint8_t {
-        Geometry,
-        Vertex,
-        Fragment,
-
-        MaxValue,
-    };
-
-    struct ShaderCode {
-        std::array<std::string, static_cast<size_t>(ShaderType::MaxValue)> m_Code;
-    };
-
-    virtual bool LoadCode(const std::string &Name, ShaderCode &Output) { return false; };
-};
-
 class TextureLoader {
 public:
     virtual ~TextureLoader() {}
@@ -74,7 +55,6 @@ class AssetLoader {
 public:
     virtual ~AssetLoader() {}
 
-    virtual ShaderCodeLoader* GetShaderCodeLoader() const { return nullptr; }
     virtual TextureLoader* GetTextureLoader() const { return nullptr; }
 
     virtual bool ReadFile(const std::string &URI, StarVFS::ByteTable &out) = 0;

@@ -16,7 +16,7 @@
 
 #include "MaterialManager.h"
 
-namespace MoonGlare::Renderer::Resources {
+namespace MoonGlare::Renderer::Resources::Shader {
 
 template<typename Descriptor>
 struct

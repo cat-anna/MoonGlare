@@ -29,8 +29,9 @@ void RendererFacade::SetConfiguration(Configuration::RuntimeConfiguration Config
 
 //----------------------------------------------------------------------------------
 
-bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets) {
-    RendererAssert(Assets);
+bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets, iFileSystem *fileSystem) {
+    assert(Assets);
+    assert(fileSystem);
     assets = Assets;
 
     if (!Device::GLFWContext::InitializeSubSystem()) {
@@ -48,7 +49,7 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetL
         return false;
     }
 
-    if (!m_ResourceManager->Initialize(this, Assets)) {
+    if (!m_ResourceManager->Initialize(this, Assets, fileSystem)) {
         AddLogf(Error, "ResourceManager initialization failed!");
         return false;
     }

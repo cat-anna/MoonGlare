@@ -6,9 +6,6 @@ struct AssetConfiguration_t;
 
 namespace MoonGlare::Asset {
 
-namespace Shader {
-	class Loader;
-}
 namespace Texture {
 	class Loader;
 }

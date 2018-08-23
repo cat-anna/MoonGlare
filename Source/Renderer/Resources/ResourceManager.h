@@ -6,11 +6,12 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
+#include <Foundation/iFileSystem.h>
 
 #include <Assets/AssetLoaderInterface.h>
 #include "TextureResource.h"
 #include "VAOResource.h"
-#include "ShaderResource.h"
+#include "Shader/ShaderResource.h"
 
 #include "../iAsyncLoader.h"
 
@@ -30,7 +31,7 @@ public:
     ResourceManager();
     ~ResourceManager();
 
-    bool Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets);
+    bool Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets, iFileSystem *fileSystem);
     bool Finalize();
 
     const Configuration::RuntimeConfiguration* GetConfiguration() const;
@@ -46,7 +47,7 @@ public:
         RendererAssert(this);
         return *vaoManager;
     }
-    ShaderResource& GetShaderResource() {
+    Shader::ShaderResource& GetShaderResource() {
         RendererAssert(this);
         return m_ShaderResource;
     }
@@ -76,7 +77,7 @@ private:
     Asset::AssetLoader *m_AssetLoader = nullptr;
     std::unique_ptr<AsyncLoader> m_AsyncLoader;
     void* padding;
-    ShaderResource m_ShaderResource;
+    Shader::ShaderResource m_ShaderResource;
 
     mem::aligned_ptr<TextureResource> textureResource;
     mem::aligned_ptr<MeshManager> meshManager;
