@@ -291,7 +291,6 @@ void DefferedSink::Reset(const ::MoonGlare::Core::MoveConfig &config) {
 void DefferedSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH) {
     //TODO
 
-
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
     auto *md = mm.GetMeshData(meshH);
 

@@ -2,6 +2,8 @@
 
 namespace MoonGlare::Renderer {
 
+//TODO: change iContextInputHandler to events
+
 class iContextInputHandler {
 public:
     virtual void OnKey(int Key, bool Pressed) = 0;

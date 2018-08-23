@@ -5,11 +5,11 @@
 namespace MoonGlare::Component {
 
 EntityManager::EntityManager() {
-#ifdef DEBUG
+//#ifdef DEBUG
     generationbuffer.Fill(1);
-#else
-    generationbuffer.FillRandom();
-#endif // DEBUG
+//#else
+    //generationbuffer.FillRandom(); //there is no mask!!
+//#endif // DEBUG
 
     allocator.Clear();
 

@@ -6,6 +6,7 @@ namespace MoonGlare::Renderer {
 
 class iRendererFacade {
 public:
+    virtual ~iRendererFacade() { }
 
     virtual iContext* GetContext() = 0;
 
