@@ -61,6 +61,6 @@ using namespace Space::Utils::HashLiterals;
 #include <Foundation/PerfCounters.h>
 #include <Foundation/xMath.h>
 
-#pragma warning (error: 4324)
+//#pragma warning (error: 4324) // structure was padded due to alignment specifier
 
 #endif

@@ -4,6 +4,8 @@
 #include "../../Configuration.Renderer.h"
 #include "../../Configuration/Mesh.h"
 
+#include "../../Mesh.h"
+
 #ifdef NEED_MESH_BUILDER
 #include "MeshBuilder.h"
 #endif
@@ -40,6 +42,12 @@ public:
 
     bool Allocate(HandleType &hout);
     void Release(HandleType hin);
+
+    HandleType Allocate() {
+        HandleType h = {};
+        Allocate(h);
+        return h;
+    }
                                     
 #ifdef NEED_MESH_BUILDER
     Builder::MeshBuilder GetBuilder(Commands::CommandQueue &q, HandleType &h, 
@@ -74,7 +82,7 @@ public:
 
     bool IsHandleValid(HandleType &h) const;
 
-    const Conf::SubMesh* GetMeshes(HandleType h) {
+    const Mesh* GetMeshes(HandleType h) {
         if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
             //TODO
             return nullptr;
@@ -128,7 +136,7 @@ private:
     Array<Device::VAOHandle> deviceHandle;
     Array<MeshFlags> meshFlags;
 
-    Array<Conf::SubMesh> subMesh;
+    Array<Mesh> subMesh;
     Array<MaterialResourceHandle> materialHandle;
 
     Array<Conf::VAOBuffers> vaoBuffer;

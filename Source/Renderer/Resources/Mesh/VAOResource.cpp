@@ -7,9 +7,9 @@
 
 #include "VAOResource.h"
 
-#include "../Frame.h"
-#include "../Commands/CommandQueue.h"
-#include "../Commands/OpenGL/ArrayCommands.h"
+#include "../../Frame.h"
+#include "../../Commands/CommandQueue.h"
+#include "../../Commands/OpenGL/ArrayCommands.h"
 
 namespace MoonGlare::Renderer::Resources {
 

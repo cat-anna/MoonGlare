@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "../nfRenderer.h"
-#include "../Configuration.Renderer.h"
+#include "../../nfRenderer.h"
+#include "../../Configuration.Renderer.h"
 
 
 #ifdef NEED_VAO_BUILDER

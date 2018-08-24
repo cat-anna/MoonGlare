@@ -3,6 +3,8 @@
 #include "../../Commands/CommandQueue.h"
 #include "VAOBuilder.h"
 
+#include "../../Mesh.h"
+
 namespace MoonGlare::Renderer::Resources {
 struct MeshData;
 }
@@ -10,18 +12,16 @@ struct MeshData;
 namespace MoonGlare::Renderer::Resources::Builder {
 
 class MeshBuilder final {
-    using Conf = Configuration::Mesh;
-    using ConfRes = Configuration::Resources;
 public:
     void AllocateVAO();
     void UpdateVAO();
-    void Set(const Conf::SubMesh &meshes);
+    void Set(const Mesh &meshes);
     void Set(MaterialResourceHandle materials);
     void Commit();
 
     VAOBuilder vaoBuilder;
     MeshManager &meshManager;
-    Conf::SubMesh &subMeshArray;
+    Mesh &subMeshArray;
     MaterialResourceHandle &subMeshMaterialArray;
     MeshResourceHandle handle;
     MeshData &meshData;

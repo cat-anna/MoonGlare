@@ -2,14 +2,14 @@
 
 #define NEED_MESH_BUILDER
 
-#include "../nfRenderer.h"
-#include "../iAsyncLoader.h"
+#include "../../nfRenderer.h"
+#include "../../iAsyncLoader.h"
 #include "MeshResource.h"
 #include "AssimpMeshLoader.h"
 
-#include "MaterialManager.h"
+#include "../MaterialManager.h"
 
-#include "Texture/FreeImageLoader.h"
+#include "../Texture/FreeImageLoader.h"
 
 #include <Commands/MemoryCommands.h>
 #include "MeshUpdate.h"
@@ -122,13 +122,11 @@ int AssimpMeshLoader::GetMaterialIndex() const {
 void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     uint32_t NumVertices = 0, NumIndices = 0;
 
-    auto builder = owner.GetBuilder(storage.m_Queue, handle);
-
     struct LoadInfo {
         size_t baseIndex;
     };
 
-    MeshConf::SubMesh meshes = {};
+    Mesh meshes = {};
     MaterialResourceHandle material = {};
 
     LoadInfo loadInfo;

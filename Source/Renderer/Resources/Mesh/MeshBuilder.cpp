@@ -52,9 +52,9 @@ void MeshBuilder::UpdateVAO() {
     vaoBuilder.UnBindVAO();
 }
 
-void MeshBuilder::Set(const Conf::SubMesh &meshes) {
+void MeshBuilder::Set(const Mesh &meshes) {
     subMeshArray = {};
-    queue.MakeCommand<Commands::MemoryStore<Conf::SubMesh>>(meshes, &subMeshArray);
+    queue.MakeCommand<Commands::MemoryStore<Mesh>>(meshes, &subMeshArray);
 }
 
 void MeshBuilder::Set(MaterialResourceHandle materials) {
