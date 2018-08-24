@@ -15,8 +15,6 @@ public:
     MaterialManager(ResourceManager* Owner);
     ~MaterialManager();
 
-    ResourceManager* GetResourceManager() { return m_ResourceManager; }
-
     MaterialResourceHandle LoadMaterial(const std::string &uri);
     MaterialResourceHandle CreateMaterial(const std::string &uri, const MaterialTemplate &matTemplate);
     void ApplyTemplate(MaterialResourceHandle handle, const MaterialTemplate &matTemplate);
@@ -36,10 +34,10 @@ private:
     Bitmap m_AllocationBitmap;
     Array<Material> materials;
 
-    std::unordered_map<std::string, MaterialResourceHandle> loadedMaterials; //temporary solution
+    std::unordered_map<std::string, MaterialResourceHandle> loadedMaterials; //TODO: temporary solution
 
     ResourceManager *m_ResourceManager = nullptr;
-    iAsyncLoader *asyncLoader;
+    iAsyncLoader *asyncLoader = nullptr;
 };
 
 static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");

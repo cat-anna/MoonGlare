@@ -9,7 +9,7 @@
 #include <Foundation/iFileSystem.h>
 
 #include "Texture/TextureResource.h"
-#include "VAOResource.h"
+#include "Mesh/VAOResource.h"
 #include "Shader/ShaderResource.h"
 
 #include "../iAsyncLoader.h"

@@ -11,8 +11,8 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Resources/ResourceManager.h>
-#include <Renderer/Resources/MeshResource.h>
-#include <Renderer/Resources/MeshUpdate.h>
+#include <Renderer/Resources/Mesh/MeshResource.h>
+#include <Renderer/Resources/Mesh/MeshUpdate.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>
@@ -301,10 +301,6 @@ void DefferedSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
     if (!meshes || !materials)
         return;
 
-    // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
-    //  if (delta.squaredNorm() > 100.0f)
-    //      return;
-    
     namespace Commands = Renderer::Commands;
 
     {
@@ -325,8 +321,6 @@ void DefferedSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
         m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
 
-
-    //for (size_t i = 0; i < meshes->size(); ++i) 
     {
         auto &mesh = *meshes;
         auto &mat = *materials;

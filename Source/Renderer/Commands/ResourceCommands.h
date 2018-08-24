@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommandQueueBase.h"
-#include "../Resources/MeshResource.h"
+#include "../Resources/Mesh/MeshResource.h"
 
 namespace MoonGlare::Renderer::Commands {
 

@@ -1,5 +1,5 @@
 #include "MeshResource.h"
-#include "ResourceManager.h"
+#include "../ResourceManager.h"
 
 #include "AssimpMeshLoader.h"
 

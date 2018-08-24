@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../nfRenderer.h"
-#include "../Configuration.Renderer.h"
-#include "../Configuration/Mesh.h"
+#include "../../nfRenderer.h"
+#include "../../Configuration.Renderer.h"
+#include "../../Configuration/Mesh.h"
 
 #ifdef NEED_MESH_BUILDER
 #include "MeshBuilder.h"

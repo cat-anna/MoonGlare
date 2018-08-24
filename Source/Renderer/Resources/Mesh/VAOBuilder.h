@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Commands/CommandQueue.h"
-#include "../Commands/OpenGL/ArrayCommands.h"
+#include "../../Commands/CommandQueue.h"
+#include "../../Commands/OpenGL/ArrayCommands.h"
 
 namespace MoonGlare::Renderer::Resources::Builder {
 

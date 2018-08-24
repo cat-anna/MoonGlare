@@ -21,7 +21,7 @@
 
 #include <Renderer/Renderer.h>
 #include <Renderer/Resources/ResourceManager.h>
-#include <Renderer/Resources/MeshResource.h>
+#include <Renderer/Resources/Mesh/MeshResource.h>
 
 namespace MoonGlare {
 namespace Physics {

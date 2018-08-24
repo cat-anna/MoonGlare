@@ -9,7 +9,7 @@
 #include "../Renderer.h"
 
 #include "AsyncLoader.h"
-#include "MeshResource.h"
+#include "Mesh/MeshResource.h"
 #include "MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources {

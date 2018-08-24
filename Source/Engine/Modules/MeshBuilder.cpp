@@ -12,9 +12,9 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/Configuration/Mesh.h>
 #include <Renderer/Resources/ResourceManager.h>
-#include <Renderer/Resources/MeshResource.h>
+#include <Renderer/Resources/Mesh/MeshResource.h>
 
-#include <Renderer/Resources/MeshUpdate.h>
+#include <Renderer/Resources/Mesh/MeshUpdate.h>
 
 namespace MoonGlare::Modules {
 
