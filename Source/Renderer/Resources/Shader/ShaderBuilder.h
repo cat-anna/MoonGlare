@@ -85,8 +85,8 @@ struct
     }
 
     void SetMaterial(Material& mat, Commands::CommandKey key = Commands::CommandKey()) {
-        Set<Sampler::DiffuseMap>(mat.m_DiffuseMap, key);
-        Set<Uniform::DiffuseColor>(mat.m_DiffuseColor, key);
+        Set<Sampler::DiffuseMap>(mat.mapTexture[0], key);
+        Set<Uniform::DiffuseColor>(mat.diffuseColor, key);
     }
 
     Commands::CommandQueue *m_Queue;
@@ -95,6 +95,7 @@ struct
     ResourceManager* m_ResourceManager;
 };
 
+#if 0
 template<typename Descriptor>
 struct
     //alignas(16) 
@@ -154,7 +155,6 @@ struct
     Conf::UniformLocations *m_UniformsPtr;
     Device::ShaderHandle* m_HandlePtr;
     ResourceManager* m_ResourceManager;
-    //void* _padding1;
 private:
     template<typename T, typename ... ARG>
     void Run(ARG && ...arg) {
@@ -162,5 +162,7 @@ private:
         a.Execute(&a);
     }
 };
+
+#endif 
 
 } //namespace MoonGlare::Renderer::Resources 

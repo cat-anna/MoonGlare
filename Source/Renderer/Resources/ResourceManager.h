@@ -8,8 +8,7 @@
 #pragma once
 #include <Foundation/iFileSystem.h>
 
-#include <Assets/AssetLoaderInterface.h>
-#include "TextureResource.h"
+#include "Texture/TextureResource.h"
 #include "VAOResource.h"
 #include "Shader/ShaderResource.h"
 
@@ -31,13 +30,13 @@ public:
     ResourceManager();
     ~ResourceManager();
 
-    bool Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets, iFileSystem *fileSystem);
+    bool Initialize(RendererFacade *Renderer, iFileSystem *fileSystem);
     bool Finalize();
 
     const Configuration::RuntimeConfiguration* GetConfiguration() const;
     RendererFacade *GetRendererFacade() { return m_RendererFacade; }
-    AsyncLoader* GetLoader() { return m_AsyncLoader.get(); }
-    iAsyncLoader* GetLoaderIf();
+    //AsyncLoader* GetLoaderImpl() { return m_AsyncLoader.get(); }
+    iAsyncLoader* GetLoader();
 
     TextureResource& GetTextureResource() {
         RendererAssert(this); 
@@ -74,7 +73,6 @@ public:
     }
 private: 
     RendererFacade *m_RendererFacade = nullptr;
-    Asset::AssetLoader *m_AssetLoader = nullptr;
     std::unique_ptr<AsyncLoader> m_AsyncLoader;
     void* padding;
     Shader::ShaderResource m_ShaderResource;

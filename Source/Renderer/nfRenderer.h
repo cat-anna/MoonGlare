@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <Assets/nfAssets.h>
-
 #include "Device/Types.h"
 #include "Handles.h"
 
@@ -57,16 +55,10 @@ namespace Commands {
 }
 
 namespace Resources {
-    class 
-       // alignas(16) 
-        ResourceManager;
-    class 
-        //alignas(16)
-        TextureResource;
-    class alignas(16) MaterialManager;
-    class 
-        //alignas(16) 
-        MeshManager;
+    class ResourceManager;
+    class TextureResource;
+    class MaterialManager;
+    class MeshManager;
 }
 
 } //namespace MoonGlare::Renderer

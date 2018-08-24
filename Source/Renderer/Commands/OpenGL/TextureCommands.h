@@ -302,22 +302,4 @@ using Texture2DGenerateMipMapsArgument = Commands::RunnableCommandTemplate<detai
 
 //---------------------------------------------------------------------------------------
 
-namespace detail {
-struct Texture2DSetPixelDataArgument;
-}
-
-struct detail::Texture2DSetPixelDataArgument {
-    Asset::TextureLoader::TexturePixelData data;
-
-    void Run() {
-        auto &size = data.m_PixelSize;
-        auto bpp = static_cast<unsigned>(data.m_PixelFormat);
-        auto type = static_cast<unsigned>(data.m_PixelType);
-        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, bpp, size[0], size[1], /*border*/0, bpp, type, data.m_Pixels);
-        data.m_ImageMemory.reset();
-    }
-};
-using Texture2DSetPixelData = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelDataArgument>;
-
-
 } //namespace MoonGlare::Renderer::Commands

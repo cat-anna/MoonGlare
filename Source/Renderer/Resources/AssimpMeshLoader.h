@@ -12,8 +12,8 @@ class AssimpMeshLoader : public MultiAsyncFileSystemRequest
 {
     using MeshConf = Configuration::Mesh;
 public:
-    AssimpMeshLoader(std::string subpath, std::string material, MeshResourceHandle handle, MeshManager &Owner, MaterialManager &matmgr) :
-        owner(Owner), handle(handle), materialManager(matmgr), subpath(std::move(subpath)), material(std::move(material)){ }
+    AssimpMeshLoader(std::string subpath, std::string materialURI, MeshResourceHandle handle, MeshManager &Owner, MaterialManager &matmgr) :
+        owner(Owner), handle(handle), materialManager(matmgr), subpath(std::move(subpath)), materialURI(std::move(materialURI)){ }
 
     void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 private:
@@ -26,7 +26,7 @@ private:
     int GetMaterialIndex() const;
 
     std::string subpath;
-    std::string material;
+    std::string materialURI;
     bool customMaterial = false;
     std::string ModelURI;
     std::string baseURI;
@@ -35,7 +35,6 @@ private:
 
     void LoadMeshes(ResourceLoadStorage &storage);
     void LoadMaterial(unsigned index, MaterialResourceHandle h, ResourceLoadStorage &storage);
-    void LoadCustomMaterial(MaterialResourceHandle h);
 };
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

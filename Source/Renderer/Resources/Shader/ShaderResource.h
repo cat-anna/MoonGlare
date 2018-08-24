@@ -18,8 +18,8 @@ struct ShaderHandlerInterface {
     virtual uint32_t UniformCount() = 0;
     virtual const char ** UniformName() = 0;
 
-    virtual const char ** SamplerName() = 0;
     virtual uint32_t SamplerCount() = 0;
+    virtual const char ** SamplerName() = 0;
 protected:
     using Conf = Configuration::Shader;
     static uint32_t AllocateID() {
@@ -83,10 +83,7 @@ private:
 template<typename desciptor>
 const uint32_t ShaderHandlerInterfaceImpl<desciptor>::s_InterfaceIndex = ShaderHandlerInterface::AllocateID();
 
-class 
-    //alignas(16) 
-    ShaderResource final {
-    using ThisClass = ShaderResource;
+class ShaderResource final {
     using ConfRes = Configuration::Resources;
     using Conf = Configuration::Shader;
 public:
@@ -98,22 +95,21 @@ public:
 
     template<typename Descriptor_t>
     bool Load(ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
-        RendererAssert(this);
+        assert(this);
         return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
     }
 
     template<typename Descriptor_t>
     bool Load(ShaderResourceHandleBase &out, const std::string &ShaderName) {
-        RendererAssert(this);
+        assert(this);
         return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
     }
 
     template<typename Descriptor_t>
     ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandleBase h) {
-        RendererAssert(this);
-
-        RendererAssert(h.m_TmpGuard == h.GuardValue);
-        RendererAssert(h.m_Index < Conf::Limit);
+        assert(this);
+        assert(h.m_TmpGuard == h.GuardValue);
+        assert(h.m_Index < Conf::Limit);
 
         return ShaderBuilder<Descriptor_t> {
             &q,
@@ -125,27 +121,12 @@ public:
 
     template<typename Descriptor_t>
     ShaderBuilder<Descriptor_t> GetBuilder(Commands::CommandQueue &q, ShaderResourceHandle<Descriptor_t> h) {
-        RendererAssert(this);
-
-        RendererAssert(h.m_TmpGuard == h.GuardValue);
-        RendererAssert(h.m_Index < Conf::Limit);
+        assert(this);
+        assert(h.m_TmpGuard == h.GuardValue);
+        assert(h.m_Index < Conf::Limit);
 
         return ShaderBuilder<Descriptor_t> {
             &q,
-            &m_ShaderUniform[h.m_Index],
-            &m_ShaderHandle[h.m_Index],
-            m_ResourceManager,
-        };
-    }
-
-    template<typename Descriptor_t>
-    ShaderExecutor<Descriptor_t> GetExecutor(ShaderResourceHandle<Descriptor_t> h) {
-        RendererAssert(this);
-
-        RendererAssert(h.m_TmpGuard == h.GuardValue);
-        RendererAssert(h.m_Index < Conf::Limit);
-
-        return ShaderExecutor<Descriptor_t> {
             &m_ShaderUniform[h.m_Index],
             &m_ShaderHandle[h.m_Index],
             m_ResourceManager,
@@ -168,11 +149,6 @@ private:
     ResourceManager *m_ResourceManager = nullptr;
     std::unique_ptr<ShaderCodeLoader> shaderCodeLoader;
 
-    std::string m_ShaderConfigurationDefs;
-    void *_padding0;
-    void *_padding1;
-    void *_padding2;
-
     bool LoadShader(ShaderResourceHandleBase &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
     bool GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex);
 
@@ -181,7 +157,5 @@ private:
     bool InitializeUniforms(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
     bool InitializeSamplers(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
 }; 
-
-//static_assert((sizeof(ShaderResource) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer::Resources ::Shader

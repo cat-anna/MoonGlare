@@ -1,9 +1,9 @@
-#include "../../nfRenderer.h"
-#include "../../Configuration.Renderer.h"
-#include "../../Configuration/Mesh.h"
+#include "../nfRenderer.h"
+#include "../Configuration.Renderer.h"
+#include "../Configuration/Mesh.h"
 
 #include "MeshBuilder.h"
-#include "../MeshResource.h"
+#include "MeshResource.h"
 
 #include <Commands/ResourceCommands.h>
 #include <Commands/MemoryCommands.h>

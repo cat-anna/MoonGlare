@@ -204,7 +204,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case x2c::Component::BodyShapeComponent::ColliderType::TriangleMesh: {
         auto meshC = GetManager()->GetComponent<Renderer::Component::MeshComponent>();
-        if (meshC) {
+        if (false && meshC) {
             auto me = meshC->GetEntry(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();

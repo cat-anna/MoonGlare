@@ -2,14 +2,13 @@
 
 #include "../../nfRenderer.h"
 #include "../../iAsyncLoader.h"
-#include "../TextureResource.h"
+#include "TextureResource.h"
 #include "FreeImageLoader.h"
 
-#include "../../../Assets/Texture/FreeImageUtils.h"
+#include "FreeImageUtils.h"
 
-#include <Renderer/Commands/OpenGL/TextureCommands.h>
 
-namespace MoonGlare::Renderer::Resources::Loader {
+namespace MoonGlare::Renderer::Resources::Texture {
 
 void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
 
@@ -39,16 +38,16 @@ void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceH
 }
 
 void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config) {
-    RendererAssert(bitmap);
+    assert(bitmap);
 
-    switch (fif) {
+    //switch (fif) {
     //case FIF_PNG: //png images need to be flipped
- //          FreeImage_FlipVertical(bitmap);
-        break;
-    default:
+        //FreeImage_FlipVertical(bitmap);
+        //break;
+    //default:
         //nothing todo
-        break;
-    }
+        //break;
+    //}
 
     //FreeImage_FlipVertical(dib);
     //FreeImage_FlipHorizontal(dib);
@@ -57,22 +56,22 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     ValueFormat valueFormat = ValueFormat::UnsignedByte;
 
     auto mask = FreeImage_GetBlueMask(bitmap);
+    config.m_Flags.useSRGBColorSpace = false;
     
     switch (FreeImage_GetBPP(bitmap)) {
     case 32:
         if (mask != FI_RGBA_RED_MASK)
             SwapRedAndBlue(bitmap);
-        pixelFormat = PixelFormat::RGBA8;
+        pixelFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGBA8 : PixelFormat::RGBA8;
         break;
     case 24:
         if (mask != FI_RGBA_RED_MASK)
             SwapRedAndBlue(bitmap);
-        pixelFormat = PixelFormat::RGB8;
+        pixelFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGB8 : PixelFormat::RGB8;
         break;
-    default:
-    {
+    default: {
         __debugbreak();
-        RendererAssert(false);
+        assert(false);
         //FIBITMAP *dib24 = FreeImage_ConvertTo24Bits(dib);
         //FreeImage_Unload(dib);
         //dib = dib24;
@@ -102,20 +101,7 @@ void FreeImageLoader::SubmitPixels(ResourceLoadStorage &storage, void *pixels, s
         throw NotEnoughStorage{ bytesize };
     }
 
-    if (*handle.deviceHandle == Device::InvalidTextureHandle)
-        q.MakeCommand<TextureSingleAllocate>(handle.deviceHandle);
-
-   q.MakeCommand<Texture2DResourceBind>(handle.deviceHandle);
-
-   auto texdata = q.PushCommand<Texture2DSetPixelsArray>();
-   texdata->BPP = static_cast<GLenum>(pixelFormat);
-   texdata->pixels = storagepixels;
-   texdata->size[0] = size[0];
-   texdata->size[1] = size[1];
-   texdata->type = static_cast<GLenum>(valueFormat);
-
-   q.MakeCommand<Commands::Texture2DSetup>(config);
-   q.MakeCommand<Texture2DBind>(Device::InvalidTextureHandle);
+    owner->SetTexturePixels(handle, q, storagepixels, size, config, pixelFormat, true, valueFormat, {});   
 }
 
-} //namespace MoonGlare::Renderer::Resources::Loader 
+}

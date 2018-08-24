@@ -55,7 +55,6 @@ protected:
     Flags m_Flags;
     std::unique_ptr<World> m_World;
 
-    Asset::UniqueAssetManager m_AssetManager;
     Renderer::UniqueRenderer m_Renderer;
 
     std::string m_ConfigurationFileName;

@@ -1,23 +1,18 @@
 #include "pch.h"
 
 #define NEED_MESH_BUILDER
-#define NEED_MATERIAL_BUILDER
 
-#include "../../nfRenderer.h"
-#include "../../iAsyncLoader.h"
-#include "../MeshResource.h"
+#include "../nfRenderer.h"
+#include "../iAsyncLoader.h"
+#include "MeshResource.h"
 #include "AssimpMeshLoader.h"
 
-#include "../MaterialManager.h"
+#include "MaterialManager.h"
 
-#include "FreeImageLoader.h"
+#include "Texture/FreeImageLoader.h"
 
 #include <Commands/MemoryCommands.h>
 #include "MeshUpdate.h"
-
-#include <Common.x2c.h>
-#include <Math.x2c.h>
-#include <Material.x2c.h>
 
 namespace MoonGlare::Renderer::Resources::Loader {
 
@@ -43,11 +38,11 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
-    if (!material.empty()) {
-        if (material.find(ModelURI) != 0) 
+    if (!materialURI.empty()) {
+        if (materialURI.find(ModelURI) != 0)
             customMaterial = true;
          else 
-            material = material.substr(ModelURI.size() + 1);
+            materialURI = materialURI.substr(ModelURI.size() + 1);
     }
                       
     LoadMeshes(storage);
@@ -96,17 +91,17 @@ int AssimpMeshLoader::GetMeshIndex() const {
 int AssimpMeshLoader::GetMaterialIndex() const {
     static constexpr std::string_view proto = "material://";
 
-    if (material.empty())
+    if (materialURI.empty())
     {
         return -1;
     }
       
-    if (material.find(proto) != 0) {
+    if (materialURI.find(proto) != 0) {
         __debugbreak();
         return -1;
     }
 
-    const char *beg = material.c_str() + proto.size();
+    const char *beg = materialURI.c_str() + proto.size();
 
     if (*beg == '*') {
         ++beg;
@@ -127,11 +122,6 @@ int AssimpMeshLoader::GetMaterialIndex() const {
 void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     uint32_t NumVertices = 0, NumIndices = 0;
 
-    //if (scene->mNumMeshes > MeshConf::SubMeshLimit) {
-    //    AddLog(Error, "SubMeshLimit exceeded");
-    //    return;
-    //}
-
     auto builder = owner.GetBuilder(storage.m_Queue, handle);
 
     struct LoadInfo {
@@ -139,7 +129,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     };
 
     MeshConf::SubMesh meshes = {};
-    MaterialResourceHandle materials = {};
+    MaterialResourceHandle material = {};
 
     LoadInfo loadInfo;
 
@@ -172,13 +162,14 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     {
         const aiMesh* mesh = scene->mMeshes[meshId];
 
-        materialManager.Allocate(materials);
         //TODO: check for success
 
-        if (!customMaterial)
-            LoadMaterial(mesh->mMaterialIndex, materials, storage);
-        else 
-            LoadCustomMaterial(materials);
+        if (!customMaterial) {
+            materialManager.Allocate(material);
+            LoadMaterial(mesh->mMaterialIndex, material, storage);
+        } else {
+            material = materialManager.LoadMaterial(materialURI);
+        }
 
         auto MeshVerticles = &meshData.verticles[meshes.baseVertex];
         auto MeshTexCords = &meshData.UV0[meshes.baseVertex];
@@ -214,32 +205,13 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     owner.SetMeshData(handle, std::move(meshData));
 
     auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle, owner);
-    task->materialArray = materials;
+    task->materialArray = material;
     task->meshArray = meshes;
     loader->QueueTask(std::move(task));
 }
 
-void AssimpMeshLoader::LoadCustomMaterial(MaterialResourceHandle h) {
-    LoadFile(material, [this, h](StarVFS::ByteTable & data, ResourceLoadStorage & storage) {
-        x2c::Renderer::Material_t matData;
-        pugi::xml_document xdoc;
-        xdoc.load(data.c_str());
-        matData.Read(xdoc.document_element());
-
-        auto matH = h;
-        auto matb = materialManager.GetMaterialBuilder(matH, false);
-        matb.SetDiffuseColor(emath::MathCast<emath::fvec4>(matData.m_DiffuseColor));
-        Configuration::TextureLoad TexConfig = Configuration::TextureLoad::Default();
-
-        if (matData.m_DiffuseMap.m_Enabled) {
-            TexConfig.m_Edges = matData.m_DiffuseMap.m_Edges;
-            matb.SetDiffuseMap(matData.m_DiffuseMap.m_MapURI, TexConfig);
-        }
-    });
-}
-
 void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, ResourceLoadStorage &storage) {
-    if (!material.empty()) {
+    if (!materialURI.empty()) {
         auto m = GetMaterialIndex();
         if (m >= 0)
             index = m;
@@ -262,9 +234,10 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, Re
         return;
     }
 
+#if 0
     Configuration::TextureLoad TexConfig = Configuration::TextureLoad::Default();
 
-    TexConfig.m_Edges = Configuration::Texture::Edges::Repeat; //TODO: read from matterial
+    TexConfig.m_Edges = Configuration::Texture::Edges::Repeat; //TODO: read from material
 
     if (Path.data[0] == '*') {
         auto matb = materialManager.GetMaterialBuilder(h, false);
@@ -282,12 +255,12 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, Re
 
         if (texptr->mHeight == 0) {
             //raw image bytes
-            auto matH = matb.m_MaterialPtr->m_DiffuseMap;
-
-
-            PostTask([matH, texptr, TexConfig](ResourceLoadStorage &storage) {
-                FreeImageLoader::LoadTexture(storage, matH, texptr->pcData, texptr->mWidth, TexConfig);
-            });
+            auto matH = matb.m_MaterialPtr->mapTexture[0];
+//TODO: not supported
+            __debugbreak();
+            //PostTask([matH, texptr, TexConfig](ResourceLoadStorage &storage) {
+            //    Texture::FreeImageLoader::LoadTexture(storage, matH, texptr->pcData, texptr->mWidth, TexConfig);
+            //});
         }
         else {
             AddLogf(Error, "Not compressed inner texture are not supported!");
@@ -299,6 +272,7 @@ void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, Re
         matb.SetDiffuseMap(baseURI + Path.data, TexConfig);
         matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
     }
+#endif
 }
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

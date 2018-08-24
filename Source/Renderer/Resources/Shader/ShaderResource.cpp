@@ -45,11 +45,6 @@ bool ShaderResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem)
     for(auto &item: m_ShaderLoaded)
         item = false;
 
-    m_ShaderConfigurationDefs = 
-R"(
-//no custom defs yet
-)";
-
     return true;
 }
 
@@ -62,7 +57,7 @@ bool ShaderResource::Finalize() {
 void ShaderResource::ReloadAll() {
     RendererAssert(this);
 
-    auto loader = m_ResourceManager->GetLoader();
+    auto loader = dynamic_cast<AsyncLoader*>(m_ResourceManager->GetLoader()); //TODO: this is ugly
     for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
         if (m_ShaderLoaded[i]) {
             DebugLogf(Warning, "Reloading shader %s", m_ShaderName[i].c_str());
@@ -80,7 +75,7 @@ bool ShaderResource::Reload(const std::string &Name) {
             ShaderResourceHandleBase h;
             h.m_TmpGuard = h.GuardValue;
             h.m_Index = index;
-            auto loader = m_ResourceManager->GetLoader();
+            auto loader = dynamic_cast<AsyncLoader*>(m_ResourceManager->GetLoader()); //TODO: this is ugly
             loader->SubmitShaderLoad(h);
             return true;
         }
@@ -131,7 +126,7 @@ bool ShaderResource::LoadShader(ShaderResourceHandleBase &out, const std::string
     out.m_TmpGuard = out.GuardValue;
     out.m_Index = static_cast<uint16_t>(ifindex);
 
-    auto loader = m_ResourceManager->GetLoader();
+    auto loader = dynamic_cast<AsyncLoader*>(m_ResourceManager->GetLoader()); //TODO: this is ugly
     loader->SubmitShaderLoad(out);
 
     return true;
@@ -185,10 +180,9 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAll
 
         sprintf_s(buf, "#define shader_%s\n", shadertype.m_Name);
         Lines[3] = m.CloneString(buf);
-
-        Lines[4] = m_ShaderConfigurationDefs.c_str();
+        //4
         //5
-        Lines[6] = "//preprocesed code begin\n";
+        Lines[6] = "//preprocessed code begin\n";
         Lines[7] = m.CloneString(code.m_Code[index]);
 
 #ifdef DEBUG_DUMP

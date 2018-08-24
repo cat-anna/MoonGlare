@@ -17,7 +17,6 @@ bool ShaderFileCache::ReadFile(const std::string &FName, const ReadBuffer *&out)
 
     StarVFS::ByteTable data;
     if (!GetFileSystem()->OpenFile(data, "file:///Shaders/" + FName)) {
-        AddLogf(Warning, "Unable to load file '%s'", FName.c_str());
         return false;
     }
 
@@ -57,6 +56,12 @@ void Preprocessor::PushFile(const std::string & Name) {
 
         Process(Name, 0);
     }
+    catch (MissingFileException &e) {
+        if (e.m_IncludeLevel > 0) {
+            AddLogf(Error, "Error while processing file %s", Name.c_str());
+            throw e;
+        }
+    }
     catch (ParseException &e) {
         AddLogf(Error, "Error while processing file %s", Name.c_str());
         throw e;
@@ -92,8 +97,10 @@ void Preprocessor::Process(const std::string &FName, int level) {
         
     const ReadBuffer *lines;
     if (!fileCache->ReadFile(FName, lines)) {
-        AddLogf(Error, "Unable to load file '%s'", FName.c_str());
-        throw ParseException{ FName , "Unable to load file", level };
+        if (level > 0) {
+            AddLogf(Error, "Unable to load file '%s'", FName.c_str());
+        }
+        throw MissingFileException{ FName , level };
     }
 
     outputBuffer.pushf("//@ start[%d] %s", level, FName.c_str());

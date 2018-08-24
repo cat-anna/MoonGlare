@@ -14,7 +14,7 @@
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/MeshResource.h>
 
-#include <Renderer/Resources/Loader/MeshUpdate.h>
+#include <Renderer/Resources/MeshUpdate.h>
 
 namespace MoonGlare::Modules {
 

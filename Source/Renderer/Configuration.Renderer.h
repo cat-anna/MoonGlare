@@ -141,6 +141,7 @@ struct TextureLoad {
         struct {
             bool m_Swizzle : 1;
             bool generateMipMaps : 1;
+            bool useSRGBColorSpace : 1;
         };
         uint8_t m_UIntValue;
     } m_Flags;

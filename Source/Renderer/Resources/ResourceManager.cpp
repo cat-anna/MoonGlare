@@ -20,22 +20,22 @@ ResourceManager::ResourceManager() {
 ResourceManager::~ResourceManager() {
 }
 
-iAsyncLoader* ResourceManager::GetLoaderIf() {
+iAsyncLoader* ResourceManager::GetLoader() {
     return m_AsyncLoader.get();
 }
 
-bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* Assets, iFileSystem *fileSystem) {
+bool ResourceManager::Initialize(RendererFacade *Renderer, iFileSystem *fileSystem) {
     RendererAssert(Renderer);
-    RendererAssert(Assets);
     RendererAssert(fileSystem);
 
     m_RendererFacade = Renderer;
-    m_AssetLoader = Assets;
+
+    m_AsyncLoader = std::make_unique<AsyncLoader>(this, fileSystem, m_RendererFacade->GetConfiguration());
 
 //    auto conf = m_RendererFacade->GetConfiguration();
 
     textureResource = mem::make_aligned<TextureResource>();
-    textureResource->Initialize(this, m_AssetLoader->GetTextureLoader());
+    textureResource->Initialize(this, fileSystem);
 
     vaoManager = mem::make_aligned<VAOResource>(this);
 
@@ -47,7 +47,6 @@ bool ResourceManager::Initialize(RendererFacade *Renderer, Asset::AssetLoader* A
     materialManager = mem::make_aligned<MaterialManager>(this);
     meshManager = mem::make_aligned<MeshManager>(this);
 
-    m_AsyncLoader = std::make_unique<AsyncLoader>(this, m_AssetLoader, m_RendererFacade->GetConfiguration());
 
     return true;
 }

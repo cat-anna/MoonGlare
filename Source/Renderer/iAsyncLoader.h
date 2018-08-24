@@ -5,6 +5,11 @@
 
 namespace MoonGlare::Renderer {
 
+struct ResourceLoadStorage {
+    using Conf = Configuration::Resources;
+    Commands::CommandQueue m_Queue;
+    StackAllocatorMemory<Conf::QueueMemory> m_Memory;
+};
 
 class iAsyncFileSystemRequest;
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
@@ -23,6 +28,8 @@ public:
 using SharedAsyncLoaderObserver = std::shared_ptr<iAsyncLoaderObserver>;
 using WeakAsyncLoaderObserver = std::weak_ptr<iAsyncLoaderObserver>;
 
+//---------------------------------------------------------------------------------------
+
 class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() {};
@@ -33,13 +40,12 @@ public:
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
     virtual void QueueTask(SharedAsyncTask task) = 0;
+
+    using FileRequestFunc = std::function<void(const std::string &uri, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage)>;
+    void QueueRequest(std::string URI, FileRequestFunc request);
 };
 
-struct ResourceLoadStorage {
-    using Conf = Configuration::Resources;
-    Commands::CommandQueue m_Queue;
-    StackAllocatorMemory<Conf::QueueMemory> m_Memory;
-};
+//---------------------------------------------------------------------------------------
 
 struct BaseAsyncTask {
     struct NotEnoughStorage {
@@ -77,6 +83,8 @@ protected:
     std::shared_ptr<T> owner;
 };
 
+//---------------------------------------------------------------------------------------
+
 class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest>, public BaseAsyncTask {
 public:
     virtual ~iAsyncFileSystemRequest() {};
@@ -94,6 +102,17 @@ protected:
     }
 };
 
+class FunctionalAsyncFileSystemRequest : public iAsyncFileSystemRequest {
+    iAsyncLoader::FileRequestFunc func;
+public:
+    FunctionalAsyncFileSystemRequest(iAsyncLoader::FileRequestFunc f) : func(std::move(f)) {
+        assert(func);
+    }
+
+    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
+        func(requestedURI, filedata, storage);
+    }
+};
 
 class MultiAsyncFileSystemRequest : public iAsyncFileSystemRequest {
 public:
@@ -123,5 +142,11 @@ private:
     std::unordered_map<std::string, FileHandlerFunctor> handlers;
     unsigned filesProcessed = 0;
 };
+
+//---------------------------------------------------------------------------------------
+
+inline void iAsyncLoader::QueueRequest(std::string URI, iAsyncLoader::FileRequestFunc request) {
+    QueueRequest(std::move(URI), std::make_shared<FunctionalAsyncFileSystemRequest>(std::move(request)));
+}
 
 } //namespace MoonGlare::Renderer

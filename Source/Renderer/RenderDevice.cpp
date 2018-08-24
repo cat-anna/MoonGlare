@@ -31,7 +31,7 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_2D);
-    //glDisable(GL_FRAMEBUFFER_SRGB);
+    glDisable(GL_FRAMEBUFFER_SRGB);
 
 //initialize default texture
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -37,7 +37,6 @@ project "Engine"
 		"StarVFS",
 
 		"Renderer",
-		"Assets",
 		"Foundation",
 		-- "x2c",
 	}

@@ -12,15 +12,13 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/MeshResource.h>
-#include <Renderer/Resources/Loader/MeshUpdate.h>
+#include <Renderer/Resources/MeshUpdate.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Device/Types.h>
-
-
-
+           
 namespace Graphic {
 namespace Dereferred {
 
@@ -342,7 +340,7 @@ void DefferedSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
 
             if (mat.deviceHandle) {
                 m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-                m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->m_DiffuseMap);
+                m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->mapTexture[0]);
             }
             else {
                 m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));

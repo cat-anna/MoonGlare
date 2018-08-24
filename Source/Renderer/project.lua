@@ -1,6 +1,5 @@
 
-group "EngineLibs"
-
+group ""      
 	project "Renderer"
 		kind "StaticLib"
 

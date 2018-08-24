@@ -257,7 +257,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
             auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
 
             auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
-            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.index;
+            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[0].index;
 
             auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
             arg->m_NumIndices = 6;
@@ -323,12 +323,12 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
         //translate it and upload to render device
         unsigned int width = math::next_power2(bitmap.width);
         unsigned int height = math::next_power2(bitmap.rows);
-        unsigned short *expanded_data = frame->GetMemory().Allocate<unsigned short>(width * height);
+        uint32_t *expanded_data = frame->GetMemory().Allocate<uint32_t>(width * height);
 
         for (unsigned j = 0; j < height; j++) {
             for (unsigned i = 0; i < width; i++) {
                 char value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
-                unsigned short u = value | value << 8;
+                uint32_t u = value | value << 8 | value << 16 | value << 24;
                 expanded_data[(i + j*width)] = u;
             }
         }
@@ -338,18 +338,21 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
         glyph->m_TextureSize = Graphic::vec2(x, y);
 
         auto *resmgr = frame->GetResourceManager();
-
-        auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(glyph->m_GlyphMaterial, true);
-        matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
+        auto &texR = resmgr->GetTextureResource();
 
         Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
         tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Linear;
         tload.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+        auto size = emath::usvec2(width, height);
 
         using namespace Renderer::Device;
 
-        auto size = emath::usvec2(width, height);
-        resmgr->GetTextureResource().SetTexturePixels(matb.m_MaterialPtr->m_DiffuseMap, *q, (const uint8_t*)expanded_data, size, tload, PixelFormat::LuminanceAlpha, true);
+        Renderer::MaterialTemplate matT;
+        matT.diffuseColor = { 1,1,1,1 };
+        matT.diffuseMap.enabled = true;
+        matT.diffuseMap.textureHandle = texR.CreateTexture(*q, (const uint8_t*)expanded_data, size, tload, PixelFormat::RGBA8, ValueFormat::UnsignedByte);
+
+        glyph->m_GlyphMaterial = resmgr->GetMaterialManager().CreateMaterial("", matT);
 
         glyph->m_Loaded = true;
         auto faceglyph = m_FontFace->glyph;

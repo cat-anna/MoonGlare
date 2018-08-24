@@ -5,15 +5,13 @@
 */
 /*--END OF HEADER BLOCK--*/
 
-#include "../AssetManager.h"
-#include "../FileSystem.h"
 #include "TextureLoader.h"
 
 #include "FreeImageUtils.h"
 
-namespace MoonGlare::Asset::Texture {
+namespace MoonGlare::Renderer::Resources::Texture {
 
-Loader::Loader(FileSystem *fs):
+Loader::Loader(iFileSystem *fs):
     m_FileSystem(fs) {
 
     MoonGlareAssert(fs);
@@ -60,14 +58,14 @@ void Loader::StoreScreenShot(TexturePixelData out) {
 #endif
 }
 
-Loader::TexturePixelData Loader::AllocateImage(PixelFormat pf, const emath::usvec2 &Size) {
+Loader::TexturePixelData Loader::AllocateImage(Device::PixelFormat pf, const emath::usvec2 &Size) {
 #ifndef _DISABLE_FREEIMAGE_LIB_
 
-    auto bpp = BppFromPixelFormat(pf);
+    auto bpp = Device::BppFromPixelFormat(pf);
     FIBITMAP *dib = FreeImage_Allocate(Size[0], Size[1], static_cast<int>(bpp));
 
     TexturePixelData out;
-    out.m_PixelType = ValueFormat::UnsignedByte;
+    out.m_PixelType = Device::ValueFormat::UnsignedByte;
     out.m_PixelFormat = pf;
     out.m_PixelSize = Size;
     out.m_ImageMemory = ImageUniquePtr((void*)dib, &DibDeallocator);
@@ -129,12 +127,12 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
     case 32:
         if(LoadPixels)
             SwapRedAndBlue(dib);
-        out.m_PixelFormat = PixelFormat::RGBA8;
+        out.m_PixelFormat = Device::PixelFormat::RGBA8;
         break;
     case 24:
         if (LoadPixels && fif != FIF_PNG)
             SwapRedAndBlue(dib);
-        out.m_PixelFormat = PixelFormat::RGB8;
+        out.m_PixelFormat = Device::PixelFormat::RGB8;
         break;
     default: {
         if (LoadPixels) {
@@ -143,11 +141,11 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
             dib = dib24;
             SwapRedAndBlue(dib);
         }
-        out.m_PixelFormat = PixelFormat::RGB8;
+        out.m_PixelFormat = Device::PixelFormat::RGB8;
     }
     }
 
-    out.m_PixelType = ValueFormat::UnsignedByte;
+    out.m_PixelType = Device::ValueFormat::UnsignedByte;
     out.m_PixelSize = emath::usvec2(FreeImage_GetWidth(dib), FreeImage_GetHeight(dib));
     out.m_PixelsByteSize = out.m_PixelSize[0] * out.m_PixelSize[1] * (FreeImage_GetBPP(dib) / 8);
 
@@ -163,7 +161,7 @@ bool Loader::LoadTextureMemory(const void * ImgData, unsigned ImgLen, TexturePix
 
 bool Loader::LoadTextureURI(const std::string & URI, TexturePixelData & out, bool LoadPixels) {
     StarVFS::ByteTable data;
-    if (!GetFileSystem()->OpenFile(URI, DataPath::URI, data)) {
+    if (!GetFileSystem()->OpenFile(data, URI)) {
         //already logged, no need for more
         return false;
     }

@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <Source/Assets/AssetLoaderInterface.h>
-
 namespace MoonGlare::Renderer::Device {
 
 //-----------------------------------------------------------------------------
@@ -36,8 +34,30 @@ static constexpr ShaderStageHandle InvalidShaderStageHandle = static_cast<Shader
 
 //-----------------------------------------------------------------------------
 
-using PixelFormat = Asset::TextureLoader::PixelFormat;
-using ValueFormat = Asset::TextureLoader::ValueFormat;
+enum class PixelFormat : uint16_t {
+    RGB8 = GL_RGB,
+    RGBA8 = GL_RGBA,
+
+    SRGB8 = GL_SRGB,
+    SRGBA8 = GL_SRGB8_ALPHA8,
+};
+
+static unsigned BppFromPixelFormat(PixelFormat pf) {
+    switch (pf) {
+    case PixelFormat::RGB8:
+    case PixelFormat::SRGB8:
+        return 24;
+    case PixelFormat::RGBA8:
+    case PixelFormat::SRGBA8:
+        return 32;
+    default:
+        return 0;
+    }
+}
+enum class ValueFormat : uint16_t {
+    UnsignedByte = GL_UNSIGNED_BYTE,//this constants should not be used here!!!
+    Float = GL_FLOAT,
+};
 
 //-----------------------------------------------------------------------------
 

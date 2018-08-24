@@ -5,15 +5,9 @@
 
 #include "../Material.h"
 
-#ifdef NEED_MATERIAL_BUILDER
-#include "builder/MaterialBuilder.h"
-#endif
-
 namespace MoonGlare::Renderer::Resources {
 
-class alignas(16) MaterialManager final 
-    //: iAbstractResource
-{
+class MaterialManager final {
     using ThisClass = MaterialManager;
     using Conf = Configuration::Material;
     using ConfRes = Configuration::Resources;
@@ -23,30 +17,16 @@ public:
 
     ResourceManager* GetResourceManager() { return m_ResourceManager; }
 
-    bool LoadMaterial(const std::string &uri, MaterialResourceHandle &h);
+    MaterialResourceHandle LoadMaterial(const std::string &uri);
+    MaterialResourceHandle CreateMaterial(const std::string &uri, const MaterialTemplate &matTemplate);
+    void ApplyTemplate(MaterialResourceHandle handle, const MaterialTemplate &matTemplate);
     Material* GetMaterial(MaterialResourceHandle h);
 
     bool Allocate(MaterialResourceHandle &hout, const std::string &uri);
     bool Allocate(MaterialResourceHandle &hout);
-    void Release(MaterialResourceHandle h/*, bool ReleaseMaps = false*/); //ReleaseMaps release textures in material
+    //void Release(MaterialResourceHandle h/*, bool ReleaseMaps = false*/); //ReleaseMaps release textures in material
 
     bool IsHandleValid(MaterialResourceHandle &h) const;
-
-#ifdef NEED_MATERIAL_BUILDER
-    MaterialBuilder GetMaterialBuilder(MaterialResourceHandle &h, bool AllowAllocation = false) {
-        if (AllowAllocation && !IsHandleValid(h)) {
-            if (!Allocate(h)) {
-                RendererAssert(false);//TODO:
-            }
-        }
-
-        return MaterialBuilder {
-            &materials[h.index],
-            this,
-        };
-    }
-#endif
-
 private: 
     template<typename T>
     using Array = std::array<T, Conf::Limit>;
@@ -59,7 +39,7 @@ private:
     std::unordered_map<std::string, MaterialResourceHandle> loadedMaterials; //temporary solution
 
     ResourceManager *m_ResourceManager = nullptr;
-    void* padding;
+    iAsyncLoader *asyncLoader;
 };
 
 static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");

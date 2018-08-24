@@ -29,10 +29,8 @@ void RendererFacade::SetConfiguration(Configuration::RuntimeConfiguration Config
 
 //----------------------------------------------------------------------------------
 
-bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets, iFileSystem *fileSystem) {
-    assert(Assets);
+bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) {
     assert(fileSystem);
-    assets = Assets;
 
     if (!Device::GLFWContext::InitializeSubSystem()) {
         AddLogf(Error, "Context subsystem initialization failed!");
@@ -49,7 +47,7 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, Asset::AssetL
         return false;
     }
 
-    if (!m_ResourceManager->Initialize(this, Assets, fileSystem)) {
+    if (!m_ResourceManager->Initialize(this, fileSystem)) {
         AddLogf(Error, "ResourceManager initialization failed!");
         return false;
     }
@@ -106,7 +104,7 @@ bool RendererFacade::AllResourcesLoaded() {
 
 iAsyncLoader* RendererFacade::GetAsyncLoader() {
     RendererAssert(this);
-    return GetResourceManager()->GetLoaderIf();
+    return GetResourceManager()->GetLoader();
 }
 
 } //namespace MoonGlare::Renderer

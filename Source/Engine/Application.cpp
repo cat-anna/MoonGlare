@@ -16,7 +16,6 @@
 #include <Engine/Core/InputProcessor.h>
 #include <Engine/World.h>
 
-#include <Assets/AssetManager.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/ScriptApi.h>
 #include <Foundation/OS/Path.h>
@@ -140,12 +139,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     m_World->SetInterface<iFileSystem>(GetFileSystem());
 
-    m_AssetManager = std::make_unique<Asset::AssetManager>();
-    if (!m_AssetManager->Initialize(&m_Configuration->m_Assets)) {
-        AddLogf(Error, "Unable to initialize asset manager!");
-        throw "Unable to initialize asset manager!";
-    }
-
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
         throw "Unable to initialize modules manager";
@@ -165,7 +158,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->SetConfiguration(m_Configuration->m_Renderer);
     m_Configuration->m_Display.visible = false;
-    if (!m_Renderer->Initialize(m_Configuration->m_Display, m_AssetManager.get(), GetFileSystem())) {
+    if (!m_Renderer->Initialize(m_Configuration->m_Display, GetFileSystem())) {
         AddLogf(Error, "Unable to initialize renderer");
         throw "Unable to initialize renderer";
     }
@@ -277,10 +270,6 @@ void Application::Finalize() {
     DataManager::DeleteInstance();
 
     _del_chk(ScriptEngine, "Finalization of script engine failed!");
-    if(!m_AssetManager->Finalize()) {
-         AddLogf(Error, "AssetManager finalization failed");
-    }
-    m_AssetManager.reset();
     _del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
 
     m_World.reset();

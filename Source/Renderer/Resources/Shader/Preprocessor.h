@@ -52,6 +52,10 @@ public:
 		std::string m_Message;
 		int m_IncludeLevel;
 	};
+    struct MissingFileException {
+        std::string m_FileName;
+        int m_IncludeLevel;
+    };
 
     void PushFile(const std::string &Name);
 	void GetOutput(std::string &Output);

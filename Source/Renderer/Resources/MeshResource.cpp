@@ -1,7 +1,7 @@
 #include "MeshResource.h"
 #include "ResourceManager.h"
 
-#include "Loader/AssimpMeshLoader.h"
+#include "AssimpMeshLoader.h"
 
 namespace MoonGlare::Renderer::Resources {
 
@@ -106,7 +106,7 @@ bool MeshManager::LoadMesh(const std::string &uri, const std::string &material, 
     }
 
     auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), material, hout, *this, resourceManager->GetMaterialManager());
-    resourceManager->GetLoaderIf()->QueueRequest(fileuri, request);
+    resourceManager->GetLoader()->QueueRequest(fileuri, request);
 
     return true;
 }

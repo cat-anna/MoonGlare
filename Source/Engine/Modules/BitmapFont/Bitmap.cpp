@@ -72,9 +72,12 @@ bool BitmapFont::DoInitialize(){
 	auto *rf = e->GetWorld()->GetRendererFacade();
 	auto *resmgr = rf->GetResourceManager();
 
-	auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
-	matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
-	matb.SetDiffuseMap("file://" + fpath);
+    Renderer::MaterialTemplate matT;
+    matT.diffuseColor = { 1,1,1,1 };
+    matT.diffuseMap.enabled = true;
+    matT.diffuseMap.texture = "file://" + fpath;
+
+    m_Material = resmgr->GetMaterialManager().CreateMaterial(matT.diffuseMap.texture, matT);
 
 	StarVFS::ByteTable data;
 	if (!GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts, data)) {
@@ -216,7 +219,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	auto *mat = resmgr->GetMaterialManager().GetMaterial(m_Material);
 
 	auto texarg = q.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
-	texarg->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.index;
+	texarg->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[0].index;
 		
 	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 	arg->m_NumIndices = IndexesCount;

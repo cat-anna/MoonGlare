@@ -12,7 +12,7 @@
 
 
 #ifdef NEED_VAO_BUILDER
-#include "Builder/VAOBuilder.h"
+#include "VAOBuilder.h"
 #endif
 
 namespace MoonGlare::Renderer::Resources {

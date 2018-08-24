@@ -5,7 +5,7 @@
 #include "../Configuration/Mesh.h"
 
 #ifdef NEED_MESH_BUILDER
-#include "Builder/MeshBuilder.h"
+#include "MeshBuilder.h"
 #endif
 
 namespace MoonGlare::Renderer::Resources {

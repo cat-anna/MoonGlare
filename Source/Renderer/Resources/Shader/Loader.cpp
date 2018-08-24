@@ -40,6 +40,15 @@ bool Loader::LoadCode(const std::string &Name, ShaderCode &Output) {
         try {
             preproc.PushFile(fn);
         }
+        catch (Preprocessor::MissingFileException &e) {
+            if (e.m_IncludeLevel > 0) {
+                AddLogf(Error, "Failure during preprocessing file %s for shader %s", fn.c_str(), Name.c_str());
+                throw e;
+            } else {
+                // no code for sub-shader
+                return false;
+            }
+        }
         catch (Preprocessor::ParseException &e) {
             if (e.m_IncludeLevel > 0) {
                 AddLogf(Error, "Failure during preprocessing file %s for shader %s", fn.c_str(), Name.c_str());

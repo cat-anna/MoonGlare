@@ -4,7 +4,6 @@
 
 #include "Configuration.Renderer.h"
 
-#include <Assets/AssetLoaderInterface.h>
 #include "iRendererFacade.h"
 
 #include "iContext.h"
@@ -22,7 +21,7 @@ public:
 
    
 
-    bool Initialize(const ContextCreationInfo& ctxifo, Asset::AssetLoader *Assets, iFileSystem *fileSystem);
+    bool Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem);
     bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */
@@ -39,11 +38,6 @@ public:
     Resources::ResourceManager* GetResourceManager() {
         RendererAssert(this);
         return m_ResourceManager.get();
-    }
-
-    Asset::AssetLoader *GetAssets() {
-        RendererAssert(this);
-        return assets;
     }
 
     iAsyncLoader* GetAsyncLoader();
@@ -67,8 +61,6 @@ private:
     Configuration::RuntimeConfiguration configuration;
 
     std::function<void()> m_StopObserver;
-
-    Asset::AssetLoader *assets = nullptr;
 };
 
 } //namespace MoonGlare::Renderer

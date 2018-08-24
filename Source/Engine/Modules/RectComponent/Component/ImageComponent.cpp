@@ -215,29 +215,39 @@ bool ImageComponentEntry::Load(const std::string &fileuri, math::uvec2 FrameStri
     auto *rf = e->GetWorld()->GetRendererFacade();
     auto *resmgr = rf->GetResourceManager();
 
-    auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(material, true);
-    matb.SetDiffuseColor(emath::fvec4(1, 1, 1, 1));
-    matb.SetDiffuseMap(fileuri, true);
-    auto TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
+    Renderer::MaterialTemplate matT;
+    matT.diffuseColor = { 1,1,1,1 };
+    matT.diffuseMap.enabled = true;
+    matT.diffuseMap.texture = fileuri;
 
-    math::vec2 FrameSize;
-    if (Uniform) {
-        auto screen = emath::MathCast<math::fvec2>(ScreenSize);
-        float Aspect = screen[0] / screen[1];
-        FrameSize = TextureSize;
-        FrameSize /= math::vec2(FrameStripCount);
-        FrameSize /= screen;
-        FrameSize.x *= Aspect;
-        FrameSize *= 2.0f;
-    }
-    else {
-        FrameSize = TextureSize;
-    }
-    m_FrameSize = FrameSize;
+    material = resmgr->GetMaterialManager().CreateMaterial(matT.diffuseMap.texture, matT);
+
+    auto matH = material;
 
     //FIXME: ugly!
     rf->GetAsyncLoader()->QueueTask(std::make_shared<Renderer::FunctionalAsyncTask>(
-        [this, rf, FrameSize](Renderer::ResourceLoadStorage &storage) {
+        [this, rf, Uniform, matH, ScreenSize, FrameStripCount](Renderer::ResourceLoadStorage &storage) {
+
+        auto *matPtr = rf->GetResourceManager()->GetMaterialManager().GetMaterial(matH);
+
+        auto TextureSize = emath::MathCast<math::fvec2>(rf->GetResourceManager()->GetTextureResource().GetSize(matPtr->mapTexture[0]));
+        if (TextureSize[0] <= 0 || TextureSize[1] <= 0)
+            throw Renderer::FunctionalAsyncTask::RetryLater{}; //TODO: this may be infinite if texture is invalid
+
+        math::vec2 FrameSize;
+        if (Uniform) {
+            auto screen = emath::MathCast<math::fvec2>(ScreenSize);
+            float Aspect = screen[0] / screen[1];
+            FrameSize = TextureSize;
+            FrameSize /= math::vec2(FrameStripCount);
+            FrameSize /= screen;
+            FrameSize.x *= Aspect;
+            FrameSize *= 2.0f;
+        } else {
+            FrameSize = TextureSize;
+        }
+        m_FrameSize = FrameSize;
+        m_Flags.m_Map.m_Dirty = true;
 
         std::array<glm::fvec3, 4> Vertexes = {
             glm::fvec3(0, FrameSize[1], 0),
