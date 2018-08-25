@@ -19,7 +19,6 @@ public:
 
     template<class T> void PushSynchronizedAction(T &&t) { m_ActionQueue.Add(t); }
 
-    void Abort();
     void Exit();
 
     void SetFrameRate(float value);

@@ -28,8 +28,7 @@ namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
     
-TrueTypeFont::TrueTypeFont(const string& Name): 
-    iFont(Name) {
+TrueTypeFont::TrueTypeFont(const string& Name) : iFont(Name) {
 }
 
 TrueTypeFont::~TrueTypeFont() {

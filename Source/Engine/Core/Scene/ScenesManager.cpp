@@ -143,6 +143,7 @@ bool ScenesManager::PreSystemStart() {
     m_LoadingSceneDescriptor->m_Flags.m_Stateful = true;
 
     JobQueue::QueueJob([this] { 
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         while(m_NextSceneDescriptor)
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         LoadNextScene(sceneConfiguration->firstScene);
@@ -171,7 +172,7 @@ void ScenesManager::SetSceneChangeFence(SceneChangeFence type, bool value) {
     }
 }
 
-void ScenesManager::ChangeScene(const Core::MoveConfig & config) {
+void ScenesManager::ChangeScene() {
     if (!m_NextSceneDescriptor)
         return;
 
@@ -204,7 +205,7 @@ void ScenesManager::ChangeScene(const Core::MoveConfig & config) {
 
     if (m_CurrentScene) {
         m_CurrentScene->BeginScene();
-        config.deffered->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
+        //config.deffered->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
     }
 
     AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",
@@ -217,7 +218,7 @@ void ScenesManager::ChangeScene(const Core::MoveConfig & config) {
 
 bool ScenesManager::Step(const Core::MoveConfig & config) {
     if (m_NextSceneDescriptor) {
-        ChangeScene(config);
+        ChangeScene();
     }
 
     if (m_CurrentScene)

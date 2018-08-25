@@ -18,6 +18,12 @@
 
 namespace MoonGlare::Renderer::Deferred {
 
+DeferredSink::DeferredSink() {
+    SetStaticFog(StaticFog{});
+
+    visibility = 1.0e10;
+}
+
 void DeferredSink::InitializeDirectionalQuad() {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
     //auto &matm = m_Renderer->GetResourceManager()->GetMaterialManager();

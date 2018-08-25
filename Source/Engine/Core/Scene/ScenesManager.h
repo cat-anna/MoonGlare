@@ -70,7 +70,7 @@ public:
     }
 
     ciScene* CurrentScene() const { return m_CurrentScene; }
-    void ChangeScene(const Core::MoveConfig & config);
+    void ChangeScene();
 
     double GetSceneTime() const {
         if (!m_CurrentScene)

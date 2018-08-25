@@ -47,6 +47,8 @@ void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *
         throw InitFailureException("Render device initialization failed!");
     }
 
+    m_Context->Flush();
+
     if (!m_ResourceManager->Initialize(this, fileSystem)) {
         AddLogf(Error, "ResourceManager initialization failed!");
         throw InitFailureException("ResourceManager initialization failed!");
@@ -74,14 +76,17 @@ void RendererFacade::Finalize() {
 //----------------------------------------------------------------------------------
 
 void RendererFacade::EnterLoop() {
-//    m_CanWork = true;
-    m_CanWork = false;  //hue hue
+    m_CanWork = true;
+    //m_CanWork = false;  //hue hue
+    while (m_CanWork) {
+        m_Device->Step();
+    }
 }
 
 void RendererFacade::Stop() {
     m_CanWork = false;
-    if (m_StopObserver)
-        m_StopObserver();
+    //if (m_StopObserver)
+        //m_StopObserver();
 }
 
 //----------------------------------------------------------------------------------

@@ -28,6 +28,8 @@ public:
     void ReleaseFrame(Frame *frame);
     Frame* PendingFrame();
 
+    bool IsFramePending() const { return m_PendingFrame.load() != nullptr; }
+
     void Step();
     void ProcessPendingCtrlQueues();
 

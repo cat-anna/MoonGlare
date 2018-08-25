@@ -20,7 +20,6 @@ namespace DataClasses {
 namespace Fonts {
 
 bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
-
 	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();

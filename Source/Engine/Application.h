@@ -60,6 +60,8 @@ protected:
     std::string m_ConfigurationFileName;
     std::string m_SettingsFileName;
     std::unique_ptr<x2c::Settings::EngineSettings_t> m_Configuration;
+
+    void WaitForFirstScene();
 };
 
 } //namespace MoonGlare

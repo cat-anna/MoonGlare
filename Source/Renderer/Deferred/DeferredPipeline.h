@@ -22,6 +22,8 @@ namespace MoonGlare::Renderer::Deferred {
 struct DeferredSink {
     friend class DeferredPipeline;
 
+    DeferredSink();
+
     void Reset(Frame *frame);
     void Initialize(RendererFacade *Renderer);
 

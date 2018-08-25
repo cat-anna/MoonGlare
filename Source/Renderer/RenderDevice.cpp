@@ -32,6 +32,7 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_FRAMEBUFFER_SRGB);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //initialize default texture
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -91,6 +92,9 @@ Frame* RenderDevice::NextFrame() {
 }
 
 void RenderDevice::Submit(Frame *frame) {
+    while (m_PendingFrame.load() != nullptr)
+        std::this_thread::yield();
+
     auto prevframe = m_PendingFrame.exchange(frame);
     if (prevframe) {
         auto bit = 1 << prevframe->Index();
@@ -120,6 +124,8 @@ Frame *RenderDevice::PendingFrame() {
 //----------------------------------------------------------------------------------
 
 void RenderDevice::Step() {
+    ProcessPendingCtrlQueues();
+
     auto frame = PendingFrame();
     if (!frame)
         return;
@@ -131,9 +137,24 @@ void RenderDevice::Step() {
 void RenderDevice::ProcessFrame(Frame *frame) {
     RendererAssert(frame);
 
-    ProcessPendingCtrlQueues();
-    frame->GetCommandLayers().Execute();
-    frame->EndFrame();
+    //frame->EndFrame();
+
+    using Layer = Renderer::Frame::CommandLayers::LayerEnum;
+
+    auto &cmdl = frame->GetCommandLayers();
+    cmdl.Get<Layer::GUI>().Sort();
+
+    auto Ctx = m_RendererFacade->GetContext();
+
+    Ctx->Process();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFlush();
+    //frame->GetCommandLayers().Execute();
+    cmdl.Execute();
+    glFlush();
+    frame->GetFirstWindowLayer().Execute();
+
+    Ctx->Flush();
 
     IncrementPerformanceCounter(FramesProcessed);
 }

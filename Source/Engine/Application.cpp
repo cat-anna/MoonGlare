@@ -15,6 +15,7 @@
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/InputProcessor.h>
 #include <Engine/World.h>
+#include "Core/Scene/ScenesManager.h"
 
 #include <Renderer/Renderer.h>
 #include <Renderer/ScriptApi.h>
@@ -34,6 +35,8 @@
 #include <boost/algorithm/string.hpp>
 
 #include <Foundation/Settings.h>
+
+#include <Source/Renderer/RenderDevice.h>
 
 namespace MoonGlare {
 
@@ -234,7 +237,26 @@ void Application::LoadDataModules() {
 void Application::Execute() {
     try {
         Initialize();
-        MoonGlare::Core::GetEngine()->EngineMain();
+        if (!m_World->PreSystemStart()) {
+            AddLogf(Error, "Failure during PreSystemStart");
+            return;
+        }
+
+        WaitForFirstScene();
+        m_Renderer->GetContext()->SetVisible(true);
+
+        auto engineThread = std::thread([this]() {
+            MoonGlare::Core::GetEngine()->EngineMain();
+        });
+
+        m_Renderer->EnterLoop();
+
+        engineThread.join();
+
+        if (!m_World->PreSystemShutdown()) {
+            AddLogf(Error, "Failure during PreSystemShutdown");
+            return;
+        }
     }
     catch (...) {
         Finalize();
@@ -278,6 +300,20 @@ void Application::Finalize() {
 #undef _finit_chk
 #undef _del_chk
     m_Flags.m_Initialized = false;
+}
+
+void Application::WaitForFirstScene() {
+    auto Device = m_Renderer->GetDevice();
+    auto Ctx = m_Renderer->GetContext();
+
+    DebugLog(Debug, "Engine initialized. Waiting for scene to be ready.");
+    while (!m_World->GetScenesManager()->CurrentScene()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        m_World->GetScenesManager()->ChangeScene();
+        Device->ProcessPendingCtrlQueues();
+        Ctx->Process();
+    }
+    DebugLog(Debug, "Scene became ready. Starting main loop.");
 }
 
 //---------------------------------------------------------------------------------------
