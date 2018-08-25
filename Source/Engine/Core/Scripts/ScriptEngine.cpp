@@ -23,16 +23,16 @@ namespace Core {
 namespace Scripts {
 using namespace MoonGlare::Scripts;
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScriptEngine)
-RegisterApiInstance(ScriptEngine, &ScriptEngine::Instance, "ScriptEngine");
-RegisterApiDerivedClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
+ScriptEngine* ScriptEngine::s_instance = nullptr;
+
+RegisterApiBaseClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
 
 ScriptEngine::ScriptEngine(World *world) :
-        cRootClass(),
         m_CurrentGCStep(1),
         m_CurrentGCRiseCounter(0),
         m_LastMemUsage(0) {
-    SetThisAsInstance();
+
+    s_instance = this;
 
     assert(world);
     m_world = world;
@@ -51,7 +51,7 @@ ScriptEngine::~ScriptEngine() { }
 
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
     root
-    .deriveClass<ThisClass, BaseClass>("ScriptEngine")
+    .beginClass<ThisClass>("ScriptEngine")
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("CollectGarbage", &ThisClass::CollectGarbage)
         .addFunction("PrintMemoryUsage", &ThisClass::PrintMemoryUsage)

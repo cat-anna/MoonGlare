@@ -166,7 +166,10 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     LoadDataModules();
 
 #ifdef DEBUG_RESOURCEDUMP
-    GetFileSystem()->DumpStructure(std::ofstream("logs/vfs.txt"));
+    {
+        std::ofstream fsvfs("logs/vfs.txt");
+        GetFileSystem()->DumpStructure(fsvfs);
+    }
 #endif
 
     auto Engine = new MoonGlare::Core::Engine(m_World.get());
@@ -241,7 +244,7 @@ void Application::Execute() {
 }
 
 void Application::Finalize() {
-#define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::InstanceExists()) break; if(!WHAT::Instance()->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
+#define _finit_chk(WHAT, ERRSTR, ...) do { if(!WHAT::s_instance) break; if(!WHAT::s_instance->Finalize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); } } while(false)
 #define _del_chk(WHAT, ERRSTR, ...) do { _finit_chk(WHAT, ERRSTR, __VA_ARGS__); WHAT::DeleteInstance(); } while(false)
 
     SaveSettings();
@@ -253,7 +256,7 @@ void Application::Finalize() {
         delete Console;
     }
 
-    MoonGlare::Core::Engine::Instance()->Finalize();
+    MoonGlare::Core::Engine::s_instance->Finalize();
     DataManager::DeleteInstance();
 
     if(m_Renderer)

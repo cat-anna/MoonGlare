@@ -4,7 +4,7 @@
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
-#include <Source/Engine/Renderer/Light.h>
+#include <Source/Renderer/Light.h>
 #include <Source/Renderer/StaticFog.h>
 #include <Engine/Modules/RectComponent/Types.h>
 

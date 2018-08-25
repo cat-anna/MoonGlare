@@ -11,67 +11,38 @@ namespace FileSystem {
 const DataPathsTable DataSubPaths;
 
 DataPathsTable::DataPathsTable() {
-#define _at(X) m_table[(unsigned)DataPath::X] 
 #define _set(X) m_table[(unsigned)DataPath::X] = #X
-    _at(Root) = "";
     _set(Fonts);
-    _set(XML);
-#undef _at
 #undef _set
 }
 
 void DataPathsTable::Translate(string& out, const string& in, DataPath origin) const {
     out.clear();
-    out.reserve(::Settings_t::FileSystem::PathReserve);
-
-    if (origin != DataPath::Root) {
-        out += '/';
-        out += m_table[(unsigned)origin];
-        out += '/';
-    }
-    else {
-        if (in.front() != '/')
-            out += '/';
-    }
+    out.reserve(1024);
+    out += '/';
+    out += m_table[(unsigned)origin];
+    out += '/';
     out += in;
 }
 
 void DataPathsTable::Translate(string& out, DataPath origin) const {
     out.clear();
-    out.reserve(::Settings_t::FileSystem::PathReserve);
-
-    if (origin != DataPath::Root) {
-        out += '/';
-        out += m_table[(unsigned)origin];
-        //	out += '/';
-    }
-    else {
-        out += '/';
-    }
+    out.reserve(1024);
+    out += '/';
+    out += m_table[(unsigned)origin];
 }
 
 //-------------------------------------------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(MoonGlareFileSystem)
-RegisterDebugApi(MoonGlareFileSystem, &MoonGlareFileSystem::RegisterDebugScriptApi, "FileSystem");
+MoonGlareFileSystem* MoonGlareFileSystem::s_instance = nullptr;
 
-MoonGlareFileSystem::MoonGlareFileSystem() :
-    BaseClass(),
-    m_StarVFSCallback(this) {
-    SetThisAsInstance();
+MoonGlareFileSystem::MoonGlareFileSystem() : m_StarVFSCallback(this) {
+    s_instance = this;
 
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::FSEvent, "FSEV");
 }
 
 MoonGlareFileSystem::~MoonGlareFileSystem() {
-}
-
-void MoonGlareFileSystem::RegisterDebugScriptApi(ApiInitializer &api) {
-#ifdef DEBUG
-    //api
-    //.addFunction("SetWireFrameMode", &T::SetWireFrameMode)
-    //;
-#endif
 }
 
 //-------------------------------------------------------------------------------------------------

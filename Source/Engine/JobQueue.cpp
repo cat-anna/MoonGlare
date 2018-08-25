@@ -8,6 +8,8 @@
 #include <nfMoonGlare.h>
 #include "JobQueue.h"
 
+#include "EngineSettings.h"
+
 namespace MoonGlare {
 
 SPACERTTI_IMPLEMENT_CLASS_SINGLETON(JobQueue);

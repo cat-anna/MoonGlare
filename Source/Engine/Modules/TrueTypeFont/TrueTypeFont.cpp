@@ -28,10 +28,8 @@ namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
     
-SPACERTTI_IMPLEMENT_STATIC_CLASS(TrueTypeFont);
-
 TrueTypeFont::TrueTypeFont(const string& Name): 
-        BaseClass(Name) {
+    iFont(Name) {
 }
 
 TrueTypeFont::~TrueTypeFont() {
@@ -40,7 +38,7 @@ TrueTypeFont::~TrueTypeFont() {
 //----------------------------------------------------------------
 
 bool TrueTypeFont::DoInitialize() {
-    if (!BaseClass::DoInitialize())
+    if (!iFont::DoInitialize())
         return false;
 
     auto meta = OpenMetaData();
@@ -89,7 +87,7 @@ bool TrueTypeFont::DoFinalize() {
     FT_Done_Face(m_FontFace);
     m_FontFace = nullptr;
     m_FontFile.reset();
-    return BaseClass::DoFinalize();
+    return iFont::DoFinalize();
 }
 
 //----------------------------------------------------------------

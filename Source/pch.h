@@ -46,7 +46,7 @@ using pugi::xml_node;
 using pugi::xml_attribute;
 using pugi::xml_document;
 
-#include <libSpace/src/RTTI.h>
+//#include <libSpace/src/RTTI.h>
 #include <libSpace/src/Utils.h>
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
@@ -54,8 +54,6 @@ using namespace Space::Utils::HashLiterals;
 //scripts
 #include <lua.hpp>
 #include <Foundation/Scripts/LuaBridge/LuaBridge.h>
-
-class cRootClass;
 
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>

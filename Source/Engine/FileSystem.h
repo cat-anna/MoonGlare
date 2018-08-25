@@ -4,11 +4,7 @@
 #include <Foundation/Scripts/ApiInit.h>
 
 enum class DataPath {
-    Root,
-
     Fonts,
-    XML,
-
     URI,
 
     MaxValue,
@@ -20,9 +16,11 @@ namespace FileSystem {
 //-------------------------------------------------------------------------------------------------
 
 /** File system is not yes fully thread-safe! */
-class MoonGlareFileSystem : public Space::RTTI::RTTIObject, public iFileSystem {
-    SPACERTTI_DECLARE_CLASS_SINGLETON(MoonGlareFileSystem, Space::RTTI::RTTIObject)
+class MoonGlareFileSystem : public iFileSystem {
 public:
+    static MoonGlareFileSystem* s_instance;
+    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }   
+
     MoonGlareFileSystem();
     virtual ~MoonGlareFileSystem();
 
@@ -63,7 +61,6 @@ public:
     bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
     bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
 
-    static void RegisterDebugScriptApi(Scripts::ApiInitializer &api);
     void DumpStructure(std::ostream &out) const;
 private:
     struct StarVFSCallback : public StarVFS::StarVFSCallback {
@@ -92,7 +89,7 @@ extern const DataPathsTable DataSubPaths;
 
 } //namespace FileSystem 
 
-inline FileSystem::MoonGlareFileSystem* GetFileSystem() { return FileSystem::MoonGlareFileSystem::Instance(); }
+inline FileSystem::MoonGlareFileSystem* GetFileSystem() { return FileSystem::MoonGlareFileSystem::s_instance; }
 
 } //namespace MoonGlare 
 

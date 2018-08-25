@@ -26,10 +26,9 @@ const char *CompilationDate = __DATE__ " at " __TIME__;
 
 //----------------------------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Engine);
+Engine* Engine::s_instance = nullptr;
 
 Engine::Engine(World *world) :
-        cRootClass(),
         m_Dereferred(),
         m_World(world)
 {
@@ -39,7 +38,7 @@ Engine::Engine(World *world) :
 
     m_Renderer = m_World->GetRendererFacade();
 
-    SetThisAsInstance();
+    s_instance = this;
     new JobQueue();
 }
 

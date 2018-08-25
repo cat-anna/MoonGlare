@@ -198,7 +198,7 @@ int ScriptObject::SetInterval(lua_State * lua) {
             LuaRunError(lua, "Invalid argument #1", "Invalid type {}", lua_typename(lua, lua_type(lua, 3)));
             return 0;
         }
-        value = lua_tonumber(lua, 2);
+        value = static_cast<float>(lua_tonumber(lua, 2));
         break;
     default:
         LuaRunError(lua, "Invalid argument count", "Expected 1 argument, got {}", lua_gettop(lua) - 1);
@@ -233,7 +233,7 @@ int ScriptObject::SetTimeout(lua_State * lua) {
             LuaRunError(lua, "Invalid argument #1", "Invalid type {}", lua_typename(lua, lua_type(lua, 3)));
             return 0;
         }
-        value = lua_tonumber(lua, 2);
+        value = static_cast<float>(lua_tonumber(lua, 2));
         break;
     default:
         LuaRunError(lua, "Invalid argument count", "Expected 1 argument, got {}", lua_gettop(lua) - 1);

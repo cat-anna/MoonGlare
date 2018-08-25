@@ -7,19 +7,17 @@
 namespace MoonGlare {
 namespace DataClasses {
 
-SPACERTTI_IMPLEMENT_CLASS_NOCREATOR(BasicResource)
-RegisterApiDerivedClass(BasicResource, &BasicResource::RegisterScriptApi);
+RegisterApiBaseClass(BasicResource, &BasicResource::RegisterScriptApi);
 
 BasicResource::BasicResource() {
 }
 
-BasicResource::BasicResource(const string& Name): 
-		cRootClass(), m_Name(Name) { 
+BasicResource::BasicResource(const string& Name): m_Name(Name) { 
 }
 
 void BasicResource::RegisterScriptApi(ApiInitializer &api) {
 	api
-	.deriveClass<ThisClass, BaseClass>("cBasicResource")
+	.beginClass<BasicResource>("cBasicResource")
         .addFunction("GetName", &BasicResource::GetCharName)
         //.addFunction("GetDataReader", &ThisClass::GetDataReader)
 	.endClass()
@@ -29,7 +27,7 @@ void BasicResource::RegisterScriptApi(ApiInitializer &api) {
 XMLFile BasicResource::OpenMetaData() const {
 	XMLFile xml;
 	if (!GetFileSystem()->OpenResourceXML(xml, GetName(), DataPath::Fonts)) {
-		AddLogf(Error, "Unable to open master resource xml for resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		AddLogf(Error, "Unable to open master resource xml for resource '%s' of class '%s'", GetName().c_str(), typeid(*this).name());
 		return nullptr;
 	}
 	return xml;
@@ -38,16 +36,11 @@ XMLFile BasicResource::OpenMetaData() const {
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(DataClass)
-RegisterApiDerivedClass(DataClass, &DataClass::RegisterScriptApi);
-
 DataClass::DataClass(): 
 		m_Flags(0) {
 }
 
-DataClass::DataClass(const string& Name): 
-		BaseClass(Name), 
-		m_Flags(0) { 
+DataClass::DataClass(const string& Name): BasicResource(Name), m_Flags(0) { 
 }
 
 DataClass::~DataClass() {
@@ -56,24 +49,17 @@ DataClass::~DataClass() {
 
 //---------------------------------------------------------------------------------------------------
 
-void DataClass::RegisterScriptApi(ApiInitializer &api) {
-	api
-	.deriveClass<ThisClass, BaseClass>("cDataClass")
-	.endClass()
-	;
-}
-
 bool DataClass::Initialize() {
 	if (IsReady())
 		return true;
 
 	if (!DoInitialize()) {
-		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), typeid(*this).name());
 		return false;
 	}
 
 	SetReady(true);
-	AddLogf(Debug, "Initialized resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+	AddLogf(Debug, "Initialized resource '%s' of class '%s'", GetName().c_str(), typeid(*this).name());
 	return true;
 }
 
@@ -84,10 +70,10 @@ bool DataClass::Finalize() {
 	SetReady(false);
 
 	if (!DoFinalize()) {
-		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+		AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", GetName().c_str(), typeid(*this).name());
 		return false;
 	}
-	AddLogf(Debug, "Finalized resource resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
+	AddLogf(Debug, "Finalized resource resource '%s' of class '%s'", GetName().c_str(), typeid(*this).name());
 	return true;
 }
 

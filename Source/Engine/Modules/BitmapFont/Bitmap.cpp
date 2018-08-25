@@ -32,7 +32,7 @@ namespace BitmapFont {
 struct BitmapFontModule : public MoonGlare::Modules::ModuleInfo {
 	BitmapFontModule(): BaseClass("BitmapFont") { }
 	bool Initialize() override {
-		FontClassRegister::Register<BitmapFont> ClassReg;
+		FontClassRegister::Register<BitmapFont> ClassReg("BitmapFont");
 		return true;
 	}
 };
@@ -40,10 +40,8 @@ DEFINE_MODULE(BitmapFontModule);
 
 //----------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(BitmapFont);
-
 BitmapFont::BitmapFont(const string& Name): 
-		BaseClass(Name) {
+    iFont(Name) {
 }
 
 BitmapFont::~BitmapFont() {
@@ -53,7 +51,7 @@ BitmapFont::~BitmapFont() {
 //----------------------------------------------------------------
 
 bool BitmapFont::DoInitialize(){
-	if (!BaseClass::DoInitialize())
+	if (!iFont::DoInitialize())
 		return false;
 
 	auto meta = OpenMetaData();
@@ -76,6 +74,7 @@ bool BitmapFont::DoInitialize(){
     matT.diffuseColor = { 1,1,1,1 };
     matT.diffuseMap.enabled = true;
     matT.diffuseMap.texture = "file://" + fpath;
+    matT.diffuseMap.cfg.m_Filtering = Renderer::Configuration::Texture::Filtering::Nearest;
 
     m_Material = resmgr->GetMaterialManager().CreateMaterial(matT.diffuseMap.texture, matT);
 

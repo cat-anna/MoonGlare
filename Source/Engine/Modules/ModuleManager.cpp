@@ -13,8 +13,6 @@
 
 namespace MoonGlare::Modules {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
-
 using ModuleInfoList = ModulesManager::ModuleInfoList;
 
 static ModuleInfoList *_ModuleList = 0;
@@ -44,8 +42,11 @@ bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 
 //----------------------------------------------------------------
 
+ModulesManager *ModulesManager::s_instance = nullptr;
+
+
 ModulesManager::ModulesManager(World *world) : world(world) {
-    SetThisAsInstance();
+    s_instance = this;
 
     ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
         auto mod = item.SharedCreate(this->world);

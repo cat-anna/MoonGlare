@@ -36,9 +36,12 @@ struct Material {
 struct MaterialTemplate {
     struct Map {
         bool enabled = false;
-        Configuration::Texture::Edges edges = Configuration::Texture::Edges::Default;
         std::string texture;
         TextureResourceHandle textureHandle = {};
+
+        Configuration::TextureLoad cfg = Configuration::TextureLoad::Default();
+        Configuration::Texture::Edges &edges = cfg.m_Edges; //TODO: this is ugly workaround
+
         //TODO: x2c does not support std::variant
         //std::variant<std::nullopt_t , std::string, TextureResourceHandle> texture;
     };

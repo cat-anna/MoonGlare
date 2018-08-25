@@ -8,9 +8,8 @@ namespace DataClasses {
 namespace Fonts {
 
 class iFont : public DataClasses::DataClass {
-	SPACERTTI_DECLARE_ABSTRACT_CLASS(iFont, DataClass);
 public:
-	iFont(const string& Name) : BaseClass(Name) { }
+	iFont(const string& Name) : DataClass(Name) { }
 
 	struct FontRect {
 		math::fvec2 m_CanvasSize;

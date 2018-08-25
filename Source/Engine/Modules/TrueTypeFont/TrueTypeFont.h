@@ -30,7 +30,6 @@ using UniqueFontGlyph = std::unique_ptr < FontGlyph >;
 using FontGlyphMap = std::map < wchar_t, UniqueFontGlyph >;
 
 class TrueTypeFont : public iFont {
-    SPACERTTI_DECLARE_STATIC_CLASS(TrueTypeFont, iFont);
 public:
     TrueTypeFont(const string& Name);
     virtual ~TrueTypeFont();

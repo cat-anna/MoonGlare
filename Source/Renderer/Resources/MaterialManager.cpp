@@ -69,13 +69,11 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
     if (!IsHandleValid(handle))
         return;
 
-    Configuration::TextureLoad config = Configuration::TextureLoad::Default();
-
     auto &mat = materials[handle.index];
 
     mat.diffuseColor = emath::MathCast<emath::fvec4>(matTemplate.diffuseColor);
 
-    auto loadMap = [this, &mat, &config](Material::MapType type, const MaterialTemplate::Map &map) {
+    auto loadMap = [this, &mat](Material::MapType type, const MaterialTemplate::Map &map) {
         if (!map.enabled)
             return;
 
@@ -98,9 +96,9 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
 
         if (!map.texture.empty()) {
             mat.mapEnabled[index] = true;
-            config.m_Flags.useSRGBColorSpace = type == Material::MapType::Diffuse;
-            config.m_Edges = map.edges;
-            mat.mapTexture[index] = texR.LoadTexture(map.texture, config);
+            auto cfg = map.cfg;
+            cfg.m_Flags.useSRGBColorSpace = type == Material::MapType::Diffuse;
+            mat.mapTexture[index] = texR.LoadTexture(map.texture, cfg);
             return;
         }
     };

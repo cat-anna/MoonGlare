@@ -47,8 +47,7 @@ enum class SceneChangeFence : uint32_t {
     MaxValue,
 };
 
-class ScenesManager : public cRootClass {
-    SPACERTTI_DECLARE_STATIC_CLASS(ScenesManager, cRootClass);
+class ScenesManager {
 public:
     ScenesManager();
     virtual ~ScenesManager();

@@ -41,9 +41,11 @@ private:
 	const char *m_Name;
 };
 
-class ModulesManager : public cRootClass, public iModuleManager {
-	SPACERTTI_DECLARE_CLASS_SINGLETON(ModulesManager, cRootClass);
+class ModulesManager : public iModuleManager {
 public:
+    static ModulesManager *s_instance;
+    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }
+
  	ModulesManager(World *world);
  	virtual ~ModulesManager();
 
@@ -67,6 +69,6 @@ private:
 
 } //namespace Modules 
 
-inline Modules::ModulesManager* GetModulesManager() { return Modules::ModulesManager::Instance(); }
+inline Modules::ModulesManager* GetModulesManager() { return Modules::ModulesManager::s_instance; }
 
 } //namespace MoonGlare 

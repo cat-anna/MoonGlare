@@ -3,9 +3,11 @@
 namespace MoonGlare {
 namespace Core {
 
-class Engine : public cRootClass {
-    SPACERTTI_DECLARE_CLASS_SINGLETON(Engine, cRootClass)
+class Engine {
 public:
+    static Engine* s_instance;
+    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }
+
     Engine(World *World);
     ~Engine();
 
@@ -42,7 +44,7 @@ protected:
     MoveConfig stepData;
 };
 
-inline Engine* GetEngine() { return Engine::Instance(); }
+inline Engine* GetEngine() { return Engine::s_instance; }
 
 } //namespace Core
 } //namespace MoonGlare

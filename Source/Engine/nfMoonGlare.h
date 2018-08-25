@@ -6,12 +6,9 @@ using namespace MoonGlare;
 
 #include "Configuration.h"
 
-#include "EngineSettings.h"
-
 #include "DataClasses/nfDataClasses.h"
 #include "Core/nfCore.h"
 
-#include "RootClass.h"
 #include "FileSystem.h"
 
 #include "DataClasses/DataClass.h"

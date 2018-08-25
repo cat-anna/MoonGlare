@@ -19,8 +19,6 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
-SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iFont);
-
 bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
 
 	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;

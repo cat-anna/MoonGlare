@@ -42,7 +42,6 @@ void SceneDescriptor::DropScene() {
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(ScenesManager)
 RegisterApiBaseClass(ScenesManager, &ScenesManager::RegisterScriptApi);
 ScenesManager* GetScenesManager() { return GetEngine()->GetWorld()->GetScenesManager(); }
 RegisterApiInstance(ScenesManager, &GetScenesManager, "SceneManager");
@@ -63,10 +62,10 @@ ScenesManager::~ScenesManager() {
 
 void ScenesManager::RegisterScriptApi(ApiInitializer &api) {
     api
-        .beginClass<ThisClass>("cScenesManager")
-            .addFunction("LoadScene", &ThisClass::LoadScene)
-            .addFunction("DropSceneState", &ThisClass::DropSceneState)
-            .addFunction("CurrentSceneName", &ThisClass::GetCurrentSceneName)
+        .beginClass<ScenesManager>("cScenesManager")
+            .addFunction("LoadScene", &ScenesManager::LoadScene)
+            .addFunction("DropSceneState", &ScenesManager::DropSceneState)
+            .addFunction("CurrentSceneName", &ScenesManager::GetCurrentSceneName)
         .endClass()
         .beginClass<SceneConfiguration>("cSceneConfiguration")
             .addData("firstScene", &SceneConfiguration::firstScene, true)
