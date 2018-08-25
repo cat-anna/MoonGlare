@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "../nfGUI.h"
 
 #define NEED_MATERIAL_BUILDER     

@@ -1,11 +1,11 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include "SubsystemManager.h"
 #include "ComponentRegister.h"
 
 #include "TemplateStandardComponent.h"
-#include "TransformComponent.h"
+#include "../../Component/TransformComponent.h"
 
 #include <Core/Scripts/ScriptComponent.h>
 

@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "BasicConsole.h"

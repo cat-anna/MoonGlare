@@ -1,15 +1,14 @@
 #pragma once
-#ifndef CameraComponent_H
-#define CameraComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
 #include <Core/Component/TemplateStandardComponent.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
+#include <Renderer/VirtualCamera.h>
 
+namespace MoonGlare::Component {           
 using namespace Core::Component;
+
+class TransformComponent;
 
 struct CameraComponentEntry {
 	union FlagsMap {
@@ -33,7 +32,7 @@ struct CameraComponentEntry {
 
 	emath::fmat4 m_ProjectionMatrix;
 
-	VirtualCamera m_Camera;
+	Renderer::VirtualCamera m_Camera;
 
 	float m_FoV;
 
@@ -65,8 +64,5 @@ protected:
 	TransformComponent *m_TransformComponent;
 };
 
-} //namespace Component 
-} //namespace Renderer 
-} //namespace MoonGlare 
+}
 
-#endif

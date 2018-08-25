@@ -6,7 +6,7 @@
  */
 
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include <Core/Scripts/LuaApi.h>
 #include <Core/EntityBuilder.h>

@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <StarVFS/core/nStarVFS.h>
 #include <Core/Scripts/LuaApi.h>

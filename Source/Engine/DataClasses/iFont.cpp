@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "iFont.h"
 
 #include <Renderer/Commands/OpenGL/TextureCommands.h>

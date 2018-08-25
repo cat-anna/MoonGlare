@@ -1,24 +1,25 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <Foundation/Component/EventDispatcher.h>
 #include <Foundation/Component/EntityManager.h>
+#include <Foundation/Component/EntityEvents.h>
 
 #include "TransformComponent.h"
 #include "TransformComponentLuaWrapper.h"
 
-#include "SubsystemManager.h"
-#include "ComponentRegister.h"
+#include "Core/Component/SubsystemManager.h"
+#include "Core/Component/ComponentRegister.h"
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
 #include <TransformComponent.x2c.h>
 
-namespace MoonGlare::Core::Component {
+namespace MoonGlare::Component {
 
 RegisterComponentID<TransformComponent> TransformComponentIDReg("Transform");
 
-TransformComponent::TransformComponent(SubsystemManager * Owner)
+TransformComponent::TransformComponent(Core::Component::SubsystemManager * Owner)
 		: iSubsystem(), subSystemManager(Owner) {
     
     entityManager = Owner->GetInterfaceMap().GetInterface<Component::EntityManager>();
@@ -33,9 +34,9 @@ TransformComponent::~TransformComponent() {}
 
 bool TransformComponent::Initialize() {
     auto &ed = GetManager()->GetEventDispatcher();
-    ed.Register<Component::EntityDestructedEvent>(this);
+    ed.Register<EntityDestructedEvent>(this);
 
-    scriptComponent = GetManager()->GetComponent<Scripts::Component::ScriptComponent>();
+    scriptComponent = GetManager()->GetComponent<Core::Scripts::Component::ScriptComponent>();
     if (!scriptComponent) {
         AddLog(Error, "Failed to get ScriptComponent instance!");
         return false;

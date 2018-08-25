@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "../DataClasses/nDataClasses.h"
+
 namespace MoonGlare::Resources { class StringTables; }
 
 namespace MoonGlare {

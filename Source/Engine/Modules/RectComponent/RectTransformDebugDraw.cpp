@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "nfGUI.h"
 #include <Core/Component/SubsystemManager.h>

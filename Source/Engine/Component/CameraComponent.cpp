@@ -1,12 +1,10 @@
 #include <pch.h>
-#include <MoonGlare.h>
-
-#include <Renderer/VirtualCamera.h>
+#include <nfMoonGlare.h>
 
 #include "CameraComponent.h"
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/TransformComponent.h>
+#include "TransformComponent.h"
 
 #include <Source/Renderer/Renderer.h>
 #include <Source/Renderer/iContext.h>
@@ -19,9 +17,7 @@
 
 #include <Foundation/Math/Geometry.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
+namespace MoonGlare::Component {
 
 RegisterComponentID<CameraComponent> CameraComponentReg("Camera");
 
@@ -179,6 +175,4 @@ void CameraComponentEntry::ResetProjectionMatrix(const emath::fvec2 &ScreenSize)
     }
 }
 
-} //namespace Component 
-} //namespace Renderer 
-} //namespace MoonGlare 
+}

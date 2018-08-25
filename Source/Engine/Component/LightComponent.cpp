@@ -1,10 +1,11 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "LightComponent.h"
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/TransformComponent.h>
+
+#include "TransformComponent.h"
 
 #include <Common.x2c.h>
 #include <Math.x2c.h>
@@ -15,9 +16,7 @@
 
 #include <Foundation/Math/Geometry.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
+namespace MoonGlare::Component {
 
 RegisterComponentID<LightComponent> LightComponentReg("Light");
 
@@ -102,8 +101,8 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
         const auto &tr = m_TransformComponent->GetTransform(tcindex);
 
         switch (item.m_Type) {
-        case LightType::Spot: {
-            SpotLight sl;
+        case Renderer::LightType::Spot: {
+            Renderer::SpotLight sl;
             sl.m_Base = item.m_Base;
             sl.m_Attenuation = item.m_Attenuation;
             sl.m_CutOff = item.m_CutOff;
@@ -134,8 +133,8 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             conf.deffered->SubmitSpotLight(sl);
             continue;
         }
-        case LightType::Point: {
-            PointLight pl;
+        case Renderer::LightType::Point: {
+            Renderer::PointLight pl;
             pl.m_Base = item.m_Base;
             pl.m_Attenuation = item.m_Attenuation;
             float infl = pl.GetLightInfluenceRadius();
@@ -153,7 +152,7 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             conf.deffered->SubmitPointLight(pl);
             continue;
         }
-        case LightType::Directional:	
+        case Renderer::LightType::Directional:
             conf.deffered->SubmitDirectionalLight(item.m_Base);
             continue;
         default:
@@ -180,9 +179,9 @@ bool LightComponent::Load(ComponentReader &reader, Entity parent, Entity owner) 
     }
 
     switch (le.m_Type) {
-    case LightType::Spot:
-    case LightType::Point:
-    case LightType::Directional:
+    case Renderer::LightType::Spot:
+    case Renderer::LightType::Point:
+    case Renderer::LightType::Directional:
         break;
     default:
         AddLogf(Error, "Invalid light type!");
@@ -216,6 +215,4 @@ bool LightComponent::Load(ComponentReader &reader, Entity parent, Entity owner) 
     return true;
 }
 
-} //namespace Component 
-} //namespace Renderer 
-} //namespace MoonGlare 
+} 

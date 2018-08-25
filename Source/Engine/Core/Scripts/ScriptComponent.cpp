@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <Foundation/Component/ComponentEvents.h>
 #include <Foundation/Component/EntityManager.h>
@@ -15,8 +15,6 @@
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 #include <Core/Scripts/ScriptEngine.h>
 #include <Core/Scripts/LuaApi.h>
-
-#include <Core/Component/TransformComponent.h>
 
 #include <ScriptComponent.x2c.h>
 

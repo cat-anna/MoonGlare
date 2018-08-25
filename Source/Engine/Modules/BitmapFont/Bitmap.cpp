@@ -9,7 +9,7 @@
 #define NEED_VAO_BUILDER
 #define NEED_MATERIAL_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Modules/ModuleManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"

@@ -8,7 +8,7 @@
 #include <pch.h>
 #include <boost/filesystem.hpp>
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <Engine/Core/DataManager.h>
 #include <Engine/Modules/ModuleManager.h>

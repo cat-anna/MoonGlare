@@ -1,6 +1,4 @@
 #pragma once
-#ifndef nfComponent_H
-#define nfComponent_H
 
 #include <Foundation/Component/Entity.h>
 
@@ -23,7 +21,6 @@ namespace Component {
 using namespace MoonGlare::Component;
 
 class SubsystemManager;
-class TransformComponent;
 
 } //namespace Component 
 
@@ -31,5 +28,3 @@ using Component::SubSystemId;
 
 } //namespace Core 
 } //namespace MoonGlare 
-
-#endif

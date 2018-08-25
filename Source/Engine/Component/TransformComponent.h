@@ -7,19 +7,19 @@
 
 #include <Core/Scripts/ScriptComponent.h>
 
-#include "../../Configuration.h"
-#include "nfComponent.h"
+#include "../Configuration.h"
 
-namespace MoonGlare::Core::Component {
+namespace MoonGlare::Component {     
+using namespace MoonGlare::Core::Component;
 
-using namespace MoonGlare::Component;
+struct EntityDestructedEvent;
 
 class TransformComponent 
 	: public iSubsystem
 	, public SubSystemIdWrap<SubSystemId::Transform>
 {
 public:
-	TransformComponent(SubsystemManager *Owner);
+	TransformComponent(Core::Component::SubsystemManager *Owner);
 	virtual ~TransformComponent();
 
     using RuntimeRevision = MoonGlare::Configuration::RuntimeRevision;
@@ -29,7 +29,7 @@ public:
 	void Step(const SubsystemUpdateData &conf) override;
     int PushToLua(lua_State *lua, Entity Owner) override;
 
-    void HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event);
+    void HandleEvent(const EntityDestructedEvent &event);
 
 //------------------------------------------------------------------------------------------
 
@@ -53,8 +53,8 @@ public:
     RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
 	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
-    SubsystemManager *subSystemManager;
-    Scripts::Component::ScriptComponent *scriptComponent;
+    Core::Component::SubsystemManager *subSystemManager;
+    Core::Scripts::Component::ScriptComponent *scriptComponent;
     Component::EntityManager *entityManager;
     MoonGlare::Configuration::RuntimeRevision m_CurrentRevision = 0;
 
@@ -119,7 +119,7 @@ protected:
     Values values;
 
     void ElementRemoved(Values::ElementIndex index);
-    SubsystemManager* GetManager() { return subSystemManager; }
+    Core::Component::SubsystemManager* GetManager() { return subSystemManager; }
 };
 
 }

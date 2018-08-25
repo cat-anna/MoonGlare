@@ -1,6 +1,5 @@
 #include <pch.h>
 #ifdef DEBUG
-#include <MoonGlare.h>
 
 #include "Core/Interfaces.h"
 

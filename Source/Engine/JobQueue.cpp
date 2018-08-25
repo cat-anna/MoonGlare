@@ -5,7 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "JobQueue.h"
 
 namespace MoonGlare {

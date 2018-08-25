@@ -1,10 +1,10 @@
 #pragma once
 
-namespace MoonGlare::Core::Component {
+namespace MoonGlare::Component {
 
 struct TransformComponent::LuaWrapper {
     TransformComponent *component;
-    Scripts::Component::ScriptComponent *scriptComponent;
+    Core::Scripts::Component::ScriptComponent *scriptComponent;
     Entity owner;
     mutable ComponentIndex index;
 

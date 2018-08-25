@@ -5,7 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "World.h"
 
 #include "Core/InputProcessor.h"

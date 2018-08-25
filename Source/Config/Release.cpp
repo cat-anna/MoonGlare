@@ -8,7 +8,7 @@
 */
 #include <pch.h>
 #ifdef RELEASE
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 namespace Config {
 namespace Release {

@@ -7,7 +7,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "DebugDrawer.h"
 

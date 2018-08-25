@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <Foundation/CriticalException.h>
 #include <Core/Scripts/LuaApi.h>

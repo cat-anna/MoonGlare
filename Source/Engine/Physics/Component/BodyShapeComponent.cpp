@@ -11,8 +11,8 @@
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TemplateStandardComponent.h>
-#include <Core/Component/TransformComponent.h>
-#include <Renderer/Components/MeshComponent.h>
+#include "../../Component/TransformComponent.h"
+#include "../../Component/MeshComponent.h"
 #include "BodyShapeComponent.h"
 #include "BodyComponent.h"
 
@@ -203,8 +203,8 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     case x2c::Component::BodyShapeComponent::ColliderType::Sphere:
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case x2c::Component::BodyShapeComponent::ColliderType::TriangleMesh: {
-        auto meshC = GetManager()->GetComponent<Renderer::Component::MeshComponent>();
-        if (false && meshC) {
+        auto meshC = GetManager()->GetComponent<Component::MeshComponent>();
+        if (meshC) {
             auto me = meshC->GetEntry(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();

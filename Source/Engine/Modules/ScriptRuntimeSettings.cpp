@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Application.h>
 #include <Core/Scripts/iLuaSettings.h>
 

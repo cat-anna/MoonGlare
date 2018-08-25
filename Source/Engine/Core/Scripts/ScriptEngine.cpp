@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
 
 #include <Foundation/Scripts/ErrorHandling.h>

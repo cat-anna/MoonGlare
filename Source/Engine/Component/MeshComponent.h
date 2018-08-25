@@ -1,6 +1,4 @@
 #pragma once
-#ifndef MeshComponent_H
-#define MeshComponent_H
 
 #include <libSpace/src/Container/StaticVector.h>
 
@@ -9,13 +7,12 @@
 
 #include <Foundation/Component/EntityEvents.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
-
+namespace MoonGlare::Component {     
 using namespace Core::Component;
 
-struct MeshComponentEntry : public ::Space::RTTI::TemplateTypeInfo<MeshComponentEntry> {
+class TransformComponent;
+
+struct MeshComponentEntry {
     union FlagsMap {
         struct MapBits_t {
             bool m_Valid : 1; //Entity is not valid or requested to be deleted;
@@ -68,8 +65,4 @@ private:
     void ReleaseElement(size_t Index);
 };
 
-} //namespace Component 
-} //namespace Renderer 
-} //namespace MoonGlare 
-
-#endif
+}

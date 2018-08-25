@@ -1,11 +1,12 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "MeshComponent.h"
 
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/Component/TransformComponent.h>
+
+#include "TransformComponent.h"
 
 #include <Renderer/Deferred/DeferredFrontend.h>
 
@@ -13,9 +14,7 @@
 #include <Renderer/Resources/Mesh/MeshResource.h>
 #include <Renderer/Renderer.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
+namespace MoonGlare::Component {
 
 ::Space::RTTI::TypeInfoInitializer<MeshComponent, MeshComponentEntry> MeshComponentTypeInfo;
 RegisterComponentID<MeshComponent> MeshComponentReg("Mesh");
@@ -228,6 +227,4 @@ bool MeshComponent::Create(Entity Owner) {
     return true;
 }
 
-} //namespace Component 
-} //namespace Renderer
-} //namespace MoonGlare 
+}

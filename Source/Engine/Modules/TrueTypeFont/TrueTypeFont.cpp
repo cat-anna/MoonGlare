@@ -9,7 +9,7 @@
 #define NEED_VAO_BUILDER
 #define NEED_MATERIAL_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"

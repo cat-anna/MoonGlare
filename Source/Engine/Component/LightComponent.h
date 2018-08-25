@@ -1,15 +1,12 @@
 #pragma once
-#ifndef LightComponent_H
-#define LightComponent_H
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include <Renderer/Light.h>
 
-namespace MoonGlare {
-namespace Renderer {
-namespace Component {
-
+namespace MoonGlare::Component {
 using namespace Core::Component;
+
+class TransformComponent;
 
 struct LightComponentEntry {
 	union FlagsMap {
@@ -29,10 +26,10 @@ struct LightComponentEntry {
 	FlagsMap m_Flags;
 	Entity m_Owner;
 
-	LightBase m_Base;
-	LightType m_Type;
+	Renderer::LightBase m_Base;
+	Renderer::LightType m_Type;
+	Renderer::LightAttenuation m_Attenuation;
 
-	LightAttenuation m_Attenuation;
 	float m_CutOff;
 
 	void Reset() { }
@@ -63,8 +60,5 @@ private:
 	template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
 	TransformComponent *m_TransformComponent;
 };
-} //namespace Component 
-} //namespace Renderer 
-} //namespace MoonGlare 
 
-#endif
+}

@@ -5,14 +5,14 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "../DebugDrawer.h"
 
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
 #include <Core/Component/TemplateStandardComponent.h>
-#include <Core/Component/TransformComponent.h>
+#include "../../Component/TransformComponent.h"
 #include <Core/Scripts/ScriptComponent.h> 
 #include "BodyComponent.h"
 
