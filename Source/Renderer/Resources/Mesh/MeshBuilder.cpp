@@ -57,9 +57,4 @@ void MeshBuilder::Set(const Mesh &meshes) {
     queue.MakeCommand<Commands::MemoryStore<Mesh>>(meshes, &subMeshArray);
 }
 
-void MeshBuilder::Set(MaterialResourceHandle materials) {
-    subMeshMaterialArray = {};
-    queue.MakeCommand<Commands::MemoryStore<MaterialResourceHandle>>(materials, &subMeshMaterialArray);
-}
-
 } //namespace MoonGlare::Renderer::Resources::Builder

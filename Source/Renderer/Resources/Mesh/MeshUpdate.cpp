@@ -14,7 +14,6 @@ void CustomMeshLoader::Do(ResourceLoadStorage &storage) {
     auto builder = owner.GetBuilder(storage.m_Queue, handle);
     builder.UpdateVAO();
     builder.Set(meshArray);
-    builder.Set(materialArray);    
     builder.Commit();
 }
 

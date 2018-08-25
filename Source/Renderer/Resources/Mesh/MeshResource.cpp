@@ -24,7 +24,6 @@ MeshManager::MeshManager(ResourceManager *Owner) :
     allocationBitmap.ClearAllocation();
     deviceHandle.fill(Device::InvalidVAOHandle);
     subMesh.fill({});
-    materialHandle.fill({});
     meshFlags.fill({});
 
     generations.fill(1);//TODO: random?
@@ -81,7 +80,7 @@ bool MeshManager::IsHandleValid(HandleType &h) const {
 
 //---------------------------------------------------------------------------------------
 
-bool MeshManager::LoadMesh(const std::string &uri, const std::string &material, HandleType &hout) {
+bool MeshManager::LoadMesh(const std::string &uri, HandleType &hout) {
     auto cache = loadedMeshes.find(uri);
     if (cache != loadedMeshes.end() && IsHandleValid(cache->second)) {
         AddLogf(Performance, "mesh load cache hit");
@@ -105,7 +104,7 @@ bool MeshManager::LoadMesh(const std::string &uri, const std::string &material, 
         subpath = uri.substr(pos + 1);
     }
 
-    auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), material, hout, *this, resourceManager->GetMaterialManager());
+    auto request = std::make_shared<Loader::AssimpMeshLoader>(std::move(subpath), hout, *this);
     resourceManager->GetLoader()->QueueRequest(fileuri, request);
 
     return true;

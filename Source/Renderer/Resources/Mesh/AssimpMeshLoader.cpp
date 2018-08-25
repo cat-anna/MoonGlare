@@ -38,12 +38,12 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
-    if (!materialURI.empty()) {
-        if (materialURI.find(ModelURI) != 0)
-            customMaterial = true;
-         else 
-            materialURI = materialURI.substr(ModelURI.size() + 1);
-    }
+    //if (!materialURI.empty()) {
+    //    if (materialURI.find(ModelURI) != 0)
+    //        customMaterial = true;
+    //     else 
+    //        materialURI = materialURI.substr(ModelURI.size() + 1);
+    //}
                       
     LoadMeshes(storage);
 }
@@ -88,36 +88,36 @@ int AssimpMeshLoader::GetMeshIndex() const {
     return -1;
 }
 
-int AssimpMeshLoader::GetMaterialIndex() const {
-    static constexpr std::string_view proto = "material://";
-
-    if (materialURI.empty())
-    {
-        return -1;
-    }
-      
-    if (materialURI.find(proto) != 0) {
-        __debugbreak();
-        return -1;
-    }
-
-    const char *beg = materialURI.c_str() + proto.size();
-
-    if (*beg == '*') {
-        ++beg;
-        char *end = nullptr;
-        long r = strtol(beg, &end, 10);
-        if (end == beg) {
-            __debugbreak();
-            return -1;
-        }
-        if (r > (int)scene->mNumMaterials)
-            return -1;
-        return r;
-    }
-
-    return -1;
-}
+//int AssimpMeshLoader::GetMaterialIndex() const {
+//    static constexpr std::string_view proto = "material://";
+//
+//    if (materialURI.empty())
+//    {
+//        return -1;
+//    }
+//      
+//    if (materialURI.find(proto) != 0) {
+//        __debugbreak();
+//        return -1;
+//    }
+//
+//    const char *beg = materialURI.c_str() + proto.size();
+//
+//    if (*beg == '*') {
+//        ++beg;
+//        char *end = nullptr;
+//        long r = strtol(beg, &end, 10);
+//        if (end == beg) {
+//            __debugbreak();
+//            return -1;
+//        }
+//        if (r > (int)scene->mNumMaterials)
+//            return -1;
+//        return r;
+//    }
+//
+//    return -1;
+//}
 
 void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     uint32_t NumVertices = 0, NumIndices = 0;
@@ -127,8 +127,6 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     };
 
     Mesh meshes = {};
-    MaterialResourceHandle material = {};
-
     LoadInfo loadInfo;
 
     int meshId = GetMeshIndex();
@@ -162,12 +160,12 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
 
         //TODO: check for success
 
-        if (!customMaterial) {
-            materialManager.Allocate(material);
-            LoadMaterial(mesh->mMaterialIndex, material, storage);
-        } else {
-            material = materialManager.LoadMaterial(materialURI);
-        }
+        //if (!customMaterial) {
+            //materialManager.Allocate(material);
+            //LoadMaterial(mesh->mMaterialIndex, material, storage);
+        //} else {
+            //material = materialManager.LoadMaterial(materialURI);
+        //}
 
         auto MeshVerticles = &meshData.verticles[meshes.baseVertex];
         auto MeshTexCords = &meshData.UV0[meshes.baseVertex];
@@ -203,34 +201,33 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     owner.SetMeshData(handle, std::move(meshData));
 
     auto task = std::make_shared<Renderer::Resources::Loader::CustomMeshLoader>(handle, owner);
-    task->materialArray = material;
     task->meshArray = meshes;
     loader->QueueTask(std::move(task));
 }
 
 void AssimpMeshLoader::LoadMaterial(unsigned index, MaterialResourceHandle h, ResourceLoadStorage &storage) {
-    if (!materialURI.empty()) {
-        auto m = GetMaterialIndex();
-        if (m >= 0)
-            index = m;
-    }
+    //if (!materialURI.empty()) {
+    //    auto m = GetMaterialIndex();
+    //    if (m >= 0)
+    //        index = m;
+    //}
 
-    if (index >= scene->mNumMaterials) {
-        AddLogf(Error, "Invalid material index");
-        return;
-    }
+    //if (index >= scene->mNumMaterials) {
+    //    AddLogf(Error, "Invalid material index");
+    //    return;
+    //}
 
-    const aiMaterial* aiMat = scene->mMaterials[index];
-    if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) <= 0) {
-        AddLogf(Error, "No diffuse component");
-        return;
-    }
+    //const aiMaterial* aiMat = scene->mMaterials[index];
+    //if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) <= 0) {
+    //    AddLogf(Error, "No diffuse component");
+    //    return;
+    //}
 
-    aiString Path;
-    if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
-        AddLogf(Error, "Unable to load material");
-        return;
-    }
+    //aiString Path;
+    //if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) != AI_SUCCESS) {
+    //    AddLogf(Error, "Unable to load material");
+    //    return;
+    //}
 
 #if 0
     Configuration::TextureLoad TexConfig = Configuration::TextureLoad::Default();

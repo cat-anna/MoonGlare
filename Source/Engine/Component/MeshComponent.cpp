@@ -139,7 +139,8 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
             conf.deffered->Mesh(
                 tr.matrix(),
                 tr.translation(),
-                item.meshHandle);
+                item.meshHandle, 
+                item.materialHandle);
             continue;
         }
     }
@@ -169,9 +170,11 @@ bool MeshComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
     auto &entry = m_Array[index];
     entry.m_Flags.ClearAll();
 
+    auto &rm = *GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager();
+
     if (meshUri.find("file://") == 0) {
         auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
-        if (!mm.LoadMesh(meshUri, materialUri, entry.meshHandle)) {
+        if (!mm.LoadMesh(meshUri, entry.meshHandle)) {
             AddLogf(Error, "Mesh load failed!");
             return false;
         }
@@ -180,6 +183,8 @@ bool MeshComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
         AddLog(Error, fmt::format("Invalid mesh uri: '{}'", meshUri));
         return false;
     }
+
+    entry.materialHandle = rm.GetMaterialManager().LoadMaterial(materialUri);
 
     entry.m_Owner = owner;
 

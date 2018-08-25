@@ -16,13 +16,11 @@ public:
     void AllocateVAO();
     void UpdateVAO();
     void Set(const Mesh &meshes);
-    void Set(MaterialResourceHandle materials);
     void Commit();
 
     VAOBuilder vaoBuilder;
     MeshManager &meshManager;
     Mesh &subMeshArray;
-    MaterialResourceHandle &subMeshMaterialArray;
     MeshResourceHandle handle;
     MeshData &meshData;
     Commands::CommandQueue &queue;

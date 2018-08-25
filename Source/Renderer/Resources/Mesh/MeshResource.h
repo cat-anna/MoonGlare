@@ -24,9 +24,7 @@ struct MeshData {
     void UpdateBoundary();
 };
 
-class 
-    //alignas(16)
-    MeshManager final 
+class MeshManager final 
     //: iAbstractResource
 {
     using ThisClass = MeshManager;
@@ -69,7 +67,7 @@ public:
             },
             *this,
             subMesh[h.index],
-            materialHandle[h.index],
+            //materialHandle[h.index],
             h,
             meshData[h.index],
             q,
@@ -78,7 +76,13 @@ public:
 }
 #endif
 
-    bool LoadMesh(const std::string &uri, const std::string &material, HandleType &hout);
+    bool LoadMesh(const std::string &uri, HandleType &hout);
+
+    HandleType LoadMesh(const std::string &uri) {
+        HandleType h = {};
+        LoadMesh(uri, h);
+        return h;
+    }
 
     bool IsHandleValid(HandleType &h) const;
 
@@ -89,13 +93,13 @@ public:
         }
         return &subMesh[h.index];
     }
-    const MaterialResourceHandle *GetMaterials(HandleType h) {
-        if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
-            //TODO
-            return nullptr;
-        }
-        return &materialHandle[h.index];
-    }
+    //const MaterialResourceHandle *GetMaterials(HandleType h) {
+    //    if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
+    //        //TODO
+    //        return nullptr;
+    //    }
+    //    return &materialHandle[h.index];
+    //}
     const MeshData *GetMeshData(HandleType h) {
         if (!IsHandleValid(h)) {
             //TODO
@@ -137,7 +141,7 @@ private:
     Array<MeshFlags> meshFlags;
 
     Array<Mesh> subMesh;
-    Array<MaterialResourceHandle> materialHandle;
+    //Array<MaterialResourceHandle> materialHandle;
 
     Array<Conf::VAOBuffers> vaoBuffer;
     Array<HandleType::Generation_t> generations;

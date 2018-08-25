@@ -86,16 +86,16 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
     if (!shres.Load(m_ShaderShadowMapHandle, "ShadowMap")) throw "CANNOT LOAD ShadowMap SHADER!";
     if (!shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw "CANNOT LOAD D/DL SHADER!";
     if (!shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw "CANNOT LOAD D/PL SHADER!";
-    if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw "CANNOT LOAD D/PL SHADER!";
+    if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw "CANNOT LOAD D/ST SHADER!";
     if (!shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw "CANNOT LOAD D/SL SHADER!";
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
 
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", "", sphereMesh)) {     //TODO: remove direct uri
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", sphereMesh)) {     //TODO: remove direct uri
         AddLog(Error, "Cannot load sphere mesh!");
         throw std::runtime_error("Cannot load sphere mesh!");
     }
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", "", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
+    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
         AddLog(Error, "Cannot load cone mesh!");
         throw std::runtime_error("Cannot load cone mesh!");
     }
@@ -266,7 +266,7 @@ void DeferredSink::Reset(Frame *frame) {
     }
 }
 
-void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, MeshResourceHandle meshH) {
+void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, MeshResourceHandle meshH, MaterialResourceHandle matH) {
     //TODO
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
@@ -276,9 +276,8 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
         return;
 
     auto *meshes = mm.GetMeshes(meshH);
-    auto *materials = mm.GetMaterials(meshH);
 
-    if (!meshes || !materials)
+    if (!meshes)
         return;
 
     {
@@ -301,7 +300,7 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
 
     {
         auto &mesh = *meshes;
-        auto &mat = *materials;
+        //auto &mat = *materials;
 
         if (mesh.valid)
         {
@@ -310,9 +309,9 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
             using Sampler = GeometryShaderDescriptor::Sampler;
             using Uniform = GeometryShaderDescriptor::Uniform;
 
-            if (mat.deviceHandle) {
+            if (matH.deviceHandle) {
                 m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-                m_GeometryShader.Set<Sampler::DiffuseMap>(mat.deviceHandle->mapTexture[0]);
+                m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
             }
             else {
                 m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
