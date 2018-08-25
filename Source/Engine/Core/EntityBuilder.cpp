@@ -272,7 +272,8 @@ bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node no
         return false;
     }
 
-    if (!c->Load(MoonGlare::Component::ComponentReader{ node }, parent, owner)) {
+    MoonGlare::Component::ComponentReader reader{ node };
+    if (!c->Load(reader, parent, owner)) {
         AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
         return false;
     }

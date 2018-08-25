@@ -22,6 +22,8 @@
 #include <Renderer/VirtualCamera.h>
 #include <Core/Scripts/ScriptEngine.h>
 
+#include <Foundation/GLFWKeyMapping.h>
+
 namespace MoonGlare::Modules {
 
 class BasicConsole::ConsoleLine {
@@ -61,7 +63,7 @@ public:
         m_TextValid = false;
     }
     void PutChar(unsigned key) {
-        typedef Graphic::WindowInput::Key Key;
+        typedef KeyMapping Key;
         switch ((Key) key) {
         case Key::ArrowLeft:
             if (m_CaretPos < 1) return;
@@ -303,7 +305,7 @@ void BasicConsole::AsyncLine(const string &Text, LineType lineType) {
 }
 
 void BasicConsole::PushKey(unsigned key) {
-    using Key = Graphic::WindowInput::Key;
+    using Key = KeyMapping;
     switch ((Key) key) {
     case Key::Enter:
     {

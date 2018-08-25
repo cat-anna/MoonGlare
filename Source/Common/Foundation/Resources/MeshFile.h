@@ -35,6 +35,7 @@ struct DataHeader {
     DataDestination dataDestination;
     uint8_t elementSize;		   //number of components per generic element ie 1,2,3,4
     uint8_t dataStride;		       //Specifies the byte offset between consecutive generic element	
+    //TODO: channel
 
     uint32_t byteSize;
     uint32_t byteOffset;           //from the beginning of file

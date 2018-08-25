@@ -19,7 +19,7 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
-#include <Engine/Renderer/Dereferred/DereferredPipeline.h>
+#include <Renderer/Deferred/DeferredFrontend.h>
 
 namespace MoonGlare::Physics {
 
@@ -98,7 +98,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
 
     shb.Bind();
     using Uniform = BtDebugDrawShaderDescriptor::Uniform;
-    shb.Set<Uniform::CameraMatrix>(conf.deferredSink->m_Camera.GetProjectionMatrix());
+    shb.Set<Uniform::CameraMatrix>(conf.deffered->camera->GetProjectionMatrix());
 
     auto &m = frame->GetMemory();
     using ichannels = Renderer::Configuration::VAO::InputChannels;

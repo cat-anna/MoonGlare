@@ -9,7 +9,7 @@ public:
 
     void Do(ResourceLoadStorage &storage) override;
 
-    Renderer::Mesh meshArray;
+    Mesh meshArray;
 
     MaterialResourceHandle materialArray;
 

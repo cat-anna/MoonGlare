@@ -16,7 +16,6 @@
 
 namespace MoonGlare::Renderer {
 
-
 TextureRenderTask::TextureRenderTask() {
     m_Framebuffer = 0;
 }

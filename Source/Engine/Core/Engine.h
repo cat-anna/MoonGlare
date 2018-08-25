@@ -32,7 +32,7 @@ protected:
     World *m_World = nullptr;
     Renderer::RendererFacade *m_Renderer = nullptr;
 
-    std::unique_ptr<Graphic::Dereferred::DereferredPipeline> m_Dereferred;
+    std::unique_ptr<Renderer::Deferred::DefferedFrontend> m_Dereferred;
 
     bool m_Running = false;
     float m_FrameTimeSlice = 1.0f;		

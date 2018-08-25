@@ -20,10 +20,10 @@ struct FontGlyph {
     Renderer::MaterialResourceHandle m_GlyphMaterial;
 
 
-    Graphic::vec2 m_Advance;
-    Graphic::vec2 m_Position;
-    Graphic::vec2 m_BitmapSize;
-    Graphic::vec2 m_TextureSize;//normalized value
+    math::vec2 m_Advance;
+    math::vec2 m_Position;
+    math::vec2 m_BitmapSize;
+    math::vec2 m_TextureSize;//normalized value
 };
 
 using UniqueFontGlyph = std::unique_ptr < FontGlyph >;

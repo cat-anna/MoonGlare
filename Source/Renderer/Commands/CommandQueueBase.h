@@ -75,7 +75,18 @@ union CommandKey {
         return CommandKey { 0xFFFF };
     }
 };
-
 static_assert(sizeof(CommandKey) == sizeof(CommandKey::m_UIntValue), "CommandKey has invalid size!");
+
+union CommandKeyEx {
+    struct {
+        uint32_t shaderIndex : 5;    //?
+        uint32_t materialIndex : 12;
+        uint32_t meshIndex : 12;
+        uint32_t depth : 12;
+    };
+    uint64_t uintValue;
+};
+static_assert(sizeof(CommandKeyEx) == sizeof(uint64_t));
+static_assert(std::is_pod_v<CommandKeyEx>);
 
 } //namespace MoonGlare::Renderer::Commands 

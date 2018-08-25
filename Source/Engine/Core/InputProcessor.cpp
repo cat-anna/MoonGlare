@@ -1,6 +1,8 @@
 #include <pch.h>
 #include <MoonGlare.h>
 
+#include <Foundation/GLFWKeyMapping.h>
+
 #include "InputProcessor.h"
 #include "InputProcessor.Events.h"
 
@@ -179,7 +181,7 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
     }
 
     if (m_ConsoleActive && m_Console) {
-        using Key = ::Graphic::WindowInput::Key;
+        using Key = KeyMapping;
         Key k = (Key) key;
         if (k == Key::Escape) {
             ProcessConsoleActivateKey();

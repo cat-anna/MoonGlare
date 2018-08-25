@@ -8,7 +8,7 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/StaticFog.h>
 
-#include <Renderer/Dereferred/DereferredPipeline.h>
+#include <Renderer/Deferred/DeferredFrontend.h>
 #include <Core/Scripts/LuaApi.h>
 
 #include "JobQueue.h"
@@ -205,7 +205,7 @@ void ScenesManager::ChangeScene(const Core::MoveConfig & config) {
 
     if (m_CurrentScene) {
         m_CurrentScene->BeginScene();
-        config.deferredSink->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
+        config.deffered->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
     }
 
     AddLogf(Hint, "Changed scene from '%s'[%p] to '%s'[%p]",

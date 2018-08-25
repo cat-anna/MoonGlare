@@ -5,7 +5,7 @@
 #include "iConsole.h"
 #include "Scene/ScenesManager.h"
 
-#include <Renderer/Dereferred/DereferredPipeline.h>
+#include <Renderer/Deferred/DeferredFrontend.h>
 
 #include <Renderer/Frame.h>
 
@@ -50,8 +50,8 @@ Engine::~Engine() {
 //----------------------------------------------------------------------------------
 
 void Engine::Initialize() {
-    m_Dereferred = std::make_unique<Graphic::Dereferred::DereferredPipeline>();
-    m_Dereferred->Initialize(GetWorld());
+    m_Dereferred = std::make_unique<Renderer::Deferred::DefferedFrontend>();
+    m_Dereferred->Initialize(GetWorld()->GetRendererFacade());
 
     SetFrameRate(static_cast<float>(m_Renderer->GetContext()->GetRefreshRate()));
 }
@@ -98,7 +98,7 @@ void Engine::EngineMain() {
     auto Ctx = m_Renderer->GetContext();
 
     MoveConfig &conf = stepData;
-    conf.deferredSink = m_Dereferred->GetDefferedSink();
+    conf.deffered = m_Dereferred.get();
     conf.m_ScreenSize = Ctx->GetSizef();
 
     using clock = std::chrono::steady_clock;
@@ -160,7 +160,7 @@ void Engine::EngineMain() {
 
         auto StartTime = clock::now();
         {
-            conf.deferredSink->Reset(conf);
+            conf.deffered->Reset(conf.m_BufferFrame);
             conf.timeDelta = tdiff(LastMoveTime, CurrentTime);
             conf.globalTime = tdiff(EntryTime, CurrentTime);
             Ctx->Process();

@@ -33,7 +33,7 @@ namespace MoonGlare::DataClasses {
 
 		struct Descriptor {
 			float Size = 0.0f;
-			Graphic::vec3 Color = Graphic::vec3(1.0f);
+			math::fvec3 Color = math::fvec3(1.0f);
 
 			//DefineFlag(m_Flags, (unsigned)FontStyleFlags::Bold, Bold);
 			//DefineFlag(m_Flags, (unsigned)FontStyleFlags::Italic, Italic);

@@ -118,7 +118,7 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
         h = m_CacheHight;
     }
 
-    Graphic::vec3 char_scale(h / m_CacheHight);
+    math::vec3 char_scale(h / m_CacheHight);
     const wstring::value_type *cstr = text.c_str();
 //	Graphic::vec2 pos(0);
 //	float hmax = h;
@@ -169,7 +169,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
     if (text.empty())
         return true;
 
-    static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+    static const unsigned BaseIndex[] = { 0, 1, 2, 0, 2, 3, };
 
     Renderer::VAOResourceHandle vao{ };
     if (!frame->AllocateFrameResource(vao))
@@ -177,7 +177,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
 
     unsigned textlen = text.length();
     unsigned VerticlesCount = textlen * 4;
-    unsigned IndexesCount = textlen * BaseIndex.size();
+    unsigned IndexesCount = textlen * 6;
     emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
     emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
     uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
@@ -206,9 +206,9 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
     if (options.m_Size > 0) 
         h = options.m_Size;
 
-    Graphic::vec3 char_scale(h / m_CacheHight);
+    math::vec3 char_scale(h / m_CacheHight);
     const wstring::value_type *cstr = text.c_str();
-    Graphic::vec2 pos(0);
+    math::vec2 pos(0);
     float hmax = h;
 
     auto CurrentVertexQuad = Verticles;
@@ -315,9 +315,9 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
     // This Reference Will Make Accessing The Bitmap Easier.
     FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
-    glyph->m_BitmapSize = Graphic::vec2(bitmap.width, bitmap.rows);
-    glyph->m_Position = Graphic::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
-    glyph->m_Advance = Graphic::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
+    glyph->m_BitmapSize = math::vec2(bitmap.width, bitmap.rows);
+    glyph->m_Position = math::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
+    glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
 
     if (q && bitmap.width > 0 && bitmap.rows > 0) {
         //translate it and upload to render device
@@ -335,7 +335,7 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
 
         float x = (float)bitmap.width / (float)width;
         float y = (float)bitmap.rows / (float)height;
-        glyph->m_TextureSize = Graphic::vec2(x, y);
+        glyph->m_TextureSize = math::vec2(x, y);
 
         auto *resmgr = frame->GetResourceManager();
         auto &texR = resmgr->GetTextureResource();

@@ -6,7 +6,6 @@ using namespace MoonGlare;
 
 #include "Configuration.h"
 
-#include "Renderer/nfGraphic.h"
 #include "EngineSettings.h"
 
 #include "DataClasses/nfDataClasses.h"

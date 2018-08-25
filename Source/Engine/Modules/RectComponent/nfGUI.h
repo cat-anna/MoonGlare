@@ -12,27 +12,27 @@ namespace GUI {
 	using SharedFont = std::shared_ptr < Font > ;
 	using GuiFont = std::shared_ptr < Font > ;
 
-	class Animation;
-	using SharedAnimation = std::shared_ptr < Animation > ;
-	using WeakAnimation = std::weak_ptr < Animation > ;
-	struct AnimationInstance;
+	//class Animation;
+	//using SharedAnimation = std::shared_ptr < Animation > ;
+	//using WeakAnimation = std::weak_ptr < Animation > ;
+	//struct AnimationInstance;
 
 	struct StyleSet;
 	using SharedStyleSet = std::shared_ptr < StyleSet > ;
 	class StyleManager;
 
-	using MouseButton = ::Graphic::WindowInput::MouseButton;
-	using ModsStatus = ::Graphic::WindowInput::ModsStatus;
+	//using MouseButton = ::Graphic::WindowInput::MouseButton;
+	//using ModsStatus = ::Graphic::WindowInput::ModsStatus;
 
-	namespace Events {
-		struct Event;
+	//namespace Events {
+	//	struct Event;
 
-		struct MouseEvent;
-		struct MouseEnterEvent;
-		struct MouseLeaveEvent;
-		struct MouseMoveEvent;
-		struct MouseDownEvent;
-		struct MouseUpEvent;
-	}
+	//	struct MouseEvent;
+	//	struct MouseEnterEvent;
+	//	struct MouseLeaveEvent;
+	//	struct MouseMoveEvent;
+	//	struct MouseDownEvent;
+	//	struct MouseUpEvent;
+	//}
 } //namespace GUI 
 } //namespace MoonGlare 
