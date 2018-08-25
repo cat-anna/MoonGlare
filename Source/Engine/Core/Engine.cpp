@@ -122,7 +122,6 @@ void Engine::EngineMain() {
         if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f)
             ++m_SkippedFrames;
 
-        LastFrame = CurrentTime;
         conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
 
         m_ActionQueue.DispatchPendingActions();
@@ -133,6 +132,7 @@ void Engine::EngineMain() {
             continue;
 
         ++FrameCounter;
+        LastFrame = CurrentTime;
 
         auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
         using Layer = Renderer::Frame::CommandLayers::LayerEnum;

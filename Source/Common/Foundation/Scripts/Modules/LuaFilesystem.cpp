@@ -1,8 +1,7 @@
-#include <pch.h>
-
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 #include <Foundation/InterfaceMap.h>
 
+#include "../ApiInit.h"
 #include "../iDynamicModule.h"
 #include "../iLuaRequire.h"
 

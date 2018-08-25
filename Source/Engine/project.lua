@@ -13,17 +13,16 @@ project "Engine"
 		buildcommands '%{bin2c} -o "%{cfg.objdir}%{file.basename}".lua.h -n %{file.basename}_lua "%{file.relpath}"'
 		buildoutputs '%{cfg.objdir}%{file.basename}.lua.h'
 
-	SetPCH { hdr = "pch.h", src = "../pch.cpp", }
+	SetPCH { hdr = "pch.h", src = "pch.cpp", }
 
 	defines {
 		"_BUILDING_ENGINE_",
-		"BT_EULER_DEFAULT_ZYX",
+		"BT_EULER_DEFAULT_ZYX",    
 		"_FEATURE_EXTENDED_PERF_COUNTERS_",
 	}
 
 	files {
 		"**",
-		"../*",
 		"../Config/**",
 		"../Utils/**",
 	}

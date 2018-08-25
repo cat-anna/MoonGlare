@@ -15,6 +15,10 @@
 	w:SetPosition(5, 20)
 ]]
 
+if not Debug then
+	return 
+end
+
 function TogglePhysicEnabled()
 	local val = not Debug.Flags.Physics.Enabled
 	if val then
