@@ -12,6 +12,8 @@ enum class SceneState : unsigned {
 struct SceneStateChangeEvent {
     static constexpr char* EventName = "SceneStateChange";
     static constexpr char* HandlerName = "OnSceneStateChangeEvent";
+    static constexpr bool Public = false;
+
     SceneState m_State;
     ciScene *m_Scene;
 

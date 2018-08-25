@@ -171,10 +171,15 @@ void ApiInit::Initialize(ScriptEngine *s) {
             auto info = BaseEventInfo::GetEventTypeInfo(it);
             if (info.apiInitFunc) {
                 ++ApiInitFunctionsRun;
-                s->GetApiInitializer()
-                    .beginNamespace("api")
+                if (info.infoPtr->Public()) 
+                    s->GetApiInitializer()
                         .beginNamespace("Event")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
+                else                   
+                    s->GetApiInitializer()
+                        .beginNamespace("api")
+                            .beginNamespace("Event")
+                                .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }
         }
     }

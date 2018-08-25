@@ -26,6 +26,8 @@ void BaseEventInfo::Dump(std::ostream &output) {
 #endif
         if (tinfo.apiInitFunc)
             flags += ",SCRIPTAPI";
+        if (tinfo.infoPtr->Public())
+            flags += ",PUBLIC";
 
         output << fmt::format("{:2}. {:100} size:{:3} flags:{:30} Event:{:30} Handler:{:30}\n",
             i, ttype.name(), tinfo.byteSize, flags, tinfo.EventName, tinfo.HandlerName);

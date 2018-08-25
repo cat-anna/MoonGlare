@@ -9,6 +9,7 @@ namespace MoonGlare::SoundSystem::Component {
 struct SoundStreamFinishedEvent {
     static constexpr char* EventName = "SoundStreamFinished";
     static constexpr char* HandlerName = "OnSoundStreamFinishedEvent";
+    static constexpr bool Public = false;
 
     Entity sender;
     Entity recipient;

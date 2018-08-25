@@ -5,7 +5,8 @@ namespace MoonGlare::Core {
 struct InputProcessorOnCharEvent {
     static constexpr char* EventName = "Char";
     static constexpr char* HandlerName = "OnCharEvent";
-   
+    static constexpr bool Public = false;
+
     Entity recipient;
     int m_Char;
 
@@ -31,6 +32,7 @@ struct InputProcessorOnCharEvent {
 struct InputProcessorOnKeyEvent {
     static constexpr char* EventName = "Key";
     static constexpr char* HandlerName = "OnKeyEvent";
+    static constexpr bool Public = false;
 
     Entity recipient;
     int m_Key;

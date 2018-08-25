@@ -7,7 +7,13 @@
 
 #include <Foundation/Scripts/ApiInit.h>
 
+#include <boost/tti/has_static_member_data.hpp>
+
 namespace MoonGlare::Component {
+
+namespace detail {
+BOOST_TTI_HAS_STATIC_MEMBER_DATA(Public);
+}
 
 using EventClassId = uint32_t;
 
@@ -16,6 +22,7 @@ public:
     static EventClassId GetUsedEventTypes() { return idAlloc; }
 
     virtual const std::type_info &GetTypeInfo() const = 0;
+    virtual bool Public() const = 0;
 
 	struct EventClassInfo {
         size_t byteSize;
@@ -46,6 +53,9 @@ struct EventInfo : public BaseEventInfo {
 	static EventClassId GetClassId() { return classId; }
 //	static_assert(std::is_pod<T>::value, "Event must be pod type!");
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
+    bool Public() const override {
+        return T::Public;
+    }
 private:
 	static const EventClassId classId;
 };

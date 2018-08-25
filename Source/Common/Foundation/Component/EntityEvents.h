@@ -7,6 +7,7 @@ namespace MoonGlare::Component {
 struct EntityCreatedEvent {
     static constexpr char* EventName = "EntityCreated";
     static constexpr char* HandlerName = "OnEntityCreatedEvent";
+    static constexpr bool Public = false;
 
     Entity parent;
     Entity entity;
@@ -34,6 +35,7 @@ struct EntityCreatedEvent {
 struct EntityDestructedEvent {
     static constexpr char* EventName = "EntityDestructed";
     static constexpr char* HandlerName = "OnEntityDestructedEvent";
+    static constexpr bool Public = false;
 
     Entity parent; 
     Entity entity; 
