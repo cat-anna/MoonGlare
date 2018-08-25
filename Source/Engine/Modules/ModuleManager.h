@@ -24,8 +24,6 @@ public:
 	virtual bool Initialize();
 	virtual bool Finalize();
 
-	virtual void Notify(SettingsGroup what);
-
 	virtual const ModuleDescription* GetDescription() const;
 
 	virtual void RegisterModuleApi(ApiInitializer &api);
@@ -57,7 +55,6 @@ public:
 	bool Initialize();
 	bool Finalize();
 
-	void BroadcastNotification(SettingsGroup what);
     void OnPostInit();
 
 	void DumpModuleList(std::ostream &out);

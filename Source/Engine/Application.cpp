@@ -158,10 +158,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->SetConfiguration(m_Configuration->m_Renderer);
     m_Configuration->m_Display.visible = false;
-    if (!m_Renderer->Initialize(m_Configuration->m_Display, GetFileSystem())) {
-        AddLogf(Error, "Unable to initialize renderer");
-        throw "Unable to initialize renderer";
-    }
+    m_Renderer->Initialize(m_Configuration->m_Display, GetFileSystem());
 
     auto datamgr = new DataManager(m_World.get());
     datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
@@ -259,8 +256,8 @@ void Application::Finalize() {
     MoonGlare::Core::Engine::Instance()->Finalize();
     DataManager::DeleteInstance();
 
-    if (m_Renderer && !m_Renderer->Finalize()) 
-        AddLogf(Error, "Unable to finalize renderer");
+    if(m_Renderer)
+        m_Renderer->Finalize();
     m_Renderer.reset();
 
     _finit_chk(ModulesManager, "Finalization of modules manager failed!");

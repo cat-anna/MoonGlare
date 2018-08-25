@@ -1,9 +1,5 @@
 #pragma once
 
-namespace MoonGlare::Debug::Insider {
-	class Insider;
-}
-
 using namespace MoonGlare;
 
 #include <Source/Renderer/nfRenderer.h>

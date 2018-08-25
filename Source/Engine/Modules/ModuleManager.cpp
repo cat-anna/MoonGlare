@@ -36,7 +36,6 @@ ModuleInfo::ModuleInfo(const char *Name):
 ModuleInfo::~ModuleInfo() { }
 bool ModuleInfo::Initialize() { return true; }
 bool ModuleInfo::Finalize() { return true; }
-void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
 void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
 void ModuleInfo::RegisterInternalApi(ApiInitializer &api) { /* ignore */ }
@@ -125,15 +124,6 @@ void ModulesManager::SaveSettings(pugi::xml_node node) const {
             auto modnode = node.append_child(mname.c_str());
             it->SaveSettings(modnode);
         }
-    }
-}
-
-void ModulesManager::BroadcastNotification(SettingsGroup what) {
-    AddLogf(Debug, "Broadcasting settings changed notification: %d.", (unsigned)what);
-    auto list = GetModuleList();
-    for (auto &it: *list) {
-        auto *module = it;
-        module->Notify(what);
     }
 }
 

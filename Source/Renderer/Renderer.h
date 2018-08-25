@@ -18,11 +18,11 @@ public:
     //iRendererFacade
     iContext* GetContext() override;
     void SetConfiguration(Configuration::RuntimeConfiguration Configuration) override;
+    void Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) override;
+    void Finalize() override;
 
    
 
-    bool Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem);
-    bool Finalize();
 
     /** Shall work on main thread; does not return until stopped */
     void EnterLoop();

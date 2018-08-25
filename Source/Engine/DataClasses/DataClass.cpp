@@ -26,14 +26,9 @@ void BasicResource::RegisterScriptApi(ApiInitializer &api) {
 	;
 }
 
-DataPath BasicResource::GetResourceType() const {
-	LOG_ABSTRACT_FUNCTION();
-	CriticalError("Abstract function called!");
-}
-
 XMLFile BasicResource::OpenMetaData() const {
 	XMLFile xml;
-	if (!GetFileSystem()->OpenResourceXML(xml, GetName(), GetResourceType())) {
+	if (!GetFileSystem()->OpenResourceXML(xml, GetName(), DataPath::Fonts)) {
 		AddLogf(Error, "Unable to open master resource xml for resource '%s' of class '%s'", GetName().c_str(), GetDynamicTypeInfo()->GetName());
 		return nullptr;
 	}

@@ -29,12 +29,12 @@ void RendererFacade::SetConfiguration(Configuration::RuntimeConfiguration Config
 
 //----------------------------------------------------------------------------------
 
-bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) {
+void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) {
     assert(fileSystem);
 
     if (!Device::GLFWContext::InitializeSubSystem()) {
         AddLogf(Error, "Context subsystem initialization failed!");
-        return false;
+        throw InitFailureException("Context subsystem initialization failed!");
     }
 
     m_Device = mem::make_aligned<RenderDevice>();
@@ -44,18 +44,16 @@ bool RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *
 
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");
-        return false;
+        throw InitFailureException("Render device initialization failed!");
     }
 
     if (!m_ResourceManager->Initialize(this, fileSystem)) {
         AddLogf(Error, "ResourceManager initialization failed!");
-        return false;
+        throw InitFailureException("ResourceManager initialization failed!");
     }
-
-    return true;
 }
 
-bool RendererFacade::Finalize() {
+void RendererFacade::Finalize() {
     if (m_ResourceManager && !m_ResourceManager->Finalize()) {
         AddLogf(Error, "ResourceManager finalization failed!");
     }
@@ -70,9 +68,7 @@ bool RendererFacade::Finalize() {
 
     if (!Device::GLFWContext::FinalizeSubSystem()) {
         AddLogf(Error, "Context subsystem finalization failed!");
-    }
-
-    return true;
+    }     
 }
 
 //----------------------------------------------------------------------------------

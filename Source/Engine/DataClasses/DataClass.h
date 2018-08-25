@@ -14,8 +14,6 @@ public:
     const string& GetName() const { return m_Name; }
     void SetName(const string& name) { m_Name = name; }
     const char* GetCharName() const { return GetName().c_str(); }
-
-	virtual DataPath GetResourceType() const;
 protected:
 	XMLFile OpenMetaData() const;
 private:

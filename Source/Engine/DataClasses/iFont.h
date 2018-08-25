@@ -39,7 +39,6 @@ public:
 		}
 	};
 
-	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
 	virtual FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
 	
 	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
