@@ -1,17 +1,11 @@
 #include "pch.h"
 
-#define NEED_MESH_BUILDER
-
 #include "../../nfRenderer.h"
 #include "../../iAsyncLoader.h"
 #include "MeshResource.h"
 #include "AssimpMeshLoader.h"
 
 #include "../MaterialManager.h"
-
-#include "../Texture/FreeImageLoader.h"
-
-#include <Commands/MemoryCommands.h>
 
 namespace MoonGlare::Renderer::Resources::Loader {
 

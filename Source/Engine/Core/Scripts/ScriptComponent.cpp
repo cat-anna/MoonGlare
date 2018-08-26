@@ -178,7 +178,7 @@ void ScriptComponent::HandleEvent(lua_State *lua, Entity destination) {
     int errf = lua_gettop(lua);
 
     GetInstancesTable(lua);									        //stack: eventObj HandlerName errH instT
-    lua_rawgeti(lua, -1, index);							        //stack: eventObj HandlerName errH instT Script/nil
+    lua_rawgeti(lua, -1, index + 1);							        //stack: eventObj HandlerName errH instT Script/nil
 
     if (!lua_istable(lua, -1)) {
         lua_settop(lua, luatop);
@@ -194,6 +194,8 @@ void ScriptComponent::HandleEvent(lua_State *lua, Entity destination) {
 
     lua_settop(lua, luatop);         //clear all temp values on stack
     lua_pop(lua, 1);                 //remove event object
+
+    check.ReturnArgs(-1);
 }
 
 //-------------------------------------------------------------------------------------------------

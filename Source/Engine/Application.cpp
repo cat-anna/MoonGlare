@@ -246,9 +246,11 @@ void Application::Execute() {
         m_Renderer->GetContext()->SetVisible(true);
 
         auto engineThread = std::thread([this]() {
+            ::OrbitLogger::ThreadInfo::SetName("CORE");
             MoonGlare::Core::GetEngine()->EngineMain();
         });
 
+        ::OrbitLogger::ThreadInfo::SetName("REND");
         m_Renderer->EnterLoop();
 
         engineThread.join();
