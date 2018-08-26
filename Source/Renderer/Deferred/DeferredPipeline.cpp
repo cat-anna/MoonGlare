@@ -1,18 +1,17 @@
 #define NEED_VAO_BUILDER
-#define NEED_MESH_BUILDER
-
 
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
-#include <Renderer/Resources/Mesh/MeshUpdate.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Device/Types.h>
+
+#include <Renderer/Mesh.h>
 
 #include "DeferredPipeline.h"
 
@@ -26,10 +25,8 @@ DeferredSink::DeferredSink() {
 
 void DeferredSink::InitializeDirectionalQuad() {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
-    //auto &matm = m_Renderer->GetResourceManager()->GetMaterialManager();
-    mm.Allocate(quadMesh);
 
-    Resources::MeshData meshData;
+    MeshSource meshData;
     meshData.verticles = {
         math::vec3(-1.0f, -1.0f, 0.0f),
         math::vec3(1.0f, -1.0f, 0.0f),
@@ -46,20 +43,7 @@ void DeferredSink::InitializeDirectionalQuad() {
         0, 1, 2, 0, 2, 3,
     };
 
-    mm.SetMeshData(quadMesh, std::move(meshData));
-
-    auto task = std::make_shared<Resources::Loader::CustomMeshLoader>(quadMesh, mm);
-    task->materialArray = {};
-    task->meshArray = {};
-    auto &mesh = task->meshArray;
-    mesh.valid = true;
-    mesh.indexElementType = GL_UNSIGNED_INT;
-    mesh.numIndices = 6;
-    mesh.baseIndex = 0;
-    mesh.baseVertex = 0;
-    mesh.elementMode = GL_TRIANGLES;
-
-    m_Renderer->GetAsyncLoader()->QueueTask(std::move(task));
+    quadMesh = mm.CreateMesh(std::move(meshData), "DeferredDirectionalQuad");
 }
 
 //------------------------------------------------------------------------------------------
@@ -82,23 +66,17 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
         throw msg;
     }
 
-    if (!shres.Load(m_ShaderGeometryHandle, "Deferred/Geometry")) throw "CANNOT LOAD D/G SHADER!";
-    if (!shres.Load(m_ShaderShadowMapHandle, "ShadowMap")) throw "CANNOT LOAD ShadowMap SHADER!";
-    if (!shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional")) throw "CANNOT LOAD D/DL SHADER!";
-    if (!shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint")) throw "CANNOT LOAD D/PL SHADER!";
-    if (!shres.Load(m_ShaderStencilHandle, "Deferred/Stencil")) throw "CANNOT LOAD D/ST SHADER!";
-    if (!shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot")) throw "CANNOT LOAD D/SL SHADER!";
+    shres.Load(m_ShaderGeometryHandle, "Deferred/Geometry");
+    shres.Load(m_ShaderShadowMapHandle, "ShadowMap");
+    shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional");
+    shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint");
+    shres.Load(m_ShaderStencilHandle, "Deferred/Stencil");
+    shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot");
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
 
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", sphereMesh)) {     //TODO: remove direct uri
-        AddLog(Error, "Cannot load sphere mesh!");
-        throw std::runtime_error("Cannot load sphere mesh!");
-    }
-    if (!mm.LoadMesh("file:///Models/PointLightSphere.3ds", coneMesh)) {     //TODO: remove direct uri      SpotLightCone.3ds
-        AddLog(Error, "Cannot load cone mesh!");
-        throw std::runtime_error("Cannot load cone mesh!");
-    }
+    sphereMesh = mm.LoadMesh("file:///Models/PointLightSphere.3ds");
+    coneMesh = mm.LoadMesh("file:///Models/PointLightSphere.3ds");
     InitializeDirectionalQuad();
 }
 
@@ -126,10 +104,10 @@ void DeferredSink::Reset(Frame *frame) {
         }
     };
 
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     m_LightGeometryQueue = frame->AllocateSubQueue();
     m_GeometryQueue = frame->AllocateSubQueue();
-        //&layers.Get<Configuration::FrameBuffer::Layer::DefferedGeometry>();
+    //&layers.Get<Configuration::FrameBuffer::Layer::DefferedGeometry>();
     m_GeometryShader = shres.GetBuilder(*m_GeometryQueue, m_ShaderGeometryHandle);
 
     {
@@ -166,7 +144,7 @@ void DeferredSink::Reset(Frame *frame) {
         m_GeometryQueue->MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
         m_GeometryQueue->MakeCommand<Commands::Disable>((GLenum)GL_BLEND);
     }
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     {
         using Uniform = DirectionalLightShaderDescriptor::Uniform;
 
@@ -193,11 +171,11 @@ void DeferredSink::Reset(Frame *frame) {
         }
 
     }
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     {
         m_StencilShader = shres.GetBuilder(*m_DirectionalLightQueue, m_ShaderStencilHandle);
     }
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
 
@@ -211,7 +189,7 @@ void DeferredSink::Reset(Frame *frame) {
         }
         m_PointLightShader.Set<Uniform::ScreenSize>(m_ScreenSize);
     }
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     {
         using Uniform = SpotLightShaderDescriptor::Uniform;
 
@@ -225,7 +203,7 @@ void DeferredSink::Reset(Frame *frame) {
         }
         m_SpotShader.Set<Uniform::ScreenSize>(m_ScreenSize);
     }
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
     {
         m_SpotLightShadowQueue = &layers.Get<Configuration::FrameBuffer::Layer::ShadowMaps>();
         m_ShadowShader = shres.GetBuilder(*m_SpotLightShadowQueue, m_ShaderShadowMapHandle);
@@ -266,19 +244,22 @@ void DeferredSink::Reset(Frame *frame) {
     }
 }
 
-void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, MeshResourceHandle meshH, MaterialResourceHandle matH) {
-    //TODO
-
+void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH) {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
     auto *md = mm.GetMeshData(meshH);
-
-    if (!md || !MeshVisibilityTest(basepos, md->boundingRadius))
+    if (!md)
         return;
 
-    auto *meshes = mm.GetMeshes(meshH);
-
-    if (!meshes)
+    emath::fvec3 basepos = ModelMatrix.col(3).head<3>();
+    if (!md->ready || !MeshVisibilityTest(basepos, md->boundingRadius))
         return;
+
+    auto *meshptr = mm.GetMesh(meshH);
+
+    if (!meshptr || !meshptr->valid)
+        return;
+
+    auto &mesh = *meshptr;
 
     {
         using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
@@ -286,47 +267,39 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &bas
         m_ShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
         m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
-
     {
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
         m_GeometryShader.Set<Uniform::ModelMatrix>(ModelMatrix);
 
-        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1,1,1));
+        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
         m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
 
         m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
 
-    {
-        auto &mesh = *meshes;
-        //auto &mat = *materials;
+    if (mesh.valid) {
+        ++meshcouter;
 
-        if (mesh.valid)
-        {
-            ++meshcouter;
+        using Sampler = GeometryShaderDescriptor::Sampler;
+        using Uniform = GeometryShaderDescriptor::Uniform;
 
-            using Sampler = GeometryShaderDescriptor::Sampler;
-            using Uniform = GeometryShaderDescriptor::Uniform;
-
-            if (matH.deviceHandle) {
-                m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-                m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
-            }
-            else {
-                m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-                m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
-            }
-
-            auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-            garg->m_NumIndices = mesh.numIndices;
-            garg->m_IndexValueType = mesh.indexElementType;
-            garg->m_BaseIndex = mesh.baseIndex;
-            garg->m_BaseVertex = mesh.baseVertex;
-
-            auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-            *larg = *garg;
+        if (matH.deviceHandle) {
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+            m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
+        } else {
+            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+            m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
         }
+
+        auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        garg->m_NumIndices = mesh.numIndices;
+        garg->m_IndexValueType = mesh.indexElementType;
+        garg->m_BaseIndex = mesh.baseIndex;
+        garg->m_BaseVertex = mesh.baseVertex;
+
+        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        *larg = *garg;
     }
 }
 
@@ -399,15 +372,15 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
     using Uniform = PointLightShaderDescriptor::Uniform;
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
-    auto *mesh = mm.GetMeshes(sphereMesh);
+    auto &mesh = *mm.GetMesh(sphereMesh);
 
     m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
 
     auto garg = m_PointLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = (*mesh).numIndices;
-    garg->m_IndexValueType = (*mesh).indexElementType;
-    garg->m_BaseIndex = (*mesh).baseIndex;
-    garg->m_BaseVertex = (*mesh).baseVertex;
+    garg->m_NumIndices = (mesh).numIndices;
+    garg->m_IndexValueType = (mesh).indexElementType;
+    garg->m_BaseIndex = (mesh).baseIndex;
+    garg->m_BaseVertex = (mesh).baseVertex;
 
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
@@ -432,12 +405,12 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
         m_PointLightShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_PositionMatrix));
     }
 
-     m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
-     m_PointLightQueue->MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
-     m_PointLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
-     m_PointLightQueue->MakeCommand<Commands::StencilFunc>((GLenum)GL_NOTEQUAL, 0, 0xFFu);
-     m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
-     m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
+    m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
+    m_PointLightQueue->MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
+    m_PointLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+    m_PointLightQueue->MakeCommand<Commands::StencilFunc>((GLenum)GL_NOTEQUAL, 0, 0xFFu);
+    m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
+    m_PointLightQueue->MakeCommand<Commands::CullFace>((GLenum)GL_FRONT);
 
     m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(0u, 0u);
     m_PointLightQueue->MakeCommand<Commands::VAOBindResource>(sphereMesh.deviceHandle);
@@ -449,9 +422,9 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
 }
 
 void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
-  // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
- //  if (delta.squaredNorm() > 100.0f)
- //      return;
+    // emath::fvec3 delta = m_Camera.m_Position - emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position);
+   //  if (delta.squaredNorm() > 100.0f)
+   //      return;
 
     PlaneShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
@@ -492,15 +465,14 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
 
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
-    auto *mesh = mm.GetMeshes(coneMesh);
-
+    auto &mesh = *mm.GetMesh(coneMesh);
 
     m_SpotLightQueue->MakeCommand<Commands::VAOBindResource>(coneMesh.deviceHandle);
     auto garg = m_SpotLightQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-    garg->m_NumIndices = (*mesh).numIndices;
-    garg->m_IndexValueType = (*mesh).indexElementType;
-    garg->m_BaseIndex = (*mesh).baseIndex;
-    garg->m_BaseVertex = (*mesh).baseVertex;
+    garg->m_NumIndices = (mesh).numIndices;
+    garg->m_IndexValueType = (mesh).indexElementType;
+    garg->m_BaseIndex = (mesh).baseIndex;
+    garg->m_BaseVertex = (mesh).baseVertex;
 
     //m_Buffer.BeginLightingPass();
     m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT4);
@@ -511,8 +483,7 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
     //sm->BindAsTexture(SamplerIndex::PlaneShadow);
     if (sm) {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::PlaneShadow);
-    }
-    else {
+    } else {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::PlaneShadow);
     }
 
@@ -558,4 +529,4 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
     m_SpotLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_CULL_FACE);
 }
 
-} 
+}

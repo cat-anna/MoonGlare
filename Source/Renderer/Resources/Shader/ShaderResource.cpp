@@ -105,9 +105,11 @@ bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocato
 
 //---------------------------------------------------------------------------------------
 
-bool ShaderResource::LoadShader(ShaderResourceHandleBase &out, const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
+ShaderResourceHandleBase ShaderResource::LoadShader(const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
     RendererAssert(this);
     RendererAssert(ShaderIface);
+
+    ShaderResourceHandleBase out;
 
     auto ifindex = ShaderIface->InterfaceID();
 
@@ -115,7 +117,7 @@ bool ShaderResource::LoadShader(ShaderResourceHandleBase &out, const std::string
     if (!m_ShaderLoaded[ifindex].compare_exchange_strong(isalloc, true)) {
         out.m_TmpGuard = out.GuardValue;
         out.m_Index = static_cast<uint16_t>(ifindex);
-        return true;
+        return out;
     }
 
     m_ShaderName[ifindex] = ShaderName;
@@ -129,7 +131,7 @@ bool ShaderResource::LoadShader(ShaderResourceHandleBase &out, const std::string
     auto loader = dynamic_cast<AsyncLoader*>(m_ResourceManager->GetLoader()); //TODO: this is ugly
     loader->SubmitShaderLoad(out);
 
-    return true;
+    return out;
 }
 
 //---------------------------------------------------------------------------------------

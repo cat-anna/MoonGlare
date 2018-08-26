@@ -6,27 +6,24 @@
 
 #include "../../Mesh.h"
 
-#ifdef NEED_MESH_BUILDER
-#include "MeshBuilder.h"
-#endif
-
 namespace MoonGlare::Renderer::Resources {
 
 struct MeshData {
-    //TODO: switch to std::uptr
-    std::vector<glm::fvec3> verticles;
-    std::vector<glm::fvec2> UV0;
-    std::vector<glm::fvec3> normals;
-    std::vector<uint32_t> index;
+    glm::fvec3 *verticles;  
+    glm::fvec2 *UV0;        
+    glm::fvec3 *normals;    
+    uint32_t *index;        
+
+    size_t vertexCount;
+    size_t indexCount;
+
     emath::fvec3 halfBoundingBox;
     float boundingRadius;
 
-    void UpdateBoundary();
+    bool ready;
 };
 
-class MeshManager final 
-    //: iAbstractResource
-{
+class MeshManager final {
     using ThisClass = MeshManager;
     using Conf = Configuration::Mesh;
     using ConfRes = Configuration::Resources;
@@ -36,95 +33,32 @@ public:
 
     ResourceManager* GetResourceManager() { return resourceManager; }
 
-    using HandleType = MeshResourceHandle;
-
-    bool Allocate(HandleType &hout);
-    void Release(HandleType hin);
-
-    HandleType Allocate() {
-        HandleType h = {};
-        Allocate(h);
-        return h;
-    }
+    MeshResourceHandle Allocate();
+    void Release(MeshResourceHandle hin);
                                     
-#ifdef NEED_MESH_BUILDER
-    Builder::MeshBuilder GetBuilder(Commands::CommandQueue &q, HandleType &h, 
-        Commands::CommandKey key = {}, bool AllowAllocation = false) {
+    MeshResourceHandle LoadMesh(const std::string &uri);
+
+    MeshResourceHandle CreateMesh(MeshSource source, const std::string &uri = "");
+    void ApplyMeshSource(MeshResourceHandle h, MeshSource source);
+    void ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<char[]> sourceMemory);
+
+    bool IsHandleValid(MeshResourceHandle &h) const;
+
+    const Mesh* GetMesh(MeshResourceHandle h) {
         if (!IsHandleValid(h)) {
-            if (!AllowAllocation)
-                RendererAssert(false);//TODO:
-
-            if(!Allocate(h)) {
-                RendererAssert(false);//TODO:
-            }
-        }
-
-        return Builder::MeshBuilder{
-            Builder::VAOBuilder {
-                &q,
-                &vaoBuffer[h.index][0],
-                &deviceHandle[h.index],
-            },
-            *this,
-            subMesh[h.index],
-            //materialHandle[h.index],
-            h,
-            meshData[h.index],
-            q,
-            key,
-        };
-}
-#endif
-
-    bool LoadMesh(const std::string &uri, HandleType &hout);
-
-    HandleType LoadMesh(const std::string &uri) {
-        HandleType h = {};
-        LoadMesh(uri, h);
-        return h;
-    }
-
-    bool IsHandleValid(HandleType &h) const;
-
-    const Mesh* GetMeshes(HandleType h) {
-        if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
-            //TODO
             return nullptr;
         }
-        return &subMesh[h.index];
+        return &mesh[h.index];
     }
-    //const MaterialResourceHandle *GetMaterials(HandleType h) {
-    //    if (!IsHandleValid(h) || !meshFlags[h.index].meshCommited) {
-    //        //TODO
-    //        return nullptr;
-    //    }
-    //    return &materialHandle[h.index];
-    //}
-    const MeshData *GetMeshData(HandleType h) {
+    const MeshData* GetMeshData(MeshResourceHandle h) const {
         if (!IsHandleValid(h)) {
-            //TODO
             return nullptr;
         }
         return &meshData[h.index];
     }
 
-    void SetMeshData(HandleType h, MeshData data) {
-        if (!IsHandleValid(h)) {
-            //TODO
-            __debugbreak();
-            return;
-        }
-        meshFlags[h.index].meshCommited = false;
-        meshData[h.index] = std::move(data);
-    }
-    void CommitMesh(HandleType h) {
-        if (!IsHandleValid(h)) {
-            //TODO
-            __debugbreak();
-            return;
-        }
-        meshFlags[h.index].meshCommited = true;
-    }
+    void SaveMeshObj(MeshResourceHandle h, std::string outFile = "");
+    void SaveMeshBin(MeshResourceHandle h, std::string outFile = "");
 private:
     template<typename T>
     using Array = std::array<T, Conf::Limit>;
@@ -132,24 +66,27 @@ private:
     using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
     struct MeshFlags {
-        bool meshCommited : 1;
+        //bool meshCommited : 1;
     };
     static_assert(sizeof(MeshFlags) == 1);
 
     Bitmap allocationBitmap;
     Array<Device::VAOHandle> deviceHandle;
-    Array<MeshFlags> meshFlags;
+    //Array<MeshFlags> meshFlags;
 
-    Array<Mesh> subMesh;
-    //Array<MaterialResourceHandle> materialHandle;
+    Array<Mesh> mesh;
 
     Array<Conf::VAOBuffers> vaoBuffer;
-    Array<HandleType::Generation_t> generations;
+    Array<MeshResourceHandle::Generation_t> generations;
 
     Array<MeshData> meshData;
+    Array<std::unique_ptr<char[]>> meshDataMemory;
 
-    std::unordered_map<std::string, HandleType> loadedMeshes; //temporary solution
+    std::unordered_map<std::string, MeshResourceHandle> loadedMeshes; //temporary solution
     ResourceManager *resourceManager = nullptr;
+    iAsyncLoader *asyncLoader = nullptr;
+
+    std::pair<MeshResourceHandle, bool> Allocate(const std::string &uri);
 };
 
 //static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");

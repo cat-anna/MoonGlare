@@ -75,10 +75,7 @@ bool PanelComponent::Initialize() {
     }
 
     auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-    if (!shres.Load(m_ShaderHandle, "GUI")) {
-        AddLogf(Error, "Failed to load GUI shader");
-        return false;
-    }
+    shres.Load(m_ShaderHandle, "GUI");
 
     return true;
 }

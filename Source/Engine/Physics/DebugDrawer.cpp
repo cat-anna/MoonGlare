@@ -73,10 +73,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
         m_LinePointsColors.clear();
 
         auto &shres = frame->GetResourceManager()->GetShaderResource();
-        if (!shres.Load<BtDebugDrawShaderDescriptor>(shaderHandle, "btDebugDraw")) {
-            AddLogf(Error, "Failed to load GUI shader");
-            return;
-        }
+        shaderHandle = shres.Load<BtDebugDrawShaderDescriptor>("btDebugDraw");
 
         ready = true;
         return;

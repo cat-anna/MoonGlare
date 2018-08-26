@@ -11,10 +11,10 @@
 namespace MoonGlare::Renderer::Resources::Loader {
 
 void CustomMeshLoader::Do(ResourceLoadStorage &storage) {
-    auto builder = owner.GetBuilder(storage.m_Queue, handle);
-    builder.UpdateVAO();
-    builder.Set(meshArray);
-    builder.Commit();
+    //auto builder = owner.GetBuilder(storage.m_Queue, handle);
+    //builder.UpdateVAO();
+    //builder.Set(meshArray);
+    //builder.Commit();
 }
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

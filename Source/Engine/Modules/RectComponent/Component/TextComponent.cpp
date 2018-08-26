@@ -80,10 +80,7 @@ bool TextComponent::Initialize() {
 	}
 
 	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-	if (!shres.Load(m_ShaderHandle, "GUI")) {
-		AddLogf(Error, "Failed to load GUI shader");
-		return false;
-	}
+    shres.Load(m_ShaderHandle, "GUI");
 
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
     m_FontDeviceOptions.m_DeviceSize = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSize();

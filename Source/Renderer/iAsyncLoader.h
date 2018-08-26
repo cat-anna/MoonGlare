@@ -43,6 +43,9 @@ public:
 
     using FileRequestFunc = std::function<void(const std::string &uri, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage)>;
     void QueueRequest(std::string URI, FileRequestFunc request);
+
+    using TaskFunc = std::function<void(ResourceLoadStorage &storage)>;
+    void PostTask(TaskFunc func);
 };
 
 //---------------------------------------------------------------------------------------
@@ -63,14 +66,13 @@ public:
 
 class FunctionalAsyncTask : public iAsyncTask {
 public:
-    using TaskFunction = std::function<void(ResourceLoadStorage &)>;
+    using TaskFunction = iAsyncLoader::TaskFunc;
 
     void Do(ResourceLoadStorage &storage) override final {
         task(storage);
     };
 
-
-    FunctionalAsyncTask(TaskFunction f) :task(std::move(f)) {}
+    FunctionalAsyncTask(TaskFunction f) : task(std::move(f)) {}
 protected:
     TaskFunction task;
 };
@@ -147,6 +149,10 @@ private:
 
 inline void iAsyncLoader::QueueRequest(std::string URI, iAsyncLoader::FileRequestFunc request) {
     QueueRequest(std::move(URI), std::make_shared<FunctionalAsyncFileSystemRequest>(std::move(request)));
+}
+
+inline void iAsyncLoader::PostTask(iAsyncLoader::TaskFunc func) {
+    QueueTask(std::make_shared<FunctionalAsyncTask>(std::move(func)));
 }
 
 } //namespace MoonGlare::Renderer

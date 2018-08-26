@@ -138,7 +138,6 @@ void MeshComponent::Step(const Core::MoveConfig &conf) {
         if (item.meshHandle.deviceHandle) {//dirty valid check
             conf.deffered->Mesh(
                 tr.matrix(),
-                tr.translation(),
                 item.meshHandle, 
                 item.materialHandle);
             continue;
@@ -172,18 +171,7 @@ bool MeshComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 
     auto &rm = *GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager();
 
-    if (meshUri.find("file://") == 0) {
-        auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
-        if (!mm.LoadMesh(meshUri, entry.meshHandle)) {
-            AddLogf(Error, "Mesh load failed!");
-            return false;
-        }
-    }
-    else {
-        AddLog(Error, fmt::format("Invalid mesh uri: '{}'", meshUri));
-        return false;
-    }
-
+    entry.meshHandle = rm.GetMeshManager().LoadMesh(meshUri);
     entry.materialHandle = rm.GetMaterialManager().LoadMaterial(materialUri);
 
     entry.m_Owner = owner;

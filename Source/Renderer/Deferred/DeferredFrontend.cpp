@@ -18,8 +18,8 @@ void DefferedFrontend::Initialize(RendererFacade *Renderer) {
     sink->Initialize(Renderer);
 }
 
-void DefferedFrontend::Mesh(const emath::fmat4 &ModelMatrix, const emath::fvec3 &basepos, Renderer::MeshResourceHandle meshH, MaterialResourceHandle matH) {
-    sink->Mesh(ModelMatrix, basepos, meshH, matH);
+void DefferedFrontend::Mesh(const emath::fmat4 &ModelMatrix, Renderer::MeshResourceHandle meshH, MaterialResourceHandle matH) {
+    sink->Mesh(ModelMatrix, meshH, matH);
 }
 
 void DefferedFrontend::SubmitDirectionalLight(const LightBase &linfo) {

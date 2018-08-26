@@ -94,15 +94,15 @@ public:
     bool Finalize();
 
     template<typename Descriptor_t>
-    bool Load(ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
+    void Load(ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
         assert(this);
-        return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
+        ((ShaderResourceHandleBase&)out) = LoadShader(ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
     }
 
     template<typename Descriptor_t>
-    bool Load(ShaderResourceHandleBase &out, const std::string &ShaderName) {
+    ShaderResourceHandleBase Load(const std::string &ShaderName) {
         assert(this);
-        return LoadShader(out, ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
+        return LoadShader(ShaderName, ShaderHandlerInterfaceImpl<Descriptor_t>::Instace());
     }
 
     template<typename Descriptor_t>
@@ -149,7 +149,7 @@ private:
     ResourceManager *m_ResourceManager = nullptr;
     std::unique_ptr<ShaderCodeLoader> shaderCodeLoader;
 
-    bool LoadShader(ShaderResourceHandleBase &out, const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
+    ShaderResourceHandleBase LoadShader(const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
     bool GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex);
 
     bool ReleaseShader(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);

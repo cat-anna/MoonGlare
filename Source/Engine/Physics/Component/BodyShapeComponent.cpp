@@ -39,12 +39,12 @@ struct TriangleMeshProxy : public btTriangleIndexVertexArray {
         meshIndex.m_vertexStride = sizeof(mesh.verticles[0]);
         m_indexedMeshes.push_back(meshIndex);
 
-        m_indexedMeshes[0].m_numTriangles = mesh.index.size() / 3;
+        m_indexedMeshes[0].m_numTriangles = mesh.indexCount / 3;
         m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*)&mesh.index[0];
         m_indexedMeshes[0].m_indexType = PHY_INTEGER;
         m_indexedMeshes[0].m_triangleIndexStride = sizeof(mesh.index[0]) * 3;
 
-        m_indexedMeshes[0].m_numVertices = mesh.verticles.size();
+        m_indexedMeshes[0].m_numVertices = mesh.vertexCount;
         m_indexedMeshes[0].m_vertexBase = (unsigned char*)&mesh.verticles[0];
         m_indexedMeshes[0].m_vertexStride = sizeof(mesh.verticles[0]);
     }
@@ -208,22 +208,24 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
             auto me = meshC->GetEntry(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
-            auto mdata = mm.GetMeshData(meshH);
-            while (mdata->verticles.empty())
+            while (!mm.GetMeshData(meshH) || mm.GetMeshData(meshH)->ready == false)
                 std::this_thread::yield();
 
-            while (mdata->index.empty())
-                std::this_thread::yield();
+            //while (mdata->index.empty())
+                //std::this_thread::yield();
+
+            auto *mdataptr = mm.GetMeshData(meshH);
+            auto &mdata = *mdataptr;
 
             btIndexedMesh mesh;
             mesh.m_indexType = PHY_INTEGER;
             mesh.m_vertexType = PHY_FLOAT;
-            mesh.m_numVertices = mdata->verticles.size();
-            mesh.m_numTriangles = mdata->index.size() / 3;
+            mesh.m_numVertices = mdata.vertexCount;
+            mesh.m_numTriangles = mdata.indexCount / 3;
             mesh.m_vertexStride = 12;
             mesh.m_triangleIndexStride = 12;
-            mesh.m_triangleIndexBase = (unsigned char*)&(mdata->index[0]);
-            mesh.m_vertexBase = (unsigned char*)&(mdata->verticles[0]);
+            mesh.m_triangleIndexBase = (unsigned char*)(mdata.index);
+            mesh.m_vertexBase = (unsigned char*)(mdata.verticles);
 
             auto inft = new btTriangleIndexVertexArray();
             inft->addIndexedMesh(mesh);
@@ -327,21 +329,23 @@ void BodyShapeComponentEntry::SetBox(const math::vec3 & size) {
 }
 
 void BodyShapeComponentEntry::SetTriangleMesh(Renderer::MeshResourceHandle h) {
-    auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
-    auto &mm = rf->GetResourceManager()->GetMeshManager();
-    auto *md = mm.GetMeshData(h);
+    __debugbreak();
+    //auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
+    //auto &mm = rf->GetResourceManager()->GetMeshManager();
+    //auto *md = mm.GetMeshData(h);
 
-    meshInterface = std::make_unique<TriangleMeshProxy>(*md);
-    SetShapeInternal(std::make_unique<btBvhTriangleMeshShape>(meshInterface.get(), false));
+    //meshInterface = std::make_unique<TriangleMeshProxy>(*md);
+    //SetShapeInternal(std::make_unique<btBvhTriangleMeshShape>(meshInterface.get(), false));
 }     
 
 void BodyShapeComponentEntry::SetConvexMesh(Renderer::MeshResourceHandle h) {
-    auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
-    auto &mm = rf->GetResourceManager()->GetMeshManager();
-    auto *md = mm.GetMeshData(h);
+    __debugbreak();
+    //auto *rf = shapeComponent->GetManager()->GetWorld()->GetRendererFacade();
+    //auto &mm = rf->GetResourceManager()->GetMeshManager();
+    //auto *md = mm.GetMeshData(h);
 
-    meshInterface.reset();
-    SetShapeInternal(std::make_unique<btConvexHullShape>((float*)(&md->verticles[0]), md->verticles.size(), sizeof(md->verticles[0])));
+    //meshInterface.reset();
+    //SetShapeInternal(std::make_unique<btConvexHullShape>((float*)(&md->verticles[0]), md->verticles.size(), sizeof(md->verticles[0])));
 }     
 
 } //namespace Component 

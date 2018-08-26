@@ -29,7 +29,6 @@ private:
     const aiScene* scene;
 
     void LoadMeshes(ResourceLoadStorage &storage);
-    void LoadMaterial(unsigned index, MaterialResourceHandle h, ResourceLoadStorage &storage);
 };
 
 } //namespace MoonGlare::Renderer::Resources::Loader 
