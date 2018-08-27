@@ -12,8 +12,7 @@
 namespace MoonGlare::Core::Component {
 
 SubsystemManager::SubsystemManager() 
-    : m_UsedCount(0)
-    , m_Scene(nullptr) {
+    : m_UsedCount(0) {
 
     m_World = GetEngine()->GetWorld();//TODO
 }
@@ -26,10 +25,7 @@ SubsystemManager::~SubsystemManager() {
 
 //---------------------------------------------------------------------------------------
 
-bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
-    assert(scene);
-
-    m_Scene = scene;
+bool SubsystemManager::Initialize(Entity root) {
     rootEntity = root;
 
 #ifdef PERF_PERIODIC_PRINT

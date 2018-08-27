@@ -47,8 +47,6 @@ public:
         m_StopObserver = std::forward<T>(t);
     }
 
-    bool AllResourcesLoaded();
-
     ScriptApi* GetScriptApi();
     const Configuration::RuntimeConfiguration* GetConfiguration() { return &configuration; }
 private:

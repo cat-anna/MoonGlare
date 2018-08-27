@@ -6,7 +6,9 @@
 /*--END OF HEADER BLOCK--*/
 
 #include <pch.h>
+
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <nfMoonGlare.h>
 
@@ -19,6 +21,7 @@
 
 #include <Renderer/Renderer.h>
 #include <Renderer/ScriptApi.h>
+#include <Source/Renderer/RenderDevice.h>
 #include <Foundation/OS/Path.h>
 #include <Core/Scripts/ScriptEngine.h>
 
@@ -31,12 +34,9 @@
 #include <EngineSettings.x2c.h>
 
 #include <Foundation/SoundSystem/iSoundSystem.h>
-
-#include <boost/algorithm/string.hpp>
+#include <Foundation/Component/EventDispatcher.h>
 
 #include <Foundation/Settings.h>
-
-#include <Source/Renderer/RenderDevice.h>
 
 namespace MoonGlare {
 
@@ -58,7 +58,7 @@ bool Application::PreSystemInit() {
 
 bool Application::PostSystemInit() {
     GetModulesManager()->OnPostInit();
-    Core::GetEngine()->PostSystemInit();
+    m_World->PostSystemInit();
     m_Renderer->GetContext()->HookMouse();
     return true;
 }
@@ -156,12 +156,12 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     _init_chk(scrEngine, "Unable to initialize script engine!");
     
     m_Renderer = std::make_unique<Renderer::RendererFacade>();
-    m_World->SetRendererFacade(m_Renderer.get());
 
     m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->SetConfiguration(m_Configuration->m_Renderer);
     m_Configuration->m_Display.visible = false;
     m_Renderer->Initialize(m_Configuration->m_Display, GetFileSystem());
+    m_World->SetRendererFacade(m_Renderer.get());
 
     auto datamgr = new DataManager(m_World.get());
     datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
@@ -305,13 +305,15 @@ void Application::Finalize() {
 }
 
 void Application::WaitForFirstScene() {
-    auto Device = m_Renderer->GetDevice();
-    auto Ctx = m_Renderer->GetContext();
+    auto *Device = m_Renderer->GetDevice();
+    auto *Ctx = m_Renderer->GetContext();
+    auto *sm = m_World->GetScenesManager();
+    auto *ed = m_World->GetInterface<Component::EventDispatcher>();
 
     DebugLog(Debug, "Engine initialized. Waiting for scene to be ready.");
-    while (!m_World->GetScenesManager()->CurrentScene()) {
+    while (sm->IsScenePending()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        m_World->GetScenesManager()->ChangeScene();
+        ed->Step();
         Device->ProcessPendingCtrlQueues();
         Ctx->Process();
     }

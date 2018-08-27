@@ -17,12 +17,14 @@ using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
 class iAsyncTask;
 using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
 
-class iAsyncLoaderObserver {
+class iAsyncLoader;
+
+class iAsyncLoaderObserver : public std::enable_shared_from_this<iAsyncLoaderObserver> {
 public:
     virtual ~iAsyncLoaderObserver() {};
 
-    virtual void OnFinished() {};
-    virtual void OnStarted() {};
+    virtual void OnFinished(iAsyncLoader *loader) {};
+    virtual void OnStarted(iAsyncLoader *loader) {};
 };
 
 using SharedAsyncLoaderObserver = std::shared_ptr<iAsyncLoaderObserver>;
@@ -34,8 +36,7 @@ class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() {};
 
-    virtual bool AnyJobPending() = 0;
-    virtual bool AllResoucecsLoaded() = 0;
+    virtual unsigned JobsPending() const = 0;
     virtual void SetObserver(SharedAsyncLoaderObserver) = 0;
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;

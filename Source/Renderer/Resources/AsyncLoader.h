@@ -14,13 +14,11 @@ public:
     ~AsyncLoader();
 
     //iAsyncLoader
-    bool AnyJobPending() override;
-    bool AllResoucecsLoaded() override;
+    unsigned JobsPending() const override;
     void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
     void QueueTask(SharedAsyncTask task) override;
     void SetObserver(SharedAsyncLoaderObserver o) override;
 
-    unsigned JobsPending() const;
 
     void SubmitShaderLoad(ShaderResourceHandleBase handle);
 private:

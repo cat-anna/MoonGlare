@@ -42,14 +42,6 @@ unsigned AsyncLoader::JobsPending() const {
     return m_Queue.size();
 }
 
-bool AsyncLoader::AnyJobPending() {
-    return JobsPending()> 0;
-}
-
-bool AsyncLoader::AllResoucecsLoaded() {
-    return JobsPending() == 0 && !m_QueueDirty;
-} 
-
 void AsyncLoader::SetObserver(SharedAsyncLoaderObserver f) {
     //TODO: possible race condition
     observer = f;
@@ -118,7 +110,7 @@ void AsyncLoader::ThreadMain() {
                         working = false;
                         auto ob = observer.lock();
                         if (ob)
-                            ob->OnFinished();
+                            ob->OnFinished(this);
                     }
 
                     std::mutex mutex;
@@ -154,7 +146,7 @@ void AsyncLoader::QueuePush(AnyTask at) {
         working = true;
         auto ob = observer.lock();
         if (ob)
-            ob->OnStarted();
+            ob->OnStarted(this);
     }
 
 }

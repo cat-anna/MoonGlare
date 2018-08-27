@@ -18,11 +18,18 @@
 #include <Foundation/Component/EntityManager.h>
 #include <Foundation/HandleTable.h>
 
+#include <RendererEventObserver.h>
+
 namespace MoonGlare {
 
 World::World()
 	: m_ScriptEngine(nullptr) {
     runtimeConfiguration = std::make_unique<Core::RuntimeConfiguration>();
+
+    ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Event, "EVNT");
+
+    SetSharedInterface(std::make_shared<Component::EventDispatcher>());
+    eventDispatcher = GetInterface<Component::EventDispatcher>();
 }
 
 World::~World() {
@@ -30,10 +37,18 @@ World::~World() {
 
 //------------------------------------------------------------------------------------------
 
+void World::SetRendererFacade(Renderer::RendererFacade *c) {
+    SetInterface(c);
+    m_RendererFacade = c;
+    auto obs = std::make_shared<Renderer::RendererEventObserver>(*this);
+    c->GetAsyncLoader()->SetObserver(obs);
+    SetSharedInterface(obs);
+}
+
 bool World::Initialize() {
 	THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
 
-    entityManager = std::make_unique<Component::EntityManager>();
+    entityManager = std::make_unique<Component::EntityManager>(*this);
     SetInterface<Component::EntityManager>(entityManager.get());
 
     handleTable = std::make_unique<HandleTable>();
@@ -45,20 +60,15 @@ bool World::Initialize() {
 		return false;
 	}
 
-	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>();
-	if (!m_ScenesManager->Initialize(this, &runtimeConfiguration->scene)) {
-		AddLogf(Error, "Failed to initialize ScenesManager");
-		return false;
-	}
+	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>(*this);
+    m_ScenesManager->Initialize(&runtimeConfiguration->scene);
 
 	return true;
 }
 
 bool World::Finalize() {
-
-	if (m_ScenesManager && !m_ScenesManager->Finalize()) {
-		AddLogf(Error, "Failed to finalize InputProcessor");
-	}
+    if (m_ScenesManager) 
+        m_ScenesManager->Finalize();
 	m_ScenesManager.reset();
 
 	if (m_InputProcessor) {
@@ -82,37 +92,27 @@ bool World::Finalize() {
 	return true;
 }
 
-bool World::PostSystemInit() {
-	if (!m_ScenesManager || !m_ScenesManager->PostSystemInit()) {
-		AddLog(Error, "Failure during SceneManager PostSystemInit");
-		return false;
-	}
-	return true;
+void World::PostSystemInit() {
+    if (m_ScenesManager)
+        m_ScenesManager->PostSystemInit();
 }
 
 bool World::PreSystemStart() {
-	if (!m_ScenesManager || !m_ScenesManager->PreSystemStart()) {
-		AddLog(Error, "Failure during SceneManager PostSystemInit");
-		return false;
-	}
+    if (m_ScenesManager)
+        m_ScenesManager->PreSystemStart();
 	return true;
 }
 
 bool World::PreSystemShutdown() {
-	if (!m_ScenesManager || !m_ScenesManager->PreSystemShutdown()) {
-		AddLog(Error, "Failure during SceneManager PostSystemInit");
-		return false;
-	}
+    if (m_ScenesManager)
+        m_ScenesManager->PreSystemShutdown();
 	return true;
 }
 
 bool World::Step(const Core::MoveConfig & config) {
-	if (!m_InputProcessor->Step(config)) {
-		AddLog(Error, "Failed to Step InputProcessor");
-	}
-	if (!m_ScenesManager->Step(config)) {
-		AddLog(Error, "Failed to Step ScenesManager");
-	}
+    m_InputProcessor->Step(config);
+    eventDispatcher->Step();
+    ((Core::Scene::ScenesManager*)m_ScenesManager.get())->Step(config);
     entityManager->GCStep();
 	return true;
 }

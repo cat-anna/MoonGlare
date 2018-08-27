@@ -79,6 +79,8 @@ public:
         if constexpr (Has::value) {
             SendToScript(event, event.recipient);
         }
+        for (auto *disp : subDispatcher)
+            disp->Send(event);
     }
 
     template<typename EVENT>
@@ -99,6 +101,13 @@ public:
     template<typename EVENT, typename RECIVER>
     void Register(RECIVER *reciver) {
         return Register<EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent)>(reciver);
+    }
+
+    void AddSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        subDispatcher.insert(ed);
+    }
+    void RemoveSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        subDispatcher.erase(ed);
     }
 private:
     template<typename T>
@@ -129,6 +138,7 @@ private:
     lua_State *luaState;
     EventScriptSink *eventSink;
     std::recursive_mutex bufferMutex;
+    std::set<EventDispatcher*> subDispatcher;
     Memory::DynamicBuffer<Configuration::EventDispatcherQueueSize> buffer;
 };
 

@@ -1,121 +1,103 @@
-/*
- * cSceneManager.h
- *
- *  Created on: 16-12-2013
- *      Author: Paweu
- */
-#ifndef SCENESMANAGER_H_
-#define SCENESMANAGER_H_
+#pragma once
 
-#include "Configuration.Scene.h"
-#include <Renderer/StaticFog.h>
-#include <Renderer/iAsyncLoader.h>
+#include <unordered_set>
+
+#include <Foundation/InterfaceMap.h>
+
+#include "iSceneManager.h"
+
+#include "Renderer.Events.h"
 
 namespace MoonGlare::Core::Scene {
 
-struct SceneDescriptor {
-    StarVFS::FileID m_FID;
-    std::string m_SID;
-    std::mutex m_Lock;
-    std::unique_ptr<ciScene> m_Ptr;
+struct SetSceneEvent;
 
-    Renderer::StaticFog staticFog;
-
-    struct {
-        bool m_SingleInstance;
-        bool m_Valid;
-        bool m_Loaded;
-        bool m_LoadInProgress;
-        bool m_Stateful;
-        bool m_AllowMissingResources;
-    } m_Flags;
-
-    void DropScene();
-
-    SceneDescriptor();
-    ~SceneDescriptor();
-
-    SceneDescriptor(const SceneDescriptor&) = delete;
-    SceneDescriptor& operator=(const SceneDescriptor&) = delete;
-};
-
+struct SceneInstance;
+struct SceneDescriptor;
 using UniqueSceneDescriptor = std::unique_ptr<SceneDescriptor>;
+using UniqueSceneInstance = std::unique_ptr<SceneInstance>;
 
-enum class SceneChangeFence : uint32_t {
-    Resources,
-    ScriptThreads,
-    MaxValue,
-};
-
-class ScenesManager {
+class ScenesManager : public iSceneManager {
 public:
-    ScenesManager();
+    ScenesManager(InterfaceMap &ifaceMap);
     virtual ~ScenesManager();
 
-    bool Initialize(World *world, const SceneConfiguration *configuration);
-    bool Finalize();
+//iSceneManager
+    void Initialize(const SceneConfiguration *configuration)  override;
+    void Finalize()                                           override;
+    void PostSystemInit()                                     override;
+    void PreSystemStart()                                     override;
+    bool IsScenePending() const override { return pendingScene.load() != nullptr; }
 
-    bool PostSystemInit();
-    bool PreSystemStart();
-    bool PreSystemShutdown();
+    void HandleEvent(const Renderer::RendererResourceLoaderEvent &event);
+    void HandleEvent(const SetSceneEvent &event);
 
-    bool Step(const Core::MoveConfig &config);
+    void Step(const Core::MoveConfig &config);
 
-    bool LoadScene(const std::string &SID); //async LoadNextScene
-    bool DropSceneState(const std::string &SID);
-    bool SetSceneStateful(const std::string &SID, bool value);
-    const std::string& GetCurrentSceneName() const {
-        ASSERT(m_CurrentSceneDescriptor);
-        return m_CurrentSceneDescriptor->m_SID;
-    }
+    //bool LoadScene(const std::string &SID); //async LoadNextScene
+    //bool DropSceneState(const std::string &SID);
+    //bool SetSceneStateful(const std::string &SID, bool value);
 
-    ciScene* CurrentScene() const { return m_CurrentScene; }
-    void ChangeScene();
+    //double GetSceneTime() const {
+        //if (!m_CurrentScene)
+            //return 0.0;
+        //return std::chrono::duration<double>(std::chrono::steady_clock::now() - sceneStartTime).count();
+    //}
 
-    double GetSceneTime() const {
-        if (!m_CurrentScene)
-            return 0.0;
-        return std::chrono::duration<double>(std::chrono::steady_clock::now() - sceneStartTime).count();
-    }
-
-    void SetSceneChangeFence(SceneChangeFence type, bool value);
+    //void SetSceneChangeFence(SceneChangeFence type, bool value);
 
 #ifdef DEBUG_DUMP
-    void DumpAllDescriptors(std::ostream& out);
+    //void DumpAllDescriptors(std::ostream& out);
 #endif
     static void RegisterScriptApi(::ApiInitializer &api);
 protected:
-    using SceneSIDMap = std::unordered_map<string, SceneDescriptor*>;
-    using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;
+    using SceneDescMap = std::unordered_map<string, SceneDescriptor*>;
+    using SceneInstMap = std::unordered_map<string, UniqueSceneInstance>;
 
-    std::atomic<uint32_t> changeSceneFences = 0;
-
-    ciScene *m_CurrentScene = nullptr;
-    std::chrono::steady_clock::time_point sceneStartTime;
-    SceneDescriptor *m_CurrentSceneDescriptor = nullptr;
-    SceneDescriptor *m_NextSceneDescriptor = nullptr;
-    SceneDescriptor *m_LoadingSceneDescriptor = nullptr;
-
-    std::recursive_mutex m_Lock;
-    SceneSIDMap m_SIDMap;
-    SceneDescriptorTable m_DescriptorTable;
-
-    bool m_LoadingInProgress;
-    World *m_World;
+    InterfaceMap &interfaceMap;
+    Component::EventDispatcher *eventDispatcher = nullptr;
     const SceneConfiguration *sceneConfiguration = nullptr;
-    Renderer::SharedAsyncLoaderObserver loaderObserver;
+    std::recursive_mutex mutex;
 
-    bool LoadNextScene(const std::string &SID);					// load scene and execute it
-    bool LoadNextScene(SceneDescriptor *descriptor);			// load scene and execute it
-    bool LoadSceneData(SceneDescriptor *descriptor);			// load scene
+    SceneInstance* loadingScene = nullptr;
+    SceneInstance* currentScene = nullptr;                 //currently set and simulated scene
+    std::atomic<SceneInstance*> nextScene = nullptr;       //Scene to be activated at next loop
+    std::atomic<SceneInstance*> pendingScene = nullptr;    //Scene which is under initialization
+    
+    SceneInstMap sceneInstances;
 
-    void ProcessPreviousScene(SceneDescriptor *descriptor);
+    std::vector<UniqueSceneDescriptor> knownSceneDescriptors;
+    SceneDescMap descriptorsByName;
+
+    SceneDescriptor* CreateDescriptor(StarVFS::FileID fid, const std::string &name);
+    SceneDescriptor* FindDescriptor(const std::string &name);
+
+    SceneInstance* CreateScene(const std::string &descName, const std::string &alias = "");
+    SceneInstance* FindSceneInstance(const std::string &sceneName);
+    bool LoadSceneData(SceneDescriptor *descriptor, SceneInstance* instance);
+
+    void ChangeScene();
+    void UpdatePendingSceneFence(const std::string &fenceName, bool state);
+
+//old
+    //using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;
+    //SceneInstance *currentScene = nullptr;
+    //SceneDescriptor *m_CurrentSceneDescriptor = nullptr;
+    //SceneDescriptor *m_NextSceneDescriptor = nullptr;
+    //SceneDescriptor *m_LoadingSceneDescriptor = nullptr;
+
+    //SceneSIDMap m_SIDMap;
+    //SceneDescriptorTable m_DescriptorTable;
+
+    //bool m_LoadingInProgress = false;
+    //Renderer::SharedAsyncLoaderObserver loaderObserver;
+
+    //bool LoadNextScene(const std::string &SID);					
+    //bool LoadNextScene(SceneDescriptor *descriptor);			
+
+    //void ProcessPreviousScene(SceneDescriptor *descriptor);
     
     /** Manager shall be already locked */
-    SceneDescriptor* FindDescriptor(const std::string &SID);
-    SceneDescriptor* AllocDescriptor(StarVFS::FileID fid, const std::string &SID);
 };
 
 } //namespace Scene::Core::MoonGlare 
-
-#endif //SCENEMANAGER_H_

@@ -189,7 +189,7 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
 void EntityBuilder::Import(ImportData &data, const char *PatternUri, int32_t entityIndex) {
     data.xmlFiles.emplace_back();
     XMLFile &xml = data.xmlFiles.back();
-    if (!GetFileSystem()->OpenXML(xml, PatternUri)) {
+    if (!((iFileSystem*)GetFileSystem())->OpenXML(xml, std::string(PatternUri))) {
         AddLogf(Error, "Failed to open uri: %s", PatternUri);
         return;
     }

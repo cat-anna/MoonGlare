@@ -12,8 +12,6 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Core/Scripts/ScriptEngine.h>
 
-#include "JobQueue.h"
-
 using namespace std::chrono_literals;
 
 namespace MoonGlare {
@@ -38,12 +36,9 @@ Engine::Engine(World *world) :
     m_Renderer = m_World->GetRendererFacade();
 
     s_instance = this;
-    new JobQueue();
 }
 
-Engine::~Engine() {
-    JobQueue::DeleteInstance();
-}
+Engine::~Engine() { }
 
 //----------------------------------------------------------------------------------
 
@@ -62,13 +57,6 @@ void Engine::Finalize() {
     if (!m_World->Finalize()) {
         AddLogf(Error, "Failed to finalize world!");
         throw "Failed to finalize world!";
-    }
-}
-
-void Engine::PostSystemInit() {
-    if (!m_World->PostSystemInit()) {
-        AddLogf(Error, "World PostSystemInit failed!");
-        throw "World PostSystemInit failed!";
     }
 }
 

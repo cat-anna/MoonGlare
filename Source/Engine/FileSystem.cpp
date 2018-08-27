@@ -216,7 +216,7 @@ bool MoonGlareFileSystem::OpenXML(XMLFile &doc, StarVFS::FileID fid) {
 
 bool MoonGlareFileSystem::OpenResourceXML(XMLFile &doc, const string& Name, DataPath origin) {
     if (Name.find("://") != std::string::npos)
-        return OpenXML(doc, Name);
+        return OpenXML(doc, Name, origin);
 
     string buffer;
     buffer.reserve(128);
@@ -272,12 +272,12 @@ bool MoonGlareFileSystem::LoadContainer(const std::string &URI) {
     return true;
 }
 
-void MoonGlareFileSystem::FindFiles(const char * ext, StarVFS::DynamicFIDTable & out) {
+void MoonGlareFileSystem::FindFilesByExt(const char * ext, StarVFS::DynamicFIDTable & out) {
     ASSERT(m_StarVFS);
     m_StarVFS->FindFilesByTypeHash((StarVFS::CString)ext, out);
 }
 
-const char * MoonGlareFileSystem::GetFileName(StarVFS::FileID fid) const {
+std::string MoonGlareFileSystem::GetFileName(StarVFS::FileID fid) const {
     ASSERT(m_StarVFS);
     return m_StarVFS->GetFileName(fid);
 }

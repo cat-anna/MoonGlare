@@ -24,31 +24,26 @@ public:
     MoonGlareFileSystem();
     virtual ~MoonGlareFileSystem();
 
-    // iFileSystem
+ //iFileSystem
+    bool OpenFile(StarVFS::ByteTable &FileData, const std::string& uri) override { return OpenFile(uri, DataPath::URI, FileData);  }
+    bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid) override;
     bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive);
-    bool OpenFile(StarVFS::ByteTable &FileData, const std::string& uri) override {
-        return OpenFile(uri, DataPath::URI, FileData);
-    }
-    bool OpenXML(XMLFile &doc, const std::string& uri) override {
-        return OpenXML(doc, uri, DataPath::URI);
-    }
+    void FindFilesByExt(const char *ext, StarVFS::DynamicFIDTable &out) override;
+    std::string GetFileName(StarVFS::FileID fid) const override;
+    std::string GetFullFileName(StarVFS::FileID fid) const override;
+
+
 
     bool LoadContainer(const std::string &URI);
 
-    void FindFiles(const char *ext, StarVFS::DynamicFIDTable &out);
-
-    const char *GetFileName(StarVFS::FileID fid) const;
-    std::string GetFullFileName(StarVFS::FileID fid) const;
-
     bool TranslateFileName(const std::string & FileName, std::string &path, DataPath origin);
 
-    bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid);
     bool OpenFile(const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData);
     bool OpenXML(XMLFile &doc, StarVFS::FileID fid);
     bool OpenXML(XMLFile &doc, const std::string& FileName, DataPath origin);
     bool OpenResourceXML(XMLFile &doc, const std::string& Name, DataPath origin = DataPath::URI);
     
-    bool OpenXML(XMLFile &doc, std::string ResName, const std::string& FileName, DataPath origin = DataPath::URI) {
+    bool OpenXML(XMLFile &doc, std::string ResName, const std::string& FileName, DataPath origin) {
         return OpenXML(doc, (ResName += '/') += FileName, origin);
     }
     bool OpenFile(std::string ResName, const std::string& FileName, DataPath origin, StarVFS::ByteTable &FileData) {

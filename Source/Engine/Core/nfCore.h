@@ -17,7 +17,6 @@ namespace MoonGlare::Renderer::Deferred {
 struct DefferedFrontend;
 }
 
-#include "Scene/nfScene.h"
 #include "Component/nfComponent.h"
 
 namespace MoonGlare {

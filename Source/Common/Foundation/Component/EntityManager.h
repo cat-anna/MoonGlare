@@ -4,6 +4,7 @@
 
 #include <Foundation/Memory/StaticGenerationBuffer.h>
 #include <Foundation/Memory/StaticIndexQueue.h>
+#include <Foundation/InterfaceMap.h>
 
 #include "Configuration.h"
 #include "Entity.h"
@@ -16,7 +17,7 @@ class EntityManager final : private boost::noncopyable {
 public:
     template<class T> using Array = std::array<T, Component::Configuration::EntityLimit>;
 
-    EntityManager();
+    EntityManager(InterfaceMap &ifaceMap);
     ~EntityManager();
 
     void GCStep();
@@ -35,12 +36,10 @@ public:
     bool GetEntityName(Entity e, const std::string *&Name);
     bool GetParent(Entity e, Entity &outParent);
 
-    void RegisterEventSink(MoonGlare::Component::EventDispatcher* ed) { eventSinks.insert(ed); }
-    void UnregisterEventSink(MoonGlare::Component::EventDispatcher* ed) { eventSinks.erase(ed); }
 private: 
     Entity rootEntity;
     uint32_t gcPosition;
-    std::set<EventDispatcher*> eventSinks;
+    EventDispatcher *dispatcher = nullptr;
 
     Memory::GenerationBuffer<Entity::Generation_t, Configuration::EntityLimit> generationbuffer;
     Memory::StaticIndexQueue<Entity::Index_t, Configuration::EntityLimit> allocator;

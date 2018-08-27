@@ -3,12 +3,6 @@
 namespace MoonGlare::Component {
 	
 EventDispatcher::EventDispatcher() {
-	static bool loginit = false;
-	if (!loginit) {
-        //TODO: this is ugly
-		loginit = true;
-		::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Event, "EVNT");
-	}
     buffer.Zero();
 }
 

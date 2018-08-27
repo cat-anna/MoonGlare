@@ -97,10 +97,6 @@ ScriptApi *RendererFacade::GetScriptApi() {
     return m_ScriptApi.get();
 }
 
-bool RendererFacade::AllResourcesLoaded() {
-    return GetResourceManager()->GetLoader()->AllResoucecsLoaded();
-}
-
 //----------------------------------------------------------------------------------
 
 iAsyncLoader* RendererFacade::GetAsyncLoader() {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/noncopyable.hpp>
+
 #include <any>
 #include <unordered_map>
 #include <typeinfo>
@@ -7,7 +9,7 @@
 
 namespace MoonGlare {
 
-class InterfaceMap {
+class InterfaceMap : private boost::noncopyable {
 public:
     template<typename T>
     void SetSharedInterface(std::shared_ptr<T> t) {

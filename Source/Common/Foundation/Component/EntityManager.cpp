@@ -4,7 +4,10 @@
 
 namespace MoonGlare::Component {
 
-EntityManager::EntityManager() {
+EntityManager::EntityManager(InterfaceMap &ifaceMap) {
+    dispatcher = ifaceMap.GetInterface<EventDispatcher>();
+    assert(dispatcher);
+
 //#ifdef DEBUG
     generationbuffer.Fill(1);
 //#else
@@ -26,7 +29,6 @@ EntityManager::EntityManager() {
 }
 
 EntityManager::~EntityManager() {
-    eventSinks.clear();
     rootEntity = Entity();
 }
 
@@ -59,8 +61,7 @@ bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
     nameHash[index] = Space::Utils::MakeHash32(Name.c_str());
     entityName[index].swap(Name);
 
-    for (auto *ev : eventSinks)
-        ev->Queue(MoonGlare::Component::EntityCreatedEvent{parent, eout});
+    dispatcher->Send(MoonGlare::Component::EntityCreatedEvent{parent, eout});
 
     return true;
 }
@@ -74,8 +75,7 @@ bool EntityManager::Release(Entity entity) {
     generationbuffer.NewGeneration(index);
     allocator.Release(index);
 
-    for (auto *ev : eventSinks)
-        ev->Queue(MoonGlare::Component::EntityDestructedEvent{ parentEntity[index], entity });
+    dispatcher->Send(MoonGlare::Component::EntityDestructedEvent{ parentEntity[index], entity });
 
     return true;
 }

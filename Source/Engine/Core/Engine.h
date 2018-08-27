@@ -13,7 +13,6 @@ public:
 
     void Initialize();
     void Finalize();
-    void PostSystemInit();
 
     void EngineMain();
 
