@@ -12,7 +12,7 @@
 #include "ScriptObject.h"
 
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
-#include <Foundation/Scripts/Modules/StaticStorage.h>
+#include <Foundation/Scripts/Modules/LuaStaticStorage.h>
 #include <Foundation/Scripts/Modules/LuaRequire.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
@@ -141,7 +141,7 @@ bool ScriptEngine::ConstructLuaContext() {
 
         InstallModule<LuaRequireModule, iRequireModule>();
         InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
-        InstallModule<StaticStorageModule>();
+        InstallModule<LuaStaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
         InstallModule<Component::ScriptObject>();
     }

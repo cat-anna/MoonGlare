@@ -1,4 +1,4 @@
-#include "StaticStorage.h"
+#include "LuaStaticStorage.h"
 
 #include <Foundation/OS/Path.h>
 #include <Foundation/OS/File.h>
@@ -10,11 +10,11 @@ namespace MoonGlare::Scripts::Modules {
 
 static const char* StorageFileName = "StaticStorage.lua";
 
-StaticStorageModule::StaticStorageModule(lua_State *lua, InterfaceMap *world)  : luaState(lua) {
+LuaStaticStorageModule::LuaStaticStorageModule(lua_State *lua, InterfaceMap *world)  : luaState(lua) {
     world->GetInterface<iRequireModule>()->RegisterRequire("StaticStorage", this);
 }
 
-StaticStorageModule::~StaticStorageModule() {
+LuaStaticStorageModule::~LuaStaticStorageModule() {
     try {
         SaveStorage();
     }
@@ -25,7 +25,7 @@ StaticStorageModule::~StaticStorageModule() {
 
 //-------------------------------------------------------------------------------------------------
 
-bool StaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
+bool LuaStaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
     lua_pushlightuserdata(lua, this);
     lua_gettable(lua, LUA_REGISTRYINDEX);
 
@@ -63,7 +63,7 @@ bool StaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
     return true;
 }
 
-void StaticStorageModule::SaveStorage() {
+void LuaStaticStorageModule::SaveStorage() {
     lua_State *lua = luaState;
 
     int luatop = lua_gettop(lua);

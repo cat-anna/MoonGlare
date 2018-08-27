@@ -6,10 +6,10 @@
 
 namespace MoonGlare::Scripts::Modules {
 
-class StaticStorageModule : public iDynamicScriptModule, public iRequireRequest {
+class LuaStaticStorageModule : public iDynamicScriptModule, public iRequireRequest {
 public:
-    StaticStorageModule(lua_State *lua, InterfaceMap *world);
-    ~StaticStorageModule() override;
+    LuaStaticStorageModule(lua_State *lua, InterfaceMap *world);
+    ~LuaStaticStorageModule() override;
 
     bool OnRequire(lua_State *lua, std::string_view name) override;
 protected:
