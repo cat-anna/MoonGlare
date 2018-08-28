@@ -33,6 +33,9 @@ struct BasicStaticString {
     operator std::basic_string<CharType>() const {
         return std::basic_string<CharType>(c_str(), size());
     }
+    operator std::basic_string_view<CharType>() const {
+        return std::basic_string_view<CharType>(c_str(), size());
+    }
 private:
     LengthType length;
     std::array<CharType, Capacity + 1> table;

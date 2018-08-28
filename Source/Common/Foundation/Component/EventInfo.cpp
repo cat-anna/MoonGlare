@@ -2,7 +2,7 @@
 
 namespace MoonGlare::Component {
 
-EventClassId BaseEventInfo::idAlloc = 0;
+std::underlying_type_t<EventClassId> BaseEventInfo::idAlloc = 0;
 //BaseEventInfo::EventClassesTypeTable BaseEventInfo::eventClassesTypeInfo;
 
 BaseEventInfo::EventClassesTypeTable& BaseEventInfo::GetEventClassesTypeInfo() {
@@ -13,8 +13,8 @@ BaseEventInfo::EventClassesTypeTable& BaseEventInfo::GetEventClassesTypeInfo() {
 void BaseEventInfo::Dump(std::ostream &output) {
 	output << "Event classes:\n";
 
-    for (EventClassId i = 0; i < idAlloc; ++i) {
-        auto tinfo = GetEventTypeInfo(i);
+    for (std::underlying_type_t<EventClassId> i = 0; i < idAlloc; ++i) {
+        auto tinfo = GetEventTypeInfo((EventClassId)i);
         if (!tinfo.infoPtr)
             continue;
 
@@ -26,7 +26,7 @@ void BaseEventInfo::Dump(std::ostream &output) {
 #endif
         if (tinfo.apiInitFunc)
             flags += ",SCRIPTAPI";
-        if (tinfo.infoPtr->Public())
+        if (tinfo.isPublic)
             flags += ",PUBLIC";
 
         output << fmt::format("{:2}. {:100} size:{:3} flags:{:30} Event:{:30} Handler:{:30}\n",

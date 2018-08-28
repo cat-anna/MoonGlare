@@ -14,6 +14,7 @@
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
 #include <Foundation/Scripts/Modules/LuaStaticStorage.h>
 #include <Foundation/Scripts/Modules/LuaRequire.h>
+#include <Foundation/Scripts/Modules/LuaEvents.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
@@ -131,6 +132,11 @@ bool ScriptEngine::ConstructLuaContext() {
         using namespace MoonGlare::Scripts::Modules;
         using namespace MoonGlare::Core::Scripts::Modules;
 
+        ApiInit::Initialize(this);
+
+        lua_pushnil(m_Lua);
+        lua_setglobal(m_Lua, "api");
+
         InstallStaticModules(m_Lua);
 
         StaticModules::InitStrings(m_Lua, m_world);
@@ -143,6 +149,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
         InstallModule<LuaStaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
+        InstallModule<LuaEventsModule>();
         InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {
@@ -150,7 +157,6 @@ bool ScriptEngine::ConstructLuaContext() {
         return false;
     }
 
-    ApiInit::Initialize(this);
 
     lua_gc(m_Lua, LUA_GCCOLLECT, 0);
     lua_gc(m_Lua, LUA_GCSTOP, 0);

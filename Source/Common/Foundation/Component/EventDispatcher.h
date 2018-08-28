@@ -73,8 +73,8 @@ public:
     void Send(const EVENT& event) {
         AddLog(Event, "Dispatching event: " << event);
         auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Configuration::MaxEventTypes);
-        eventDispatchers[classid].Dispatch(event);      
+        assert((uint32_t)classid < Configuration::MaxEventTypes);
+        eventDispatchers[(size_t)classid].Dispatch(event);      
         using Has = detail::has_member_data_recipient<EVENT, Entity>;
         if constexpr (Has::value) {
             SendToScript(event, event.recipient);
@@ -95,8 +95,8 @@ public:
     template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
     void Register(RECIVER *reciver) {
         auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Configuration::MaxEventTypes);
-        eventDispatchers[classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
+        assert((size_t)classid < Configuration::MaxEventTypes);
+        eventDispatchers[(size_t)classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
     }
     template<typename EVENT, typename RECIVER>
     void Register(RECIVER *reciver) {

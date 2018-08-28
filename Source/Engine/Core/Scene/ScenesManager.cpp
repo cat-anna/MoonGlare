@@ -65,16 +65,15 @@ struct SceneInstance : private boost::noncopyable {
     bool isLoadingScene = false;
 
     //returns true if NO fence is set 
-    bool SetFenceState(const std::string &name, bool state) {
+    bool SetFenceState(std::string name, bool state) {
         if (!name.empty()) {
             if (state)
-                activeFences.insert(name);
+                activeFences.emplace(std::move(name));
             else
-                activeFences.erase(name);
+                activeFences.erase(std::move(name));
         }
         return activeFences.empty();
-    }
-
+    }      
 
     void Step(const MoveConfig &conf) {
         subsystemManager.Step(conf);
@@ -131,7 +130,7 @@ struct SceneInstance : private boost::noncopyable {
 
 };
 
-static const std::string ResourceFenceName = ".Resources";
+static constexpr std::string_view ResourceFenceName = ".Resources";
 
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
@@ -170,6 +169,7 @@ void ScenesManager::Initialize(const SceneConfiguration *configuration) {
 
     eventDispatcher->Register<Renderer::RendererResourceLoaderEvent>(this);
     eventDispatcher->Register<SetSceneEvent>(this);
+    eventDispatcher->Register<SetSceneChangeFenceEvent>(this);
 }
 
 void ScenesManager::Finalize() {
@@ -181,22 +181,15 @@ void ScenesManager::HandleEvent(const Renderer::RendererResourceLoaderEvent &eve
     UpdatePendingSceneFence(ResourceFenceName, event.busy);
 }
 
-void ScenesManager::UpdatePendingSceneFence(const std::string &fenceName, bool state) {
-    auto pending = pendingScene.load();
-    if (pending) {
-        bool ready = pending->SetFenceState(fenceName, state);
-        if (ready) {
-            pendingScene = nullptr;
-            nextScene = pending;
-        }
-    }
-}
-
 void ScenesManager::HandleEvent(const SetSceneEvent &event) {
     CreateScene(event.sceneName);
     if (currentScene && !currentScene->isLoadingScene) {
         nextScene = loadingScene;
     }
+}
+
+void ScenesManager::HandleEvent(const SetSceneChangeFenceEvent &event) {
+    UpdatePendingSceneFence(event.fence, event.active);
 }
 
 //----------------------------------------------------------------------------------
@@ -374,6 +367,17 @@ SceneDescriptor* ScenesManager::FindDescriptor(const std::string &Name) {
 
 //----------------------------------------------------------------------------------
 
+void ScenesManager::UpdatePendingSceneFence(const std::string_view fenceName, bool state) {
+    auto pending = pendingScene.load();
+    if (pending) {
+        bool ready = pending->SetFenceState(std::string(fenceName), state);
+        if (ready) {
+            pendingScene = nullptr;
+            nextScene = pending;
+        }
+    }
+}
+   
 bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor, SceneInstance* instance) {
     assert(descriptor);
     assert(instance);
@@ -407,16 +411,12 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor, SceneInstance* in
     }
 
     //instance->subsystemManager.GetEventDispatcher().Register<SetSceneEvent>(this);
+    return true;
 }
 
 //----------------------------------------------------------------------------------
 
 #if 0
-
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-
-//static const Space::Container::EnumMapper<SceneChangeFence, const char*> SceneChangeFenceNames{ "Resources", "ScriptThreads" };
 
 //void ScenesManager::SetSceneChangeFence(SceneChangeFence type, bool value) {
     //uint32_t bit = 1 << static_cast<uint32_t>(type);

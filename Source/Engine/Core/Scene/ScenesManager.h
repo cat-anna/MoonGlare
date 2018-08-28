@@ -11,6 +11,7 @@
 namespace MoonGlare::Core::Scene {
 
 struct SetSceneEvent;
+struct SetSceneChangeFenceEvent;
 
 struct SceneInstance;
 struct SceneDescriptor;
@@ -31,6 +32,7 @@ public:
 
     void HandleEvent(const Renderer::RendererResourceLoaderEvent &event);
     void HandleEvent(const SetSceneEvent &event);
+    void HandleEvent(const SetSceneChangeFenceEvent &event);
 
     void Step(const Core::MoveConfig &config);
 
@@ -77,7 +79,7 @@ protected:
     bool LoadSceneData(SceneDescriptor *descriptor, SceneInstance* instance);
 
     void ChangeScene();
-    void UpdatePendingSceneFence(const std::string &fenceName, bool state);
+    void UpdatePendingSceneFence(const std::string_view fenceName, bool state);
 
 //old
     //using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;

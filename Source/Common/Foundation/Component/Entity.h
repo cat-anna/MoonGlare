@@ -19,7 +19,7 @@ using EntityNameHash = uint32_t;
 enum class SubSystemInstance : uint32_t { Invalid = 0, };
 
 //Component [instance] index
-using ComponentIndex = enum : uint32_t {
+using ComponentIndex = enum : uint32_t { //??
     Zero = 0,
     Invalid = 0xFFFFFFFF,
 };

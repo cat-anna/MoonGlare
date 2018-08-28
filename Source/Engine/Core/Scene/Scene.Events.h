@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Foundation/ShortString.h>
+#include <Foundation/Scripts/ApiInit.h>
 #include <Foundation/Component/EventInfo.h>
 
 namespace MoonGlare::Core::Scene {
@@ -28,7 +29,7 @@ struct SceneStateChangeEvent {
         return out;
     }
 
-    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SceneStateChangeEvent>("cSceneStateChangeEvent")
                 .addData("State", (int SceneStateChangeEvent::*)&SceneStateChangeEvent::m_State, false)
@@ -58,7 +59,7 @@ struct SetSceneEvent {
         return out;
     }
 
-    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SetSceneEvent>("SetSceneEvent")
                 .addConstructor<void(*)(const char*)>()
@@ -75,41 +76,44 @@ private:
     const char *GetSceneName() const { return sceneName.c_str(); }
 };
 
-struct SetSceneChageFenceEvent {
-    static constexpr char* EventName = "SetSceneChageFenceEvent";
-    static constexpr char* HandlerName = "OnSetSceneChageFenceEvent";
+struct SetSceneChangeFenceEvent {
+    static constexpr char* EventName = "SetSceneChangeFenceEvent";
+    static constexpr char* HandlerName = "OnSetSceneChangeFenceEvent";
     static constexpr bool Public = true;
 
-    BasicStaticString<31> fenceId;
+    BasicStaticString<31> fence;
     bool active;
 
-    SetSceneChageFenceEvent() = default;
-    SetSceneChageFenceEvent(const char *str) {
-        fenceId = str;
+    SetSceneChangeFenceEvent() = default;
+    SetSceneChangeFenceEvent(const char *str, bool act) {
+        fence = str;
+        active = act;
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const SetSceneChageFenceEvent & dt) {
-        out << "SetSceneEvent"
-            << "[Scene:" << dt.fenceId.c_str()
+    friend std::ostream& operator<<(std::ostream& out, const SetSceneChangeFenceEvent & dt) {
+        out << "SetSceneChangeFenceEvent"
+            << "[Fence:" << dt.fence.c_str()
+            << ",Active:" << dt.active
             << "]";
         return out;
     }
 
-    static ApiInitializer RegisterScriptApi(ApiInitializer api) {
+    static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
-            .beginClass<SetSceneChageFenceEvent>("SetSceneChageFenceEvent")
-            //.addConstructor<void(*)(const char*)>()
+        .beginClass<SetSceneChangeFenceEvent>("SetSceneChangeFenceEvent")
+            .addConstructor<void(*)(const char*, bool)>()
 
-            //.addProperty("Scene", &SetSceneEvent::GetSceneName, &SetSceneEvent::SetSceneName)
+            .addProperty("Fence", &SetSceneChangeFenceEvent::GetFence, &SetSceneChangeFenceEvent::SetFence)
+            .addData("Active", &SetSceneChangeFenceEvent::active, true)
 
             .addStaticString("EventName", EventName)
             .addStaticString("HandlerName", HandlerName)
-            .addStaticInteger("EventId", Component::EventInfo<SetSceneChageFenceEvent>::GetClassId())
-            .endClass();
+            .addStaticInteger("EventId", Component::EventInfo<SetSceneChangeFenceEvent>::GetClassId())
+        .endClass();
     }
 private:
-    //void SetSceneName(const char *str) { fenceId = str;  }
-    //const char *GetSceneName() const {  return fenceId.c_str(); }
+    void SetFence(const char *str) { fence = str;  }
+    const char *GetFence() const {  return fence.c_str(); }
 };
 
 } //namespace MoonGlare::Core::Scene

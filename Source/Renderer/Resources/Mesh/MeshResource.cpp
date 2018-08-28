@@ -5,6 +5,8 @@
 #include "AssimpMeshLoader.h"
 #include "VAOBuilder.h"
 
+#include "../../Commands/MemoryCommands.h"
+
 namespace MoonGlare::Renderer::Resources {
                                                                          
 MeshManager::MeshManager(ResourceManager *Owner) : resourceManager(Owner) {
@@ -94,14 +96,14 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::un
         auto index = h.index;
         Mesh m = { };
 
-        m.valid = true;
+        m.valid = false;
         m.elementMode = GL_TRIANGLES;      
         m.indexElementType = GL_UNSIGNED_INT;
         m.baseVertex = 0;
         m.baseIndex = 0;
         m.numIndices = source.indexCount;         
         mesh[index] = m;     
-        meshData[index].ready = true;
+        meshData[index].ready = false;
 
         auto &q = storage.m_Queue;
         auto builder = Builder::VAOBuilder{
@@ -140,6 +142,9 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::un
 
         builder.EndDataChange();
         builder.UnBindVAO();
+
+        q.MakeCommand<Commands::MemoryStore<bool>>(true, &mesh[index].valid);
+        q.MakeCommand<Commands::MemoryStore<bool>>(true, &meshData[index].ready);
 
 #ifdef DEBUG
         SaveMeshObj(h);

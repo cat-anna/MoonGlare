@@ -7,22 +7,19 @@
 
 #include <Foundation/Scripts/ApiInit.h>
 
-#include <boost/tti/has_static_member_data.hpp>
-
 namespace MoonGlare::Component {
 
-namespace detail {
-BOOST_TTI_HAS_STATIC_MEMBER_DATA(Public);
-}
+class EventDispatcher;
 
-using EventClassId = uint32_t;
+enum class EventClassId : uint16_t { Invalid = 0xFFFF, };
 
 class BaseEventInfo {
 public:
-    static EventClassId GetUsedEventTypes() { return idAlloc; }
+    static EventClassId GetUsedEventTypes() { return static_cast<EventClassId>(idAlloc); }
 
     virtual const std::type_info &GetTypeInfo() const = 0;
-    virtual bool Public() const = 0;
+    virtual const void* GetFromLua(lua_State *lua, int index) const = 0;
+    virtual bool QueueFromLua(lua_State *lua, int index, EventDispatcher *dispatcher) const = 0;
 
 	struct EventClassInfo {
         size_t byteSize;
@@ -30,13 +27,18 @@ public:
         const BaseEventInfo *infoPtr = nullptr;
         const char *EventName;
         const char *HandlerName;
-#ifdef DEBUG
+        bool isPublic;
         bool pod;
-#endif
 	};
 
 	static void Dump(std::ostream &output);
-    static const EventClassInfo& GetEventTypeInfo(EventClassId id) { return GetEventClassesTypeInfo()[id]; }
+
+    static const EventClassInfo& GetEventTypeInfo(uint32_t id) {
+        return GetEventClassesTypeInfo()[id];
+    }
+    static const EventClassInfo& GetEventTypeInfo(EventClassId id) {
+        return GetEventTypeInfo(static_cast<uint32_t>(id));
+    }
 
     using EventClassesTypeTable = std::array<EventClassInfo, Configuration::MaxEventTypes>;
 protected:
@@ -44,18 +46,35 @@ protected:
     static EventClassId AllocateEventClass();
     static EventClassesTypeTable& GetEventClassesTypeInfo();
 private:
-	static EventClassId AllocateId() { return idAlloc++; }
-	static EventClassId idAlloc;
+	static EventClassId AllocateId() { return static_cast<EventClassId>(idAlloc++); }
+	static std::underlying_type_t<EventClassId> idAlloc;
 };
 
 template<class T>
 struct EventInfo : public BaseEventInfo {
-	static EventClassId GetClassId() { return classId; }
 //	static_assert(std::is_pod<T>::value, "Event must be pod type!");
+
+	static EventClassId GetClassId() { return classId; }
+    
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
-    bool Public() const override {
-        return T::Public;
+
+    const void* GetFromLua(lua_State *lua, int index) const override {
+        return luabridge::Stack<T*>::get(lua, index);
     }
+    bool QueueFromLua(lua_State *lua, int index, EventDispatcher *dispatcher) const override {
+        if constexpr (std::is_trivial_v<T>) {
+            T* event = luabridge::Stack<T*>::get(lua, index);
+            if (!event) {
+                AddLogf(Error, "Invalid event type at lua stack at index %d", index);
+                return false;
+            }
+            dispatcher->Queue(*event);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 private:
 	static const EventClassId classId;
 };
@@ -70,16 +89,15 @@ template<class T>
 EventClassId BaseEventInfo::AllocateEventClass() {
     auto id = AllocateId();
     static const EventInfo<T> t;
-    assert(id < Configuration::MaxEventTypes);
-    GetEventClassesTypeInfo()[id] = {
+    assert((size_t)id < Configuration::MaxEventTypes);
+    GetEventClassesTypeInfo()[(size_t)id] = {
         sizeof(T),
         Scripts::GetApiInitFunc<T>(),
         &t,
         T::EventName,
         T::HandlerName,
-#ifdef DEBUG
+        T::Public,
         std::is_pod<T>::value,
-#endif
     };
     return id;
 }

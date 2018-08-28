@@ -166,12 +166,12 @@ void ApiInit::Initialize(ScriptEngine *s) {
 
     {
         using BaseEventInfo = MoonGlare::Component::BaseEventInfo;
-        auto maxid = BaseEventInfo::GetUsedEventTypes();
+        auto maxid = (size_t)BaseEventInfo::GetUsedEventTypes();
         for (decltype(maxid) it = 0; it < maxid; ++it) {
             auto info = BaseEventInfo::GetEventTypeInfo(it);
             if (info.apiInitFunc) {
                 ++ApiInitFunctionsRun;
-                if (info.infoPtr->Public()) 
+                if (info.isPublic) 
                     s->GetApiInitializer()
                         .beginNamespace("Event")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
