@@ -47,6 +47,7 @@ struct SceneInstance : private boost::noncopyable {
     std::unordered_set<std::string> activeFences;
     Component::EntityManager *entityManager = nullptr;
     Component::EventDispatcher *eventDispatcher = nullptr;
+    MoonGlare::Renderer::StaticFog staticFog = { };
     Entity sceneRoot;
 
     SceneInstance(std::string name) : sceneName(std::move(name)) { }
@@ -249,12 +250,10 @@ void ScenesManager::ChangeScene(Core::MoveConfig & config) {
 
     ProcessPreviousScene(prevScene);
 
-    //sceneStartTime = std::chrono::steady_clock::now();
-
     if (currentScene) {
         currentScene->RestoreTime(config, currentTime);
         currentScene->SendState(SceneState::Started);
-        //config.deffered->SetStaticFog(m_CurrentSceneDescriptor->staticFog);
+        config.deffered->SetStaticFog(currentScene->staticFog);
     }
 }
 
@@ -437,15 +436,13 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor, SceneInstance* in
         return false;
     }
 
-    //descriptor->m_Flags.m_Stateful = sc.m_Stateful;
-    //descriptor->staticFog = sc.m_StaticFog;
+    instance->staticFog = sc.m_StaticFog;
 
     if (!instance->Initialize(xmlroot)) {
         AddLogf(Error, "Failed to initialize scene '%s'", instance->sceneName.c_str());
         return false;
     }
 
-    //instance->subsystemManager.GetEventDispatcher().Register<SetSceneEvent>(this);
     return true;
 }
 
