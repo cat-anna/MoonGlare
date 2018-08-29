@@ -15,6 +15,7 @@
 #include <Foundation/Scripts/Modules/LuaStaticStorage.h>
 #include <Foundation/Scripts/Modules/LuaRequire.h>
 #include <Foundation/Scripts/Modules/LuaEvents.h>
+#include <Foundation/Scripts/Modules/LuaTime.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
@@ -142,7 +143,6 @@ bool ScriptEngine::ConstructLuaContext() {
         StaticModules::InitStrings(m_Lua, m_world);
         StaticModules::InitApplication(m_Lua, m_world);
         StaticModules::InitPrint(m_Lua, m_world);
-        StaticModules::InitTime(m_Lua, m_world);
         StaticModules::InitThread(m_Lua, m_world);
 
         InstallModule<LuaRequireModule, iRequireModule>();
@@ -150,6 +150,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<LuaStaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
         InstallModule<LuaEventsModule>();
+        InstallModule<LuaTimeModule>();
         InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {

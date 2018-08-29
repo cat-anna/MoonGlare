@@ -3,11 +3,18 @@
 #include <typeinfo>
 #include <string>
 
+#include <boost/tti/has_member_data.hpp>
+
 #include "Configuration.h"
+#include "Entity.h"
 
 #include <Foundation/Scripts/ApiInit.h>
 
 namespace MoonGlare::Component {
+
+namespace detail {
+BOOST_TTI_HAS_MEMBER_DATA(recipient)
+}
 
 class EventDispatcher;
 
@@ -29,6 +36,7 @@ public:
         const char *HandlerName;
         bool isPublic;
         bool pod;
+        bool hasRecipient;
 	};
 
 	static void Dump(std::ostream &output);
@@ -55,6 +63,8 @@ struct EventInfo : public BaseEventInfo {
 //	static_assert(std::is_pod<T>::value, "Event must be pod type!");
 
 	static EventClassId GetClassId() { return classId; }
+
+    using HasRecipient = detail::has_member_data_recipient<T, Entity>;
     
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
 
@@ -98,6 +108,7 @@ EventClassId BaseEventInfo::AllocateEventClass() {
         T::HandlerName,
         T::Public,
         std::is_pod<T>::value,
+        EventInfo<T>::HasRecipient::value,
     };
     return id;
 }

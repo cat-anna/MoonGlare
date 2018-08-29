@@ -34,23 +34,10 @@ public:
     void HandleEvent(const SetSceneEvent &event);
     void HandleEvent(const SetSceneChangeFenceEvent &event);
 
-    void Step(const Core::MoveConfig &config);
+    void Step(Core::MoveConfig &config);
 
-    //bool LoadScene(const std::string &SID); //async LoadNextScene
-    //bool DropSceneState(const std::string &SID);
-    //bool SetSceneStateful(const std::string &SID, bool value);
+    void DumpAllDescriptors();
 
-    //double GetSceneTime() const {
-        //if (!m_CurrentScene)
-            //return 0.0;
-        //return std::chrono::duration<double>(std::chrono::steady_clock::now() - sceneStartTime).count();
-    //}
-
-    //void SetSceneChangeFence(SceneChangeFence type, bool value);
-
-#ifdef DEBUG_DUMP
-    //void DumpAllDescriptors(std::ostream& out);
-#endif
     static void RegisterScriptApi(::ApiInitializer &api);
 protected:
     using SceneDescMap = std::unordered_map<string, SceneDescriptor*>;
@@ -78,28 +65,10 @@ protected:
     SceneInstance* FindSceneInstance(const std::string &sceneName);
     bool LoadSceneData(SceneDescriptor *descriptor, SceneInstance* instance);
 
-    void ChangeScene();
+    void ChangeScene(Core::MoveConfig & config);
     void UpdatePendingSceneFence(const std::string_view fenceName, bool state);
-
-//old
-    //using SceneDescriptorTable = std::vector<UniqueSceneDescriptor>;
-    //SceneInstance *currentScene = nullptr;
-    //SceneDescriptor *m_CurrentSceneDescriptor = nullptr;
-    //SceneDescriptor *m_NextSceneDescriptor = nullptr;
-    //SceneDescriptor *m_LoadingSceneDescriptor = nullptr;
-
-    //SceneSIDMap m_SIDMap;
-    //SceneDescriptorTable m_DescriptorTable;
-
-    //bool m_LoadingInProgress = false;
-    //Renderer::SharedAsyncLoaderObserver loaderObserver;
-
-    //bool LoadNextScene(const std::string &SID);					
-    //bool LoadNextScene(SceneDescriptor *descriptor);			
-
-    //void ProcessPreviousScene(SceneDescriptor *descriptor);
-    
-    /** Manager shall be already locked */
+    void ProcessPreviousScene(SceneInstance *instance);
+    void DropSceneInstance(SceneInstance *instance);
 };
 
 } //namespace Scene::Core::MoonGlare 

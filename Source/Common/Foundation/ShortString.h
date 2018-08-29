@@ -8,18 +8,23 @@
 
 namespace MoonGlare {
 
-template <size_t Capacity_v, typename Char_t = char, typename Length_t = uint8_t>
+//ObjectSize_v is total size of class in bytes 
+template <size_t ObjectSize_v, typename Char_t = char, typename Length_t = uint8_t>
 struct BasicStaticString {
-    static constexpr size_t Capacity = Capacity_v - 1;
-    using CharType = Char_t;
     using LengthType = Length_t;
+    using CharType = Char_t;
     using traits = std::char_traits<CharType>;
+    static constexpr size_t Capacity = (ObjectSize_v - 1) / sizeof(CharType) - sizeof(LengthType);
 
     BasicStaticString() = default;
-    BasicStaticString(const CharType *str) { Set(str, traits::length(str)); }
+    BasicStaticString(const CharType *str) { 
+        if (str) Set(str, traits::length(str));
+        else Set("", 0);
+    }
     BasicStaticString(const std::basic_string<CharType> &str) { Set(str.c_str(), str.size()); }
     BasicStaticString& operator=(const CharType *str) {
-        Set(str, traits::length(str));
+        if (str) Set(str, traits::length(str));
+        else Set("", 0);
         return *this;
     }                                                   
     BasicStaticString& operator=(const std::basic_string<CharType> &str) {
@@ -29,6 +34,7 @@ struct BasicStaticString {
 
     const CharType* c_str() const { return &table[0]; };
     size_t size() const { return length; }
+    bool empty() const { return length == 0; }
 
     operator std::basic_string<CharType>() const {
         return std::basic_string<CharType>(c_str(), size());
@@ -38,7 +44,7 @@ struct BasicStaticString {
     }
 private:
     LengthType length;
-    std::array<CharType, Capacity + 1> table;
+    std::array<CharType, Capacity + 1> table;//+1 to include trailing \0
 
     void Set(const CharType *str, size_t strlen) {
         LengthType len = (LengthType)std::min(strlen, Capacity);
@@ -48,12 +54,16 @@ private:
     }
 };
 
-using ShortString = BasicStaticString<255, char>;
+using ShortString = BasicStaticString<256, char>;
+using ShortWString = BasicStaticString<256, wchar_t>;
 
 namespace detail {
 
 static_assert(std::is_trivially_constructible_v<ShortString>);
 static_assert(std::is_trivial_v<ShortString>);
+
+static_assert(sizeof(ShortString) == 256);
+static_assert(sizeof(ShortWString) == 256);
 
 }
 }

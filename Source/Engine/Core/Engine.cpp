@@ -1,6 +1,8 @@
 ﻿#include <pch.h>
 #include <nfMoonGlare.h>
 
+#include <Foundation/TimeUtils.h>
+
 #include "Engine.h"
 #include "iConsole.h"
 
@@ -73,14 +75,11 @@ void Engine::EngineMain() {
     auto Device = m_Renderer->GetDevice();
     auto Ctx = m_Renderer->GetContext();
 
-    MoveConfig &conf = stepData;
+    MoveConfig &conf = *m_World->GetInterface<MoveConfig>();
     conf.deffered = m_Dereferred.get();
     conf.m_ScreenSize = Ctx->GetSizef();
 
     using clock = std::chrono::steady_clock;
-    auto tdiff = [](clock::time_point t1, clock::time_point t2) {
-        return std::chrono::duration<double>(t2 - t1).count();
-    };
 
     unsigned FrameCounter = 0;
     clock::time_point EntryTime = clock::now();
@@ -91,11 +90,12 @@ void Engine::EngineMain() {
     clock::time_point TitleRefresh = EntryTime;
 
     conf.m_SecondPeriod = false;
+    conf.ResetTime(EntryTime);
 
     while (m_Running) {
         CurrentTime = clock::now();
 
-        double FrameTimeDelta = tdiff(LastFrame, CurrentTime);
+        double FrameTimeDelta = TimeDiff(LastFrame, CurrentTime);
 
         if (FrameTimeDelta + 0.001f < m_FrameTimeSlice) {
             auto remain = m_FrameTimeSlice - FrameTimeDelta;
@@ -110,7 +110,7 @@ void Engine::EngineMain() {
         if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f)
             ++m_SkippedFrames;
 
-        conf.m_SecondPeriod = tdiff(TitleRefresh, CurrentTime) >= 1.0;
+        conf.m_SecondPeriod = TimeDiff(TitleRefresh, CurrentTime) >= 1.0;
 
         m_ActionQueue.DispatchPendingActions();
 
@@ -128,8 +128,8 @@ void Engine::EngineMain() {
         auto StartTime = clock::now();
         {
             conf.deffered->Reset(conf.m_BufferFrame);
-            conf.timeDelta = tdiff(LastMoveTime, CurrentTime);
-            conf.globalTime = tdiff(EntryTime, CurrentTime);
+            conf.UpdateTime(CurrentTime);
+
             GetScriptEngine()->Step(conf);
             GetWorld()->Step(conf);
             auto console = m_World->GetConsole();
@@ -147,12 +147,12 @@ void Engine::EngineMain() {
             TitleRefresh = CurrentTime;
             m_LastFPS = FrameCounter;
             FrameCounter = 0;
-            double sum = tdiff(StartTime, EndTime);
+            double sum = TimeDiff(StartTime, EndTime);
             char Buffer[256];
             sprintf(Buffer, "time:%.2fs  fps:%u  frame:%llu  skipped:%u  mt:%.1f rti:%.1f sum:%.1f fill:%.1f",
-                tdiff(BeginTime, CurrentTime), m_LastFPS, Device->FrameCounter(), m_SkippedFrames,
-                tdiff(StartTime, MoveTime) * 1000.0f,
-                tdiff(MoveTime, EndTime) * 1000.0f,
+                TimeDiff(BeginTime, CurrentTime), m_LastFPS, Device->FrameCounter(), m_SkippedFrames,
+                TimeDiff(StartTime, MoveTime) * 1000.0f,
+                TimeDiff(MoveTime, EndTime) * 1000.0f,
                 (sum) * 1000.0f,
                 (sum / m_FrameTimeSlice) * 100.0f
             );

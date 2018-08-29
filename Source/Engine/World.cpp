@@ -112,7 +112,7 @@ bool World::PreSystemShutdown() {
 bool World::Step(const Core::MoveConfig & config) {
     m_InputProcessor->Step(config);
     eventDispatcher->Step();
-    ((Core::Scene::ScenesManager*)m_ScenesManager.get())->Step(config);
+    ((Core::Scene::ScenesManager*)m_ScenesManager.get())->Step(const_cast<Core::MoveConfig&>(config)); //TODO:!
     entityManager->GCStep();
 	return true;
 }

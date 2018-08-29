@@ -28,8 +28,10 @@ void BaseEventInfo::Dump(std::ostream &output) {
             flags += ",SCRIPTAPI";
         if (tinfo.isPublic)
             flags += ",PUBLIC";
+        if (tinfo.hasRecipient)
+            flags += ",RECIPIENT";
 
-        output << fmt::format("{:2}. {:100} size:{:3} flags:{:30} Event:{:30} Handler:{:30}\n",
+        output << fmt::format("{:2}. {:80} size:{:3} flags:{:50} EventName:{:30} Handler:{:30}\n",
             i, ttype.name(), tinfo.byteSize, flags, tinfo.EventName, tinfo.HandlerName);
     }
 }

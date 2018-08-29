@@ -8,6 +8,7 @@ struct RendererResourceLoaderEvent {
     static constexpr bool Public = false;
 
     bool busy;
+    char __padding[4 - sizeof(busy)];
 
     friend std::ostream& operator<<(std::ostream& out, const RendererResourceLoaderEvent & dt) {
         out << "RendererResourceLoaderEvent"

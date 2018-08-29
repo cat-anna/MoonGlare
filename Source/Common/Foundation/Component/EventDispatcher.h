@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/tti/has_member_data.hpp>
-
 #include "nfComponent.h"
 #include "Configuration.h"
 #include "EventInfo.h"    
@@ -9,11 +7,7 @@
 #include <Foundation/Memory/DynamicBuffer.h>
 
 namespace MoonGlare::Component {
-
-namespace detail {
-    BOOST_TTI_HAS_MEMBER_DATA(recipient)
-}
-
+    
 class EventScriptSink {
 public:
     //event data will be on top of the stack
@@ -75,8 +69,7 @@ public:
         auto classid = EventInfo<EVENT>::GetClassId();
         assert((uint32_t)classid < Configuration::MaxEventTypes);
         eventDispatchers[(size_t)classid].Dispatch(event);      
-        using Has = detail::has_member_data_recipient<EVENT, Entity>;
-        if constexpr (Has::value) {
+        if constexpr (EventInfo<EVENT>::HasRecipient::value) {
             SendToScript(event, event.recipient);
         }
         for (auto *disp : subDispatcher)
@@ -104,9 +97,11 @@ public:
     }
 
     void AddSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
         subDispatcher.insert(ed);
     }
     void RemoveSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
         subDispatcher.erase(ed);
     }
 private:

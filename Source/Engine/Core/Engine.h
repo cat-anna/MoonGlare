@@ -24,8 +24,6 @@ public:
     unsigned GetFrameRate() const { return m_LastFPS; }
 
     World* GetWorld() { return m_World; }
-
-    const MoveConfig& StepData() const { return stepData; }
 protected:
     Space::ActionQueue m_ActionQueue;
 
@@ -38,8 +36,6 @@ protected:
     float m_FrameTimeSlice = 1.0f;		
     unsigned m_LastFPS = 0;			
     unsigned m_SkippedFrames = 0;	
-
-    MoveConfig stepData;
 };
 
 inline Engine* GetEngine() { return Engine::s_instance; }
