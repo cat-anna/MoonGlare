@@ -282,12 +282,13 @@ struct Texture2DGenerateMipMapsArgument;
 
 struct detail::Texture2DSetPixelsArrayArgument {
     unsigned short size[2];
-    GLenum BPP;
+    GLenum internalformat;
+    GLenum format;
     GLenum type;
     const void *pixels;
 
     void Run() {
-        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, BPP, size[0], size[1], /*border*/0, BPP, type, pixels);
+        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, internalformat, size[0], size[1], /*border*/0, format, type, pixels);
     }
 };
 using Texture2DSetPixelsArray = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelsArrayArgument>;

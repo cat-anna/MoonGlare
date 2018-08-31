@@ -39,7 +39,7 @@ public:
     union FlagsMap {
         struct MapBits_t {
             bool m_Valid : 1; //Entity is not valid or requested to be deleted;
-            bool m_Kinematic : 1;
+            bool m_Kinematic : 1; //Is physics a source of movement?
             bool m_HasShape : 1;
             bool m_WantsCollisionEvent : 1;
         };

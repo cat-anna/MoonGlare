@@ -34,17 +34,17 @@ public:
 
 	template<typename T>
 	bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const T* Pixels, const emath::usvec2 &size,
-		Configuration::TextureLoad loadcfg, Device::PixelFormat pxtype, bool AllowAllocate = true, Commands::CommandKey key = Commands::CommandKey()) {
-		return SetTexturePixels(out, q, Pixels, size, loadcfg, pxtype, AllowAllocate, (Device::ValueFormat)Device::TypeId<T>, key);
+		Configuration::TextureLoad loadcfg, Device::PixelFormat internalformat, Device::PixelFormat format, bool AllowAllocate = true, Commands::CommandKey key = Commands::CommandKey()) {
+		return SetTexturePixels(out, q, Pixels, size, loadcfg, internalformat, format, AllowAllocate, (Device::ValueFormat)Device::TypeId<T>, key);
 	}
 
     bool SetTexturePixels(TextureResourceHandle &out, Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,
-        Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Device::ValueFormat TypeValue, Commands::CommandKey key = Commands::CommandKey());
+        Configuration::TextureLoad config, Device::PixelFormat internalformat, Device::PixelFormat format, bool AllowAllocate, Device::ValueFormat TypeValue, Commands::CommandKey key = Commands::CommandKey());
 
     TextureResourceHandle CreateTexture(Commands::CommandQueue &q, const void* Pixels, const emath::usvec2 &size,
-        Configuration::TextureLoad config, Device::PixelFormat pxtype, Device::ValueFormat TypeValue, Commands::CommandKey key = Commands::CommandKey()) {
+        Configuration::TextureLoad config, Device::PixelFormat internalformat, Device::PixelFormat format, Device::ValueFormat TypeValue, Commands::CommandKey key = Commands::CommandKey()) {
         TextureResourceHandle h;
-        SetTexturePixels(h, q, Pixels, size, config, pxtype, true, TypeValue, key);
+        SetTexturePixels(h, q, Pixels, size, config, internalformat, format, true, TypeValue, key);
         return h;
     }
 

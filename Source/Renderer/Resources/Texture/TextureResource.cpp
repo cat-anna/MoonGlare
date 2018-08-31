@@ -115,7 +115,7 @@ bool TextureResource::IsHandleValid(TextureResourceHandle h) const {
 //---------------------------------------------------------------------------------------
 
 bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, 
-            Configuration::TextureLoad config, Device::PixelFormat pxtype, bool AllowAllocate, Device::ValueFormat TypeValue, Commands::CommandKey key) {
+            Configuration::TextureLoad config, Device::PixelFormat internalformat, Device::PixelFormat format, bool AllowAllocate, Device::ValueFormat TypeValue, Commands::CommandKey key) {
     if (!IsHandleValid(out) && AllowAllocate) {
         if (!Allocate(out)) {
             DebugLogf(Error, "texture allocation - allocate failed");
@@ -134,7 +134,8 @@ bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::Co
     pixels->size[0] = size[0];
     pixels->size[1] = size[1];
     pixels->pixels = Pixels;
-    pixels->BPP = static_cast<GLenum>(pxtype);
+    pixels->internalformat = static_cast<GLenum>(internalformat);
+    pixels->format = static_cast<GLenum>(format);
     pixels->type = static_cast<GLenum>(TypeValue);
 
     config.Check(*m_Settings);

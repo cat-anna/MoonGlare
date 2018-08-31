@@ -123,12 +123,13 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			body.setMotionState(&m_MotionStateProxy[i]);
 			item.m_Revision = m_TransformComponent->GetCurrentRevision();
             item.m_Revision = m_TransformComponent->GetRevision(tcindex);
-            if(item.m_Flags.m_Map.m_Kinematic)
+            if(!item.m_Flags.m_Map.m_Kinematic)
                 ((btRigidBody&)body).setWorldTransform(tobtTransform(m_TransformComponent->GetTransform(tcindex)));
             if (item.m_Flags.m_Map.m_HasShape) {
                 auto *shape = ((btRigidBody&)body).getCollisionShape();
                 if (shape) {
-                    shape->setLocalScaling(emath::MathCast<btVector3>(m_TransformComponent->GetGlobalScale(tcindex)));
+                    btVector3 scale = emath::MathCast<btVector3>(m_TransformComponent->GetGlobalScale(tcindex));
+                    shape->setLocalScaling(scale);
                     m_DynamicsWorld->updateSingleAabb(&body);
                 }
             }
@@ -136,9 +137,6 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 			if (tcindex != ComponentIndex::Invalid) {
 				if (item.m_Flags.m_Map.m_HasShape && (!item.m_Flags.m_Map.m_Kinematic || item.m_Revision != m_TransformComponent->GetRevision(tcindex))) {
 					((btRigidBody&) body).setWorldTransform(tobtTransform(m_TransformComponent->GetTransform(tcindex)));
-					auto *shape = ((btRigidBody&) body).getCollisionShape();
-					if (shape)
-						shape->setLocalScaling(emath::MathCast<btVector3>(m_TransformComponent->GetGlobalScale(tcindex)));
 					m_DynamicsWorld->updateSingleAabb(&body);
                     item.m_Revision = m_TransformComponent->GetRevision(tcindex);
 				}
@@ -184,7 +182,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	CollisionMap cmap;
     m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
 
-	m_DynamicsWorld->stepSimulation(conf.timeDelta, 1, 1.0f / (60.0f));
+	m_DynamicsWorld->stepSimulation(conf.timeDelta, 5, 1.0f / (60.0f));
 
 	CollisionMap last;
 	last.swap(m_LastCollisions);
@@ -295,22 +293,26 @@ bool BodyComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 	//body.setDamping(phprop.Damping.Linear, phprop.Damping.Angular);
 	//body.setRestitution(phprop.Restitution);
 	//body.setFriction(phprop.Friction);
-	body.setSleepingThresholds(0.1f, 0.1f);
+	//body.setSleepingThresholds(0.1f, 0.1f);
 //	entry.m_CollisionMask = CollisionMask();		//TODO:
 	entry.m_Flags.m_Map.m_Kinematic = bodyentry.m_Kinematic && entry.m_Mass > 0;
 	entry.m_Flags.m_Map.m_WantsCollisionEvent = bodyentry.m_WantsCollisionEvent;
 
 	if (entry.m_Mass <= 0.0f) {
 		body.setActivationState(DISABLE_SIMULATION);
+        body.setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
     }
     else {
         body.setActivationState(WANTS_DEACTIVATION);
+            body.activate(true);
     }
 
 	if (!entry.m_Flags.m_Map.m_Kinematic) {
-		body.setActivationState(DISABLE_DEACTIVATION);
+        //body.setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+        body.setActivationState(DISABLE_DEACTIVATION);
 	}
 
+    //body.setCollisionFlags
 	body.setUserPointer(&body);
 	body.setUserIndex(index);
 	body.setUserIndex2(entry.m_Flags.m_Map.m_WantsCollisionEvent ? 1 : 0);
@@ -350,9 +352,21 @@ bool BodyComponent::SetShape(Entity owner, btCollisionShape * ptr) {
 		body.setMassProps(entry.m_Mass, internia);
       //  if (!entry.m_Flags.m_Map.m_HasShape) {
         m_DynamicsWorld->removeRigidBody(&body);
-        m_DynamicsWorld->addRigidBody(&body);
-       // }
-	} else {
+        m_DynamicsWorld->addRigidBody(&body, 1, 1);
+
+        auto tobtTransform = [](auto &entry) -> btTransform {
+            btTransform tr;
+            tr.setFromOpenGLMatrix(entry.data());
+            return tr;
+        };
+        auto tcindex = m_TransformComponent->GetComponentIndex(entry.m_OwnerEntity);
+        ((btRigidBody&)body).setWorldTransform(tobtTransform(m_TransformComponent->GetTransform(tcindex)));
+
+        m_DynamicsWorld->updateSingleAabb(&body);
+
+        //entry.m_Revision = m_TransformComponent->GetRevision(tcindex);
+        // }
+    } else {
 		body.setMassProps(0.0f, internia);
 		m_DynamicsWorld->removeRigidBody(&body);
     }

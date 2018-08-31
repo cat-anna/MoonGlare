@@ -192,7 +192,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
         cbs.ResetToDefault();
         if (!cbs.Read(node))
             break;
-        return { std::make_unique<btBoxShape>(btVector3{ cbs.m_size[0],cbs.m_size[1],cbs.m_size[2] }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
+        return { std::make_unique<btBoxShape>(btVector3{ cbs.m_size[0] * 2.0f,cbs.m_size[1] * 2.0f,cbs.m_size[2]*2.0f }), ColliderType::Box };// convert(bbs.m_Size) / 2.0f);
     }
     case x2c::Component::BodyShapeComponent::ColliderType::Capsule:
         return { std::make_unique<btCapsuleShapeZ>(cc.m_radius, cc.m_height), ColliderType::Capsule };
@@ -205,14 +205,11 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     case x2c::Component::BodyShapeComponent::ColliderType::TriangleMesh: {
         auto meshC = GetManager()->GetComponent<Component::MeshComponent>();
         if (meshC) {
-            auto me = meshC->GetEntry(Owner);
+                auto me = meshC->GetEntry(Owner);
             auto meshH = me->meshHandle;
             auto &mm = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
             while (!mm.GetMeshData(meshH) || mm.GetMeshData(meshH)->ready == false)
                 std::this_thread::yield();
-
-            //while (mdata->index.empty())
-                //std::this_thread::yield();
 
             auto *mdataptr = mm.GetMeshData(meshH);
             auto &mdata = *mdataptr;
@@ -269,8 +266,10 @@ bool BodyShapeComponent::Load(ComponentReader &reader, Entity parent, Entity own
 
     entry.m_Flags.m_Map.m_Valid = true;
     //entry.
+    
     if (shape.first) {
-        shape.first->setMargin(0.1/2);
+        shape.first->setMargin(0.1 / 2);
+        //shape.first->();
         entry.SetShapeInternal(std::move(shape.first));
     }
 

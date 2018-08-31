@@ -16,5 +16,7 @@ void main() {
 	}
 
 	FragColor.xyz = CalcStaticShadow(WorldPos, FragColor.xyz);
+	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
+
 //    FragColor.xy = TexCoord;
 }

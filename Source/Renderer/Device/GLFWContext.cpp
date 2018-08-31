@@ -240,7 +240,7 @@ bool GLFWContext::CreateWindow(ContextCreationInfo ctxifo) {
 #ifdef DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
-    //glfwWindowHint(GLFW_SRGB_CAPABLE, GL_FALSE);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GL_TRUE);
 
     glfwWindowHint(GLFW_VISIBLE, ctxifo.visible ? GLFW_TRUE : GLFW_FALSE);
 

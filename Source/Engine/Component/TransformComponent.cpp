@@ -151,11 +151,20 @@ bool TransformComponent::Load(ComponentReader &reader, Entity parent, Entity own
 	}
 
     values.position[index]      = emath::MathCast<emath::fvec3>(te.m_Position);
-    values.quaternion[index]    = emath::MathCast<emath::Quaternion>(te.m_Rotation);
+    values.quaternion[index]    = emath::MathCast<emath::Quaternion>(te.m_Rotation).normalized();
     values.scale[index]         = emath::MathCast<emath::fvec3>(te.m_Scale);
     values.globalScale[index]   = values.scale[index];
 
-    values.revision[index]      = 0;
+    emath::Transform tr;
+    tr.setIdentity();
+    tr.rotate(values.quaternion[index]);
+    tr.translation() = values.position[index];
+    tr.scale(values.scale[index]);
+
+    values.globalTransform[index] = values.globalTransform[parentIndex] * tr;
+    values.globalScale[index] = values.scale[index].cwiseProduct(values.globalScale[parentIndex]);
+
+    values.revision[index] = 0;
 
 	return true;
 }

@@ -41,9 +41,12 @@ float CalcAttenuation(vec4 att, float Distance) {
     float Attv = att[0] +			              //constant
 				 att[1] * Distance +              //linerar
 				 att[2] * (Distance * Distance);  //exp
-	if(Attv <= 0)
-		return att[3];
-	return 1.0f / Attv;
+	// if(Attv <= 0)
+		// return att[3];
+	return 1.0f / 
+	// Attv
+	pow(Attv, 2.2)
+	;
 //	return pow(Attv, -2.2);// min(1.0 / Attv, att.MinThreshold);
 }
 
@@ -65,7 +68,6 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal) {
 	float factor = CalcAttenuation(PointLight.Attenuation, Distance) ;
 	factor *= CalcStaticFogFactor(Distance);
     Color.xyz *= factor;
-//	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
 
@@ -79,7 +81,6 @@ uniform DirectionalLight_t DirectionalLight;
 
 vec4 CalcDirectionalLight(vec3 WorldPos, vec3 Normal) {
     vec4 Color = CalcLightInternal(DirectionalLight.Base, DirectionalLight.Direction, WorldPos, Normal);
-//	Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 	return Color;
 };
 
@@ -108,8 +109,6 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal) {
 		Color.xyz *= factor;
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
-
-//		Color.xyz = pow(Color.xyz, vec3(1.0/2.2));
 
 //		Color.a = 1.0f;
 		//Color.g = 1.0f;

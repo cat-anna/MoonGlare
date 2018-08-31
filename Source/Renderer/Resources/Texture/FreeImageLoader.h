@@ -24,7 +24,6 @@ private:
     using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 
     void LoadImage(ResourceLoadStorage &storage, FIBITMAP *dib, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config);
-    void SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat, TextureResourceHandle handle, Configuration::TextureLoad config);
 };
 
 } 

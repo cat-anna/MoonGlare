@@ -272,8 +272,8 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         using Uniform = GeometryShaderDescriptor::Uniform;
         m_GeometryShader.Set<Uniform::ModelMatrix>(ModelMatrix);
 
-        m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-        m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
+        //m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+        //m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
 
         m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
@@ -318,6 +318,8 @@ void DeferredSink::SubmitDirectionalLight(const LightBase & linfo) {
 }
 
 bool DeferredSink::MeshVisibilityTest(const emath::fvec3 &position, float radius) {
+    if (visibility < 0)
+        return true;    
     emath::fvec3 delta = m_Camera.m_Position - position;
 
     auto sqnorm = delta.squaredNorm();

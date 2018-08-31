@@ -56,4 +56,5 @@ void main() {
 	tex.y = ProcessTile(VertexPosition.y, gTileMode.y, gPanelBorder,                gFrameCount.y, gFrameCount.y - gFrameIndex.y - 1);
 
 	FragColor = ProcessBaseColor(texture2D(Texture0, tex));
+	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
 }

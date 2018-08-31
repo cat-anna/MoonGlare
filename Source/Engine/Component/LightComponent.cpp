@@ -99,6 +99,8 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
         }
 
         const auto &tr = m_TransformComponent->GetTransform(tcindex);
+        const auto &globalScale = m_TransformComponent->GetGlobalScale(tcindex);
+        auto maxScale = globalScale.maxCoeff();
 
         switch (item.m_Type) {
         case Renderer::LightType::Spot: {
@@ -112,14 +114,14 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             //emath::Quaternion rotatedP = q * up * q.inverse();
             //emath::fvec3 d = rotatedP.vec();
 
-            emath::fvec4 dir4 = tr * emath::fvec4(0, 0, 1, 0);
+            emath::fvec4 dir4 = tr * emath::fvec4(0, 1, 0, 0);
             emath::fvec3 dir = { dir4.x(), dir4.y(), dir4.z() };
 
             //auto dir = convert(quatRotate(tr.getRotation(), Physics::vec3(0, 0, 1)));
             emath::fvec3 pos = tr.translation();// convert(tr.getOrigin());
-            float infl = sl.GetLightInfluenceRadius();
+            float infl = sl.GetLightInfluenceRadius(1.0f / maxScale);
 
-            emath::fmat4 ViewMatrix = emath::LookAt(pos, emath::fvec3(pos - dir), emath::fvec3(0, 1, 0));// glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
+            emath::fmat4 ViewMatrix = emath::LookAt(pos, emath::fvec3(pos - dir), emath::fvec3(0, 0, 1));// glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
             emath::fmat4 ProjectionMatrix = emath::Perspective(90.0f, 1.0f, 0.01f, infl + 0.1f);
 
             auto scaled = tr;
@@ -137,12 +139,12 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             Renderer::PointLight pl;
             pl.m_Base = item.m_Base;
             pl.m_Attenuation = item.m_Attenuation;
-            float infl = pl.GetLightInfluenceRadius();
+            float infl = pl.GetLightInfluenceRadius(maxScale);
 
             emath::fvec3 pos = tr.translation();
             pl.m_Position = pos.data();// convert(tr.getOrigin());
-            if (!conf.deffered->PointLightVisibilityTest(pos, infl))
-                continue;
+            //if (!conf.deffered->PointLightVisibilityTest(pos, infl))
+                //continue;
 
             auto scaled = tr;
             scaled.scale(infl);

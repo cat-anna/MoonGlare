@@ -52,22 +52,27 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
     //FreeImage_FlipVertical(dib);
     //FreeImage_FlipHorizontal(dib);
 
-    PixelFormat pixelFormat = PixelFormat::RGB8;
-    ValueFormat valueFormat = ValueFormat::UnsignedByte;
+    PixelFormat srcFormat = PixelFormat::RGB8;
+    PixelFormat format = PixelFormat::RGB8;
+    ValueFormat valueFormat = //(ValueFormat)GL_UNSIGNED_INT_8_8_8_8;
+        //GL_BYTE;//
+    ValueFormat::UnsignedByte;
 
     auto mask = FreeImage_GetBlueMask(bitmap);
-    config.m_Flags.useSRGBColorSpace = false;
+    //config.m_Flags.useSRGBColorSpace = false;
     
     switch (FreeImage_GetBPP(bitmap)) {
     case 32:
         if (mask != FI_RGBA_RED_MASK)
             SwapRedAndBlue(bitmap);
-        pixelFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGBA8 : PixelFormat::RGBA8;
+        format = PixelFormat::RGBA8;
+        srcFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGBA8 : PixelFormat::RGBA8;
         break;
     case 24:
         if (mask != FI_RGBA_RED_MASK)
             SwapRedAndBlue(bitmap);
-        pixelFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGB8 : PixelFormat::RGB8;
+        format = PixelFormat::RGB8;
+        srcFormat = config.m_Flags.useSRGBColorSpace ? PixelFormat::SRGB8 : PixelFormat::RGB8;
         break;
     default: {
         __debugbreak();
@@ -85,23 +90,12 @@ void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, 
 
     void* pixels = FreeImage_GetBits(bitmap);
 
-    SubmitPixels(storage, pixels, bytesize, size, pixelFormat, valueFormat, handle, config);
-}
-
-void FreeImageLoader::SubmitPixels(ResourceLoadStorage &storage, void *pixels, size_t bytesize, const emath::usvec2 &size, PixelFormat pixelFormat, ValueFormat valueFormat, TextureResourceHandle handle, Configuration::TextureLoad config) {
-    auto &m = storage.m_Memory.m_Allocator;
-    auto &q = storage.m_Queue;
-
-    using namespace Commands;
-
-    //NotEnoughStorage
-
-    void *storagepixels = m.Clone((uint8_t*)pixels, bytesize);
+    void *storagepixels = storage.m_Memory.m_Allocator.Clone((uint8_t*)pixels, bytesize);
     if (!storagepixels) {
         throw NotEnoughStorage{ bytesize };
     }
 
-    owner->SetTexturePixels(handle, q, storagepixels, size, config, pixelFormat, true, valueFormat, {});   
+    owner->SetTexturePixels(handle, storage.m_Queue, storagepixels, size, config, srcFormat, format, true, valueFormat, {});
 }
 
 }

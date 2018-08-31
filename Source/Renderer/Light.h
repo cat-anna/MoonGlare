@@ -30,7 +30,7 @@ struct LightAttenuation {
         ////if(Exp != 0)
         //	//ret /= 2 * Exp;
         //return ret;
-
+                                               
         float ret = (-Linear() + sqrtf(Linear() * Linear() - 4 * Exp() * (Exp() - 256 * ColorFactor)));// - 256 * ColorFactor
         if (Exp() != 0)
             ret /= 2 * Exp();
@@ -48,6 +48,10 @@ struct LightBase {
     float m_AmbientIntensity;
     float m_DiffuseIntensity;
 
+    float MaxIntensity() const {
+        return std::max(m_AmbientIntensity, m_DiffuseIntensity);
+    }
+
     union {
         struct {
             bool m_CastShadows : 1;
@@ -64,8 +68,8 @@ struct PointLight {
     math::RawVec3 m_Position;
     math::RawMat4 m_PositionMatrix;
 
-    float GetLightInfluenceRadius() const {
-        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+    float GetLightInfluenceRadius(float scale) const {
+        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.MaxIntensity() * scale);
     }
 };
 static_assert(std::is_pod<PointLight>::value);
@@ -80,8 +84,8 @@ struct SpotLight {
     math::RawMat4 m_PositionMatrix;
     math::RawMat4 m_ViewMatrix;
 
-    float GetLightInfluenceRadius() const {
-        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.m_DiffuseIntensity);
+    float GetLightInfluenceRadius(float scale) const {
+        return m_Attenuation.LightInfluenceRadius(m_Base.m_Color, m_Base.MaxIntensity() * scale);
     }
 };
 static_assert(std::is_pod<SpotLight>::value);
