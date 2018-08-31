@@ -21,6 +21,7 @@ struct MeshSource {
     std::vector<glm::fvec3> verticles;
     std::vector<glm::fvec2> UV0;
     std::vector<glm::fvec3> normals;
+    std::vector<glm::fvec3> tangents;
     std::vector<uint32_t> index;
 
     emath::fvec3 halfBoundingBox;

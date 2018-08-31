@@ -9,6 +9,7 @@ namespace MoonGlare::Renderer {
 struct Material {
     enum class MapType : uint8_t {
         Diffuse, 
+        Normal,
         MaxValue,
     };
 
@@ -22,11 +23,13 @@ struct Material {
     Array<TextureResourceHandle> mapTexture;
 
     //float shines;
+    float specularIntensity;
 
 	void Reset() {
         diffuseColor = emath::fvec4(1);
         //specularColor = emath::fvec4(1);
         //shines = 32;
+        specularIntensity = 1.0f;
 
         //mapEnabled.fill(false);
         mapTexture.fill({});
@@ -49,6 +52,7 @@ struct MaterialTemplate {
     math::fvec4 diffuseColor = math::fvec4{ 1,1,1,1 };
     math::fvec4 specularColor = math::fvec4{ 1,1,1,1 };
 
+    float specularIntensity;
     float shiness;
 
     Map diffuseMap;

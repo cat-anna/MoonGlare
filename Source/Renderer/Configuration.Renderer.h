@@ -177,7 +177,7 @@ struct TextureRenderTask {
 
 struct VAO {
     static constexpr uint32_t VAOLimit = 1024;
-    static constexpr uint32_t MaxBuffersPerVAO = 4;
+    static constexpr uint32_t MaxBuffersPerVAO = 6;
 
     using VAOBuffers = std::array<Device::BufferHandle, MaxBuffersPerVAO>;
 
@@ -191,6 +191,7 @@ struct VAO {
         //Color, //unused
 
         Index,
+        Tangents, //TODO: in reverse order directional light is not working
 
         MaxValue,
     };

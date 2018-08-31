@@ -104,6 +104,7 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
     };
 
     loadMap(Material::MapType::Diffuse, matTemplate.diffuseMap);
+    loadMap(Material::MapType::Normal, matTemplate.normalMap);
 }
  
 //---------------------------------------------------------------------------------------

@@ -256,7 +256,7 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
 
     auto *meshptr = mm.GetMesh(meshH);
 
-    if (!meshptr || !meshptr->valid)
+    if (!meshptr || !meshptr->valid || !matH.deviceHandle)
         return;
 
     auto &mesh = *meshptr;
@@ -284,13 +284,26 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
 
-        if (matH.deviceHandle) {
+        //if (matH.deviceHandle) {
             m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
-        } else {
-            m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-            m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
-        }
+
+
+            if(matH.deviceHandle->mapEnabled[0])
+                m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
+            else
+                m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
+
+            m_GeometryShader.Set<Uniform::UseNormalMap>((int)matH.deviceHandle->mapEnabled[1]);
+            if (matH.deviceHandle->mapEnabled[1])
+                m_GeometryShader.Set<Sampler::NormalMap>(matH.deviceHandle->mapTexture[1]);
+
+            //else
+                //m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
+
+        //} else {
+            //m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
+            //m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
+        //}
 
         auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         garg->m_NumIndices = mesh.numIndices;

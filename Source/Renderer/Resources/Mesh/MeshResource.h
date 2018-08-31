@@ -11,7 +11,8 @@ namespace MoonGlare::Renderer::Resources {
 struct MeshData {
     glm::fvec3 *verticles;  
     glm::fvec2 *UV0;        
-    glm::fvec3 *normals;    
+    glm::fvec3 *normals;
+    glm::fvec3 *tangents;
     uint32_t *index;        
 
     size_t vertexCount;

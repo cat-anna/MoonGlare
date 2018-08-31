@@ -135,6 +135,11 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::un
             builder.SetChannelData<float, 3>(ichannels::Normals, (const float*)(source.normals), source.vertexCount);
         }     
 
+        if (source.tangents) {
+            builder.CreateChannel(ichannels::Tangents);
+            builder.SetChannelData<float, 3>(ichannels::Tangents, (const float*)(source.tangents), source.vertexCount);
+        }
+
         if (source.index) {
             builder.CreateChannel(ichannels::Index);
             builder.SetIndex(ichannels::Index, (const unsigned*)(source.index), source.indexCount);
@@ -163,6 +168,7 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     size_t verticlesSize = source.verticles.size() * sizeof(source.verticles[0]);
     size_t UV0Size = source.UV0.size() * sizeof(source.UV0[0]);
     size_t normalsSize = source.normals.size() * sizeof(source.normals[0]);
+    size_t tangentsSize = source.tangents.size() * sizeof(source.tangents[0]);
     size_t indexSize = source.index.size() * sizeof(source.index[0]);
 
     size_t verticlesOffset = memorySize;
@@ -171,8 +177,10 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     memorySize += UV0Size;
     size_t normalsOffset = memorySize;
     memorySize += normalsSize;
+    size_t tangentsOffset = memorySize;
+    memorySize += tangentsSize;
     size_t indexOffset = memorySize;
-    memorySize += indexSize;
+    memorySize += indexSize;        
 
     std::unique_ptr<char[]> memory(new char[memorySize]);
     char *mem = memory.get();
@@ -190,6 +198,11 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     if (source.normals.size() > 0) {
         md.normals = (glm::fvec3*)(mem + normalsOffset);
         memcpy(md.normals, &source.normals[0], normalsSize);
+    }
+
+    if (source.tangents.size() > 0) {
+        md.tangents = (glm::fvec3*)(mem + tangentsOffset);
+        memcpy(md.tangents, &source.tangents[0], tangentsSize);
     }
 
     md.index = (uint32_t*)(mem + indexOffset);

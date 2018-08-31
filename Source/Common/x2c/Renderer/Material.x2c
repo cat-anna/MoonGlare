@@ -39,6 +39,7 @@ Structure.import {
         { name = "specularColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
 
         { name = "shiness", type = Types.float, default = 32, },
+        { name = "specularIntensity", type = Types.float, default = 1, },
 
         { name = "diffuseMap", type = Local.Map, },
         { name = "normalMap", type = Local.Map, },

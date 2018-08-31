@@ -10,14 +10,17 @@ enum class MagicValue : uint32_t {
 };             
                                              
 enum DataDestination : uint8_t {
-    invalid, Coordinates, TexMapping, Normals, 
+    invalid, 
+    Coordinates, TexMapping, Normals, Tangents,
     TriangleIndex, QuadIndex, LineIndex, 
     BoundingBox, BoundingSphere,
     MaxValue,
 };
             
 enum DataType : uint8_t {
-    invalid, u8, s8, u16, s16, u32, s32, u64, s64, Float, Double,
+    invalid, 
+    u8, s8, u16, s16, u32, s32, u64, s64, 
+    Float, Double,
     MaxValue,
 };
 

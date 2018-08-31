@@ -13,7 +13,11 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
     importer = std::make_unique<Assimp::Importer>();
 
     auto loadflags =
+        //aiProcessPreset_TargetRealtime_Fast | 
         aiProcess_JoinIdenticalVertices |
+        aiProcess_CalcTangentSpace |
+        aiProcess_GenNormals |
+        //aiProcess_ImproveCacheLocality |
         //aiProcess_PreTransformVertices |
         aiProcess_Triangulate |
         //aiProcess_GenUVCoords |
@@ -107,6 +111,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     meshData.verticles.resize(NumVertices);
     meshData.UV0.resize(NumVertices);
     meshData.normals.resize(NumVertices);
+    meshData.tangents.resize(NumVertices);
     meshData.index.resize(NumIndices);
 
     {
@@ -115,6 +120,7 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         auto MeshVerticles = &meshData.verticles[meshes.baseVertex];
         auto MeshTexCords = &meshData.UV0[meshes.baseVertex];
         auto MeshNormals = &meshData.normals[meshes.baseVertex];
+        auto MeshTangents = &meshData.tangents[meshes.baseVertex];
 
         for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
             aiVector3D &vertex = mesh->mVertices[vertid];
@@ -126,6 +132,10 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
             }
             else {
                 MeshTexCords[vertid] = glm::fvec2();
+            }
+            if (mesh->mTangents) {
+                aiVector3D &tangent = mesh->mTangents[vertid];
+                MeshTangents[vertid] = glm::fvec3(tangent.x, tangent.y, tangent.z);
             }
 
             MeshVerticles[vertid] = glm::fvec3(vertex.x, vertex.y, vertex.z);

@@ -58,9 +58,9 @@ struct PointLightShaderDescriptor {
     }
     constexpr static const char* GetSamplerName(Sampler s) {
         switch (s) {
-        case Sampler::PositionMap: return "PositionMap";
-        case Sampler::ColorMap: return "ColorMap";
-        case Sampler::NormalMap: return "NormalMap";
+        case Sampler::PositionMap: return "gPositionMap";
+        case Sampler::ColorMap: return "gColorMap";
+        case Sampler::NormalMap: return "gNormalMap";
         default: return nullptr;
         }
     }
