@@ -9,7 +9,7 @@ function class:Init(Owner, playListUri)
 
     Owner.GameObject:CreateComponent(Component.SoundSource)
     local ss = Owner:GetComponent(Component.SoundSource)
-    ss:Stop()
+    -- ss:Stop()
     ss.Loop = false
     if playListUri then
         self:SetPlayList(playListUri) 

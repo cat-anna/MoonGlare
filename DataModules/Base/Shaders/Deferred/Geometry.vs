@@ -14,11 +14,13 @@ void main() {
     gl_Position = (CameraMatrix * ModelMatrix) * vec4(Position, 1.0);
     VertexUV0 = TexCoord;
 
-   vec3 Bitangent = cross(Normal, Tangent);
-   vec3 T = normalize(vec3(ModelMatrix * vec4(Tangent,   0.0)));
-   vec3 B = normalize(vec3(ModelMatrix * vec4(Bitangent, 0.0)));
-   vec3 N = normalize(vec3(ModelMatrix * vec4(Normal,    0.0)));
-   TBN = mat3(T, B, N);
+    vec3 Bitangent = cross(Normal, Tangent);
+    vec3 T = normalize(vec3(ModelMatrix * vec4(Tangent,   0.0)));
+    vec3 B = normalize(vec3(ModelMatrix * vec4(Bitangent, 0.0)));
+    vec3 N = normalize(vec3(ModelMatrix * vec4(Normal,    0.0)));
+    // re-orthogonalize T with respect to N
+    T = normalize(T - dot(T, N) * N);   
+    TBN = mat3(T, B, N);
 
     // if(!gUseNormalMap) {
 	    VertexNormal = normalize((

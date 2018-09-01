@@ -1,6 +1,4 @@
 Import "Common.x2c"
-Import "AssetSettings.x2c"
-Import "RendererSettings.x2c"
 
 namespace "MoonGlare.x2c.Settings"
 
@@ -19,23 +17,8 @@ Structure.new {
     fields = {
         {
             description = "",
-            name = "Assets",
-            type = Local.AssetSettings,
-        },
-        {
-            description = "",
             name = "Core",
             type = Local.CoreSettings,
-        },
-        {
-            description = "",
-            name = "Renderer",
-            type = Local.Renderer.RuntimeConfiguration,
-        },
-        {
-            description = "",
-            name = "Display",
-            type = Local.Renderer.Display,
         },
     },
 }

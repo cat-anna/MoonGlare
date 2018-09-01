@@ -25,8 +25,6 @@ struct StackAllocatorMemory {
 };
 
 class RendererFacade;
-using UniqueRenderer = std::unique_ptr<RendererFacade>;
-
 class Frame;
 class RenderDevice;
 class ScriptApi;

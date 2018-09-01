@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Foundation/InterfaceMap.h>
+
 #include "iContext.h"
 
 namespace MoonGlare::Renderer {
@@ -13,7 +15,9 @@ public:
 
     virtual iContext* GetContext() = 0;
 
-    virtual void SetConfiguration(Configuration::RuntimeConfiguration Configuration) = 0;
+    static std::unique_ptr<iRendererFacade> CreateInstance(InterfaceMap &ifaceMap);
 };
+
+using UniqueRenderer = std::unique_ptr<iRendererFacade>;
 
 }

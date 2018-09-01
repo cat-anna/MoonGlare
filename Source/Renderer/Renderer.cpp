@@ -1,3 +1,6 @@
+
+#include<Foundation/Settings.h>
+
 #include "nfRenderer.h"
 #include "Renderer.h"
 
@@ -10,7 +13,13 @@
 
 namespace MoonGlare::Renderer {
 
-RendererFacade::RendererFacade() {
+std::unique_ptr<iRendererFacade> iRendererFacade::CreateInstance(InterfaceMap &ifaceMap) {
+    return std::make_unique<RendererFacade>(ifaceMap);
+}
+
+//----------------------------------------------------------------------------------
+
+RendererFacade::RendererFacade(InterfaceMap &ifaceMap) : interfaceMap(ifaceMap) {
     configuration.ResetToDefault();
 }
 
@@ -23,14 +32,51 @@ iContext* RendererFacade::GetContext() {
     return m_Context.get();
 }
 
-void RendererFacade::SetConfiguration(Configuration::RuntimeConfiguration Configuration) {
-    configuration = Configuration;
+//----------------------------------------------------------------------------------
+
+Settings::ApplyMethod RendererFacade::ValueChanged(const std::string &key, Settings* siface) {
+    ReloadConfig();
+    return Settings::ApplyMethod::DontCare;
+}
+
+void RendererFacade::ReloadConfig() {
+    auto stt = interfaceMap.GetSharedInterface<Settings>();
+    assert(stt);
+
+    //configuration.m_Texture.m_Filtering =
+
+    configuration.ResetToDefault();
+
+    stt->Get("Renderer.Texture.Filtering", configuration.texture.m_Filtering);
+
+    stt->Get("Renderer.Shadow.MapSize", configuration.shadow.shadowMapSize);
+    stt->Get("Renderer.Shadow.Enabled", configuration.shadow.enableShadows);
+
+    stt->Get("Renderer.Shader.GaussianDiscLength", configuration.shader.gaussianDiscLength);
+    stt->Get("Renderer.Shader.GaussianDiscRadius", configuration.shader.gaussianDiscRadius);
+
+    stt->Get("Renderer.Gamma", configuration.gammaCorrection);
 }
 
 //----------------------------------------------------------------------------------
 
 void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) {
     assert(fileSystem);
+
+    struct SettingsChangeCb : Settings::iChangeCallback {
+        RendererFacade* owner;
+        SettingsChangeCb(RendererFacade* o) :owner(o) {}
+        Settings::ApplyMethod ValueChanged(const std::string &key, Settings* siface) {
+            return owner->ValueChanged(key, siface);
+        }
+    };
+    settingsChangeCallback = std::make_shared<SettingsChangeCb>(this);
+
+    ReloadConfig();
+
+    auto stt = interfaceMap.GetSharedInterface<Settings>();
+    assert(stt);
+    stt->Subscribe(settingsChangeCallback);
 
     if (!Device::GLFWContext::InitializeSubSystem()) {
         AddLogf(Error, "Context subsystem initialization failed!");

@@ -205,6 +205,14 @@ struct Shader {
     static constexpr uint32_t Limit = 32;
     static constexpr uint32_t UniformLimit = 20;
     using UniformLocations = std::array<Device::ShaderUniformHandle, UniformLimit>;
+
+    uint16_t gaussianDiscLength;
+    float gaussianDiscRadius;
+
+    void ResetToDefault() {
+        gaussianDiscLength = 32;
+        gaussianDiscRadius = 0.5f;
+    }
 };
 
 //---------------------------------------------------------------------------------------
@@ -217,47 +225,29 @@ struct Material {
 //---------------------------------------------------------------------------------------
 
 struct Shadow {
-    enum class ShadowMapSize : uint16_t {
-        Disable,
-        Low,
-        Medium,
-        High,
-        Ultra,
-
-        MaxValue,
-        Default = Medium,
-    };
-
-    std::underlying_type_t<ShadowMapSize> GetShadowMapSize() const {
-        //dumb values, they are subject to tests and changes
-        switch (m_ShadowMapSize) {
-        case ShadowMapSize::Disable: return 1;
-        case ShadowMapSize::Low: return 256;
-        case ShadowMapSize::Medium: return 512;
-        case ShadowMapSize::High: return 1024;
-        case ShadowMapSize::Ultra: return 2048;
-        default:
-            return static_cast<std::underlying_type_t<ShadowMapSize>>(m_ShadowMapSize);
-        }
-    }
-
-    ShadowMapSize m_ShadowMapSize;
+    bool enableShadows;
+    uint16_t shadowMapSize;    
 
     void ResetToDefault() {
-        m_ShadowMapSize = ShadowMapSize::Default;
-
+        enableShadows = true;
+        shadowMapSize = 1024;
     }
 };
 
 //---------------------------------------------------------------------------------------
 
 struct RuntimeConfiguration {
-    Texture m_Texture;
-    Shadow m_Shadow;
+    Texture texture;
+    Shadow shadow;
+    Shader shader;
+
+    float gammaCorrection;
 
     void ResetToDefault() {
-        m_Texture.ResetToDefault();
-        m_Shadow.ResetToDefault();
+        gammaCorrection = 2.2f;
+        texture.ResetToDefault();
+        shadow.ResetToDefault();
+        shader.ResetToDefault();
     }
 };
 

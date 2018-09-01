@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Foundation/iFileSystem.h>
+#include <Foundation/InterfaceMap.h>
+#include <Foundation/Settings.h>
 
 #include "Configuration.Renderer.h"
 
@@ -12,17 +14,14 @@ namespace MoonGlare::Renderer {
 
 class RendererFacade final : public iRendererFacade {
 public:
-    RendererFacade();
+    RendererFacade(InterfaceMap &ifaceMap);
     ~RendererFacade();
 
     //iRendererFacade
     iContext* GetContext() override;
-    void SetConfiguration(Configuration::RuntimeConfiguration Configuration) override;
+    //void SetConfiguration(Configuration::RuntimeConfiguration Configuration) override;
     void Initialize(const ContextCreationInfo& ctxifo, iFileSystem *fileSystem) override;
     void Finalize() override;
-
-   
-
 
     /** Shall work on main thread; does not return until stopped */
     void EnterLoop();
@@ -49,16 +48,24 @@ public:
 
     ScriptApi* GetScriptApi();
     const Configuration::RuntimeConfiguration* GetConfiguration() { return &configuration; }
-private:
-    bool m_CanWork = false;
 
+    //Settings::iChangeCallback
+    Settings::ApplyMethod ValueChanged(const std::string &key, Settings* siface);
+private:
+    InterfaceMap &interfaceMap;
+    Configuration::RuntimeConfiguration configuration;
+
+    bool m_CanWork = false;
     mem::aligned_ptr<RenderDevice> m_Device;
     mem::aligned_ptr<iContext> m_Context;
     mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
     std::unique_ptr<ScriptApi> m_ScriptApi;
-    Configuration::RuntimeConfiguration configuration;
+
+    std::shared_ptr<Settings::iChangeCallback> settingsChangeCallback;
 
     std::function<void()> m_StopObserver;
+
+    void ReloadConfig();
 };
 
 } //namespace MoonGlare::Renderer

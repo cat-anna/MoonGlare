@@ -12,9 +12,7 @@
 namespace MoonGlare::Renderer::Resources::Shader {
 
 template<typename Descriptor>
-struct
-    //alignas(16) 
-    ShaderBuilder {
+struct ShaderBuilder {
 //	static_assert(std::is_trivial<ShaderBuilder>::value, "must be trivial!");
 //	static_assert((sizeof(ShaderBuilder) % 16) == 0, "Invalid size!");
 

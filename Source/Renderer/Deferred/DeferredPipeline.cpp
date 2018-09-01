@@ -455,7 +455,10 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
 
             m_ShadowShader.m_Queue = m_SpotLightShadowQueue;
             m_ShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
+            //m_SpotLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
+            //m_SpotLightShadowQueue->MakeCommand<Commands::CullFace>((GLbitfield)(GL_FRONT));
             m_ShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
+            //m_SpotLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_CULL_FACE);
         }
     }
 

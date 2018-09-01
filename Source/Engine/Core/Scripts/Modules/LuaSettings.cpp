@@ -22,11 +22,7 @@ struct LuaSettingsModule::SettingsObject {
         Cancel();
     }
 
-    void Apply() {
-        if (settingsChangedMap.empty()) {
-            return;
-        }
-
+    void Apply()  {
         for (auto &i : settingsChangedMap) {
             try {
                 i.second.settingInfo->provider->Set(i.second.prefix, i.second.id, i.second.value);

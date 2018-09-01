@@ -147,6 +147,7 @@ private:
     Array<std::string> m_ShaderName;
     Array<ShaderHandlerInterface*> m_ShaderInterface;
     ResourceManager *m_ResourceManager = nullptr;
+    const Configuration::Shader *shaderConfiguration = nullptr;
     std::unique_ptr<ShaderCodeLoader> shaderCodeLoader;
 
     ShaderResourceHandleBase LoadShader(const std::string &ShaderName, ShaderHandlerInterface *ShaderIface);
@@ -156,6 +157,8 @@ private:
     bool GenerateLoadCommand(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
     bool InitializeUniforms(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
     bool InitializeSamplers(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex);
+
+    static std::string GenerateGaussianDisc(size_t length, float baseRadius);
 }; 
 
 } //namespace MoonGlare::Renderer::Resources ::Shader

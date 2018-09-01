@@ -110,6 +110,22 @@ void Application::SaveSettings() {
     m_Flags.m_SettingsChanged = false;
 }
 
+Renderer::ContextCreationInfo Application::GetDisplaySettings() {
+    auto stt = m_World->GetSharedInterface<Settings>();
+    assert(stt);
+
+    Renderer::ContextCreationInfo cci;
+
+    stt->Get("Display.FullScreen", cci.fullScreen);
+    stt->Get("Display.Monitor", cci.monitor);
+    stt->Get("Display.Width", cci.width);
+    stt->Get("Display.Height", cci.height);
+
+    cci.visible = false;
+
+    return cci;
+}
+
 //---------------------------------------------------------------------------------------
 
 using Modules::ModulesManager;
@@ -154,13 +170,12 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_World->SetScriptEngine(scrEngine);
     _init_chk(scrEngine, "Unable to initialize script engine!");
     
-    m_Renderer = std::make_unique<Renderer::RendererFacade>();
+    m_Renderer = Renderer::iRendererFacade::CreateInstance(*m_World);
+    auto *R = (Renderer::RendererFacade*)m_Renderer.get();
 
-    m_Renderer->GetScriptApi()->Install(scrEngine->GetLua());
-    m_Renderer->SetConfiguration(m_Configuration->m_Renderer);
-    m_Configuration->m_Display.visible = false;
-    m_Renderer->Initialize(m_Configuration->m_Display, GetFileSystem());
-    m_World->SetRendererFacade(m_Renderer.get());
+    R->GetScriptApi()->Install(scrEngine->GetLua());
+    m_Renderer->Initialize(GetDisplaySettings(), GetFileSystem());
+    m_World->SetRendererFacade(R);
 
     auto datamgr = new DataManager(m_World.get());
     datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
@@ -198,7 +213,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     AddLog(Debug, "Application initialized");
 #undef _init_chk
 
-    m_Renderer->SetStopObserver([Engine]() { Engine->Exit(); });
+    R->SetStopObserver([Engine]() { Engine->Exit(); });
 
     if (!PostSystemInit()) {
         AddLogf(Error, "Post system init action failed!");
@@ -250,7 +265,8 @@ void Application::Execute() {
         });
 
         ::OrbitLogger::ThreadInfo::SetName("REND");
-        m_Renderer->EnterLoop();
+        auto *R = (Renderer::RendererFacade*)m_Renderer.get();
+        R->EnterLoop();
 
         engineThread.join();
 
@@ -304,7 +320,8 @@ void Application::Finalize() {
 }
 
 void Application::WaitForFirstScene() {
-    auto *Device = m_Renderer->GetDevice();
+    auto *R = (Renderer::RendererFacade*)m_Renderer.get();
+    auto *Device = R->GetDevice();
     auto *Ctx = m_Renderer->GetContext();
     auto *sm = m_World->GetScenesManager();
     auto *ed = m_World->GetInterface<Component::EventDispatcher>();

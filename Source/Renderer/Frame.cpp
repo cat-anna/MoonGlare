@@ -19,7 +19,7 @@ void FrameResourceStorage::Initialize(const Configuration::RuntimeConfiguration 
     PlaneShadowMap psm;
     psm.textureHandle = Device::InvalidTextureHandle;
     psm.framebufferHandle = Device::InvalidFramebufferHandle;
-    psm.size = conf->m_Shadow.GetShadowMapSize();
+    psm.size = conf->shadow.shadowMapSize;
     psm.valid = false;
     planeShadowMaps.fill(psm);
 }
@@ -60,7 +60,7 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
         q.Clear();
 
     m_FrameResourceStorage.Initialize(rfacade->GetConfiguration());
-    flags.shadowsEnabled = rfacade->GetConfiguration()->m_Shadow.m_ShadowMapSize != Configuration::Shadow::ShadowMapSize::Disable;
+    flags.shadowsEnabled = rfacade->GetConfiguration()->shadow.enableShadows;
 
     return true;
 }

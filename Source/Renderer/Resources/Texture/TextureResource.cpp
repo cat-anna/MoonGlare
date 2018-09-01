@@ -23,7 +23,7 @@ void TextureResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem
     RendererAssert(Owner);
     RendererAssert(fileSystem);
     m_ResourceManager = Owner;
-    m_Settings = &Owner->GetConfiguration()->m_Texture;
+    m_Settings = &Owner->GetConfiguration()->texture;
 
     m_GLHandle.fill(Device::InvalidTextureHandle);
     m_TextureSize.fill(emath::usvec2(0,0));

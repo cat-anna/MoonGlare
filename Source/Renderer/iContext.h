@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "iContextInputHandler.h"
 
 namespace MoonGlare::Renderer {
@@ -9,7 +11,7 @@ struct ContextCreationInfo {
     uint32_t height = 600;
     int32_t monitor = -1;
     bool fullScreen = false;
-    const char *title = "";
+    std::string title = "";
     bool visible = true;
 };
 

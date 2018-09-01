@@ -61,12 +61,13 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 	ShadowCoord = (ShadowCoord+1)/2;
 
 	float bias = 1e-5;
+	// float bias = 0.005;
 	float m = 0;
 
 	vec2 ShadowPixelSize = vec2(1.0 / ShadowMapSize[0], 1.0 / ShadowMapSize[1]);
 
-	for(int i = 0; i < DISC_SIZE; ++i) {
-		vec2 sampledelta = ShadowPixelSize * DISC[i];
+	for(int i = 0; i < GAUSSIAN_DISC_SIZE; ++i) {
+		vec2 sampledelta = ShadowPixelSize * GAUSSIAN_DISC[i];
 		vec2 samplepos = vec2(ShadowCoord) + sampledelta;
 
 	 	float s = texture(PlaneShadowMap, samplepos).z;
@@ -74,5 +75,5 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 	 		m += 1;
 	}
 
-	return 1.0f - m / float(DISC_SIZE);
+	return 1.0f - m / float(GAUSSIAN_DISC_SIZE);
 }

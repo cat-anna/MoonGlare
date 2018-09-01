@@ -264,7 +264,7 @@ bool GLFWContext::CreateWindow(ContextCreationInfo ctxifo) {
         ctxifo.height = mode->height;
     }
 
-    m_Window = glfwCreateWindow(ctxifo.width, ctxifo.height, ctxifo.title, monitor, 0);
+    m_Window = glfwCreateWindow(ctxifo.width, ctxifo.height, ctxifo.title.c_str(), monitor, 0);
     CriticalCheck(m_Window, "Unable to create new window!");
     MakeCurrent();
 
