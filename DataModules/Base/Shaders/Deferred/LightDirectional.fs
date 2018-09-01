@@ -11,5 +11,4 @@ void main() {
 	FragColor = CalcDirectionalLight(WorldPos, Normal, vec4(Color, 1));
 	FragColor.xyz = CalcStaticShadow(WorldPos, FragColor.xyz);
 	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
-	// FragColor=vec4(1);
 }

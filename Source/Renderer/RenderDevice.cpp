@@ -152,7 +152,6 @@ void RenderDevice::ProcessFrame(Frame *frame) {
     //frame->GetCommandLayers().Execute();
     cmdl.Execute();
     glFlush();
-    frame->GetFirstWindowLayer().Execute();
 
     Ctx->Flush();
 

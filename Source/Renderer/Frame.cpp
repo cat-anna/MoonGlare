@@ -52,7 +52,6 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
     m_SubQueueTable.ClearAllocation();
 
     m_CommandLayers.Clear();
-    m_WindowLayers.Clear();
 
     m_Memory.Clear();
 
@@ -77,7 +76,6 @@ void Frame::BeginFrame(uint64_t index) {
     m_SubQueueTable.ClearAllocation();
 
     m_CommandLayers.ClearAllocation();
-    m_WindowLayers.ClearAllocation();
 
     m_FrameResourceStorage.Clear();
 
@@ -93,12 +91,6 @@ bool Frame::Submit(TextureRenderTask *trt) {
     RendererAssert(trt);
     m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
     return m_QueuedTextureRender.push(trt);
-}
-
-bool Frame::Submit(SubQueue *q, ConfCtx::Window WindowLayer, Commands::CommandKey Key) {
-    RendererAssert(q);
-    m_WindowLayers[WindowLayer].PushQueue(q, Key);
-    return false;
 }
 
 bool Frame::Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key) {

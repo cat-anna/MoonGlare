@@ -288,7 +288,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
         }
     }
 
-    frame->Submit(qptr, Renderer::Configuration::Context::Window::First);
+    frame->Submit(qptr, Renderer::Configuration::FrameBuffer::Layer::PostRender);
     return true;
 }
 

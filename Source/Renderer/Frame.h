@@ -67,7 +67,6 @@ private:
 
 class alignas(16) Frame final {
     using Conf = Configuration::FrameBuffer;
-    using ConfCtx = Configuration::Context;
 public:
     using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
     using SubQueue = Commands::CommandQueue;
@@ -77,7 +76,6 @@ public:
     using ByteArray = Space::Memory::StaticMemory<T, Conf::MemorySize>;
     using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
     using CommandLayers = Commands::CommandQueueLayers<Conf::Layer>;
-    using WindowLayers = Commands::CommandQueueLayers<ConfCtx::Window>;
 
     CommandLayers& GetCommandLayers() { 
         RendererAssert(this); 
@@ -86,15 +84,6 @@ public:
     CommandLayers::Queue& GetControllCommandQueue() { 
         RendererAssert(this); 
         return m_CommandLayers.Get<Conf::Layer::Controll>(); 
-    }
-
-    WindowLayers& GetWindowLayers() { 
-        RendererAssert(this); 
-        return m_WindowLayers; 
-    }
-    WindowLayers::Queue& GetFirstWindowLayer() {
-        RendererAssert(this);
-        return m_WindowLayers.Get<ConfCtx::Window::First>();
     }
 
     TextureRenderQueue& GetTextureRenderQueue() {
@@ -118,7 +107,6 @@ public:
     void EndFrame();
 
     bool Submit(TextureRenderTask *trt);
-    bool Submit(SubQueue *q, ConfCtx::Window WindowLayer, Commands::CommandKey Key = Commands::CommandKey());
     bool Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key = Commands::CommandKey());
 
     template<typename T>
@@ -164,7 +152,6 @@ private:
     void *paddingptr;
 
     CommandLayers m_CommandLayers;
-    WindowLayers m_WindowLayers;
     SubQueueTable m_SubQueueTable;
 
     TextureRenderQueue m_QueuedTextureRender;

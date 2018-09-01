@@ -24,7 +24,7 @@ struct FrameResourceStorage {
 
 struct FrameBuffer {
     static constexpr uint32_t MemorySize = 1 * 1024 * 1024;
-    static constexpr uint32_t Count = 3;
+    static constexpr uint32_t Count = 2;
     static constexpr uint32_t SubQueueCount = 64;
 
     enum class Layer {
@@ -38,17 +38,6 @@ struct FrameBuffer {
         //Postprocess,
 
         GUI, //temporary
-
-        MaxValue,
-    };
-};
-
-struct Context {
-    enum class Window {
-        First,
-        //Second,
-        //Third,
-        //Fourth,
 
         MaxValue,
     };
