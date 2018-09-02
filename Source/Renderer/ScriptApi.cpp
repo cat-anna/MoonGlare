@@ -13,17 +13,17 @@ namespace MoonGlare::Renderer {
 
 struct ShaderApi {
     void ReloadShader(const char *name) {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Reloading shader %s", name);
         m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
     }
     void ReloadAllShaders() {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Reloading all shaders");
         m_RendererFacade->GetResourceManager()->GetShaderResource().ReloadAll();
     }
     void DumpShaders() {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Dumping all shaders");
         std::ostringstream ss;
         Space::OFmtStream fss(ss);
@@ -148,11 +148,11 @@ struct ScriptApi::ScriptApiImpl {
             m_ContextApi{ facade },
             hadleApi{ facade }
     {
-        RendererAssert(m_RendererFacade);
+        assert(m_RendererFacade);
     }
 
     void Install(lua_State *lua) {
-        RendererAssert(lua);
+        assert(lua);
 
         m_ContextApi.Install(lua);
         hadleApi.Install(lua);
@@ -190,8 +190,8 @@ ScriptApi::~ScriptApi() {
 }
 
 void ScriptApi::Install(lua_State *lua) {
-    RendererAssert(lua);
-    RendererAssert(m_Impl);
+    assert(lua);
+    assert(m_Impl);
     m_Impl->Install(lua);
 }
 

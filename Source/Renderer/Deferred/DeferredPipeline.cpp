@@ -56,6 +56,8 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
     m_ScreenSize = renderer->GetContext()->GetSizef();
     auto &shres = renderer->GetResourceManager()->GetShaderResource();
 
+    shadowMapSize = renderer->GetConfiguration()->shadow.shadowMapSize;
+
     try {
         if (!m_Buffer.Reset(m_ScreenSize))
             throw "Unable to initialize render buffers!";
@@ -444,16 +446,15 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
    //  if (delta.squaredNorm() > 100.0f)
    //      return;
 
-    PlaneShadowMap *sm = nullptr;
+    ShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
         sm = m_frame->AllocatePlaneShadowMap();
-        if (sm) {
-
+        if (sm) {  
             using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
 
             //sm->BindAndClear();
             m_SpotLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
-            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(sm->size), static_cast<int>(sm->size));
+            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(shadowMapSize), static_cast<int>(shadowMapSize));
             m_SpotLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
 
             m_ShadowShader.m_Queue = m_SpotLightShadowQueue;
@@ -514,8 +515,6 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
         m_SpotShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
         m_SpotShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 
-        if (sm)
-            m_SpotShader.Set<Uniform::ShadowMapSize>(emath::fvec2(sm->size, sm->size));
 
         m_SpotShader.Set<Uniform::LightMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
 

@@ -34,7 +34,7 @@ public:
     void ProcessPendingCtrlQueues();
 
     TextureRenderTask* AllocateTextureRenderTask() {
-        RendererAssert(this);
+        assert(this);
         return m_UnusedTextureRender.pop(nullptr);
     }
 

@@ -21,10 +21,10 @@ struct ShaderBuilder {
     using Sampler = typename Descriptor::Sampler;
 
     void SelfTest() {
-        RendererAssert(this);
-        RendererAssert(m_UniformsPtr);
-        RendererAssert(m_HandlePtr);
-        RendererAssert(m_ResourceManager);
+        assert(this);
+        assert(m_UniformsPtr);
+        assert(m_HandlePtr);
+        assert(m_ResourceManager);
     }
 
     void Bind(Commands::CommandKey key = Commands::CommandKey()) {
@@ -98,10 +98,10 @@ struct
     using Sampler = typename Descriptor::Sampler;
 
     void SelfTest() {
-        RendererAssert(this);
-        RendererAssert(m_UniformsPtr);
-        RendererAssert(m_HandlePtr);
-        RendererAssert(m_ResourceManager);
+        assert(this);
+        assert(m_UniformsPtr);
+        assert(m_HandlePtr);
+        assert(m_ResourceManager);
     }
 
     void Bind() {

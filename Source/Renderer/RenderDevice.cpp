@@ -16,7 +16,7 @@
 namespace MoonGlare::Renderer {
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
-    RendererAssert(renderer);
+    assert(renderer);
 
     m_RendererFacade = renderer;
 
@@ -104,7 +104,7 @@ void RenderDevice::Submit(Frame *frame) {
 }
 
 void RenderDevice::ReleaseFrame(Frame *frame) {
-    RendererAssert(frame);
+    assert(frame);
     
     frame->EndFrame();
 
@@ -135,7 +135,7 @@ void RenderDevice::Step() {
 }
 
 void RenderDevice::ProcessFrame(Frame *frame) {
-    RendererAssert(frame);
+    assert(frame);
 
     //frame->EndFrame();
 

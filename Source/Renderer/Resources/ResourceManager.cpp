@@ -25,8 +25,8 @@ iAsyncLoader* ResourceManager::GetLoader() {
 }
 
 bool ResourceManager::Initialize(RendererFacade *Renderer, iFileSystem *fileSystem) {
-    RendererAssert(Renderer);
-    RendererAssert(fileSystem);
+    assert(Renderer);
+    assert(fileSystem);
 
     m_RendererFacade = Renderer;
 

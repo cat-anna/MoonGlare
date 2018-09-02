@@ -12,10 +12,10 @@ struct VAOBuilder {
     using ChannelType = Conf::ChannelType;
 
     void SelfTest() {
-        RendererAssert(this);
-        RendererAssert(m_Queue);
-        RendererAssert(m_BuffersPtr);
-        RendererAssert(m_HandlePtr);
+        assert(this);
+        assert(m_Queue);
+        assert(m_BuffersPtr);
+        assert(m_HandlePtr);
     }
 
     void BindVAO(Commands::CommandKey key = {}) {

@@ -146,7 +146,7 @@ ScriptApi *RendererFacade::GetScriptApi() {
 //----------------------------------------------------------------------------------
 
 iAsyncLoader* RendererFacade::GetAsyncLoader() {
-    RendererAssert(this);
+    assert(this);
     return GetResourceManager()->GetLoader();
 }
 

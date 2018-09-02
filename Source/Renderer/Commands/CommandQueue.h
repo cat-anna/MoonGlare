@@ -31,7 +31,7 @@ public:
         Execute();
     }
     void Execute(bool Clear = true) {
-        RendererAssert(this);
+        assert(this);
         for (uint32_t it = 0; it < m_AllocatedCommands; ++it) {
             auto f = m_CommandFunctions[it];
             auto a = m_CommandArguments[it];
@@ -105,7 +105,7 @@ public:
     struct ExecuteQueueArgument {
         CommandQueue *m_Queue;
         static void Execute(const ExecuteQueueArgument *arg) {
-            RendererAssert(arg->m_Queue);
+            assert(arg->m_Queue);
             arg->m_Queue->Execute(false);
         }
     };

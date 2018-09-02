@@ -20,28 +20,28 @@
 namespace MoonGlare::Renderer {
 
 void Frame::ReleaseResource(TextureResourceHandle &texres) {
-    RendererAssert(this);
+    assert(this);
     GetResourceManager()->GetTextureResource().Release(texres);
 }
 void Frame::ReleaseResource(VAOResourceHandle &vaores) {
-    RendererAssert(this);
+    assert(this);
     GetResourceManager()->GetVAOResource().Release(this, vaores);
 }
 bool Frame::AllocateResource(TextureResourceHandle &resH) {
-    RendererAssert(this);
+    assert(this);
     return GetResourceManager()->GetTextureResource().Allocate(resH);
 }
 bool Frame::AllocateResource(VAOResourceHandle &resH) {
-    RendererAssert(this);
+    assert(this);
     return GetResourceManager()->GetVAOResource().Allocate(this, resH);
 }
 
 //----------------------------------------------------------------------------------
 
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade) {
-    RendererAssert(BufferIndex < Configuration::FrameBuffer::Count);
-    RendererAssert(device);
-    RendererAssert(rfacade);
+    assert(BufferIndex < Configuration::FrameBuffer::Count);
+    assert(device);
+    assert(rfacade);
     
     m_BufferIndex = BufferIndex;
     m_RenderDevice = device;
@@ -60,15 +60,13 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
     for (auto &q : m_SubQueueTable)
         q.Clear();
 
-    PlaneShadowMap psm;
+    ShadowMap psm;
     psm.textureHandle = Device::InvalidTextureHandle;
     psm.framebufferHandle = Device::InvalidFramebufferHandle;
-    //psm.size = conf->shadow.shadowMapSize;
-    psm.valid = false;
     planeShadowMaps.fill(psm);
 
-    flags.shadowsEnabled = rfacade->GetConfiguration()->shadow.enableShadows;
-    shadowMapSize = rfacade->GetConfiguration()->shadow.shadowMapSize;
+    configuration = rfacade->GetConfiguration();
+    flags.shadowsEnabled = configuration->shadow.enableShadows;
 
     return true;
 }
@@ -99,13 +97,13 @@ void Frame::EndFrame() {
 //----------------------------------------------------------------------------------
  
 bool Frame::Submit(TextureRenderTask *trt) {
-    RendererAssert(trt);
+    assert(trt);
     m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
     return m_QueuedTextureRender.push(trt);
 }
 
 bool Frame::Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key) {
-    RendererAssert(q);
+    assert(q);
     m_CommandLayers[Layer].PushQueue(q, Key);
     return false;
 }

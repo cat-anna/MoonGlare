@@ -346,7 +346,7 @@ emath::fvec2 GLFWContext::CursorPos() {
 
 inline GLFWContext* GetContextFromWindow(GLFWwindow* window) {
     GLFWContext *ptr = (GLFWContext*)glfwGetWindowUserPointer(window);
-    RendererAssert(ptr);
+    assert(ptr);
     return ptr;
 }
 

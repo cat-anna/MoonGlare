@@ -27,23 +27,23 @@ public:
     iAsyncLoader* GetLoader();
 
     TextureResource& GetTextureResource() {
-        RendererAssert(this); 
+        assert(this); 
         return *textureResource;
     }
     VAOResource& GetVAOResource() {
-        RendererAssert(this);
+        assert(this);
         return *vaoManager;
     }
     Shader::ShaderResource& GetShaderResource() {
-        RendererAssert(this);
+        assert(this);
         return *shaderResource;
     }
     MaterialManager& GetMaterialManager() {
-        RendererAssert(this);
+        assert(this);
         return *materialManager;
     }
     MeshManager& GetMeshManager() {
-        RendererAssert(this);
+        assert(this);
         return *meshManager;
     }
 

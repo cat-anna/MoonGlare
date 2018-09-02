@@ -3,7 +3,7 @@
 #include "Configuration.Renderer.h"
 #include "Commands/CommandQueueLayers.h"
 
-#include "Resources/PlaneShadowMap.h"
+#include "Resources/ShadowMap.h"
 
 namespace MoonGlare::Renderer {
 
@@ -21,25 +21,25 @@ public:
     using CommandLayers = Commands::CommandQueueLayers<Conf::Layer>;
 
     CommandLayers& GetCommandLayers() { 
-        RendererAssert(this); 
+        assert(this); 
         return m_CommandLayers; 
     }
     CommandLayers::Queue& GetControllCommandQueue() { 
-        RendererAssert(this); 
+        assert(this); 
         return m_CommandLayers.Get<Conf::Layer::Controll>(); 
     }
 
     TextureRenderQueue& GetTextureRenderQueue() {
-        RendererAssert(this);
+        assert(this);
         return m_QueuedTextureRender;
     }
     Allocator_t& GetMemory() {
-        RendererAssert(this);
+        assert(this);
         return m_Memory;
     }
 
     SubQueue* AllocateSubQueue() {
-        RendererAssert(this);
+        assert(this);
         auto q = m_SubQueueTable.Allocate();
         if (q)
             q->ClearAllocation();
@@ -54,7 +54,7 @@ public:
 
     template<typename T>
     bool Allocate(Frame *frame, T &resH) {
-        RendererAssert(this);
+        assert(this);
         auto &pool = GetPool(resH);
         if (pool.Allocate(resH))
             return true;
@@ -80,7 +80,7 @@ public:
         assert(this);
         return Allocate(this, resH);
     }
-    PlaneShadowMap* AllocatePlaneShadowMap() {
+    ShadowMap* AllocatePlaneShadowMap() {
         assert(this);
         if (!flags.shadowsEnabled) {
             //TODO: this is workaround, this should be done at higher level
@@ -91,8 +91,8 @@ public:
             AddLog(Warning, "Out of PlaneShadowMaps");
             return nullptr;
         }
-        if (!ptr->valid) {
-            ptr->Init(GetControllCommandQueue(), shadowMapSize);
+        if (!ptr->Valid()) {
+            ptr->InitPlane(GetControllCommandQueue(), configuration->shadow);
         }
         return ptr;
     }
@@ -105,9 +105,9 @@ public:
     Resources::ResourceManager* GetResourceManager() const { return m_ResourceManager; }
     uint64_t FrameIndex() const { return frameIndex; }
 private:
+    const Configuration::RuntimeConfiguration *configuration;
     uint64_t frameIndex;
     uint8_t m_BufferIndex;
-    uint16_t shadowMapSize = 0;
     struct {
         bool shadowsEnabled : 1;
     } flags;
@@ -121,14 +121,14 @@ private:
 
     //::Space::Container::StaticAllocationPool<TextureResourceHandle, Conf::TextureLimit> m_Textures;
     ::Space::Container::StaticAllocationPool<VAOResourceHandle, ConfRes::VAOLimit> m_VAOs;
-    ::Space::Container::StaticVector<PlaneShadowMap, ConfRes::PlaneShadowMapLimit> planeShadowMaps;
+    ::Space::Container::StaticVector<ShadowMap, ConfRes::PlaneShadowMapLimit> planeShadowMaps;
 
     Allocator_t m_Memory;
 
     //auto& GetPool(TextureResourceHandle) {
-//    RendererAssert(this);
-//    return m_Textures;
-//}
+    //    assert(this);
+    //    return m_Textures;
+    //}
     auto& GetPool(VAOResourceHandle) {
         assert(this);
         return m_VAOs;

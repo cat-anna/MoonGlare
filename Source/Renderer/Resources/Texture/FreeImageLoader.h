@@ -15,7 +15,7 @@ public:
 
     void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 
-    void LoadTexture(ResourceLoadStorage &storage, TextureResourceHandle handle, void *image, size_t datasize, Configuration::TextureLoad config = Configuration::TextureLoad::Default());
+    void LoadTexture(ResourceLoadStorage &storage, void *image, size_t datasize);
 private:
     TextureResource *owner;
     TextureResourceHandle handle;
@@ -23,7 +23,7 @@ private:
 
     using ImageUniquePtr = std::unique_ptr<void, void(*)(void*)>;
 
-    void LoadImage(ResourceLoadStorage &storage, FIBITMAP *dib, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config);
+    void LoadImage(ResourceLoadStorage &storage, FIBITMAP *dib, FREE_IMAGE_FORMAT fif);
 };
 
 } 

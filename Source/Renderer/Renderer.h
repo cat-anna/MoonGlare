@@ -31,11 +31,11 @@ public:
 //	Context* CreateContext(const ContextCreationInfo& ctxifo);
 
     RenderDevice* GetDevice() {
-        RendererAssert(this);
+        assert(this);
         return m_Device.get();
     }
     Resources::ResourceManager* GetResourceManager() {
-        RendererAssert(this);
+        assert(this);
         return m_ResourceManager.get();
     }
 

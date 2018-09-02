@@ -18,12 +18,12 @@ VAOResource::~VAOResource() {
 }
 
 bool VAOResource::Allocate(Frame *frame, VAOResourceHandle &out) {
-	RendererAssert(frame);
+	assert(frame);
 	return Allocate(frame->GetControllCommandQueue(), out);
 }
 
 void VAOResource::Release(Frame *frame, VAOResourceHandle &h) {
-	RendererAssert(frame);
+	assert(frame);
 	return Release(frame->GetControllCommandQueue(), h);
 }
 

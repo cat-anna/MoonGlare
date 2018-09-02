@@ -15,7 +15,6 @@ struct SpotLightShaderDescriptor {
         LightMatrix,
         CameraPos,
 
-        ShadowMapSize,
 
         Color,
         AmbientIntensity,
@@ -48,7 +47,6 @@ struct SpotLightShaderDescriptor {
 
         case Uniform::LightMatrix: return "LightMatrix";
 
-        case Uniform::ShadowMapSize: return "ShadowMapSize";
         case Uniform::EnableShadows: return "EnableShadowTest";
 
         case Uniform::Color: return "SpotLight.Base.Color";

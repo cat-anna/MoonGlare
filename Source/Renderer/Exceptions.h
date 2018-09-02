@@ -17,6 +17,4 @@ public:
     InitFailureException(std::string msg) : CriticalException(std::move(msg)) {}
 };
 
-#define RendererAssert(COND) assert(COND)
-
 } //namespace MoonGlare::Renderer

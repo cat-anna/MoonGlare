@@ -41,6 +41,7 @@ struct DeferredSink {
 protected:
     DeferredFrameBuffer m_Buffer;
     emath::fvec2 m_ScreenSize;
+    uint16_t shadowMapSize = 0;
 
     Commands::CommandQueue *m_GeometryQueue = nullptr;
     Commands::CommandQueue *m_LightGeometryQueue = nullptr;

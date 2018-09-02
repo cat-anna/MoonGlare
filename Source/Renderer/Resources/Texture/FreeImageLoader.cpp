@@ -7,15 +7,14 @@
 
 #include "FreeImageUtils.h"
 
-
 namespace MoonGlare::Renderer::Resources::Texture {
 
 void FreeImageLoader::OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
 
-    LoadTexture(storage, handle, filedata.get(), filedata.byte_size(), config);
+    LoadTexture(storage, filedata.get(), filedata.byte_size());
 }
 
-void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceHandle handle, void *image, size_t datasize, Configuration::TextureLoad config) {
+void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, void *image, size_t datasize) {
 
     FIMEMORY *fim = FreeImage_OpenMemory((BYTE*)image, datasize);
     FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(fim);
@@ -34,10 +33,10 @@ void FreeImageLoader::LoadTexture(ResourceLoadStorage &storage, TextureResourceH
 
     auto dibrelease = ImageUniquePtr((void*)dib, &DibDeallocator);
 
-    LoadImage(storage, dib, fif, handle, config);
+    LoadImage(storage, dib, fif);
 }
 
-void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, FREE_IMAGE_FORMAT fif, TextureResourceHandle handle, Configuration::TextureLoad config) {
+void FreeImageLoader::LoadImage(ResourceLoadStorage &storage, FIBITMAP *bitmap, FREE_IMAGE_FORMAT fif) {
     assert(bitmap);
 
     //switch (fif) {

@@ -49,7 +49,7 @@ void ShaderResource::Finalize() {
 //---------------------------------------------------------------------------------------
 
 void ShaderResource::ReloadAll() {
-    RendererAssert(this);
+    assert(this);
 
     auto loader = dynamic_cast<AsyncLoader*>(m_ResourceManager->GetLoader()); //TODO: this is ugly
     for (auto i = 0u; i < m_ShaderLoaded.size(); ++i) {
@@ -78,7 +78,7 @@ bool ShaderResource::Reload(const std::string &Name) {
 }
 
 bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, ShaderResourceHandleBase handle) {
-    RendererAssert(this);
+    assert(this);
     if (handle.m_TmpGuard != handle.GuardValue) {
         AddLogf(Error, "Invalid handle!");
         return false; 
@@ -87,7 +87,7 @@ bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocato
 }
 
 bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex) {
-    RendererAssert(this);
+    assert(this);
     if (!m_ShaderLoaded[ifindex])
         return false;
     return 
@@ -100,8 +100,8 @@ bool ShaderResource::GenerateReload(Commands::CommandQueue &queue, StackAllocato
 //---------------------------------------------------------------------------------------
 
 ShaderResourceHandleBase ShaderResource::LoadShader(const std::string & ShaderName, ShaderHandlerInterface * ShaderIface) {
-    RendererAssert(this);
-    RendererAssert(ShaderIface);
+    assert(this);
+    assert(ShaderIface);
 
     ShaderResourceHandleBase out;
 
@@ -131,7 +131,7 @@ ShaderResourceHandleBase ShaderResource::LoadShader(const std::string & ShaderNa
 //---------------------------------------------------------------------------------------
 
 bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
-    RendererAssert(this);
+    assert(this);
     auto *arg = q.PushCommand<Commands::ReleaseShaderResource>();
     arg->m_ShaderHandle = &m_ShaderHandle[ifindex];
     arg->m_ShaderName = m_ShaderName[ifindex].c_str();
@@ -139,11 +139,11 @@ bool ShaderResource::ReleaseShader(Commands::CommandQueue &q, StackAllocator& Me
 }
 
 bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAllocator& Memory, uint32_t ifindex) {
-    RendererAssert(this);
+    assert(this);
 
     ShaderCodeLoader::ShaderCode code;
     if (!shaderCodeLoader->LoadCode(m_ShaderName[ifindex], code)) {
-        RendererAssert(false);
+        assert(false);
         return false;
     }
 
@@ -198,8 +198,8 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAll
 }
 
 bool ShaderResource::InitializeUniforms(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
-    RendererAssert(this);
-    RendererAssert(m_ShaderInterface[ifindex]);
+    assert(this);
+    assert(m_ShaderInterface[ifindex]);
 
     auto iface = m_ShaderInterface[ifindex];
 
@@ -214,8 +214,8 @@ bool ShaderResource::InitializeUniforms(Commands::CommandQueue &q, StackAllocato
 }
 
 bool ShaderResource::InitializeSamplers(Commands::CommandQueue &q, StackAllocator& Memory, uint32_t ifindex) {
-    RendererAssert(this);
-    RendererAssert(m_ShaderInterface[ifindex]);
+    assert(this);
+    assert(m_ShaderInterface[ifindex]);
 
     auto iface = m_ShaderInterface[ifindex];
 

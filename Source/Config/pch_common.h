@@ -29,6 +29,7 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
+#include <cassert>
 
 #include <memory>
 #include <algorithm>
@@ -55,7 +56,6 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 #include <boost/preprocessor/seq.hpp>
 #include <boost/align.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
-
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>

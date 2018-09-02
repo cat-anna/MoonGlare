@@ -20,8 +20,8 @@
 namespace MoonGlare::Renderer::Resources {
 
 void TextureResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem) {
-    RendererAssert(Owner);
-    RendererAssert(fileSystem);
+    assert(Owner);
+    assert(fileSystem);
     m_ResourceManager = Owner;
     m_Settings = &Owner->GetConfiguration()->texture;
 

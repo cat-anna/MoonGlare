@@ -1,6 +1,5 @@
 
 uniform mat4 LightMatrix;
-uniform vec2 ShadowMapSize;
 uniform bool EnableShadowTest;
 
 //----------------------------------
@@ -64,7 +63,8 @@ float PlanarShadowTest(vec3 WorldPos, vec3 Normal) {
 	// float bias = 0.005;
 	float m = 0;
 
-	vec2 ShadowPixelSize = vec2(1.0 / ShadowMapSize[0], 1.0 / ShadowMapSize[1]);
+	ivec2 msize = textureSize(PlaneShadowMap, 0);
+	vec2 ShadowPixelSize = vec2(1.0 / msize[0], 1.0 / msize[1]);
 
 	for(int i = 0; i < GAUSSIAN_DISC_SIZE; ++i) {
 		vec2 sampledelta = ShadowPixelSize * GAUSSIAN_DISC[i];
