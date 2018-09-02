@@ -52,6 +52,7 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
     //m_Textures.ClearAllocation();
     m_VAOs.ClearAllocation();
     planeShadowMaps.ClearAllocation();
+    cubeShadowMaps.ClearAllocation();
 
     m_CommandLayers.Clear();
 
@@ -87,6 +88,7 @@ void Frame::BeginFrame(uint64_t index) {
     //m_Textures.ClearAllocation();
     m_VAOs.ClearAllocation();
     planeShadowMaps.ClearAllocation();
+    cubeShadowMaps.ClearAllocation();
 
     m_Memory.Clear();
 }

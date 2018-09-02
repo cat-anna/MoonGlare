@@ -122,7 +122,7 @@ void LightComponent::Step(const Core::MoveConfig & conf) {
             float infl = sl.GetLightInfluenceRadius(1.0f / maxScale);
 
             emath::fmat4 ViewMatrix = emath::LookAt(pos, emath::fvec3(pos - dir), emath::fvec3(0, 0, 1));// glm::lookAt(pos, pos - dir, math::vec3(0, 1, 0));
-            emath::fmat4 ProjectionMatrix = emath::Perspective(90.0f, 1.0f, 0.01f, infl + 0.1f);
+            emath::fmat4 ProjectionMatrix = emath::Perspective(90.0f, 1.0f, 0.1f, infl + 0.1f);
 
             auto scaled = tr;
             scaled.scale(infl);

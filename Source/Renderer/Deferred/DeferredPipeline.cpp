@@ -1,5 +1,7 @@
 #define NEED_VAO_BUILDER
 
+#include <Foundation/Math/Geometry.h>
+
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
@@ -71,11 +73,13 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
         throw msg;
     }
 
+    shres.Load(m_PlaneShaderShadowMapHandle, "PlaneShadowMap");
+    shres.Load(m_CubeShaderShadowMapHandle, "CubeShadowMap");
+
     shres.Load(m_ShaderGeometryHandle, "Deferred/Geometry");
-    shres.Load(m_ShaderShadowMapHandle, "ShadowMap");
+    shres.Load(m_ShaderStencilHandle, "Deferred/Stencil");
     shres.Load(m_ShaderLightDirectionalHandle, "Deferred/LightDirectional");
     shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint");
-    shres.Load(m_ShaderStencilHandle, "Deferred/Stencil");
     shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot");
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
@@ -111,6 +115,7 @@ void DeferredSink::Reset(Frame *frame) {
 
     //------------------------------------------------------------------------------------------
     m_LightGeometryQueue = frame->AllocateSubQueue();
+    m_CubeLightGeometryQueue = frame->AllocateSubQueue();
     m_GeometryQueue = frame->AllocateSubQueue();
     //&layers.Get<Configuration::FrameBuffer::Layer::DefferedGeometry>();
     m_GeometryShader = shres.GetBuilder(*m_GeometryQueue, m_ShaderGeometryHandle);
@@ -210,14 +215,27 @@ void DeferredSink::Reset(Frame *frame) {
     }
     //------------------------------------------------------------------------------------------
     {
-        m_SpotLightShadowQueue = &layers.Get<Configuration::FrameBuffer::Layer::ShadowMaps>();
-        m_ShadowShader = shres.GetBuilder(*m_SpotLightShadowQueue, m_ShaderShadowMapHandle);
-        m_ShadowShader.Bind();
+        m_SpotLightShadowQueue = &layers.Get<Configuration::FrameBuffer::Layer::PlaneShadowMaps>();
+        m_PlaneShadowShader = shres.GetBuilder(*m_SpotLightShadowQueue, m_PlaneShaderShadowMapHandle);
+        m_PlaneShadowShader.Bind();
 
         m_SpotLightShadowQueue->MakeCommand<Commands::DepthMask>((GLboolean)GL_TRUE);
         m_SpotLightShadowQueue->MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
         m_SpotLightShadowQueue->MakeCommand<Commands::Disable>((GLenum)GL_BLEND);
+        m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(shadowMapSize), static_cast<int>(shadowMapSize));
     }
+
+    {
+        m_PointLightShadowQueue = &layers.Get<Configuration::FrameBuffer::Layer::CubeShadowMaps>();
+        m_CubeShadowShader = shres.GetBuilder(*m_PointLightShadowQueue, m_CubeShaderShadowMapHandle);
+        m_CubeShadowShader.Bind();
+
+        m_PointLightShadowQueue->MakeCommand<Commands::DepthMask>((GLboolean)GL_TRUE);
+        m_PointLightShadowQueue->MakeCommand<Commands::Enable>((GLenum)GL_DEPTH_TEST);
+        m_PointLightShadowQueue->MakeCommand<Commands::Disable>((GLenum)GL_BLEND);
+        m_PointLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(shadowMapSize), static_cast<int>(shadowMapSize));
+    }
+
     {
         auto &qgeom = layers.Get<Configuration::FrameBuffer::Layer::DefferedGeometry>();
         qgeom.PushQueue(m_GeometryQueue);
@@ -268,9 +286,15 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
 
     {
         using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
-        m_ShadowShader.m_Queue = m_LightGeometryQueue;
-        m_ShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+        m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
+        m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
         m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
+    }
+    {
+        using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+        m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
+        m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+        m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
     {
         using Sampler = GeometryShaderDescriptor::Sampler;
@@ -318,6 +342,9 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
 
         auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         *larg = *garg;
+
+        auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        *larg2 = *garg;
     }
 }
 
@@ -369,7 +396,44 @@ bool DeferredSink::PointLightVisibilityTest(const emath::fvec3 &position, float 
     return true;
 }
 
-void DeferredSink::SubmitPointLight(const PointLight & linfo) {
+void DeferredSink::SubmitPointLight(const PointLight & linfo) {  
+
+    ShadowMap *sm = nullptr;
+    if (linfo.m_Base.m_Flags.m_CastShadows) {
+        sm = m_frame->AllocateCubeShadowMap();
+        if (sm) {
+            using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+
+            //sm->BindAndClear();
+            m_PointLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
+            m_PointLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
+
+            m_CubeShadowShader.m_Queue = m_PointLightShadowQueue;
+
+            std::array<emath::fmat4, 6> shadowTransforms;
+
+            emath::fmat4 shadowProj = emath::Perspective(90.0f, 1.0f, 0.1f, 100.0f);
+            auto lightPos = emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position);
+            shadowTransforms[0] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(1.0, 0.0, 0.0) ),  emath::fvec3(0.0, -1.0, 0.0));
+            shadowTransforms[1] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(-1.0, 0.0, 0.0)), emath::fvec3(0.0, -1.0, 0.0));
+            shadowTransforms[2] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 1.0, 0.0) ),  emath::fvec3(0.0, 0.0, 1.0));
+            shadowTransforms[3] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, -1.0, 0.0)), emath::fvec3(0.0, 0.0, -1.0));
+            shadowTransforms[4] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 0.0, 1.0) ),  emath::fvec3(0.0, -1.0, 0.0));
+            shadowTransforms[5] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 0.0, -1.0)), emath::fvec3(0.0, -1.0, 0.0));
+                                                   
+            m_CubeShadowShader.Set<Uniform::CameraMatrix0>(shadowTransforms[0]);
+            m_CubeShadowShader.Set<Uniform::CameraMatrix1>(shadowTransforms[1]);
+            m_CubeShadowShader.Set<Uniform::CameraMatrix2>(shadowTransforms[2]);
+            m_CubeShadowShader.Set<Uniform::CameraMatrix3>(shadowTransforms[3]);
+            m_CubeShadowShader.Set<Uniform::CameraMatrix4>(shadowTransforms[4]);
+            m_CubeShadowShader.Set<Uniform::CameraMatrix5>(shadowTransforms[5]);
+
+            m_CubeShadowShader.Set<Uniform::LightPosition>(lightPos);
+
+            m_CubeShadowShader.m_Queue->PushQueue(m_CubeLightGeometryQueue);
+        }
+    }
+
     //glDrawBuffer(GL_NONE);  //m_Buffer.BeginStencilPass();
     m_PointLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_NONE);
 
@@ -402,6 +466,12 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
     garg->m_BaseIndex = (mesh).baseIndex;
     garg->m_BaseVertex = (mesh).baseVertex;
 
+    if (sm) {
+        m_PointLightQueue->MakeCommand<Commands::TextureCubeBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::Shadow);
+    } else {
+        m_PointLightQueue->MakeCommand<Commands::TextureCubeBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::Shadow);
+    }
+
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
         m_PointLightShader.Bind();
@@ -418,7 +488,7 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
         m_PointLightShader.Set<Uniform::AmbientIntensity>(linfo.m_Base.m_AmbientIntensity);
         m_PointLightShader.Set<Uniform::DiffuseIntensity>(linfo.m_Base.m_DiffuseIntensity);
 
-        //	she.Set<Uniform::EnableShadows>(light.m_Base.m_Flags.m_CastShadows ? 1 : 0);
+        m_PointLightShader.Set<Uniform::EnableShadows>(linfo.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
         m_PointLightShader.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position));
         m_PointLightShader.Set<Uniform::Attenuation>(emath::MathCast<emath::fvec4>((math::vec4)linfo.m_Attenuation.values));
@@ -454,15 +524,11 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
 
             //sm->BindAndClear();
             m_SpotLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
-            m_SpotLightShadowQueue->MakeCommand<Commands::SetViewport>(0, 0, static_cast<int>(shadowMapSize), static_cast<int>(shadowMapSize));
             m_SpotLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
 
-            m_ShadowShader.m_Queue = m_SpotLightShadowQueue;
-            m_ShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
-            //m_SpotLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_CULL_FACE);
-            //m_SpotLightShadowQueue->MakeCommand<Commands::CullFace>((GLbitfield)(GL_FRONT));
-            m_ShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
-            //m_SpotLightQueue->MakeCommand<Commands::Disable>((GLenum)GL_CULL_FACE);
+            m_PlaneShadowShader.m_Queue = m_SpotLightShadowQueue;
+            m_PlaneShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
+            m_PlaneShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
         }
     }
 
@@ -504,9 +570,9 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
 
     //sm->BindAsTexture(SamplerIndex::PlaneShadow);
     if (sm) {
-        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::PlaneShadow);
+        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::Shadow);
     } else {
-        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::PlaneShadow);
+        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::Shadow);
     }
 
     {

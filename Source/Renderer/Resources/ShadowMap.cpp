@@ -11,14 +11,11 @@ void ShadowMap::InitPlane(Commands::CommandQueue &q, const Configuration::Shadow
     cmd->textureHandle = &textureHandle;
 }
 
-#if 0
 void ShadowMap::InitCube(Commands::CommandQueue &q, const Configuration::Shadow &conf) {
-    assert(conf);
     auto *cmd = q.PushCommand<Commands::InitCubeShadowMap>();
     cmd->size = static_cast<GLsizei>(conf.shadowMapSize);
     cmd->bufferHandle = &framebufferHandle;
     cmd->textureHandle = &textureHandle;
 }   
-#endif
 
 }

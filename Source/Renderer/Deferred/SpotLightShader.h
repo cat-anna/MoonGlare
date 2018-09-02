@@ -35,7 +35,7 @@ struct SpotLightShaderDescriptor {
         PositionMap,
         ColorMap,
         NormalMap,
-        PlaneShadowMap,
+        ShadowMap,
         MaxValue,
     };
 
@@ -67,7 +67,7 @@ struct SpotLightShaderDescriptor {
         case Sampler::PositionMap: return "gPositionMap";
         case Sampler::ColorMap: return "gColorMap";
         case Sampler::NormalMap: return "gNormalMap";
-        case Sampler::PlaneShadowMap: return "PlaneShadowMap";
+        case Sampler::ShadowMap: return "PlaneShadowMap";
         default: return nullptr;
         }
     }

@@ -14,8 +14,7 @@ struct PointLightShaderDescriptor {
         ModelMatrix,
         CameraPos,
 
-        //ShadowMapSize,
-        //EnableShadows,
+        EnableShadows,
 
         Color,
         AmbientIntensity,
@@ -33,6 +32,7 @@ struct PointLightShaderDescriptor {
         PositionMap,
         ColorMap,
         NormalMap,
+        ShadowMap,
         MaxValue,
     };
 
@@ -42,8 +42,7 @@ struct PointLightShaderDescriptor {
         case Uniform::ModelMatrix: return "ModelMatrix";
         case Uniform::CameraPos: return "CameraPos";
 
-            //case Uniform::ShadowMapSize: return "ShadowMapSize";
-            //case Uniform::EnableShadows: return "EnableShadowTest";
+        case Uniform::EnableShadows: return "EnableShadowTest";
 
         case Uniform::Color: return "PointLight.Base.Color";
         case Uniform::AmbientIntensity: return "PointLight.Base.AmbientIntensity";
@@ -61,6 +60,7 @@ struct PointLightShaderDescriptor {
         case Sampler::PositionMap: return "gPositionMap";
         case Sampler::ColorMap: return "gColorMap";
         case Sampler::NormalMap: return "gNormalMap";
+        case Sampler::ShadowMap: return "gCubeShadowMap";
         default: return nullptr;
         }
     }

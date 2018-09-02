@@ -20,6 +20,7 @@ struct FrameResourceStorage {
     static constexpr uint32_t TextureLimit = 64;
     static constexpr uint32_t VAOLimit = 64;
     static constexpr uint32_t PlaneShadowMapLimit = 64;
+    static constexpr uint32_t CubeShadowMapLimit = 64;
 };
 
 struct FrameBuffer {
@@ -30,7 +31,8 @@ struct FrameBuffer {
     enum class Layer {
         Controll,
         PreRender, //TextureRenderTask and friends
-        ShadowMaps,
+        PlaneShadowMaps,
+        CubeShadowMaps, //temporary
         //Render,
         DefferedGeometry,
         DefferedLighting,   //

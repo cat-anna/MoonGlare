@@ -1,13 +1,12 @@
 #pragma once
 
-//#include "DeferredFrameBuffer.h"
-
 #include "GeometryShader.h"
 #include "PointLightShader.h"
 #include "DirectionalLightShader.h"
 #include "SpotLightShader.h"
 #include "StencilShader.h"
 #include "../PlaneShadowMapShader.h"
+#include "../CubeShadowMapShader.h"
 #include "DeferredFrameBuffer.h"
 
 #include <Renderer/Resources/ResourceManager.h>
@@ -45,19 +44,23 @@ protected:
 
     Commands::CommandQueue *m_GeometryQueue = nullptr;
     Commands::CommandQueue *m_LightGeometryQueue = nullptr;
+    Commands::CommandQueue *m_CubeLightGeometryQueue = nullptr;
     Commands::CommandQueue *m_DirectionalLightQueue = nullptr;
     Commands::CommandQueue *m_PointLightQueue = nullptr;
+    Commands::CommandQueue *m_PointLightShadowQueue = nullptr;
     Commands::CommandQueue *m_SpotLightQueue = nullptr;
     Commands::CommandQueue *m_SpotLightShadowQueue = nullptr;
 
     Resources::Shader::ShaderBuilder<GeometryShaderDescriptor> m_GeometryShader;
-    Resources::Shader::ShaderBuilder<PlaneShadowMapShaderDescriptor> m_ShadowShader;
+    Resources::Shader::ShaderBuilder<PlaneShadowMapShaderDescriptor> m_PlaneShadowShader;
+    Resources::Shader::ShaderBuilder<CubeShadowMapShaderDescriptor> m_CubeShadowShader;
     Resources::Shader::ShaderBuilder<DirectionalLightShaderDescriptor> m_DirectionalLightShader;
     Resources::Shader::ShaderBuilder<PointLightShaderDescriptor> m_PointLightShader;
     Resources::Shader::ShaderBuilder<StencilLightShaderDescriptor> m_StencilShader;
     Resources::Shader::ShaderBuilder<SpotLightShaderDescriptor> m_SpotShader;
 
-    ShaderResourceHandle<PlaneShadowMapShaderDescriptor> m_ShaderShadowMapHandle{};
+    ShaderResourceHandle<PlaneShadowMapShaderDescriptor> m_PlaneShaderShadowMapHandle{};
+    ShaderResourceHandle<CubeShadowMapShaderDescriptor> m_CubeShaderShadowMapHandle{};
     ShaderResourceHandle<SpotLightShaderDescriptor> m_ShaderLightSpotHandle{};
     ShaderResourceHandle<PointLightShaderDescriptor> m_ShaderLightPointHandle{};
     ShaderResourceHandle<DirectionalLightShaderDescriptor> m_ShaderLightDirectionalHandle{};

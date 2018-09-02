@@ -11,7 +11,8 @@ struct SamplerIndex {
 		Position,
 		Diffuse,
 		Normal,
-		PlaneShadow,
+        Shadow,
+        //CubeShadow,
 	};
 };
 

@@ -96,6 +96,22 @@ public:
         }
         return ptr;
     }
+    ShadowMap* AllocateCubeShadowMap() {
+        assert(this);
+        if (!flags.shadowsEnabled) {
+            //TODO: this is workaround, this should be done at higher level
+            return nullptr;
+        }
+        auto *ptr = cubeShadowMaps.Allocate();
+        if (!ptr) {
+            AddLog(Warning, "Out of PlaneShadowMaps");
+            return nullptr;
+        }
+        if (!ptr->Valid()) {
+            ptr->InitCube(GetControllCommandQueue(), configuration->shadow);
+        }
+        return ptr;
+    }
 
     bool Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade);
     bool Finalize();
@@ -122,6 +138,7 @@ private:
     //::Space::Container::StaticAllocationPool<TextureResourceHandle, Conf::TextureLimit> m_Textures;
     ::Space::Container::StaticAllocationPool<VAOResourceHandle, ConfRes::VAOLimit> m_VAOs;
     ::Space::Container::StaticVector<ShadowMap, ConfRes::PlaneShadowMapLimit> planeShadowMaps;
+    ::Space::Container::StaticVector<ShadowMap, ConfRes::CubeShadowMapLimit> cubeShadowMaps;
 
     Allocator_t m_Memory;
 
