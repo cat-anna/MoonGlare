@@ -140,9 +140,9 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-        auto cnt = item.m_FrameCount;
+        emath::ivec2 cnt = {0,0};// item.m_FrameCount;
         shb.Set<Uniform::FrameCount>(emath::ivec2(cnt[0], cnt[1]), key);
-        auto uframe = item.GetFrameIndex();
+        emath::ivec2 uframe = { 0,0 };// item.GetFrameIndex();
         shb.Set<Uniform::FrameIndex>(uframe, key);
         
         Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.vaoHandle.deviceHandle);
@@ -151,7 +151,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         arg->m_NumIndices = 6;
         arg->m_IndexValueType = GL_UNSIGNED_BYTE;
         arg->m_BaseIndex = 0;
-        arg->m_BaseVertex = 0;
+        arg->m_BaseVertex = static_cast<uint32_t>(item.m_Position) * 4;
     }
 
     if (InvalidEntryCount > 0) {
@@ -250,19 +250,39 @@ bool ImageComponentEntry::Load(const std::string &fileuri, math::uvec2 FrameStri
         m_FrameSize = FrameSize;
         m_Flags.m_Map.m_Dirty = true;
 
-        std::array<glm::fvec3, 4> Vertexes = {
-            glm::fvec3(0, FrameSize[1], 0),
-            glm::fvec3(FrameSize[0], FrameSize[1], 0),
-            glm::fvec3(FrameSize[0], 0, 0),
-            glm::fvec3(0, 0, 0),
-        };
+        std::vector<glm::fvec3> Vertexes;
+        std::vector<glm::fvec2> UVs;
 
-        static const std::array<glm::fvec2, 4> UVs = {
-            glm::fvec2(0, 0),
-            glm::fvec2(1, 0),
-            glm::fvec2(1, 1),
-            glm::fvec2(0, 1),
-        };
+        unsigned FrameCount = FrameStripCount[0] * FrameStripCount[1];
+
+        Vertexes.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
+
+        math::vec2 fu = math::vec2(1.0f) / math::vec2(FrameStripCount);
+
+        for (unsigned y = 0; y < FrameStripCount[1]; ++y)
+            for (unsigned x = 0; x < FrameStripCount[0]; ++x) {
+                unsigned frame = y * FrameStripCount[0] + x;
+                if (frame > FrameCount)
+                    continue;
+
+                Vertexes.push_back(glm::fvec3(0, FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], 0, 0));
+                Vertexes.push_back(glm::fvec3(0, 0, 0));
+
+                //Graphic::NormalVector Normals;
+                float w1 = fu[0] * (float)x;
+                float h1 = fu[1] * (float)y;
+                float w2 = w1 + fu[0];
+                float h2 = h1 + fu[1];
+
+                UVs.push_back(glm::fvec2(w1, 1.0f - h2));
+                UVs.push_back(glm::fvec2(w2, 1.0f - h2));
+                UVs.push_back(glm::fvec2(w2, 1.0f - h1));
+                UVs.push_back(glm::fvec2(w1, 1.0f - h1));
+            }
 
         auto &m = storage.m_Memory.m_Allocator;
         auto &q = storage.m_Queue;
