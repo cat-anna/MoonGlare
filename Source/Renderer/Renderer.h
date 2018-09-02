@@ -56,9 +56,9 @@ private:
     Configuration::RuntimeConfiguration configuration;
 
     bool m_CanWork = false;
-    mem::aligned_ptr<RenderDevice> m_Device;
-    mem::aligned_ptr<iContext> m_Context;
-    mem::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
+    Memory::aligned_ptr<RenderDevice> m_Device;
+    Memory::aligned_ptr<iContext> m_Context;
+    Memory::aligned_ptr<Resources::ResourceManager> m_ResourceManager;
     std::unique_ptr<ScriptApi> m_ScriptApi;
 
     std::shared_ptr<Settings::iChangeCallback> settingsChangeCallback;

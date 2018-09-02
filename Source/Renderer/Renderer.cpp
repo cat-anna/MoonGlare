@@ -83,10 +83,10 @@ void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *
         throw InitFailureException("Context subsystem initialization failed!");
     }
 
-    m_Device = mem::make_aligned<RenderDevice>();
-    m_ResourceManager = mem::make_aligned<Resources::ResourceManager>();
+    m_Device = Memory::make_aligned<RenderDevice>();
+    m_ResourceManager = Memory::make_aligned<Resources::ResourceManager>();
 
-    m_Context = mem::make_aligned<Device::GLFWContext>(ctxifo);
+    m_Context = Memory::make_aligned<Device::GLFWContext>(ctxifo);
 
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");

@@ -10,7 +10,6 @@
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
 #include <Core/Scene/ScenesManager.h>
-#include <Core/Scene/ciScene.h>
 
 #include <Core/Scripts/ScriptComponent.h>
 

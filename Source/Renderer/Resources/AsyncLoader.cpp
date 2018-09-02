@@ -4,7 +4,9 @@
 #include "../Renderer.h"
 #include "../RenderDevice.h"
 
-#include "../Commands/OpenGL/TextureCommands.h"      
+#include "../Commands/OpenGL/TextureCommands.h"   
+
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 using namespace std::chrono_literals;
 

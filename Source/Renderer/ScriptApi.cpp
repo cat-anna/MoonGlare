@@ -5,7 +5,9 @@
 #include "Renderer.h"
 #include "RenderDevice.h"
 #include "Device/GLFWContext.h"
-#include "Resources/ResourceManager.h"
+#include "Resources/ResourceManager.h"     
+
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 namespace MoonGlare::Renderer {
 

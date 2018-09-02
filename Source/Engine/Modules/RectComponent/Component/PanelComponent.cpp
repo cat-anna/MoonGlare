@@ -23,6 +23,9 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/Resources/MaterialManager.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>

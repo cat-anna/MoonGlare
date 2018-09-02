@@ -5,6 +5,9 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>

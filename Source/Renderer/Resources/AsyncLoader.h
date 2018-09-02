@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Foundation/iFileSystem.h>
+
 #include "../Configuration.Renderer.h"
 
 #include "iAsyncLoader.h"

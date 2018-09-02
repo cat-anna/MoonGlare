@@ -20,6 +20,8 @@
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/Deferred/DeferredFrontend.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 namespace MoonGlare::Physics {
 

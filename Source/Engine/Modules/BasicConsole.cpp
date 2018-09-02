@@ -12,6 +12,9 @@
 #include <Source/Renderer/Frame.h>
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Source/Renderer/Commands/CommandQueue.h>
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>

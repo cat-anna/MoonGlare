@@ -23,6 +23,10 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Device/Types.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/MaterialManager.h>
 
 namespace MoonGlare {
 namespace Modules {

@@ -9,6 +9,7 @@
 
 #include "Frame.h"
 #include "Resources/ResourceManager.h"
+#include <Renderer/Resources/Texture/TextureResource.h>
 
 #include "Commands/OpenGL/FramebufferCommands.h"
 #include "Commands/OpenGL/ControllCommands.h"

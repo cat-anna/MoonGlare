@@ -45,7 +45,7 @@ public:
 
     uint64_t FrameCounter() const { return frameCouter; }
 private:
-    std::array<mem::aligned_ptr<Frame>, Conf::Count> m_Frames;
+    std::array<Memory::aligned_ptr<Frame>, Conf::Count> m_Frames;
     std::atomic<uint32_t> m_FreeFrameBuffers = 0;
     std::atomic<Frame*> m_PendingFrame = nullptr;
     std::atomic<Commands::CommitCommandQueue*> m_CommitCommandQueue = nullptr;

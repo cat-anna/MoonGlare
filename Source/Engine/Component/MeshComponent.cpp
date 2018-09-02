@@ -11,6 +11,7 @@
 #include <Renderer/Deferred/DeferredFrontend.h>
 
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/MaterialManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
 #include <Renderer/Renderer.h>
 

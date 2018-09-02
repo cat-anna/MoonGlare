@@ -1,6 +1,8 @@
 #include "ResourceManager.h"
 #include "MaterialManager.h"
 
+#include <Renderer/Resources/Texture/TextureResource.h>
+
 #include <Common.x2c.h>
 #include <Math.x2c.h>
 #include <Material.x2c.h>

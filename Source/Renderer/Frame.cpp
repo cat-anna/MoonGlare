@@ -13,30 +13,29 @@
 
 #include "TextureRenderTask.h"
 
+#include "Resources/ResourceManager.h"
+#include "Resources/Texture/TextureResource.h"
+#include "Resources/Mesh/VAOResource.h"
+
 namespace MoonGlare::Renderer {
 
-void FrameResourceStorage::Initialize(const Configuration::RuntimeConfiguration *conf) {
-    PlaneShadowMap psm;
-    psm.textureHandle = Device::InvalidTextureHandle;
-    psm.framebufferHandle = Device::InvalidFramebufferHandle;
-    psm.size = conf->shadow.shadowMapSize;
-    psm.valid = false;
-    planeShadowMaps.fill(psm);
+void Frame::ReleaseResource(TextureResourceHandle &texres) {
+    RendererAssert(this);
+    GetResourceManager()->GetTextureResource().Release(texres);
+}
+void Frame::ReleaseResource(VAOResourceHandle &vaores) {
+    RendererAssert(this);
+    GetResourceManager()->GetVAOResource().Release(this, vaores);
+}
+bool Frame::AllocateResource(TextureResourceHandle &resH) {
+    RendererAssert(this);
+    return GetResourceManager()->GetTextureResource().Allocate(resH);
+}
+bool Frame::AllocateResource(VAOResourceHandle &resH) {
+    RendererAssert(this);
+    return GetResourceManager()->GetVAOResource().Allocate(this, resH);
 }
 
-PlaneShadowMap* FrameResourceStorage::AllocPlaneShadowMap(Frame *frame) {
-    auto *ptr = planeShadowMaps.Allocate();
-    if (!ptr) {
-        AddLog(Warning, "Out of PlaneShadowMaps");
-        return nullptr;
-    }
-    if (!ptr->valid) {
-        ptr->Init(frame->GetControllCommandQueue());
-    }
-    return ptr;
-}
-
-//----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade) {
@@ -50,6 +49,9 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
 
     m_QueuedTextureRender.ClearAllocation();
     m_SubQueueTable.ClearAllocation();
+    //m_Textures.ClearAllocation();
+    m_VAOs.ClearAllocation();
+    planeShadowMaps.ClearAllocation();
 
     m_CommandLayers.Clear();
 
@@ -58,8 +60,15 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
     for (auto &q : m_SubQueueTable)
         q.Clear();
 
-    m_FrameResourceStorage.Initialize(rfacade->GetConfiguration());
+    PlaneShadowMap psm;
+    psm.textureHandle = Device::InvalidTextureHandle;
+    psm.framebufferHandle = Device::InvalidFramebufferHandle;
+    //psm.size = conf->shadow.shadowMapSize;
+    psm.valid = false;
+    planeShadowMaps.fill(psm);
+
     flags.shadowsEnabled = rfacade->GetConfiguration()->shadow.enableShadows;
+    shadowMapSize = rfacade->GetConfiguration()->shadow.shadowMapSize;
 
     return true;
 }
@@ -77,7 +86,9 @@ void Frame::BeginFrame(uint64_t index) {
 
     m_CommandLayers.ClearAllocation();
 
-    m_FrameResourceStorage.Clear();
+    //m_Textures.ClearAllocation();
+    m_VAOs.ClearAllocation();
+    planeShadowMaps.ClearAllocation();
 
     m_Memory.Clear();
 }

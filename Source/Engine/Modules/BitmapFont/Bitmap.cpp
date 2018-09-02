@@ -24,6 +24,9 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/MaterialManager.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
 
 namespace MoonGlare {
 namespace Modules {

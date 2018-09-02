@@ -12,6 +12,8 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Renderer/VirtualCamera.h>
 

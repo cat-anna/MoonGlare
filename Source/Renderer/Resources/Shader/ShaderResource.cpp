@@ -24,7 +24,7 @@ ShaderResource::ShaderResource() { }
 
 ShaderResource::~ShaderResource() { }
 
-bool ShaderResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem) {
+void ShaderResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem) {
     assert(Owner);
     assert(fileSystem);
 
@@ -41,11 +41,9 @@ bool ShaderResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem)
     for(auto &item: m_ShaderLoaded)
         item = false;
 
-    return true;
 }
 
-bool ShaderResource::Finalize() {
-    return true;
+void ShaderResource::Finalize() {
 }
 
 //---------------------------------------------------------------------------------------

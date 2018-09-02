@@ -11,6 +11,7 @@
 #include "DeferredFrameBuffer.h"
 
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/Shader/ShaderBuilder.h>
 #include <Renderer/Light.h>
 #include <Renderer/VirtualCamera.h>
 #include <Renderer/StaticFog.h>

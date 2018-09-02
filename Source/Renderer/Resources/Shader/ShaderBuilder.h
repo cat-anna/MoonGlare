@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../nfRenderer.h"
-#include "../Configuration.Renderer.h"
+#include "../../nfRenderer.h"
+#include "../../Configuration.Renderer.h"
 
-#include "../Commands/CommandQueue.h"
-#include "../Commands/OpenGL/ShaderCommands.h"
-#include "../Commands/OpenGL/TextureCommands.h"
+#include "../../Commands/CommandQueue.h"
+#include "../../Commands/OpenGL/ShaderCommands.h"
+#include "../../Commands/OpenGL/TextureCommands.h"
 
-#include "MaterialManager.h"
+#include "../MaterialManager.h"
 
 namespace MoonGlare::Renderer::Resources::Shader {
 

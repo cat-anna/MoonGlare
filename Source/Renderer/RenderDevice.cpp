@@ -43,7 +43,7 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
         auto bit = 1u << idx;
         m_FreeFrameBuffers.fetch_or(bit);
         auto &buffer = m_Frames[idx];
-        buffer = mem::make_aligned<Frame>();
+        buffer = Memory::make_aligned<Frame>();
         if (!buffer->Initialize(idx, this, renderer)) {
             AddLogf(Error, "Frame buffer initialization failed!");
             return false;

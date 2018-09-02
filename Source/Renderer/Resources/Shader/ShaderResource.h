@@ -90,8 +90,8 @@ public:
     ShaderResource();
     ~ShaderResource();
 
-    bool Initialize(ResourceManager* Owner, iFileSystem *fileSystem);
-    bool Finalize();
+    void Initialize(ResourceManager* Owner, iFileSystem *fileSystem);
+    void Finalize();
 
     template<typename Descriptor_t>
     void Load(ShaderResourceHandle<Descriptor_t> &out, const std::string &ShaderName) {
