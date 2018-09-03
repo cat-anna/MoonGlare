@@ -267,6 +267,19 @@ struct AssimpImporter
             return {};
         };
 
+        auto getVec3Prop = [](aiMaterial *mat, const char *name, math::fvec3 def = { 1,1,1, }) -> math::fvec3 {
+            try {
+                unsigned cnt = 3;
+                float v[3] = { 1,1,1 };
+                if (mat->Get(name, 0, 0, v, &cnt) == aiReturn_SUCCESS) {
+                    return math::fvec3{ v[0], v[1], v[2] };
+                }
+            }
+            catch (...) {
+            }
+            return def;
+        };
+
         auto getStringProp = [](aiMaterial *mat, const char *name) -> std::string {
             try {
                 if (aiString v;  mat->Get(name, 0, 0, v) == aiReturn_SUCCESS) {
@@ -317,13 +330,14 @@ struct AssimpImporter
             };
 
             loadMap(aiTextureType_DIFFUSE, matData.diffuseMap);
-            loadMap(aiTextureType_SPECULAR, matData.specularMap);
+            //loadMap(aiTextureType_SPECULAR, matData.specularMap);
             loadMap(aiTextureType_NORMALS, matData.normalMap);
             loadMap(aiTextureType_SHININESS, matData.shinessMap);
             
-            matData.diffuseColor = getVec4Prop(mat, "$clr.diffuse");
-            matData.specularColor = getVec4Prop(mat, "$clr.specular");
-            matData.shiness = getFloaProp(mat, "$mat.shininess", 32);
+            matData.diffuseColor = getVec3Prop(mat, "$clr.diffuse");
+            matData.specularColor = getVec3Prop(mat, "$clr.specular");
+            matData.emissiveColor = getVec3Prop(mat, "$clr.emissive", { 0,0,0, });
+            matData.shiness = getFloaProp(mat, "$mat.shininess", 32) / 128.0f;
 
             pugi::xml_document xdoc;
             x2c::Renderer::MaterialTemplate_t_Write(xdoc.append_child("Material"), matData, nullptr);

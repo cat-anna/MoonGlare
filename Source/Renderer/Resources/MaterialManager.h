@@ -40,6 +40,6 @@ private:
     iAsyncLoader *asyncLoader = nullptr;
 };
 
-static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");
+//static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");
 
 } //namespace MoonGlare::Renderer::Resources 

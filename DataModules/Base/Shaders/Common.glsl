@@ -1,12 +1,18 @@
 
 //-----------MATERIAL-----------
 
-struct Material_t {
-	float alphaThreshold;
-	vec3 backColor;
-};
+uniform sampler2D gDiffuseMap;
+uniform sampler2D gNormalMap;
+uniform sampler2D gShinessMap;
+uniform sampler2D gSpecularMap;
 
-uniform Material_t gMaterial;
+struct Material_t {
+	vec3 diffuseColor;
+	vec3 specularColor;
+	vec3 emissiveColor;
+	float shinessExponent;
+	float opacity;
+};
 
 //-----------Global-Uniforms-----------
 

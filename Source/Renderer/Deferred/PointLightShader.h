@@ -32,6 +32,7 @@ struct PointLightShaderDescriptor {
         PositionMap,
         ColorMap,
         NormalMap,
+        SpecularMap,
         ShadowMap,
         MaxValue,
     };
@@ -44,12 +45,12 @@ struct PointLightShaderDescriptor {
 
         case Uniform::EnableShadows: return "EnableShadowTest";
 
-        case Uniform::Color: return "PointLight.Base.Color";
-        case Uniform::AmbientIntensity: return "PointLight.Base.AmbientIntensity";
-        case Uniform::DiffuseIntensity: return "PointLight.Base.DiffuseIntensity";
-        case Uniform::Position: return "PointLight.Position";
+        case Uniform::Color: return "gPointLight.Base.Color";
+        case Uniform::AmbientIntensity: return "gPointLight.Base.AmbientIntensity";
+        case Uniform::DiffuseIntensity: return "gPointLight.Base.DiffuseIntensity";
+        case Uniform::Position: return "gPointLight.Position";
 
-        case Uniform::Attenuation: return "PointLight.Attenuation";
+        case Uniform::Attenuation: return "gPointLight.Attenuation";
 
         case Uniform::ScreenSize: return "ScreenSize";
         default: return nullptr;
@@ -60,6 +61,7 @@ struct PointLightShaderDescriptor {
         case Sampler::PositionMap: return "gPositionMap";
         case Sampler::ColorMap: return "gColorMap";
         case Sampler::NormalMap: return "gNormalMap";
+        case Sampler::SpecularMap: return "gSpecularMap";
         case Sampler::ShadowMap: return "gCubeShadowMap";
         default: return nullptr;
         }

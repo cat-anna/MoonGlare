@@ -73,7 +73,10 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
 
     auto &mat = materials[handle.index];
 
-    mat.diffuseColor = emath::MathCast<emath::fvec4>(matTemplate.diffuseColor);
+    mat.diffuseColor = emath::MathCast<emath::fvec3>(matTemplate.diffuseColor);
+    mat.specularColor = emath::MathCast<emath::fvec3>(matTemplate.specularColor);
+    mat.emissiveColor = emath::MathCast<emath::fvec3>(matTemplate.emissiveColor);
+    mat.shiness = matTemplate.shiness;
 
     auto loadMap = [this, &mat](Material::MapType type, const MaterialTemplate::Map &map) {
         if (!map.enabled)
@@ -99,7 +102,7 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
         if (!map.texture.empty()) {
             mat.mapEnabled[index] = true;
             auto cfg = map.cfg;
-            cfg.m_Flags.useSRGBColorSpace = type == Material::MapType::Diffuse;
+            cfg.m_Flags.useSRGBColorSpace = type == Material::MapType::Diffuse || type == Material::MapType::Specular;
             mat.mapTexture[index] = texR.LoadTexture(map.texture, cfg);
             return;
         }
@@ -107,6 +110,8 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
 
     loadMap(Material::MapType::Diffuse, matTemplate.diffuseMap);
     loadMap(Material::MapType::Normal, matTemplate.normalMap);
+    loadMap(Material::MapType::Specular, matTemplate.specularMap);
+    loadMap(Material::MapType::Shiness, matTemplate.shinessMap);
 }
  
 //---------------------------------------------------------------------------------------

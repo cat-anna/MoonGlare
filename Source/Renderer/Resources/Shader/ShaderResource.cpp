@@ -173,6 +173,7 @@ bool ShaderResource::GenerateLoadCommand(Commands::CommandQueue &queue, StackAll
         buffer += "//defines begin\n";
         buffer += fmt::format("#define {}_main main\n", shadertype.m_Name);
         buffer += fmt::format("#define shader_{}\n", shadertype.m_Name);
+        buffer += "#define SHINESS_SCALER 128.0f\n";
         buffer += "\n";
         buffer += GenerateGaussianDisc(shaderConfiguration->gaussianDiscLength, shaderConfiguration->gaussianDiscRadius);
         buffer += "\n";

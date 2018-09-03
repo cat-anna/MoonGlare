@@ -22,6 +22,8 @@ public:
 	bool Allocate(TextureResourceHandle &out);
 	void Release(TextureResourceHandle h);
 
+    TextureResourceHandle AllocExtTexture(const std::string &uri, Device::TextureHandle devTex, const emath::usvec2 &size = { 0,0 });
+
     bool LoadTexture(TextureResourceHandle &hout, const std::string &uri,
         Configuration::TextureLoad config = Configuration::TextureLoad::Default(),
         bool CanAllocate = true);

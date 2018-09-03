@@ -349,7 +349,6 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
         using namespace Renderer::Device;
 
         Renderer::MaterialTemplate matT;
-        matT.diffuseColor = { 1,1,1,1 };
         matT.diffuseMap.enabled = true;
         matT.diffuseMap.textureHandle = texR.CreateTexture(*q, (const uint8_t*)expanded_data, size, tload, PixelFormat::RGBA8, PixelFormat::RGBA8, ValueFormat::UnsignedByte);
 

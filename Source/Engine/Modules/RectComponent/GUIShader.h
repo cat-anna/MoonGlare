@@ -27,11 +27,8 @@ struct GUIShaderDescriptor {
 		Border,
 		PanelSize,
 		PanelAspect,
-        FrameCount,
-        FrameIndex,
 		MaxValue,
 
-		DiffuseColor = BaseColor,
 	};
 	enum class Sampler {
 		DiffuseMap,
@@ -47,15 +44,12 @@ struct GUIShaderDescriptor {
 		case Uniform::Border: return "gPanelBorder";
 		case Uniform::PanelSize: return "gPanelSize";
         case Uniform::PanelAspect: return "gPanelAspect";
-        case Uniform::FrameCount: return "gFrameCount";
-        case Uniform::FrameIndex: return "gFrameIndex";
-
 		default: return nullptr;
 		}
 	}
 	constexpr static const char* GetSamplerName(Sampler s) {
 		switch (s) {
-		case Sampler::DiffuseMap: return "gTexture0";
+		case Sampler::DiffuseMap: return "gDiffuseMap";
 		default: return nullptr;
 		}
 	}

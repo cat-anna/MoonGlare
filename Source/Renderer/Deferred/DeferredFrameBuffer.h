@@ -13,7 +13,8 @@ public:
         enum {
             Position	= SamplerIndex::Position,
             Diffuse		= SamplerIndex::Diffuse,
-            Normal		= SamplerIndex::Normal,
+            Normal      = SamplerIndex::Normal,
+            Specular	= SamplerIndex::Specular,
             MaxValue,
         };
     };

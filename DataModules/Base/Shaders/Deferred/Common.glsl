@@ -6,11 +6,12 @@
 
 //-----------------------------------------------
 
-uniform sampler2D gTexture0;
 uniform sampler2D gPositionMap;
 uniform sampler2D gColorMap;
-uniform sampler2D gNormalMap;
-uniform bool gUseNormalMap;
+
+//-----------------------------------------------
+
+uniform PointLight_t gPointLight;
 
 //-----------------------------------------------
 

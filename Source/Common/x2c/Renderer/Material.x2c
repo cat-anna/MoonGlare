@@ -3,6 +3,7 @@ Import "../Math.x2c"
 namespace "MoonGlare.x2c.Renderer"
 
 Use(Global.MoonGlare.x2c.Math.RGBA)
+Use(Global.MoonGlare.x2c.Math.RGB)
 
 Structure.field.prefix ""
 
@@ -35,15 +36,15 @@ Structure.import {
     description = "",
     location = "MoonGlare::Renderer::MaterialTemplate",
     fields = {
-        { name = "diffuseColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
-        { name = "specularColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
+        { name = "diffuseColor", type = Local.RGB, default = {r=1,g=1,b=1}, },
+        { name = "specularColor", type = Local.RGB, default = {r=1,g=1,b=1}, },
+        { name = "emissiveColor", type = Local.RGB, default = {r=0,g=0,b=0}, },
 
         { name = "shiness", type = Types.float, default = 32, },
-        { name = "specularIntensity", type = Types.float, default = 1, },
 
         { name = "diffuseMap", type = Local.Map, },
         { name = "normalMap", type = Local.Map, },
-        { name = "specularMap", type = Local.Map, },
         { name = "shinessMap", type = Local.Map, },
+        { name = "specularMap", type = Local.Map, },
     },
 }

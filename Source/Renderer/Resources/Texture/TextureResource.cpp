@@ -41,6 +41,25 @@ void TextureResource::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
+//#ifdef DEBUG_API
+TextureResourceHandle TextureResource::AllocExtTexture(const std::string &uri, Device::TextureHandle devTex, const emath::usvec2 &size) {
+    Bitmap::Index_t index;
+    if (m_AllocationBitmap.Allocate(index)) {
+        TextureResourceHandle out;
+        out.index = static_cast<TextureResourceHandle::Index_t>(index);
+        out.generation = generations[out.index];
+        out.deviceHandle = &m_GLHandle[out.index];
+        m_TextureSize[out.index] = size;
+        *out.deviceHandle = devTex;
+        loadedTextures[uri] = out;
+        return out;
+    } else {
+        AddLogf(Debug, "Texture allocation failed");
+        return {};
+    }
+}
+//#endif
+
 bool TextureResource::Allocate(TextureResourceHandle &out) {
     Bitmap::Index_t index;
     if (m_AllocationBitmap.Allocate(index)) {

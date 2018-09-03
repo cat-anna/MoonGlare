@@ -74,7 +74,6 @@ bool BitmapFont::DoInitialize(){
 	auto *resmgr = rf->GetResourceManager();
 
     Renderer::MaterialTemplate matT;
-    matT.diffuseColor = { 1,1,1,1 };
     matT.diffuseMap.enabled = true;
     matT.diffuseMap.texture = "file://" + fpath;
     matT.diffuseMap.cfg.m_Filtering = Renderer::Configuration::Texture::Filtering::Nearest;

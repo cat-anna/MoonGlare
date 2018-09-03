@@ -15,7 +15,11 @@ struct GeometryShaderDescriptor {
     enum class Uniform {
         CameraMatrix,
         ModelMatrix,
+
         DiffuseColor,
+        SpecularColor,
+        EmissiveColor,
+        ShinessExponent,
 
         UseNormalMap,
 
@@ -24,6 +28,8 @@ struct GeometryShaderDescriptor {
     enum class Sampler {
         DiffuseMap,
         NormalMap,
+        ShinessMap,
+        SpecularMap,
         MaxValue,
     };
 
@@ -31,15 +37,22 @@ struct GeometryShaderDescriptor {
         switch (u) {
         case Uniform::CameraMatrix: return "CameraMatrix";
         case Uniform::ModelMatrix: return "ModelMatrix";
-        case Uniform::DiffuseColor: return "gMaterial.backColor";
+
+        case Uniform::DiffuseColor: return "gMaterial.diffuseColor";
+        case Uniform::SpecularColor: return "gMaterial.specularColor";
+        case Uniform::EmissiveColor: return "gMaterial.emissiveColor";
+        case Uniform::ShinessExponent: return "gMaterial.shinessExponent";
+
         case Uniform::UseNormalMap: return "gUseNormalMap";
         default: return nullptr;
         }
     }
     constexpr static const char* GetSamplerName(Sampler s) {
         switch (s) {
-        case Sampler::DiffuseMap: return "gTexture0";
+        case Sampler::DiffuseMap: return "gDiffuseMap";
         case Sampler::NormalMap: return "gNormalMap";
+        case Sampler::ShinessMap: return "gShinessMap";
+        case Sampler::SpecularMap: return "gSpecularMap";
         default: return nullptr;
         }
     }

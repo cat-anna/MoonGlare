@@ -10,28 +10,31 @@ struct Material {
     enum class MapType : uint8_t {
         Diffuse, 
         Normal,
+        Specular,     
+        Shiness, //specular exponent
         MaxValue,
     };
 
     template<typename T>
     using Array = std::array<T, (size_t)MapType::MaxValue>;
 
-    emath::fvec4 diffuseColor;
-    //emath::fvec4 specularColor;
+    emath::fvec3 diffuseColor;
+    emath::fvec3 specularColor;
+    emath::fvec3 emissiveColor;
 
     Array<bool> mapEnabled;
     Array<TextureResourceHandle> mapTexture;
 
-    //float shines;
-    float specularIntensity;
+    float shiness;
 
 	void Reset() {
-        diffuseColor = emath::fvec4(1);
-        //specularColor = emath::fvec4(1);
-        //shines = 32;
-        specularIntensity = 1.0f;
+        diffuseColor = emath::fvec3(1);
+        specularColor = emath::fvec3(1);
+        emissiveColor = emath::fvec3(0);
 
-        //mapEnabled.fill(false);
+        shiness = 16.0f / 128.0f;
+
+        mapEnabled.fill(false);
         mapTexture.fill({});
 	}
 };
@@ -40,7 +43,7 @@ struct MaterialTemplate {
     struct Map {
         bool enabled = false;
         std::string texture;
-        TextureResourceHandle textureHandle = {};
+        TextureResourceHandle textureHandle = { 0 };
 
         Configuration::TextureLoad cfg = Configuration::TextureLoad::Default();
         Configuration::Texture::Edges &edges = cfg.m_Edges; //TODO: this is ugly workaround
@@ -49,11 +52,11 @@ struct MaterialTemplate {
         //std::variant<std::nullopt_t , std::string, TextureResourceHandle> texture;
     };
 
-    math::fvec4 diffuseColor = math::fvec4{ 1,1,1,1 };
-    math::fvec4 specularColor = math::fvec4{ 1,1,1,1 };
+    math::fvec3 diffuseColor = math::fvec3{ 1,1,1, };
+    math::fvec3 specularColor = math::fvec3{ 1,1,1, };
+    math::fvec3 emissiveColor = math::fvec3{ 0,0,0, };
 
-    float specularIntensity;
-    float shiness;
+    float shiness = 16.0f / 128.0f;
 
     Map diffuseMap;
     Map normalMap;

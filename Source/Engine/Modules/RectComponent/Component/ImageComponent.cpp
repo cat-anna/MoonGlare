@@ -92,6 +92,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
     auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
     auto shb = shres.GetBuilder(q, m_ShaderHandle);
     using Uniform = GUIShaderDescriptor::Uniform;
+    using Sampler = GUIShaderDescriptor::Sampler;
 
     shb.Bind();
     shb.Set<Uniform::CameraMatrix>(m_RectTransform->GetCamera().GetProjectionMatrix());
@@ -134,17 +135,13 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
         Renderer::Commands::CommandKey key{ rtentry->m_Z };
 
-        shb.SetMaterial(item.material, key);
+        //shb.SetMaterial(item.material, key);
 
+        shb.Set<Sampler::DiffuseMap>(item.material.deviceHandle->mapTexture[0], key);
         shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-        emath::ivec2 cnt = {0,0};// item.m_FrameCount;
-        shb.Set<Uniform::FrameCount>(emath::ivec2(cnt[0], cnt[1]), key);
-        emath::ivec2 uframe = { 0,0 };// item.GetFrameIndex();
-        shb.Set<Uniform::FrameIndex>(uframe, key);
-        
         Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.vaoHandle.deviceHandle);
 
         auto arg = Queue.PushCommand<Renderer::Commands::VAODrawTrianglesBaseVertex>(key);
@@ -217,7 +214,6 @@ bool ImageComponentEntry::Load(const std::string &fileuri, math::uvec2 FrameStri
     auto *resmgr = rf->GetResourceManager();
 
     Renderer::MaterialTemplate matT;
-    matT.diffuseColor = { 1,1,1,1 };
     matT.diffuseMap.enabled = true;
     matT.diffuseMap.texture = fileuri;
 
