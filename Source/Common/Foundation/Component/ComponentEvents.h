@@ -7,6 +7,7 @@ namespace MoonGlare::Component {
 struct ComponentCreatedEvent {
     static constexpr char* EventName = "ComponentCreated";
     static constexpr char* HandlerName = "OnComponentCreatedEvent";
+    static constexpr bool Public = false;
 
     Entity sender;
     uint32_t ccid;     //TODO
@@ -38,6 +39,7 @@ private:
 struct ComponentDestructedEvent {
     static constexpr char* EventName = "ComponentDestructed";
     static constexpr char* HandlerName = "OnComponentDestructedEvent";
+    static constexpr bool Public = false;
 
     Entity sender;
     uint32_t ccid;

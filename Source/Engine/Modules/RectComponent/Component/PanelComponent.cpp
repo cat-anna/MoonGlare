@@ -8,7 +8,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "../nfGUI.h"
 
 #include <Core/Component/SubsystemManager.h>
@@ -23,6 +23,9 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/Resources/MaterialManager.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -75,10 +78,7 @@ bool PanelComponent::Initialize() {
     }
 
     auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-    if (!shres.Load(m_ShaderHandle, "GUI")) {
-        AddLogf(Error, "Failed to load GUI shader");
-        return false;
-    }
+    shres.Load(m_ShaderHandle, "GUI");
 
     return true;
 }
@@ -129,21 +129,21 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
 
             auto size = rtentry->m_ScreenRect.GetSize();
 
-            Graphic::VertexVector Vertexes{
-                Graphic::vec3(0, size[1], 0),
-                Graphic::vec3(size[0], size[1], 0),
-                Graphic::vec3(size[0], 0, 0),
-                Graphic::vec3(0, 0, 0),
+            math::vec3 Vertexes[4] = {
+                math::vec3(0, size[1], 0),
+                math::vec3(size[0], size[1], 0),
+                math::vec3(size[0], 0, 0),
+                math::vec3(0, 0, 0),
             };
             float w1 = 0.0f;
             float h1 = 0.0f;
             float w2 = 1.0f;
             float h2 = 1.0f;
-            Graphic::TexCoordVector TexUV{
-                Graphic::vec2(w1, h1),
-                Graphic::vec2(w2, h1),
-                Graphic::vec2(w2, h2),
-                Graphic::vec2(w1, h2),
+            math::vec2 TexUV[4] = {
+                math::vec2(w1, h1),
+                math::vec2(w2, h1),
+                math::vec2(w2, h2),
+                math::vec2(w1, h2),
             };
 
             {//FIXME: transition to new api is not tested!
@@ -155,10 +155,10 @@ void PanelComponent::Step(const Core::MoveConfig & conf) {
                 vaob.BeginDataChange();
 
                 vaob.CreateChannel(ichannels::Vertex);
-                vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+                vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), 4);
 
                 vaob.CreateChannel(ichannels::Texture0);
-                vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+                vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), 4);
 
                 vaob.CreateChannel(ichannels::Index);
                 static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };

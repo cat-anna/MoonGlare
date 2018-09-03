@@ -55,7 +55,7 @@ struct GUIShaderDescriptor {
 	}
 	constexpr static const char* GetSamplerName(Sampler s) {
 		switch (s) {
-		case Sampler::DiffuseMap: return "Texture0";
+		case Sampler::DiffuseMap: return "gTexture0";
 		default: return nullptr;
 		}
 	}

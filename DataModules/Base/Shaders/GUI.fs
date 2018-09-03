@@ -10,13 +10,8 @@ vec4 ProcessBaseColor(vec4 fragment) {
 
 //---------------------------------------------------------------------------------------
 
-float ProcessTile(float pos, int TileMode, float Border, int frameCnt, int frameindex) {
+float ProcessTile(float pos, int TileMode, float Border) {
 	if(TileMode == 0) {
-		if(frameCnt != 0) {
-			float shard = 1.0f / float(frameCnt);
-			float base = shard * frameindex;
-			return base + pos * shard;
-		}
 		return pos;
 	} else {
 		float InvBorder = 1.0f / Border;
@@ -52,8 +47,9 @@ in vec2 VertexPosition;
 
 void main() {
 	vec2 tex;
-	tex.x = ProcessTile(VertexPosition.x, gTileMode.x, gPanelBorder / gPanelAspect, gFrameCount.x, gFrameIndex.x);
-	tex.y = ProcessTile(VertexPosition.y, gTileMode.y, gPanelBorder,                gFrameCount.y, gFrameCount.y - gFrameIndex.y - 1);
+	tex.x = ProcessTile(VertexPosition.x, gTileMode.x, gPanelBorder / gPanelAspect);
+	tex.y = ProcessTile(VertexPosition.y, gTileMode.y, gPanelBorder);
 
 	FragColor = ProcessBaseColor(texture2D(Texture0, tex));
+	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
 }

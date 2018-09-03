@@ -9,7 +9,7 @@
 #define NEED_VAO_BUILDER
 #define NEED_MATERIAL_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include "FreeTypeHelper.h"
 #include "TrueTypeFont.h"
@@ -23,15 +23,16 @@
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Device/Types.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/MaterialManager.h>
 
 namespace MoonGlare {
 namespace Modules {
 namespace TrueTypeFont {
     
-SPACERTTI_IMPLEMENT_STATIC_CLASS(TrueTypeFont);
-
-TrueTypeFont::TrueTypeFont(const string& Name): 
-        BaseClass(Name) {
+TrueTypeFont::TrueTypeFont(const string& Name) : iFont(Name) {
 }
 
 TrueTypeFont::~TrueTypeFont() {
@@ -40,7 +41,7 @@ TrueTypeFont::~TrueTypeFont() {
 //----------------------------------------------------------------
 
 bool TrueTypeFont::DoInitialize() {
-    if (!BaseClass::DoInitialize())
+    if (!iFont::DoInitialize())
         return false;
 
     auto meta = OpenMetaData();
@@ -89,7 +90,7 @@ bool TrueTypeFont::DoFinalize() {
     FT_Done_Face(m_FontFace);
     m_FontFace = nullptr;
     m_FontFile.reset();
-    return BaseClass::DoFinalize();
+    return iFont::DoFinalize();
 }
 
 //----------------------------------------------------------------
@@ -118,7 +119,7 @@ TrueTypeFont::FontRect TrueTypeFont::TextSize(const wstring & text, const Descri
         h = m_CacheHight;
     }
 
-    Graphic::vec3 char_scale(h / m_CacheHight);
+    math::vec3 char_scale(h / m_CacheHight);
     const wstring::value_type *cstr = text.c_str();
 //	Graphic::vec2 pos(0);
 //	float hmax = h;
@@ -169,7 +170,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
     if (text.empty())
         return true;
 
-    static const Graphic::IndexVector BaseIndex{ 0, 1, 2, 0, 2, 3, };
+    static const unsigned BaseIndex[] = { 0, 1, 2, 0, 2, 3, };
 
     Renderer::VAOResourceHandle vao{ };
     if (!frame->AllocateFrameResource(vao))
@@ -177,7 +178,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
 
     unsigned textlen = text.length();
     unsigned VerticlesCount = textlen * 4;
-    unsigned IndexesCount = textlen * BaseIndex.size();
+    unsigned IndexesCount = textlen * 6;
     emath::fvec3 *Verticles = frame->GetMemory().Allocate<emath::fvec3>(VerticlesCount);
     emath::fvec2 *TextureUV = frame->GetMemory().Allocate<emath::fvec2>(VerticlesCount);
     uint16_t *VerticleIndexes = frame->GetMemory().Allocate<uint16_t>(IndexesCount);
@@ -206,9 +207,9 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
     if (options.m_Size > 0) 
         h = options.m_Size;
 
-    Graphic::vec3 char_scale(h / m_CacheHight);
+    math::vec3 char_scale(h / m_CacheHight);
     const wstring::value_type *cstr = text.c_str();
-    Graphic::vec2 pos(0);
+    math::vec2 pos(0);
     float hmax = h;
 
     auto CurrentVertexQuad = Verticles;
@@ -257,7 +258,7 @@ bool TrueTypeFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Rendere
             auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
 
             auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
-            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.index;
+            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[0].index;
 
             auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
             arg->m_NumIndices = 6;
@@ -315,41 +316,44 @@ FontGlyph* TrueTypeFont::GetGlyph(wchar_t codepoint, Renderer::Commands::Command
     // This Reference Will Make Accessing The Bitmap Easier.
     FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
-    glyph->m_BitmapSize = Graphic::vec2(bitmap.width, bitmap.rows);
-    glyph->m_Position = Graphic::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
-    glyph->m_Advance = Graphic::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
+    glyph->m_BitmapSize = math::vec2(bitmap.width, bitmap.rows);
+    glyph->m_Position = math::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
+    glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
 
     if (q && bitmap.width > 0 && bitmap.rows > 0) {
         //translate it and upload to render device
         unsigned int width = math::next_power2(bitmap.width);
         unsigned int height = math::next_power2(bitmap.rows);
-        unsigned short *expanded_data = frame->GetMemory().Allocate<unsigned short>(width * height);
+        uint32_t *expanded_data = frame->GetMemory().Allocate<uint32_t>(width * height);
 
         for (unsigned j = 0; j < height; j++) {
             for (unsigned i = 0; i < width; i++) {
                 char value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
-                unsigned short u = value | value << 8;
+                uint32_t u = value | value << 8 | value << 16 | value << 24;
                 expanded_data[(i + j*width)] = u;
             }
         }
 
         float x = (float)bitmap.width / (float)width;
         float y = (float)bitmap.rows / (float)height;
-        glyph->m_TextureSize = Graphic::vec2(x, y);
+        glyph->m_TextureSize = math::vec2(x, y);
 
         auto *resmgr = frame->GetResourceManager();
-
-        auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(glyph->m_GlyphMaterial, true);
-        matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
+        auto &texR = resmgr->GetTextureResource();
 
         Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
         tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Linear;
         tload.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+        auto size = emath::usvec2(width, height);
 
         using namespace Renderer::Device;
 
-        auto size = emath::usvec2(width, height);
-        resmgr->GetTextureResource().SetTexturePixels(matb.m_MaterialPtr->m_DiffuseMap, *q, (const uint8_t*)expanded_data, size, tload, PixelFormat::LuminanceAlpha, true);
+        Renderer::MaterialTemplate matT;
+        matT.diffuseColor = { 1,1,1,1 };
+        matT.diffuseMap.enabled = true;
+        matT.diffuseMap.textureHandle = texR.CreateTexture(*q, (const uint8_t*)expanded_data, size, tload, PixelFormat::RGBA8, PixelFormat::RGBA8, ValueFormat::UnsignedByte);
+
+        glyph->m_GlyphMaterial = resmgr->GetMaterialManager().CreateMaterial("", matT);
 
         glyph->m_Loaded = true;
         auto faceglyph = m_FontFace->glyph;

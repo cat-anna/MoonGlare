@@ -8,9 +8,8 @@ namespace DataClasses {
 namespace Fonts {
 
 class iFont : public DataClasses::DataClass {
-	SPACERTTI_DECLARE_ABSTRACT_CLASS(iFont, DataClass);
 public:
-	iFont(const string& Name) : BaseClass(Name) { }
+	iFont(const string& Name) : DataClass(Name) { }
 
 	struct FontRect {
 		math::fvec2 m_CanvasSize;
@@ -39,7 +38,6 @@ public:
 		}
 	};
 
-	virtual DataPath GetResourceType() const override final { return DataPath::Fonts; }
 	virtual FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const = 0;
 	
 	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);

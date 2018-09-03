@@ -5,7 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "../nfGUI.h"
 
 #include <Core/Component/SubsystemManager.h>

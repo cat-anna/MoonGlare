@@ -9,7 +9,7 @@
 #define NEED_VAO_BUILDER
 #define NEED_MATERIAL_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Modules/ModuleManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Bitmap.h"
@@ -24,6 +24,9 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/MaterialManager.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
 
 namespace MoonGlare {
 namespace Modules {
@@ -32,7 +35,7 @@ namespace BitmapFont {
 struct BitmapFontModule : public MoonGlare::Modules::ModuleInfo {
 	BitmapFontModule(): BaseClass("BitmapFont") { }
 	bool Initialize() override {
-		FontClassRegister::Register<BitmapFont> ClassReg;
+		FontClassRegister::Register<BitmapFont> ClassReg("BitmapFont");
 		return true;
 	}
 };
@@ -40,10 +43,8 @@ DEFINE_MODULE(BitmapFontModule);
 
 //----------------------------------------------------------------
 
-SPACERTTI_IMPLEMENT_STATIC_CLASS(BitmapFont);
-
 BitmapFont::BitmapFont(const string& Name): 
-		BaseClass(Name) {
+    iFont(Name) {
 }
 
 BitmapFont::~BitmapFont() {
@@ -53,7 +54,7 @@ BitmapFont::~BitmapFont() {
 //----------------------------------------------------------------
 
 bool BitmapFont::DoInitialize(){
-	if (!BaseClass::DoInitialize())
+	if (!iFont::DoInitialize())
 		return false;
 
 	auto meta = OpenMetaData();
@@ -72,9 +73,13 @@ bool BitmapFont::DoInitialize(){
 	auto *rf = e->GetWorld()->GetRendererFacade();
 	auto *resmgr = rf->GetResourceManager();
 
-	auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(m_Material, true);
-	matb.SetDiffuseColor(emath::fvec4(1,1,1,1));
-	matb.SetDiffuseMap("file://" + fpath);
+    Renderer::MaterialTemplate matT;
+    matT.diffuseColor = { 1,1,1,1 };
+    matT.diffuseMap.enabled = true;
+    matT.diffuseMap.texture = "file://" + fpath;
+    matT.diffuseMap.cfg.m_Filtering = Renderer::Configuration::Texture::Filtering::Nearest;
+
+    m_Material = resmgr->GetMaterialManager().CreateMaterial(matT.diffuseMap.texture, matT);
 
 	StarVFS::ByteTable data;
 	if (!GetFileSystem()->OpenFile(root.child("BFD").text().as_string(ERROR_STR), DataPath::Fonts, data)) {
@@ -216,7 +221,7 @@ bool BitmapFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer:
 	auto *mat = resmgr->GetMaterialManager().GetMaterial(m_Material);
 
 	auto texarg = q.PushCommand<Renderer::Commands::Texture2DResourceBind>(key);
-	texarg->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->m_DiffuseMap.index;
+	texarg->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[0].index;
 		
 	auto arg = q.PushCommand<Renderer::Commands::VAODrawTriangles>(key);
 	arg->m_NumIndices = IndexesCount;

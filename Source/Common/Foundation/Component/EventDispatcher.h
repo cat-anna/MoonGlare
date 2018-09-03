@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/tti/has_member_data.hpp>
-
 #include "nfComponent.h"
 #include "Configuration.h"
 #include "EventInfo.h"    
@@ -9,11 +7,7 @@
 #include <Foundation/Memory/DynamicBuffer.h>
 
 namespace MoonGlare::Component {
-
-namespace detail {
-    BOOST_TTI_HAS_MEMBER_DATA(recipient)
-}
-
+    
 class EventScriptSink {
 public:
     //event data will be on top of the stack
@@ -73,12 +67,13 @@ public:
     void Send(const EVENT& event) {
         AddLog(Event, "Dispatching event: " << event);
         auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Configuration::MaxEventTypes);
-        eventDispatchers[classid].Dispatch(event);      
-        using Has = detail::has_member_data_recipient<EVENT, Entity>;
-        if constexpr (Has::value) {
+        assert((uint32_t)classid < Configuration::MaxEventTypes);
+        eventDispatchers[(size_t)classid].Dispatch(event);      
+        if constexpr (EventInfo<EVENT>::HasRecipient::value) {
             SendToScript(event, event.recipient);
         }
+        for (auto *disp : subDispatcher)
+            disp->Send(event);
     }
 
     template<typename EVENT>
@@ -93,12 +88,21 @@ public:
     template<typename EVENT, typename RECIVER, void(RECIVER::*HANDLER)(const EVENT&)>
     void Register(RECIVER *reciver) {
         auto classid = EventInfo<EVENT>::GetClassId();
-        assert(classid < Configuration::MaxEventTypes);
-        eventDispatchers[classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
+        assert((size_t)classid < Configuration::MaxEventTypes);
+        eventDispatchers[(size_t)classid].AddHandler<RECIVER, EVENT, HANDLER>(reciver);
     }
     template<typename EVENT, typename RECIVER>
     void Register(RECIVER *reciver) {
         return Register<EVENT, RECIVER, static_cast<void(RECIVER::*)(const EVENT&)>(&RECIVER::HandleEvent)>(reciver);
+    }
+
+    void AddSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
+        subDispatcher.insert(ed);
+    }
+    void RemoveSubDispatcher(MoonGlare::Component::EventDispatcher* ed) {
+        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
+        subDispatcher.erase(ed);
     }
 private:
     template<typename T>
@@ -129,6 +133,7 @@ private:
     lua_State *luaState;
     EventScriptSink *eventSink;
     std::recursive_mutex bufferMutex;
+    std::set<EventDispatcher*> subDispatcher;
     Memory::DynamicBuffer<Configuration::EventDispatcherQueueSize> buffer;
 };
 

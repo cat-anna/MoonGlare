@@ -20,17 +20,19 @@ struct FrameResourceStorage {
     static constexpr uint32_t TextureLimit = 64;
     static constexpr uint32_t VAOLimit = 64;
     static constexpr uint32_t PlaneShadowMapLimit = 64;
+    static constexpr uint32_t CubeShadowMapLimit = 64;
 };
 
 struct FrameBuffer {
     static constexpr uint32_t MemorySize = 1 * 1024 * 1024;
-    static constexpr uint32_t Count = 3;
+    static constexpr uint32_t Count = 2;
     static constexpr uint32_t SubQueueCount = 64;
 
     enum class Layer {
         Controll,
         PreRender, //TextureRenderTask and friends
-        ShadowMaps,
+        PlaneShadowMaps,
+        CubeShadowMaps, //temporary
         //Render,
         DefferedGeometry,
         DefferedLighting,   //
@@ -38,17 +40,6 @@ struct FrameBuffer {
         //Postprocess,
 
         GUI, //temporary
-
-        MaxValue,
-    };
-};
-
-struct Context {
-    enum class Window {
-        First,
-        //Second,
-        //Third,
-        //Fourth,
 
         MaxValue,
     };
@@ -65,7 +56,7 @@ struct CommandBucket {
 };
 
 struct CommandQueue {
-    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 128 * 1024; 
+    static constexpr uint32_t ArgumentMemoryBuffer = 1 * 1024 * 1024; 
     static constexpr uint32_t CommandLimit = 4096*4;
     static constexpr uint32_t BytesPerCommand = ArgumentMemoryBuffer / CommandLimit;
 };
@@ -141,6 +132,7 @@ struct TextureLoad {
         struct {
             bool m_Swizzle : 1;
             bool generateMipMaps : 1;
+            bool useSRGBColorSpace : 1;
         };
         uint8_t m_UIntValue;
     } m_Flags;
@@ -176,7 +168,7 @@ struct TextureRenderTask {
 
 struct VAO {
     static constexpr uint32_t VAOLimit = 1024;
-    static constexpr uint32_t MaxBuffersPerVAO = 4;
+    static constexpr uint32_t MaxBuffersPerVAO = 6;
 
     using VAOBuffers = std::array<Device::BufferHandle, MaxBuffersPerVAO>;
 
@@ -190,6 +182,7 @@ struct VAO {
         //Color, //unused
 
         Index,
+        Tangents, //TODO: in reverse order directional light is not working
 
         MaxValue,
     };
@@ -203,6 +196,14 @@ struct Shader {
     static constexpr uint32_t Limit = 32;
     static constexpr uint32_t UniformLimit = 20;
     using UniformLocations = std::array<Device::ShaderUniformHandle, UniformLimit>;
+
+    uint16_t gaussianDiscLength;
+    float gaussianDiscRadius;
+
+    void ResetToDefault() {
+        gaussianDiscLength = 32;
+        gaussianDiscRadius = 0.5f;
+    }
 };
 
 //---------------------------------------------------------------------------------------
@@ -215,47 +216,29 @@ struct Material {
 //---------------------------------------------------------------------------------------
 
 struct Shadow {
-    enum class ShadowMapSize : uint16_t {
-        Disable,
-        Low,
-        Medium,
-        High,
-        Ultra,
-
-        MaxValue,
-        Default = Medium,
-    };
-
-    std::underlying_type_t<ShadowMapSize> GetShadowMapSize() const {
-        //dumb values, they are subject to tests and changes
-        switch (m_ShadowMapSize) {
-        case ShadowMapSize::Disable: return 1;
-        case ShadowMapSize::Low: return 256;
-        case ShadowMapSize::Medium: return 512;
-        case ShadowMapSize::High: return 1024;
-        case ShadowMapSize::Ultra: return 2048;
-        default:
-            return static_cast<std::underlying_type_t<ShadowMapSize>>(m_ShadowMapSize);
-        }
-    }
-
-    ShadowMapSize m_ShadowMapSize;
+    bool enableShadows;
+    uint16_t shadowMapSize;    
 
     void ResetToDefault() {
-        m_ShadowMapSize = ShadowMapSize::Default;
-
+        enableShadows = true;
+        shadowMapSize = 1024;
     }
 };
 
 //---------------------------------------------------------------------------------------
 
 struct RuntimeConfiguration {
-    Texture m_Texture;
-    Shadow m_Shadow;
+    Texture texture;
+    Shadow shadow;
+    Shader shader;
+
+    float gammaCorrection;
 
     void ResetToDefault() {
-        m_Texture.ResetToDefault();
-        m_Shadow.ResetToDefault();
+        gammaCorrection = 2.2f;
+        texture.ResetToDefault();
+        shadow.ResetToDefault();
+        shader.ResetToDefault();
     }
 };
 

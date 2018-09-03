@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "../nfGUI.h"
 
 #define NEED_MATERIAL_BUILDER     
@@ -17,6 +17,10 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/MaterialManager.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -69,10 +73,7 @@ bool ImageComponent::Initialize() {
     }
 
     auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-    if (!shres.Load(m_ShaderHandle, "GUI")) {
-        AddLogf(Error, "Failed to load GUI shader");
-        return false;
-    }
+    shres.Load(m_ShaderHandle, "GUI");
 
     return true;
 }
@@ -139,9 +140,9 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
 
-        auto cnt = item.m_FrameCount;
+        emath::ivec2 cnt = {0,0};// item.m_FrameCount;
         shb.Set<Uniform::FrameCount>(emath::ivec2(cnt[0], cnt[1]), key);
-        auto uframe = item.GetFrameIndex();
+        emath::ivec2 uframe = { 0,0 };// item.GetFrameIndex();
         shb.Set<Uniform::FrameIndex>(uframe, key);
         
         Queue.MakeCommandKey<Renderer::Commands::VAOBindResource>(key, item.vaoHandle.deviceHandle);
@@ -150,7 +151,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
         arg->m_NumIndices = 6;
         arg->m_IndexValueType = GL_UNSIGNED_BYTE;
         arg->m_BaseIndex = 0;
-        arg->m_BaseVertex = 0;
+        arg->m_BaseVertex = static_cast<uint32_t>(item.m_Position) * 4;
     }
 
     if (InvalidEntryCount > 0) {
@@ -215,43 +216,73 @@ bool ImageComponentEntry::Load(const std::string &fileuri, math::uvec2 FrameStri
     auto *rf = e->GetWorld()->GetRendererFacade();
     auto *resmgr = rf->GetResourceManager();
 
-    auto matb = resmgr->GetMaterialManager().GetMaterialBuilder(material, true);
-    matb.SetDiffuseColor(emath::fvec4(1, 1, 1, 1));
-    matb.SetDiffuseMap(fileuri, true);
-    auto TextureSize = emath::MathCast<math::fvec2>(resmgr->GetTextureResource().GetSize(matb.m_MaterialPtr->m_DiffuseMap));
+    Renderer::MaterialTemplate matT;
+    matT.diffuseColor = { 1,1,1,1 };
+    matT.diffuseMap.enabled = true;
+    matT.diffuseMap.texture = fileuri;
 
-    math::vec2 FrameSize;
-    if (Uniform) {
-        auto screen = emath::MathCast<math::fvec2>(ScreenSize);
-        float Aspect = screen[0] / screen[1];
-        FrameSize = TextureSize;
-        FrameSize /= math::vec2(FrameStripCount);
-        FrameSize /= screen;
-        FrameSize.x *= Aspect;
-        FrameSize *= 2.0f;
-    }
-    else {
-        FrameSize = TextureSize;
-    }
-    m_FrameSize = FrameSize;
+    material = resmgr->GetMaterialManager().CreateMaterial(matT.diffuseMap.texture, matT);
+
+    auto matH = material;
 
     //FIXME: ugly!
     rf->GetAsyncLoader()->QueueTask(std::make_shared<Renderer::FunctionalAsyncTask>(
-        [this, rf, FrameSize](Renderer::ResourceLoadStorage &storage) {
+        [this, rf, Uniform, matH, ScreenSize, FrameStripCount](Renderer::ResourceLoadStorage &storage) {
 
-        std::array<glm::fvec3, 4> Vertexes = {
-            glm::fvec3(0, FrameSize[1], 0),
-            glm::fvec3(FrameSize[0], FrameSize[1], 0),
-            glm::fvec3(FrameSize[0], 0, 0),
-            glm::fvec3(0, 0, 0),
-        };
+        auto *matPtr = rf->GetResourceManager()->GetMaterialManager().GetMaterial(matH);
 
-        static const std::array<glm::fvec2, 4> UVs = {
-            glm::fvec2(0, 0),
-            glm::fvec2(1, 0),
-            glm::fvec2(1, 1),
-            glm::fvec2(0, 1),
-        };
+        auto TextureSize = emath::MathCast<math::fvec2>(rf->GetResourceManager()->GetTextureResource().GetSize(matPtr->mapTexture[0]));
+        if (TextureSize[0] <= 0 || TextureSize[1] <= 0)
+            throw Renderer::FunctionalAsyncTask::RetryLater{}; //TODO: this may be infinite if texture is invalid
+
+        math::vec2 FrameSize;
+        if (Uniform) {
+            auto screen = emath::MathCast<math::fvec2>(ScreenSize);
+            float Aspect = screen[0] / screen[1];
+            FrameSize = TextureSize;
+            FrameSize /= math::vec2(FrameStripCount);
+            FrameSize /= screen;
+            FrameSize.x *= Aspect;
+            FrameSize *= 2.0f;
+        } else {
+            FrameSize = TextureSize;
+        }
+        m_FrameSize = FrameSize;
+        m_Flags.m_Map.m_Dirty = true;
+
+        std::vector<glm::fvec3> Vertexes;
+        std::vector<glm::fvec2> UVs;
+
+        unsigned FrameCount = FrameStripCount[0] * FrameStripCount[1];
+
+        Vertexes.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
+        UVs.reserve(FrameCount * 4);
+
+        math::vec2 fu = math::vec2(1.0f) / math::vec2(FrameStripCount);
+
+        for (unsigned y = 0; y < FrameStripCount[1]; ++y)
+            for (unsigned x = 0; x < FrameStripCount[0]; ++x) {
+                unsigned frame = y * FrameStripCount[0] + x;
+                if (frame > FrameCount)
+                    continue;
+
+                Vertexes.push_back(glm::fvec3(0, FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], FrameSize[1], 0));
+                Vertexes.push_back(glm::fvec3(FrameSize[0], 0, 0));
+                Vertexes.push_back(glm::fvec3(0, 0, 0));
+
+                //Graphic::NormalVector Normals;
+                float w1 = fu[0] * (float)x;
+                float h1 = fu[1] * (float)y;
+                float w2 = w1 + fu[0];
+                float h2 = h1 + fu[1];
+
+                UVs.push_back(glm::fvec2(w1, 1.0f - h2));
+                UVs.push_back(glm::fvec2(w2, 1.0f - h2));
+                UVs.push_back(glm::fvec2(w2, 1.0f - h1));
+                UVs.push_back(glm::fvec2(w1, 1.0f - h1));
+            }
 
         auto &m = storage.m_Memory.m_Allocator;
         auto &q = storage.m_Queue;

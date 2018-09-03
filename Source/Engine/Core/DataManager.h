@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "../DataClasses/nDataClasses.h"
+
 namespace MoonGlare::Resources { class StringTables; }
 
 namespace MoonGlare {
@@ -63,10 +65,12 @@ private:
     std::mutex m_Mutex;
 };
 
-class Manager : public cRootClass {
+class Manager {
     friend class DataManagerDebugScritpApi;
-    SPACERTTI_DECLARE_CLASS_SINGLETON(Manager, cRootClass)
 public:
+    static Manager *s_instance;
+    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }
+
     Manager(World *world);
     virtual ~Manager();
 
@@ -92,6 +96,6 @@ private:
 } // namespace Data
 } // namespace Core 
 
-inline MoonGlare::Core::Data::Manager* GetDataMgr() { return MoonGlare::Core::Data::Manager::Instance(); }
+inline MoonGlare::Core::Data::Manager* GetDataMgr() { return MoonGlare::Core::Data::Manager::s_instance; }
 
 } // namespace MoonGlare 

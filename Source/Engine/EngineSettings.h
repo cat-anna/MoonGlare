@@ -1,17 +1,7 @@
 #pragma once
 
-enum class SettingsGroup {
-    None,
-    Sound,
-    Sound_Volume,
-//Nongroups
-    Debug,
-    Modules,
-};
-
 class Settings_t {
 public:
-
     enum {
         JobQueueThreads			= 2,
     };

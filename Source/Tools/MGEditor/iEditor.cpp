@@ -52,14 +52,16 @@ std::vector<EditorProvider::EditorActionInfo> EditorProvider::GetOpenMethods(std
 
 const EditorProvider::EditorActionInfo EditorProvider::FindOpenEditor(std::string ext) {
     ext = ToLower(ext);
-    if (ext.front() == '.')
-        ext = ext.substr(1);
+    if (!ext.empty()) {
+        if (ext.front() == '.')
+            ext = ext.substr(1);
 
-    for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
-        for (auto &method : item.m_Interface->GetOpenFileMethods())
-            if (ToLower(method.m_Ext) == ext) {
-                return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
-            }
+        for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
+            for (auto &method : item.m_Interface->GetOpenFileMethods())
+                if (ToLower(method.m_Ext) == ext) {
+                    return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
+                }
+    }
     throw EditorNotFoundException();
 }
 

@@ -4,7 +4,7 @@
 #include <OrbitLogger/src/sink/FileSink.h>
 #include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "GameApplication.h"
 
 #include <Windows.h>

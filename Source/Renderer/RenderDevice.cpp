@@ -16,7 +16,7 @@
 namespace MoonGlare::Renderer {
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
-    RendererAssert(renderer);
+    assert(renderer);
 
     m_RendererFacade = renderer;
 
@@ -31,7 +31,8 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_2D);
-    //glDisable(GL_FRAMEBUFFER_SRGB);
+    //glEnable(GL_FRAMEBUFFER_SRGB);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //initialize default texture
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -42,7 +43,7 @@ bool RenderDevice::Initialize(RendererFacade *renderer) {
         auto bit = 1u << idx;
         m_FreeFrameBuffers.fetch_or(bit);
         auto &buffer = m_Frames[idx];
-        buffer = mem::make_aligned<Frame>();
+        buffer = Memory::make_aligned<Frame>();
         if (!buffer->Initialize(idx, this, renderer)) {
             AddLogf(Error, "Frame buffer initialization failed!");
             return false;
@@ -91,6 +92,9 @@ Frame* RenderDevice::NextFrame() {
 }
 
 void RenderDevice::Submit(Frame *frame) {
+    while (m_PendingFrame.load() != nullptr)
+        std::this_thread::yield();
+
     auto prevframe = m_PendingFrame.exchange(frame);
     if (prevframe) {
         auto bit = 1 << prevframe->Index();
@@ -100,7 +104,7 @@ void RenderDevice::Submit(Frame *frame) {
 }
 
 void RenderDevice::ReleaseFrame(Frame *frame) {
-    RendererAssert(frame);
+    assert(frame);
     
     frame->EndFrame();
 
@@ -120,6 +124,8 @@ Frame *RenderDevice::PendingFrame() {
 //----------------------------------------------------------------------------------
 
 void RenderDevice::Step() {
+    ProcessPendingCtrlQueues();
+
     auto frame = PendingFrame();
     if (!frame)
         return;
@@ -129,11 +135,25 @@ void RenderDevice::Step() {
 }
 
 void RenderDevice::ProcessFrame(Frame *frame) {
-    RendererAssert(frame);
+    assert(frame);
 
-    ProcessPendingCtrlQueues();
-    frame->GetCommandLayers().Execute();
-    frame->EndFrame();
+    //frame->EndFrame();
+
+    using Layer = Renderer::Frame::CommandLayers::LayerEnum;
+
+    auto &cmdl = frame->GetCommandLayers();
+    cmdl.Get<Layer::GUI>().Sort();
+
+    auto Ctx = m_RendererFacade->GetContext();
+
+    Ctx->Process();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glFlush();
+    //frame->GetCommandLayers().Execute();
+    cmdl.Execute();
+    glFlush();
+
+    Ctx->Flush();
 
     IncrementPerformanceCounter(FramesProcessed);
 }

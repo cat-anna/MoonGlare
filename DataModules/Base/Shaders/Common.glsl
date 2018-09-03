@@ -2,11 +2,11 @@
 //-----------MATERIAL-----------
 
 struct Material_t {
-	float AlphaThreshold;
-	vec3 BackColor;
+	float alphaThreshold;
+	vec3 backColor;
 };
 
-uniform Material_t Material;
+uniform Material_t gMaterial;
 
 //-----------Global-Uniforms-----------
 

@@ -9,9 +9,13 @@ namespace Scripts {
 
 using namespace MoonGlare::Scripts;
 
-class ScriptEngine final : public cRootClass {
-    SPACERTTI_DECLARE_CLASS_SINGLETON(ScriptEngine, cRootClass);
+class ScriptEngine final {
+    using ThisClass = ScriptEngine;
 public:
+    static ScriptEngine* s_instance;
+    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }
+
+
     ScriptEngine(World *world);
     virtual ~ScriptEngine();
 
@@ -89,7 +93,7 @@ protected:
 
 } //namespace Scripts
 
-inline Scripts::ScriptEngine* GetScriptEngine() { return Scripts::ScriptEngine::Instance(); }
+inline Scripts::ScriptEngine* GetScriptEngine() { return Scripts::ScriptEngine::s_instance; }
 
 } //namespace Core
 } //namespace MoonGlare

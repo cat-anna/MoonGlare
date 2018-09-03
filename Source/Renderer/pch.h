@@ -1,5 +1,4 @@
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 #pragma warning ( disable: 4005 )
 #pragma warning ( disable: 4800 )
 #pragma warning ( disable: 4100 )
@@ -27,10 +26,6 @@ using std::string;
 using wstring = std::wstring;//u16string
 
 #pragma warning ( push, 0 )
-
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>    
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -61,6 +56,4 @@ using namespace Space::Utils::HashLiterals;
 #include <Foundation/PerfCounters.h>
 #include <Foundation/xMath.h>
 
-#pragma warning (error: 4324)
-
-#endif
+//#pragma warning (error: 4324) // structure was padded due to alignment specifier

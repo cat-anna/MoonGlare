@@ -3,6 +3,8 @@
 #include <pugixml.hpp>
 #include <boost/noncopyable.hpp>
 
+#include <Foundation/TimeUtils.h>
+
 #include "../InterfaceMap.h"
 #include "Entity.h"
 #include "nfComponent.h"
@@ -10,8 +12,28 @@
 namespace MoonGlare::Component {
 
 struct SubsystemUpdateData {
-    double timeDelta = 0.0f;
-    double globalTime = 0.0f;
+    using TimePoint = std::chrono::steady_clock::time_point;
+
+    double timeDelta = 0.0;
+    double globalTime = 0.0;
+    double localTime = 0.0;
+
+    TimePoint globalTimeStart;
+    TimePoint currentTime;
+    TimePoint localTimeStart;
+    double localTimeBase = 0.0;
+
+    void UpdateTime(TimePoint point) {
+        timeDelta = TimeDiff(currentTime, point);
+        globalTime = TimeDiff(globalTimeStart, point);
+        localTime = TimeDiff(localTimeStart, point) + localTimeBase;
+        currentTime = point;
+    }
+    void ResetTime(TimePoint point) {
+        currentTime = point;
+        globalTimeStart = point;
+        localTimeStart = point;
+    }
 };
 
 class iSubsystemManager : private boost::noncopyable {

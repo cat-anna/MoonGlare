@@ -5,7 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include <Engine/Modules/ModuleManager.h>
 #include "FreeTypeHelper.h"
@@ -33,7 +33,7 @@ struct TrueTypeFontModule : public MoonGlare::Modules::ModuleInfo {
 		FT_Library_Version(ftlib, &major, &minor, &patch);
 
 		AddLogf(System, "FreeType version: %d.%d.%d", major, minor, patch);
-		FontClassRegister::Register<TrueTypeFont> ClassReg;
+		FontClassRegister::Register<TrueTypeFont> ClassReg("TrueTypeFont");
 
 		return true;
 	}

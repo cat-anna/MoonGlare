@@ -18,23 +18,6 @@ struct Mesh {
 
     static constexpr uint32_t ChannelCount = static_cast<uint32_t>(Channel::MaxValue);
     using VAOBuffers = std::array<Device::BufferHandle, ChannelCount>;
-
-    static constexpr uint32_t SubMeshLimit = 8;
-
-    struct alignas(16) SubMesh { //subject of change
-        bool valid;
-        uint8_t __padding[3];
-
-        uint16_t elementMode; //TODO: is this needed, is GL_TRIANGLES required? (no?)
-        uint16_t indexElementType;
-
-        uint16_t baseVertex;
-        uint16_t baseIndex;
-
-        uint32_t numIndices;
-    };
-    static_assert(sizeof(SubMesh) == 16);
-
 };
 
 } //namespace MoonGlare::Renderer::Configuration

@@ -1,5 +1,7 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
+
+#include <Foundation/GLFWKeyMapping.h>
 
 #include "InputProcessor.h"
 #include "InputProcessor.Events.h"
@@ -8,7 +10,6 @@
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
 #include <Core/Scene/ScenesManager.h>
-#include <Core/Scene/ciScene.h>
 
 #include <Core/Scripts/ScriptComponent.h>
 
@@ -170,16 +171,16 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
     if (m_CharMode == CharMode::None || !Pressed)
         return;
 
-    if (m_CharMode == CharMode::ScriptChar) {
-        auto scene = m_World->GetScenesManager()->CurrentScene();
-        auto &cm = scene->GetSubsystemManager();
-        auto &ed = cm.GetEventDispatcher();
-        ed.Send(InputProcessorOnCharEvent{ m_CharReciver, (int)key } );
-        return;
-    }
+    //if (m_CharMode == CharMode::ScriptChar) {
+    //    auto scene = m_World->GetScenesManager()->CurrentScene();
+    //    auto &cm = scene->GetSubsystemManager();
+    //    auto &ed = cm.GetEventDispatcher();
+    //    ed.Send(InputProcessorOnCharEvent{ m_CharReciver, (int)key } );
+    //    return;
+    //}
 
     if (m_ConsoleActive && m_Console) {
-        using Key = ::Graphic::WindowInput::Key;
+        using Key = KeyMapping;
         Key k = (Key) key;
         if (k == Key::Escape) {
             ProcessConsoleActivateKey();
@@ -199,16 +200,16 @@ bool InputProcessor::Step(const Core::MoveConfig & config) {
 //---------------------------------------------------------------------------------------
 
 void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
-    if (m_CharMode == CharMode::ScriptKey) {
-        if (Pressed) {
-            m_CharMode = CharMode::None;
-            auto scene = m_World->GetScenesManager()->CurrentScene();
-            auto &cm = scene->GetSubsystemManager();
-            auto &ed = cm.GetEventDispatcher();
-            ed.Send(InputProcessorOnKeyEvent{ m_CharReciver, (int)KeyCode } );
-        }
-        return;
-    }
+    //if (m_CharMode == CharMode::ScriptKey) {
+    //    if (Pressed) {
+    //        m_CharMode = CharMode::None;
+    //        auto scene = m_World->GetScenesManager()->CurrentScene();
+    //        auto &cm = scene->GetSubsystemManager();
+    //        auto &ed = cm.GetEventDispatcher();
+    //        ed.Send(InputProcessorOnKeyEvent{ m_CharReciver, (int)KeyCode } );
+    //    }
+    //    return;
+    //}
     switch (KeyCode) {
     case Configuration::Console::ActivateKey:
         if (Pressed || ProcessConsoleActivateKey())

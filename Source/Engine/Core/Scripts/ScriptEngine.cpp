@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
 
 #include <Foundation/Scripts/ErrorHandling.h>
@@ -12,8 +12,10 @@
 #include "ScriptObject.h"
 
 #include <Foundation/Scripts/Modules/LuaFilesystem.h>
-#include <Foundation/Scripts/Modules/StaticStorage.h>
+#include <Foundation/Scripts/Modules/LuaStaticStorage.h>
 #include <Foundation/Scripts/Modules/LuaRequire.h>
+#include <Foundation/Scripts/Modules/LuaEvents.h>
+#include <Foundation/Scripts/Modules/LuaTime.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
@@ -23,16 +25,16 @@ namespace Core {
 namespace Scripts {
 using namespace MoonGlare::Scripts;
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ScriptEngine)
-RegisterApiInstance(ScriptEngine, &ScriptEngine::Instance, "ScriptEngine");
-RegisterApiDerivedClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
+ScriptEngine* ScriptEngine::s_instance = nullptr;
+
+RegisterApiBaseClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
 
 ScriptEngine::ScriptEngine(World *world) :
-        cRootClass(),
         m_CurrentGCStep(1),
         m_CurrentGCRiseCounter(0),
         m_LastMemUsage(0) {
-    SetThisAsInstance();
+
+    s_instance = this;
 
     assert(world);
     m_world = world;
@@ -51,7 +53,7 @@ ScriptEngine::~ScriptEngine() { }
 
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
     root
-    .deriveClass<ThisClass, BaseClass>("ScriptEngine")
+    .beginClass<ThisClass>("ScriptEngine")
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("CollectGarbage", &ThisClass::CollectGarbage)
         .addFunction("PrintMemoryUsage", &ThisClass::PrintMemoryUsage)
@@ -131,18 +133,24 @@ bool ScriptEngine::ConstructLuaContext() {
         using namespace MoonGlare::Scripts::Modules;
         using namespace MoonGlare::Core::Scripts::Modules;
 
+        ApiInit::Initialize(this);
+
+        lua_pushnil(m_Lua);
+        lua_setglobal(m_Lua, "api");
+
         InstallStaticModules(m_Lua);
 
         StaticModules::InitStrings(m_Lua, m_world);
         StaticModules::InitApplication(m_Lua, m_world);
         StaticModules::InitPrint(m_Lua, m_world);
-        StaticModules::InitTime(m_Lua, m_world);
         StaticModules::InitThread(m_Lua, m_world);
 
         InstallModule<LuaRequireModule, iRequireModule>();
         InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
-        InstallModule<StaticStorageModule>();
+        InstallModule<LuaStaticStorageModule>();
         InstallModule<LuaFileSystemModule>();
+        InstallModule<LuaEventsModule>();
+        InstallModule<LuaTimeModule>();
         InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {
@@ -150,7 +158,6 @@ bool ScriptEngine::ConstructLuaContext() {
         return false;
     }
 
-    ApiInit::Initialize(this);
 
     lua_gc(m_Lua, LUA_GCCOLLECT, 0);
     lua_gc(m_Lua, LUA_GCSTOP, 0);

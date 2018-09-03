@@ -5,7 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Modules/iModule.h>
 #include <Foundation/MoonGlareInsider.h>
 #include <Core/Scripts/ScriptEngine.h>

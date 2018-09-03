@@ -6,10 +6,11 @@
 
 //-----------------------------------------------
 
-uniform sampler2D Texture0;
-uniform sampler2D PositionMap;
-uniform sampler2D ColorMap;
-uniform sampler2D NormalMap;
+uniform sampler2D gTexture0;
+uniform sampler2D gPositionMap;
+uniform sampler2D gColorMap;
+uniform sampler2D gNormalMap;
+uniform bool gUseNormalMap;
 
 //-----------------------------------------------
 

@@ -116,7 +116,7 @@ int GameObject::GetComponent(lua_State * lua) {
 
     int r = ssptr->PushToLua(lua, owner);
     //TODO: if (r==0) raise error . Can be done when scriptComponent->lua_GetComponentInfo is no more 
-    if (r > 0)
+    if (r > 0 || ssid == SubSystemId::Script)
         return check.ReturnArgs(r);
 
     return check.ReturnArgs(scriptComponent->lua_GetComponentInfo(lua, ssid, owner));

@@ -2,7 +2,7 @@
 require "premake-qt/qt"
 local qt = premake.extensions.qt
 
-group "Tools"
+group ""
 project "MGEditor"
 
     qt.enable()

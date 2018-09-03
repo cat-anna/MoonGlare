@@ -7,7 +7,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "DebugDrawer.h"
 
@@ -19,7 +19,9 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
-#include <Engine/Renderer/Dereferred/DereferredPipeline.h>
+#include <Renderer/Deferred/DeferredFrontend.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 namespace MoonGlare::Physics {
 
@@ -73,10 +75,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
         m_LinePointsColors.clear();
 
         auto &shres = frame->GetResourceManager()->GetShaderResource();
-        if (!shres.Load<BtDebugDrawShaderDescriptor>(shaderHandle, "btDebugDraw")) {
-            AddLogf(Error, "Failed to load GUI shader");
-            return;
-        }
+        shaderHandle = shres.Load<BtDebugDrawShaderDescriptor>("btDebugDraw");
 
         ready = true;
         return;
@@ -98,7 +97,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
 
     shb.Bind();
     using Uniform = BtDebugDrawShaderDescriptor::Uniform;
-    shb.Set<Uniform::CameraMatrix>(conf.deferredSink->m_Camera.GetProjectionMatrix());
+    shb.Set<Uniform::CameraMatrix>(conf.deffered->camera->GetProjectionMatrix());
 
     auto &m = frame->GetMemory();
     using ichannels = Renderer::Configuration::VAO::InputChannels;

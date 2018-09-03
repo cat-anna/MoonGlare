@@ -24,8 +24,8 @@ struct TextureLoadCommandArgument {
     Configuration::TextureLoad m_Configuration;
 
     void Run() {
-        RendererAssert(m_TextureHandle);
-        RendererAssert(*m_TextureHandle != 0);
+        assert(m_TextureHandle);
+        assert(*m_TextureHandle != 0);
 
         glBindTexture(GL_TEXTURE_2D, *m_TextureHandle);
         auto bpp = static_cast<unsigned>(m_PixelFormat);

@@ -595,11 +595,11 @@ private:
         return *this;
     }
 
-    template<typename T>
-    Class <T>& addStaticInteger(char const* name, T value)
+    template<typename IntT>
+    Class <T>& addStaticInteger(char const* name, IntT value)
     {
-        static_assert(std::is_enum_v<T> || std::is_integral_v<T>);
-        static_assert(sizeof(T) <= sizeof(int));
+        static_assert(std::is_enum_v<IntT> || std::is_integral_v<IntT>);
+        static_assert(sizeof(IntT) <= sizeof(int));
         rawgetfield(L, -2, "__propget");
         rawgetfield(L, -4, "__propget");
         lua_pushinteger(L, static_cast<int>(value));

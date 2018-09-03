@@ -19,10 +19,10 @@ public:
 		struct Function { Function(const char* where = "api") { RegisterApi(func, 0, 0, where); } };
 
 		template <class T, void(*func)(ApiInitializer&)>
-		struct Base { Base(const char* where = "api") { RegisterApi(func, T::GetStaticTypeInfo(), nullptr, where); } };
+		struct Base { Base(const char* where = "api") { RegisterApi(func, nullptr, nullptr, where); } };
 
 		template <class T, class B, void(*func)(ApiInitializer&)>
-		struct Derived { Derived(const char* where = "api") { RegisterApi(func, T::GetStaticTypeInfo(), B::GetStaticTypeInfo(), where); } };
+		struct Derived { Derived(const char* where = "api") { RegisterApi(func, nullptr, nullptr, where); } };
 	};
 private:
 };
@@ -69,8 +69,8 @@ private:
 		} \
 	private:\
 		static void DoReg(::ApiInitializer &api) {\
-			auto Name = (NAME ? NAME : T::GetStaticTypeInfo()->GetName());\
-			api.addProperty<T*, T*>(Name, func, nullptr);\
+            assert(NAME); \
+			api.addProperty<T*, T*>(NAME, func, nullptr);\
 		}\
 	};\
 	CLASS##InstanceReg<CLASS, GETTER> ApiInstReg##CLASS{};

@@ -2,6 +2,8 @@
 
 #include <Foundation/InterfaceMap.h>
 
+#include <Core/Scene/iSceneManager.h>
+
 namespace MoonGlare::Resources { class StringTables; }
 namespace MoonGlare::Core::Scripts { class ScriptEngine; }
 
@@ -17,7 +19,7 @@ public:
 
 	bool Initialize();
 	bool Finalize();
-	bool PostSystemInit();
+	void PostSystemInit();
 	bool PreSystemStart();
 	bool PreSystemShutdown();
 
@@ -28,13 +30,13 @@ public:
     Core::RuntimeConfiguration* GetRuntimeConfiguration() { return runtimeConfiguration.get(); }
 
 	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
-	Core::Scene::ScenesManager *GetScenesManager() { return m_ScenesManager.get(); };
+	Core::Scene::iSceneManager *GetScenesManager() { return m_ScenesManager.get(); };
 
     iConsole* GetConsole() { return m_Console; }
     Resources::StringTables* GetStringTables() { return stringTables; }
     Core::Engine* GetEngine();
 
-	void SetRendererFacade(Renderer::RendererFacade *c) { m_RendererFacade = c; }
+    void SetRendererFacade(Renderer::RendererFacade *c);
 	Renderer::RendererFacade* GetRendererFacade() { return m_RendererFacade; }
     void SetScriptEngine(Core::Scripts::ScriptEngine *se) { m_ScriptEngine = se; }
 
@@ -42,7 +44,7 @@ public:
     void SetStringTables(Resources::StringTables *st) { stringTables = st; }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
-	std::unique_ptr<Core::Scene::ScenesManager> m_ScenesManager;
+	std::unique_ptr<Core::Scene::iSceneManager> m_ScenesManager;
     std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
 
     std::unique_ptr<Component::EntityManager> entityManager;
@@ -52,7 +54,8 @@ private:
     iConsole *m_Console = nullptr;
 	Renderer::RendererFacade *m_RendererFacade = nullptr;
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
-    Resources::StringTables *stringTables = nullptr;
+    Resources::StringTables *stringTables = nullptr;          
+    Component::EventDispatcher *eventDispatcher = nullptr;
 
 };
 

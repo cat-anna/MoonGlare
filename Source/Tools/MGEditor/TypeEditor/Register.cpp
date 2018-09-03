@@ -4,7 +4,7 @@
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
-#include <Source/Engine/Renderer/Light.h>
+#include <Source/Renderer/Light.h>
 #include <Source/Renderer/StaticFog.h>
 #include <Engine/Modules/RectComponent/Types.h>
 
@@ -241,7 +241,6 @@ struct Register {
 
         RegEnum<x2c::SoundSystem::PositionMode_TypeInfo>();
         RegEnum<x2c::SoundSystem::SoundKind_TypeInfo>();
-        RegEnum<x2c::SoundSystem::SoundState_TypeInfo>();
 
         RegEnum<bool_TypeInfo>();
 

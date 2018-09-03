@@ -2,8 +2,7 @@
 
 #include <QSyntaxHighlighter>
 
-class QtLuaHighlighter : public QSyntaxHighlighter
-{
+class QtLuaHighlighter : public QSyntaxHighlighter {
 	Q_OBJECT;
 public:
     explicit QtLuaHighlighter(QTextDocument *document = 0);

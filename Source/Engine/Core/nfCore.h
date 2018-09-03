@@ -13,7 +13,10 @@ namespace Core {
 }//namespace Core
 }//namespace MoonGlare
 
-#include "Scene/nfScene.h"
+namespace MoonGlare::Renderer::Deferred {
+struct DefferedFrontend;
+}
+
 #include "Component/nfComponent.h"
 
 namespace MoonGlare {
@@ -27,7 +30,7 @@ struct MoveConfig : MoonGlare::Component::SubsystemUpdateData {
     emath::fvec2 m_ScreenSize;
     Renderer::Frame *m_BufferFrame;
     mutable Renderer::VirtualCamera *Camera = nullptr;
-    Graphic::Dereferred::DefferedSink *deferredSink;
+    MoonGlare::Renderer::Deferred::DefferedFrontend *deffered;
     bool m_SecondPeriod;
 };
 

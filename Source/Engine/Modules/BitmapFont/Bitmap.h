@@ -15,7 +15,6 @@ namespace BitmapFont {
 using namespace DataClasses::Fonts;
 
 class BitmapFont : public iFont {
-	SPACERTTI_DECLARE_CLASS(BitmapFont, iFont);
 public:
 	BitmapFont(const string& Name);
 	~BitmapFont();

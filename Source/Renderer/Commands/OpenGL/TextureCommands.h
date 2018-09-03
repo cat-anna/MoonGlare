@@ -24,6 +24,17 @@ struct Texture2DBindUnitArgument {
 };
 using Texture2DBindUnit = CommandTemplate<Texture2DBindUnitArgument>;
 
+struct TextureCubeBindUnitArgument {
+    Device::TextureHandle m_Texture;
+    unsigned m_UnitIndex;
+    static void Execute(const TextureCubeBindUnitArgument *arg) {
+        glActiveTexture(GL_TEXTURE0 + arg->m_UnitIndex);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, arg->m_Texture);
+    }
+};
+using TextureCubeBindUnit = CommandTemplate<TextureCubeBindUnitArgument>;
+
+
 //---------------------------------------------------------------------------------------
 
 struct Texture2DResourceBindArgument {
@@ -248,8 +259,8 @@ struct detail::InitPlaneShadowMapArgument {
         }
 
         glBindTexture(GL_TEXTURE_2D, *textureHandle);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -261,7 +272,8 @@ struct detail::InitPlaneShadowMapArgument {
 //
 //            //	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowTexture, 0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *bufferHandle);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *textureHandle, 0);
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *textureHandle, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *textureHandle, 0);
 
         GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (Status != GL_FRAMEBUFFER_COMPLETE) {
@@ -273,6 +285,62 @@ struct detail::InitPlaneShadowMapArgument {
 };
 using InitPlaneShadowMap = RunnableCommandTemplate<detail::InitPlaneShadowMapArgument>;
 
+    //---------------------------------------------------------------------------------------
+
+namespace detail {
+struct InitCubeShadowMapArgument;
+}
+
+struct detail::InitCubeShadowMapArgument {
+    using Conf = Configuration::Shadow;
+
+    GLsizei size;
+    Device::TextureHandle *textureHandle;
+    Device::FramebufferHandle *bufferHandle;
+
+    void Run() {
+        if (*bufferHandle == Device::InvalidFramebufferHandle) {
+            glGenFramebuffers(1, bufferHandle);
+        }
+        if (*textureHandle == Device::InvalidTextureHandle) {
+            glGenTextures(1, textureHandle);
+        }
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, *textureHandle);
+
+        for (unsigned int i = 0; i < 6; ++i)
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        //            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+        //            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+        //            //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+        //            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)m_Size[0], (GLsizei)m_Size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, size, size, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+        //
+        //            //	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowTexture, 0);
+
+
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *bufferHandle);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *textureHandle, 0);
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *textureHandle, 0);
+
+        GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (Status != GL_FRAMEBUFFER_COMPLETE) {
+            AddLogf(Error, "FB error, status: 0x%x\n", Status);
+        }
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Device::InvalidFramebufferHandle);
+    }
+};
+using InitCubeShadowMap = RunnableCommandTemplate<detail::InitCubeShadowMapArgument>;
+
 //---------------------------------------------------------------------------------------
 
 namespace detail {
@@ -282,12 +350,13 @@ struct Texture2DGenerateMipMapsArgument;
 
 struct detail::Texture2DSetPixelsArrayArgument {
     unsigned short size[2];
-    GLenum BPP;
+    GLenum internalformat;
+    GLenum format;
     GLenum type;
     const void *pixels;
 
     void Run() {
-        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, BPP, size[0], size[1], /*border*/0, BPP, type, pixels);
+        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, internalformat, size[0], size[1], /*border*/0, format, type, pixels);
     }
 };
 using Texture2DSetPixelsArray = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelsArrayArgument>;
@@ -301,23 +370,5 @@ struct detail::Texture2DGenerateMipMapsArgument {
 using Texture2DGenerateMipMapsArgument = Commands::RunnableCommandTemplate<detail::Texture2DGenerateMipMapsArgument>;
 
 //---------------------------------------------------------------------------------------
-
-namespace detail {
-struct Texture2DSetPixelDataArgument;
-}
-
-struct detail::Texture2DSetPixelDataArgument {
-    Asset::TextureLoader::TexturePixelData data;
-
-    void Run() {
-        auto &size = data.m_PixelSize;
-        auto bpp = static_cast<unsigned>(data.m_PixelFormat);
-        auto type = static_cast<unsigned>(data.m_PixelType);
-        glTexImage2D(GL_TEXTURE_2D, /*MipmapLevel*/0, bpp, size[0], size[1], /*border*/0, bpp, type, data.m_Pixels);
-        data.m_ImageMemory.reset();
-    }
-};
-using Texture2DSetPixelData = Commands::RunnableCommandTemplate<detail::Texture2DSetPixelDataArgument>;
-
 
 } //namespace MoonGlare::Renderer::Commands

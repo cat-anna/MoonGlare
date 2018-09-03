@@ -10,40 +10,38 @@
 #include "Frame.h"
 
 #include "Renderer.h"
-#include "Context.h"
 
 #include "TextureRenderTask.h"
 
+#include "Resources/ResourceManager.h"
+#include "Resources/Texture/TextureResource.h"
+#include "Resources/Mesh/VAOResource.h"
+
 namespace MoonGlare::Renderer {
 
-void FrameResourceStorage::Initialize(const Configuration::RuntimeConfiguration *conf) {
-    PlaneShadowMap psm;
-    psm.textureHandle = Device::InvalidTextureHandle;
-    psm.framebufferHandle = Device::InvalidFramebufferHandle;
-    psm.size = conf->m_Shadow.GetShadowMapSize();
-    psm.valid = false;
-    planeShadowMaps.fill(psm);
+void Frame::ReleaseResource(TextureResourceHandle &texres) {
+    assert(this);
+    GetResourceManager()->GetTextureResource().Release(texres);
+}
+void Frame::ReleaseResource(VAOResourceHandle &vaores) {
+    assert(this);
+    GetResourceManager()->GetVAOResource().Release(this, vaores);
+}
+bool Frame::AllocateResource(TextureResourceHandle &resH) {
+    assert(this);
+    return GetResourceManager()->GetTextureResource().Allocate(resH);
+}
+bool Frame::AllocateResource(VAOResourceHandle &resH) {
+    assert(this);
+    return GetResourceManager()->GetVAOResource().Allocate(this, resH);
 }
 
-PlaneShadowMap* FrameResourceStorage::AllocPlaneShadowMap(Frame *frame) {
-    auto *ptr = planeShadowMaps.Allocate();
-    if (!ptr) {
-        AddLog(Warning, "Out of PlaneShadowMaps");
-        return nullptr;
-    }
-    if (!ptr->valid) {
-        ptr->Init(frame->GetControllCommandQueue());
-    }
-    return ptr;
-}
-
-//----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
 bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade *rfacade) {
-    RendererAssert(BufferIndex < Configuration::FrameBuffer::Count);
-    RendererAssert(device);
-    RendererAssert(rfacade);
+    assert(BufferIndex < Configuration::FrameBuffer::Count);
+    assert(device);
+    assert(rfacade);
     
     m_BufferIndex = BufferIndex;
     m_RenderDevice = device;
@@ -51,21 +49,25 @@ bool Frame::Initialize(uint8_t BufferIndex, RenderDevice *device, RendererFacade
 
     m_QueuedTextureRender.ClearAllocation();
     m_SubQueueTable.ClearAllocation();
+    //m_Textures.ClearAllocation();
+    m_VAOs.ClearAllocation();
+    planeShadowMaps.ClearAllocation();
+    cubeShadowMaps.ClearAllocation();
 
     m_CommandLayers.Clear();
-    m_WindowLayers.Clear();
 
     m_Memory.Clear();
 
     for (auto &q : m_SubQueueTable)
         q.Clear();
 
-    auto ctx = rfacade->GetContextImpl();
-    RendererAssert(ctx);
-    ctx->InitializeWindowLayer(m_WindowLayers.Get<ConfCtx::Window::First>(), this);
-    
-    m_FrameResourceStorage.Initialize(rfacade->GetConfiguration());
-    flags.shadowsEnabled = rfacade->GetConfiguration()->m_Shadow.m_ShadowMapSize != Configuration::Shadow::ShadowMapSize::Disable;
+    ShadowMap psm;
+    psm.textureHandle = Device::InvalidTextureHandle;
+    psm.framebufferHandle = Device::InvalidFramebufferHandle;
+    planeShadowMaps.fill(psm);
+
+    configuration = rfacade->GetConfiguration();
+    flags.shadowsEnabled = configuration->shadow.enableShadows;
 
     return true;
 }
@@ -82,9 +84,11 @@ void Frame::BeginFrame(uint64_t index) {
     m_SubQueueTable.ClearAllocation();
 
     m_CommandLayers.ClearAllocation();
-    m_WindowLayers.ClearAllocation();
 
-    m_FrameResourceStorage.Clear();
+    //m_Textures.ClearAllocation();
+    m_VAOs.ClearAllocation();
+    planeShadowMaps.ClearAllocation();
+    cubeShadowMaps.ClearAllocation();
 
     m_Memory.Clear();
 }
@@ -95,19 +99,13 @@ void Frame::EndFrame() {
 //----------------------------------------------------------------------------------
  
 bool Frame::Submit(TextureRenderTask *trt) {
-    RendererAssert(trt);
+    assert(trt);
     m_CommandLayers.Get<Conf::Layer::PreRender>().PushQueue(&trt->GetCommandQueue());
     return m_QueuedTextureRender.push(trt);
 }
 
-bool Frame::Submit(SubQueue *q, ConfCtx::Window WindowLayer, Commands::CommandKey Key) {
-    RendererAssert(q);
-    m_WindowLayers[WindowLayer].PushQueue(q, Key);
-    return false;
-}
-
 bool Frame::Submit(SubQueue *q, Conf::Layer Layer, Commands::CommandKey Key) {
-    RendererAssert(q);
+    assert(q);
     m_CommandLayers[Layer].PushQueue(q, Key);
     return false;
 }

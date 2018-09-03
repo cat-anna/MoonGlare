@@ -7,6 +7,8 @@
 
 #include PCH_HEADER
 
+#include <Foundation/OS/WaitForProcess.h>
+
 #include <icons.h>
 #include <Module.h>
 #include <iEditor.h>
@@ -24,6 +26,7 @@
 
 #include <gl/glew.h>
 #include <Renderer/Configuration.Renderer.h>
+#include <Renderer/Material.h>
 
 #include <Common.x2c.h>
 #include <Math.x2c.h>
@@ -84,6 +87,7 @@ struct AssimpImporter
         
         std::stringstream ss;
         ss << ".gitignore" << "\n";
+        ss << "mdmp.txt" << "\n";
 
         for (auto &item : generatedFiles) {
             ss << item.first << "\n";
@@ -93,6 +97,16 @@ struct AssimpImporter
         StarVFS::ByteTable gi;
         gi.from_string(ss.str());
         storeFile(".gitignore", gi);
+
+
+        auto qtpath = QApplication::applicationDirPath();
+        std::string path = qtpath.toUtf8().constData();
+        path += "/mdmp.exe";
+
+        auto outF = fs->TranslateToSystem(outputDirectory) + "/mdmp.txt";
+        auto inF = fs->TranslateToSystem(m_URI);
+
+        OS::WaitForProcess({ path, "--input", inF, "--output", outF });
     }
 
     static StarVFS::ByteTable XmlToData(pugi::xml_document &doc) {
@@ -107,7 +121,7 @@ struct AssimpImporter
         if (node->mNumMeshes != 1)
             return;
 
-        MeshInfo mi = meshes[node->mMeshes[0]];
+        MeshInfo mi = mesh[node->mMeshes[0]];
         auto shapeC = parent->AddComponent(Core::SubSystemId::BodyShape);
         auto shio = shapeC->GetValuesEditor();
         shio->Set("type", "4");
@@ -147,18 +161,12 @@ struct AssimpImporter
 
     void ImportMeshComponent(const aiNode * node, EditableEntity * parent) {
         if (node->mNumMeshes == 1) {
-            std::string meshPath = "@mesh://";
-            auto meshNode = scene->mMeshes[node->mMeshes[0]];
-            if (meshNode->mName.length == 0)
-                meshPath += "*" + std::to_string(node->mMeshes[0]);
-            else
-                meshPath += meshNode->mName.data;
-
-            auto mesh = parent->AddComponent(Core::SubSystemId::Mesh);
-            auto meio = mesh->GetValuesEditor();
-            meio->Set("Mesh", m_URI + meshPath);
-            meio->Set("Material", outputDirectory + "/" + materialNames[meshNode->mMaterialIndex]);
-            meio->Set("Visible", "true");
+            auto meshC = parent->AddComponent(Core::SubSystemId::Mesh);
+            auto meio = meshC->GetValuesEditor();
+            auto &meshinfo = mesh[node->mMeshes[0]];
+            meio->Set("Mesh", meshinfo.uri);
+            meio->Set("Material", material[meshinfo.material].uri);
+            meio->Set("Visible", "1");
         }
     }
 
@@ -270,12 +278,11 @@ struct AssimpImporter
             return "";
         };
 
-        materialNames.resize(scene->mNumMaterials);
+        material.resize(scene->mNumMaterials);
         for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
             auto mat = scene->mMaterials[i];
 
-            x2c::Renderer::Material_t matData;
-            matData.ResetToDefault();
+            Renderer::MaterialTemplate matData;
 
             aiString path;
             aiTextureMapping mapping = (aiTextureMapping)0;
@@ -284,42 +291,42 @@ struct AssimpImporter
             aiTextureOp op = (aiTextureOp)0;
             aiTextureMapMode mapmode[2] = {};
 
-            auto loadMap = [&](aiTextureType texType, x2c::Renderer::MapConfig_t &map) {
+            auto loadMap = [&](aiTextureType texType, Renderer::MaterialTemplate::Map &map) {
                 if (mat->GetTextureCount(texType) > 0) {
                     if (mat->GetTexture(texType, 0, &path, &mapping, &uvindex, &blend, &op, mapmode) == AI_SUCCESS) {
-                        map.m_Enabled = true;
+                        map.enabled = true;
                         if (path.data[0] == '*') {
                             int index = strtol(&path.data[1], nullptr, 10);
-                            map.m_MapURI = outputDirectory + "/" + textureNames[index];
+                            map.texture = outputDirectory + "/" + textureNames[index];
                         }
                         else {
                             //__debugbreak();
                         }
                         switch (mapmode[0]) {
                         case aiTextureMapMode_Wrap:
-                            map.m_Edges = Renderer::Configuration::Texture::Edges::Repeat;
+                            map.edges = Renderer::Configuration::Texture::Edges::Repeat;
                                 break;
                         case aiTextureMapMode_Clamp:
                         case aiTextureMapMode_Decal:
                         case aiTextureMapMode_Mirror:
                         default:
-                            map.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
+                            map.edges = Renderer::Configuration::Texture::Edges::Clamp;
                         }
                     }
                 }
             };
 
-            loadMap(aiTextureType_DIFFUSE, matData.m_DiffuseMap);
-            loadMap(aiTextureType_SPECULAR, matData.m_SpecularMap);
-            loadMap(aiTextureType_NORMALS, matData.m_NormalMap);
-            loadMap(aiTextureType_SHININESS, matData.m_ShinessMap);
+            loadMap(aiTextureType_DIFFUSE, matData.diffuseMap);
+            loadMap(aiTextureType_SPECULAR, matData.specularMap);
+            loadMap(aiTextureType_NORMALS, matData.normalMap);
+            loadMap(aiTextureType_SHININESS, matData.shinessMap);
             
-            matData.m_DiffuseColor = getVec4Prop(mat, "$clr.diffuse");
-            matData.m_SpecularColor = getVec4Prop(mat, "$clr.specular");
-            matData.m_Shiness = getFloaProp(mat, "$mat.shininess", 32);
+            matData.diffuseColor = getVec4Prop(mat, "$clr.diffuse");
+            matData.specularColor = getVec4Prop(mat, "$clr.specular");
+            matData.shiness = getFloaProp(mat, "$mat.shininess", 32);
 
             pugi::xml_document xdoc;
-            matData.Write(xdoc.append_child("Material"));
+            x2c::Renderer::MaterialTemplate_t_Write(xdoc.append_child("Material"), matData, nullptr);
 
             std::string fname;
             std::string matName = getStringProp(mat, "?mat.name");
@@ -328,36 +335,48 @@ struct AssimpImporter
             else
                 fname = fmt::format("material_{}.mat", matName);
 
-            materialNames[i] = fname;
+            MaterialInfo mi;
+            mi.name = fname;
+            mi.uri = outputDirectory + "/" + fname;
+            material[i] = mi;
             generatedFiles[fname] = XmlToData(xdoc);
         }
     }
 
-    void GatherMeshes() {
-        meshes.clear();
+    void ImportMeshes() {
+        mesh.clear();
         if (!scene->HasMeshes())
             return;       
-        meshes.resize(scene->mNumMeshes);
+        mesh.resize(scene->mNumMeshes);
         for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
-            auto mesh = scene->mMeshes[i];
+            auto amesh = scene->mMeshes[i];
             
-            auto &mi = meshes[i];
+            auto &mi = mesh[i];
             auto &maxs = mi.boxSize;
             maxs = { 0,0,0 };
 
             aiVector3D center = { 0,0,0 };
-            for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
-                center += mesh->mVertices[vertid];
+            for (size_t vertid = 0; vertid < amesh->mNumVertices; vertid++) {
+                center += amesh->mVertices[vertid];
             }
-            center /= (float)mesh->mNumVertices;
+            center /= (float)amesh->mNumVertices;
 
-            for (size_t vertid = 0; vertid < mesh->mNumVertices; vertid++) {
-                aiVector3D vertex = mesh->mVertices[vertid];
+            for (size_t vertid = 0; vertid < amesh->mNumVertices; vertid++) {
+                aiVector3D vertex = amesh->mVertices[vertid];
 
                 for (int v = 0; v < 3; ++v) {
                     maxs[v] = std::max(maxs[v], abs(center[v] - vertex[v]));
                 }
             }
+
+            mi.material = amesh->mMaterialIndex;
+
+            std::string meshPath = "@mesh://";
+            if (amesh->mName.length == 0)
+                meshPath += "*" + std::to_string(i);
+            else
+                meshPath += amesh->mName.data;
+            mi.uri = m_URI + meshPath;
         }
     }
 
@@ -395,7 +414,7 @@ struct AssimpImporter
             //output
 
             GatherLights();
-            GatherMeshes();
+            ImportMeshes();
 
             ImportTextures();
             ImportMaterials();
@@ -417,11 +436,18 @@ private:
 
     struct MeshInfo {
         math::fvec3 boxSize = { 1,1,1 };
+        std::string uri;
+        unsigned material;
     };
-    std::vector<MeshInfo> meshes;
+    std::vector<MeshInfo> mesh;
+
+    struct MaterialInfo {
+        std::string name;
+        std::string uri;
+    };
+    std::vector<MaterialInfo> material;
 
     std::vector<std::string> textureNames;
-    std::vector<std::string> materialNames;
 
     std::string outputDirectory;
     std::map<std::string, StarVFS::ByteTable> generatedFiles;

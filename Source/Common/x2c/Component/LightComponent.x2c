@@ -6,7 +6,7 @@ Use(Global.MoonGlare.x2c.Math.RGB)
 
 Enum.import {
 	name = "LightType",
-	location = "::MoonGlare::Renderer::Light::LightType",
+	location = "::MoonGlare::Renderer::LightType",
 	default = "Unknown",
 }
 

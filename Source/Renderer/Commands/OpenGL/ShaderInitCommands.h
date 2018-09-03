@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Assets/AssetLoaderInterface.h>
+#include <Renderer/Resources/Shader/ShaderCodeLoader.h>
 #include "../../Configuration.Renderer.h"
 #include "../CommandQueueBase.h"
 #include "Common.h"
@@ -32,12 +32,11 @@ using ReleaseShaderResource = Commands::CommandTemplate<detail::ReleaseShaderRes
 //---------------------------------------------------------------------------------------
 
 struct detail::ConstructShaderArgument {
-	using ShaderCode = Asset::ShaderCodeLoader::ShaderCode;
-	using ShaderType = Asset::ShaderCodeLoader::ShaderType;
+	using ShaderCode = Resources::Shader::ShaderCodeLoader::ShaderCode;
+	using ShaderType = Resources::Shader::ShaderCodeLoader::ShaderType;
 
-	static constexpr size_t MaxShaderLines = 8;
 	static constexpr size_t MaxShaderTypes = static_cast<size_t>(ShaderType::MaxValue);
-	using ShaderCodeBuffer = std::array<const char *, MaxShaderLines>;
+    using ShaderCodeBuffer = const char *;
 
 	template<typename T>
 	using Array = std::array<T, MaxShaderTypes>;
@@ -81,7 +80,7 @@ struct detail::ConstructShaderArgument {
 			GLuint shader = glCreateShader(shadertype.m_GLID);
 			LoadedShaders[index] = shader;
 
-			glShaderSource(shader, m_CodeArray[index].size(), (const GLchar**)&m_CodeArray[index][0], NULL);	//TODO: check what is last argument
+			glShaderSource(shader, 1, (const GLchar**)&m_CodeArray[index], NULL);
 			glCompileShader(shader);
 
 			GLint Result = GL_FALSE;

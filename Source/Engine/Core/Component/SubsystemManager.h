@@ -12,7 +12,7 @@ public:
     SubsystemManager();
     ~SubsystemManager() override;
 
-    bool Initialize(ciScene *scene, Entity root);
+    bool Initialize(Entity root);
     bool Finalize();
 
     bool LoadComponents(pugi::xml_node node);
@@ -34,7 +34,6 @@ public:
 
     iSubsystem* GetComponent(SubSystemId cid);
 
-    ciScene* GetScene() { return m_Scene; }
     World* GetWorld() { return m_World; }
 
     Entity GetRootEntity() const { return rootEntity; }
@@ -48,7 +47,6 @@ private:
     std::array<SubSystemId, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
     size_t m_UsedCount;
     Entity rootEntity;
-    ciScene *m_Scene;
     World *m_World;
     EventDispatcher m_EventDispatcher;
 

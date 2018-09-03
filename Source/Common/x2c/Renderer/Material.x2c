@@ -4,6 +4,8 @@ namespace "MoonGlare.x2c.Renderer"
 
 Use(Global.MoonGlare.x2c.Math.RGBA)
 
+Structure.field.prefix ""
+
 Enum.import {
     name = "TextureEdges",
     location = "MoonGlare::Renderer::Configuration::Texture::Edges",
@@ -14,31 +16,34 @@ Enum.import {
     }
 }
 
-Structure.new {
-    name = "MapConfig",
+Structure.import {
+    name = "Map",
     description = "",
+    location = "MoonGlare::Renderer::MaterialTemplate::Map",
     fields = {
-        { name = "Enabled", type = Types.bool, default = false, },
-        { name = "MapURI", type = Types.string, default = "", },
-        { name = "Edges", type = Local.TextureEdges, },    
+        { name = "enabled", type = Types.bool, default = false, },
+        { name = "texture", type = Types.string, default = "", },
+        { name = "edges", type = Local.TextureEdges, },    
         --uvindex
         --blend
         --blendmode
     },
 }
 
-Structure.new {
-    name = "Material",
+Structure.import {
+    name = "MaterialTemplate",
     description = "",
+    location = "MoonGlare::Renderer::MaterialTemplate",
     fields = {
-        { name = "DiffuseColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
-        { name = "SpecularColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
+        { name = "diffuseColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
+        { name = "specularColor", type = Local.RGBA, default = {r=1,g=1,b=1,a=1}, },
 
-        { name = "Shiness", type = Types.float, default = 32, },
+        { name = "shiness", type = Types.float, default = 32, },
+        { name = "specularIntensity", type = Types.float, default = 1, },
 
-        { name = "DiffuseMap", type = Local.MapConfig, },
-        { name = "NormalMap", type = Local.MapConfig, },
-        { name = "SpecularMap", type = Local.MapConfig, },
-        { name = "ShinessMap", type = Local.MapConfig, },
+        { name = "diffuseMap", type = Local.Map, },
+        { name = "normalMap", type = Local.Map, },
+        { name = "specularMap", type = Local.Map, },
+        { name = "shinessMap", type = Local.Map, },
     },
 }

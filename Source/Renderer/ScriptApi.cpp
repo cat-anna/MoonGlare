@@ -4,24 +4,26 @@
 #include "ScriptApi.h"
 #include "Renderer.h"
 #include "RenderDevice.h"
-#include "Context.h"
-#include "Resources/ResourceManager.h"
+#include "Device/GLFWContext.h"
+#include "Resources/ResourceManager.h"     
+
+#include <Renderer/Resources/Shader/ShaderResource.h>
 
 namespace MoonGlare::Renderer {
 
 struct ShaderApi {
     void ReloadShader(const char *name) {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Reloading shader %s", name);
         m_RendererFacade->GetResourceManager()->GetShaderResource().Reload(name);
     }
     void ReloadAllShaders() {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Reloading all shaders");
         m_RendererFacade->GetResourceManager()->GetShaderResource().ReloadAll();
     }
     void DumpShaders() {
-        RendererAssert(this);
+        assert(this);
         DebugLogf(Warning, "Dumping all shaders");
         std::ostringstream ss;
         Space::OFmtStream fss(ss);
@@ -58,7 +60,7 @@ struct ContextApi {
        //m_RendererFacade->GetContextImpl()->CaptureScreenShot();
     }
     int GetMonitorCount() {
-        return m_RendererFacade->GetContextImpl()->GetMonitorCount();
+        return Device::GLFWContext::GetMonitorCount();
     }
     int GetMonitorModes(lua_State *lua) {
         int monitorid = lua_tointeger(lua, -1);
@@ -69,7 +71,7 @@ struct ContextApi {
         if (monitorid < 0 || monitorid > c)
             return 0;
 
-        auto modes = m_RendererFacade->GetContextImpl()->GetMonitorModes(monitorid);
+        auto modes = Device::GLFWContext::GetMonitorModes(monitorid);
         const GLFWvidmode* currmode = glfwGetVideoMode(mont[monitorid]);
 
         lua_createtable(lua, 0, 0);
@@ -81,13 +83,13 @@ struct ContextApi {
             lua_pushinteger(lua, index);
             lua_createtable(lua, 0, 0);
 
-            lua_pushinteger(lua, mode.m_Height);
+            lua_pushinteger(lua, mode.height);
             lua_setfield(lua, -2, "Height");
 
-            lua_pushinteger(lua, mode.m_Width);
+            lua_pushinteger(lua, mode.width);
             lua_setfield(lua, -2, "Width");
 
-            if (currmode->height == mode.m_Height && currmode->width == mode.m_Width) {
+            if (currmode->height == mode.height && currmode->width == mode.width) {
                 lua_pushboolean(lua, 1);
                 lua_setfield(lua, -2, "Current");
             }
@@ -146,11 +148,11 @@ struct ScriptApi::ScriptApiImpl {
             m_ContextApi{ facade },
             hadleApi{ facade }
     {
-        RendererAssert(m_RendererFacade);
+        assert(m_RendererFacade);
     }
 
     void Install(lua_State *lua) {
-        RendererAssert(lua);
+        assert(lua);
 
         m_ContextApi.Install(lua);
         hadleApi.Install(lua);
@@ -188,8 +190,8 @@ ScriptApi::~ScriptApi() {
 }
 
 void ScriptApi::Install(lua_State *lua) {
-    RendererAssert(lua);
-    RendererAssert(m_Impl);
+    assert(lua);
+    assert(m_Impl);
     m_Impl->Install(lua);
 }
 

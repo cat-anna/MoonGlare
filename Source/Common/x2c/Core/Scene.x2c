@@ -6,7 +6,6 @@ Structure.new {
     name = "SceneConfiguration",
     description = "",
     fields = {
-        { name = "Stateful", type = bool, default = false, description = "", },
         { name = "StaticFog", type = Global.MoonGlare.x2c.Renderer.StaticFog, description = "", },
     },
 }

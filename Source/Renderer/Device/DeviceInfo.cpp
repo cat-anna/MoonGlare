@@ -31,8 +31,10 @@ void DeviceInfo::ReadInfo() {
 		_add(GL_MAX_TEXTURE_SIZE, 'i')
 		_add(GL_MAX_DRAW_BUFFERS, 'i')
 		_add(GL_MAX_CUBE_MAP_TEXTURE_SIZE, 'i')
-		_add(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, 'i')
-
+        _add(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, 'i'
+        )
+        _add(GL_MAX_VERTEX_UNIFORM_VECTORS, 'i')
+                                  
 		_add(GL_MINOR_VERSION, 'i')
 		_add(GL_MAJOR_VERSION, 'i')
 	{},

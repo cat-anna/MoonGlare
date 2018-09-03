@@ -189,7 +189,7 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
 void EntityBuilder::Import(ImportData &data, const char *PatternUri, int32_t entityIndex) {
     data.xmlFiles.emplace_back();
     XMLFile &xml = data.xmlFiles.back();
-    if (!GetFileSystem()->OpenXML(xml, PatternUri)) {
+    if (!((iFileSystem*)GetFileSystem())->OpenXML(xml, std::string(PatternUri))) {
         AddLogf(Error, "Failed to open uri: %s", PatternUri);
         return;
     }
@@ -272,7 +272,8 @@ bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node no
         return false;
     }
 
-    if (!c->Load(MoonGlare::Component::ComponentReader{ node }, parent, owner)) {
+    MoonGlare::Component::ComponentReader reader{ node };
+    if (!c->Load(reader, parent, owner)) {
         AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
         return false;
     }

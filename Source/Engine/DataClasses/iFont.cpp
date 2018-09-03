@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include "iFont.h"
 
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
@@ -12,6 +12,8 @@
 #include <Renderer/RenderDevice.h>
 #include <Renderer/TextureRenderTask.h>
 #include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Renderer/VirtualCamera.h>
 
@@ -19,10 +21,7 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
-SPACERTTI_IMPLEMENT_ABSTRACT_CLASS(iFont);
-
 bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
-
 	using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
 
 	auto &shres = frame->GetResourceManager()->GetShaderResource();
@@ -75,21 +74,21 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 	outTextRect = tsize;
 
 	auto su = tsize.m_CanvasSize;
-	Graphic::QuadArray3 Vertexes{
-		Graphic::vec3(0, su[1], 0),
-		Graphic::vec3(su[0], su[1], 0),
-		Graphic::vec3(su[0], 0, 0),
-		Graphic::vec3(0, 0, 0),
+    math::vec3 Vertexes[4] = {
+		math::vec3(0, su[1], 0),
+		math::vec3(su[0], su[1], 0),
+		math::vec3(su[0], 0, 0),
+		math::vec3(0, 0, 0),
 	};
 	float w1 = 0.0f;
 	float h1 = 0.0f;
 	float w2 = 1.0f;
 	float h2 = 1.0f;
-	Graphic::QuadArray2 TexUV{
-		Graphic::vec2(w1, h1),
-		Graphic::vec2(w2, h1),
-		Graphic::vec2(w2, h2),
-		Graphic::vec2(w1, h2),
+    math::vec2 TexUV[4] = {
+		math::vec2(w1, h1),
+		math::vec2(w2, h1),
+		math::vec2(w2, h2),
+		math::vec2(w1, h2),
 	};
 
 	{
@@ -100,10 +99,10 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 		vaob.BeginDataChange();
 
 		vaob.CreateChannel(ichannels::Vertex);
-		vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), Vertexes.size());
+		vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float*)m.Clone(Vertexes), 4);
 
 		vaob.CreateChannel(ichannels::Texture0);
-		vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), TexUV.size());
+		vaob.SetChannelData<float, 2>(ichannels::Texture0, (const float*)m.Clone(TexUV), 4);
 
 		vaob.CreateChannel(ichannels::Index);
 		static constexpr std::array<uint8_t, 6> IndexTable = { 0, 1, 2, 0, 2, 3, };

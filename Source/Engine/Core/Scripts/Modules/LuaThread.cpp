@@ -13,15 +13,7 @@ void StaticModules::ThreadStep(lua_State *lua, World *world) {
     lua_pushlightuserdata(lua, (void*)LuaThread_lua);
     lua_gettable(lua, LUA_REGISTRYINDEX);
 
-    if (!MoonGlare::Scripts::CallFunction(lua, 0, 2)) 
-        return;
-
-    bool change = static_cast<bool>(lua_toboolean(lua, -2));
-    if (change) {
-        int th = static_cast<int>(lua_tonumber(lua, -1));
-        world->GetScenesManager()->SetSceneChangeFence(Scene::SceneChangeFence::ScriptThreads, th > 0);
-    }
-    lua_pop(lua, 2);
+    MoonGlare::Scripts::CallFunction(lua, 0, 0);
 }
 
 void StaticModules::InitThread(lua_State *lua, World *world) {      

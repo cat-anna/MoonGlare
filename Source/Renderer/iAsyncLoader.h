@@ -5,6 +5,11 @@
 
 namespace MoonGlare::Renderer {
 
+struct ResourceLoadStorage {
+    using Conf = Configuration::Resources;
+    Commands::CommandQueue m_Queue;
+    StackAllocatorMemory<Conf::QueueMemory> m_Memory;
+};
 
 class iAsyncFileSystemRequest;
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
@@ -12,34 +17,39 @@ using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
 class iAsyncTask;
 using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
 
-class iAsyncLoaderObserver {
+class iAsyncLoader;
+
+class iAsyncLoaderObserver : public std::enable_shared_from_this<iAsyncLoaderObserver> {
 public:
     virtual ~iAsyncLoaderObserver() {};
 
-    virtual void OnFinished() {};
-    virtual void OnStarted() {};
+    virtual void OnFinished(iAsyncLoader *loader) {};
+    virtual void OnStarted(iAsyncLoader *loader) {};
 };
 
 using SharedAsyncLoaderObserver = std::shared_ptr<iAsyncLoaderObserver>;
 using WeakAsyncLoaderObserver = std::weak_ptr<iAsyncLoaderObserver>;
 
+//---------------------------------------------------------------------------------------
+
 class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() {};
 
-    virtual bool AnyJobPending() = 0;
-    virtual bool AllResoucecsLoaded() = 0;
+    virtual unsigned JobsPending() const = 0;
     virtual void SetObserver(SharedAsyncLoaderObserver) = 0;
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
     virtual void QueueTask(SharedAsyncTask task) = 0;
+
+    using FileRequestFunc = std::function<void(const std::string &uri, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage)>;
+    void QueueRequest(std::string URI, FileRequestFunc request);
+
+    using TaskFunc = std::function<void(ResourceLoadStorage &storage)>;
+    void PostTask(TaskFunc func);
 };
 
-struct ResourceLoadStorage {
-    using Conf = Configuration::Resources;
-    Commands::CommandQueue m_Queue;
-    StackAllocatorMemory<Conf::QueueMemory> m_Memory;
-};
+//---------------------------------------------------------------------------------------
 
 struct BaseAsyncTask {
     struct NotEnoughStorage {
@@ -57,14 +67,13 @@ public:
 
 class FunctionalAsyncTask : public iAsyncTask {
 public:
-    using TaskFunction = std::function<void(ResourceLoadStorage &)>;
+    using TaskFunction = iAsyncLoader::TaskFunc;
 
     void Do(ResourceLoadStorage &storage) override final {
         task(storage);
     };
 
-
-    FunctionalAsyncTask(TaskFunction f) :task(std::move(f)) {}
+    FunctionalAsyncTask(TaskFunction f) : task(std::move(f)) {}
 protected:
     TaskFunction task;
 };
@@ -76,6 +85,8 @@ public:
 protected:
     std::shared_ptr<T> owner;
 };
+
+//---------------------------------------------------------------------------------------
 
 class iAsyncFileSystemRequest : public std::enable_shared_from_this<iAsyncFileSystemRequest>, public BaseAsyncTask {
 public:
@@ -94,6 +105,17 @@ protected:
     }
 };
 
+class FunctionalAsyncFileSystemRequest : public iAsyncFileSystemRequest {
+    iAsyncLoader::FileRequestFunc func;
+public:
+    FunctionalAsyncFileSystemRequest(iAsyncLoader::FileRequestFunc f) : func(std::move(f)) {
+        assert(func);
+    }
+
+    virtual void OnFileReady(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
+        func(requestedURI, filedata, storage);
+    }
+};
 
 class MultiAsyncFileSystemRequest : public iAsyncFileSystemRequest {
 public:
@@ -123,5 +145,15 @@ private:
     std::unordered_map<std::string, FileHandlerFunctor> handlers;
     unsigned filesProcessed = 0;
 };
+
+//---------------------------------------------------------------------------------------
+
+inline void iAsyncLoader::QueueRequest(std::string URI, iAsyncLoader::FileRequestFunc request) {
+    QueueRequest(std::move(URI), std::make_shared<FunctionalAsyncFileSystemRequest>(std::move(request)));
+}
+
+inline void iAsyncLoader::PostTask(iAsyncLoader::TaskFunc func) {
+    QueueTask(std::make_shared<FunctionalAsyncTask>(std::move(func)));
+}
 
 } //namespace MoonGlare::Renderer

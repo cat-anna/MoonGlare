@@ -20,17 +20,16 @@ struct FontGlyph {
     Renderer::MaterialResourceHandle m_GlyphMaterial;
 
 
-    Graphic::vec2 m_Advance;
-    Graphic::vec2 m_Position;
-    Graphic::vec2 m_BitmapSize;
-    Graphic::vec2 m_TextureSize;//normalized value
+    math::vec2 m_Advance;
+    math::vec2 m_Position;
+    math::vec2 m_BitmapSize;
+    math::vec2 m_TextureSize;//normalized value
 };
 
 using UniqueFontGlyph = std::unique_ptr < FontGlyph >;
 using FontGlyphMap = std::map < wchar_t, UniqueFontGlyph >;
 
 class TrueTypeFont : public iFont {
-    SPACERTTI_DECLARE_STATIC_CLASS(TrueTypeFont, iFont);
 public:
     TrueTypeFont(const string& Name);
     virtual ~TrueTypeFont();

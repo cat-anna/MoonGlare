@@ -22,23 +22,19 @@ struct LuaSettingsModule::SettingsObject {
         Cancel();
     }
 
-    void Apply() {
-        if (settingsChangedMap.empty()) {
-            return;
-        }
-
+    void Apply()  {
         for (auto &i : settingsChangedMap) {
             try {
                 i.second.settingInfo->provider->Set(i.second.prefix, i.second.id, i.second.value);
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 AddLog(Error, fmt::format("Apply failed(InvalidSettingId): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
-                Core::GetEngine()->Abort();
+                Core::GetEngine()->Exit();
                 throw LuaPanic(fmt::format("Invalid setting '{}'", i.second.id.data()));
             }
             catch (const std::bad_variant_access &eacces) {
                 AddLog(Error, fmt::format("Apply failed(bad_variant_access): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
-                Core::GetEngine()->Abort();
+                Core::GetEngine()->Exit();
                 throw LuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
             }
         }

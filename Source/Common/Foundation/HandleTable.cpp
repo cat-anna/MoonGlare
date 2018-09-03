@@ -5,11 +5,11 @@ namespace MoonGlare {
 HandleTable::HandleTable() {
     handlePrivateData.fill(0);
     allocator.Clear();
-#ifdef DEBUG
+//#ifdef DEBUG
     generationbuffer.Fill(1);
-#else
-    generationbuffer.FillRandom();
-#endif // DEBUG
+//#else
+    //generationbuffer.FillRandom();
+//#endif // DEBUG
 
 }
 

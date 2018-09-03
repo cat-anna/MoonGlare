@@ -159,6 +159,12 @@ bool FileSystem::TranslateURI(const std::string & uri, std::string & out) {
     }
 }
 
+std::string FileSystem::TranslateToSystem(const std::string & uri) {
+    std::string r;
+    TranslateURI(uri, r);
+    return m_BasePath + r;
+}
+
 //-----------------------------------------------------------------------------
 
 void FileSystem::QueueFileProcessing(const std::string & URI) {

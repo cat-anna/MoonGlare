@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
 #include <Engine/DataClasses/iFont.h>
 #include "BasicConsole.h"
@@ -12,6 +12,9 @@
 #include <Source/Renderer/Frame.h>
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Resources/ResourceManager.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Source/Renderer/Commands/CommandQueue.h>
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
@@ -21,6 +24,8 @@
 
 #include <Renderer/VirtualCamera.h>
 #include <Core/Scripts/ScriptEngine.h>
+
+#include <Foundation/GLFWKeyMapping.h>
 
 namespace MoonGlare::Modules {
 
@@ -61,7 +66,7 @@ public:
         m_TextValid = false;
     }
     void PutChar(unsigned key) {
-        typedef Graphic::WindowInput::Key Key;
+        typedef KeyMapping Key;
         switch ((Key) key) {
         case Key::ArrowLeft:
             if (m_CaretPos < 1) return;
@@ -286,7 +291,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
         }
     }
 
-    frame->Submit(qptr, Renderer::Configuration::Context::Window::First);
+    frame->Submit(qptr, Renderer::Configuration::FrameBuffer::Layer::PostRender);
     return true;
 }
 
@@ -303,7 +308,7 @@ void BasicConsole::AsyncLine(const string &Text, LineType lineType) {
 }
 
 void BasicConsole::PushKey(unsigned key) {
-    using Key = Graphic::WindowInput::Key;
+    using Key = KeyMapping;
     switch ((Key) key) {
     case Key::Enter:
     {

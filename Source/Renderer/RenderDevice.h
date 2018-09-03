@@ -28,11 +28,13 @@ public:
     void ReleaseFrame(Frame *frame);
     Frame* PendingFrame();
 
+    bool IsFramePending() const { return m_PendingFrame.load() != nullptr; }
+
     void Step();
     void ProcessPendingCtrlQueues();
 
     TextureRenderTask* AllocateTextureRenderTask() {
-        RendererAssert(this);
+        assert(this);
         return m_UnusedTextureRender.pop(nullptr);
     }
 
@@ -43,7 +45,7 @@ public:
 
     uint64_t FrameCounter() const { return frameCouter; }
 private:
-    std::array<mem::aligned_ptr<Frame>, Conf::Count> m_Frames;
+    std::array<Memory::aligned_ptr<Frame>, Conf::Count> m_Frames;
     std::atomic<uint32_t> m_FreeFrameBuffers = 0;
     std::atomic<Frame*> m_PendingFrame = nullptr;
     std::atomic<Commands::CommitCommandQueue*> m_CommitCommandQueue = nullptr;

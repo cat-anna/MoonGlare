@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Modules/ModuleManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/DataManager.h>
@@ -19,13 +19,13 @@ namespace MoonGlare {
 namespace Core {
 namespace Data {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(Manager)
-RegisterApiInstance(Manager, &Manager::Instance, "Data");
-RegisterApiDerivedClass(Manager, &Manager::RegisterScriptApi);
+Manager *Manager::s_instance = nullptr;
 
-Manager::Manager(World *world) : cRootClass(), world(world) {
+RegisterApiBaseClass(Manager, &Manager::RegisterScriptApi);
+
+Manager::Manager(World *world) : world(world) {
     ASSERT(world);
-    SetThisAsInstance();
+    s_instance = this;
 
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 
@@ -56,10 +56,10 @@ public:
 
 void Manager::RegisterScriptApi(::ApiInitializer &api) {
     api
-    .deriveClass<ThisClass, BaseClass>("cDataManager")
+    .beginClass<Manager>("cDataManager")
 #ifdef DEBUG_SCRIPTAPI
-        .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<ThisClass, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
-        .addFunction("ClearResources", Utils::Template::InstancedStaticCall<ThisClass, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
+        .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<Manager, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
+        .addFunction("ClearResources", Utils::Template::InstancedStaticCall<Manager, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
 #endif
         .endClass()
         .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")

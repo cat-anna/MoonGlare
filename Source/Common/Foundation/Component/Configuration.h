@@ -4,7 +4,7 @@ namespace MoonGlare::Component::Configuration {
 
 //----------------------------------------------------------------------------
 
-static constexpr uint32_t MaxEventTypes = 16;
+static constexpr uint32_t MaxEventTypes = 32;
 
 //----------------------------------------------------------------------------
 

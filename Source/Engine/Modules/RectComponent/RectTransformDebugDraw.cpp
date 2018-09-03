@@ -2,7 +2,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include "nfGUI.h"
 #include <Core/Component/SubsystemManager.h>
@@ -27,6 +27,7 @@ RectTransformComponent::RectTransformDebugDraw::RectTransformDebugDraw() {}
 RectTransformComponent::RectTransformDebugDraw::~RectTransformDebugDraw() {}
 
 void RectTransformComponent::RectTransformDebugDraw::DebugDraw(const Core::MoveConfig &conf, RectTransformComponent *Component) {
+#if 0
     auto frame = conf.m_BufferFrame;
 
     if (!ready) {
@@ -105,6 +106,7 @@ void RectTransformComponent::RectTransformDebugDraw::DebugDraw(const Core::MoveC
     vaob.UnBindVAO(key);
 
     q.MakeCommandKey<Renderer::Commands::LeaveWireFrameMode>(key);
+#endif
 }
 
 } //namespace MoonGlare::GUI::Component 

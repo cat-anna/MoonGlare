@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 
 #include <Foundation/Component/ComponentEvents.h>
 #include <Foundation/Component/EntityManager.h>
@@ -15,8 +15,6 @@
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 #include <Core/Scripts/ScriptEngine.h>
 #include <Core/Scripts/LuaApi.h>
-
-#include <Core/Component/TransformComponent.h>
 
 #include <ScriptComponent.x2c.h>
 
@@ -180,7 +178,7 @@ void ScriptComponent::HandleEvent(lua_State *lua, Entity destination) {
     int errf = lua_gettop(lua);
 
     GetInstancesTable(lua);									        //stack: eventObj HandlerName errH instT
-    lua_rawgeti(lua, -1, index);							        //stack: eventObj HandlerName errH instT Script/nil
+    lua_rawgeti(lua, -1, index + 1);							        //stack: eventObj HandlerName errH instT Script/nil
 
     if (!lua_istable(lua, -1)) {
         lua_settop(lua, luatop);
@@ -196,6 +194,8 @@ void ScriptComponent::HandleEvent(lua_State *lua, Entity destination) {
 
     lua_settop(lua, luatop);         //clear all temp values on stack
     lua_pop(lua, 1);                 //remove event object
+
+    check.ReturnArgs(-1);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -311,7 +311,7 @@ void ScriptComponent::ReleaseComponent(lua_State *lua, size_t Index) {
         //stack: InstancesTable Script
         int errf = lua_gettop(lua);
         lua_pushcclosure(lua, LuaErrorHandler, 0);      //stack: InstancesTable Script errH
-        lua_insert(lua, -1);                            //stack: InstancesTable errH Script 
+        lua_insert(lua, -2);                            //stack: InstancesTable errH Script 
 
         ScriptObject::OnDestroy(lua, errf);
         lua_pop(lua, 1);                                //stack: InstancesTable

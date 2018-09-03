@@ -13,8 +13,6 @@
 
 namespace MoonGlare::Modules {
 
-SPACERTTI_IMPLEMENT_CLASS_SINGLETON(ModulesManager);
-
 using ModuleInfoList = ModulesManager::ModuleInfoList;
 
 static ModuleInfoList *_ModuleList = 0;
@@ -36,7 +34,6 @@ ModuleInfo::ModuleInfo(const char *Name):
 ModuleInfo::~ModuleInfo() { }
 bool ModuleInfo::Initialize() { return true; }
 bool ModuleInfo::Finalize() { return true; }
-void ModuleInfo::Notify(SettingsGroup what) { /* ignore */ }
 const ModuleDescription* ModuleInfo::GetDescription() const { return nullptr; }
 void ModuleInfo::RegisterModuleApi(ApiInitializer &api) { /* ignore */ }
 void ModuleInfo::RegisterInternalApi(ApiInitializer &api) { /* ignore */ }
@@ -45,8 +42,11 @@ bool ModuleInfo::SaveSettings(pugi::xml_node node) const { return false; }
 
 //----------------------------------------------------------------
 
+ModulesManager *ModulesManager::s_instance = nullptr;
+
+
 ModulesManager::ModulesManager(World *world) : world(world) {
-    SetThisAsInstance();
+    s_instance = this;
 
     ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
         auto mod = item.SharedCreate(this->world);
@@ -125,15 +125,6 @@ void ModulesManager::SaveSettings(pugi::xml_node node) const {
             auto modnode = node.append_child(mname.c_str());
             it->SaveSettings(modnode);
         }
-    }
-}
-
-void ModulesManager::BroadcastNotification(SettingsGroup what) {
-    AddLogf(Debug, "Broadcasting settings changed notification: %d.", (unsigned)what);
-    auto list = GetModuleList();
-    for (auto &it: *list) {
-        auto *module = it;
-        module->Notify(what);
     }
 }
 

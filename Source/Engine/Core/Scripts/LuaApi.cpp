@@ -1,5 +1,5 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <cmath>
 
 #include <Core/Scripts/LuaApi.h>
@@ -166,15 +166,20 @@ void ApiInit::Initialize(ScriptEngine *s) {
 
     {
         using BaseEventInfo = MoonGlare::Component::BaseEventInfo;
-        auto maxid = BaseEventInfo::GetUsedEventTypes();
+        auto maxid = (size_t)BaseEventInfo::GetUsedEventTypes();
         for (decltype(maxid) it = 0; it < maxid; ++it) {
             auto info = BaseEventInfo::GetEventTypeInfo(it);
             if (info.apiInitFunc) {
                 ++ApiInitFunctionsRun;
-                s->GetApiInitializer()
-                    .beginNamespace("api")
+                if (info.isPublic) 
+                    s->GetApiInitializer()
                         .beginNamespace("Event")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
+                else                   
+                    s->GetApiInitializer()
+                        .beginNamespace("api")
+                            .beginNamespace("Event")
+                                .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }
         }
     }

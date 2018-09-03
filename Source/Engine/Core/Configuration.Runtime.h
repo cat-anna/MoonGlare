@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene/Configuration.Scene.h"
+#include "Scene/iSceneManager.h"
 
 namespace MoonGlare::Core {
 

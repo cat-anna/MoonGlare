@@ -8,7 +8,7 @@
 
 #define NEED_VAO_BUILDER
 
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/DataClasses/iFont.h>
 #include "Engine/Core/DataManager.h"
 
@@ -26,6 +26,9 @@
 #include <Source/Renderer/RenderDevice.h>
 #include <Source/Renderer/Frame.h>
 #include <Renderer/Renderer.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/Shader/ShaderResource.h> 
+#include <Renderer/Resources/Mesh/VAOResource.h>
 
 #include <Math.x2c.h>
 #include <ComponentCommon.x2c.h>
@@ -80,10 +83,7 @@ bool TextComponent::Initialize() {
 	}
 
 	auto &shres = GetManager()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
-	if (!shres.Load(m_ShaderHandle, "GUI")) {
-		AddLogf(Error, "Failed to load GUI shader");
-		return false;
-	}
+    shres.Load(m_ShaderHandle, "GUI");
 
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
     m_FontDeviceOptions.m_DeviceSize = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSize();

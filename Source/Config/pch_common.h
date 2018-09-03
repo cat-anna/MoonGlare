@@ -29,6 +29,7 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
+#include <cassert>
 
 #include <memory>
 #include <algorithm>
@@ -55,29 +56,6 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 #include <boost/preprocessor/seq.hpp>
 #include <boost/align.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
-
-namespace mem {
-
-template<class T>
-using aligned_ptr = std::unique_ptr<T, boost::alignment::aligned_delete>;
-
-template<class T, class... Args>
-inline aligned_ptr<T> make_aligned(Args&&... args) {
-    auto p = boost::alignment::aligned_alloc(boost::alignment::alignment_of<T>::value, sizeof(T));
-    if (!p) {
-        throw std::bad_alloc();
-    }
-    try {
-        auto q = ::new(p) T(std::forward<Args>(args)...);
-        return aligned_ptr<T>(q);
-    }
-    catch (...) {
-        boost::alignment::aligned_free(p);
-        throw;
-    }
-}
-
-}
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -111,7 +89,6 @@ using LockGuard = std::lock_guard < std::mutex >;
 #error unknown platform!
 #endif
 
-#define DISABLE_COPY() public: ThisClass(const ThisClass&) = delete; ThisClass& operator=(const ThisClass&) = delete
 #define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)
 
 #define AS_STRING(X) BOOST_PP_STRINGIZE(X)
@@ -122,10 +99,10 @@ using LockGuard = std::lock_guard < std::mutex >;
 #define ERROR_STR				"{?}"
 #endif
 
+#include <Foundation/Memory/AlignedPtr.h>
 #include <Foundation/OrbitLoggerConf.h>
 
 #include <libSpace/src/Container/StaticVector.h>
 #include <libSpace/src/Container/StaticAllocationBuffer.h>
 #include <libSpace/src/Utils/FmtStream.h>
 #include <libSpace/src/Utils/DynamicClassRegister.h>
-

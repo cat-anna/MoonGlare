@@ -1,23 +1,15 @@
 local ThreadList = {}
 local SuspendedThreads = {}
-local LoaderThreadCnt = 0
-local LoaderThreadChange = true
 local Threadidcnt = 0
 
 local org_coroutine_create = coroutine.create
-function coroutine.create(f, name, isloader)
+function coroutine.create(f, name)
     Threadidcnt = Threadidcnt + 1
     local thread = {
-        loader = isloader,
         name = name,
         id = Threadidcnt,
     }
 
-    if isloader then
-        LoaderThreadCnt = LoaderThreadCnt + 1
-        LoaderThreadChange = true
-    end
-    
     thread.handle = org_coroutine_create(f)
     table.insert(ThreadList, thread)
     return thread.handle
@@ -41,7 +33,7 @@ function coroutine.sleep(sec)
     --TODO: some error
 end                
 
-function DoStep()
+local function DoStep()
 
     local t = Time.global
     while #SuspendedThreads > 0 and SuspendedThreads[1].timeout < t do
@@ -55,10 +47,6 @@ function DoStep()
         local front = table.remove(ThreadList, 1)   
         if front.dirty or front.timeout then
             --nothing           
-            if front.dirty and front.loader then
-                LoaderThreadCnt = LoaderThreadCnt - 1
-                LoaderThreadChange = true
-            end
         else
             front.dirty = true
             table.insert(ThreadList, front)
@@ -70,9 +58,6 @@ function DoStep()
             end
         end 
     end
-    local prv = LoaderThreadChange
-    LoaderThreadChange = false
-    return prv, LoaderThreadCnt
 end
 
 return DoStep

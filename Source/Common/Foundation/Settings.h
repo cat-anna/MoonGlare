@@ -35,6 +35,21 @@ struct Settings {
     bool GetBool(const std::string &key, bool default = false);
     ValueVariant GetValue(const std::string &key);
 
+    template<typename T>
+    void Get(const std::string &key, T & value) {
+        if constexpr (std::is_enum_v<T> || std::is_integral_v<T>) {
+            value = static_cast<T>(GetInt(key, static_cast<int>(value)));
+        } else if constexpr (std::is_same_v<T, float>) {
+            value = GetFloat(key, value);
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            value = GetString(key, value);
+        } else if constexpr (std::is_same_v<T, bool>) {
+            value = GetBool(key, value);
+        } else {
+            static_assert(false);
+        }
+    }
+
     ApplyMethod SetValue(const std::string &key, ValueVariant value);
     ApplyMethod SetValue(const std::string &key, std::string value);
     ApplyMethod SetValue(const std::string &key, int value);

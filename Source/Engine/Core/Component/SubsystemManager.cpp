@@ -1,19 +1,18 @@
 #include <pch.h>
-#include <MoonGlare.h>
+#include <nfMoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include "SubsystemManager.h"
 #include "ComponentRegister.h"
 
 #include "TemplateStandardComponent.h"
-#include "TransformComponent.h"
+#include "../../Component/TransformComponent.h"
 
 #include <Core/Scripts/ScriptComponent.h>
 
 namespace MoonGlare::Core::Component {
 
 SubsystemManager::SubsystemManager() 
-    : m_UsedCount(0)
-    , m_Scene(nullptr) {
+    : m_UsedCount(0) {
 
     m_World = GetEngine()->GetWorld();//TODO
 }
@@ -26,10 +25,7 @@ SubsystemManager::~SubsystemManager() {
 
 //---------------------------------------------------------------------------------------
 
-bool SubsystemManager::Initialize(ciScene *scene, Entity root) {
-    assert(scene);
-
-    m_Scene = scene;
+bool SubsystemManager::Initialize(Entity root) {
     rootEntity = root;
 
 #ifdef PERF_PERIODIC_PRINT
