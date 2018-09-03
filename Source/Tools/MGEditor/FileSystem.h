@@ -44,10 +44,30 @@ public:
 	bool CreateFile(const std::string &uri);
 	bool CreateDirectory(const std::string &uri);
 
+    std::string TranslateToSystem(const std::string &uri);
+
     bool OpenFile(StarVFS::ByteTable &FileData, const std::string& uri) override {
         return GetFileData(uri, FileData);
     }
-    bool OpenXML(XMLFile &doc, const std::string& uri) override {
+    bool OpenFile(StarVFS::ByteTable &FileData, StarVFS::FileID fid) override {
+        __debugbreak();
+        throw false;
+    };
+
+    void FindFilesByExt(const char *ext, StarVFS::DynamicFIDTable &out)  override {
+        __debugbreak();
+        throw false;
+    };
+    std::string GetFileName(StarVFS::FileID fid) const override {
+        __debugbreak();
+        throw false;
+    };
+    std::string GetFullFileName(StarVFS::FileID fid) const override {
+        __debugbreak();
+        throw false;
+    };
+
+    bool OpenXML(XMLFile &doc, const std::string& uri) {
         __debugbreak();
         throw false;
     }

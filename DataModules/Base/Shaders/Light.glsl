@@ -30,13 +30,7 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, vec4 MaterialDiffuse, vec3 LightDi
 		SpecularColor = vec4(BaseLight.Color, 1.0) * gMatSpecularIntensity * SpecularFactor;
 	}
 
-    vec4 result =  ( AmbientColor
-	 + DiffuseColor 
-	 ) * 
-	//  vec4(Normal, 1) 
-	MaterialDiffuse
-	 +
-	SpecularColor;
+    vec4 result = ( AmbientColor + DiffuseColor ) * MaterialDiffuse + SpecularColor;
 	result.a = 1.0;
 	return result;
 };
@@ -47,13 +41,9 @@ float CalcAttenuation(vec4 att, float Distance) {
     float Attv = att[0] +			              //constant
 				 att[1] * Distance +              //linerar
 				 att[2] * (Distance * Distance);  //exp
-	// if(Attv <= 0)
-		// return att[3];
 	return 1.0f / 
-	// Attv
-	pow(Attv, 2.2)
-	;
-//	return pow(Attv, -2.2);// min(1.0 / Attv, att.MinThreshold);
+		Attv;
+		// max(Attv, att[3]);
 }
 
 //-----------LIGHT-POINT-----------
@@ -72,8 +62,8 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal, vec4 MaterialDiffuse) {
 
     vec4 Color = CalcLightInternal(PointLight.Base, MaterialDiffuse, LightToPixel, WorldPos, Normal);
 	float factor = CalcAttenuation(PointLight.Attenuation, Distance) ;
-	factor *= CalcStaticFogFactor(Distance);
     Color.xyz *= factor;
+ 	Color.xyz = CalcStaticShadow(WorldPos, Color.xyz);
 	return Color;
 };
 
@@ -111,8 +101,8 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal, vec4 MaterialDiffuse) {
 		float Distance = length(LightToWord);
 		vec4 Color = CalcLightInternal(SpotLight.Base, MaterialDiffuse, LightToPixel, WorldPos, Normal);
 		float factor = CalcAttenuation(SpotLight.Attenuation, Distance);
-		factor *= CalcStaticFogFactor(Distance);
 		Color.xyz *= factor;
+ 		Color.xyz = CalcStaticShadow(WorldPos, Color.xyz);
 		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
 		//Color.xyz = LightToPixel;
 

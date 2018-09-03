@@ -7,6 +7,8 @@
 
 #include PCH_HEADER
 
+#include <Foundation/OS/WaitForProcess.h>
+
 #include <icons.h>
 #include <Module.h>
 #include <iEditor.h>
@@ -85,6 +87,7 @@ struct AssimpImporter
         
         std::stringstream ss;
         ss << ".gitignore" << "\n";
+        ss << "mdmp.txt" << "\n";
 
         for (auto &item : generatedFiles) {
             ss << item.first << "\n";
@@ -94,6 +97,16 @@ struct AssimpImporter
         StarVFS::ByteTable gi;
         gi.from_string(ss.str());
         storeFile(".gitignore", gi);
+
+
+        auto qtpath = QApplication::applicationDirPath();
+        std::string path = qtpath.toUtf8().constData();
+        path += "/mdmp.exe";
+
+        auto outF = fs->TranslateToSystem(outputDirectory) + "/mdmp.txt";
+        auto inF = fs->TranslateToSystem(m_URI);
+
+        OS::WaitForProcess({ path, "--input", inF, "--output", outF });
     }
 
     static StarVFS::ByteTable XmlToData(pugi::xml_document &doc) {

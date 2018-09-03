@@ -10,6 +10,10 @@ namespace MoonGlare::OS {
     inline int WaitForProcess(const std::list<std::string> &arguments, std::function<void(std::string)> onOutput) {
         std::list<std::string> input;
         return WaitForProcess(arguments, input, onOutput);
-               
+    }
+
+    inline int WaitForProcess(const std::list<std::string> &arguments) {
+        std::list<std::string> input;
+        return WaitForProcess(arguments, input, [](std::string) {});
     }
 }

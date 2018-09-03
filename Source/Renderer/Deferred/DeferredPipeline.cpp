@@ -397,30 +397,33 @@ bool DeferredSink::PointLightVisibilityTest(const emath::fvec3 &position, float 
 }
 
 void DeferredSink::SubmitPointLight(const PointLight & linfo) {  
+    auto lightPos = emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position);
 
     ShadowMap *sm = nullptr;
     if (linfo.m_Base.m_Flags.m_CastShadows) {
         sm = m_frame->AllocateCubeShadowMap();
         if (sm) {
             using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+            m_CubeShadowShader.m_Queue = m_PointLightShadowQueue;
+            m_CubeShadowShader.Bind();
 
             //sm->BindAndClear();
-            m_PointLightShadowQueue->MakeCommand<Commands::FramebufferDrawBind>(sm->framebufferHandle);
+            m_PointLightShadowQueue->MakeCommand<Commands::FramebufferBind>(sm->framebufferHandle);
             m_PointLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
 
-            m_CubeShadowShader.m_Queue = m_PointLightShadowQueue;
 
             std::array<emath::fmat4, 6> shadowTransforms;
 
             emath::fmat4 shadowProj = emath::Perspective(90.0f, 1.0f, 0.1f, 100.0f);
-            auto lightPos = emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position);
-            shadowTransforms[0] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(1.0, 0.0, 0.0) ),  emath::fvec3(0.0, -1.0, 0.0));
-            shadowTransforms[1] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(-1.0, 0.0, 0.0)), emath::fvec3(0.0, -1.0, 0.0));
-            shadowTransforms[2] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 1.0, 0.0) ),  emath::fvec3(0.0, 0.0, 1.0));
-            shadowTransforms[3] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, -1.0, 0.0)), emath::fvec3(0.0, 0.0, -1.0));
-            shadowTransforms[4] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 0.0, 1.0) ),  emath::fvec3(0.0, -1.0, 0.0));
-            shadowTransforms[5] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(0.0, 0.0, -1.0)), emath::fvec3(0.0, -1.0, 0.0));
+            shadowTransforms[0] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3( 1.0, 0.0, 0.0)), emath::fvec3(0.0,-1.0, 0.0));
+            shadowTransforms[1] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3(-1.0, 0.0, 0.0)), emath::fvec3(0.0,-1.0, 0.0));
+            shadowTransforms[2] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3( 0.0, 1.0, 0.0)), emath::fvec3(0.0, 0.0, 1.0));
+            shadowTransforms[3] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3( 0.0,-1.0, 0.0)), emath::fvec3(0.0, 0.0,-1.0));
+            shadowTransforms[4] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3( 0.0, 0.0, 1.0)), emath::fvec3(0.0,-1.0, 0.0));
+            shadowTransforms[5] = shadowProj * emath::LookAt(lightPos, (emath::fvec3)(lightPos + emath::fvec3( 0.0, 0.0,-1.0)), emath::fvec3(0.0,-1.0, 0.0));
                                                    
+            m_CubeShadowShader.Set<Uniform::LightPosition>(lightPos);
+
             m_CubeShadowShader.Set<Uniform::CameraMatrix0>(shadowTransforms[0]);
             m_CubeShadowShader.Set<Uniform::CameraMatrix1>(shadowTransforms[1]);
             m_CubeShadowShader.Set<Uniform::CameraMatrix2>(shadowTransforms[2]);
@@ -490,7 +493,7 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
 
         m_PointLightShader.Set<Uniform::EnableShadows>(linfo.m_Base.m_Flags.m_CastShadows ? 1 : 0);
 
-        m_PointLightShader.Set<Uniform::Position>(emath::MathCast<emath::fvec3>((math::vec3)linfo.m_Position));
+        m_PointLightShader.Set<Uniform::Position>(lightPos);
         m_PointLightShader.Set<Uniform::Attenuation>(emath::MathCast<emath::fvec4>((math::vec4)linfo.m_Attenuation.values));
         m_PointLightShader.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_PositionMatrix));
     }
@@ -528,6 +531,7 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
 
             m_PlaneShadowShader.m_Queue = m_SpotLightShadowQueue;
             m_PlaneShadowShader.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>((math::mat4)linfo.m_ViewMatrix));
+            //m_PlaneShadowShader.Set<Uniform::LightPosition>(emath::MathCast<emath::fvec3>((math::fvec3)linfo.m_Position));
             m_PlaneShadowShader.m_Queue->PushQueue(m_LightGeometryQueue);
         }
     }

@@ -171,13 +171,13 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
     if (m_CharMode == CharMode::None || !Pressed)
         return;
 
-    if (m_CharMode == CharMode::ScriptChar) {
-        auto scene = m_World->GetScenesManager()->CurrentScene();
-        auto &cm = scene->GetSubsystemManager();
-        auto &ed = cm.GetEventDispatcher();
-        ed.Send(InputProcessorOnCharEvent{ m_CharReciver, (int)key } );
-        return;
-    }
+    //if (m_CharMode == CharMode::ScriptChar) {
+    //    auto scene = m_World->GetScenesManager()->CurrentScene();
+    //    auto &cm = scene->GetSubsystemManager();
+    //    auto &ed = cm.GetEventDispatcher();
+    //    ed.Send(InputProcessorOnCharEvent{ m_CharReciver, (int)key } );
+    //    return;
+    //}
 
     if (m_ConsoleActive && m_Console) {
         using Key = KeyMapping;
@@ -200,16 +200,16 @@ bool InputProcessor::Step(const Core::MoveConfig & config) {
 //---------------------------------------------------------------------------------------
 
 void InputProcessor::SetKeyState(unsigned KeyCode, bool Pressed) {
-    if (m_CharMode == CharMode::ScriptKey) {
-        if (Pressed) {
-            m_CharMode = CharMode::None;
-            auto scene = m_World->GetScenesManager()->CurrentScene();
-            auto &cm = scene->GetSubsystemManager();
-            auto &ed = cm.GetEventDispatcher();
-            ed.Send(InputProcessorOnKeyEvent{ m_CharReciver, (int)KeyCode } );
-        }
-        return;
-    }
+    //if (m_CharMode == CharMode::ScriptKey) {
+    //    if (Pressed) {
+    //        m_CharMode = CharMode::None;
+    //        auto scene = m_World->GetScenesManager()->CurrentScene();
+    //        auto &cm = scene->GetSubsystemManager();
+    //        auto &ed = cm.GetEventDispatcher();
+    //        ed.Send(InputProcessorOnKeyEvent{ m_CharReciver, (int)KeyCode } );
+    //    }
+    //    return;
+    //}
     switch (KeyCode) {
     case Configuration::Console::ActivateKey:
         if (Pressed || ProcessConsoleActivateKey())
