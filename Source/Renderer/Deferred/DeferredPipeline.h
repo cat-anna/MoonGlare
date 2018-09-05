@@ -9,6 +9,8 @@
 #include "../CubeShadowMapShader.h"
 #include "DeferredFrameBuffer.h"
 
+#include "../PostProcessShader.h"
+
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/Shader/ShaderBuilder.h>
 #include <Renderer/Light.h>
@@ -66,6 +68,7 @@ protected:
     ShaderResourceHandle<DirectionalLightShaderDescriptor> m_ShaderLightDirectionalHandle{};
     ShaderResourceHandle<StencilLightShaderDescriptor> m_ShaderStencilHandle{};
     ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{};
+    ShaderResourceHandle<PostProcessShader> mm_PostProcessShaderHandle{};
 
     uint32_t meshcouter = 0;
     float visibility = -1.0f;

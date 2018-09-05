@@ -89,6 +89,8 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
     shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint");
     shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot");
 
+    shres.Load(mm_PostProcessShaderHandle, "PostProcess");
+
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
 
     sphereMesh = mm.LoadMesh("file:///Models/PointLightSphere.3ds");
@@ -266,15 +268,31 @@ void DeferredSink::Reset(Frame *frame) {
         qpost.MakeCommand<Commands::FramebufferDrawBind>(Device::InvalidFramebufferHandle);
         //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         //glBindFramebuffer(GL_READ_FRAMEBUFFER, m_FrameBuffer);
-        qpost.MakeCommand<Commands::FramebufferReadBind>(m_Buffer.m_FrameBuffer);
-        qpost.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT5);
+        //qpost.MakeCommand<Commands::FramebufferReadBind>(m_Buffer.m_FrameBuffer);
 
-        auto size = m_ScreenSize;
-        qpost.MakeCommand<Commands::BlitFramebuffer>(
-            0, 0, (GLint)size[0], (GLint)size[1],
-            0, 0, (GLint)size[0], (GLint)size[1],
-            (GLenum)GL_COLOR_BUFFER_BIT, (GLenum)GL_LINEAR);
+        //qpost.MakeCommand<Commands::SetReadBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+        qpost.MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[0], 1u);
+
+        //auto size = m_ScreenSize;
+        //qpost.MakeCommand<Commands::BlitFramebuffer>(
+        //    0, 0, (GLint)size[0], (GLint)size[1],
+        //    0, 0, (GLint)size[0], (GLint)size[1],
+        //    (GLenum)GL_COLOR_BUFFER_BIT, (GLenum)GL_LINEAR);
         //glBlitFramebuffer(0, 0, size[0], size[1], 0, 0, size[0], size[1], GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+        auto pps = shres.GetBuilder(qpost, mm_PostProcessShaderHandle);
+        pps.Bind();
+
+        m_GeometryQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        qpost.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+        qpost.MakeCommand<Commands::Disable>((GLenum)GL_BLEND);
+        //qpost.MakeCommand<Commands::Blend>((GLenum)GL_FUNC_ADD, (GLenum)GL_ONE, (GLenum)GL_ONE);
+        qpost.MakeCommand<Commands::VAOBindResource>(quadMesh.deviceHandle);// ->m_VAO = m_DeferredPipeline->m_DirectionalQuad.Handle();
+
+        auto garg = qpost.PushCommand<Commands::VAODrawElements>();
+        garg->m_NumIndices = 6;
+        garg->m_IndexValueType = GL_UNSIGNED_INT;// m_DeferredPipeline->m_DirectionalQuad.IndexValueType();
+        garg->m_ElementMode = GL_TRIANGLES;
     }
 }
 
