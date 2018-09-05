@@ -1,22 +1,31 @@
 #include "Deferred/Common.glsl"
+#include "PlaneShadowTest.glsl"
+#include "Light.glsl"
+
+uniform SpotLight_t gSpotLight;
 
 out vec4 FragColor;
 
 void main() {
-    vec2 TexCoord = CalcTexCoord(gl_FragCoord);
-	vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
-	vec3 Color = texture(gColorMap, TexCoord).xyz;
-	vec3 Normal = texture(gNormalMap, TexCoord).xyz;
-	//Normal = normalize(Normal);
+	vec2 TexCoord = CalcTexCoord(gl_FragCoord);
 
-	FragColor = CalcSpotLight(WorldPos, Normal, vec4(Color, 1));
+	vec3 worldPos = texture(gPositionMap, TexCoord).xyz;
+	vec4 Color = texture(gColorMap, TexCoord);
+	vec4 specularColor = texture(gSpecularMap, TexCoord);
+	vec4 emissiveColor = texture(gEmissiveMap, TexCoord);
+	vec4 NormalShiness = texture(gNormalMap, TexCoord);
 
-	if(EnableShadowTest) {
-		FragColor.xyz *= PlanarShadowTest(WorldPos, Normal);
-	}
+	vec3 normal = NormalShiness.xyz;
+	float shiness = NormalShiness.a;
+//	Normal = normalize(Normal);
 
-	FragColor.xyz = CalcStaticShadow(WorldPos, FragColor.xyz);
-	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
+	Material_t mat;
+	mat.diffuseColor = Color.xyz;
+	mat.specularColor = specularColor.xyz;
+	mat.emissiveColor = emissiveColor.xyz;
+	mat.shinessExponent = shiness;
+	mat.opacity = 1.0f;
 
-//    FragColor.xy = TexCoord;
+	float shadow = PlaneShadowTest(worldPos);
+	FragColor = CalcSpotLight(worldPos, normal, gSpotLight, mat, shadow);
 }

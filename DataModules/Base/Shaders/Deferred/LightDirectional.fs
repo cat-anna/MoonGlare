@@ -1,4 +1,5 @@
 #include "Deferred/Common.glsl"
+#include "Light.glsl"
 
 out vec4 FragColor;
 
@@ -9,6 +10,4 @@ void main() {
 	vec3 Normal = texture(gNormalMap, TexCoord).xyz;
 	//Normal = normalize(Normal);
 	FragColor = CalcDirectionalLight(WorldPos, Normal, vec4(Color, 1));
-	FragColor.xyz = CalcStaticShadow(WorldPos, FragColor.xyz);
-	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
 }

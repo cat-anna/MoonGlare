@@ -19,7 +19,7 @@ float CalcStaticFogFactor(float Distance) {
 	return clamp(factor, 0.0, 1.0);
 }
 
-vec3 CalcStaticShadow(vec3 WorldPos, vec3 fcolor) {
+vec3 CalcDistanceShadow(vec3 WorldPos, vec3 fcolor) {
 	float Distance = length(WorldPos - CameraPos);
 	float factor = CalcStaticFogFactor(Distance);
 	return mix(gStaticFog.Color, fcolor, factor);

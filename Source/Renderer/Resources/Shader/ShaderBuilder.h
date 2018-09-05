@@ -9,6 +9,8 @@
 
 #include "../MaterialManager.h"
 
+#include "../../Material.h"
+
 namespace MoonGlare::Renderer::Resources::Shader {
 
 template<typename Descriptor>
@@ -66,8 +68,22 @@ struct ShaderBuilder {
         texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
     }
 
+    template<Sampler SamplerUnit>
+    void SetCubeSampler(Device::TextureHandle h, Commands::CommandKey key = Commands::CommandKey()) {
+        auto texres = m_Queue->PushCommand<Renderer::Commands::TextureCubeBindUnit>(key);
+        texres->m_Texture = h;
+        texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
+    }
+    template<Sampler SamplerUnit>
+    void Set2DSampler(Device::TextureHandle h, Commands::CommandKey key = Commands::CommandKey()) {
+        auto texres = m_Queue->PushCommand<Renderer::Commands::Texture2DBindUnit>(key);
+        texres->m_Texture = h;
+        texres->m_UnitIndex = static_cast<uint16_t>(SamplerUnit);
+    }
+
     void SetMaterial(MaterialResourceHandle h, Commands::CommandKey key = Commands::CommandKey()) {
-        auto *mat = this->m_ResourceManager->GetMaterialManager().GetMaterial(h);
+        auto *mat = h.deviceHandle;
+            //this->m_ResourceManager->GetMaterialManager().GetMaterial(h);
         if (!mat) {
             //TODO: do sth
             return;
@@ -76,8 +92,21 @@ struct ShaderBuilder {
     }
 
     void SetMaterial(Material& mat, Commands::CommandKey key = Commands::CommandKey()) {
-        Set<Sampler::DiffuseMap>(mat.mapTexture[0], key);
-        Set<Uniform::DiffuseColor>(mat.diffuseColor, key);
+        auto &cmd = *m_Queue->PushCommand<Renderer::Commands::ShaderBindMaterialResource>(key);
+        cmd.diffuseColor = mat.diffuseColor;
+        cmd.specularColor = mat.specularColor;
+        cmd.emissiveColor = mat.emissiveColor;
+        cmd.shinessExponent = mat.shiness;
+        cmd.mapUnit = { (uint8_t)Sampler::DiffuseMap,(uint8_t)Sampler::NormalMap,(uint8_t)Sampler::ShinessMap,(uint8_t)Sampler::SpecularMap, };
+        for (size_t i = 0; i < cmd.mapHandle.size(); ++i) {
+            auto ptr = mat.mapTexture[i].deviceHandle;
+            cmd.mapHandle[i] = ptr ? *ptr : Device::InvalidTextureHandle;
+        }
+        cmd.diffuseColorLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::DiffuseColor)];
+        cmd.specularColorLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::SpecularColor)];
+        cmd.emissiveColorLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::EmissiveColor)];
+        cmd.shinessExponentLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::ShinessExponent)];
+        cmd.useNormalMapLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::UseNormalMap)];
     }
 
     Commands::CommandQueue *m_Queue;

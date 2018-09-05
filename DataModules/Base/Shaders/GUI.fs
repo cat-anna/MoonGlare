@@ -2,11 +2,17 @@
 #include "GUICommon.glsl"
 
 uniform Material_t gMaterial;
+
 vec4 ProcessBaseColor(vec4 fragment) {
+	float a = 1.0f - fragment.a;
+
 	fragment.xyz *= gBaseColor.a ;//* fragment.a;
 	fragment.xyz *= gBaseColor.xyz;
 	fragment.a *= gBaseColor.a;
+
+	fragment.a = 1.0f;
 	return fragment;
+	// return mix(fragment, vec4(0), a);
 }
 
 //---------------------------------------------------------------------------------------

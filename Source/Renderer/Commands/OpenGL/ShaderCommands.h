@@ -2,6 +2,8 @@
 
 #include "../CommandQueueBase.h"
 
+#include "../../Material.h"
+
 namespace MoonGlare::Renderer::Commands {
 
 struct ShaderBindArgument {
@@ -13,7 +15,7 @@ struct ShaderBindArgument {
 using ShaderBind = CommandTemplate<ShaderBindArgument>;
 
 //---------------------------------------------------------------------------------------
-#ifdef XMATH_H
+
 struct ShaderSetUniformMatrix4Argument {
 	Device::ShaderUniformHandle m_Location;
 	math::RawMat4 m_Matrix;
@@ -67,7 +69,7 @@ struct ShaderSetUniformFloatArgument {
 	}
 };
 using ShaderSetUniformFloat = CommandTemplate<ShaderSetUniformFloatArgument>;
-#endif
+
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
@@ -145,18 +147,47 @@ using ShaderResourcSetNamedUniform = CommandTemplate<detail::ShaderResourcSetNam
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
-#if 0
+
 namespace detail {
 
-template<typename ShDesc>
 struct ShaderBindMaterialResourceArgument {
 	using Conf = Configuration::Shader;
 
-	Material *m_Material;
-	Conf::UniformLocations *m_UniformsPtr;
+    emath::fvec3 diffuseColor;
+    emath::fvec3 specularColor;
+    emath::fvec3 emissiveColor;
 
+    float shinessExponent; 
+
+    Device::ShaderUniformHandle diffuseColorLocation;
+    Device::ShaderUniformHandle specularColorLocation;
+    Device::ShaderUniformHandle emissiveColorLocation;
+
+    Device::ShaderUniformHandle shinessExponentLocation;
+    Device::ShaderUniformHandle useNormalMapLocation;
+
+    Material::Array<uint8_t> mapUnit;
+    Material::Array< Device::TextureHandle> mapHandle;
+
+    using SET = ShaderResourcSetUniformArgumentBase;
+
+    struct BIND {
+        static void Set(uint8_t unitIndex, Device::TextureHandle h) {
+            glActiveTexture(GL_TEXTURE0 + unitIndex);
+            glBindTexture(GL_TEXTURE_2D, h);
+        }
+    };
 	void Run() const {
+        SET::Set(diffuseColorLocation, diffuseColor);
+        SET::Set(specularColorLocation, specularColor);
+        SET::Set(emissiveColorLocation, emissiveColor);
 
+        SET::Set(shinessExponentLocation, shinessExponent);
+        SET::Set(useNormalMapLocation, mapHandle[(size_t)Material::MapType::Normal] != Device::InvalidTextureHandle);
+
+        for (size_t i = 0; i < mapHandle.size(); ++i) {
+            BIND::Set(mapUnit[i], mapHandle[i]);
+        }
 	}
 
 	static void Execute(const ShaderBindMaterialResourceArgument *arg) {
@@ -166,8 +197,7 @@ struct ShaderBindMaterialResourceArgument {
 
 }
 
-template<typename T>
-using ShaderBindMaterialResource = CommandTemplate<detail::ShaderBindMaterialResourceArgument<T>>;
-#endif
+using ShaderBindMaterialResource = CommandTemplate<detail::ShaderBindMaterialResourceArgument>;
+
 
 } //namespace MoonGlare::Renderer::Commands

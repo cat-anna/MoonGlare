@@ -33,6 +33,7 @@ struct PointLightShaderDescriptor {
         ColorMap,
         NormalMap,
         SpecularMap,
+        EmissiveMap,
         ShadowMap,
         MaxValue,
     };
@@ -43,7 +44,7 @@ struct PointLightShaderDescriptor {
         case Uniform::ModelMatrix: return "ModelMatrix";
         case Uniform::CameraPos: return "CameraPos";
 
-        case Uniform::EnableShadows: return "EnableShadowTest";
+        case Uniform::EnableShadows: return "gEnableShadowTest";
 
         case Uniform::Color: return "gPointLight.Base.Color";
         case Uniform::AmbientIntensity: return "gPointLight.Base.AmbientIntensity";
@@ -62,6 +63,7 @@ struct PointLightShaderDescriptor {
         case Sampler::ColorMap: return "gColorMap";
         case Sampler::NormalMap: return "gNormalMap";
         case Sampler::SpecularMap: return "gSpecularMap";
+        case Sampler::EmissiveMap: return "gEmissiveMap";
         case Sampler::ShadowMap: return "gCubeShadowMap";
         default: return nullptr;
         }

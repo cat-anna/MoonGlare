@@ -4,20 +4,6 @@ namespace MoonGlare::Renderer::Deferred {
 
 class DeferredFrameBuffer;
 class DeferredPipeline;
-
-struct SamplerIndex {
-	enum {
-		Empty = 0,
-		Position,
-		Diffuse,
-		Normal,
-        Specular,
-
-        Shadow,
-        //CubeShadow,
-	};
-};
-
 struct DeferredSink;
 
 } 

@@ -39,10 +39,10 @@ void DeferredSink::InitializeDirectionalQuad() {
         math::vec3(-1.0f,  1.0f, 0.0f),
     };
     meshData.UV0 = {
-        math::vec2(1.0f, 1.0f),
-        math::vec2(0.0f, 1.0f),
         math::vec2(0.0f, 0.0f),
         math::vec2(1.0f, 0.0f),
+        math::vec2(1.0f, 1.0f),
+        math::vec2(0.0f, 1.0f),
     };
     meshData.index = {
         0, 1, 2, 0, 2, 3,
@@ -70,7 +70,6 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
             texres.AllocExtTexture(fmt::format("DeferredFrameBuffer://{}", index), m_Buffer.m_Textures[index], s);
 
         texres.AllocExtTexture("DeferredFrameBuffer://depth", m_Buffer.m_DepthTexture, s);
-        texres.AllocExtTexture("DeferredFrameBuffer://final", m_Buffer.m_FinalTexture, s);
     }
     catch (int idx) {
         AddLogf(Error, "Unable to load shader with index %d", idx);
@@ -102,6 +101,8 @@ void DeferredSink::SetStaticFog(const StaticFog &afog) {
     fogSet = false;
     visibility = fog.m_Enabled ? fog.m_End + 1 : -1;
 }
+
+static int gFinalIndex = 0;
 
 void DeferredSink::Reset(Frame *frame) {
 
@@ -149,11 +150,12 @@ void DeferredSink::Reset(Frame *frame) {
         //m_Buffer.BeginGeometryPass();
         //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FrameBuffer);
         static const GLenum DrawBuffers[] = {
-            GL_COLOR_ATTACHMENT0,
+            //GL_COLOR_ATTACHMENT0,
             GL_COLOR_ATTACHMENT1,
             GL_COLOR_ATTACHMENT2,
             GL_COLOR_ATTACHMENT3,
             GL_COLOR_ATTACHMENT4,
+            GL_COLOR_ATTACHMENT5,
         };
         //glDrawBuffers(4, DrawBuffers);
         m_GeometryQueue->MakeCommand<Commands::SetDrawBuffers>(5, DrawBuffers);
@@ -184,9 +186,9 @@ void DeferredSink::Reset(Frame *frame) {
         m_DirectionalLightQueue->MakeCommand<Commands::VAOBindResource>(quadMesh.deviceHandle);// ->m_VAO = m_DeferredPipeline->m_DirectionalQuad.Handle();
 
         //m_Buffer.BeginLightingPass();
-        m_DirectionalLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT5);
-        for (unsigned int i = 0; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
-            m_DirectionalLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i);
+        m_DirectionalLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+        for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
+            m_DirectionalLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i-1);
         }
 
     }
@@ -309,10 +311,6 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
         m_GeometryShader.Set<Uniform::ModelMatrix>(ModelMatrix);
-
-        //m_GeometryShader.Set<Uniform::DiffuseColor>(emath::fvec3(1, 1, 1));
-        //m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
-
         m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
     }
 
@@ -322,30 +320,7 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
 
-        //if (matH.deviceHandle) {
-        m_GeometryShader.Set<Uniform::DiffuseColor>(matH.deviceHandle->diffuseColor);
-        m_GeometryShader.Set<Uniform::SpecularColor>(matH.deviceHandle->specularColor);
-        m_GeometryShader.Set<Uniform::EmissiveColor>(matH.deviceHandle->emissiveColor);
-
-        if(matH.deviceHandle->mapEnabled[0])
-            m_GeometryShader.Set<Sampler::DiffuseMap>(matH.deviceHandle->mapTexture[0]);
-        else
-            m_GeometryShader.Set<Sampler::DiffuseMap>(Device::InvalidTextureHandle);
-
-        m_GeometryShader.Set<Uniform::UseNormalMap>((int)matH.deviceHandle->mapEnabled[1]);
-        if (matH.deviceHandle->mapEnabled[1])
-            m_GeometryShader.Set<Sampler::NormalMap>(matH.deviceHandle->mapTexture[1]);
-
-        if (matH.deviceHandle->mapEnabled[2])
-            m_GeometryShader.Set<Sampler::SpecularMap>(matH.deviceHandle->mapTexture[2]);
-        else
-            m_GeometryShader.Set<Sampler::SpecularMap>(Device::InvalidTextureHandle);
-
-        m_GeometryShader.Set<Uniform::ShinessExponent>(matH.deviceHandle->shiness);
-        if (matH.deviceHandle->mapEnabled[3])
-            m_GeometryShader.Set<Sampler::ShinessMap>(matH.deviceHandle->mapTexture[3]);
-        else
-            m_GeometryShader.Set<Sampler::ShinessMap>(Device::InvalidTextureHandle);
+        m_GeometryShader.SetMaterial(matH, {});
 
         auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         garg->m_NumIndices = mesh.numIndices;
@@ -482,21 +457,20 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
     garg->m_BaseIndex = (mesh).baseIndex;
     garg->m_BaseVertex = (mesh).baseVertex;
 
-    if (sm) {
-        m_PointLightQueue->MakeCommand<Commands::TextureCubeBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::Shadow);
-    } else {
-        m_PointLightQueue->MakeCommand<Commands::TextureCubeBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::Shadow);
-    }
 
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
+        using Sampler = PointLightShaderDescriptor::Sampler;
         m_PointLightShader.Bind();
+
+        m_PointLightShader.SetCubeSampler<Sampler::ShadowMap>(sm ? sm->textureHandle : Device::InvalidTextureHandle);
+
         m_PointLightShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
         m_PointLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 
         //m_Buffer.BeginLightingPass();
-        m_PointLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT5);
-        for (unsigned int i = 0; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
+        m_PointLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+        for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
             m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i);
         }
 
@@ -580,21 +554,25 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
     garg->m_BaseVertex = (mesh).baseVertex;
 
     //m_Buffer.BeginLightingPass();
-    m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT5);
-    for (unsigned int i = 0; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
+    m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+    for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i);
     }
 
     //sm->BindAsTexture(SamplerIndex::PlaneShadow);
-    if (sm) {
-        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::Shadow);
-    } else {
-        m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::Shadow);
-    }
+    //if (sm) {
+    //    m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(sm->textureHandle, (unsigned)SamplerIndex::Shadow);
+    //} else {
+    //    m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(Device::InvalidTextureHandle, (unsigned)SamplerIndex::Shadow);
+    //}
 
     {
         using Uniform = SpotLightShaderDescriptor::Uniform;
+        using Sampler = SpotLightShaderDescriptor::Sampler;
         m_SpotShader.Bind();
+
+        m_SpotShader.Set2DSampler<Sampler::ShadowMap>(sm ? sm->textureHandle : Device::InvalidTextureHandle);
+
         m_SpotShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
         m_SpotShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 

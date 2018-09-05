@@ -1,8 +1,11 @@
 #include "Deferred/Common.glsl"
+#include "Light.glsl"
+
+uniform samplerCube gCubeShadowMap;
+uniform PointLight_t gPointLight;
 
 out vec4 FragColor;
 
-uniform samplerCube gCubeShadowMap;
 
 vec3 sampleOffsetDirections[20] = vec3[]
 (
@@ -15,6 +18,9 @@ vec3 sampleOffsetDirections[20] = vec3[]
 
 float ShadowCalculation(vec3 fragPos)
 {
+	// if(!gEnableShadowTest)
+	// 	return 1.0f;
+
     // get vector between fragment position and light position
     vec3 fragToLight = (fragPos - gPointLight.Position);
     // ise the fragment to light vector to sample from the depth map    
@@ -66,29 +72,23 @@ float ShadowCalculation(vec3 fragPos)
 void main() {
     vec2 TexCoord = CalcTexCoord(gl_FragCoord);
 
-	vec3 WorldPos = texture(gPositionMap, TexCoord).xyz;
+	vec3 worldPos = texture(gPositionMap, TexCoord).xyz;
 	vec4 Color = texture(gColorMap, TexCoord);
 	vec4 specularColor = texture(gSpecularMap, TexCoord);
-
+	vec4 emissiveColor = texture(gEmissiveMap, TexCoord);
 	vec4 NormalShiness = texture(gNormalMap, TexCoord);
 
 	vec3 normal = NormalShiness.xyz;
 	float shiness = NormalShiness.a;
 //	Normal = normalize(Normal);
 
-    float shadow = ShadowCalculation(WorldPos);                  
-    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;   
-
 	Material_t mat;
 	mat.diffuseColor = Color.xyz;
 	mat.specularColor = specularColor.xyz;
-	mat.emissiveColor = vec3(0);
+	mat.emissiveColor = emissiveColor.xyz;
 	mat.shinessExponent = shiness;
 	mat.opacity = 1.0f;
 
-	FragColor = (shadow) *  
-	CalcPointLight(WorldPos, normal, gPointLight, mat);
-	// FragColor.xyz *= CalcStaticShadow(WorldPos, FragColor.xyz)
-	// FragColor.x = shiness;
-	FragColor.xyz = pow(FragColor.xyz, vec3(1.0/2.2));
+	float shadow = ShadowCalculation(worldPos);                  
+	FragColor = CalcPointLight(worldPos, normal, gPointLight, mat, shadow);
 }

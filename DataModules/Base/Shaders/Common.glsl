@@ -5,6 +5,7 @@ uniform sampler2D gDiffuseMap;
 uniform sampler2D gNormalMap;
 uniform sampler2D gShinessMap;
 uniform sampler2D gSpecularMap;
+uniform sampler2D gEmissiveMap;
 
 struct Material_t {
 	vec3 diffuseColor;

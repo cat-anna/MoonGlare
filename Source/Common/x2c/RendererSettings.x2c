@@ -1,5 +1,4 @@
 Import "Common.x2c"
-Import "AssetSettings.x2c"
 
 namespace "MoonGlare.x2c.Settings.Renderer"
 

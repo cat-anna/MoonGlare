@@ -6,15 +6,9 @@ struct BaseLight_t {
     float DiffuseIntensity;
 };
 
-vec4 CalcLightInternal(BaseLight_t BaseLight, Material_t mat, vec3 LightDirection, vec3 WorldPos, vec3 Normal) {
-    vec4 AmbientColor  = vec4(0, 0, 0, 0);
+vec4 CalcLightReflected(BaseLight_t BaseLight, Material_t mat, vec3 LightDirection, vec3 WorldPos, vec3 Normal) {
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
     vec4 SpecularColor = vec4(0, 0, 0, 0);
-
-    AmbientColor = vec4(BaseLight.Color, 1.0) * BaseLight.AmbientIntensity;
-
-	float gShiness = 10;
-    // float gMatSpecularIntensity = 0.5;
 
     float DiffuseFactor = dot(Normal, -LightDirection);
     if (DiffuseFactor > 0.0) {
@@ -26,21 +20,15 @@ vec4 CalcLightInternal(BaseLight_t BaseLight, Material_t mat, vec3 LightDirectio
 	vec3 LightReflect = normalize(reflect(LightDirection, Normal));
 	float SpecularFactor = dot(VertexToEye, LightReflect);
 	SpecularFactor = pow(max(SpecularFactor, 0.0),
-	//  gShiness
-	// // SHINESS_SCALER -
-	 (1.0f - mat.shinessExponent) * SHINESS_SCALER
+		 (1.0f - mat.shinessExponent) * SHINESS_SCALER
 	);
 	if (SpecularFactor > 0.0) {
 		SpecularColor = vec4(BaseLight.Color, 1.0) * 
-		// gMatSpecularIntensity 
-		// vec4(mat.shinessExponent) *
 		vec4(mat.specularColor, 1) 
 		* SpecularFactor;
 	}
 
-    vec4 result = 
-	( AmbientColor + DiffuseColor ) * vec4(mat.diffuseColor, 1) +
-	 SpecularColor;
+    vec4 result = DiffuseColor  * vec4(mat.diffuseColor, 1) + SpecularColor;
 	result.a = 1.0;
 	return result;
 };
@@ -64,15 +52,22 @@ struct PointLight_t {
     vec4 Attenuation;
 };
 
-vec4 CalcPointLight(vec3 WorldPos, vec3 Normal, PointLight_t light, Material_t mat) {
+vec4 CalcPointLight(vec3 WorldPos, vec3 Normal, PointLight_t light, Material_t mat, float shadow) {
 	vec3 LightToWord = WorldPos - light.Position;
     float Distance = length(LightToWord);
 	vec3 LightToPixel = normalize(LightToWord);
 
-    vec4 Color = CalcLightInternal(light.Base, mat, LightToPixel, WorldPos, Normal);
+	vec4 AmbientColor = vec4(light.Base.Color, 1.0) * light.Base.AmbientIntensity;
+	AmbientColor *= vec4(mat.diffuseColor, 1);
+
+    vec4 Color = CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal);
 	float factor = CalcAttenuation(light.Attenuation, Distance);
-    Color.xyz *= factor;
- 	Color.xyz = CalcStaticShadow(WorldPos, Color.xyz);
+
+    Color.xyz *= shadow;
+	Color.xyz += AmbientColor.xyz;
+	Color.xyz += mat.emissiveColor * mat.diffuseColor;
+	Color.xyz *= factor;
+ 	Color.xyz = CalcDistanceShadow(WorldPos, Color.xyz);
 	return Color;
 };
 
@@ -99,32 +94,33 @@ struct SpotLight_t {
     vec4 Attenuation;
 	float CutOff;
 };
-uniform SpotLight_t SpotLight;
 
-vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal, vec4 MaterialDiffuse) {
-	
-	vec3 LightToWord = WorldPos - SpotLight.Position;
+vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal, SpotLight_t light, Material_t mat, float shadow) {
+	vec3 LightToWord = WorldPos - light.Position;
 
 	vec3 LightToPixel = normalize(LightToWord);
-	float SpotFactor = dot(normalize(-SpotLight.Direction), LightToPixel);
+	float SpotFactor = dot(normalize(-light.Direction), LightToPixel);
 
-	if (SpotFactor > SpotLight.CutOff) {
+	if (SpotFactor > light.CutOff) {
+		vec4 AmbientColor = vec4(light.Base.Color, 1.0) * light.Base.AmbientIntensity;
+		AmbientColor *= vec4(mat.diffuseColor, 1);
+
 		float Distance = length(LightToWord);
-  	  vec4 Color = vec4(0);
-		// vec4 Color = CalcLightInternal(SpotLight.Base, MaterialDiffuse, LightToPixel, WorldPos, Normal);
-		float factor = CalcAttenuation(SpotLight.Attenuation, Distance);
-		Color.xyz *= factor;
- 		Color.xyz = CalcStaticShadow(WorldPos, Color.xyz);
-		Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - SpotLight.CutOff));
-		//Color.xyz = LightToPixel;
+		vec4 Color = vec4(0);
+		Color += CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal);
+		float factor = CalcAttenuation(light.Attenuation, Distance);
 
-//		Color.a = 1.0f;
-		//Color.g = 1.0f;
-		//	Color.b = SpotFactor;
+		Color.xyz *= shadow;
+		Color.xyz += AmbientColor.xyz;
+		Color.xyz += mat.emissiveColor * mat.diffuseColor;
+		Color.xyz *= factor;
+		Color.xyz = CalcDistanceShadow(WorldPos, Color.xyz);
+
+		// Color.xyz *= (1.0 - (1.0 - SpotFactor) * 1.0/(1.0 - light.CutOff));
+		//Color.xyz = LightToPixel;
 		return Color;
 	}
-	//else
-	//	discard;
 
 	return vec4(0.0);
 }
+

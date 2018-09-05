@@ -7,12 +7,23 @@ in mat3 TBN;
 
 uniform Material_t gMaterial;
 
-layout(location = 1) out vec4 WorldPosOut;
-layout(location = 2) out vec4 DiffuseOut;
-layout(location = 3) out vec4 NormalOut;
-layout(location = 4) out vec4 SpecularOut;
+layout(location = 0) out vec4 WorldPosOut;
+layout(location = 1) out vec4 DiffuseOut;
+layout(location = 2) out vec4 NormalOut;
+layout(location = 3) out vec4 SpecularOut;
+layout(location = 4) out vec4 EmissiveOut;
 
 uniform bool gUseNormalMap;
+
+/*
+Reads material color textures
+Reads material normal maps
+Writes depth to a D24S8 target
+Writes surface normal and specular exponent to an A8R8G8B8 target
+Writes diffuse albedo to an X8R8G8B8 target
+Writes specular albedo to an X8R8G8B8 target
+Writes emissive to an X8R8G8B8 target
+*/
 
 void main() {
     vec4 diffuseColor = texture2D(gDiffuseMap, VertexUV0);
@@ -34,6 +45,7 @@ void main() {
 // SHINESS_SCALER
     DiffuseOut	= diffuseColor;
     SpecularOut = specularColor;
+    EmissiveOut = vec4(gMaterial.emissiveColor, 1);
     WorldPosOut	= vec4(VertexWorldPos, 1);
 
     if(gUseNormalMap) {

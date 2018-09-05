@@ -11,10 +11,12 @@ public:
 
     struct Buffers {
         enum {
-            Position	= SamplerIndex::Position,
-            Diffuse		= SamplerIndex::Diffuse,
-            Normal      = SamplerIndex::Normal,
-            Specular	= SamplerIndex::Specular,
+            Final       = 0,
+            Position	= 1,
+            Diffuse		= 2,
+            Normal      = 3,
+            Specular    = 4,
+            Emissive    = 5,
             MaxValue,
         };
     };
@@ -34,7 +36,6 @@ public:
     void BeginFinalPass();
     GLuint m_Textures[Buffers::MaxValue];
     GLuint m_DepthTexture = 0;
-    GLuint m_FinalTexture = 0;
 
     void Bind() const {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FrameBuffer);

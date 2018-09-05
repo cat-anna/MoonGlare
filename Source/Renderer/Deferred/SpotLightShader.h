@@ -35,6 +35,7 @@ struct SpotLightShaderDescriptor {
         PositionMap,
         ColorMap,
         NormalMap,
+        EmissiveMap,
         ShadowMap,
         MaxValue,
     };
@@ -45,18 +46,17 @@ struct SpotLightShaderDescriptor {
         case Uniform::ModelMatrix: return "ModelMatrix";
         case Uniform::CameraPos: return "CameraPos";
 
-        case Uniform::LightMatrix: return "LightMatrix";
+        case Uniform::LightMatrix: return "gLightMatrix";
 
-        case Uniform::EnableShadows: return "EnableShadowTest";
+        case Uniform::EnableShadows: return "gEnableShadowTest";
 
-        case Uniform::Color: return "SpotLight.Base.Color";
-        case Uniform::AmbientIntensity: return "SpotLight.Base.AmbientIntensity";
-        case Uniform::DiffuseIntensity: return "SpotLight.Base.DiffuseIntensity";
-        case Uniform::Position: return "SpotLight.Position";
-        case Uniform::Direction: return "SpotLight.Direction";
-        case Uniform::CutOff: return "SpotLight.CutOff";
-
-        case Uniform::Attenuation: return "SpotLight.Attenuation";
+        case Uniform::Color: return "gSpotLight.Base.Color";
+        case Uniform::AmbientIntensity: return "gSpotLight.Base.AmbientIntensity";
+        case Uniform::DiffuseIntensity: return "gSpotLight.Base.DiffuseIntensity";
+        case Uniform::Position: return "gSpotLight.Position";
+        case Uniform::Direction: return "gSpotLight.Direction";
+        case Uniform::CutOff: return "gSpotLight.CutOff";
+        case Uniform::Attenuation: return "gSpotLight.Attenuation";
 
         case Uniform::ScreenSize: return "ScreenSize";
         default: return nullptr;
@@ -67,7 +67,8 @@ struct SpotLightShaderDescriptor {
         case Sampler::PositionMap: return "gPositionMap";
         case Sampler::ColorMap: return "gColorMap";
         case Sampler::NormalMap: return "gNormalMap";
-        case Sampler::ShadowMap: return "PlaneShadowMap";
+        case Sampler::EmissiveMap: return "gEmissiveMap";
+        case Sampler::ShadowMap: return "gPlaneShadowMap";
         default: return nullptr;
         }
     }
