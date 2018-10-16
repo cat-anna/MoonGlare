@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Renderer/iRendererFacade.h>
+#include <Foundation/Settings.h>
 
 namespace MoonGlare::x2c::Settings {
 struct EngineSettings_t;
@@ -13,9 +14,7 @@ public:
     Application();
     virtual ~Application();
 
-    void LoadSettings();
     void SaveSettings();
-    void SettingsChanged() { m_Flags.m_SettingsChanged = true; }
     void Restart();
 
     virtual void Initialize();
@@ -30,7 +29,8 @@ public:
     virtual void Exit();
     virtual void OnActivate();
     virtual void OnDeactivate();
-    virtual const char* ExeName() const;
+    virtual std::string ApplicationPath() const = 0;
+    virtual std::string SettingsPath() const;
 
     bool IsActive() const { return m_Flags.m_Active; }
     bool DoRestart() const { return m_Flags.m_Restart; }
@@ -38,9 +38,6 @@ public:
 protected:
     union Flags {
         struct {
-            bool m_Initialized : 1;
-            bool m_SettingsLoaded : 1;
-            bool m_SettingsChanged : 1;
             bool m_Active : 1;
             bool m_Restart : 1;
         };
@@ -50,14 +47,16 @@ protected:
     std::unique_ptr<World> m_World;
 
     Renderer::UniqueRenderer m_Renderer;
+    std::shared_ptr<Settings> settings;
 
-    std::string m_ConfigurationFileName;
-    std::string m_SettingsFileName;
-    std::unique_ptr<x2c::Settings::EngineSettings_t> m_Configuration;
+    void LoadSettings();
+    void InitLogger();
 
     void WaitForFirstScene();
 
     Renderer::ContextCreationInfo GetDisplaySettings();
+
+    virtual std::shared_ptr<Settings> GetUpperLayerSettings() { return nullptr; };
 };
 
 } //namespace MoonGlare

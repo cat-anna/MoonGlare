@@ -3,6 +3,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <OrbitLogger/src/sink/FileSink.h>
+#include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
+
 #include <nfMoonGlare.h>
 
 #include <Engine/Core/DataManager.h>
@@ -29,16 +32,10 @@
 #include <Foundation/SoundSystem/iSoundSystem.h>
 #include <Foundation/Component/EventDispatcher.h>
 
-#include <Foundation/Settings.h>
-
 namespace MoonGlare {
 
 Application::Application() {
     m_Flags.m_UintValue = 0;
-
-    m_Configuration = std::make_unique<x2c::Settings::EngineSettings_t>();
-    m_ConfigurationFileName = OS::GetSettingsDirectory() + "Engine.xml";
-    m_SettingsFileName = OS::GetSettingsDirectory() + "Engine.cfg";
 }
 
 Application::~Application() {}
@@ -59,55 +56,19 @@ bool Application::PostSystemInit() {
 //---------------------------------------------------------------------------------------
 
 void Application::LoadSettings() {
-    if (m_Flags.m_Initialized) {
-        throw "Cannot load settings after initialization!";
-    }
+    settings = std::make_shared<Settings>(GetUpperLayerSettings());
+    m_World->SetSharedInterface(settings);
 
-    auto stt = std::make_shared<Settings>();
-    m_World->SetSharedInterface(stt);
-    stt->LoadFromFile(m_SettingsFileName);
-
-    m_Configuration->ResetToDefault();
-
-    if (!boost::filesystem::is_regular_file(m_ConfigurationFileName.data())) {
-        m_Flags.m_SettingsLoaded = true;
-        m_Flags.m_SettingsChanged = true;
-        AddLogf(Warning, "Settings not loaded. File is not valid");
-        return;
-    }
-
-    pugi::xml_document doc;
-    doc.load_file(m_ConfigurationFileName.data());
-    auto root = doc.child("EngineSettings");
-    m_Configuration->Read(root);
-    GetModulesManager()->LoadSettings(root.child("Modules"));
-
-    m_Flags.m_SettingsLoaded = true;
-    m_Flags.m_SettingsChanged = false;
+    std::string settingsFileName = SettingsPath() + "Engine.cfg";
+    settings->LoadFromFile(settingsFileName);
 }
 
 void Application::SaveSettings() {
+    std::string settingsFileName = SettingsPath() + "Engine.cfg";
 
     auto stt = m_World->GetSharedInterface<Settings>();
     if (stt->Changed())
-        stt->SaveToFile(m_SettingsFileName);
-
-    if (!m_Flags.m_SettingsLoaded) {
-        AddLogf(Error, "Settings not loaded!");
-        return;
-    }
-    if (!m_Flags.m_SettingsChanged) {
-        AddLogf(Warning, "Settings not saved. There is no changes");
-        return;
-    }
-
-    pugi::xml_document doc;
-    auto root = doc.append_child("EngineSettings");
-    m_Configuration->Write(root);
-    GetModulesManager()->SaveSettings(root.append_child("Modules"));
-    doc.save_file(m_ConfigurationFileName.c_str());
-
-    m_Flags.m_SettingsChanged = false;
+        stt->SaveToFile(settingsFileName);
 }
 
 Renderer::ContextCreationInfo Application::GetDisplaySettings() {
@@ -128,8 +89,43 @@ Renderer::ContextCreationInfo Application::GetDisplaySettings() {
 
 //---------------------------------------------------------------------------------------
 
+void Application::InitLogger() {
+    static bool initialized = false;
+    if (initialized)
+        return;
+    initialized = true;
+
+    using OrbitLogger::LogCollector;
+    using OrbitLogger::StdFileLoggerSink;
+    using OrbitLogger::MSVCDebuggerSink;
+    namespace LogChannels = OrbitLogger::LogChannels;
+
+    std::string logPath = settings->GetString("Log.Path", "logs") + "/";
+    boost::filesystem::create_directory(logPath);
+
+    if (DEBUG_TRUE || settings->HasValue("Log.Output"))
+        LogCollector::AddLogSink<StdFileLoggerSink>(logPath + settings->GetString("Log.Output", "Engine.log"));
+
+    if (DEBUG_TRUE || settings->HasValue("Log.SessionOutput"))
+        LogCollector::AddLogSink<StdFileLoggerSink>(logPath + settings->GetString("Log.SessionOutput", "Engine.session.log"), false);
+
+#ifdef DEBUG_LOG
+    bool dbgLog = settings->GetBool("Log.Debug", DEBUG_TRUE);
+    if(dbgLog)
+        LogCollector::AddLogSink<MSVCDebuggerSink>();
+    LogCollector::SetChannelState(LogChannels::Debug, dbgLog);
+#endif
+
+    LogCollector::SetCaptureStdOut(OrbitLogger::LogChannels::StdOut);
+    LogCollector::SetCaptureStdErr(OrbitLogger::LogChannels::StdErr);
+    LogCollector::SetChannelName(OrbitLogger::LogChannels::StdOut, "SOUT");
+    LogCollector::SetChannelName(OrbitLogger::LogChannels::StdErr, "SERR");
+}   
+
+//---------------------------------------------------------------------------------------
+
 using Modules::ModulesManager;
-using FileSystem::MoonGlareFileSystem;
+using FileSystem::MoonGlareFileSystem;  
 using MoonGlare::Core::Scripts::ScriptEngine;
 using DataManager = MoonGlare::Core::Data::Manager;
 
@@ -137,14 +133,15 @@ void Application::Initialize() {
     m_World = std::make_unique<World>();
     m_World->SetInterface(this);
 
+    LoadSettings();
+    InitLogger();
+
     //TODO:
     auto moveCfg = std::make_shared<Core::MoveConfig>();
     m_World->SetSharedInterface(moveCfg);
     m_World->SetInterface<Component::SubsystemUpdateData>(moveCfg.get());
 
     auto ModManager = new ModulesManager(m_World.get());
-
-    LoadSettings();
 
     if (!PreSystemInit()) {
         AddLogf(Error, "Pre system init action failed!");
@@ -177,8 +174,10 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_Renderer->Initialize(GetDisplaySettings(), GetFileSystem());
     m_World->SetRendererFacade(R);
 
-    auto datamgr = new DataManager(m_World.get());
-    datamgr->SetLangCode(m_Configuration->m_Core.m_LangCode);
+    {
+        auto datamgr = new DataManager(m_World.get());
+        datamgr->SetLangCode(settings->GetString("Localization.LangCode", "en"));
+    }
 
     LoadDataModules();
 
@@ -196,7 +195,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Failed to initialize world!";
     }
 
-    if (m_Configuration->m_Core.m_EnableConsole) {
+    if (1) {
+        //m_Configuration->m_Core.m_EnableConsole) {
         auto c = new Modules::BasicConsole();
         _init_chk(c, "Unable to initialize console!");
         m_World->SetConsole(c);
@@ -219,8 +219,6 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         AddLogf(Error, "Post system init action failed!");
         throw "Post system init action failed!";
     }
-
-    m_Flags.m_Initialized = true;
 }
 
 void Application::LoadDataModules() {
@@ -316,7 +314,6 @@ void Application::Finalize() {
     AddLog(Debug, "Application finalized");
 #undef _finit_chk
 #undef _del_chk
-    m_Flags.m_Initialized = false;
 }
 
 void Application::WaitForFirstScene() {
@@ -359,8 +356,13 @@ void Application::Restart() {
     MoonGlare::Core::GetEngine()->Exit();
 }
 
-const char* Application::ExeName() const {
-    return "";
+//---------------------------------------------------------------------------------------
+
+std::string Application::SettingsPath() const {
+    auto str = settings->GetString("Settings.Path", OS::GetSettingsDirectory());
+    if (str.back() != '/' || str.back() != '\\')
+        str += "/";
+    return std::move(str);
 }
 
 } //namespace MoonGlare

@@ -8,6 +8,10 @@ namespace MoonGlare {
 
 struct Settings {
 
+    Settings();
+    Settings(std::shared_ptr<Settings> upperLayerSettings);
+    ~Settings();
+
     enum class ApplyMethod {
         DontCare,
         Immediate,
@@ -20,8 +24,9 @@ struct Settings {
         virtual ApplyMethod ValueChanged(const std::string &key, Settings* siface) = 0;
     };
 
-    std::string Serialize() const;
+    std::string Serialize(bool FollowLayers = false) const;
     void Deserialize(const std::string &data);
+    void AppendString(std::string line);
 
     void SaveToFile(const std::string &fileName) const;
     void LoadFromFile(const std::string &fileName);
@@ -64,6 +69,7 @@ private:
     std::vector<std::weak_ptr<iChangeCallback>> callbackList;
     bool changed = false;
     ApplyMethod NotifyChange(const std::string &key);
+    std::shared_ptr<Settings> upperLayer;
     static std::string ToString(const ValueVariant &vv);
 };
 

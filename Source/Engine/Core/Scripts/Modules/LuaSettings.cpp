@@ -39,8 +39,6 @@ struct LuaSettingsModule::SettingsObject {
             }
         }
 
-        application->SettingsChanged();
-
         if (needRestart) {
             application->SetRestart(true);
             Core::GetEngine()->Exit();
@@ -94,7 +92,6 @@ struct LuaSettingsModule::SettingsObject {
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(provider, id, vv);
-                application->SettingsChanged();
             }
             catch (Settings::iSettingsProvider::InvalidSettingId) {
                 __debugbreak();

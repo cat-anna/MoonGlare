@@ -8,7 +8,17 @@
 
 namespace MoonGlare {
 
-std::string Settings::Serialize() const {
+Settings::Settings() { }
+
+Settings::Settings(std::shared_ptr<Settings> upperLayerSettings) :upperLayer(std::move(upperLayerSettings)){
+
+}
+
+Settings::~Settings() {}
+
+//---------------------------------------------------------
+
+std::string Settings::Serialize(bool FollowLayers) const {
     std::stringstream ss;
     for (auto &key : GetKeys()) {
         auto it = values.find(key);
@@ -30,6 +40,10 @@ std::string Settings::Serialize() const {
             
         ss << std::endl;
     }
+    if (FollowLayers && upperLayer) {
+        ss << "#Upper Layers:\n";
+        ss << upperLayer->Serialize(true);
+    }
     return ss.str();
 }
 
@@ -43,35 +57,36 @@ void Settings::Deserialize(const std::string &data) {
         if (comment != std::string::npos)
             line.erase(line.begin() + comment, line.end());
 
-        boost::trim(line);
-
-        if (line.empty())
-            continue;
-
-        auto pos = line.find('=');
-        if (pos == std::string::npos) {
-            values[line] = true;
-        } else {
-            std::string key = line.substr(0, pos);
-            std::string value = line.substr(pos + 1);
-            boost::trim(key);
-            boost::trim(value);
-
-            std::smatch base_match;
-            if (value == "true")
-                values[key] = true;
-            else if (value == "false")
-                values[key] = false;
-            else if (std::regex_match(value, base_match, std::regex("\\d+")))
-                values[key] = strtol(value.c_str(), nullptr, 10);
-            else if (std::regex_match(value, base_match, std::regex("\\d+.\\d+")))
-                values[key] = strtof(value.c_str(), nullptr);
-            else
-                values[key] = value;
-        }
+        AppendString(std::move(line));
     }
 }
 
+void Settings::AppendString(std::string line) {
+    boost::trim(line);
+    if (line.empty())
+        return;
+    auto pos = line.find('=');
+    if (pos == std::string::npos) {
+        values[line] = true;
+    } else {
+        std::string key = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
+        boost::trim(key);
+        boost::trim(value);
+
+        std::smatch base_match;
+        if (value == "true")
+            values[key] = true;
+        else if (value == "false")
+            values[key] = false;
+        else if (std::regex_match(value, base_match, std::regex("\\d+")))
+            values[key] = strtol(value.c_str(), nullptr, 10);
+        else if (std::regex_match(value, base_match, std::regex("\\d+.\\d+")))
+            values[key] = strtof(value.c_str(), nullptr);
+        else
+            values[key] = value;
+    }
+}
 void Settings::SaveToFile(const std::string &fileName) const {
     OS::WriteStringToFile(fileName, Serialize());
 }
@@ -116,10 +131,17 @@ std::string Settings::ToString(const ValueVariant &vv) {
 
 bool Settings::HasValue(const std::string &key) const {
     auto it = values.find(key);
-    return it != values.end();
+    if (it != values.end())
+        return true;
+    if (upperLayer)
+        return upperLayer->HasValue(key);
+    return false;
 }
 
 std::string Settings::GetString(const std::string &key, const std::string &default) {
+    if (upperLayer && upperLayer->HasValue(key)) {
+        return upperLayer->GetString(key, default);
+    }
     auto it = values.find(key);
     if (it == values.end()) {
 #ifdef DEBUG
@@ -131,6 +153,9 @@ std::string Settings::GetString(const std::string &key, const std::string &defau
 }
 
 int Settings::GetInt(const std::string &key, int default) {
+    if (upperLayer && upperLayer->HasValue(key)) {
+        return upperLayer->GetInt(key, default);
+    }
     auto it = values.find(key);
     if (it == values.end()) {
 #ifdef DEBUG
@@ -158,6 +183,9 @@ int Settings::GetInt(const std::string &key, int default) {
 }
 
 float Settings::GetFloat(const std::string &key, float default)  {
+    if (upperLayer && upperLayer->HasValue(key)) {
+        return upperLayer->GetFloat(key, default);
+    }
     auto it = values.find(key);
     if (it == values.end()) {
 #ifdef DEBUG
@@ -185,6 +213,9 @@ float Settings::GetFloat(const std::string &key, float default)  {
 }
 
 bool Settings::GetBool(const std::string &key, bool default) {
+    if (upperLayer && upperLayer->HasValue(key)) {
+        return upperLayer->GetBool(key, default);
+    }
     auto it = values.find(key);
     if (it == values.end()) {
 #ifdef DEBUG
@@ -212,6 +243,9 @@ bool Settings::GetBool(const std::string &key, bool default) {
 }
 
 Settings::ValueVariant Settings::GetValue(const std::string &key) {
+    if (upperLayer && upperLayer->HasValue(key)) {
+        return upperLayer->GetValue(key);
+    }
     auto it = values.find(key);
     if (it == values.end()) {
         return nullptr;
