@@ -50,6 +50,7 @@ protected:
     std::shared_ptr<Settings> settings;
 
     void LoadSettings();
+
     void InitLogger();
 
     void WaitForFirstScene();

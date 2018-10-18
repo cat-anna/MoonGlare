@@ -59,7 +59,13 @@ struct EntityBuilder::ImportData {
         of << "\n";
         of << fmt::format("Components: {}\n", components.size());
         for (auto &it : components) {
-            of << fmt::format("\tComponent:{}  Name:{}\n", (int)it.first, Component::ComponentRegister::GetComponentInfo(it.first)->m_Name);
+            std::string Name;
+            if (it.first > SubSystemId::CoreBegin)
+                Name = Component::ComponentRegister::GetComponentInfo(it.first)->m_Name;
+            else
+                Name = Component::BaseComponentInfo::GetComponentTypeInfo(static_cast<Component::ComponentClassId>(it.first)).componentName;
+
+            of << fmt::format("\tComponent:{}  Name:{}\n", (int)it.first, Name);
             for (auto &c : it.second) {
                 of << fmt::format("\t\tParentIndex:{}  Enabled:{}\n", c.entityIndex, c.enabled);
             }
@@ -266,13 +272,17 @@ bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node no
         return false;
     }
 
+    MoonGlare::Component::ComponentReader reader{ node };
+    if (cid < SubSystemId::CoreBegin) {
+        return m_Manager->GetComponentArray().Load(owner, static_cast<Component::ComponentClassId>(cid), reader);
+    }     
+             
     auto c = m_Manager->GetComponent(cid);
     if (!c) {
         AddLogf(Warning, "No such component: %d", cid);
         return false;
     }
 
-    MoonGlare::Component::ComponentReader reader{ node };
     if (!c->Load(reader, parent, owner)) {
         AddLogf(Error, "Failure during loading component! cid:%d class: %s", cid, typeid(*c).name());
         return false;

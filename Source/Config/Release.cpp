@@ -15,25 +15,6 @@ namespace Release {
 
 //---------------------------------------------------------------------------------------
 
-volatile bool _ThreadCanContinue;
-
-void DebugThread() {
-#if 0
-	while (_ThreadCanContinue) {
-	}
-#endif // 0
-}
-
-void Initialize() {
-	//_ThreadCanContinue = true;
-	//std::thread(&DebugThread).detach();
-}
-void Finalize() {
-	//_ThreadCanContinue = false;
-}
-
-//---------------------------------------------------------------------------------------
-
 } //namespace Release
 } //namespace Config
 

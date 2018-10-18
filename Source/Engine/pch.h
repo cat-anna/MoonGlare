@@ -63,7 +63,7 @@ using namespace Space::Utils::HashLiterals;
 
 #include <Foundation/OrbitLoggerConf.h>
 
-#include <Foundation/MathConstants.h>
+#include <Foundation/Math/Constants.h>
 #include <Foundation/StringUtils.h>
 #include <Foundation/MathSupport.h>
 #include <Foundation/xMath.h>
@@ -71,7 +71,7 @@ using namespace Space::Utils::HashLiterals;
 
 #include "Foundation/Flags.h"
 #include "Foundation/Memory/nMemory.h"
-#include "Foundation/Memory.h"
+#include "Foundation/Memory/Memory.h"
 #include "Foundation/TemplateUtils.h"
 #include "Foundation/XMLUtils.h"
 

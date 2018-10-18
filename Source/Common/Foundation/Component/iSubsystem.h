@@ -9,6 +9,8 @@
 #include "Entity.h"
 #include "nfComponent.h"
 
+#include "ComponentArray.h"
+
 namespace MoonGlare::Component {
 
 struct SubsystemUpdateData {
@@ -41,6 +43,7 @@ public:
     virtual ~iSubsystemManager() {}
     virtual InterfaceMap& GetInterfaceMap() = 0;
     virtual EventDispatcher& GetEventDispatcher() = 0;
+    virtual ComponentArray& GetComponentArray() = 0;
 };
 
 struct ComponentReader {

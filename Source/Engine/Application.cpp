@@ -29,7 +29,7 @@
 #include <RendererSettings.x2c.h>
 #include <EngineSettings.x2c.h>
 
-#include <Foundation/SoundSystem/iSoundSystem.h>
+#include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
 #include <Foundation/Component/EventDispatcher.h>
 
 namespace MoonGlare {
@@ -157,11 +157,9 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
         throw "Unable to initialize modules manager";
-    }
+    }        
 
-    auto ss = SoundSystem::iSoundSystem::Create();
-    ss->Initialize(*m_World);
-    m_World->SetSharedInterface(ss);
+    SoundSystem::Component::SoundSystemRegister::Install(*m_World);
 
     auto scrEngine = new ScriptEngine(m_World.get());
     m_World->SetScriptEngine(scrEngine);

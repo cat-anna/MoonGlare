@@ -48,6 +48,12 @@ public:
         return GetEventTypeInfo(static_cast<uint32_t>(id));
     }
 
+    template<typename FUNC>
+    static void ForEachEvent(FUNC && func) {
+        for (EventClassId i = 0; i < GetUsedEventTypes(); ++i)
+            func(i, GetEventTypeInfo(i));
+    }
+
     using EventClassesTypeTable = std::array<EventClassInfo, Configuration::MaxEventTypes>;
 protected:
 	template<class T>

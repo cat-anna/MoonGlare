@@ -144,8 +144,13 @@ void ApiInit::Initialize(ScriptEngine *s) {
                 auto &ci = *it.second;
                 if (!ci.m_Flags.m_RegisterID)
                     continue;
-                nComponent.addProperty(ci.m_Name, ci.m_GetCID, (void(*)(int))nullptr);
+                nComponent.addStaticInteger(ci.m_Name, ci.m_CID);
             }
+
+            Component::BaseComponentInfo::ForEachComponent([&](auto cindex, const Component::BaseComponentInfo::ComponentClassInfo &cci) {
+                nComponent.addStaticInteger(cci.componentName, cindex);
+            });
+
             nComponent.endNamespace();
             ++ApiInitFunctionsRun;
         }
@@ -180,6 +185,21 @@ void ApiInit::Initialize(ScriptEngine *s) {
                         .beginNamespace("api")
                             .beginNamespace("Event")
                                 .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
+            }
+        }
+    }
+
+    {
+        using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
+        auto maxid = (size_t)BaseComponentInfo::GetUsedComponentTypes();
+        for (decltype(maxid) it = 0; it < maxid; ++it) {
+            auto info = BaseComponentInfo::GetComponentTypeInfo((Component::ComponentClassId)it);
+            if (info.apiInitFunc) {
+                ++ApiInitFunctionsRun;
+                s->GetApiInitializer()
+                  .beginNamespace("api")
+                     .beginNamespace("Component")
+                        .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }
         }
     }

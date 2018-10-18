@@ -230,7 +230,8 @@ void DumpMeshes(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
         out << "\tName: " << mesh->mName.data << "\n";
         out << "\tPrimitives: " << tobitfield<aiPrimitiveType>(mesh->mPrimitiveTypes) << "\n";
 		out << "\tNumVertices: " << mesh->mNumVertices << "\n";
-		out << "\tNumFaces: " << mesh->mNumFaces << "\n";
+        out << "\tNumFaces: " << mesh->mNumFaces << "\n";
+        out << "\tMorphMethod: " << mesh->mMethod << "\n";
 		//mVertices
 		//mNormals
 		//mTangents
@@ -239,12 +240,18 @@ void DumpMeshes(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 		//aiVector3D* mTextureCoords[AI_MAX_NUMBER_OF_TEXTURECOORDS];
 		//unsigned int mNumUVComponents[AI_MAX_NUMBER_OF_TEXTURECOORDS];
 		//aiFace* mFaces;
-		out << "\tNumBones: " << mesh->mNumBones << "\n";
-		//aiBone** mBones;
 		out << "\tMaterialIndex: " << mesh->mMaterialIndex << "\n";
 		out << "\tName: " << mesh->mName.data << "\n";
 		out << "\tNumAnimMeshes: " << mesh->mNumAnimMeshes << "\n";
 		//aiAnimMesh** mAnimMeshes;
+		out << "\tNumBones: " << mesh->mNumBones << "\n";
+        for (unsigned b = 0; b < mesh->mNumBones; ++b) {
+            auto *bone = mesh->mBones[b];
+            out << "\t\tBone[" << b << "]" << bone->mName.C_Str() << " Weights[" << bone->mNumWeights << "]\n";
+            //for (unsigned w = 0; w < bone->mNumWeights; ++w)
+                //out << " " << bone->mWeights[w] ;
+        }
+		//aiBone** mBones;
 	}
 }
 
@@ -435,9 +442,9 @@ void DumpLights(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
 }
 
 void DumpAnimations(DumpCfg & cfg, const aiScene *scene, std::ostream &out) {
+	out << "ANIMATIONS[" << scene->mNumAnimations << "]:\n";
 	if (!scene->HasAnimations())
 		return;
-	out << "ANIMATIONS[" << scene->mNumAnimations << "]:\n";
 	for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
 		auto anim = scene->mAnimations[i];
 

@@ -10,11 +10,19 @@ HandleApi::~HandleApi() {
     stateProcessor = nullptr;
 }
 
-void HandleApi::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) const {
+
+void HandleApi::SetUserData(SoundHandle handle, UserData userData) const {
     assert(stateProcessor);
     if (!stateProcessor)
         return;
-    stateProcessor->SetCallback(handle, iface, userData);
+    stateProcessor->SetUserData(handle, userData);
+}
+
+void HandleApi::SetCallback(std::shared_ptr<iPlaybackWatcher> iface) const {
+    assert(stateProcessor);
+    if (!stateProcessor)
+        return;
+    stateProcessor->SetCallback(std::move(iface));
 }
 
 bool HandleApi::IsSoundHandleValid(SoundHandle handle) const {

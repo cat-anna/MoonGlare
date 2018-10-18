@@ -8,8 +8,19 @@
 #include "Resources/ResourceManager.h"     
 
 #include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/MaterialManager.h>
 
 namespace MoonGlare::Renderer {
+
+struct MaterialApi {
+    void ReloadMaterials() {
+        rendererFacade->GetResourceManager()->GetMaterialManager().ReloadMaterials();
+    }
+
+    RendererFacade* rendererFacade = nullptr;
+};
+
+//---------------------------------------------------------------------------------------
 
 struct ShaderApi {
     void ReloadShader(const char *name) {
@@ -146,6 +157,7 @@ struct ScriptApi::ScriptApiImpl {
             m_ShaderApi{ facade }, 
             m_TextureApi{ facade },
             m_ContextApi{ facade },
+            materialApi{ facade },
             hadleApi{ facade }
     {
         assert(m_RendererFacade);
@@ -165,6 +177,8 @@ struct ScriptApi::ScriptApiImpl {
         luabridge::getGlobalNamespace(lua)
         .beginNamespace("Debug")
             .beginNamespace("Renderer")
+                .addObjectFunction("ReloadMaterials", &materialApi, &MaterialApi::ReloadMaterials)
+
                 .addObjectFunction("ReloadShader", &m_ShaderApi, &ShaderApi::ReloadShader)
                 .addObjectFunction("ReloadAllShaders", &m_ShaderApi, &ShaderApi::ReloadAllShaders)
                 .addObjectFunction("DumpShaders", &m_ShaderApi, &ShaderApi::DumpShaders)
@@ -177,6 +191,7 @@ protected:
     ShaderApi m_ShaderApi;
     TextureApi m_TextureApi;
     ContextApi m_ContextApi;
+    MaterialApi materialApi;
     HandleApi hadleApi;
 };
 

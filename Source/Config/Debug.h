@@ -82,21 +82,12 @@ private:
 	}
 };
 
-void Initialize();
-void Finalize();
-
-void DumpRuntime();
-void DumpAll(const char* prefixname);
-void CheckInstances();
-
 struct EnableFlags {
 	static bool Physics;							//<! Debug global switch: On/Off physics
 	static bool PhysicsDebugDraw;					//<! Debug global switch: On/Off physics debug draw
 
 	static bool ShowTitleBarDebugInfo;				//<! Debug global switch: show/hide main window title bar info
 };
-
-void ProcessTextureIntrospector(Graphic::cRenderDevice &dev);
 
 } //namespace Debug
 } //namespace Config

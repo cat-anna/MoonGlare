@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Foundation/ShortString.h>
+#include <Foundation/StaticString.h>
 #include <Foundation/Scripts/ApiInit.h>
 #include <Foundation/Component/EventInfo.h>
 
@@ -12,7 +12,6 @@ struct SceneEventCommon {
 
 enum class SceneState : int {
     Invalid,
-    Created,
     BeforeDestruction,
     Started,
     Paused,
@@ -53,8 +52,6 @@ private:
         switch (state) {
         case SceneState::Invalid:
             return "Invalid";
-        case SceneState::Created:
-            return "Created";
         case SceneState::Started:
             return "Started";
         case SceneState::Paused:
@@ -69,9 +66,6 @@ private:
         switch (Space::Utils::MakeHash32(str)) {
         case "Invalid"_Hash32:
             state = SceneState::Invalid;
-            break;
-        case "Created"_Hash32:
-            state = SceneState::Created;
             break;
         case "Started"_Hash32:
             state = SceneState::Started;

@@ -12,6 +12,7 @@ namespace MoonGlare::Core::Scene {
 
 struct SetSceneEvent;
 struct SetSceneChangeFenceEvent;
+struct SceneStateChangeEvent;
 
 struct SceneInstance;
 struct SceneDescriptor;
@@ -33,6 +34,7 @@ public:
     void HandleEvent(const Renderer::RendererResourceLoaderEvent &event);
     void HandleEvent(const SetSceneEvent &event);
     void HandleEvent(const SetSceneChangeFenceEvent &event);
+    void HandleEvent(const SceneStateChangeEvent &event);
 
     void Step(Core::MoveConfig &config);
 
@@ -57,6 +59,7 @@ protected:
 
     std::vector<UniqueSceneDescriptor> knownSceneDescriptors;
     SceneDescMap descriptorsByName;
+    int resourceLoadRevision = 0;
 
     SceneDescriptor* CreateDescriptor(StarVFS::FileID fid, const std::string &name);
     SceneDescriptor* FindDescriptor(const std::string &name);

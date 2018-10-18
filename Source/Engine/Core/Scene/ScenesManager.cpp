@@ -25,6 +25,11 @@
 
 namespace MoonGlare::Core::Scene {
 
+static constexpr std::string_view ResourceFenceName = "system.resources";
+static constexpr std::string_view SceneNotReadyFenceName = "scene.notReady";
+
+//----------------------------------------------------------------------------------
+
 struct SceneDescriptor : private boost::noncopyable {
     StarVFS::FileID fileId;
     std::string Name;
@@ -50,7 +55,9 @@ struct SceneInstance : private boost::noncopyable {
     MoonGlare::Renderer::StaticFog staticFog = { };
     Entity sceneRoot;
 
-    SceneInstance(std::string name) : sceneName(std::move(name)) { }
+    SceneInstance(std::string name) : sceneName(std::move(name)) {
+        SetFenceState(std::string(SceneNotReadyFenceName), true);
+    }
 
     void PauseTime(Component::SubsystemUpdateData &sud, TimePoint timePoint) {
         localTimeBase += TimeDiff(localTimeStart, timePoint);
@@ -64,6 +71,7 @@ struct SceneInstance : private boost::noncopyable {
 
     //returns true if NO fence is set 
     bool SetFenceState(std::string name, bool state) {
+        AddLogf(Debug, "Scene %s fence changed %s state: %s", sceneName.c_str(), name.c_str(), state ? "true" : "false");
         if (!name.empty()) {
             if (state)
                 activeFences.emplace(std::move(name));
@@ -118,9 +126,7 @@ struct SceneInstance : private boost::noncopyable {
         entityManager->Release(sceneRoot);
     }
 };
-
-static constexpr std::string_view ResourceFenceName = "system.resources";
-
+     
 //----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
@@ -159,6 +165,7 @@ void ScenesManager::Initialize(const SceneConfiguration *configuration) {
     eventDispatcher->Register<Renderer::RendererResourceLoaderEvent>(this);
     eventDispatcher->Register<SetSceneEvent>(this);
     eventDispatcher->Register<SetSceneChangeFenceEvent>(this);
+    eventDispatcher->Register<SceneStateChangeEvent>(this);
 }
 
 void ScenesManager::Finalize() {
@@ -166,7 +173,16 @@ void ScenesManager::Finalize() {
 
 //----------------------------------------------------------------------------------
 
+void ScenesManager::HandleEvent(const SceneStateChangeEvent &event) {
+    if (SceneInstance *inst = FindSceneInstance(event.sceneName); inst) {
+        inst->SetFenceState(std::string(SceneNotReadyFenceName), event.state != SceneState::Paused);
+    }
+}
+
 void ScenesManager::HandleEvent(const Renderer::RendererResourceLoaderEvent &event) {
+    if (resourceLoadRevision > event.revision)
+        return;
+    resourceLoadRevision = event.revision;
     UpdatePendingSceneFence(ResourceFenceName, event.busy);
 }
 
@@ -322,7 +338,7 @@ SceneInstance* ScenesManager::CreateScene(const std::string &descName, const std
 
     sceneInstances[sceneName] = std::move(sceneuptr);
 
-    scene.SendState(SceneState::Created);
+    scene.SendState(SceneState::Paused);
 
     if (currentScene != loadingScene) {
         nextScene = loadingScene;

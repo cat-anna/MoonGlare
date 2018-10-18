@@ -80,7 +80,7 @@ public:
     void Queue(const EVENT& event) {
         AddLog(Event, "Queued event: " << event);
         std::lock_guard<std::recursive_mutex> lock(bufferMutex);
-        auto buf = buffer.Allocate<QueuedEvent<EVENT>>();
+        auto *buf = buffer.Allocate<QueuedEvent<EVENT>>();
         buf->event = event;
         buf->sendFunc = reinterpret_cast<BaseQueuedEvent::SendFunc>(&EventDispatcher::SendQueuedEvent<EVENT>);
     }

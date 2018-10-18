@@ -82,6 +82,7 @@ void AsyncLoader::ThreadMain() {
                     at.swap(m_Queue.front());
                     m_Queue.pop_front();
                     have = true;
+                    AddLogf(Performance, "fetched job remain:%d", m_Queue.size());
                 }
             }
 
@@ -108,16 +109,20 @@ void AsyncLoader::ThreadMain() {
                 break;
             case ProcessorResult::NothingDone:
                 if (!m_QueueDirty) {
-                    if (working) {
-                        working = false;
+                    std::mutex mutex;
+                    std::unique_lock<std::mutex> lock(mutex);
+                    m_Lock.wait_for(lock, 100ms);
+
+                    if (LOCK_MUTEX(m_QueueMutex); !m_Queue.empty())
+                        break;
+
+                    bool v = true;
+                    if (working.compare_exchange_strong(v, false) && v == true) {
                         auto ob = observer.lock();
                         if (ob)
                             ob->OnFinished(this);
                     }
 
-                    std::mutex mutex;
-                    std::unique_lock<std::mutex> lock(mutex);
-                    m_Lock.wait_for(lock, 100ms);
                     break;
                 }
                 //[[fallthrough]]
@@ -144,13 +149,14 @@ void AsyncLoader::ThreadMain() {
 void AsyncLoader::QueuePush(AnyTask at) {
     LOCK_MUTEX(m_QueueMutex);
     m_Queue.emplace_back(std::move(at));
-    if (!working) {
-        working = true;
+    AddLogf(Performance, "Queued Job cnt:%d", m_Queue.size());
+    bool v = false;
+    if (working.compare_exchange_strong(v, true) && v == false) {
         auto ob = observer.lock();
         if (ob)
             ob->OnStarted(this);
     }
-
+    m_Lock.notify_one();
 }
 
 

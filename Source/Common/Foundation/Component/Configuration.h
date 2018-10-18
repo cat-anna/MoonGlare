@@ -18,6 +18,11 @@ static constexpr uint32_t EntityGenerationBitCount = 32 - EntityIndexBitCount;
 static constexpr uint32_t EntityLimit = 1 << EntityIndexBitCount;
 
 template<typename T>
-using EntityArray = std::array<T, EntityLimit>;
+using EntityArray = std::array<T, EntityLimit>;                  
+
+//----------------------------------------------------------------------------
+
+static constexpr uint32_t MaxComponentTypes = 16;
+static constexpr uint32_t MaxComponentInstances = EntityLimit;
 
 }

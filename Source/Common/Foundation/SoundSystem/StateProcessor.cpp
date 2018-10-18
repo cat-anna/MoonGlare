@@ -46,8 +46,8 @@ void StateProcessor::SetSettings(SoundSettings value) {
                 state.command = SourceCommand::StopPlaying;
 
             UpdateSourceVolume(state);
-            if(enChanged && settings.enabled && state.watcherInterface) {
-                state.watcherInterface->OnFinished(GetSoundHandle(si), state.loop, state.userData);
+            if(enChanged && settings.enabled && watcherInterface) {
+                watcherInterface->OnFinished(GetSoundHandle(si), state.loop, state.userData);
             }
         }
     });
@@ -227,12 +227,12 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             break;
         case SourceCommand::StopPlaying:
             if (state.Playable()) {
+                AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
                 state.status = SourceStatus::Stopped;
                 state.sourceSoundHandle.Stop();
                 state.decoder->Reset();
                 state.ResetStatistics(); 
                 ReleaseSourceBufferQueue(state);
-                AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
             }
             break;
 
@@ -294,8 +294,8 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
             state.status = SourceStatus::Stopped;
             if (state.loop) 
                 state.command = SourceCommand::ResumePlaying;
-            if (state.watcherInterface)
-                state.watcherInterface->OnFinished(GetSoundHandle(index), state.loop, state.userData);
+            if (watcherInterface)
+                watcherInterface->OnFinished(GetSoundHandle(index), state.loop, state.userData);
             AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.get(), (int)state.sourceSoundHandle, state.processedBuffers, (float)state.processedBytes / (1024.0f*1024.0f));
         }
     }
@@ -665,18 +665,16 @@ bool StateProcessor::GetLoop(SoundHandle handle) {
     return sourceState[(size_t)index].loop;
 }
 
-void StateProcessor::SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) {
+void StateProcessor::SetUserData(SoundHandle handle, UserData userData) {
     const auto[valid, index] = CheckSoundHandle(handle);
     if (!valid)
-        return;
-
+        return;             
     auto &state = sourceState[(size_t)index];
-
-    //in case of any event being generated
-    state.watcherInterface = nullptr;
-    state.userData = 0;
     state.userData = userData;
-    state.watcherInterface = iface;
+}
+
+void StateProcessor::SetCallback(std::shared_ptr<iPlaybackWatcher> iface) {
+    watcherInterface = std::move(iface);
 }
 
 void StateProcessor::ReopenStream(SoundHandle handle, const char *uri, SoundKind kind) {

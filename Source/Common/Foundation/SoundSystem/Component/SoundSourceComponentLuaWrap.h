@@ -1,26 +1,32 @@
 #pragma once
 
 #include <Foundation/Scripts/LuaPanic.h>
+#include <Foundation/Scripts/ApiInit.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
-struct SoundSourceComponent::LuaWrapper {
-    SoundSourceComponent *component;
+struct SoundSourceComponentLuaWrap {
+    //SoundSourceComponent *component;
     Entity owner;
-    mutable ComponentIndex index;
-    mutable HandleApi handleApi;
+    ComponentArray *componentArray;
+    //mutable ComponentIndex index;
+    mutable SoundSourceComponent *componentPtr;
+    static HandleApi handleApi;
 
     void Check() const {
         //if (transformComponent->componentIndexRevision != indexRevision) {
-        index = component->GetComponentIndex(owner);
+        //index = component->GetComponentIndex(owner);
+        componentPtr = componentArray->Get<SoundSourceComponent>(owner);
         //}
-        if (index == ComponentIndex::Invalid) {
+        if (componentPtr == nullptr) {
+        //if (index == ComponentIndex::Invalid) {
             __debugbreak();
             throw Scripts::LuaPanic("Attempt to dereference deleted Transform component! ");
         }
     }
 
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
+        using LuaWrapper = SoundSourceComponentLuaWrap;
         return api
             .beginClass<LuaWrapper>("SoundSourceComponent")
                 .addFunction("Play", &LuaWrapper::Play)
@@ -37,8 +43,8 @@ struct SoundSourceComponent::LuaWrapper {
             .endClass();
     }
 
-    const SoundHandle& Handle() const { return component->values.soundHandle[index]; }
-    SoundHandle& Handle() { return component->values.soundHandle[index]; }
+    const SoundHandle& Handle() const { return componentPtr->soundHandle; }
+    SoundHandle& Handle() { return componentPtr->soundHandle; }
 
     const char* GetURI() const {
         Check();

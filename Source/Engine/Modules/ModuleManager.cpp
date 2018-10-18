@@ -11,6 +11,9 @@
 #include "iModule.h"
 #include <Core/Engine.h>
 
+#include <Foundation/Component/ECSRegister.h>
+#include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
+
 namespace MoonGlare::Modules {
 
 using ModuleInfoList = ModulesManager::ModuleInfoList;
@@ -69,6 +72,11 @@ bool ModulesManager::Initialize() {
             AddLogf(Warning, "Unable to initialize module %s", module->GetName());
         }
     }
+
+    Component::ECSRegister ecsreg;
+    ecsreg.InstallModule<SoundSystem::Component::SoundSystemRegister>();
+    ecsreg.Dump();
+
     return true;
 }
 

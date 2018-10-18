@@ -68,6 +68,13 @@ int GameObject::CreateComponent(lua_State *lua) {
         return 0;
     }
 
+    if (ssid < SubSystemId::CoreBegin) {
+        auto &carr = myWorld->GetComponentArray();
+        carr.Create(owner, static_cast<ComponentClassId>(ssid));
+        int r = carr.PushToScript(owner, static_cast<ComponentClassId>(ssid), lua);
+        return check.ReturnArgs(r);
+    }
+
     auto *cptr = myWorld->GetComponent(ssid);
     if (!cptr) {
         LuaRunError(lua, "Invalid Component Id", "There is no component with id: {}", (int)ssid);
@@ -107,6 +114,13 @@ int GameObject::GetComponent(lua_State * lua) {
         LuaRunError(lua, "Invalid argument #1", "Invalid argument type: {}", lua_typename(lua, lua_type(lua, 2)));
         return 0;
     }
+
+    if (ssid < SubSystemId::CoreBegin) {
+        auto &carr = myWorld->GetComponentArray();
+        int r = carr.PushToScript(owner, static_cast<ComponentClassId>(ssid), lua);
+        return check.ReturnArgs(r);
+    }
+
 
     auto ssptr = myWorld->GetComponent(ssid);
     if (!ssptr) {

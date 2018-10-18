@@ -34,9 +34,6 @@
 namespace Config {
 namespace Release {
 
-void Initialize();
-void Finalize();
-
 struct EnableFlags {
 	enum {
 		Physics = 1,							//<! Release global config: Allways enabled

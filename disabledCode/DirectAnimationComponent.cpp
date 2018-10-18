@@ -87,7 +87,7 @@ bool DirectAnimationComponent::Finalize() {
 }
 
 void DirectAnimationComponent::Step(const Core::MoveConfig &conf) {
-#if 0
+#if 1
 	using Configuration::Renderer::CommandQueueID;
 	auto &ShadowQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedShadow];
 	auto &GeometryQueue = conf.m_RenderInput->m_CommandQueues[CommandQueueID::DefferedGeometry];

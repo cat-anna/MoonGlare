@@ -14,7 +14,9 @@ template<typename T> static constexpr T _1_pi = T(1) / pi<T>;
 template<typename T> static constexpr T _2_pi = T(2) / pi<T>;
 
 // e
-template<typename T> static const T e = 2.71828182845904523536;
+template<typename T> static constexpr T e = 2.71828182845904523536;
+
+template<typename T> static constexpr T epsilon = 1.0e-5;// SIMD_EPSILON;
 
 //2 / sqrt(pi)	M_2_SQRTPI	1.12837916709551257390
 //sqrt(2)	M_SQRT2	1.41421356237309504880

@@ -2,6 +2,7 @@
 
 #include <Foundation/Component/EventDispatcher.h>
 #include <Foundation/Component/iSubsystem.h>
+#include <Foundation/Component/EntityEvents.h>
 
 namespace MoonGlare::Core::Component {
 using namespace MoonGlare::Component;
@@ -19,6 +20,7 @@ public:
 
     InterfaceMap& GetInterfaceMap() override { return *m_World; }
     EventDispatcher& GetEventDispatcher() override { return m_EventDispatcher; }
+    ComponentArray& GetComponentArray() override { return componentArray; };
 
     template<class T, class ... ARGS>
     bool InstallComponent(ARGS ... args) {
@@ -42,6 +44,8 @@ public:
         float m_TotalStepDuration;
         unsigned m_PeriodCount;
     };
+
+    void HandleEvent(const EntityDestructedEvent &event);
 private:
     std::array<UniqueSubsystem, MoonGlare::Configuration::Storage::MaxComponentCount> m_Components;
     std::array<SubSystemId, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentsIDs;
@@ -49,6 +53,7 @@ private:
     Entity rootEntity;
     World *m_World;
     EventDispatcher m_EventDispatcher;
+    ComponentArray componentArray;
 
 #ifdef PERF_PERIODIC_PRINT
     std::array<ComponentInfo, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentInfo;

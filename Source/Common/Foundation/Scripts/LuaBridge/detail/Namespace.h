@@ -1144,7 +1144,6 @@ public:
   Namespace& addProperty (char const* name, TG (*get) (), void (*set)(TS) )
   {
     assert (lua_istable (L, -1));
-
     rawgetfield (L, -1, "__propget");
     assert (lua_istable (L, -1));
     typedef TG (*get_t) ();
@@ -1175,6 +1174,41 @@ public:
   template <class TG>
   Namespace& addProperty(char const* name, TG(*get) ()) {
 	  return addProperty<TG>(name, get, (void(*)(TG))nullptr);
+  }
+
+  template<typename IntT>
+  Namespace& addStaticInteger(char const* name, IntT value) {
+      static_assert(std::is_enum_v<IntT> || std::is_integral_v<IntT>);
+      static_assert(sizeof(IntT) <= sizeof(int));
+
+      assert(lua_istable(L, -1));
+      rawgetfield(L, -1, "__propget");
+      assert(lua_istable(L, -1));
+
+      //typedef TG(*get_t) ();
+      //new (lua_newuserdata(L, sizeof(get_t))) get_t(get);
+      //lua_pushcclosure(L, &CFunc::Call <TG(*) (void)>::f, 1);
+
+      lua_pushinteger(L, static_cast<int>(value));
+      lua_pushcclosure(L, &CFunc::getGetUpvalue, 1);
+
+      rawsetfield(L, -2, name);
+      lua_pop(L, 1);
+
+      rawgetfield(L, -1, "__propset");
+      assert(lua_istable(L, -1));
+      //if (set != nullptr) {
+          //typedef void(*set_t) (TS);
+          //new (lua_newuserdata(L, sizeof(set_t))) set_t(set);
+          //lua_pushcclosure(L, &CFunc::Call <void(*) (TS)>::f, 1);
+      //} else {
+          lua_pushstring(L, name);
+          lua_pushcclosure(L, &CFunc::readOnlyError, 1);
+      //}
+      rawsetfield(L, -2, name);
+      lua_pop(L, 1);
+
+      return *this;
   }
 
   //----------------------------------------------------------------------------

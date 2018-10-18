@@ -20,12 +20,12 @@ public:
     void ApplyTemplate(MaterialResourceHandle handle, const MaterialTemplate &matTemplate);
     Material* GetMaterial(MaterialResourceHandle h);
 
-    bool Allocate(MaterialResourceHandle &hout, const std::string &uri);
-    bool Allocate(MaterialResourceHandle &hout);
     //void Release(MaterialResourceHandle h/*, bool ReleaseMaps = false*/); //ReleaseMaps release textures in material
 
     bool IsHandleValid(MaterialResourceHandle &h) const;
-private: 
+
+    void ReloadMaterials();
+private:
     template<typename T>
     using Array = std::array<T, Conf::Limit>;
     using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
@@ -38,6 +38,12 @@ private:
 
     ResourceManager *m_ResourceManager = nullptr;
     iAsyncLoader *asyncLoader = nullptr;
+
+    enum class AllocateResult { Failure, Success, CacheHit, };
+    AllocateResult Allocate(MaterialResourceHandle &hout, const std::string &uri);
+    AllocateResult Allocate(MaterialResourceHandle &hout);
+
+    void ReloadMaterial(const std::string& uri, MoonGlare::Renderer::MaterialResourceHandle h);
 };
 
 //static_assert((sizeof(MaterialManager) % 16) == 0, "Invalid size!");

@@ -25,6 +25,10 @@ SubsystemManager::~SubsystemManager() {
 
 //---------------------------------------------------------------------------------------
 
+void SubsystemManager::HandleEvent(const EntityDestructedEvent &event) {
+    componentArray.RemoveAll(event.entity);
+}
+
 bool SubsystemManager::Initialize(Entity root) {
     rootEntity = root;
 
@@ -42,6 +46,8 @@ bool SubsystemManager::Initialize(Entity root) {
     auto sc = GetComponent<Scripts::Component::ScriptComponent>();
 
     m_EventDispatcher.SetEventSink(GetWorld()->GetScriptEngine()->GetLua(), sc->GetEventSink());
+    GetEventDispatcher().Register<EntityDestructedEvent>(this);
+
     return true;
 }
 
@@ -161,7 +167,6 @@ void SubsystemManager::Step(const MoveConfig &config) {
 }
 
 iSubsystem* SubsystemManager::GetComponent(SubSystemId cid) {
-
     //TODO: some smart search
     for (size_t i = 0; i < m_UsedCount; ++i) {
         if (m_ComponentsIDs[i] == cid) {

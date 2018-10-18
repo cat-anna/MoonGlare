@@ -43,10 +43,20 @@ bool MaterialManager::IsHandleValid(MaterialResourceHandle &h) const {
 //---------------------------------------------------------------------------------------
 
 MaterialResourceHandle MaterialManager::LoadMaterial(const std::string &uri) {
-    MaterialResourceHandle h;
-    if (!Allocate(h, uri))
-        return {};
+    MaterialResourceHandle h;    
+    switch (Allocate(h, uri)) {
+    case AllocateResult::Success:
+        ReloadMaterial(uri, h);
+        [[fallthrough]];
+    case AllocateResult::CacheHit:
+        return h;
+    case AllocateResult::Failure:
+    default:
+        return { };
+    }
+}
 
+void MaterialManager::ReloadMaterial(const std::string &uri, MoonGlare::Renderer::MaterialResourceHandle h) {
     asyncLoader->QueueRequest(uri, [this, h](const std::string &uri, StarVFS::ByteTable &data, ResourceLoadStorage &storage) {
         MaterialTemplate matData;
         pugi::xml_document xdoc;
@@ -54,14 +64,13 @@ MaterialResourceHandle MaterialManager::LoadMaterial(const std::string &uri) {
         MoonGlare::x2c::Renderer::MaterialTemplate_t_Read(xdoc.document_element(), matData, nullptr);
 
         ApplyTemplate(h, matData);
+        AddLogf(Debug, "Loaded material %s", uri.c_str());
     });
-
-    return h;
 }
 
 MaterialResourceHandle MaterialManager::CreateMaterial(const std::string &uri, const MaterialTemplate &matTemplate) {
     MaterialResourceHandle h;
-    if (!Allocate(h, uri))
+    if (Allocate(h, uri) == AllocateResult::Failure)
         return {};
     ApplyTemplate(h, matTemplate);
     return h;
@@ -116,41 +125,45 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
  
 //---------------------------------------------------------------------------------------
 
-bool MaterialManager::Allocate(MaterialResourceHandle &hout, const std::string &uri) {
+MaterialManager::AllocateResult MaterialManager::Allocate(MaterialResourceHandle &hout, const std::string &uri) {
     if (!uri.empty()) {
         auto cache = loadedMaterials.find(uri);
         if (cache != loadedMaterials.end() && IsHandleValid(cache->second)) {
-            AddLogf(Performance, "material load cache hit");
+            AddLogf(Performance, "material cache hit [%s]", uri.c_str());
             hout = cache->second;
-            return true;
+            return AllocateResult::CacheHit;
         }
     }
 
-    if (Allocate(hout)) {
+    if (Allocate(hout) == AllocateResult::Success) {
         if (!uri.empty())
             loadedMaterials[uri] = hout;
-        return true;
+        return AllocateResult::Success;
     }
 
-    return false;
+    return AllocateResult::Failure;
 }
 
-bool MaterialManager::Allocate(MaterialResourceHandle &hout) {
+MaterialManager::AllocateResult MaterialManager::Allocate(MaterialResourceHandle &hout) {
     Bitmap::Index_t index;
     if (m_AllocationBitmap.Allocate(index)) {
-
         hout.index = static_cast<MaterialResourceHandle::Index_t>(index);
         hout.generation = generations[hout.index];
         hout.deviceHandle = &materials[hout.index];
-
-        return true;
+        return AllocateResult::Success;
     }
     else {
         AddLogf(Debug, "material allocation failed");
-        return false;
+        return AllocateResult::Failure;
     }
 }
 
 //---------------------------------------------------------------------------------------
+
+void MaterialManager::ReloadMaterials() {
+    for (auto&[uri,h] : loadedMaterials) {
+        ReloadMaterial(uri, h);
+    }
+}
 
 } //namespace MoonGlare::Renderer::Resources 

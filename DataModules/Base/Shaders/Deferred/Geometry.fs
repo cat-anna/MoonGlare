@@ -29,16 +29,19 @@ void main() {
     vec4 diffuseColor = texture2D(gDiffuseMap, VertexUV0);
     vec4 specularColor = texture2D(gSpecularMap, VertexUV0);
     float shinessValue = gMaterial.shinessExponent;
+
+    if(diffuseColor.a < 0.5f)
+        discard;
     
-    shinessValue *= texture2D(gShinessMap, VertexUV0).r;
+    // shinessValue *= texture2D(gShinessMap, VertexUV0).r;
     // shinessValue = shinessValue;
 
     diffuseColor.xyz *= gMaterial.diffuseColor;
     specularColor.xyz *= gMaterial.specularColor;
     // specularColor.xyz = gMaterial.specularColor;
 
-    diffuseColor.a = 1.0f;
-    specularColor.a = 1.0f;
+    // diffuseColor.a = 1.0f;
+    // specularColor.a = 1.0f;
     // specularColor.g = shinessValue;
     // diffuseColor.xyz = vec3(shinessValue);
     //emissiveColor

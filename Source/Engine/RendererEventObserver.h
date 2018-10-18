@@ -18,14 +18,15 @@ public:
           
     void OnFinished(iAsyncLoader *loader) override {
         assert(dispatcher);
-        dispatcher->Queue(RendererResourceLoaderEvent{false});
+        dispatcher->Queue(RendererResourceLoaderEvent{false, revision.fetch_add(1) });
     };
     void OnStarted(iAsyncLoader *loader) override {
         assert(dispatcher);
-        dispatcher->Queue(RendererResourceLoaderEvent{ true });
+        dispatcher->Queue(RendererResourceLoaderEvent{ true, revision.fetch_add(1) });
     };
 private:
     Component::EventDispatcher *dispatcher = nullptr;
+    std::atomic<int> revision = 0;
 };
 
 }

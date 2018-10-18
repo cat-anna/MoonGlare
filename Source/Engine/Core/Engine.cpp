@@ -107,8 +107,8 @@ void Engine::EngineMain() {
             continue;
         }
 
-        if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f)
-            ++m_SkippedFrames;
+        //if (FrameTimeDelta >= m_FrameTimeSlice * 1.5f)
+            //++m_SkippedFrames;
 
         conf.m_SecondPeriod = TimeDiff(TitleRefresh, CurrentTime) >= 1.0;
 

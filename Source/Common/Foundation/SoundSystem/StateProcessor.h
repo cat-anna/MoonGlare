@@ -66,7 +66,6 @@ struct SourceState {
         streamFinished = false;
         ResetStatistics();
         loop = false;
-        watcherInterface = nullptr;
         userData = 0;
     }
 
@@ -77,7 +76,6 @@ struct SourceState {
         duration = 0;
     }
 
-    iPlaybackWatcher *watcherInterface = nullptr;
     UserData userData = 0;
 
     bool Playable() const {
@@ -96,7 +94,6 @@ public:
 
     SoundSettings GetSettings() const { return settings; }
     void SetSettings(SoundSettings value);
-
 
     void PrintState() const;
 
@@ -117,7 +114,8 @@ public:
     float GetTimePosition(SoundHandle handle) const;
     void SetLoop(SoundHandle handle, bool value);
     bool GetLoop(SoundHandle handle);
-    void SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData);
+    void SetUserData(SoundHandle handle, UserData userData);
+    void SetCallback(std::shared_ptr<iPlaybackWatcher> iface);
     void ReopenStream(SoundHandle handle, const char *uri, SoundKind kind);
     const char *GetStreamURI(SoundHandle handle);
     void SetSoundKind(SoundHandle handle, SoundKind value);
@@ -146,6 +144,7 @@ private:
 
     std::mutex standbySourcesMutex;
     std::mutex sourceAcivationQueueMutex;
+    std::shared_ptr<iPlaybackWatcher> watcherInterface = nullptr;
     using lock_guard = std::lock_guard<std::mutex>;
 
     enum class SourceProcessStatus {

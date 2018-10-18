@@ -25,9 +25,8 @@ using ComponentIndex = enum : uint32_t { //??
 };
 
 enum class SubSystemId : uint8_t {
-    Invalid = 0x00,
-    //SubSystemManager = 0x01,
-
+    Invalid = 0xFF,
+    CoreBegin = 0x10,
 //Core 
     Script = 0x11,
     Transform = 0x12,
@@ -36,7 +35,6 @@ enum class SubSystemId : uint8_t {
     Mesh = 0x21,
     Light = 0x22,
     Camera = 0x23,
-    //DirectAnimation = 0x2F,
 
 //Physics
     Body = 0x50,
@@ -47,10 +45,6 @@ enum class SubSystemId : uint8_t {
     Image = 0x61,
     Panel = 0x62,
     Text = 0x63,
-
-//Other
-    SoundSource = 0x70,
-    SoundListener = 0x71,
 };
 
 template<SubSystemId VALUE>

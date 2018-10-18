@@ -45,7 +45,8 @@ public:
 
     SoundState GetState(SoundHandle handle) const;
 
-    void SetCallback(SoundHandle handle, iPlaybackWatcher *iface, UserData userData) const;
+    void SetUserData(SoundHandle handle, UserData userData) const;
+    void SetCallback(std::shared_ptr<iPlaybackWatcher> iface) const;
 
     void Play(SoundHandle handle) const;
     void Pause(SoundHandle handle) const;
