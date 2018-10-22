@@ -22,6 +22,10 @@ void DefferedFrontend::Mesh(const emath::fmat4 &ModelMatrix, Renderer::MeshResou
     sink->Mesh(ModelMatrix, meshH, matH);
 }
 
+void DefferedFrontend::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DrawInfo info, MaterialResourceHandle matH) {
+    sink->DrawElements(ModelMatrix, vao, info, matH);
+}
+
 void DefferedFrontend::SubmitDirectionalLight(const LightBase &linfo) {
     sink->SubmitDirectionalLight(linfo);
 }

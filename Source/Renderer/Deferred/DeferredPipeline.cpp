@@ -18,6 +18,7 @@
 
 #include <Renderer/Mesh.h>
 
+#include "DeferredFrontend.h"
 #include "DeferredPipeline.h"
 
 namespace MoonGlare::Renderer::Deferred {
@@ -352,6 +353,50 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
         *larg2 = *garg;
     }
+}
+
+void DeferredSink::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DefferedFrontend::DrawInfo info, MaterialResourceHandle matH) {
+    {
+        using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
+        m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
+        m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+        m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+    }
+    {
+        using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+        m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
+        m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+        m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+    }
+    {
+        using Sampler = GeometryShaderDescriptor::Sampler;
+        using Uniform = GeometryShaderDescriptor::Uniform;
+        m_GeometryShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+        m_GeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+    }
+
+    //if (mesh.valid) {
+        ++meshcouter;
+
+        using Sampler = GeometryShaderDescriptor::Sampler;
+        using Uniform = GeometryShaderDescriptor::Uniform;
+
+        m_GeometryShader.SetMaterial(matH, {});
+
+        auto garg = m_GeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        garg->m_NumIndices = info.numIndices;
+        garg->m_IndexValueType = info.indexElementType;
+        garg->m_BaseIndex = info.baseIndex;
+        garg->m_BaseVertex = info.baseVertex;
+        //garg->m_ElementMode = info.elementMode;
+        //garg->m_BaseVertex = 0;// mesh.baseVertex;
+
+        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        *larg = *garg;
+
+        auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+        *larg2 = *garg;
+    //}
 }
 
 void DeferredSink::SubmitDirectionalLight(const LightBase & linfo) {

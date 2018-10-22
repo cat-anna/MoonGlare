@@ -10,7 +10,7 @@
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
 #include <iCustomEnum.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <iIssueReporter.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
@@ -27,7 +27,7 @@ namespace Processor {
 //----------------------------------------------------------------------------------
 
 struct ScriptFileProcessorInfo
-    : public QtShared::iModule
+    : public iModule
     , public QtShared::iFileProcessorInfo
     , public QtShared::iCustomEnumSupplier
     , public QtShared::iFileIconInfo {
@@ -52,7 +52,7 @@ struct ScriptFileProcessorInfo
         return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, };
     }
 };
-QtShared::ModuleClassRgister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg("ScriptFileProcessorInfo");
+ModuleClassRgister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg("ScriptFileProcessorInfo");
 
 //----------------------------------------------------------------------------------
 

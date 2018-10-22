@@ -11,7 +11,7 @@
 #include <DockWindowInfo.h>
 #include <icons.h>
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 #include <fmt/format.h>
 
@@ -32,14 +32,14 @@ struct IssueReportDockInfo
         SetShortcut("F11");
     }
 };
-QtShared::ModuleClassRgister::Register<IssueReportDockInfo> IssueReportDockInfoReg("IssueReportDock");
+ModuleClassRgister::Register<IssueReportDockInfo> IssueReportDockInfoReg("IssueReportDock");
 
 //----------------------------------------------------------------------------------
 
 static const int IssueRole = Qt::UserRole + 1;
 static const int IssueInternalIdRole = Qt::UserRole + 2;
 
-IssueReport::IssueReport(QWidget * parent, QtShared::SharedModuleManager modmgr)
+IssueReport::IssueReport(QWidget * parent, SharedModuleManager modmgr)
     :  QtShared::DockWindow(parent), moduleManager(std::move(modmgr)) {
 
     SetSettingID("IssueReport");

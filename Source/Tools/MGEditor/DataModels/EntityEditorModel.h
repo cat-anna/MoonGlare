@@ -9,7 +9,7 @@
 #ifndef EntityEditorModel_H
 #define EntityEditorModel_H
 
-#include <iSettingsUser.h>
+#include <ToolBase/iSettingsUser.h>
 #include <iEditor.h>
 #include <ChangesManager.h>
 #include <qtUtils.h>
@@ -32,7 +32,7 @@ class EntityEditorModel
 		: public QWidget 
 		, public QtShared::UserQuestions
 		, public QtShared::iChangeContainer
-		, public QtShared::iSettingsUser
+		, public iSettingsUser
 {
 	Q_OBJECT;
 public:
@@ -72,7 +72,7 @@ public:
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
-    void SetModuleManager(QtShared::SharedModuleManager mm);
+    void SetModuleManager(SharedModuleManager mm);
 public slots:
 	void Refresh();
 	void RefreshDetails();
@@ -99,7 +99,7 @@ private:
 	//std::string m_CurrentPatternFile;
 	EditableItemInfo m_CurrentItem;
 	EditableComponentValueInfo m_CurrentComponent;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 } //namespace DataModels

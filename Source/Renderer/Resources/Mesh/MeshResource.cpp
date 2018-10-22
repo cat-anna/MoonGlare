@@ -171,6 +171,13 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     size_t tangentsSize = source.tangents.size() * sizeof(source.tangents[0]);
     size_t indexSize = source.index.size() * sizeof(source.index[0]);
 
+    size_t vertexBonesSize = source.vertexBones.size() * sizeof(source.vertexBones[0]);
+    size_t vertexBoneWeightsSize = source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]);
+    size_t boneNamesArraySize = source.boneNames.size() * sizeof(const char*);
+    size_t boneNamesValuesSize = 0;
+    std::for_each(source.boneNames.begin(), source.boneNames.end(), [&boneNamesValuesSize](auto &item) { boneNamesValuesSize += item.size() + 1; });
+    size_t boneMatricesSize = source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]);
+
     size_t verticlesOffset = memorySize;
     memorySize += verticlesSize;
     size_t UV0Offset = memorySize;
@@ -181,6 +188,19 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     memorySize += tangentsSize;
     size_t indexOffset = memorySize;
     memorySize += indexSize;        
+
+    size_t vertexBonesOffset = memorySize;
+    memorySize += vertexBonesSize;
+    size_t vertexBoneWeightsOffset = memorySize;
+    memorySize += vertexBoneWeightsSize;
+
+    size_t boneNamesArrayOffset = memorySize;
+    memorySize += boneNamesArraySize;
+    size_t boneNamesValuesOffset = memorySize;
+    memorySize += boneNamesValuesSize;
+
+    size_t boneMatricesOffset = memorySize;
+    memorySize += boneMatricesSize;
 
     std::unique_ptr<char[]> memory(new char[memorySize]);
     char *mem = memory.get();
@@ -208,12 +228,59 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     md.index = (uint32_t*)(mem + indexOffset);
     memcpy(md.index, &source.index[0], indexSize);
 
+    if (source.vertexBones.size() > 0) {
+        md.vertexBones = (glm::u8vec4*)(mem + vertexBonesOffset);
+        memcpy(md.vertexBones, &source.vertexBones[0], vertexBonesSize);
+    }
+    if (source.vertexBoneWeights.size() > 0) {
+        md.vertexBoneWeights = (glm::fvec4*)(mem + vertexBoneWeightsOffset);
+        memcpy(md.vertexBoneWeights, &source.vertexBoneWeights[0], vertexBoneWeightsSize);
+    }
+    if (source.boneNames.size() > 0) {
+        md.boneNames = (const char**)(mem + boneNamesArrayOffset);
+        size_t offset = 0;
+        for (size_t i = 0; i < source.boneNames.size(); ++i) {
+            md.boneNames[i]  = (char*)(mem + boneNamesValuesOffset + offset);
+            size_t len = source.boneNames[i].size();
+            char *str = (char*)md.boneNames[i];
+            memcpy(str, source.boneNames[i].c_str(), len);
+            str[len] = '\0';
+            offset += len + 1;
+        }
+        assert(offset == boneNamesValuesSize);
+    }
+    if (source.boneOffsetMatrices.size() > 0) {
+        md.boneMatrices = (glm::fmat4*)(mem + boneMatricesOffset);
+        memcpy(md.boneMatrices, &source.boneOffsetMatrices[0], boneMatricesSize);
+    }
+    md.boneCount = source.boneNames.size();
+
     md.vertexCount = source.verticles.size();
     md.indexCount = source.index.size();
 
     md.halfBoundingBox = source.halfBoundingBox;
     md.boundingRadius = source.boundingRadius;
+    md.memoryUsage = memorySize;
     md.ready = false;
+
+#ifdef DEBUG_LOG
+    {
+        std::string uri = "<invalid>";
+        for (auto &[cu, ch] : loadedMeshes)
+            if (h == ch) {
+                uri = cu;
+                break;
+            }
+        auto b = [](auto v) -> char { return static_cast<bool>(v) ? 'T' : 'F'; };
+        AddLogf(Resources, "Applied mesh source for '%s'; Memory:%5.1fkib Verts:%u Indices:%u Normals:%c UV0:%c Tangents:%c  Bones:%u", 
+            uri.c_str(),
+            memorySize / 1024.0f,
+            md.vertexCount, md.indexCount,
+            b(md.normals), b(md.UV0), b(md.tangents),
+            md.boneCount
+        );
+    }
+#endif
 
     ApplyMeshSource(h, md, std::move(memory));
 }

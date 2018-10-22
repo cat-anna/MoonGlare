@@ -13,7 +13,7 @@ namespace MoonGlare::SoundSystem::Component {
 
 void SoundSystemRegister::Register(ECSRegister &r) {
     r.Component<SoundSourceComponent, SoundSourceComponentLuaWrap>();
-    //r.System<SoundSourceSystem>("SoundSource");
+    r.System<SoundSourceSystem>();
     r.Event<SoundStreamFinishedEvent>();
 }
 

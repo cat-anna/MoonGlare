@@ -112,10 +112,12 @@ void TransformComponent::Step(const SubsystemUpdateData & conf) {
 		if (dirty || (values.revision[parentIndex] > values.revision[index])) {
 
             emath::Transform tr;
+            //emath::Transform &tr = values.localTransform[index];
+
             tr.setIdentity();
             tr.rotate(values.quaternion[index]);
-            tr.translation() = values.position[index];
             tr.scale(values.scale[index]);
+            tr.translation() = values.position[index];
 
             values.globalTransform[index] = values.globalTransform[parentIndex] * tr;
             values.globalScale[index] = values.scale[index].cwiseProduct(values.globalScale[parentIndex]);
@@ -167,6 +169,29 @@ bool TransformComponent::Load(ComponentReader &reader, Entity parent, Entity own
     values.revision[index] = 0;
 
 	return true;
+}
+
+//------------------------------------------------------------------------------------------
+
+std::optional<Entity> TransformComponent::FindChildByName(Entity root, std::string_view name) {
+    auto *em = entityManager;
+    auto index = GetComponentIndex(root);
+    for (auto childIndex : values.TraverseTree(index)) {
+        Entity e = values.owner[childIndex];
+        std::string n;
+        if (em->GetEntityName(e, n) && name == n) {
+            return e;
+        }
+    }
+    return std::nullopt;
+}
+
+Entity TransformComponent::GetOwner(Entity item) {
+    auto index = GetComponentIndex(item);
+    auto parentIndex = values.parentIndex[index];
+    if (parentIndex == values.InvalidIndex)
+        return {};
+    return values.owner[parentIndex];
 }
 
 } 

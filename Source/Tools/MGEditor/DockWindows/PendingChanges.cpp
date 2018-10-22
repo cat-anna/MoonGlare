@@ -12,7 +12,7 @@
 #include <icons.h>
 #include "../Windows/MainWindow.h"
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -31,7 +31,7 @@ struct PendingChangesInfo
 		SetShortcut("F12");
 	}
 };
-QtShared::ModuleClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
+ModuleClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
 
 //----------------------------------------------------------------------------------
 

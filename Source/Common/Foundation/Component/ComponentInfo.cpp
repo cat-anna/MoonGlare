@@ -25,8 +25,8 @@ void BaseComponentInfo::Dump(std::ostream &output) {
         if (tinfo.scriptPush)
             flags += ",SCRIPT";
 
-        output << fmt::format("{:2}. {:100} size:{:3} flags:{:50}\n", 
-            i, ttype.name(), tinfo.byteSize, flags);
+        output << fmt::format("{:2}. {:100} name:{:20} size:{:3} flags:{:50}\n", 
+            i, ttype.name(), tinfo.componentName, tinfo.byteSize, flags);
     }
 }
 
@@ -41,7 +41,7 @@ void BaseComponentInfo::SetNameMapping(ComponentClassId ccid, std::string name) 
 
 std::optional<ComponentClassId> BaseComponentInfo::GetClassByName(const std::string &cname) {
     if (!gComponentNameMapping)
-        gComponentNameMapping = new std::unordered_map<std::string, ComponentClassId>();
+        return std::nullopt;
     auto it = gComponentNameMapping->find(cname);
     if (it == gComponentNameMapping->end())
         return std::nullopt;

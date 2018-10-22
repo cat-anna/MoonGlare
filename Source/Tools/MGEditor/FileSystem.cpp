@@ -17,9 +17,9 @@
 namespace MoonGlare {
 namespace Editor {
 
-QtShared::ModuleClassRgister::Register<FileSystem> FileSystemReg("FileSystem");
+ModuleClassRgister::Register<FileSystem> FileSystemReg("FileSystem");
 
-FileSystem::FileSystem(QtShared::SharedModuleManager modmgr) :
+FileSystem::FileSystem(SharedModuleManager modmgr) :
         iModule(std::move(modmgr)), fsWatcher(this) {
 
     m_VFS = std::make_shared<StarVFS::StarVFS>();

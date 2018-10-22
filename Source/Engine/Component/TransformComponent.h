@@ -48,7 +48,12 @@ public:
     const emath::Quaternion &GetRotation(ComponentIndex ci) const { return values.quaternion[ci]; }
 
     const emath::Transform &GetTransform(ComponentIndex ci) const { return values.globalTransform[ci]; }
+    //const emath::Transform &GetLocalTransform(ComponentIndex ci) const { return values.localTransform[ci]; }
+    //void SetLocalTransform(ComponentIndex ci, const emath::Transform & tr) { values.localTransform[ci] = tr; }
     RuntimeRevision GetRevision(ComponentIndex ci) const { return values.revision[ci]; }
+
+    std::optional<Entity> FindChildByName(Entity root, std::string_view name);
+    Entity GetOwner(Entity item);
 
     RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
 	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
@@ -79,6 +84,7 @@ protected:
         Array<emath::fvec3>         globalScale;
         Array<emath::fvec3>         position;
         Array<emath::Quaternion>    quaternion;
+        //Array<emath::Transform>     localTransform;
         Array<emath::Transform>     globalTransform;
 
         EntityArrayMapper<>  entityMapper;
@@ -93,6 +99,7 @@ protected:
             globalScale.fill({});
             position.fill({});
             quaternion.fill({});
+            //localTransform.fill({});
             globalTransform.fill({});
             entityMapper.Clear();
         }
@@ -105,6 +112,7 @@ protected:
             std::swap(position[a], position[b]);
             std::swap(quaternion[a], quaternion[b]);
             std::swap(globalTransform[a], globalTransform[b]);
+            //std::swap(localTransform[a], localTransform[b]);
         }
         void ReleaseElement(ElementIndex e, ElementIndex parent) {
             entityMapper.SetIndex(owner[e], InvalidIndex);

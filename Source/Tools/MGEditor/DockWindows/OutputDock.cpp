@@ -12,7 +12,7 @@
 #include "OutputDockTab.h"
 #include <icons.h>
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 #include <fmt/format.h>
 
@@ -131,11 +131,11 @@ struct OutputDockInfo
     }
 
 };
-QtShared::ModuleClassRgister::Register<OutputDockInfo> OutputDockInfoReg("OutputDock");
+ModuleClassRgister::Register<OutputDockInfo> OutputDockInfoReg("OutputDock");
 
 //----------------------------------------------------------------------------------
 
-OutputDock::OutputDock(QWidget * parent, QtShared::SharedModuleManager modmgr)
+OutputDock::OutputDock(QWidget * parent, SharedModuleManager modmgr)
     :  QtShared::DockWindow(parent), moduleManager(std::move(modmgr)) {
 
     SetSettingID("OutputDock");

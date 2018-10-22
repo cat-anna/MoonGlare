@@ -13,6 +13,7 @@
 
 #include <Foundation/Component/ECSRegister.h>
 #include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
+#include <Component/RendererRegister.h>
 
 namespace MoonGlare::Modules {
 
@@ -75,6 +76,7 @@ bool ModulesManager::Initialize() {
 
     Component::ECSRegister ecsreg;
     ecsreg.InstallModule<SoundSystem::Component::SoundSystemRegister>();
+    ecsreg.InstallModule<Component::RendererRegister>();
     ecsreg.Dump();
 
     return true;

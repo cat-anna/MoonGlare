@@ -9,13 +9,13 @@
 #ifndef EditorSettings_H
 #define EditorSettings_H
 
-#include <iSettingsUser.h>
+#include <ToolBase/iSettingsUser.h>
 #include <EditorSettings.x2c.h>
 
 namespace MoonGlare {
 namespace Editor {
 
-class EditorSettings : public QtShared::iSettings {
+class EditorSettings : public iSettings {
 	Q_OBJECT;
 public:
 	EditorSettings(std::string basePath);

@@ -69,7 +69,7 @@ struct Resources {
     using BitmapAllocator = Memory::LinearAtomicBitmapAllocator<SIZE, uint32_t, uint32_t>;
 
     static constexpr uint32_t AsyncQueueCount = 2;
-    static constexpr uint32_t QueueMemory = 10 * 1024 * 1024;
+    static constexpr uint32_t QueueMemory = 32 * 1024 * 1024;
 };
 
 //---------------------------------------------------------------------------------------

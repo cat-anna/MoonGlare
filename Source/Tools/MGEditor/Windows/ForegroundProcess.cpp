@@ -9,7 +9,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-ForegroundProcess::ForegroundProcess(QWidget *parent, QtShared::SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground)
+ForegroundProcess::ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground)
     : SubDialog(parent, ModuleManager), process(Process)
 {
     ui = std::make_unique<Ui::ForegroundProcess>();

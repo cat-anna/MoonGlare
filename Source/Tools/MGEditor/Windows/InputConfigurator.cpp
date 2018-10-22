@@ -426,7 +426,7 @@ private:
 
 //----------------------------------------------------------------------------------
 
-InputConfigurator::InputConfigurator(QWidget *parent, QtShared::SharedModuleManager ModuleManager, std::string configFileName)
+InputConfigurator::InputConfigurator(QWidget *parent, SharedModuleManager ModuleManager, std::string configFileName)
     : SubDialog(parent, ModuleManager), configFileName(std::move(configFileName))
 {
     ui = std::make_unique<Ui::InputConfigurator>();

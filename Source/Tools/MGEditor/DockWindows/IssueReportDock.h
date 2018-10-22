@@ -20,7 +20,7 @@ class IssueReport
     : public QtShared::DockWindow {
     Q_OBJECT;
 public:
-    IssueReport(QWidget *parent, QtShared::SharedModuleManager modmgr);
+    IssueReport(QWidget *parent, SharedModuleManager modmgr);
     virtual ~IssueReport();
 
     virtual bool DoSaveSettings(pugi::xml_node node) const override;
@@ -35,7 +35,7 @@ protected slots:
     void ShowContextMenu(const QPoint &);
     void ItemDoubleClicked(const QModelIndex&);
 private: 
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
     std::unique_ptr<Ui::IssueReportDock> m_Ui;
     std::unique_ptr<QStandardItemModel> m_ViewModel;
 };                   

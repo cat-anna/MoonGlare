@@ -16,7 +16,8 @@
 #include <Foundation/iFileSystem.h>
 
 #include <iFileProcessor.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
+
 
 namespace StarVFS {
 	class StarVFS;
@@ -30,11 +31,11 @@ class AsyncFileProcessor;
 
 class FileSystem 
 	: public QObject
-    , public QtShared::iModule
+    , public iModule
     , public iFileSystem {
 	Q_OBJECT;
 public:
- 	FileSystem(QtShared::SharedModuleManager modmgr);
+ 	FileSystem(SharedModuleManager modmgr);
  	virtual ~FileSystem();
 
 	StarVFS::SharedStarVFS GetVFS() { return m_VFS; }

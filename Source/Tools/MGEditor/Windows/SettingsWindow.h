@@ -16,7 +16,7 @@ namespace Editor {
 class SettingsWindow
 	: public QDialog
 	, public QtShared::UserQuestions
-	, public QtShared::iSettingsUser {
+	, public iSettingsUser {
 	Q_OBJECT
 public:
 	SettingsWindow(QWidget *parent = 0);

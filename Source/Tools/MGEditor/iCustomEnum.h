@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Module.h"
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace QtShared {

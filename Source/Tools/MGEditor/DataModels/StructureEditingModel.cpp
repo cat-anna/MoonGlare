@@ -29,7 +29,7 @@ StructureEditingModel::~StructureEditingModel()
 {
 }
 
-void StructureEditingModel::SetModuleManager(QtShared::SharedModuleManager mm) {
+void StructureEditingModel::SetModuleManager(SharedModuleManager mm) {
     moduleManager.swap(mm);
     setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 }

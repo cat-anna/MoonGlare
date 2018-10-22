@@ -47,8 +47,8 @@ int LuaEventsModule::EmitEvent(lua_State *lua) {
         return 0;
     }
 
-    int type0 = lua_type(lua, -1);
-    const char *name0 = lua_typename(lua, type0);
+    //int type0 = lua_type(lua, -1);
+    //const char *name0 = lua_typename(lua, type0);
 
     if (!lua_isuserdata(lua, -1)) {
         LuaRunError(lua, "Invalid argument #1", "Invalid argument type: {}", lua_typename(lua, lua_type(lua, 2)));
@@ -62,7 +62,7 @@ int LuaEventsModule::EmitEvent(lua_State *lua) {
     lua_pop(lua, 1);
 
     lua_getfield(lua, -1, "EventName");
-    const char *evName = lua_tostring(lua, -1);
+    //const char *evName = lua_tostring(lua, -1);
 
     auto &evInfo = Component::BaseEventInfo::GetEventTypeInfo(static_cast<Component::EventClassId>(eid));
 

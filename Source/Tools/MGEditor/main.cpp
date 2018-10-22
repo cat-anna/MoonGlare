@@ -2,7 +2,7 @@
 #include <Foundation/OS/Path.h>
 #include "EditorSettings.h"
 #include "Windows/MainWindow.h"
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 #include <OrbitLogger/src/sink/FileSink.h>
 
@@ -52,10 +52,10 @@ int main(int argc, char *argv[]) {
     int r;
     QApplication a(argc, argv);
     qInstallMessageHandler(&QtLogSink);
-    MoonGlare::QtShared::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
+    MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
 
     {
-        auto modmgr = MoonGlare::QtShared::ModuleManager::CreateModuleManager();
+        auto modmgr = MoonGlare::ModuleManager::CreateModuleManager();
         modmgr->Initialize();
         modmgr->QuerryModule<MainWindow>()->show();
         r = a.exec();

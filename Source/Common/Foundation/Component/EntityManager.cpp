@@ -41,7 +41,7 @@ void EntityManager::GCStep() {
 //------------------------------------------------------------------------------------------
 
 bool EntityManager::Allocate(Entity parent, Entity &eout, std::string Name) {
-    auto parentindex = parent.GetIndex();
+    //auto parentindex = parent.GetIndex();
     if (!IsAllocated(parent)) {
         AddLog(Error, "Parent entity is not valid!");
         return false;

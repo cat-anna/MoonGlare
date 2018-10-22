@@ -49,11 +49,32 @@ void main() {
 //         -1, 0, 1
 // );
 
+// float kernel[9] = float[](//norm
+//         0, 0, 0,
+//         0, 1, 0,
+//         0, 0, 0
+// );
+
 float kernel[9] = float[](//norm
         0, 0, 0,
         0, 1, 0,
         0, 0, 0
 );
+
+// float kernel[9] = float[](// Emboss Filter
+// 2,   0,   0,
+// 0,  -1,   0,
+// 0,   0,   -1
+// );
+
+
+// float kernel[9] = float[](// Laplacian Filter
+// 0  , 1  , 0,
+// 1  ,-4  , 1,
+// 0  , 1  , 0
+// );
+
+
 
 // float kernel[9] = float[](//norm
 //         0, 0.1, 0,

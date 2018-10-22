@@ -43,7 +43,7 @@ public:
         return true;
     }
 
-    bool Reset()  override {
+    bool Reset() override {
         header = *reinterpret_cast<wav_header_t*>(fileData.get());
         position = sizeof(header);
 
@@ -68,11 +68,11 @@ public:
 
         const char *data = (char*)fileData.get();
         size_t bytes = 0;
-        for (size_t position = sizeof(header); position < fileData.byte_size(); ) {
-            const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + position);
-            const char *dataPtr = data + position + sizeof(chunk);
-            position += sizeof(chunk);
-            position += chunk.size;
+        for (size_t pos = sizeof(header); pos < fileData.byte_size(); ) {
+            const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + pos);
+            const char *dataPtr = data + pos + sizeof(chunk);
+            pos += sizeof(chunk);
+            pos += chunk.size;
 
             if (chunk.ID == ChunkId::DATA)
                 bytes += chunk.size;

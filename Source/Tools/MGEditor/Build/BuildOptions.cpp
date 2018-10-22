@@ -24,7 +24,7 @@ bool has_child(const std::string &path) {
         return true;
 }
 
-BuildOptions::BuildOptions(QWidget *parent, Module::SharedDataModule dataModule, QtShared::SharedModuleManager ModuleManager)
+BuildOptions::BuildOptions(QWidget *parent, Module::SharedDataModule dataModule, SharedModuleManager ModuleManager)
 	: SubDialog(parent, ModuleManager), dataModule(dataModule)
 {
 	ui = std::make_unique<Ui::BuildOptions>();

@@ -7,7 +7,7 @@
 
 namespace MoonGlare::TypeEditor {
 
-CustomEditorItemDelegate::CustomEditorItemDelegate(QtShared::SharedModuleManager moduleManager, QWidget *parent)
+CustomEditorItemDelegate::CustomEditorItemDelegate(SharedModuleManager moduleManager, QWidget *parent)
     : QStyledItemDelegate(parent) {
 
     if (moduleManager) {

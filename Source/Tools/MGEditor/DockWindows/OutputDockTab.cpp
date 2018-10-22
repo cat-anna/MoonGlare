@@ -12,7 +12,7 @@
 #include "OutputDock.h"
 #include <icons.h>
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 #include <fmt/format.h>
 

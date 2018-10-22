@@ -10,8 +10,11 @@
 namespace MoonGlare::SoundSystem::Component {         
 using namespace MoonGlare::Component;
 
-class SoundSourceSystem : public iSubsystem, public SubSystemIdWrap<SubSystemId::SoundSource> {
+class SoundSourceSystem : public iSubsystem {
 public:
+    static constexpr char* SystemName = "SoundSourceSystem";
+    //static constexpr bool Required = false;
+    
     explicit SoundSourceSystem(iSubsystemManager *subsystemManager);
     virtual ~SoundSourceSystem();
 

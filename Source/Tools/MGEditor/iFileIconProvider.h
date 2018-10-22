@@ -9,7 +9,7 @@
 #ifndef iFileIconInfo_H
 #define iFileIconInfo_H
 
-#include "Module.h"
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace QtShared {

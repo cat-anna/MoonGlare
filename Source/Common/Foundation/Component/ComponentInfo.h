@@ -72,10 +72,10 @@ protected:
     }
     template<typename T>
     static bool LoadFunc(void* ptr, ComponentReader &reader, Entity owner) {
-        if constexpr (detail::has_member_function_Load<T, bool(T::*)(ComponentReader &reader, Entity owner)>::value)
+        if constexpr (detail::has_member_function_Load<bool(T::*)(ComponentReader &reader, Entity owner)>::value)
             return reinterpret_cast<T*>(ptr)->Load(reader, owner);
         else
-        return true;
+          return true;
     }
     template<typename T, typename WRAP>
     static int ScriptPush(ComponentArray *carray, Entity owner, lua_State *lua) {

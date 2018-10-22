@@ -3,7 +3,7 @@
 #include <qmainwindow.h>
 #include <qevent.h>
 
-#include "Module.h"
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace QtShared {
@@ -11,7 +11,7 @@ namespace QtShared {
 class SubWindow : public QMainWindow {
     Q_OBJECT
 public:
-    SubWindow(QWidget *parent, QtShared::SharedModuleManager ModuleManager)
+    SubWindow(QWidget *parent, SharedModuleManager ModuleManager)
         : QMainWindow(parent), moduleManager(ModuleManager)
     {
     }
@@ -31,7 +31,7 @@ protected:
     SharedModuleManager GetModuleManager() { return moduleManager; }
     SharedModuleManager GetModuleManager() const { return moduleManager; }
 private:
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 }// namespace QtShared 

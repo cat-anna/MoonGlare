@@ -12,7 +12,7 @@
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
 #include <iCustomEnum.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <iIssueReporter.h>
 
 #include "../FileSystem.h"
@@ -24,7 +24,7 @@ namespace MoonGlare::Editor:: Processor {
 struct JSONProcessor
     : public QtShared::iFileProcessor {
 
-    JSONProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum jsonEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), jsonEnum(jsonEnum), moduleManager(modmgr) { }
+    JSONProcessor(SharedModuleManager modmgr, QtShared::SharedSetEnum jsonEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), jsonEnum(jsonEnum), moduleManager(modmgr) { }
 
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
@@ -75,13 +75,13 @@ struct JSONProcessor
     }
 private:
     QtShared::SharedSetEnum jsonEnum;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 //----------------------------------------------------------------------------------
 
 struct JSONProcessorModule
-    : public QtShared::iModule
+    : public iModule
     , public QtShared::iFileProcessorInfo
     , public QtShared::iCustomEnumSupplier
     , public QtShared::iFileIconInfo {
@@ -109,7 +109,7 @@ struct JSONProcessorModule
     }
 };
 
-QtShared::ModuleClassRgister::Register<JSONProcessorModule> JSONProcessorModuleReg("JSONProcessorModule");
+ModuleClassRgister::Register<JSONProcessorModule> JSONProcessorModuleReg("JSONProcessorModule");
 
 //----------------------------------------------------------------------------------
 } 

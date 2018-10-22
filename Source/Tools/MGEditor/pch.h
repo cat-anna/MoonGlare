@@ -48,14 +48,7 @@
 
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/btBulletCollisionCommon.h>
-
-inline std::string ToLower(std::string str) {
-	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-	return std::move(str);
-}
-
 #pragma warning ( pop )
-
 
 #include <OrbitLogger/src/OrbitLogger.h>
 
@@ -67,7 +60,7 @@ inline std::string ToLower(std::string str) {
 #include <Foundation/XMLUtils.h>
 #include <Foundation/Flags.h>
 #include "Foundation/Memory/nMemory.h"
-#include "Foundation/Memory.h"
+#include "Foundation/Memory/Memory.h"
 #include <Foundation/xMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>

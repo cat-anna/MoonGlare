@@ -2,7 +2,7 @@
 #define DOCKWINDOW_H
 
 #include <qobject.h>
-#include "iSettingsUser.h"
+#include <ToolBase/iSettingsUser.h>
 #include "qtUtils.h"
 
 namespace MoonGlare {

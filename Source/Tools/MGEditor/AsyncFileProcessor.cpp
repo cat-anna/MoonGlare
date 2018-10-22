@@ -10,12 +10,12 @@
 namespace MoonGlare {
 namespace Editor {
 
-QtShared::ModuleClassRgister::Register<AsyncFileProcessor> AsyncFileProcessorReg("AsyncFileProcessor");
+ModuleClassRgister::Register<AsyncFileProcessor> AsyncFileProcessorReg("AsyncFileProcessor");
 
 //----------------------------------------------------------------------------------
 
-AsyncFileProcessor::AsyncFileProcessor(QtShared::SharedModuleManager modmgr)
-        : QtShared::iModule(std::move(modmgr)) {
+AsyncFileProcessor::AsyncFileProcessor(SharedModuleManager modmgr)
+        : iModule(std::move(modmgr)) {
     m_ThreadCanWork = true;
     m_QueueEmpty.notify_one();
     m_Thread = std::thread([this]() { ThreadEntry(); });

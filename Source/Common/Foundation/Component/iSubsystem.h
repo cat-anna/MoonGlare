@@ -47,6 +47,7 @@ public:
 };
 
 struct ComponentReader {
+    iSubsystemManager *manager = nullptr;
     pugi::xml_node node;
 
     template<typename T>
@@ -57,6 +58,10 @@ struct ComponentReader {
 
 class iSubsystem : private boost::noncopyable {
 public:
+    struct Flags {
+        struct Required {};
+    };
+
     virtual ~iSubsystem() {}
 
     using ComponentIndex = MoonGlare::Component::ComponentIndex;

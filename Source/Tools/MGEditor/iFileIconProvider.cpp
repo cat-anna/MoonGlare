@@ -8,8 +8,7 @@
 #include PCH_HEADER
 #include "iFileIconProvider.h"
 
-//#include <boost/algorithm/string.hpp>
-//#include <boost/algorithm/string.hpp>    
+#include <ToolBase/StringUtils.h>
 
 namespace MoonGlare {
 namespace QtShared {

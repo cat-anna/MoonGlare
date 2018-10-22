@@ -21,9 +21,10 @@ struct PostProcessShader {
     };
 
     constexpr static const char* GetName(Uniform u) {
-        switch (u) {
-        default: return nullptr;
-        }
+        //switch (u) {
+        //default: 
+            return nullptr;
+        //}
     }
     constexpr static const char* GetSamplerName(Sampler s) {
         switch (s) {

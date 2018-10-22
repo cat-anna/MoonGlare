@@ -15,7 +15,7 @@ class ForegroundProcess
 {
     Q_OBJECT
 public:
-    ForegroundProcess(QWidget *parent, QtShared::SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground);
+    ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground);
     ~ForegroundProcess();
 private:
     std::unique_ptr<Ui::ForegroundProcess> ui;

@@ -48,7 +48,7 @@ class SceneEditor
 	, public QtShared::iEditor {
 	Q_OBJECT;
 public:
-	SceneEditor(QWidget *parent, QtShared::SharedModuleManager modmgr);
+	SceneEditor(QWidget *parent, SharedModuleManager modmgr);
  	virtual ~SceneEditor();
 
 	class SceneEntity : public QtShared::DataModels::EditableEntity {
@@ -82,7 +82,7 @@ private:
 	std::vector<SharedComponentInstance> m_ComponentInstances;
 	SceneEntity *m_SceneEntity;
 	std::string m_SceneURI;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 } //namespace DockWindows 

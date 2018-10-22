@@ -176,7 +176,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 		}
 	};
 
-    if (!Config::Current::EnableFlags::Physics)
+    //if (!Config::Current::EnableFlags::Physics)
         return;
 
 	CollisionMap cmap;

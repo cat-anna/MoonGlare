@@ -17,11 +17,13 @@ void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byt
         aiProcess_JoinIdenticalVertices |
         aiProcess_CalcTangentSpace |
         aiProcess_GenNormals |
+        aiProcess_LimitBoneWeights |
         //aiProcess_ImproveCacheLocality |
         //aiProcess_PreTransformVertices |
         aiProcess_Triangulate |
-        //aiProcess_GenUVCoords |
-        //aiProcess_SortByPType |
+        aiProcess_GenUVCoords |
+        aiProcess_SortByPType |
+        aiProcess_GlobalScale |
         0;
 
     scene = importer->ReadFileFromMemory(filedata.get(), filedata.size(), loadflags, strrchr(requestedURI.c_str(), '.'));
@@ -114,9 +116,8 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     meshData.tangents.resize(NumVertices);
     meshData.index.resize(NumIndices);
 
+    const aiMesh* mesh = scene->mMeshes[meshId];
     {
-        const aiMesh* mesh = scene->mMeshes[meshId];
-
         auto MeshVerticles = &meshData.verticles[meshes.baseVertex];
         auto MeshTexCords = &meshData.UV0[meshes.baseVertex];
         auto MeshNormals = &meshData.normals[meshes.baseVertex];
@@ -149,6 +150,46 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
             meshIndices[face * 3 + 0] = f->mIndices[0];
             meshIndices[face * 3 + 1] = f->mIndices[1];
             meshIndices[face * 3 + 2] = f->mIndices[2];
+        }
+    }
+
+    if (mesh->HasBones()) {
+        meshData.vertexBones.resize(NumVertices, MeshSource::InvalidBoneIndexSlot());
+        meshData.vertexBoneWeights.resize(NumVertices);
+        meshData.boneNames.resize(mesh->mNumBones);
+        meshData.boneOffsetMatrices.resize(mesh->mNumBones);
+
+        auto AllocLocalBoneIndex = [](size_t index, const glm::u8vec4 &vec) -> uint8_t {
+            for (uint8_t i = 0; i < 4; ++i)
+                if (vec[i] == MeshSource::InvalidBoneIndex)
+                    return i;
+            return MeshSource::InvalidBoneIndex;
+        };
+
+        unsigned BaseVertex = 0;// meshData.BaseVertex;
+        for (size_t boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+            const auto *bone = mesh->mBones[boneIndex];
+            meshData.boneNames[boneIndex] = bone->mName.data;
+            meshData.boneOffsetMatrices[boneIndex] = glm::transpose(*(glm::fmat4*)&bone->mOffsetMatrix);
+
+            std::string vs;
+            for (unsigned k = 0; k < bone->mNumWeights; ++k) {
+
+                auto &VertexWeight = bone->mWeights[k];
+
+                auto vertexid = BaseVertex + VertexWeight.mVertexId;   
+                auto & vertexBones = meshData.vertexBones[vertexid];
+                vs += std::to_string(vertexid) + " ";
+                auto localboneid = AllocLocalBoneIndex(vertexid, vertexBones);
+                if (localboneid == MeshSource::InvalidBoneIndex) {
+                    __debugbreak();
+                    AddLogf(Warning, "Vertex %d cannot have more than 4 bones [%s]; Skipped influence of bone %s with weight %f", vertexid, subpath.c_str(), meshData.boneNames[boneIndex].c_str(), VertexWeight.mWeight);
+                    continue;
+                }
+
+                meshData.vertexBones[vertexid][localboneid] = boneIndex;
+                meshData.vertexBoneWeights[vertexid][localboneid] = VertexWeight.mWeight;
+            }
         }
     }
 

@@ -23,7 +23,7 @@
 #include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
-//#include <DirectAnimationComponent.x2c.h>
+#include <DirectAnimationComponent.x2c.h>
 #include <Foundation/SoundSystem/Component/SoundSourceComponent.h>
 #include <SoundSourceComponent.x2c.h>
 
@@ -140,17 +140,17 @@ struct MeshComponentDesc {
 //	RegComponent<, EmptySettings >
 //("Mesh", "Mesh", SubSystemId::Mesh, {});
 };		
-//struct DirectAnimationComponentDesc {
-//    using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
-//    using Settings_t = EmptySettings;
-//    static constexpr char *DisplayName = "DirectAnimation";
-//    static constexpr char *Name = "DirectAnimation";
-//    static constexpr SubSystemId CID = SubSystemId::DirectAnimation;
-//    static constexpr SubSystemId Depend = SubSystemId::Transform;
-//    static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
-//    //	RegComponent<, EmptySettings >
-//    //("Mesh", "Mesh", SubSystemId::Mesh, {});
-//};
+struct DirectAnimationComponentDesc {
+    using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
+    using Settings_t = EmptySettings;
+    static constexpr char *DisplayName = "DirectAnimation";
+    static constexpr char *Name = "DirectAnimation";
+    static constexpr SubSystemId CID = SubSystemId::DirectAnimation;
+    static constexpr SubSystemId Depend = SubSystemId::Transform;
+    static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
+    //	RegComponent<, EmptySettings >
+    //("Mesh", "Mesh", SubSystemId::Mesh, {});
+};
 
 struct ScriptComponentDesc {
     using Entry_t = ScriptComponent::ScriptEntry_t;
@@ -225,7 +225,7 @@ struct SoundSourceComponentDesc {
     using Settings_t = EmptySettings;
     static constexpr char *DisplayName = "Sound.Source";
     static constexpr char *Name = "SoundSource";
-    static constexpr SubSystemId CID = SubSystemId::SoundSource;
+    static constexpr SubSystemId CID = (SubSystemId)0x70;
     static constexpr SubSystemId Depend = SubSystemId::Invalid;
     static constexpr ComponentOrder Order = ComponentOrder::SoundSource;
 };
@@ -250,7 +250,7 @@ struct Register {
         RegComponent<LightComponentDesc>();
         RegComponent<CameraComponentDesc>();
         RegComponent<MeshComponentDesc>();
-        //RegComponent<DirectAnimationComponentDesc>();
+        RegComponent<DirectAnimationComponentDesc>();
         
         RegComponent<BodyComponentDesc>();
         RegComponent<BodyShapeComponentDesc>();

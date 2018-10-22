@@ -8,18 +8,18 @@
 #pragma once
 
 #include <iFileProcessor.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace Editor {
 
 class AsyncFileProcessor 
 	: public QObject
-    , public QtShared::iModule
+    , public iModule
     , public QtShared::iJobProcessor {
 	Q_OBJECT;
 public:
- 	AsyncFileProcessor(QtShared::SharedModuleManager modmgr);
+ 	AsyncFileProcessor(SharedModuleManager modmgr);
  	virtual ~AsyncFileProcessor();
 
     void Queue(QtShared::SharedFileProcessor processor)override;

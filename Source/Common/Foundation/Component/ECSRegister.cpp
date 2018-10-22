@@ -8,6 +8,7 @@ void ECSRegister::Dump() {
     DumpFunc DumpFuncArr[] = {
         &BaseComponentInfo::Dump,
         &BaseEventInfo::Dump,
+        &BaseSystemInfo::Dump,
     };
 
     for (auto func : DumpFuncArr) {

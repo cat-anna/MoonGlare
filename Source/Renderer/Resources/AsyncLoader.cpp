@@ -198,7 +198,7 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, SharedAs
             queue->storage.m_Memory.m_Allocator.Allocated() / 1024.0f, Conf::QueueMemory / 1024.0f, nes.requiredSpace / 1024.0f));
         if (nes.requiredSpace < Conf::QueueMemory) {
             //retry job later
-            QueuePush(task);
+            //QueuePush(task);
             return ProcessorResult::QueueFull;
         }
     }
@@ -230,7 +230,7 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFST
             queue->storage.m_Memory.m_Allocator.Allocated() / 1024.0f, Conf::QueueMemory / 1024.0f, nes.requiredSpace / 1024.0f));
         if (nes.requiredSpace < Conf::QueueMemory) {
             //retry job later
-            QueuePush(afst);
+            //QueuePush(afst);
             return ProcessorResult::QueueFull;
         }
     }

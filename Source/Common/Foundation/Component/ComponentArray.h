@@ -1,11 +1,14 @@
 #pragma once
 
-#include <boost/core/noncopyable.hpp>
 #include <array>
+
+#include <boost/core/noncopyable.hpp>
+
+#include <Foundation/FlagSet.h>
+#include <Foundation/EnumArray.h>
 
 #include "Configuration.h"
 #include "ComponentInfo.h"
-
 #include "EntityArrayMapper.h"
 
 namespace MoonGlare::Component {
@@ -15,57 +18,71 @@ public:
     ComponentArray();
     ~ComponentArray();
 
+    using ComponentFlagSet = FlagSet<ComponentFlags>;
+    static_assert(sizeof(ComponentFlagSet) == sizeof(uint8_t));
+
     template<typename T, typename ... ARGS> 
     T* Assign(Entity e, ARGS&& ... args) {
         auto cci = ComponentInfo<T>::GetClassId();
 
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index != ComponentIndex::Invalid) {
             auto memory = GetComponentMemory(index, cci);
             return reinterpret_cast<T*>(memory);
         }
-        if (storageStatus[(size_t)cci].Full()) {
+        if (storageStatus[cci].Full()) {
             //TODO: ?
             return nullptr;
         }
-        index = storageStatus[(size_t)cci].Next();
-        arrayMappers[(size_t)cci]->SetIndex(e, index);
+        index = storageStatus[cci].Next();
+        arrayMappers[cci]->SetIndex(e, index);
+
+        auto &flags = GetComponentFlags(index, cci);
+        flags = ComponentFlags::Active;
 
         auto memory = GetComponentMemory(index, cci);
         new(memory)T(std::forward<ARGS>(args)...);
         return reinterpret_cast<T*>(memory);
     }
     bool Create(Entity e, ComponentClassId cci) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index != ComponentIndex::Invalid) {
             return true;
         }
-        if (storageStatus[(size_t)cci].Full()) {
+        if (storageStatus[cci].Full()) {
             //TODO: ?
             return false;
         }
-        index = storageStatus[(size_t)cci].Next();
-        arrayMappers[(size_t)cci]->SetIndex(e, index);
+        index = storageStatus[cci].Next();
+        arrayMappers[cci]->SetIndex(e, index);
+        componentOwner[cci][index] = e;
+
+        auto &flags = GetComponentFlags(index, cci);
+        flags = ComponentFlags::Active;
 
         auto memory = GetComponentMemory(index, cci);
-        storageStatus[(size_t)cci].info->constructor(memory);
+        storageStatus[cci].info->constructor(memory);
         return true;
     }
     bool Load(Entity e, ComponentClassId cci, ComponentReader &reader) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index != ComponentIndex::Invalid) {
             return true;
         }
-        if (storageStatus[(size_t)cci].Full()) {
+        if (storageStatus[cci].Full()) {
             //TODO: ?
             return false;
         }
-        index = storageStatus[(size_t)cci].Next();
-        arrayMappers[(size_t)cci]->SetIndex(e, index);
+        index = storageStatus[cci].Next();
+        arrayMappers[cci]->SetIndex(e, index);
+        componentOwner[cci][index] = e;
+
+        auto &flags = GetComponentFlags(index, cci);
+        flags = ComponentFlags::Active;
 
         auto memory = GetComponentMemory(index, cci);
-        storageStatus[(size_t)cci].info->constructor(memory);
-        storageStatus[(size_t)cci].info->load(memory, reader, e);
+        storageStatus[cci].info->constructor(memory);
+        storageStatus[cci].info->load(memory, reader, e);
         return memory;
     }
 
@@ -75,7 +92,7 @@ public:
         return reinterpret_cast<T*>(Get(e, cci));
     }
     void* Get(Entity e, ComponentClassId cci) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index == ComponentIndex::Invalid) {
             return nullptr;
         }
@@ -90,7 +107,7 @@ public:
         return HasComponent(e, cci);
     }
     bool HasComponent(Entity e, ComponentClassId cci) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         return index != ComponentIndex::Invalid;
     }
 
@@ -100,34 +117,68 @@ public:
         Remove(e, cci);
     }
     void Remove(Entity e, ComponentClassId cci) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index == ComponentIndex::Invalid)
             return;
 
-        auto lastIndex = storageStatus[(size_t)cci].Last();
+        auto lastIndex = storageStatus[cci].Last();
         SwapComponents(cci, index, lastIndex);
         
         auto mem = GetComponentMemory(lastIndex, cci);
-        storageStatus[(size_t)cci].info->destructor(mem);
-        arrayMappers[(size_t)cci]->ClearIndex(e);
+        storageStatus[cci].info->destructor(mem);
+        arrayMappers[cci]->ClearIndex(e);
 
-        storageStatus[(size_t)cci].Deallocate();
+        storageStatus[cci].Deallocate();
     }
 
     void RemoveAll(Entity e) {
         for (size_t i = 0; i < storageStatus.size(); ++i) {
-            if (!storageStatus[i].info)
+            if (!storageStatus[(ComponentClassId)i].info)
                 break;
             Remove(e, static_cast<ComponentClassId>(i));
         }
     }
+    
+    template<typename COMPONENT, typename CALLABLE>
+    void Visit(CALLABLE func) {
+        static_assert(std::is_invocable_v<CALLABLE, Entity, COMPONENT&>);
+        auto cci = ComponentInfo<COMPONENT>::GetClassId();
+        const auto &ss = storageStatus[cci];
+        for (size_t index = 0; index < ss.allocated; ++index) {
+            auto &flags = GetComponentFlags((ComponentIndex)index, cci);
+            if (flags & ComponentFlags::Active) {
+                void *mem = GetComponentMemory((ComponentIndex)index, cci);
+                Entity owner = componentOwner[cci][index];
+                func(owner, *reinterpret_cast<COMPONENT*>(mem));
+            }
+        }   
+    }
+
+    template<typename T>
+    bool IsActive(Entity e) const { 
+        return IsActive(e, ComponentInfo<T>::GetClassId());
+    }
+    bool IsActive(Entity e, ComponentClassId cci) const {
+        return TestFlags(e, ComponentFlags::Active, cci);
+    }
+    template<typename T>
+    bool TestFlags(Entity e, ComponentFlagSet flags) const {
+        return TestFlags(e, flags, ComponentInfo<T>::GetClassId());
+    }
+    bool TestFlags(Entity e, ComponentFlagSet flags, ComponentClassId cci) const {
+        auto index = arrayMappers[cci]->GetIndex(e);
+        if (index == ComponentIndex::Invalid) {
+            return false;     //TODO: sth else?
+        }
+        return GetComponentFlags(index, cci) & flags;
+    }
 
     int PushToScript(Entity e, ComponentClassId cci, lua_State *lua) {
-        auto index = arrayMappers[(size_t)cci]->GetIndex(e);
+        auto index = arrayMappers[cci]->GetIndex(e);
         if (index == ComponentIndex::Invalid) {
             return 0;
         }
-        auto sp = storageStatus[(size_t)cci].info->scriptPush;
+        auto sp = storageStatus[cci].info->scriptPush;
         if (!sp)
             return 0;
         sp(this, e, lua);
@@ -138,9 +189,11 @@ public:
     void ReleaseComponents(ComponentClassId cci);
     void ReleaseAllComponents();
 private:
-    template<typename T> using PerComponentType = std::array<T, Configuration::MaxComponentTypes>;
+    template<typename T> using PerComponentType = EnumArray<ComponentClassId, T, Configuration::MaxComponentTypes>;
     using ComponentMemory = std::unique_ptr<char[]>;
-    using ComponentOwner = std::unique_ptr<Entity[]>;
+
+    using ComponentFlagArray = std::unique_ptr<ComponentFlagSet[]>;
+    using ComponentOwnerArray = std::unique_ptr<Entity[]>;
 
     struct StorageStatus {
         size_t allocated;
@@ -162,25 +215,35 @@ private:
     PerComponentType<std::unique_ptr<EntityArrayMapper<>>> arrayMappers;
     PerComponentType<StorageStatus> storageStatus;
     PerComponentType<ComponentMemory> componentMemory;
-    PerComponentType<ComponentOwner> componentOwner;
+    PerComponentType<ComponentOwnerArray> componentOwner;
+    PerComponentType<ComponentFlagArray> componentFlag;
 
     void* GetComponentMemory(ComponentIndex index, ComponentClassId cci) {
-        return componentMemory[(size_t)cci].get() + index * storageStatus[(size_t)cci].elementByteSize;        
+        return componentMemory[cci].get() + index * storageStatus[cci].elementByteSize;        
+    }
+    const void* GetComponentMemory(ComponentIndex index, ComponentClassId cci) const {
+        return componentMemory[cci].get() + index * storageStatus[cci].elementByteSize;
+    }
+    ComponentFlagSet& GetComponentFlags(ComponentIndex index, ComponentClassId cci) {
+        return componentFlag[cci][index];
+    }
+    const ComponentFlagSet& GetComponentFlags(ComponentIndex index, ComponentClassId cci) const {
+        return componentFlag[cci][index];
     }
 
     void SwapComponents(ComponentClassId cci, ComponentIndex a, ComponentIndex b) {
-        auto aE = componentOwner[(size_t)cci][a];
+        auto aE = componentOwner[cci][a];
         auto aMem = GetComponentMemory(a, cci);
 
-        auto bE = componentOwner[(size_t)cci][b];
+        auto bE = componentOwner[cci][b];
         auto bMem = GetComponentMemory(b, cci);
 
-        arrayMappers[(size_t)cci]->SetIndex(aE, b);
-        arrayMappers[(size_t)cci]->SetIndex(bE, a);
-        componentOwner[(size_t)cci][a] = bE;
-        componentOwner[(size_t)cci][b] = aE;
+        arrayMappers[cci]->SetIndex(aE, b);
+        arrayMappers[cci]->SetIndex(bE, a);
+        componentOwner[cci][a] = bE;
+        componentOwner[cci][b] = aE;
 
-        storageStatus[(size_t)cci].info->swap(bMem, aMem);
+        storageStatus[cci].info->swap(bMem, aMem);
     }
 };
 

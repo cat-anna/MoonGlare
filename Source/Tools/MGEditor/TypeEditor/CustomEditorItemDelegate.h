@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Module.h"
+#include <ToolBase/Module.h>
 #include "../iCustomEnum.h"
 
 namespace MoonGlare::TypeEditor {
@@ -12,7 +12,7 @@ struct CustomEditorItemDelegate : public QStyledItemDelegate {
         };
     };
 
-    CustomEditorItemDelegate(QtShared::SharedModuleManager moduleManager, QWidget *parent = nullptr);
+    CustomEditorItemDelegate(SharedModuleManager moduleManager, QWidget *parent = nullptr);
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     void setEditorData(QWidget *editor, const QModelIndex &index) const override;
     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;

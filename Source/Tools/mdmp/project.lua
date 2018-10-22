@@ -17,4 +17,5 @@ group "Tools"
 			".",
 		}
 		links {
+            "ToolBase",
 		}

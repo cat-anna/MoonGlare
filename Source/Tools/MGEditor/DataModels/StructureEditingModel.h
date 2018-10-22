@@ -8,8 +8,8 @@
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
 #include <ChangesManager.h>
-#include <iSettingsUser.h>      
-#include <Module.h>
+#include <ToolBase/Module.h>
+#include <ToolBase/iSettingsUser.h>
 
 #include "EditableEntity.h"
 
@@ -19,7 +19,7 @@ namespace DataModels {
 
 class StructureEditingModel 
 		: public QTreeView
-		, public QtShared::iSettingsUser
+		, public iSettingsUser
 		, public QtShared::iChangeContainer {
 	Q_OBJECT;
 public:
@@ -34,7 +34,7 @@ public:
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
-    void SetModuleManager(QtShared::SharedModuleManager mm);
+    void SetModuleManager(SharedModuleManager mm);
 public slots:
 	void Refresh();
 protected slots:
@@ -42,7 +42,7 @@ protected slots:
 private:
 	std::unique_ptr<QStandardItemModel> m_Model;
 	TypeEditor::UniqueStructure m_Structure;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 } //namespace DataModels

@@ -14,7 +14,7 @@ class InputConfigurator
 {
     Q_OBJECT
 public:
-    InputConfigurator(QWidget *parent, QtShared::SharedModuleManager ModuleManager, std::string configFileName);
+    InputConfigurator(QWidget *parent, SharedModuleManager ModuleManager, std::string configFileName);
     ~InputConfigurator();
 
     struct CustomItemDelegate;

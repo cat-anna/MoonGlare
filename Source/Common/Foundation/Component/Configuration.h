@@ -22,7 +22,12 @@ using EntityArray = std::array<T, EntityLimit>;
 
 //----------------------------------------------------------------------------
 
-static constexpr uint32_t MaxComponentTypes = 16;
+static constexpr uint32_t MaxComponentTypes = 32;
 static constexpr uint32_t MaxComponentInstances = EntityLimit;
+
+//----------------------------------------------------------------------------
+
+static constexpr uint32_t MaxSystemTypes = 32;
+
 
 }

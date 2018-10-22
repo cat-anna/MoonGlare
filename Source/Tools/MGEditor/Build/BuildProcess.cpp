@@ -1,6 +1,6 @@
 #include PCH_HEADER
 #include <icons.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/process.hpp>
 #include <boost/asio.hpp>
@@ -12,7 +12,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-BuildProcess::BuildProcess(const std::string& id, QtShared::SharedModuleManager moduleManager, BuildSettings Settings)
+BuildProcess::BuildProcess(const std::string& id, SharedModuleManager moduleManager, BuildSettings Settings)
     : iBackgroundProcess(id, std::move(moduleManager)), settings(std::move(Settings)) {
 
     readableName = "Module build";

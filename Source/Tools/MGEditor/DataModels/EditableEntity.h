@@ -4,8 +4,8 @@
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
 #include <ChangesManager.h>
-#include <iSettingsUser.h>      
-#include <Module.h>
+#include <ToolBase/iSettingsUser.h>
+#include <ToolBase/Module.h>
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 

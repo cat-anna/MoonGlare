@@ -203,6 +203,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
     case x2c::Component::BodyShapeComponent::ColliderType::Sphere:
         return { std::make_unique<btSphereShape>(1.0f), ColliderType::Sphere };
     case x2c::Component::BodyShapeComponent::ColliderType::TriangleMesh: {
+#if 0
         auto meshC = GetManager()->GetComponent<Component::MeshComponent>();
         if (meshC) {
                 auto me = meshC->GetEntry(Owner);
@@ -230,6 +231,7 @@ std::pair<std::unique_ptr<btCollisionShape>, ColliderType> BodyShapeComponent::L
                 //(float*)&mdata->verticles[0], mdata->verticles.size(), 12)
             return { std::make_unique<btBvhTriangleMeshShape>(inft, true), ColliderType::TriangleMesh };
         }
+#endif
         break;
     }
     default:

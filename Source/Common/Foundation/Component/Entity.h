@@ -24,6 +24,12 @@ using ComponentIndex = enum : uint32_t { //??
     Invalid = 0xFFFFFFFF,
 };
 
+enum class ComponentFlags : uint8_t {
+    None = 0,
+
+    Active = 1,
+};
+
 enum class SubSystemId : uint8_t {
     Invalid = 0xFF,
     CoreBegin = 0x10,
@@ -35,6 +41,7 @@ enum class SubSystemId : uint8_t {
     Mesh = 0x21,
     Light = 0x22,
     Camera = 0x23,
+    DirectAnimation = 0x2F,
 
 //Physics
     Body = 0x50,

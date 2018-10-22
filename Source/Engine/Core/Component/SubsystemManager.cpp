@@ -1,4 +1,7 @@
 #include <pch.h>
+
+#include <Foundation/Component/SystemInfo.h>
+
 #include <nfMoonGlare.h>
 #include <Engine/Core/Engine.h>
 #include "SubsystemManager.h"
@@ -104,6 +107,33 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
             continue;
         }
     }
+
+    for (auto it = node.child("System"); it; it = it.next_sibling("System")) {
+        auto infoopt = BaseSystemInfo::GetClassByName(it.attribute("Class").as_string());
+        if (!infoopt.has_value()) {
+            AddLogf(Warning, "Unknown system %s", it.attribute("Class").as_string());
+            continue;
+        }
+
+        auto info = BaseSystemInfo::GetSystemTypeInfo(infoopt.value());
+        auto cptr = info.infoPtr->MakeInstance(this);
+
+        AddLogf(Hint, "Installing system sci:%d (%s)", (int)infoopt.value(), typeid(*cptr.get()).name());
+        if (!InsertComponent(std::move(cptr), (SubSystemId)infoopt.value())) {
+            AddLog(Error, "Failed to install TransformComponent");
+        }
+    }
+
+    //BaseSystemInfo::ForEachSystem([this](SystemClassId sci, const auto &info) {
+    //    if (info.required) {
+    //        auto cptr = info.infoPtr->MakeInstance(this);
+
+    //        AddLogf(Hint, "Installing component cid:%d (%s)", (int)sci, typeid(*cptr.get()).name());
+    //        if (!InsertComponent(std::move(cptr), (SubSystemId)sci)) {
+    //            AddLog(Error, "Failed to install TransformComponent");
+    //        }
+    //    }
+    //});
 
     return true;
 }

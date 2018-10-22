@@ -10,8 +10,8 @@ struct Material {
     enum class MapType : uint8_t {
         Diffuse, 
         Normal,
-        Specular,     
         Shiness, //specular exponent
+        Specular,     
         MaxValue,
     };
 

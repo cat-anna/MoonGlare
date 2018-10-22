@@ -43,12 +43,12 @@ end
 struct ScriptFileConstructor
     : public QtShared::iEditor {
 public:
-    ScriptFileConstructor(QtShared::SharedModuleManager modmgr) : m_ModuleManager(std::move(modmgr)) {
+    ScriptFileConstructor(SharedModuleManager modmgr) : m_ModuleManager(std::move(modmgr)) {
         m_UserQuestions = m_ModuleManager->QuerryModule<QtShared::UserQuestions>();
     }
     virtual ~ScriptFileConstructor() { }
 
-    QtShared::SharedModuleManager m_ModuleManager;
+    SharedModuleManager m_ModuleManager;
     std::shared_ptr<QtShared::UserQuestions> m_UserQuestions;
 
     // iEditor
@@ -99,7 +99,7 @@ public:
 //----------------------------------------------------------------------------------
 
 struct ScriptBaseInfo 
-    : public QtShared::iModule
+    : public iModule
     , public QtShared::iFileIconInfo
     , public QtShared::iEditorInfo
     , public QtShared::iEditorFactory
@@ -122,7 +122,7 @@ struct ScriptBaseInfo
         };
     }
 };
-QtShared::ModuleClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
+ModuleClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
 
 //----------------------------------------------------------------------------------
 

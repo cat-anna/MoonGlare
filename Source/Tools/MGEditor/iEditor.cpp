@@ -8,6 +8,8 @@
 #include PCH_HEADER
 #include "iEditor.h"
 
+#include <ToolBase/StringUtils.h>
+
 namespace MoonGlare {
 namespace QtShared {
 

@@ -9,7 +9,7 @@
 #ifndef iEditor_H
 #define iEditor_H
 
-#include "Module.h"
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace QtShared {

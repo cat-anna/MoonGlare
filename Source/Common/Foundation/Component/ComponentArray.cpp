@@ -7,24 +7,26 @@ ComponentArray::ComponentArray() {
     storageStatus.fill({});
 
     BaseComponentInfo::ForEachComponent([this](auto cindex, const BaseComponentInfo::ComponentClassInfo &info) {
-        auto index = static_cast<size_t>(cindex);
-        arrayMappers[index] = std::make_unique<EntityArrayMapper<>>();      
-        arrayMappers[index]->Clear();
+        arrayMappers[cindex] = std::make_unique<EntityArrayMapper<>>();
+        arrayMappers[cindex]->Clear();
         
         size_t capacity = info.infoPtr->GetDefaultCapacity();
-        storageStatus[index] = {
+        storageStatus[cindex] = {
             0, 
             capacity,
             info.byteSize, 
             &info,
         };
 
-        size_t byteSize = info.byteSize * storageStatus[index].capacity;
-        componentMemory[index] = ComponentMemory(new char[byteSize]);
-        memset(componentMemory[index].get(), 0, byteSize);
+        size_t byteSize = info.byteSize * storageStatus[cindex].capacity;
+        componentMemory[cindex] = ComponentMemory(new char[byteSize]);
+        memset(componentMemory[cindex].get(), 0, byteSize);
 
-        componentOwner[index] = ComponentOwner(new Entity[capacity]);
-        memset(componentOwner[index].get(), 0, capacity * sizeof(Entity));
+        componentOwner[cindex] = ComponentOwnerArray(new Entity[capacity]);
+        memset(componentOwner[cindex].get(), 0, capacity * sizeof(Entity));
+
+        componentFlag[cindex] = ComponentFlagArray(new ComponentFlagSet[capacity]);
+        memset(componentFlag[cindex].get(), 0, capacity * sizeof(ComponentFlags));
     });
 
     DumpStatus("AfterConstruction");
@@ -79,8 +81,7 @@ bool ComponentArray::AllocatePage(unsigned pageIndex) {
 void ComponentArray::ReleaseComponents(ComponentClassId cci) {
     if ((size_t)cci >= Configuration::MaxComponentTypes)
         return;
-    size_t index = static_cast<size_t>(cci);
-    auto &sst = storageStatus[index];
+    auto &sst = storageStatus[cci];
     if (sst.capacity == 0)
         return;
 
@@ -101,12 +102,12 @@ void ComponentArray::ReleaseAllComponents() {
 
 void ComponentArray::DumpStatus(const char *id) const {
     for (size_t index = 0; index < storageStatus.size(); ++index) {
-        auto &sst = storageStatus[index];
+        auto &sst = storageStatus[(ComponentClassId)index];
         if (!sst.info)
             continue;
         AddLogf(Debug, "ComponentArray [%p:%s] %02u/%02u %20s : size: %3u bytes; used:%3u cap:%3u  mem:%u", 
             this, id ? id : "?", index, storageStatus.size()-1, sst.info->componentName, sst.elementByteSize, sst.allocated, sst.capacity,
-            sst.capacity * (sst.elementByteSize + sizeof(Entity)) + sizeof(EntityArrayMapper<>));
+            sst.capacity * (sst.elementByteSize + sizeof(Entity) + sizeof(ComponentFlags)) + sizeof(EntityArrayMapper<>));
     }
 }
 

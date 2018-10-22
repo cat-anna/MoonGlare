@@ -27,7 +27,6 @@ struct LuaMetamethods {
 };
 
 struct ComponentRegister {
-
 	using ComponentCreateFunc = std::unique_ptr<iSubsystem>(*)(SubsystemManager*);
 	struct ComponentInfo {
 		SubSystemId m_CID;

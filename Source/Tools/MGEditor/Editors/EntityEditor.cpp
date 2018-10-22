@@ -68,11 +68,11 @@ struct EntityEditorModule
         return window;
     }
 };
-QtShared::ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("EntityEditor");
+ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("EntityEditor");
 
 //----------------------------------------------------------------------------------
 
-EntityEditorWindow::EntityEditorWindow(QWidget * parent, QtShared::SharedModuleManager modmgr)
+EntityEditorWindow::EntityEditorWindow(QWidget * parent, SharedModuleManager modmgr)
     :  QtShared::DockWindow(parent) {
     moduleManager.swap(modmgr);
     m_Ui = std::make_unique<Ui::EntityEditor>();

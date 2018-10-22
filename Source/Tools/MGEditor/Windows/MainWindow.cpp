@@ -24,7 +24,7 @@ namespace Editor {
 
 static MainWindow *_Instance = nullptr;
 
-MainWindow::MainWindow(QtShared::SharedModuleManager modmgr)
+MainWindow::MainWindow(SharedModuleManager modmgr)
     : QMainWindow(nullptr), iModule(std::move(modmgr))
 {
     _Instance = this;

@@ -272,7 +272,7 @@ bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node no
         return false;
     }
 
-    MoonGlare::Component::ComponentReader reader{ node };
+    MoonGlare::Component::ComponentReader reader{ m_Manager, node };
     if (cid < SubSystemId::CoreBegin) {
         return m_Manager->GetComponentArray().Load(owner, static_cast<Component::ComponentClassId>(cid), reader);
     }     

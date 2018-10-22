@@ -32,6 +32,8 @@ struct DeferredSink {
     bool MeshVisibilityTest(const emath::fvec3 &position, float radius);
     void Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH);
 
+    void DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DefferedFrontend::DrawInfo info, MaterialResourceHandle matH);
+    
     void SubmitDirectionalLight(const LightBase &linfo);
     void SubmitPointLight(const PointLight &linfo);
     bool PointLightVisibilityTest(const emath::fvec3 &position, float radius);

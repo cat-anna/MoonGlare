@@ -53,11 +53,11 @@ struct SceneEditorModule
 		};
 	}
 };
-QtShared::ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
+ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
 
 //----------------------------------------------------------------------------------
 
-SceneEditor::SceneEditor(QWidget * parent, QtShared::SharedModuleManager modmgr)
+SceneEditor::SceneEditor(QWidget * parent, SharedModuleManager modmgr)
 		:  QtShared::DockWindow(parent) {
     moduleManager.swap(modmgr);
 

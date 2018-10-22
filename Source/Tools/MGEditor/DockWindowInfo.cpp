@@ -3,7 +3,8 @@
 #include "DockWindow.h"
 #include "DockWindowInfo.h"
 
-#include "Module.h"
+#include <ToolBase/Module.h>
+
 #include "MiscIfs.h"
 
 namespace MoonGlare {

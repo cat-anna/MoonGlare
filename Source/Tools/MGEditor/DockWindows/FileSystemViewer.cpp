@@ -51,11 +51,11 @@ struct FileSystemViewerInfo
 
     void SetPreviewEditor(QtShared::SharedEditor editor) { }
 };
-QtShared::ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
+ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
 
 //-----------------------------------------
 
-FileSystemViewer::FileSystemViewer(QWidget * parent, QtShared::WeakModule module)
+FileSystemViewer::FileSystemViewer(QWidget * parent,WeakModule module)
     :  QtShared::DockWindow(parent) {
 
     m_EditorModule = module;

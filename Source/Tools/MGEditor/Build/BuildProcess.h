@@ -8,7 +8,7 @@
 #pragma once
 
 #include <iBackgroundProcess.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -34,7 +34,7 @@ struct BuildSettings {
 
 class BuildProcess : public QtShared::iBackgroundProcess {
 public:
-    BuildProcess(const std::string &id, QtShared::SharedModuleManager moduleManager, BuildSettings Settings);
+    BuildProcess(const std::string &id, SharedModuleManager moduleManager, BuildSettings Settings);
 protected:
     BuildSettings settings;
 

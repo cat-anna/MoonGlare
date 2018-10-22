@@ -2,7 +2,6 @@
 #include <nfMoonGlare.h>
 #include "../nfGUI.h"
 
-#define NEED_MATERIAL_BUILDER     
 #define NEED_VAO_BUILDER     
 
 #include <Core/Component/SubsystemManager.h>

@@ -12,7 +12,7 @@
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
 #include <iCustomEnum.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <iIssueReporter.h>
 
 #include "../FileSystem.h"
@@ -24,7 +24,7 @@ namespace MoonGlare::Editor:: Processor {
 struct XMLProcessor
     : public QtShared::iFileProcessor {
 
-    XMLProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum xmlEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), xmlEnum(xmlEnum), moduleManager(modmgr) { }
+    XMLProcessor(SharedModuleManager modmgr, QtShared::SharedSetEnum xmlEnum, std::string URI) : QtShared::iFileProcessor(std::move(URI)), xmlEnum(xmlEnum), moduleManager(modmgr) { }
 
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
@@ -84,13 +84,13 @@ struct XMLProcessor
     }
 private:
     QtShared::SharedSetEnum xmlEnum;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 //----------------------------------------------------------------------------------
 
 struct XMLProcessorModule
-    : public QtShared::iModule
+    : public iModule
     , public QtShared::iFileProcessorInfo
     , public QtShared::iCustomEnumSupplier
     , public QtShared::iFileIconInfo {
@@ -118,7 +118,7 @@ struct XMLProcessorModule
     }
 };
 
-QtShared::ModuleClassRgister::Register<XMLProcessorModule> XMLProcessorModuleReg("XMLProcessorModule");
+ModuleClassRgister::Register<XMLProcessorModule> XMLProcessorModuleReg("XMLProcessorModule");
 
 //----------------------------------------------------------------------------------
 } 

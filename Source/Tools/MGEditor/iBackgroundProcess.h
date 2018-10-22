@@ -4,7 +4,7 @@
 #include <memory>
 #include <thread>
 #include <atomic>
-#include "Module.h"
+#include <ToolBase/Module.h>
 #include "iOutput.h"
 
 namespace MoonGlare {

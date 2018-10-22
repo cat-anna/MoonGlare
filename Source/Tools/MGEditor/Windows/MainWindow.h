@@ -8,7 +8,7 @@
 #include <iFileProcessor.h>
 #include <ChangesManager.h>
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <MiscIfs.h>
 
 namespace Ui { class MainWindow; }
@@ -32,14 +32,14 @@ struct SharedData {
 
 class MainWindow
 	: public QMainWindow
-	, public QtShared::iModule
+	, public iModule
 	, public QtShared::UserQuestions
-	, public QtShared::iSettingsUser
+	, public iSettingsUser
 	, public QtShared::MainWindowProvider
 	, public QtShared::QtWindowProvider<MainWindow> {
 	Q_OBJECT
 public:
-	MainWindow(QtShared::SharedModuleManager modmgr);
+	MainWindow(SharedModuleManager modmgr);
 	~MainWindow();
 	static MainWindow* Get();
 

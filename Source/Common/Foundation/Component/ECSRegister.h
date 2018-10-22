@@ -2,6 +2,7 @@
 
 #include "ComponentInfo.h"
 #include "EventInfo.h"
+#include "SystemInfo.h"
 
 namespace MoonGlare::Component {
 
@@ -14,7 +15,9 @@ struct ECSRegister {
     }
 
     template<typename T>
-    void System(const char *c) {}
+    void System() {
+        SystemInfo<T>::GetClassId();
+    }
 
     template<typename T>
     void Event() {

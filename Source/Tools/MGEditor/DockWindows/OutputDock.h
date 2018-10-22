@@ -23,7 +23,7 @@ class OutputDock
     : public QtShared::DockWindow {
     Q_OBJECT;
 public:
-    OutputDock(QWidget *parent, QtShared::SharedModuleManager modmgr);
+    OutputDock(QWidget *parent, SharedModuleManager modmgr);
     virtual ~OutputDock();
 
     void Clear();
@@ -37,7 +37,7 @@ public:
     void ReopenOutputs();
     void OnTabDestroy(OutputTabWidget *tab);
 protected:
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
     std::unique_ptr<Ui::OutputDock> m_Ui;
     std::map<QtShared::SharedOutput, std::string> tabs;
 };                   

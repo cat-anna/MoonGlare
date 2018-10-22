@@ -18,6 +18,16 @@ struct DefferedFrontend {
 
     void Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH);
 
+    struct DrawInfo {
+        unsigned numIndices;
+        unsigned baseVertex;
+        unsigned baseIndex;
+        uint16_t indexElementType;
+        uint16_t elementMode;
+    };
+
+    void DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DrawInfo info, MaterialResourceHandle matH);
+
     void SubmitDirectionalLight(const LightBase &linfo);
     void SubmitPointLight(const PointLight &linfo);
     void SubmitSpotLight(const SpotLight &linfo);

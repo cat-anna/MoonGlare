@@ -2,7 +2,7 @@
 #define BaseDockWindowModule_H
 
 #include <DockWindow.h>
-#include "Module.h"
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 namespace QtShared {

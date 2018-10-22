@@ -14,7 +14,7 @@
 #include "../FileSystem.h"
 #include <iEditor.h>
 
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <iFileIconProvider.h>
 
 #include "iFileSystemViewerPreview.h"
@@ -41,7 +41,7 @@ class FileSystemViewer
     , public iFileSystemViewerPreview {
 	Q_OBJECT;
 public:
- 	FileSystemViewer(QWidget *parent, QtShared::WeakModule module);
+ 	FileSystemViewer(QWidget *parent, WeakModule module);
  	virtual ~FileSystemViewer();
 
 	bool DoSaveSettings(pugi::xml_node node) const override;
@@ -65,7 +65,7 @@ private:
 	std::unordered_map<StarVFS::FileID, QStandardItem *> m_VFSItemMap;
 	Module::SharedDataModule m_Module;
 	SharedFileSystem m_FileSystem;
-	QtShared::WeakModule m_EditorModule;
+	WeakModule m_EditorModule;
     QtShared::SharedEditor currentPreviewEditor;
 
 	std::shared_ptr<QtShared::FileIconProvider> m_FileIconProvider;

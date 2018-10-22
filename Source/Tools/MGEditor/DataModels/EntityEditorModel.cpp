@@ -96,7 +96,7 @@ EntityEditorModel::~EntityEditorModel() {
     m_Ui.reset();
 }
 
-void EntityEditorModel::SetModuleManager(QtShared::SharedModuleManager mm) {
+void EntityEditorModel::SetModuleManager(SharedModuleManager mm) {
     moduleManager.swap(mm);
     m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 }

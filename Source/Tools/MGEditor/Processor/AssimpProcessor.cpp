@@ -12,7 +12,7 @@
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
 #include <iCustomEnum.h>
-#include <Module.h>
+#include <ToolBase/Module.h>
 #include <iIssueReporter.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
@@ -34,7 +34,7 @@ namespace Processor {
 struct AssimpProcessor
     : public QtShared::iFileProcessor {
 
-    AssimpProcessor(QtShared::SharedModuleManager modmgr, QtShared::SharedSetEnum MeshEnum, QtShared::SharedSetEnum MaterialEnum, std::string URI) 
+    AssimpProcessor(SharedModuleManager modmgr, QtShared::SharedSetEnum MeshEnum, QtShared::SharedSetEnum MaterialEnum, std::string URI) 
         : QtShared::iFileProcessor(std::move(URI)), MeshEnum(MeshEnum), MaterialEnum(MaterialEnum), moduleManager(modmgr) { }
 
     ProcessResult ProcessFile() override {
@@ -96,13 +96,13 @@ struct AssimpProcessor
 private:
     QtShared::SharedSetEnum MeshEnum;
     QtShared::SharedSetEnum MaterialEnum;
-    QtShared::SharedModuleManager moduleManager;
+    SharedModuleManager moduleManager;
 };
 
 //----------------------------------------------------------------------------------
 
 struct AssimpProcessorModule
-    : public QtShared::iModule
+    : public iModule
     , public QtShared::iFileProcessorInfo
     , public QtShared::iCustomEnumSupplier
     , public QtShared::iFileIconInfo {
@@ -134,7 +134,7 @@ struct AssimpProcessorModule
         };
     }
 };
-QtShared::ModuleClassRgister::Register<AssimpProcessorModule> AssimpProcessorModuleReg("AssimpProcessorModule");
+ModuleClassRgister::Register<AssimpProcessorModule> AssimpProcessorModuleReg("AssimpProcessorModule");
 
 //----------------------------------------------------------------------------------
 

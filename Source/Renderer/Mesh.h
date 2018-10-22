@@ -24,6 +24,13 @@ struct MeshSource {
     std::vector<glm::fvec3> tangents;
     std::vector<uint32_t> index;
 
+    static constexpr uint8_t InvalidBoneIndex = 0xFF;
+    static glm::u8vec4 InvalidBoneIndexSlot() { return glm::u8vec4(0xFF); };
+    std::vector<glm::u8vec4> vertexBones;
+    std::vector<glm::fvec4> vertexBoneWeights;
+    std::vector<std::string> boneNames;
+    std::vector<glm::mat4> boneOffsetMatrices;
+
     emath::fvec3 halfBoundingBox;
     float boundingRadius;
 

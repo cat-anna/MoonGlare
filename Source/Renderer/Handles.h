@@ -46,6 +46,10 @@ struct HandleTemplate : public ResourceHandleBase {
     void Zero() {
         memset(this, 0, sizeof(*this));
     }
+
+    bool operator==(const HandleTemplate &other) const {
+        return index == other.index && generation == other.generation;
+    }
 };
 
 //-----------------------------------------------------------------------------

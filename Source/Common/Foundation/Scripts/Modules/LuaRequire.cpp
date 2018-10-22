@@ -191,7 +191,7 @@ int LuaRequireModule::lua_dofile(lua_State *lua) {
         throw LuaPanic(fmt::format("Cannot load file '{}'", name.data()));
     }
 
-    throw LuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
+    //throw LuaPanic(fmt::format("Cannot find require '{}'", lua_tostring(lua, -1)));
 }
 
 }
