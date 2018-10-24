@@ -66,7 +66,7 @@ bool SubsystemManager::Finalize() {
 
 //---------------------------------------------------------------------------------------
 
-bool SubsystemManager::LoadComponents(pugi::xml_node node) {
+bool SubsystemManager::LoadSystems(pugi::xml_node node) {
 #ifdef PERF_PERIODIC_PRINT
     m_ComponentInfo.fill({});
 #endif
@@ -76,10 +76,24 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
         return true;
     }
 
-    for (auto it = node.child("Component"); it; it = it.next_sibling("Component")) {
+    for (auto it = node.first_child(); it; it = it.next_sibling()) {
         SubSystemId cid = SubSystemId::Invalid;
 
         if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
+            auto infoopt = BaseSystemInfo::GetClassByName(it.attribute("Name").as_string());
+            if (!infoopt.has_value()) {
+                AddLogf(Warning, "Unknown system %s", it.attribute("Name").as_string());
+                continue;
+            }
+
+            auto info = BaseSystemInfo::GetSystemTypeInfo(infoopt.value());
+            auto cptr = info.infoPtr->MakeInstance(this);
+
+            AddLogf(Hint, "Installing system sci:%d (%s)", (int)infoopt.value(), typeid(*cptr.get()).name());
+            if (!InsertComponent(std::move(cptr), (SubSystemId)infoopt.value())) {
+                AddLog(Error, "Failed to install TransformComponent");
+            }
+
             AddLogf(Warning, "Unknown component!");
             continue;
         }
@@ -105,22 +119,6 @@ bool SubsystemManager::LoadComponents(pugi::xml_node node) {
         if (!InsertComponent(std::move(cptr), cid)) {
             AddLog(Error, "Failed to install TransformComponent");
             continue;
-        }
-    }
-
-    for (auto it = node.child("System"); it; it = it.next_sibling("System")) {
-        auto infoopt = BaseSystemInfo::GetClassByName(it.attribute("Class").as_string());
-        if (!infoopt.has_value()) {
-            AddLogf(Warning, "Unknown system %s", it.attribute("Class").as_string());
-            continue;
-        }
-
-        auto info = BaseSystemInfo::GetSystemTypeInfo(infoopt.value());
-        auto cptr = info.infoPtr->MakeInstance(this);
-
-        AddLogf(Hint, "Installing system sci:%d (%s)", (int)infoopt.value(), typeid(*cptr.get()).name());
-        if (!InsertComponent(std::move(cptr), (SubSystemId)infoopt.value())) {
-            AddLog(Error, "Failed to install TransformComponent");
         }
     }
 

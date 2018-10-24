@@ -19,7 +19,22 @@ public:
     }
 };
 
-struct SetEnum : public QtShared::iCustomEnum {
+class AliasEnum : public iCustomEnum {
+public:
+    AliasEnum(std::string type, std::shared_ptr<iCustomEnum> valuesSource) : type(std::move(type)), valuesSource(std::move(valuesSource)) {}
+
+    virtual std::string GetEnumTypeName() const {
+        return type;
+    }
+    virtual std::vector<EnumValue> GetValues() const {
+        return valuesSource->GetValues();
+    }
+private:
+    std::shared_ptr<iCustomEnum> valuesSource;
+    std::string type;
+};
+
+struct SetEnum : public iCustomEnum {
     SetEnum(std::string type) : type(type) {}
 
     virtual std::string GetEnumTypeName() const {
@@ -83,6 +98,8 @@ public:
 
         return wanted;
     }
+
+    void SetAlias(const std::string &Typename, std::shared_ptr<iCustomEnum>);
 
     const std::shared_ptr<iCustomEnum> GetEnum(const std::string &Typename) const;
 private:

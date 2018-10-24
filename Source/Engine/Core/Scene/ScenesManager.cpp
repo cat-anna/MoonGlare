@@ -100,7 +100,7 @@ struct SceneInstance : private boost::noncopyable {
             return false;
         }
 
-        if (!subsystemManager.LoadComponents(Node.child("Components"))) {
+        if (!subsystemManager.LoadSystems(Node.child("Systems"))) {
             AddLogf(Error, "Failed to load components");
             return false;
         }
@@ -112,7 +112,7 @@ struct SceneInstance : private boost::noncopyable {
 
         eventDispatcher->AddSubDispatcher(&subsystemManager.GetEventDispatcher());
 
-        EntityBuilder(&subsystemManager).Build(sceneRoot, Node.child("Entities"));
+        EntityBuilder(&subsystemManager).Build(sceneRoot, sceneName.c_str(), Node.child("Entities"));
         return true;
     }
 
@@ -162,7 +162,7 @@ void ScenesManager::Initialize(const SceneConfiguration *configuration) {
     eventDispatcher = interfaceMap.GetInterface<Component::EventDispatcher>();
     assert(eventDispatcher);
 
-    eventDispatcher->Register<Renderer::RendererResourceLoaderEvent>(this);
+    eventDispatcher->Register<Resources::ResourceLoaderEvent>(this);
     eventDispatcher->Register<SetSceneEvent>(this);
     eventDispatcher->Register<SetSceneChangeFenceEvent>(this);
     eventDispatcher->Register<SceneStateChangeEvent>(this);
@@ -179,7 +179,7 @@ void ScenesManager::HandleEvent(const SceneStateChangeEvent &event) {
     }
 }
 
-void ScenesManager::HandleEvent(const Renderer::RendererResourceLoaderEvent &event) {
+void ScenesManager::HandleEvent(const Resources::ResourceLoaderEvent &event) {
     if (resourceLoadRevision > event.revision)
         return;
     resourceLoadRevision = event.revision;

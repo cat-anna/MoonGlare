@@ -34,8 +34,14 @@ namespace Processor {
 struct AssimpProcessor
     : public QtShared::iFileProcessor {
 
-    AssimpProcessor(SharedModuleManager modmgr, QtShared::SharedSetEnum MeshEnum, QtShared::SharedSetEnum MaterialEnum, std::string URI) 
-        : QtShared::iFileProcessor(std::move(URI)), MeshEnum(MeshEnum), MaterialEnum(MaterialEnum), moduleManager(modmgr) { }
+    AssimpProcessor(SharedModuleManager modmgr, 
+        QtShared::SharedSetEnum MeshEnum, 
+        QtShared::SharedSetEnum MaterialEnum,
+        QtShared::SharedSetEnum AnimationEnum,
+        std::string URI) 
+        : QtShared::iFileProcessor(std::move(URI)), 
+        MeshEnum(MeshEnum), MaterialEnum(MaterialEnum), AnimationEnum(AnimationEnum),
+        moduleManager(modmgr) { }
 
     ProcessResult ProcessFile() override {
         MeshEnum->Add(m_URI);
@@ -73,7 +79,6 @@ struct AssimpProcessor
                 }
             }
 
-
             std::string materialsubPath = m_URI + "@material://";
             for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
                 auto material = scene->mMaterials[i];
@@ -86,6 +91,15 @@ struct AssimpProcessor
                 //}
                 //catch (...) {}
             }
+
+            std::string animsubPath = m_URI + "@animation://";
+            for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
+                auto anim = scene->mAnimations[i];
+                AnimationEnum->Add(animsubPath + "*" + std::to_string(i));
+                if (anim->mName.length > 0) {
+                    AnimationEnum->Add(animsubPath + anim->mName.data);
+                }
+            }
         }
         catch (...) {
             return ProcessResult::UnknownFailure;
@@ -96,6 +110,7 @@ struct AssimpProcessor
 private:
     QtShared::SharedSetEnum MeshEnum;
     QtShared::SharedSetEnum MaterialEnum;
+    QtShared::SharedSetEnum AnimationEnum;
     SharedModuleManager moduleManager;
 };
 
@@ -111,9 +126,12 @@ struct AssimpProcessorModule
 
     QtShared::SharedSetEnum MeshListEnum;
     QtShared::SharedSetEnum MaterialListEnum;
+    QtShared::SharedSetEnum AnimationListEnum;
 
     QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
-        return std::make_shared<AssimpProcessor>(GetModuleManager(), MeshListEnum, MaterialListEnum, std::move(URI));
+        return std::make_shared<AssimpProcessor>(GetModuleManager(), 
+            MeshListEnum, MaterialListEnum, AnimationListEnum,
+            std::move(URI));
     }
 
     std::vector<std::string> GetSupportedTypes() {
@@ -123,6 +141,10 @@ struct AssimpProcessorModule
     std::vector<std::shared_ptr<QtShared::iCustomEnum>> GetCustomEnums(QtShared::CustomEnumProvider *provider) override {
         MeshListEnum = provider->CreateEnum("string:Mesh.Mesh");
         MaterialListEnum = provider->CreateEnum("string:Mesh.Material");
+        AnimationListEnum = provider->CreateEnum("string:BoneAnimator.Animation");
+
+        provider->SetAlias("string:Skin.Mesh", MaterialListEnum);
+        provider->SetAlias("string:Skin.Material", MeshListEnum);
         return { };
     }
 

@@ -11,19 +11,14 @@ namespace MoonGlare {
 namespace TypeEditor {
 
 static ComponentInfo::NameMapType *gNameMap = nullptr;
-static ComponentInfo::CIDMapType *gCidMap = nullptr;
 
 void ComponentInfo::RegisterComponentInfo(SharedComponentInfo typeinfo) {
 	if (!gNameMap)
 		gNameMap = new NameMapType();
-	if (!gCidMap)
-		gCidMap = new CIDMapType();
-
-	(*gCidMap)[typeinfo->m_CID] = typeinfo;
 	(*gNameMap)[typeinfo->m_Name] = typeinfo;
 }
 
-SharedComponentInfo ComponentInfo::GetComponentInfo(const std::string & Name) {
+SharedComponentInfo ComponentInfo::GetComponentInfo(const std::string &Name) {
 	if (!gNameMap)
 		return nullptr;
 	auto it = gNameMap->find(Name);
@@ -32,19 +27,35 @@ SharedComponentInfo ComponentInfo::GetComponentInfo(const std::string & Name) {
 	return it->second;
 }
 
-SharedComponentInfo ComponentInfo::GetComponentInfo(MoonGlare::Core::SubSystemId CID) {
-	if (!gCidMap)
-		return nullptr;
-	auto it = gCidMap->find(CID);
-	if (it == gCidMap->end())
-		return nullptr;
-	return it->second;
-}
-
 const ComponentInfo::NameMapType& ComponentInfo::GetComponents() {
 	if (!gNameMap)
 		gNameMap = new NameMapType();
 	return *gNameMap;
+}
+
+//-------------------------------------
+
+static SystemInfo::NameMapType *gSystemNameMap = nullptr;
+
+void SystemInfo::RegisterSystemInfo(SharedSystemInfo typeinfo) {
+    if (!gSystemNameMap)
+        gSystemNameMap = new NameMapType();
+    (*gSystemNameMap)[typeinfo->m_Name] = typeinfo;
+}
+
+SharedSystemInfo SystemInfo::GetSystemInfo(const std::string &Name) {
+    if (!gSystemNameMap)
+        return nullptr;
+    auto it = gSystemNameMap->find(Name);
+    if (it == gSystemNameMap->end())
+        return nullptr;
+    return it->second;
+}
+
+const SystemInfo::NameMapType& SystemInfo::GetSystems() {
+    if (!gSystemNameMap)
+        gSystemNameMap = new NameMapType();
+    return *gSystemNameMap;
 }
 
 } //namespace TypeEditor 

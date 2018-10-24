@@ -8,31 +8,6 @@
 
 namespace MoonGlare::Renderer::Resources {
 
-struct MeshData {
-    glm::fvec3 *verticles;  
-    glm::fvec2 *UV0;        
-    glm::fvec3 *normals;
-    glm::fvec3 *tangents;
-    uint32_t *index;        
-
-    static constexpr uint8_t InvalidBoneIndex = MeshSource::InvalidBoneIndex;
-    glm::u8vec4 *vertexBones;
-    glm::fvec4 *vertexBoneWeights;
-    glm::fmat4 *boneMatrices;
-    const char **boneNames;
-    uint8_t boneCount;
-    uint8_t __padding[3];
-
-    size_t vertexCount;
-    size_t indexCount;
-
-    emath::fvec3 halfBoundingBox;
-    float boundingRadius;
-
-    bool ready;
-    size_t memoryUsage;
-};
-
 class MeshManager final {
     using ThisClass = MeshManager;
     using Conf = Configuration::Mesh;

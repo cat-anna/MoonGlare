@@ -6,7 +6,7 @@
 
 #include "iSceneManager.h"
 
-#include "Renderer.Events.h"
+#include <Foundation/Resources/ResourceLoaderEvent.h>
 
 namespace MoonGlare::Core::Scene {
 
@@ -31,7 +31,7 @@ public:
     void PreSystemStart()                                     override;
     bool IsScenePending() const override { return pendingScene.load() != nullptr; }
 
-    void HandleEvent(const Renderer::RendererResourceLoaderEvent &event);
+    void HandleEvent(const Resources::ResourceLoaderEvent &event);
     void HandleEvent(const SetSceneEvent &event);
     void HandleEvent(const SetSceneChangeFenceEvent &event);
     void HandleEvent(const SceneStateChangeEvent &event);

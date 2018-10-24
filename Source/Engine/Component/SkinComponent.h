@@ -4,7 +4,6 @@
 #include <Foundation/Component/iSubsystem.h>
 
 #include <Renderer/Mesh.h>
-#include <Renderer/Resources/Mesh/MeshResource.h>
 #include <Renderer/Resources/Mesh/VAOResource.h>
 #include <Renderer/Resources/MaterialManager.h>
 
@@ -18,7 +17,7 @@ struct SkinComponent {
     Renderer::MaterialResourceHandle materialHandle = {};
     Renderer::VAOResourceHandle vaoHandle = {};
 
-    const Renderer::Resources::MeshData *meshData = nullptr;
+    const Renderer::MeshData *meshData = nullptr;
     uint8_t validBones = 0;
     Entity bones[64];
 

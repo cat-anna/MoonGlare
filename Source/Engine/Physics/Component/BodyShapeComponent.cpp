@@ -28,7 +28,7 @@ namespace Physics {
 namespace Component {
 
 struct TriangleMeshProxy : public btTriangleIndexVertexArray {
-    TriangleMeshProxy(const Renderer::Resources::MeshData &data) : mesh(data){
+    TriangleMeshProxy(const Renderer::MeshData &data) : mesh(data){
         btIndexedMesh meshIndex;
         meshIndex.m_numTriangles = 0;
         meshIndex.m_numVertices = 0;
@@ -49,7 +49,7 @@ struct TriangleMeshProxy : public btTriangleIndexVertexArray {
         m_indexedMeshes[0].m_vertexStride = sizeof(mesh.verticles[0]);
     }
 private:
-    const Renderer::Resources::MeshData &mesh;
+    const Renderer::MeshData &mesh;
 };
 
 //---------------------------------------------------------------------------------------

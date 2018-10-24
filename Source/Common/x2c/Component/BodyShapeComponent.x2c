@@ -1,4 +1,4 @@
-Import "Component/ComponentCommon.x2c"
+Import "ComponentCommon.x2c"
 
 namespace "MoonGlare.x2c.Component.BodyShapeComponent"
 

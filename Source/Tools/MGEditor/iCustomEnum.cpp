@@ -27,6 +27,10 @@ bool CustomEnumProvider::PostInit() {
     return true;
 }
 
+void CustomEnumProvider::SetAlias(const std::string &Typename, std::shared_ptr<iCustomEnum> e) {
+    RegisterEnum(std::make_shared<AliasEnum>(std::move(Typename), std::move(e)));
+}
+
 void CustomEnumProvider::RegisterEnum(std::shared_ptr<iCustomEnum> e) {
     auto name = ToLower(e->GetEnumTypeName());
     auto it = enumMap.find(name);

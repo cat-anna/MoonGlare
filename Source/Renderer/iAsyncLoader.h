@@ -3,6 +3,7 @@
 #include "Configuration.Renderer.h"
 #include "Commands/CommandQueue.h"
 
+
 namespace MoonGlare::Renderer {
 
 struct ResourceLoadStorage {
@@ -17,27 +18,11 @@ using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
 class iAsyncTask;
 using SharedAsyncTask = std::shared_ptr<iAsyncTask>;
 
-class iAsyncLoader;
-
-class iAsyncLoaderObserver : public std::enable_shared_from_this<iAsyncLoaderObserver> {
-public:
-    virtual ~iAsyncLoaderObserver() {};
-
-    virtual void OnFinished(iAsyncLoader *loader) {};
-    virtual void OnStarted(iAsyncLoader *loader) {};
-};
-
-using SharedAsyncLoaderObserver = std::shared_ptr<iAsyncLoaderObserver>;
-using WeakAsyncLoaderObserver = std::weak_ptr<iAsyncLoaderObserver>;
-
 //---------------------------------------------------------------------------------------
 
 class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() {};
-
-    virtual unsigned JobsPending() const = 0;
-    virtual void SetObserver(SharedAsyncLoaderObserver) = 0;
 
     virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
     virtual void QueueTask(SharedAsyncTask task) = 0;

@@ -7,6 +7,11 @@ Structure.new {
 	description = "",
 	fields = {
 		{
+			name = "LocalRelations",
+			type = Types.string,
+			required = false,
+		},
+		{
 			name = "Visible",
 			description = "",
 			type = Types.bool,

@@ -7,6 +7,8 @@
 
 #include "../../Commands/MemoryCommands.h"
 
+#include <Foundation/Resources/BlobFile.h>
+
 namespace MoonGlare::Renderer::Resources {
                                                                          
 MeshManager::MeshManager(ResourceManager *Owner) : resourceManager(Owner) {
@@ -173,10 +175,11 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
 
     size_t vertexBonesSize = source.vertexBones.size() * sizeof(source.vertexBones[0]);
     size_t vertexBoneWeightsSize = source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]);
-    size_t boneNamesArraySize = source.boneNames.size() * sizeof(const char*);
-    size_t boneNamesValuesSize = 0;
-    std::for_each(source.boneNames.begin(), source.boneNames.end(), [&boneNamesValuesSize](auto &item) { boneNamesValuesSize += item.size() + 1; });
     size_t boneMatricesSize = source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]);
+
+    size_t boneNamesArraySize = source.boneNames.size() * sizeof(const char*);
+    uint16_t boneNamesValuesSize = 0;
+    std::for_each(source.boneNames.begin(), source.boneNames.end(), [&boneNamesValuesSize](auto &item) { boneNamesValuesSize += item.size() + 1; });
 
     size_t verticlesOffset = memorySize;
     memorySize += verticlesSize;
@@ -237,12 +240,13 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
         memcpy(md.vertexBoneWeights, &source.vertexBoneWeights[0], vertexBoneWeightsSize);
     }
     if (source.boneNames.size() > 0) {
-        md.boneNames = (const char**)(mem + boneNamesArrayOffset);
-        size_t offset = 0;
+        md.boneNameValues = (const char*)(mem + boneNamesValuesOffset);
+        md.boneNameOffsets = (uint16_t*)(mem + boneNamesArrayOffset);
+        uint16_t offset = 0;
         for (size_t i = 0; i < source.boneNames.size(); ++i) {
-            md.boneNames[i]  = (char*)(mem + boneNamesValuesOffset + offset);
+            char * str = (char*)(mem + boneNamesValuesOffset + offset);
+            md.boneNameOffsets[i] = offset;
             size_t len = source.boneNames[i].size();
-            char *str = (char*)md.boneNames[i];
             memcpy(str, source.boneNames[i].c_str(), len);
             str[len] = '\0';
             offset += len + 1;
@@ -260,7 +264,8 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
 
     md.halfBoundingBox = source.halfBoundingBox;
     md.boundingRadius = source.boundingRadius;
-    md.memoryUsage = memorySize;
+    md.memoryBlockSize = memorySize;
+    md.memoryBlockFront = mem;
     md.ready = false;
 
 #ifdef DEBUG_LOG
@@ -365,6 +370,49 @@ void MeshManager::SaveMeshObj(MeshResourceHandle h, std::string outFile) {
 }
 
 void MeshManager::SaveMeshBin(MeshResourceHandle h, std::string outFile) {
+    if (outFile.empty())
+        outFile = "logs/mesh." + std::to_string(h.index) + ".mesh";
+
+    auto *mptr = GetMeshData(h);
+    if (!mptr)
+        return;
+
+    auto data = *mptr;
+    data.UpdatePointers(0);
+    //TODO: properly handle non existing mesh arrays like normals, uvs, etc...
+
+    using namespace MoonGlare::Resources::BlobFile;
+
+    size_t fileOffset = 0;
+
+    BlobHeader blobH = { MagicValue::Blob, MagicValue::Mesh, 4 };
+    MeshHeader meshH = { MagicValue::Mesh, 2, 3 };    
+    DataHeader meshDataH = { MagicValue::Data, 0, 0, 0 };
+    DataHeader blobDataH = { MagicValue::Data, 0, 0, 0 };
+
+    fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
+
+    meshDataH.dataSize = sizeof(data);
+    meshDataH.filedataSize = sizeof(data);
+    meshDataH.fileOffset = fileOffset;
+    fileOffset += meshDataH.filedataSize;
+
+    blobDataH.dataSize = mptr->memoryBlockSize;
+    blobDataH.filedataSize = mptr->memoryBlockSize;
+    blobDataH.fileOffset = fileOffset;
+    fileOffset += blobDataH.filedataSize;
+
+    std::ofstream of(outFile, std::ios::out | std::ios::binary);
+
+    of.write((char*)&blobH, sizeof(blobH));
+    of.write((char*)&meshH, sizeof(meshH));
+    of.write((char*)&meshDataH, sizeof(meshDataH));
+    of.write((char*)&blobDataH, sizeof(blobDataH));
+
+    of.write((char*)&data, sizeof(data));
+    of.write((char*)mptr->memoryBlockFront, blobDataH.filedataSize);
+
+    of.close();
 }
 
 } //namespace MoonGlare::Renderer::Resources 

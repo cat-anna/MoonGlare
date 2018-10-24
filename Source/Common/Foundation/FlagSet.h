@@ -30,10 +30,10 @@ struct FlagSet {
     }
 
     template<typename ... ARGS>
-    constexpr bool Set(bool set, ARGS&& ... args) const {
+    constexpr void Set(bool set, ARGS&& ... args) {
         auto mask = Mask(std::forward<ARGS>(args)...);
         if (set)
-            storage | = mask;
+            storage |= mask;
         else
             storage &= ~mask;
     }

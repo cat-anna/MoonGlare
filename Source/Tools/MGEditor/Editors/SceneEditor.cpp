@@ -143,7 +143,7 @@ bool SceneEditor::Create(const std::string & LocationURI, const QtShared::iEdito
 	}
 
 	m_Ui->treeViewSceneSettings->GetStructure()->ResetToDefault();
-	ResetComponentList();
+	ResetSystemList();
 
 	SetModiffiedState(true);
 	m_SceneURI = URI;
@@ -187,8 +187,8 @@ bool SceneEditor::OpenData(const std::string &URI) {
 			throw false;
 		}
 
-		ResetComponentList();
-		if (!ReadComponentTree(root.child("Components"))) {
+		ResetSystemList();
+		if (!ReadSystemTree(root.child("Systems"))) {
 			AddLog(Hint, "Failed to read sdx component tree: " << m_SceneURI);
 			throw false;
 		}
@@ -201,7 +201,7 @@ bool SceneEditor::OpenData(const std::string &URI) {
 	catch (...) {
 		Clear();
 		AddLog(Hint, "Failed to open sdx: " << URI);
-		m_ComponentInstances.clear();
+		m_SystemInstances.clear();
 		Refresh();
 		return false;
 	}
@@ -225,8 +225,8 @@ bool SceneEditor::SaveData() {
 			throw false;
 		}
 
-		if (!WriteComponentTree(root.append_child("Components"))) {
-			AddLog(Hint, "Failed to write sdx component tree: " << m_SceneURI);
+		if (!WriteSystemTree(root.append_child("Systems"))) {
+			AddLog(Hint, "Failed to write sdx systems tree: " << m_SceneURI);
 			throw false;
 		}
 
@@ -269,19 +269,18 @@ bool SceneEditor::TryCloseData() {
 void SceneEditor::Refresh() {
 	m_Ui->treeViewSceneSettings->Refresh();
 	m_Ui->EntityTree->Refresh();
-	RefreshComponentTree();
+	RefreshSystemTree();
 }
 
 //----------------------------------------------------------------------------------
 
-bool SceneEditor::WriteComponentTree(pugi::xml_node node) const {
-	for (auto &it : m_ComponentInstances) {
+bool SceneEditor::WriteSystemTree(pugi::xml_node node) const {
+	for (auto &it : m_SystemInstances) {
 		if (!it->m_Enabled)
 			continue;
 
-		auto cnode = node.append_child("Component");
-		cnode.append_attribute("Name") = it->m_ComponentInfo->m_Name.c_str();
-		cnode.append_attribute("Id") = static_cast<unsigned>(it->m_ComponentInfo->m_CID);
+		auto cnode = node.append_child("System");
+		cnode.append_attribute("Name") = it->m_SystemInfo->m_Name.c_str();
 
 		if (!it->m_Config)
 			continue;
@@ -292,12 +291,12 @@ bool SceneEditor::WriteComponentTree(pugi::xml_node node) const {
 	return true;
 }
 
-bool SceneEditor::ReadComponentTree(const pugi::xml_node node) {
-	for (auto &it : m_ComponentInstances) {
+bool SceneEditor::ReadSystemTree(const pugi::xml_node node) {
+	for (auto &it : m_SystemInstances) {
 		it->m_Enabled = false;
 	}
-	std::list<SharedComponentInstance> clist(m_ComponentInstances.begin(), m_ComponentInstances.end());
-	m_ComponentInstances.clear();
+	std::list<SharedSystemInstance> clist(m_SystemInstances.begin(), m_SystemInstances.end());
+	m_SystemInstances.clear();
 
 	for (auto it = node.first_child(); it; it = it.next_sibling()) {
 		const char* name = it.attribute("Name").as_string(nullptr);
@@ -306,13 +305,13 @@ bool SceneEditor::ReadComponentTree(const pugi::xml_node node) {
 			continue;
 		}
 
-		auto ci = TypeEditor::ComponentInfo::GetComponentInfo(name);
+		auto ci = TypeEditor::SystemInfo::GetSystemInfo(name);
 		if (!ci) {
 			AddLogf(Warning, "Found unknown component: %s", name);
 			continue;
 		}
 
-		auto cinstit = std::find_if(clist.begin(), clist.end(), [ci](auto v) { return *v == ci; });
+		auto cinstit = std::find_if(clist.begin(), clist.end(), [ci](const SharedSystemInstance &v) { return *v == ci; });
 		if (cinstit == clist.end()) {
 			continue;
 		}
@@ -323,11 +322,11 @@ bool SceneEditor::ReadComponentTree(const pugi::xml_node node) {
 		if (cinst->m_Config)
 			cinst->m_Config->Read(it);
 
-		m_ComponentInstances.push_back(cinst);
+        m_SystemInstances.push_back(cinst);
 	}
 
 	for (auto it : clist) {
-		m_ComponentInstances.push_back(it);
+        m_SystemInstances.push_back(it);
 	}
 
 	return true;
@@ -336,7 +335,7 @@ bool SceneEditor::ReadComponentTree(const pugi::xml_node node) {
 void SceneEditor::ComponentChanged(QStandardItem * item) {
 	if (!item)
 		return;
-	auto* info = item->data(SceneEditorRole::ComponentInstance).value<ComponentInstance*>();
+	auto* info = item->data(SceneEditorRole::SystemInstance).value<SystemInstance*>();
 	if (!info)
 		return;
 
@@ -346,7 +345,7 @@ void SceneEditor::ComponentChanged(QStandardItem * item) {
 
 //----------------------------------------------------------------------------------
 
-void SceneEditor::RefreshComponentTree() {
+void SceneEditor::RefreshSystemTree() {
 	m_ComponentModel->removeRows(0, m_ComponentModel->rowCount());
 
 	auto *root = m_ComponentModel->invisibleRootItem();
@@ -361,8 +360,8 @@ void SceneEditor::RefreshComponentTree() {
 		return it->second;
 	};
 
-	for (auto &ptr : m_ComponentInstances) {
-		auto ci = ptr->m_ComponentInfo;
+	for (auto &ptr : m_SystemInstances) {
+		auto ci = ptr->m_SystemInfo;
 		QStandardItem *Elem = new QStandardItem(ci->m_DisplayName.c_str());
 
 		Elem->setFlags(Elem->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -370,7 +369,7 @@ void SceneEditor::RefreshComponentTree() {
 		Elem->setCheckable(true);
 		Elem->setCheckState(ptr->m_Enabled ? Qt::Checked : Qt::Unchecked);
 
-		Elem->setData(QVariant::fromValue(ptr.get()), SceneEditorRole::ComponentInstance);
+		Elem->setData(QVariant::fromValue(ptr.get()), SceneEditorRole::SystemInstance);
 
 		{
 			QList<QStandardItem*> cols;
@@ -378,7 +377,9 @@ void SceneEditor::RefreshComponentTree() {
 			cols << new QStandardItem();
 			cols << new QStandardItem();
 		//	Deps[ci->m_CID] = Elem;
-			GetParent(ci->m_Requirement)->appendRow(cols);
+			//GetParent(ci->m_Requirement)
+            root
+            ->appendRow(cols);
 		}
 
 		if (!ptr->m_Config)
@@ -415,27 +416,27 @@ void SceneEditor::RefreshComponentTree() {
 	m_Ui->treeViewComponents->collapseAll();
 }
 
-void SceneEditor::ResetComponentList() {
-	m_ComponentInstances.clear();
-	for (auto &it : TypeEditor::ComponentInfo::GetComponents()) {
-		auto cinst = std::make_shared<ComponentInstance>();
+void SceneEditor::ResetSystemList() {
+	m_SystemInstances.clear();
+	for (auto &it : TypeEditor::SystemInfo::GetSystems()) {
+		auto inst = std::make_shared<SystemInstance>();
 
-		cinst->m_ComponentInfo = it.second;
+        inst->m_SystemInfo = it.second;
 
-		cinst->m_Config = cinst->m_ComponentInfo->m_SettingsStructure->m_CreateFunc(nullptr);
-		if (cinst->m_Config->GetValues().empty())
-			cinst->m_Config.reset();
+        inst->m_Config = inst->m_SystemInfo->m_SettingsStructure->m_CreateFunc(nullptr);
+		if (inst->m_Config->GetValues().empty())
+			inst->m_Config.reset();
 		else
-			cinst->m_Config->ResetToDefault();
+			inst->m_Config->ResetToDefault();
 
-		m_ComponentInstances.emplace_back(cinst);
+        m_SystemInstances.emplace_back(inst);
 	}
 
-	std::sort(m_ComponentInstances.begin(), m_ComponentInstances.end(), [](auto a, auto b)->bool {
-		return a->m_ComponentInfo->m_DefautltIndex < b->m_ComponentInfo->m_DefautltIndex;
-	});
+	//std::sort(m_SystemInstances.begin(), m_SystemInstances.end(), [](auto a, auto b)->bool {
+	//	return a->m_ComponentInfo->m_DefautltIndex < b->m_ComponentInfo->m_DefautltIndex;
+	//});
 
-	RefreshComponentTree();
+	RefreshSystemTree();
 }
 
 } //namespace DockWindows 

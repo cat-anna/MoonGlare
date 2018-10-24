@@ -3,7 +3,6 @@
 #include <ostream>
 #include <fmt/format.h>
 
-
 template <class T, glm::precision P>
 inline std::ostream& operator << (std::ostream &o, const glm::tvec2<T, P> &t) {
     char b[64];

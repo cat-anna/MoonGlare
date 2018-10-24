@@ -21,14 +21,14 @@
 #include <Renderer/Resources/MaterialManager.h>
 #include <Renderer/Resources/Texture/TextureResource.h>
 #include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/Mesh/MeshResource.h>
 #include <Renderer/Deferred/DeferredFrontend.h>
 
 #include <Core/Component/SubsystemManager.h>
 
 namespace MoonGlare::Component {
 
-SkinSystem::SkinSystem(iSubsystemManager * Owner) : iSubsystem(), subsystemManager(Owner), transformComponent(nullptr)
-{
+SkinSystem::SkinSystem(iSubsystemManager * Owner) : iSubsystem(), subsystemManager(Owner), transformComponent(nullptr){
 }
 
 SkinSystem::~SkinSystem() {
@@ -75,27 +75,12 @@ void SkinSystem::Step(const SubsystemUpdateData &xconf) {
     auto &q = Queue;
 
     subsystemManager->GetComponentArray().Visit<SkinComponent>([this, &conf, &q, &m, rf, ssm](Entity owner, SkinComponent& item) {
-        //auto tindex = transformComponent->GetComponentIndex(owner);
-        //if (tindex == ComponentIndex::Invalid) {
-        //    return;
-        //}
-
         if (item.meshData == nullptr) {
             auto &mm = ssm->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
             if (!mm.GetMeshData(item.meshHandle) || mm.GetMeshData(item.meshHandle)->ready == false)
                 return;
             auto *mdataptr = mm.GetMeshData(item.meshHandle);
             item.meshData = mdataptr;
-
-            auto parent = transformComponent->GetOwner(owner);
-            for (size_t boneId = 0; boneId < mdataptr->boneCount; ++boneId) {
-                auto bone = transformComponent->FindChildByName(parent, mdataptr->boneNames[boneId]);
-                if (!bone.has_value()) {
-                    __debugbreak();
-                }
-                item.bones[boneId] = bone.value_or(Entity{});
-            }
-            item.validBones = mdataptr->boneCount;
         }
 
         if (item.meshData == nullptr) {

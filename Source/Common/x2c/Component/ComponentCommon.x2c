@@ -2,4 +2,3 @@ Import "../Common.x2c"
 Import "../Math.x2c"
 
 namespace "MoonGlare.x2c.Component"
-

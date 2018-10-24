@@ -5,10 +5,11 @@
 #include "../Configuration.Renderer.h"
 
 #include "iAsyncLoader.h"
+#include <Foundation/Resources/iAsyncLoader.h>
 
 namespace MoonGlare::Renderer::Resources {
 
-class AsyncLoader final : public iAsyncLoader {
+class AsyncLoader final : public iAsyncLoader, public MoonGlare::Resources::iAsyncLoader {
     using ThisClass = AsyncLoader;
     using Conf = Configuration::Resources;
 public:
@@ -16,11 +17,13 @@ public:
     ~AsyncLoader();
 
     //iAsyncLoader
-    unsigned JobsPending() const override;
     void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
     void QueueTask(SharedAsyncTask task) override;
-    void SetObserver(SharedAsyncLoaderObserver o) override;
 
+//MoonGlare::Resources::iAsyncLoader
+    void SetObserver(MoonGlare::Resources::SharedAsyncLoaderObserver o) override;
+    void QueueRequest(std::string URI, MoonGlare::Resources::SharedAsyncFileSystemRequest handler) override;
+    void QueueTask(MoonGlare::Resources::SharedAsyncTask task) override;
 
     void SubmitShaderLoad(ShaderResourceHandleBase handle);
 private:
@@ -29,7 +32,7 @@ private:
     std::thread m_Thread;
     iFileSystem *fileSystem;
     const Configuration::RuntimeConfiguration *m_Configuration;
-    WeakAsyncLoaderObserver observer;
+    MoonGlare::Resources::WeakAsyncLoaderObserver observer;
 
     struct QueueData {
         Commands::CommitCommandQueue m_ccq;
@@ -68,24 +71,29 @@ private:
         Retry,
     };
 
-//--
+    template<typename TASK>
+    struct AsyncFSTask {
+        std::string URI;
+        TASK request;
+    };
+
     struct ShaderLoadTask {
         ShaderResourceHandleBase m_Handle;
     };
     ProcessorResult ProcessTask(QueueData *queue, ShaderLoadTask &slt);
-//--
-    struct AsyncFSTask {
-        std::string URI;
-        SharedAsyncFileSystemRequest request;
-    };
-    ProcessorResult ProcessTask(QueueData *queue, AsyncFSTask &afst);
-//--
-    ProcessorResult ProcessTask(QueueData *queue, SharedAsyncTask &afst);
 
-    using AnyTask = std::variant <
+    ProcessorResult ProcessTask(QueueData *queue, AsyncFSTask<SharedAsyncFileSystemRequest> &afst);
+    ProcessorResult ProcessTask(QueueData *queue, SharedAsyncTask &afst);
+    ProcessorResult ProcessTask(QueueData *queue, AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest> &afst);
+    ProcessorResult ProcessTask(QueueData *queue, MoonGlare::Resources::SharedAsyncTask &afst);
+
+    using AnyTask = std::variant<
         ShaderLoadTask,
-        AsyncFSTask,
-        SharedAsyncTask
+        AsyncFSTask<SharedAsyncFileSystemRequest>,
+        SharedAsyncTask, 
+        
+        AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest>,
+        MoonGlare::Resources::SharedAsyncTask
     >;
 
     std::list<AnyTask> m_Queue;

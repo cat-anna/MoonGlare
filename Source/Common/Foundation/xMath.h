@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace emath {
 using fvec2 = Eigen::Vector2f;
 using fvec3 = Eigen::Vector3f;

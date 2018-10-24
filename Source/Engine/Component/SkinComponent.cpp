@@ -2,7 +2,7 @@
 
 #include <nfMoonGlare.h>
 #include <Core/Component/SubsystemManager.h>
-#include <Core/Component/TemplateStandardComponent.h>
+
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/MaterialManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
@@ -25,7 +25,13 @@ bool SkinComponent::Load(ComponentReader &reader, Entity owner) {
     auto &rm = *dynamic_cast<Core::Component::SubsystemManager*>(reader.manager)->GetWorld()->GetRendererFacade()->GetResourceManager();
 
     meshHandle = rm.GetMeshManager().LoadMesh(meshUri);
-    materialHandle = rm.GetMaterialManager().LoadMaterial(materialUri);
+    materialHandle = rm.GetMaterialManager().LoadMaterial(materialUri);                  
+
+    if (reader.localRelationsCount > 0) {
+        //TODO: limit is 64
+        memcpy(bones, reader.localRelations, reader.localRelationsCount * sizeof(bones[0]));
+        validBones = reader.localRelationsCount;
+    }
 
     return true;
 }   

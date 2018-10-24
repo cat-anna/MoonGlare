@@ -14,7 +14,6 @@
 
 #include <Foundation/Resources/StringTables.h>
 
-
 namespace MoonGlare {
 namespace Core {
 namespace Data {

@@ -119,7 +119,7 @@ struct AssimpImporter
             return;
 
         MeshInfo mi = mesh[node->mMeshes[0]];
-        auto shapeC = parent->AddComponent(Core::SubSystemId::BodyShape);
+        auto shapeC = parent->AddComponent("BodyShape");
         auto shio = shapeC->GetValuesEditor();
         shio->Set("type", "4");
         shio->Set("size.x", std::to_string(std::max(mi.boxSize.x / 2, 0.01f)));
@@ -128,7 +128,7 @@ struct AssimpImporter
     }
 
     void ImportBodyComponent(const aiNode * node, EditableEntity * parent) {
-        auto bodyC = parent->AddComponent(Core::SubSystemId::Body);
+        auto bodyC = parent->AddComponent("Body");
         auto bdio = bodyC->GetValuesEditor();
         bdio->Set("Kinematic", "1");
     }
@@ -139,7 +139,7 @@ struct AssimpImporter
         aiVector3D scale;
         node->mTransformation.Decompose(scale, q, pos);
 
-        auto transform = parent->AddComponent(Core::SubSystemId::Transform);
+        auto transform = parent->AddComponent("Transform");
         auto trio = transform->GetValuesEditor();
         trio->Set("Position.x", std::to_string(pos.x));
         trio->Set("Position.y", std::to_string(pos.y));
@@ -157,13 +157,31 @@ struct AssimpImporter
     }
 
     void ImportMeshComponent(const aiNode * node, EditableEntity * parent) {
-        if (node->mNumMeshes == 1) {
-            auto meshC = parent->AddComponent(Core::SubSystemId::Mesh);
+        if (node->mNumMeshes != 1)
+            return;
+
+        auto meshSrc = scene->mMeshes[node->mMeshes[0]];
+        if(!meshSrc->HasBones()) {
+            auto meshC = parent->AddComponent("Mesh");
             auto meio = meshC->GetValuesEditor();
             auto &meshinfo = mesh[node->mMeshes[0]];
             meio->Set("Mesh", meshinfo.uri);
             meio->Set("Material", material[meshinfo.material].uri);
             meio->Set("Visible", "1");
+        } else {
+            std::string localRels;
+            for (size_t i = 0; i < meshSrc->mNumBones; ++i) {
+                if (!localRels.empty())
+                    localRels += ",";
+                localRels += meshSrc->mBones[i]->mName.data;
+            }
+
+            auto skinC = parent->AddComponent("Skin");
+            auto skio = skinC->GetValuesEditor();
+            auto &meshinfo = mesh[node->mMeshes[0]];
+            skio->Set("Mesh", meshinfo.uri);
+            skio->Set("Material", material[meshinfo.material].uri);
+            skio->Set("LocalRelations", localRels);
         }
     }
 
@@ -435,7 +453,7 @@ struct AssimpImporter
 
             StoreResult();
         }
-        catch (const std::exception &e) {
+        catch (const std::exception &) {
             return ProcessResult::UnknownFailure;
 
         }

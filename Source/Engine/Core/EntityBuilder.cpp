@@ -13,6 +13,8 @@
 
 #include <Foundation/Component/EntityManager.h>
 
+#include <boost/algorithm/string.hpp>
+
 namespace MoonGlare {
 namespace Core {
 
@@ -21,18 +23,47 @@ struct EntityImport {
     int32_t parentIndex = -1;
     std::string name;
     bool enabled = true;
+    std::unordered_map<std::string, int32_t> children;
 };
 
-struct ComponentImport {
+struct EntityBuilder::ComponentImport {
     int32_t entityIndex = 1;
     bool enabled = true;
+    bool active = true;
     pugi::xml_node xmlNode;
+    std::vector<std::string> localRelationNames;
+    std::vector<int32_t> localRelationIndex;
+    std::vector<Entity> localRelationEntity;
 };
 
 struct EntityBuilder::ImportData {
     std::vector<EntityImport> entities;
-    std::map<Component::SubSystemId, std::vector<ComponentImport>> components;
+    using ComponentImportVector = std::vector<ComponentImport>;
+    std::map<Component::SubSystemId, ComponentImportVector> components;
     std::vector<XMLFile> xmlFiles;
+    std::string srcName;
+    
+    int32_t FindSibling(int32_t startIndex, const std::string &Name) {
+        if (startIndex < 0)
+            return startIndex;
+        auto &e = entities[startIndex];
+        return FindChild(e.parentIndex < 0 ? startIndex : e.parentIndex, Name);
+    }
+
+    int32_t FindChild(int32_t startIndex, const std::string &Name) {
+        if (startIndex < 0)
+            return startIndex;
+
+        auto &e = entities[startIndex];
+        if (e.name == Name)
+            return startIndex;
+
+        for (auto&[n, idx] : e.children) {
+            if (auto r = FindChild(idx, Name); r >= 0)
+                return r;
+        }
+        return -1;
+    }
 
     void Prepare() {
         for (auto &c : components) {
@@ -42,19 +73,27 @@ struct EntityBuilder::ImportData {
         }
     }
 
-    void Dump(const std::string &ename, const std::string &srcname = "") {
+    void Dump(const std::string &ename) {
+        static std::unordered_map<std::string, std::string> dumpedSrcs;
         static int dumpid = 0;
+
+        if (dumpedSrcs.find(srcName) != dumpedSrcs.end())
+            return;
+
         std::string fname = "logs/";
         fname = fmt::format("logs/{}.{}.entity", ename, dumpid++);
+        dumpedSrcs[srcName] = fname;
 
         std::ofstream of(fname, std::ios::out);
 
-        if (!srcname.empty())
-            of << "SOURCE: " << srcname << "\n\n";
+        if (!srcName.empty())
+            of << "SOURCE: " << srcName << "\n\n";
 
         of << fmt::format("Entities: {}\n", entities.size());
+        size_t index = 0;
         for (auto&it : entities) {
-            of << fmt::format("\tParentIndex:{}  Name:{}  Enabled:{}\n", it.parentIndex, it.name, it.enabled);
+            of << fmt::format("\tIndex:{:3} ParentIndex:{:3} Enabled:{} Name:{}\n", index, it.parentIndex, it.enabled, it.name);
+            ++index;
         }
         of << "\n";
         of << fmt::format("Components: {}\n", components.size());
@@ -67,9 +106,15 @@ struct EntityBuilder::ImportData {
 
             of << fmt::format("\tComponent:{}  Name:{}\n", (int)it.first, Name);
             for (auto &c : it.second) {
-                of << fmt::format("\t\tParentIndex:{}  Enabled:{}\n", c.entityIndex, c.enabled);
+                std::string rels;
+                for (size_t i = 0; i < c.localRelationNames.size(); ++i) {
+                    if (!rels.empty())
+                        rels += ",";
+                    rels += c.localRelationNames[i] + "=" + std::to_string(c.localRelationIndex[i]);
+                }
+                of << fmt::format("\t\tParentIndex:{:3}  Enabled:{}  Active:{}  Relations:{} \n" , c.entityIndex, c.enabled, c.active, rels);
             }
-        }
+        }               
 
         of.close();
     }
@@ -89,6 +134,8 @@ EntityBuilder::~EntityBuilder() {
 bool EntityBuilder::Build(Entity parent, const char *PatternUri, Entity &eout, std::string Name) {
     ImportData data;
 
+    data.srcName = PatternUri;
+
     EntityImport ei;
     ei.parentIndex = -1;
     ei.name = std::move(Name);
@@ -96,26 +143,25 @@ bool EntityBuilder::Build(Entity parent, const char *PatternUri, Entity &eout, s
 
     Import(data, PatternUri, 0);
     data.Prepare();
-#ifdef DEBUG_DUMP
-    data.Dump(Name, PatternUri);
-#endif
-
     Spawn(data, parent);
 
+#ifdef DEBUG_DUMP
+    data.Dump(Name);
+#endif
     eout = data.entities[0].entity;
-
     return true;
 }
 
-bool EntityBuilder::Build(Entity parent, pugi::xml_node node, std::string Name) {
+bool EntityBuilder::Build(Entity parent, const char *srcName, pugi::xml_node node, std::string Name) {
     ImportData data;
+    data.srcName = srcName;
 
     Import(data, node, -1);
     data.Prepare();
-#ifdef DEBUG_DUMP
-    data.Dump(Name, Name);
-#endif
     Spawn(data, parent);
+#ifdef DEBUG_DUMP
+    data.Dump(Name);
+#endif
     return true;
 }
 
@@ -138,19 +184,14 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
         if (!em.Allocate(thisParent, ei.entity, ei.name)) {
             AddLogf(Error, "Failed to allocate entity!");
             return;
-        }         
+        }
     }
 
-    std::array<SubSystemId, 3> ComponentOrder = {
-        SubSystemId::Transform,
-        SubSystemId::RectTransform,
-        SubSystemId::Body,
-    };
 
     auto SpawnComponents = [this, parent, &data](std::vector<ComponentImport>& cs) {
         for (auto &ci : cs) {
             if (!ci.enabled)
-                continue; 
+                continue;
             Entity thisParent = {};
             Entity thisOwner = {};
             if (ci.entityIndex >= 0) {
@@ -160,34 +201,54 @@ void EntityBuilder::Spawn(ImportData &data, Entity parent) {
                     thisParent = data.entities[e.parentIndex].entity;
                 else
                     thisParent = parent;
-            }
-            else {
+            } else {
                 __debugbreak();
-                //owner = O/wner;
+                //owner = Owner;
             }
-            LoadComponent(thisParent, thisOwner, ci.xmlNode);
+
+            for (auto& item : ci.localRelationNames) {
+                auto rel = data.FindSibling(ci.entityIndex, item);
+                ci.localRelationIndex.push_back(rel);
+                if (rel >= 0)
+                    ci.localRelationEntity.push_back(data.entities[rel].entity);
+                else
+                    ci.localRelationEntity.push_back({});
+            }
+
+            LoadComponent(thisParent, thisOwner, ci);
         }
     };
 
-    for (auto cidx : ComponentOrder) {
-        auto it = data.components.find(cidx);
-        if (it != data.components.end()) {
-            SpawnComponents(it->second);
-            data.components.erase(it);
-        }
-    }
-    
-    std::vector<ComponentImport> scripts;
-    auto scrit = data.components.find(SubSystemId::Script);
-    if (scrit != data.components.end()) {
-        scrit->second.swap(scripts);
-        data.components.erase(scrit);
-    }
+    std::vector<std::pair<SubSystemId, ImportData::ComponentImportVector*>> components;
+    for (auto &item : data.components)
+        components.emplace_back(item.first, &item.second);
 
-    for (auto &c : data.components)
-        SpawnComponents(c.second);
+    static const std::map<SubSystemId, int> ComponentOrder = {
+        {SubSystemId::Transform, 0},
+        {SubSystemId::RectTransform, 1},
+        {SubSystemId::Body, 2},
+        {SubSystemId::Script, 0xFFFF},
+    };
 
-    SpawnComponents(scripts);
+    std::sort(components.begin(), components.end(), [](const auto &aP, const auto &bP) {
+        auto a = aP.first;
+        auto b = bP.first;
+
+        if (a == b)
+            return true;
+
+        int aR, bR;
+
+        auto aIt = ComponentOrder.find(a);
+        auto bIt = ComponentOrder.find(b);
+        aR = aIt != ComponentOrder.end() ? aIt->second : (int)a + 0x0100;
+        bR = bIt != ComponentOrder.end() ? bIt->second : (int)b + 0x0100;
+                   
+        return aR < bR;
+    });
+
+    for (auto &c : components)
+        SpawnComponents(*c.second);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -217,7 +278,6 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
     }
 
     for (auto it = node.first_child(); it; it = it.next_sibling()) {
-
         const char *nodename = it.name();
         auto hash = Space::Utils::MakeHash32(nodename);
 
@@ -226,6 +286,10 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
             ComponentImport ci;
             ci.xmlNode = it;
             ci.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
+            ci.active = it.attribute("Active").as_bool(true);
+            std::string localRels = it.child("LocalRelations").text().as_string("");
+            if(!localRels.empty())
+                boost::split(ci.localRelationNames, localRels, boost::is_any_of(","));
 
             SubSystemId cid = SubSystemId::Invalid;
             if (!Component::ComponentRegister::ExtractCIDFromXML(it, cid)) {
@@ -236,16 +300,18 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
             data.components[cid].emplace_back(std::move(ci));
             continue;
         }
-
         case "Child"_Hash32: 
         case "Entity"_Hash32:
         {
             EntityImport ei;
             ei.parentIndex = entityIndex;
             ei.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
-            ei.name = it.attribute("Name").as_string("");
+            ei.name = it.attribute("Name").as_string("");;
 
             int32_t index = static_cast<int32_t>(data.entities.size());
+            if (ei.parentIndex >= 0)
+                data.entities[ei.parentIndex].children[ei.name] = index;
+
             data.entities.emplace_back(std::move(ei));
 
             auto pattern = it.attribute("Pattern").as_string(nullptr);
@@ -264,18 +330,27 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
 
 //-------------------------------------------------------------------------------------------------
 
-bool EntityBuilder::LoadComponent(Entity parent, Entity owner, pugi::xml_node node) {
+bool EntityBuilder::LoadComponent(Entity parent, Entity owner, const ComponentImport &ci) {
     SubSystemId cid = SubSystemId::Invalid;
 
-    if (!Component::ComponentRegister::ExtractCIDFromXML(node, cid)) {
+    if (!Component::ComponentRegister::ExtractCIDFromXML(ci.xmlNode, cid)) {
         AddLogf(Warning, "Unknown component!");
         return false;
     }
 
-    MoonGlare::Component::ComponentReader reader{ m_Manager, node };
+    MoonGlare::Component::ComponentReader reader{ m_Manager, ci.xmlNode };
+    if (!ci.localRelationEntity.empty()) {
+        reader.localRelations = &ci.localRelationEntity[0];
+        reader.localRelationsCount = ci.localRelationEntity.size();
+    }
     if (cid < SubSystemId::CoreBegin) {
-        return m_Manager->GetComponentArray().Load(owner, static_cast<Component::ComponentClassId>(cid), reader);
-    }     
+
+        auto cci = static_cast<Component::ComponentClassId>(cid);
+        bool r = m_Manager->GetComponentArray().Load(owner, cci, reader);
+        if (r)
+            m_Manager->GetComponentArray().SetActive(owner, ci.active, cci);
+        return r;
+    }   
              
     auto c = m_Manager->GetComponent(cid);
     if (!c) {

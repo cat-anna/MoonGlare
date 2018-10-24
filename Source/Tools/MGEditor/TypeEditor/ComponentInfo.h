@@ -19,21 +19,30 @@ struct ComponentInfo;
 using SharedComponentInfo = std::shared_ptr<const ComponentInfo>;
 
 struct ComponentInfo {
-	MoonGlare::Core::SubSystemId m_CID;
 	std::string m_Name;
 	std::string m_DisplayName;
-	MoonGlare::Core::SubSystemId m_Requirement;
 	SharedStructureInfo m_EntryStructure;
-	SharedStructureInfo m_SettingsStructure;
-	unsigned m_DefautltIndex = 0xFFFF;
 
 	using CIDMapType = std::unordered_map < MoonGlare::Core::SubSystemId, SharedComponentInfo>;
 	using NameMapType = std::unordered_map < std::string, SharedComponentInfo>;
 
 	static void RegisterComponentInfo(SharedComponentInfo typeinfo);
 	static SharedComponentInfo GetComponentInfo(const std::string &Name);
-	static SharedComponentInfo GetComponentInfo(MoonGlare::Core::SubSystemId CID);
 	static const NameMapType& GetComponents();
+};
+
+struct SystemInfo;
+using SharedSystemInfo = std::shared_ptr<const SystemInfo>;
+
+struct SystemInfo {
+    std::string m_Name;
+    std::string m_DisplayName;
+    SharedStructureInfo m_SettingsStructure;
+
+    static void RegisterSystemInfo(SharedSystemInfo typeinfo);
+    using NameMapType = std::unordered_map<std::string, SharedSystemInfo>;
+    static SharedSystemInfo GetSystemInfo(const std::string &Name);
+    static const NameMapType& GetSystems();
 };
 
 } //namespace TypeEditor 

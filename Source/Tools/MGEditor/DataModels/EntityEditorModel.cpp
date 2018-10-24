@@ -85,7 +85,7 @@ EntityEditorModel::EntityEditorModel(QWidget * parent)
         }
             
         menu->addAction(info->m_DisplayName.c_str(), [this, info]() {
-            m_CurrentItem.m_EditableEntity->AddComponent(info->m_CID);
+            m_CurrentItem.m_EditableEntity->AddComponent(info->m_Name);
             SetModiffiedState(true);
             RefreshDetails();
         });
@@ -175,6 +175,9 @@ void EntityEditorModel::RefreshDetails() {
         std::string name = component->GetName();
         if (!component->enabled) {
             name = "[Disabled] " + name;
+        }
+        if (!component->active) {
+            name = "[Inactive] " + name;
         }
         QStandardItem *Elem = new QStandardItem(name.c_str());
         Elem->setFlags(Elem->flags() & ~Qt::ItemIsEditable);
@@ -324,6 +327,19 @@ void EntityEditorModel::ComponentContextMenu(const QPoint & pos) {
             SetModiffiedState(true);
         });
     }
+    if (ComponentInfo.m_OwnerComponent->active) {
+        menu.addAction("Deactivate", [this, ComponentInfo]() {
+            ComponentInfo.m_OwnerComponent->active = false;
+            RefreshDetails();
+            SetModiffiedState(true);
+        });
+    } else {
+        menu.addAction("Activate", [this, ComponentInfo]() {
+            ComponentInfo.m_OwnerComponent->active = true;
+            RefreshDetails();
+            SetModiffiedState(true);
+        });
+    }
 
     menu.addSeparator();
     menu.addAction("Delete component", [this, ComponentInfo]() {
@@ -444,12 +460,6 @@ void EntityEditorModel::ShowAddComponentMenu() {
 }
 
 //----------------------------------------------------------------------------------
-
-#if 0
-void EntityEditorModel::ProjectChanged(Module::SharedDataModule datamod) {
-//	m_Module = datamod;
-}
-#endif
 
 } //namespace DataModels
 } //namespace QtShared

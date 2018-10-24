@@ -42,6 +42,7 @@ bool EditableEntity::Read(pugi::xml_node node) {
                 continue;
             }
             child->enabled = it.attribute("Enabled").as_bool(true);
+            child->active = it.attribute("Active").as_bool(true);
             m_Components.emplace_back(std::move(child));
             break;
         }
@@ -109,6 +110,7 @@ bool EditableEntity::Write(pugi::xml_node node) {
     for (auto &it : m_Components) {
         auto cnode = node.append_child("Component");
         cnode.append_attribute("Name") = it->GetName().c_str();
+        cnode.append_attribute("Active") = it->active;
         cnode.append_attribute("Enabled") = it->enabled;
 
         ret = ret && it->Write(cnode);
@@ -168,8 +170,8 @@ void EditableEntity::DeleteChild(EditableEntity * c) {
     m_Children.pop_back();
 }
 
-EditableComponent* EditableEntity::AddComponent(Core::SubSystemId cid) {
-    auto child = EditableComponent::CreateComponent(this, cid);
+EditableComponent* EditableEntity::AddComponent(const std::string &name) {
+    auto child = EditableComponent::CreateComponent(this, name);
     if (!child) {
         //TODO: log sth
         return nullptr;
@@ -227,30 +229,17 @@ bool EditableEntity::DeserializeToChild(std::string &out) {
 //----------------------------------------------------------------------------------
 
 UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, pugi::xml_node node) {
-    SubSystemId cid = SubSystemId::Invalid;
-
-    auto idxml = node.attribute("Id");
-    if (idxml) {
-        cid = static_cast<SubSystemId>(idxml.as_uint(0));
-    }
-    else {
-        auto namexml = node.attribute("Name");
-        if (!namexml) {
-            AddLogf(Error, "Component definition without id or name!");
-            return nullptr;
-        }
-        auto ci = TypeEditor::ComponentInfo::GetComponentInfo(namexml.as_string(""));
-        if (ci)
-            cid = ci->m_CID;
-        if (cid == (SubSystemId)SubSystemId::Invalid) {
-            AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
-        }
-    }
-
-    if (cid == (SubSystemId)SubSystemId::Invalid)
+    auto namexml = node.attribute("Name");
+    if (!namexml) {
+        AddLogf(Error, "Component definition without id or name!");
         return nullptr;
+    }
+    auto sci = TypeEditor::ComponentInfo::GetComponentInfo(namexml.as_string(""));
+    if (!sci) {
+        AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
+    }
 
-    auto ret = CreateComponent(Parent, cid);
+    auto ret = CreateComponent(Parent, sci->m_Name);
     if (!ret) {
         //already logged
         return nullptr;
@@ -264,10 +253,10 @@ UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Paren
     return std::move(ret);
 }
 
-UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, MoonGlare::Core::SubSystemId cid) {
-    auto ci = TypeEditor::ComponentInfo::GetComponentInfo(cid);
+UniqueEditableComponent EditableComponent::CreateComponent(EditableEntity *Parent, const std::string &name) {
+    auto ci = TypeEditor::ComponentInfo::GetComponentInfo(name);
     if (!ci) {
-        AddLogf(Error, "Unknown component id: %d", (int)cid);
+        AddLogf(Error, "Unknown component id: %s", name.c_str());
         return nullptr;
     }
 

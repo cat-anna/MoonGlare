@@ -155,6 +155,24 @@ public:
     }
 
     template<typename T>
+    void SetActive(Entity e, bool v) {
+        return SetActive(e, v, ComponentInfo<T>::GetClassId());
+    }
+    void SetActive(Entity e, bool v, ComponentClassId cci) {
+        return SetFlags(e, v, ComponentFlags::Active, cci);
+    }
+    template<typename T>
+    void SetFlags(Entity e, bool v, ComponentFlagSet flags) {
+        return SetFlags(e, v, flags, ComponentInfo<T>::GetClassId());
+    }
+    void SetFlags(Entity e, bool v, ComponentFlagSet flags, ComponentClassId cci) {
+        auto index = arrayMappers[cci]->GetIndex(e);
+        if (index == ComponentIndex::Invalid) {
+            return;     //TODO: sth else?
+        }
+        GetComponentFlags(index, cci).Set(v, flags);
+    }
+    template<typename T>
     bool IsActive(Entity e) const { 
         return IsActive(e, ComponentInfo<T>::GetClassId());
     }

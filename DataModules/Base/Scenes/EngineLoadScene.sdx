@@ -63,12 +63,12 @@
 		</Entity>
 	</Entities>
 	<Configuration />
-	<Components>
+	<Systems>
 		<Component Name="Script" Id="17" />
 		<Component Name="RectTransform" Id="96">
 			<UniformPositionMode>true</UniformPositionMode>
 		</Component>
 		<Component Name="Image" Id="97" />
 		<Component Name="Text" Id="99" />
-	</Components>
+	</Systems>
 </Scene>

@@ -70,7 +70,7 @@ public:
 
     EditableEntity* AddChild();
     void DeleteChild(EditableEntity *c);
-    EditableComponent* AddComponent(Core::SubSystemId cid);
+    EditableComponent* AddComponent(const std::string &name);
     void DeleteComponent(EditableComponent *c);
     void Delete() { GetParent()->DeleteChild(this); }
 
@@ -99,6 +99,7 @@ public:
     ~EditableComponent() {}
 
     bool enabled = true;
+    bool active = true;
 
     const TypeEditor::StructureValueList& GetValues() { return m_Data->GetValues(); }
 
@@ -123,7 +124,7 @@ public:
     std::unique_ptr<ValuesIO> GetValuesEditor() { return std::make_unique<ValuesIO>(GetValues()); }
 
     static UniqueEditableComponent CreateComponent(EditableEntity *Parent, pugi::xml_node node);
-    static UniqueEditableComponent CreateComponent(EditableEntity *Parent, MoonGlare::Core::SubSystemId cid);
+    static UniqueEditableComponent CreateComponent(EditableEntity *Parent, const std::string &name);
 protected:
     EditableEntity * m_Parent;
     TypeEditor::SharedComponentInfo m_ComponentInfo;

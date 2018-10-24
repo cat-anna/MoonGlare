@@ -16,7 +16,7 @@ public:
     bool Initialize(Entity root);
     bool Finalize();
 
-    bool LoadComponents(pugi::xml_node node);
+    bool LoadSystems(pugi::xml_node node);
 
     InterfaceMap& GetInterfaceMap() override { return *m_World; }
     EventDispatcher& GetEventDispatcher() override { return m_EventDispatcher; }

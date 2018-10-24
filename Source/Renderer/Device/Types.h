@@ -42,7 +42,7 @@ enum class PixelFormat : uint16_t {
     SRGBA8 = GL_SRGB8_ALPHA8,
 };
 
-static unsigned BppFromPixelFormat(PixelFormat pf) {
+inline unsigned BppFromPixelFormat(PixelFormat pf) {
     switch (pf) {
     case PixelFormat::RGB8:
     case PixelFormat::SRGB8:

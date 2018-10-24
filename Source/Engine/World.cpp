@@ -18,7 +18,12 @@
 #include <Foundation/Component/EntityManager.h>
 #include <Foundation/HandleTable.h>
 
-#include <RendererEventObserver.h>
+#include <Renderer/iRendererFacade.h>
+#include <Renderer/Renderer.h>
+#include <Renderer/iAsyncLoader.h>
+
+#include <Foundation/Resources/iAsyncLoader.h>
+#include <Foundation/Resources/AsyncLoaderEventObserver.h>
 
 namespace MoonGlare {
 
@@ -40,8 +45,12 @@ World::~World() {
 void World::SetRendererFacade(Renderer::RendererFacade *c) {
     SetInterface(c);
     m_RendererFacade = c;
-    auto obs = std::make_shared<Renderer::RendererEventObserver>(*this);
-    c->GetAsyncLoader()->SetObserver(obs);
+    auto obs = std::make_shared<Resources::AsyncLoaderEventObserver>(*this);
+    auto alR = c->GetAsyncLoader();
+        
+    auto alF = dynamic_cast<Resources::iAsyncLoader*>(alR);
+    SetInterface(alF);
+    alF->SetObserver(obs);
     SetSharedInterface(obs);
 }
 

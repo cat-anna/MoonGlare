@@ -16,6 +16,7 @@ namespace MoonGlare::Component {
 namespace detail {
 BOOST_TTI_HAS_STATIC_MEMBER_DATA(ComponentLimit);
 BOOST_TTI_HAS_MEMBER_FUNCTION(Load);
+BOOST_TTI_HAS_MEMBER_FUNCTION(SetLocalRelation);
 }
 
 class ComponentArray;
@@ -85,7 +86,6 @@ protected:
         luabridge::push<WRAP>(lua, lw);
         return 1;
     }
-
     template<class T>
     static ComponentClassId AllocateComponentClass();
     using ComponentClassesTypeTable = std::array<ComponentClassInfo, Configuration::MaxComponentTypes>;

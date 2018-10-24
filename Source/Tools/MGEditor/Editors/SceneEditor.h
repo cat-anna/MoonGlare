@@ -24,21 +24,21 @@ namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
-struct ComponentInstance {
-	TypeEditor::SharedComponentInfo m_ComponentInfo;
+struct SystemInstance {
+	TypeEditor::SharedSystemInfo m_SystemInfo;
 	TypeEditor::UniqueStructure m_Config;
 
 	bool m_Enabled = true;
  
-	bool operator == (TypeEditor::SharedComponentInfo sci) const {
-		return m_ComponentInfo == sci;
+	bool operator == (const TypeEditor::SharedSystemInfo &sci) const {
+		return m_SystemInfo == sci;
 	}
 };
-using SharedComponentInstance = std::shared_ptr<ComponentInstance>;
+using SharedSystemInstance = std::shared_ptr<SystemInstance>;
 
 struct SceneEditorRole {
 	enum {
-		ComponentInstance = Qt::UserRole,
+		SystemInstance = Qt::UserRole,
 	};
 };
 
@@ -71,15 +71,15 @@ public:
 protected:
 protected slots:
 	void Refresh();
-	void RefreshComponentTree();
-	void ResetComponentList();
-	bool WriteComponentTree(pugi::xml_node node) const;
-	bool ReadComponentTree(const pugi::xml_node node);
+	void RefreshSystemTree();
+	void ResetSystemList();
+	bool WriteSystemTree(pugi::xml_node node) const;
+	bool ReadSystemTree(const pugi::xml_node node);
 	void ComponentChanged(QStandardItem *item);
 private:
 	std::unique_ptr<Ui::SceneEditor> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ComponentModel;
-	std::vector<SharedComponentInstance> m_ComponentInstances;
+	std::vector<SharedSystemInstance> m_SystemInstances;
 	SceneEntity *m_SceneEntity;
 	std::string m_SceneURI;
     SharedModuleManager moduleManager;
@@ -89,7 +89,7 @@ private:
 } //namespace Editor 
 } //namespace MoonGlare 
 
-Q_DECLARE_METATYPE(MoonGlare::Editor::DockWindows::ComponentInstance*)
+Q_DECLARE_METATYPE(MoonGlare::Editor::DockWindows::SystemInstance*)
 
 #endif
                                                             

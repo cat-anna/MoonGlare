@@ -1,0 +1,28 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component"
+
+Structure.new {
+	name = "Skin",
+	description = "",
+	fields = {
+		{
+			name = "LocalRelations",
+			type = Types.string,
+			required = false,
+		},
+		{
+			name = "Mesh",
+			description = "",
+			type = Types.string,
+			default = "",
+		},			
+		{
+			name = "Material",
+			description = "",
+			type = Types.string,
+			default = "",
+            required = false,
+		},		
+	},
+}

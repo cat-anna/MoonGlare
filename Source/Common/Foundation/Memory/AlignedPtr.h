@@ -23,4 +23,10 @@ inline aligned_ptr<T> make_aligned(Args&&... args) {
     }
 }
 
+inline size_t Align16(size_t value) {
+    if (value & 0xF)
+        value = (value & ~0xF) + 0x10;
+    return value;
+}
+
 }

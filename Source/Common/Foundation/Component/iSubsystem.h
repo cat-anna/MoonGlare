@@ -49,6 +49,8 @@ public:
 struct ComponentReader {
     iSubsystemManager *manager = nullptr;
     pugi::xml_node node;
+    const Entity *localRelations = nullptr;
+    size_t localRelationsCount = 0; 
 
     template<typename T>
     bool Read(T &t) {

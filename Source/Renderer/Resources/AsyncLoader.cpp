@@ -39,18 +39,6 @@ AsyncLoader::~AsyncLoader() {
 
 //---------------------------------------------------------------------------------------
 
-unsigned AsyncLoader::JobsPending() const {
-    LOCK_MUTEX(m_QueueMutex);
-    return m_Queue.size();
-}
-
-void AsyncLoader::SetObserver(SharedAsyncLoaderObserver f) {
-    //TODO: possible race condition
-    observer = f;
-}
-
-//---------------------------------------------------------------------------------------
-
 void AsyncLoader::ThreadMain() {
     auto Facade = m_ResourceManager->GetRendererFacade();
     auto Device = Facade->GetDevice();
@@ -208,14 +196,14 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, SharedAs
 //---------------------------------------------------------------------------------------
 
 void AsyncLoader::QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) {
-    AsyncFSTask task;
+    AsyncFSTask<SharedAsyncFileSystemRequest> task;
     task.URI = std::move(URI);
     task.request = std::move(handler);
     task.request->OnTaskQueued(this);
     QueuePush(std::move(task));
 }
 
-AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFSTask &afst) {
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFSTask<SharedAsyncFileSystemRequest> &afst) {
     StarVFS::ByteTable bt;
     if (!fileSystem->OpenFile(bt, afst.URI)) {
         AddLogf(Error, "Cannot load file %s", afst.URI.c_str());
@@ -233,6 +221,51 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFST
             //QueuePush(afst);
             return ProcessorResult::QueueFull;
         }
+    }
+    return ProcessorResult::Success;
+}
+
+//---------------------------------------------------------------------------------------
+
+void AsyncLoader::SetObserver(MoonGlare::Resources::SharedAsyncLoaderObserver f) {
+    //TODO: possible race condition
+    observer = f;
+}
+
+void AsyncLoader::QueueRequest(std::string URI, MoonGlare::Resources::SharedAsyncFileSystemRequest handler) {
+    AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest> task;
+    task.URI = std::move(URI);
+    task.request = std::move(handler);
+    task.request->OnTaskQueued(this);
+    QueuePush(std::move(task));
+}
+
+void AsyncLoader::QueueTask(MoonGlare::Resources::SharedAsyncTask task) {
+    QueuePush(std::move(task));
+}
+
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest> &afst) {
+    StarVFS::ByteTable bt;
+    if (!fileSystem->OpenFile(bt, afst.URI)) {
+        AddLogf(Error, "Cannot load file %s", afst.URI.c_str());
+        return ProcessorResult::CriticalError;
+    }
+
+    try {
+        afst.request->OnFileReady(afst.URI, bt);
+    }
+    catch (MoonGlare::Resources::RetryTaskLaterException) {
+        return ProcessorResult::Retry;
+    }
+    return ProcessorResult::Success;
+}
+
+AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, MoonGlare::Resources::SharedAsyncTask &task) {
+    try {
+        task->DoWork();
+    }
+    catch (MoonGlare::Resources::RetryTaskLaterException) {
+        return ProcessorResult::Retry;
     }
     return ProcessorResult::Success;
 }

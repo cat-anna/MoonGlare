@@ -8,6 +8,7 @@
 #include <Source/Renderer/StaticFog.h>
 #include <Engine/Modules/RectComponent/Types.h>
 
+#include <ComponentCommon.x2c.h>
 #include <Math.x2c.h>
 #include <LightComponent.x2c.h>
 #include <BodyComponent.x2c.h>
@@ -20,6 +21,7 @@
 #include <ImageComponent.x2c.h>
 #include <PanelComponent.x2c.h>
 #include <TextComponent.x2c.h>
+#include <SkinComponent.x2c.h>
 #include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
@@ -137,8 +139,6 @@ struct MeshComponentDesc {
     static constexpr SubSystemId CID = SubSystemId::Mesh;
     static constexpr SubSystemId Depend = SubSystemId::Transform;
     static constexpr ComponentOrder Order = ComponentOrder::MeshComponent;
-//	RegComponent<, EmptySettings >
-//("Mesh", "Mesh", SubSystemId::Mesh, {});
 };		
 struct DirectAnimationComponentDesc {
     using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
@@ -148,8 +148,6 @@ struct DirectAnimationComponentDesc {
     static constexpr SubSystemId CID = SubSystemId::DirectAnimation;
     static constexpr SubSystemId Depend = SubSystemId::Transform;
     static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
-    //	RegComponent<, EmptySettings >
-    //("Mesh", "Mesh", SubSystemId::Mesh, {});
 };
 
 struct ScriptComponentDesc {
@@ -160,8 +158,6 @@ struct ScriptComponentDesc {
     static constexpr SubSystemId CID = SubSystemId::Script;
     static constexpr SubSystemId Depend = SubSystemId::Invalid;
     static constexpr ComponentOrder Order = ComponentOrder::ScriptComponent;
-//RegComponent<ScriptComponent::ScriptEntry_t, EmptySettings >
-    //("Script", "Script", SubSystemId::Script, {});
 };
 //-------------------------------------
 struct BodyComponentDesc {
@@ -220,18 +216,32 @@ struct TextComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::TextComponent;
 };
 //-------------------------------------
+//-------------------------------------
+//-------------------------------------
 struct SoundSourceComponentDesc {
-    using Entry_t = x2c::SoundSystem::SoundSourceComponentData_t;
-    using Settings_t = EmptySettings;
     static constexpr char *DisplayName = "Sound.Source";
     static constexpr char *Name = "SoundSource";
-    static constexpr SubSystemId CID = (SubSystemId)0x70;
-    static constexpr SubSystemId Depend = SubSystemId::Invalid;
-    static constexpr ComponentOrder Order = ComponentOrder::SoundSource;
+    using Entry_t = x2c::SoundSystem::SoundSourceComponentData_t;
+};
+struct SoundSourceSystemDesc {
+    static constexpr char *DisplayName = "SoundSource";
+    static constexpr char *Name = "SoundSourceSystem";
+    using Settings_t = EmptySettings;
 };
 //-------------------------------------
-
-
+struct SkinComponentDesc {
+    static constexpr char *DisplayName = "SkinComponent";
+    static constexpr char *Name = "Skin";
+    using Entry_t = x2c::Component::Skin_t;
+};
+struct SkinSystemDesc {
+    static constexpr char *DisplayName = "SkinSystem";
+    static constexpr char *Name = "SkinSystem";
+    using Settings_t = EmptySettings;
+};
+//-------------------------------------
+//-------------------------------------
+//-------------------------------------
 struct Register {
     Register() {
         RegEnum<RectTransformComponent::AlignMode_TypeInfo>();
@@ -260,9 +270,30 @@ struct Register {
         RegComponent<PanelComponentDesc>();
         RegComponent<TextComponentDesc>();
 
-        RegComponent<SoundSourceComponentDesc>();
+        Component<SoundSourceComponentDesc>();
+        System<SoundSourceSystemDesc>();
+
+        Component<SkinComponentDesc>();
+        System<SkinSystemDesc>();
 
         RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
+    }
+
+    template<typename T>
+    void System() {
+        SystemInfo si;
+        si.m_Name = T::Name;
+        si.m_DisplayName = T::DisplayName;
+        si.m_SettingsStructure = RegStructure<T::Settings_t>();
+        SystemInfo::RegisterSystemInfo(std::make_shared<SystemInfo>(std::move(si)));
+    }
+    template<typename T>
+    void Component() {
+        ComponentInfo ci;
+        ci.m_Name = T::Name;
+        ci.m_DisplayName = T::DisplayName;
+        ci.m_EntryStructure = RegStructure<T::Entry_t>();
+        ComponentInfo::RegisterComponentInfo(std::make_shared<ComponentInfo>(std::move(ci)));
     }
 
     template<typename ENUM>
@@ -279,14 +310,11 @@ struct Register {
 
     template<typename CINFO>
     void RegComponent() {
+        System<CINFO>();
         ComponentInfo ci;
-        ci.m_CID = static_cast<SubSystemId>(CINFO::CID);
         ci.m_Name = CINFO::Name;
         ci.m_DisplayName = CINFO::DisplayName;
         ci.m_EntryStructure = RegStructure<CINFO::Entry_t>();
-        ci.m_SettingsStructure = RegStructure<CINFO::Settings_t>();
-        ci.m_Requirement = static_cast<SubSystemId>(CINFO::Depend);
-        ci.m_DefautltIndex = static_cast<unsigned>(CINFO::Order);
         ComponentInfo::RegisterComponentInfo(std::make_shared<ComponentInfo>(std::move(ci)));
     }
 };

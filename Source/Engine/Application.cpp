@@ -32,6 +32,8 @@
 #include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
 #include <Foundation/Component/EventDispatcher.h>
 
+#include <Foundation/Resources/SkeletalAnimationManager.h>
+
 namespace MoonGlare {
 
 Application::Application() {
@@ -171,6 +173,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     R->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->Initialize(GetDisplaySettings(), GetFileSystem());
     m_World->SetRendererFacade(R);
+
+    m_World->SetSharedInterface(std::make_shared<Resources::SkeletalAnimationManager>(*m_World));
 
     {
         auto datamgr = new DataManager(m_World.get());

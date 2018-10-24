@@ -23,13 +23,13 @@ public:
     }
 
     bool Build(Entity parent, const char *PatternUri, Entity &eout, std::string Name = std::string());
-    bool Build(Entity parent, pugi::xml_node node, std::string Name = std::string());
-
+    bool Build(Entity parent, const char *srcName, pugi::xml_node node, std::string Name = std::string());
 protected:
-    bool LoadComponent(Entity parent, Entity owner, pugi::xml_node node);
-    Component::SubsystemManager *m_Manager;
-
     struct ImportData;
+    struct ComponentImport;
+
+    bool LoadComponent(Entity parent, Entity owner, const ComponentImport &ci);
+    Component::SubsystemManager *m_Manager;
 
     void Import(ImportData &data, const char *PatternUri, int32_t entityIndex);
     void Import(ImportData &data, pugi::xml_node node, int32_t entityIndex);
