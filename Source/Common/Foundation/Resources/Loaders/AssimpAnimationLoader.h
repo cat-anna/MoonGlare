@@ -3,21 +3,20 @@
 #include <string>
 #include <memory>
 
-#pragma warning ( push, 0 )
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>  
-#pragma warning ( pop )
-
 #include <Foundation/Resources/iAsyncLoader.h>
 #include <Foundation/Resources/SkeletalAnimationManager.h>
+
+struct aiScene;
+namespace Assimp {
+class Importer;
+}
 
 namespace MoonGlare::Resources::Loader {
 
 class AssimpAnimationLoader : public MultiAsyncFileSystemRequest {
 public:
-    AssimpAnimationLoader(std::string subpath, SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner) :
-        owner(Owner), handle(handle), subpath(std::move(subpath)) {}
+    AssimpAnimationLoader(std::string subpath, SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner);
+    ~AssimpAnimationLoader();
 
     void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) override;
 private:

@@ -39,6 +39,19 @@ ComponentArray::~ComponentArray() {
 
 //-------------------------------------
 
+int ComponentArray::PushToScript(iSubsystemManager *manager, Entity e, ComponentClassId cci, lua_State *lua) {
+    auto index = arrayMappers[cci]->GetIndex(e);
+    if (index == ComponentIndex::Invalid) {
+        return 0;
+    }
+    auto sp = storageStatus[cci].info->scriptPush;
+    if (!sp)
+        return 0;
+    sp(this, manager, e, lua);
+}
+
+//-------------------------------------
+
 #if 0
 bool ComponentArray::AllocatePage(unsigned pageIndex) {
     if (pageMemory[pageIndex])

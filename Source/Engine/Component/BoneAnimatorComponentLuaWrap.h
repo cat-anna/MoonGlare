@@ -2,23 +2,29 @@
 
 #include <Foundation/Component/ComponentArray.h>
 #include <Foundation/Scripts/LuaPanic.h>
+#include <Foundation/Resources/SkeletalAnimationManager.h>
 
-#include "SkinComponent.h"
+#include "BoneAnimatorComponent.h"
 
 namespace MoonGlare::Component {
 
-struct SkinComponentLuaWrap {
-    //SoundSourceComponent *component;
+struct BoneAnimatorComponentLuaWrap {
+    ComponentArray *componentArray = nullptr;
+    iSubsystemManager *subsystemManager = nullptr;
+    Resources::SkeletalAnimationManager *skeletalAnimationManager = nullptr;
     Entity owner;
-    ComponentArray *componentArray;
-    iSubsystemManager *subsystemManager;
-    //mutable ComponentIndex index;
-    mutable SkinComponent *componentPtr;
+    mutable BoneAnimatorComponent *componentPtr;
+
+    void Init() {
+        subsystemManager->GetInterfaceMap().GetObject(skeletalAnimationManager);
+    }
 
     void Check() const {
+        assert(skeletalAnimationManager);
+        assert(componentArray);
         //if (transformComponent->componentIndexRevision != indexRevision) {
         //index = component->GetComponentIndex(owner);
-        componentPtr = componentArray->Get<SkinComponent>(owner);
+        componentPtr = componentArray->Get<BoneAnimatorComponent>(owner);
         //}
         if (componentPtr == nullptr) {
             //if (index == ComponentIndex::Invalid) {
@@ -27,10 +33,18 @@ struct SkinComponentLuaWrap {
         }
     }
 
+    void Reset(const char *animSetName) {
+        Check();
+        skeletalAnimationManager->ResetBlendState(componentPtr->blendState, animSetName, nullptr);
+    }
+
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
+        using LuaWrapper = BoneAnimatorComponentLuaWrap;
         return api
-        //    .beginClass<LuaWrapper>("SoundSourceComponent")
-        //    .addFunction("Play", &LuaWrapper::Play)
+            .beginClass<LuaWrapper>("BoneAnimatorComponent")
+                .addFunction("Reset", &LuaWrapper::Reset)
+            //TODO:set localSpeed
+
         //    .addFunction("Pause", &LuaWrapper::Pause)
         //    .addFunction("Stop", &LuaWrapper::Stop)
 
@@ -41,7 +55,7 @@ struct SkinComponentLuaWrap {
         //    .addProperty("File", &LuaWrapper::GetURI, &LuaWrapper::SetUri)
         //    .addProperty("Loop", &LuaWrapper::GetLoop, &LuaWrapper::SetLoop)
         //    .addProperty("Kind", &LuaWrapper::GetKind, &LuaWrapper::SetKind)
-        //    .endClass()
+            .endClass()
         ;
     }
 };

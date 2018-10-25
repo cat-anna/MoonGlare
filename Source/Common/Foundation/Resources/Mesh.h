@@ -1,6 +1,8 @@
 #pragma once
 
-namespace MoonGlare::Renderer {
+#include <Foundation/xMath.h>
+
+namespace MoonGlare::Resources {
 
 struct alignas(16) Mesh { 
     bool valid;

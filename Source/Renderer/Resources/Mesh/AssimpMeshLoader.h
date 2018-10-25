@@ -1,19 +1,21 @@
 #pragma once
 
-#pragma warning ( push, 0 )
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>  
-#pragma warning ( pop )
+#include <Foundation/Resources/Mesh.h>
+
+struct aiScene;
+namespace Assimp {
+class Importer;
+}
 
 namespace MoonGlare::Renderer::Resources::Loader {
+using namespace MoonGlare::Resources;
 
 class AssimpMeshLoader : public MultiAsyncFileSystemRequest
 {
     using MeshConf = Configuration::Mesh;
 public:
-    AssimpMeshLoader(std::string subpath, MeshResourceHandle handle, MeshManager &Owner) :
-        owner(Owner), handle(handle), subpath(std::move(subpath)) { }
+    AssimpMeshLoader(std::string subpath, MeshResourceHandle handle, MeshManager &Owner);
+    ~AssimpMeshLoader();
 
     void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) override;
 private:

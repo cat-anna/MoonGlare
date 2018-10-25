@@ -17,8 +17,10 @@ namespace detail {
 BOOST_TTI_HAS_STATIC_MEMBER_DATA(ComponentLimit);
 BOOST_TTI_HAS_MEMBER_FUNCTION(Load);
 BOOST_TTI_HAS_MEMBER_FUNCTION(SetLocalRelation);
+BOOST_TTI_HAS_MEMBER_FUNCTION(Init);
 }
 
+class iSubsystemManager;
 class ComponentArray;
 struct ComponentReader;
 
@@ -29,7 +31,7 @@ public:
     static ComponentClassId GetUsedComponentTypes() { return static_cast<ComponentClassId>(idAlloc); }
     using ComponentFunc = void(void*);
     using ComponentBiFunc = void(void*, void*);
-    using ComponentScriptPush = int(ComponentArray *carray, Entity owner, lua_State *lua);
+    using ComponentScriptPush = int(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua);
     using ComponentLoadFunc = bool(void*, ComponentReader &reader, Entity owner);
 
     struct ComponentClassInfo {
@@ -79,12 +81,20 @@ protected:
           return true;
     }
     template<typename T, typename WRAP>
-    static int ScriptPush(ComponentArray *carray, Entity owner, lua_State *lua) {
-        WRAP lw{ };
-        lw.owner = owner;
-        lw.componentArray = carray;
-        luabridge::push<WRAP>(lua, lw);
-        return 1;
+    static int ScriptPush(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua) {
+        try {
+            WRAP lw{ };
+            lw.owner = owner;
+            lw.componentArray = carray;
+            lw.subsystemManager = manager;
+            if constexpr (detail::has_member_function_Init<void(WRAP::*)()>::value)
+                lw.Init();
+            luabridge::push<WRAP>(lua, lw);
+            return 1;
+        }
+        catch (...) {
+            return 0;
+        }
     }
     template<class T>
     static ComponentClassId AllocateComponentClass();

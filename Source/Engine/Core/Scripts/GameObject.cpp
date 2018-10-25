@@ -71,7 +71,7 @@ int GameObject::CreateComponent(lua_State *lua) {
     if (ssid < SubSystemId::CoreBegin) {
         auto &carr = myWorld->GetComponentArray();
         carr.Create(owner, static_cast<ComponentClassId>(ssid));
-        int r = carr.PushToScript(owner, static_cast<ComponentClassId>(ssid), lua);
+        int r = carr.PushToScript(myWorld, owner, static_cast<ComponentClassId>(ssid), lua);
         return check.ReturnArgs(r);
     }
 
@@ -117,7 +117,7 @@ int GameObject::GetComponent(lua_State * lua) {
 
     if (ssid < SubSystemId::CoreBegin) {
         auto &carr = myWorld->GetComponentArray();
-        int r = carr.PushToScript(owner, static_cast<ComponentClassId>(ssid), lua);
+        int r = carr.PushToScript(myWorld, owner,static_cast<ComponentClassId>(ssid), lua);
         return check.ReturnArgs(r);
     }
 

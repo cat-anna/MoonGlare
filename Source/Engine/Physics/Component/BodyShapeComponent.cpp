@@ -21,14 +21,15 @@
 
 #include <Renderer/Renderer.h>
 #include <Renderer/Resources/ResourceManager.h>
-#include <Renderer/Resources/Mesh/MeshResource.h>
+
+#include <Foundation/Resources/Mesh.h>
 
 namespace MoonGlare {
 namespace Physics {
 namespace Component {
 
 struct TriangleMeshProxy : public btTriangleIndexVertexArray {
-    TriangleMeshProxy(const Renderer::MeshData &data) : mesh(data){
+    TriangleMeshProxy(const Resources::MeshData &data) : mesh(data){
         btIndexedMesh meshIndex;
         meshIndex.m_numTriangles = 0;
         meshIndex.m_numVertices = 0;
@@ -49,7 +50,7 @@ struct TriangleMeshProxy : public btTriangleIndexVertexArray {
         m_indexedMeshes[0].m_vertexStride = sizeof(mesh.verticles[0]);
     }
 private:
-    const Renderer::MeshData &mesh;
+    const Resources::MeshData &mesh;
 };
 
 //---------------------------------------------------------------------------------------

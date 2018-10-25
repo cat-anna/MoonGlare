@@ -6,7 +6,6 @@
 
 #include "Configuration.h"
 
-//#include <glm/glm.hpp>
 #include <Foundation/xMath.h>
 
 namespace MoonGlare::Resources {
@@ -85,7 +84,7 @@ struct AnimationBlendState {
     AnimationState state;// [Configuration::AnimatonStateLimit];
 
     void Invalidate() {
-        state.animationSetIndex = ~0;
+        state.animationSetIndex = 0;
         state.localTime = 0.0;
         state.validBones = 0;
         memset(state.boneStates, 0, sizeof(state.boneStates));
@@ -95,7 +94,7 @@ struct AnimationBlendState {
 struct AnimationLoopState {
     enum class LoopState : uint8_t {
         None, Loop, Finished, Error,
-     };
+    };
 
     LoopState state;// [Configuration::AnimatonStateLimit];
 };

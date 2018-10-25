@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace MoonGlare::Resources::Configuration {
 
 static constexpr uint32_t AnimationLimit = 128;

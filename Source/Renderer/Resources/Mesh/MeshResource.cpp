@@ -7,7 +7,7 @@
 
 #include "../../Commands/MemoryCommands.h"
 
-#include <Foundation/Resources/BlobFile.h>
+#include <Foundation/Resources/Blob/MeshBlob.h>
 
 namespace MoonGlare::Renderer::Resources {
                                                                          
@@ -377,42 +377,9 @@ void MeshManager::SaveMeshBin(MeshResourceHandle h, std::string outFile) {
     if (!mptr)
         return;
 
-    auto data = *mptr;
-    data.UpdatePointers(0);
-    //TODO: properly handle non existing mesh arrays like normals, uvs, etc...
-
-    using namespace MoonGlare::Resources::BlobFile;
-
-    size_t fileOffset = 0;
-
-    BlobHeader blobH = { MagicValue::Blob, MagicValue::Mesh, 4 };
-    MeshHeader meshH = { MagicValue::Mesh, 2, 3 };    
-    DataHeader meshDataH = { MagicValue::Data, 0, 0, 0 };
-    DataHeader blobDataH = { MagicValue::Data, 0, 0, 0 };
-
-    fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
-
-    meshDataH.dataSize = sizeof(data);
-    meshDataH.filedataSize = sizeof(data);
-    meshDataH.fileOffset = fileOffset;
-    fileOffset += meshDataH.filedataSize;
-
-    blobDataH.dataSize = mptr->memoryBlockSize;
-    blobDataH.filedataSize = mptr->memoryBlockSize;
-    blobDataH.fileOffset = fileOffset;
-    fileOffset += blobDataH.filedataSize;
-
     std::ofstream of(outFile, std::ios::out | std::ios::binary);
 
-    of.write((char*)&blobH, sizeof(blobH));
-    of.write((char*)&meshH, sizeof(meshH));
-    of.write((char*)&meshDataH, sizeof(meshDataH));
-    of.write((char*)&blobDataH, sizeof(blobDataH));
-
-    of.write((char*)&data, sizeof(data));
-    of.write((char*)mptr->memoryBlockFront, blobDataH.filedataSize);
-
-    of.close();
+    Blob::WriteMeshBlob(of, mptr);
 }
 
 } //namespace MoonGlare::Renderer::Resources 

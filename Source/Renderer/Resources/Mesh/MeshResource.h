@@ -4,9 +4,10 @@
 #include "../../Configuration.Renderer.h"
 #include "../../Configuration/Mesh.h"
 
-#include "../../Mesh.h"
+#include <Foundation/Resources/Mesh.h>
 
 namespace MoonGlare::Renderer::Resources {
+using namespace MoonGlare::Resources;
 
 class MeshManager final {
     using ThisClass = MeshManager;

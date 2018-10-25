@@ -25,9 +25,7 @@
 
 #include "Application.h"
 
-#include <AssetSettings.x2c.h>
 #include <RendererSettings.x2c.h>
-#include <EngineSettings.x2c.h>
 
 #include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
 #include <Foundation/Component/EventDispatcher.h>

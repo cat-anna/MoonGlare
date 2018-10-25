@@ -56,6 +56,23 @@ public:
             throw;
         }
     }
+
+    struct NotExistsException :public std::runtime_error {
+        NotExistsException(std::string str) :runtime_error(std::move(str)) {}
+    };
+
+    template<typename T>
+    void GetObject(T *& t) {
+        t = GetInterface<T>();
+        if (!t)
+            throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
+    }
+    template<typename T>
+    void GetObject(std::shared_ptr<T> & t) {
+        t = GetSharedInterface<T>();
+        if (!t)
+            throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
+    }
 protected:
     void ReleaseAllInterfaces() {
         interfaces.clear();

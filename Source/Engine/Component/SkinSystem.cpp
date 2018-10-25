@@ -40,7 +40,7 @@ bool SkinSystem::Initialize() {
     auto *ssm = (Core::Component::SubsystemManager*)subsystemManager;
     transformComponent = ssm->GetComponent<TransformComponent>();
     if (!transformComponent) {
-        AddLog(Error, "Failed to get RectTransformComponent instance!");
+        AddLog(Error, "Failed to get TransformComponent instance!");
         return false;
     }
     
@@ -64,8 +64,6 @@ void MeshComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEven
 #endif
 
 void SkinSystem::Step(const SubsystemUpdateData &xconf) {
-    assert(transformComponent);
-
     auto *ssm = (Core::Component::SubsystemManager*)subsystemManager;
     auto *rf = ssm->GetWorld()->GetRendererFacade();
     const Core::MoveConfig &conf = (const Core::MoveConfig &)xconf;
@@ -75,6 +73,9 @@ void SkinSystem::Step(const SubsystemUpdateData &xconf) {
     auto &q = Queue;
 
     subsystemManager->GetComponentArray().Visit<SkinComponent>([this, &conf, &q, &m, rf, ssm](Entity owner, SkinComponent& item) {
+
+        //TODO: visibility test
+
         if (item.meshData == nullptr) {
             auto &mm = ssm->GetWorld()->GetRendererFacade()->GetResourceManager()->GetMeshManager();
             if (!mm.GetMeshData(item.meshHandle) || mm.GetMeshData(item.meshHandle)->ready == false)
@@ -125,7 +126,7 @@ void SkinSystem::Step(const SubsystemUpdateData &xconf) {
             glm::vec4 in4tangent(intangent, 0);
 
             for (unsigned bid = 0; bid < 4; ++bid) {
-                if (inboneids[bid] == Renderer::MeshSource::InvalidBoneIndex)
+                if (inboneids[bid] == Resources::MeshSource::InvalidBoneIndex)
                     break;
 
                 auto boneindex = inboneids[bid];

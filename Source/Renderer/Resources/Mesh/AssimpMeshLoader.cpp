@@ -7,7 +7,19 @@
 
 #include "../MaterialManager.h"
 
+#pragma warning ( push, 0 )
+#include <assimp/Importer.hpp>     
+#include <assimp/scene.h>          
+#include <assimp/postprocess.h>  
+#pragma warning ( pop )
+
 namespace MoonGlare::Renderer::Resources::Loader {
+
+AssimpMeshLoader::AssimpMeshLoader(std::string subpath, MeshResourceHandle handle, MeshManager &Owner) :
+    owner(Owner), handle(handle), subpath(std::move(subpath)) {}
+
+AssimpMeshLoader::~AssimpMeshLoader() {
+}
 
 void AssimpMeshLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata, ResourceLoadStorage &storage) {
     importer = std::make_unique<Assimp::Importer>();

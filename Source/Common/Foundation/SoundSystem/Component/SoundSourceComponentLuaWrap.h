@@ -8,6 +8,7 @@ namespace MoonGlare::SoundSystem::Component {
 struct SoundSourceComponentLuaWrap {
     //SoundSourceComponent *component;
     Entity owner;
+    iSubsystemManager *subsystemManager;
     ComponentArray *componentArray;
     //mutable ComponentIndex index;
     mutable SoundSourceComponent *componentPtr;

@@ -130,12 +130,13 @@ void SkeletalAnimationManager::ResetBlendState(AnimationBlendState &state, const
 
     for (size_t i = 0; i < adata->animationSetCount; ++i) {
         if (strcmp(animSetName, adata->stringArrayBase + adata->animationSetNameOffset[i]) == 0) {
-            as.animationSetIndex = i;
+            as.animationSetIndex = (decltype(as.animationSetIndex))i;
             break;
         }
     }
 
-    UpdateAnimation(state, 0, boneStates);
+    if(boneStates)
+        UpdateAnimation(state, 0, boneStates);
 }
 
 AnimationLoopState SkeletalAnimationManager::UpdateAnimation(AnimationBlendState &state, float dt, BoneState *boneStates) {

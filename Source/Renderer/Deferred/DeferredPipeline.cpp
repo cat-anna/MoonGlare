@@ -1,6 +1,7 @@
 #define NEED_VAO_BUILDER
 
 #include <Foundation/Math/Geometry.h>
+#include <Foundation/Resources/Mesh.h>
 
 #include <Renderer/Frame.h>
 #include <Renderer/Renderer.h>
@@ -16,8 +17,6 @@
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Device/Types.h>
 
-#include <Renderer/Mesh.h>
-
 #include "DeferredFrontend.h"
 #include "DeferredPipeline.h"
 
@@ -31,6 +30,8 @@ DeferredSink::DeferredSink() {
 
 void DeferredSink::InitializeDirectionalQuad() {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
+
+    using namespace MoonGlare::Resources;
 
     MeshSource meshData;
     meshData.verticles = {

@@ -5,6 +5,9 @@
 #include "SkinSystem.h"
 
 #include "BoneAnimatorComponent.h"
+#include "BoneAnimatorComponentLuaWrap.h"
+#include "BoneAnimatorSystem.h"
+#include "AnimationFinishedEvent.h"
 
 #include "RendererRegister.h"
 
@@ -12,10 +15,12 @@ namespace MoonGlare::Component {
 
 void RendererRegister::Register(ECSRegister &r) {
     r.Component<SkinComponent, SkinComponentLuaWrap>();
-    r.System<SkinSystem>();
-    //r.Event<SoundStreamFinishedEvent>();
+    r.Component<BoneAnimatorComponent, BoneAnimatorComponentLuaWrap>();
 
-    r.Component<BoneAnimatorComponent>();
+    r.System<SkinSystem>();
+    r.System<BoneAnimatorSystem>();
+
+    r.Event<AnimationFinishedEvent>();
 }
 
 }

@@ -191,16 +191,7 @@ public:
         return GetComponentFlags(index, cci) & flags;
     }
 
-    int PushToScript(Entity e, ComponentClassId cci, lua_State *lua) {
-        auto index = arrayMappers[cci]->GetIndex(e);
-        if (index == ComponentIndex::Invalid) {
-            return 0;
-        }
-        auto sp = storageStatus[cci].info->scriptPush;
-        if (!sp)
-            return 0;
-        sp(this, e, lua);
-    }
+    int PushToScript(iSubsystemManager *manager, Entity e, ComponentClassId cci, lua_State *lua);
 
     void DumpStatus(const char *id = nullptr) const;
 

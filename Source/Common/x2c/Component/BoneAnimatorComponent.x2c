@@ -1,0 +1,21 @@
+Import "ComponentCommon.x2c"
+
+namespace "MoonGlare.x2c.Component"
+
+Structure.new {
+	name = "BoneAnimatorComponent",
+	description = "",
+	fields = {
+		{
+			name = "LocalRelations",
+			type = Types.string,
+			required = false,
+		},
+		{
+			name = "Animation",
+			description = "",
+			type = Types.string,
+			default = "",
+		},
+	},
+}

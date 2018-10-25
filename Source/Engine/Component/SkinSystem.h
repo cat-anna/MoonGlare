@@ -10,7 +10,6 @@ class TransformComponent;
 class SkinSystem : public iSubsystem {
 public:
     static constexpr char* SystemName = "SkinSystem";
-    //static constexpr bool Required = true;
     using SystemFlags = std::tuple<Flags::Required>;
 
 

@@ -1,31 +1,26 @@
 #include <pch.h>
 
-#include <nfMoonGlare.h>
-#include <Core/Component/SubsystemManager.h>
-
-//#include <Renderer/Resources/ResourceManager.h>
-//#include <Renderer/Resources/MaterialManager.h>
-//#include <Renderer/Resources/Mesh/MeshResource.h>
-//#include <Renderer/Renderer.h>
-//#include <Renderer/Deferred/DeferredFrontend.h>
+#include <Foundation/Resources/SkeletalAnimationManager.h>
 
 #include "BoneAnimatorComponent.h"
 
 namespace MoonGlare::Component {
 
 bool BoneAnimatorComponent::Load(ComponentReader &reader, Entity owner) {
-    //auto node = reader.node;
-    //std::string meshUri = node.child("Mesh").text().as_string("");
-    //std::string materialUri = node.child("Material").text().as_string("");
-    //if (meshUri.empty()) {
-    //    AddLogf(Error, "Attempt to load nameless Mesh!");
-    //    return false;
-    //}
+    std::string uri = reader.node.child("Animation").text().as_string("");
 
-    //auto &rm = *dynamic_cast<Core::Component::SubsystemManager*>(reader.manager)->GetWorld()->GetRendererFacade()->GetResourceManager();
+    auto *sam = reader.manager->GetInterfaceMap().GetInterface<Resources::SkeletalAnimationManager>();
 
-    //meshHandle = rm.GetMeshManager().LoadMesh(meshUri);
-    //materialHandle = rm.GetMaterialManager().LoadMaterial(materialUri);
+    Resources::SkeletalAnimationHandle h = {};
+    h = sam->LoadAnimation(uri.c_str());
+    blendState.state.handle = h;
+    blendState.Invalidate();
+
+    if (reader.localRelationsCount > 0) {
+        //TODO: limit is 64
+        memcpy(bones, reader.localRelations, reader.localRelationsCount * sizeof(bones[0]));
+        validBones = reader.localRelationsCount;
+    }
 
     return true;
 }
