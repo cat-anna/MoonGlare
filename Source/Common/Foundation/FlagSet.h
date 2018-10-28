@@ -1,7 +1,13 @@
-
 #pragma once
 
 namespace MoonGlare {
+
+namespace detail {
+template<typename E>
+using is_scoped_enum = std::integral_constant<
+    bool,
+    std::is_enum<E>::value && !std::is_convertible<E, int>::value>;
+}
 
 template<typename ENUM>
 struct FlagSet {
@@ -9,12 +15,12 @@ struct FlagSet {
 
     FlagSet() = default;
 
-    template<ENUM ... values>
-    constexpr FlagSet() : storage(Mask(values...)) {}
-
-    template<typename ... ARGS>
-    constexpr FlagSet(ARGS&& ... args) : storage(Mask(std::forward<ARGS>(args)...)) { }
-
+    //template<ENUM ... values>
+    //constexpr FlagSet() : storage(Mask(values...)) {}
+    constexpr FlagSet(FlagSet&& flagset) = default;
+    constexpr FlagSet(const FlagSet& flagset) = default;
+    constexpr FlagSet(ENUM v) : storage(Mask(v)) {}
+                                                        
     template<typename ... ARGS>
     constexpr static BaseType Mask(ARGS&& ... args) {
         return ( ... | (1 << static_cast<BaseType>(args)));
@@ -29,28 +35,17 @@ struct FlagSet {
         return (storage & flagset.storage) != 0
     }
 
-    template<typename ... ARGS>
-    constexpr void Set(bool set, ARGS&& ... args) {
-        auto mask = Mask(std::forward<ARGS>(args)...);
+    constexpr void Set(bool set, FlagSet flagSet) {
+        auto mask = flagSet.storage;
         if (set)
             storage |= mask;
         else
             storage &= ~mask;
     }
-
     void Clear() { storage = 0; }
 
-    constexpr FlagSet And(FlagSet other) const {
-        FlagSet r;
-        r.storage = storage & other.storage;
-        return r;
-    }
-
-    constexpr FlagSet Or(FlagSet other) const {
-        FlagSet r;
-        r.storage = storage | other.storage;
-        return r;
-    }
+    constexpr FlagSet And(FlagSet other) const { return FlagSet(storage & other.storage); }
+    constexpr FlagSet Or(FlagSet other) const { return FlagSet(storage | other.storage); }
 
     FlagSet& operator =(const FlagSet& value) = default;
     FlagSet& operator =(FlagSet&& value) = default;
@@ -61,15 +56,17 @@ struct FlagSet {
     constexpr FlagSet operator |(ENUM value) const { return Or(FlagSet(value)); }
     constexpr FlagSet operator |(FlagSet value) const { return Or(value); }
 
+    //TODO: ops |= &= ! 
+
     operator bool() const { return storage != 0; }
     explicit operator BaseType() const { return storage; }
 private:
+    constexpr FlagSet(BaseType v) : storage(v) {}
     BaseType storage = 0;
 };
 
-
 //has interference with eigen lib
-//template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
+//template<typename T, typename = std::enable_if_t<detail::is_scoped_enum<T>::value>>
 //constexpr MoonGlare::FlagSet<T> operator | (T a, T b) {
 //    return MoonGlare::FlagSet<T>(a, b);
 //}

@@ -22,7 +22,7 @@ using u8 = uint8_t;
 struct Configuration {
 	enum {
 		Insider_Port			= 0xC000,
-		recon_Port				= 0xC001,
+		recon_Port				= 0xD001,
 		MaxMessageSize			= 32 * 1024,
 	};
 };

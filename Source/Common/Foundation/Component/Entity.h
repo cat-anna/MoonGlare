@@ -25,9 +25,7 @@ using ComponentIndex = enum : uint32_t { //??
 };
 
 enum class ComponentFlags : uint8_t {
-    None = 0,
-
-    Active = 1,
+    Active = 0,
 };
 
 enum class SubSystemId : uint8_t {
@@ -38,10 +36,8 @@ enum class SubSystemId : uint8_t {
     Transform = 0x12,
 
 //Renderer
-    Mesh = 0x21,
     Light = 0x22,
     Camera = 0x23,
-    DirectAnimation = 0x2F,
 
 //Physics
     Body = 0x50,

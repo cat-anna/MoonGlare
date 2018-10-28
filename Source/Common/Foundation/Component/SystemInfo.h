@@ -23,14 +23,14 @@ struct HasFlag<T, std::tuple<Us...>> : std::disjunction<std::is_same<T, Us>...> 
 
 }
 
-enum class SystemClassId : uint16_t { Invalid = 0xFFFF, };
+enum class SystemClassId : uint16_t { Invalid = 0, };
 
 class BaseSystemInfo {
 public:
     static SystemClassId GetUsedSystemTypes() { return static_cast<SystemClassId>(idAlloc); }
 
     struct SystemClassInfo {
-        SystemClassId id;
+        SystemClassId id = SystemClassId::Invalid;
         const BaseSystemInfo *infoPtr = nullptr;
         const char* systemName = nullptr;
         //bool required = false;
@@ -45,7 +45,7 @@ public:
 
     template<typename FUNC>
     static void ForEachSystem(FUNC && func) {
-        for (size_t i = 0; i < (size_t)GetUsedSystemTypes(); ++i)
+        for (size_t i = 1; i < (size_t)GetUsedSystemTypes(); ++i)
             func((SystemClassId)i, GetSystemTypeInfo((SystemClassId)i));
     }
 
@@ -58,7 +58,7 @@ protected:
     static SystemClassesTypeTable& GetSystemClassesTypeInfo();
     static void SetNameMapping(SystemClassId ccid, std::string name);
 private:
-    static SystemClassId AllocateId() { return static_cast<SystemClassId>(idAlloc++); }
+    static SystemClassId AllocateId() { return static_cast<SystemClassId>(++idAlloc); }
     static std::underlying_type_t<SystemClassId> idAlloc;
 };
 

@@ -24,5 +24,11 @@ Structure.new {
 			default = "",
             required = false,
 		},		
+        {
+			name = "CastShadow",
+			description = "",
+			type = bool,
+			default = true,
+       },
 	},
 }

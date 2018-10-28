@@ -30,11 +30,11 @@ public:
             auto memory = GetComponentMemory(index, cci);
             return reinterpret_cast<T*>(memory);
         }
-        if (storageStatus[cci].Full()) {
+        index = storageStatus[cci].Next();
+        if (index == ComponentIndex::Invalid) {
             //TODO: ?
             return nullptr;
         }
-        index = storageStatus[cci].Next();
         arrayMappers[cci]->SetIndex(e, index);
 
         auto &flags = GetComponentFlags(index, cci);
@@ -216,6 +216,8 @@ private:
         ComponentIndex Last() const { return  static_cast<ComponentIndex>(allocated); } 
         ComponentIndex Next() {
             auto ci = static_cast<ComponentIndex>(allocated);
+            if (ci == capacity)
+                return ComponentIndex::Invalid;
             ++allocated;
             return ci;
         }

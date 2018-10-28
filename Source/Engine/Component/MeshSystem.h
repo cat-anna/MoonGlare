@@ -7,13 +7,13 @@ namespace MoonGlare::Component {
 
 class TransformComponent;
 
-class SkinSystem : public iSubsystem {
+class MeshSystem : public iSubsystem {
 public:
-    static constexpr char* SystemName = "SkinSystem";
+    static constexpr char* SystemName = "MeshSystem";
     using SystemFlags = std::tuple<Flags::Required>;
 
-    SkinSystem(iSubsystemManager *Owner);
-    virtual ~SkinSystem();
+    MeshSystem(iSubsystemManager *Owner);
+    virtual ~MeshSystem();
     virtual bool Initialize() override;
     virtual void Step(const SubsystemUpdateData &conf) override;
 private:

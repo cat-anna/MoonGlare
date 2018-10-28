@@ -18,12 +18,12 @@ void DefferedFrontend::Initialize(RendererFacade *Renderer) {
     sink->Initialize(Renderer);
 }
 
-void DefferedFrontend::Mesh(const emath::fmat4 &ModelMatrix, Renderer::MeshResourceHandle meshH, MaterialResourceHandle matH) {
-    sink->Mesh(ModelMatrix, meshH, matH);
+void DefferedFrontend::Mesh(const emath::fmat4 &ModelMatrix, Renderer::MeshResourceHandle meshH, MaterialResourceHandle matH, bool castShadow) {
+    sink->Mesh(ModelMatrix, meshH, matH, castShadow);
 }
 
-void DefferedFrontend::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DrawInfo info, MaterialResourceHandle matH) {
-    sink->DrawElements(ModelMatrix, vao, info, matH);
+void DefferedFrontend::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DrawInfo info, MaterialResourceHandle matH, bool castShadow) {
+    sink->DrawElements(ModelMatrix, vao, info, matH, castShadow);
 }
 
 void DefferedFrontend::SubmitDirectionalLight(const LightBase &linfo) {

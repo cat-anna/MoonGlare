@@ -154,6 +154,7 @@ void ApiInit::Initialize(ScriptEngine *s) {
             nComponent.endNamespace();
             ++ApiInitFunctionsRun;
         }
+
         for (auto &it : Component::ComponentRegister::GetComponentMap()) {
             auto &ci = *it.second;
             if (!ci.m_ApiRegFunc)
@@ -191,6 +192,13 @@ void ApiInit::Initialize(ScriptEngine *s) {
 
     {
         using BaseComponentInfo = MoonGlare::Component::BaseComponentInfo;
+        for (auto f : BaseComponentInfo::additionalApiInitFuncs) {
+            ++ApiInitFunctionsRun;
+            s->GetApiInitializer()
+                .beginNamespace("api")
+                    .beginNamespace("Component")
+                      .DefferCalls([&f](auto &n) { f(n); });
+        }
         auto maxid = (size_t)BaseComponentInfo::GetUsedComponentTypes();
         for (decltype(maxid) it = 0; it < maxid; ++it) {
             auto info = BaseComponentInfo::GetComponentTypeInfo((Component::ComponentClassId)it);

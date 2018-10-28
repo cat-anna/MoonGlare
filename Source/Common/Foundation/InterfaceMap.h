@@ -61,12 +61,14 @@ public:
         NotExistsException(std::string str) :runtime_error(std::move(str)) {}
     };
 
+    //throws NotExistsException on error
     template<typename T>
     void GetObject(T *& t) {
         t = GetInterface<T>();
         if (!t)
             throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
     }
+    //throws NotExistsException on error
     template<typename T>
     void GetObject(std::shared_ptr<T> & t) {
         t = GetSharedInterface<T>();

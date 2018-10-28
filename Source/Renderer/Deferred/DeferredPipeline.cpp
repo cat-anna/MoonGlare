@@ -298,7 +298,7 @@ void DeferredSink::Reset(Frame *frame) {
     }
 }
 
-void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH) {
+void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH, bool castShadow) {
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
     auto *md = mm.GetMeshData(meshH);
     if (!md)
@@ -315,18 +315,20 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
 
     auto &mesh = *meshptr;
 
-    {
-        using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
-        m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
-        m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
-        m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
-    }
-    {
-        using Uniform = CubeShadowMapShaderDescriptor::Uniform;
-        m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
-        m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
-        m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
-    }
+    if (castShadow) {
+        {
+            using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
+            m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
+            m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+            m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
+        }
+        {
+            using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+            m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
+            m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+            m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *meshH.deviceHandle;// vao.Handle();
+        }
+    } 
     {
         using Sampler = GeometryShaderDescriptor::Sampler;
         using Uniform = GeometryShaderDescriptor::Uniform;
@@ -348,26 +350,30 @@ void DeferredSink::Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle mesh
         garg->m_BaseIndex = mesh.baseIndex;
         garg->m_BaseVertex = mesh.baseVertex;
 
-        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        *larg = *garg;
+        if (castShadow) {
+            auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            *larg = *garg;
 
-        auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        *larg2 = *garg;
+            auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            *larg2 = *garg;
+        }
     }
 }
 
-void DeferredSink::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DefferedFrontend::DrawInfo info, MaterialResourceHandle matH) {
-    {
-        using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
-        m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
-        m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
-        m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
-    }
-    {
-        using Uniform = CubeShadowMapShaderDescriptor::Uniform;
-        m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
-        m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
-        m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+void DeferredSink::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DefferedFrontend::DrawInfo info, MaterialResourceHandle matH, bool castShadow) {
+    if (castShadow) {
+        {
+            using Uniform = PlaneShadowMapShaderDescriptor::Uniform;
+            m_PlaneShadowShader.m_Queue = m_LightGeometryQueue;
+            m_PlaneShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+            m_LightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+        }
+        {
+            using Uniform = CubeShadowMapShaderDescriptor::Uniform;
+            m_CubeShadowShader.m_Queue = m_CubeLightGeometryQueue;
+            m_CubeShadowShader.Set<Uniform::ModelMatrix>(ModelMatrix);
+            m_CubeLightGeometryQueue->PushCommand<Commands::VAOBind>()->m_VAO = *vao.deviceHandle;// vao.Handle();
+        }
     }
     {
         using Sampler = GeometryShaderDescriptor::Sampler;
@@ -392,11 +398,13 @@ void DeferredSink::DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHand
         //garg->m_ElementMode = info.elementMode;
         //garg->m_BaseVertex = 0;// mesh.baseVertex;
 
-        auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        *larg = *garg;
+        if (castShadow) {
+            auto larg = m_LightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            *larg = *garg;
 
-        auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
-        *larg2 = *garg;
+            auto larg2 = m_CubeLightGeometryQueue->PushCommand<Commands::VAODrawTrianglesBaseVertex>();
+            *larg2 = *garg;
+        }
     //}
 }
 

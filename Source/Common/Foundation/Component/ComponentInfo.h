@@ -24,7 +24,7 @@ class iSubsystemManager;
 class ComponentArray;
 struct ComponentReader;
 
-enum class ComponentClassId : uint16_t { Invalid = 0xFFFF, };
+enum class ComponentClassId : uint16_t { Invalid = 0, };
 
 class BaseComponentInfo {
 public:
@@ -35,8 +35,8 @@ public:
     using ComponentLoadFunc = bool(void*, ComponentReader &reader, Entity owner);
 
     struct ComponentClassInfo {
-        ComponentClassId id;
-        size_t byteSize;
+        ComponentClassId id = ComponentClassId::Invalid;
+        size_t byteSize = 0;
         const BaseComponentInfo *infoPtr = nullptr;
         ComponentScriptPush *scriptPush = nullptr;
         Scripts::ApiInitFunc apiInitFunc = nullptr;
@@ -44,6 +44,7 @@ public:
         ComponentFunc *constructor = nullptr;
         ComponentBiFunc *swap = nullptr;
         ComponentLoadFunc *load = nullptr;
+        //TODO: OnActivate, OnDeactivate
         const char* componentName = nullptr;
         bool isTrivial = false;
     };
@@ -58,12 +59,14 @@ public:
 
     template<typename FUNC>
     static void ForEachComponent(FUNC && func) {
-        for (size_t i = 0; i < (size_t)GetUsedComponentTypes(); ++i)
+        for (size_t i = 1; i < (size_t)GetUsedComponentTypes(); ++i)
             func((ComponentClassId)i, GetComponentTypeInfo((ComponentClassId)i));
     }
 
     virtual const std::type_info &GetTypeInfo() const = 0;
     virtual uint32_t GetDefaultCapacity() const = 0;
+
+    static const std::array<Scripts::ApiInitFunc, 1> additionalApiInitFuncs;
 protected:
     template<typename T> 
     static void DestructorFunc(void* ptr) { reinterpret_cast<T*>(ptr)->~T(); }
@@ -81,28 +84,14 @@ protected:
           return true;
     }
     template<typename T, typename WRAP>
-    static int ScriptPush(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua) {
-        try {
-            WRAP lw{ };
-            lw.owner = owner;
-            lw.componentArray = carray;
-            lw.subsystemManager = manager;
-            if constexpr (detail::has_member_function_Init<void(WRAP::*)()>::value)
-                lw.Init();
-            luabridge::push<WRAP>(lua, lw);
-            return 1;
-        }
-        catch (...) {
-            return 0;
-        }
-    }
+    static int ScriptPush(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua);
     template<class T>
     static ComponentClassId AllocateComponentClass();
     using ComponentClassesTypeTable = std::array<ComponentClassInfo, Configuration::MaxComponentTypes>;
     static ComponentClassesTypeTable& GetComponentClassesTypeInfo();
     static void SetNameMapping(ComponentClassId ccid, std::string name);
 private:
-    static ComponentClassId AllocateId() { return static_cast<ComponentClassId>(idAlloc++); }
+    static ComponentClassId AllocateId() { return static_cast<ComponentClassId>(++idAlloc); }
     static std::underlying_type_t<ComponentClassId> idAlloc;
 };
 
@@ -134,6 +123,24 @@ const ComponentClassId ComponentInfo<T>::classId = BaseComponentInfo::AllocateCo
 
 template<typename T>
 ComponentClassId ComponentClassIdValue = ComponentInfo<T>::GetClassId();
+
+template<typename T, typename WRAP>
+int BaseComponentInfo::ScriptPush(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua) {
+    try {
+        WRAP lw{ };
+        lw.owner = owner;
+        lw.componentArray = carray;
+        lw.subsystemManager = manager;
+        lw.componentClassId = ComponentInfo<T>::GetClassId();
+        if constexpr (detail::has_member_function_Init<void(WRAP::*)()>::value)
+            lw.Init();
+        luabridge::push<WRAP>(lua, lw);
+        return 1;
+    }
+    catch (...) {
+        return 0;
+    }
+}
 
 template<class T>
 static ComponentClassId BaseComponentInfo::AllocateComponentClass() {

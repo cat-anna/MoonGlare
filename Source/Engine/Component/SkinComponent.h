@@ -18,6 +18,7 @@ struct SkinComponent {
     Renderer::VAOResourceHandle vaoHandle = {};
 
     const Resources::MeshData *meshData = nullptr;
+    bool castShadow = true;
     uint8_t validBones = 0;
     Entity bones[64];
 

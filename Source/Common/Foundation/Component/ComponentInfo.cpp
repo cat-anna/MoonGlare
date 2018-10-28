@@ -1,8 +1,13 @@
 #include <fmt/format.h>
 
 #include "ComponentInfo.h"
+#include "ComponentScriptWrapBase.h"
 
 namespace MoonGlare::Component {
+
+const std::array<Scripts::ApiInitFunc, 1> BaseComponentInfo::additionalApiInitFuncs = {
+        Scripts::GetApiInitFunc<ComponentScriptWrapBase>(),
+};
 
 std::underlying_type_t<ComponentClassId> BaseComponentInfo::idAlloc = 0;   
 

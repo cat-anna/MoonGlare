@@ -3,7 +3,7 @@
 #include <Libs/OrbitLogger/src/OrbitLogger.h>
 
 #include <Foundation/Memory/nMemory.h>
-#include <Foundation/Memory.h>
+#include <Foundation/Memory/Memory.h>
 
 #include <libSpace/src/Memory/Handle.h>
 #include <Engine/Configuration.h>

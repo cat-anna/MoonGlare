@@ -25,17 +25,13 @@ bool BoneAnimatorSystem::Initialize() {
         return false;
     }
 
-    skeletalAnimationManager = subsystemManager->GetInterfaceMap().GetInterface<Resources::SkeletalAnimationManager>();
-    if (!skeletalAnimationManager) {
-        AddLog(Error, "Failed to get skeletalAnimationManager instance!");
-        return false;
-    }
+    subsystemManager->GetInterfaceMap().GetObject(skeletalAnimationManager);
+    componentArray = &subsystemManager->GetComponentArray();
     return true;
 }
 
 void BoneAnimatorSystem::Step(const SubsystemUpdateData &conf) {
-    subsystemManager->GetComponentArray().Visit<BoneAnimatorComponent>([this, &conf](Entity owner, BoneAnimatorComponent& item) {
-
+    componentArray->Visit<BoneAnimatorComponent>([this, &conf](Entity owner, BoneAnimatorComponent& item) {
         //TODO: visibility test
 
         Resources::BoneState boneState;

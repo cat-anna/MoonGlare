@@ -118,9 +118,11 @@ void ComponentArray::DumpStatus(const char *id) const {
         auto &sst = storageStatus[(ComponentClassId)index];
         if (!sst.info)
             continue;
-        AddLogf(Debug, "ComponentArray [%p:%s] %02u/%02u %20s : size: %3u bytes; used:%3u cap:%3u  mem:%u", 
+        float mem = sst.capacity * (sst.elementByteSize + sizeof(Entity) + sizeof(ComponentFlags)) + sizeof(EntityArrayMapper<>);
+        mem /= 1024.0f;
+        AddLogf(Debug, "ComponentArray [%p:%s] %02u/%02u %20s : size: %3u bytes; used:%6u cap:%6u  mem:%5.1fkib", 
             this, id ? id : "?", index, storageStatus.size()-1, sst.info->componentName, sst.elementByteSize, sst.allocated, sst.capacity,
-            sst.capacity * (sst.elementByteSize + sizeof(Entity) + sizeof(ComponentFlags)) + sizeof(EntityArrayMapper<>));
+            mem);
     }
 }
 

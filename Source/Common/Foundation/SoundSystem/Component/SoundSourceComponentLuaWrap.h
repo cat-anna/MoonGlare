@@ -2,29 +2,13 @@
 
 #include <Foundation/Scripts/LuaPanic.h>
 #include <Foundation/Scripts/ApiInit.h>
+#include <Foundation/Component/ComponentInfo.h>
+#include <Foundation/Component/ComponentScriptWrapBase.h>
 
 namespace MoonGlare::SoundSystem::Component {
 
-struct SoundSourceComponentLuaWrap {
-    //SoundSourceComponent *component;
-    Entity owner;
-    iSubsystemManager *subsystemManager;
-    ComponentArray *componentArray;
-    //mutable ComponentIndex index;
-    mutable SoundSourceComponent *componentPtr;
+struct SoundSourceComponentLuaWrap : public ComponentScriptWrapTemplate<SoundSourceComponent> {
     static HandleApi handleApi;
-
-    void Check() const {
-        //if (transformComponent->componentIndexRevision != indexRevision) {
-        //index = component->GetComponentIndex(owner);
-        componentPtr = componentArray->Get<SoundSourceComponent>(owner);
-        //}
-        if (componentPtr == nullptr) {
-        //if (index == ComponentIndex::Invalid) {
-            __debugbreak();
-            throw Scripts::LuaPanic("Attempt to dereference deleted Transform component! ");
-        }
-    }
 
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         using LuaWrapper = SoundSourceComponentLuaWrap;

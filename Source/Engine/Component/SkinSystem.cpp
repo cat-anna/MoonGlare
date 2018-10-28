@@ -9,10 +9,6 @@
 
 #include "TransformComponent.h"
 
-#include <Renderer/Commands/OpenGL/ControllCommands.h>
-#include <Renderer/Commands/OpenGL/ShaderCommands.h>
-#include <Renderer/Commands/OpenGL/TextureCommands.h>
-#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/RenderDevice.h>
 #include <Renderer/Frame.h>
@@ -43,25 +39,9 @@ bool SkinSystem::Initialize() {
         AddLog(Error, "Failed to get TransformComponent instance!");
         return false;
     }
-    
+    componentArray = &subsystemManager->GetComponentArray();
     return true;
 }
-
-#if  0
-
-//------------------------------------------------------------------------------------------
-
-void MeshComponent::HandleEvent(const MoonGlare::Component::EntityDestructedEvent &event) {
-    auto index = m_EntityMapper.GetIndex(event.entity);
-    if (index >= m_Array.Allocated())
-        return;
-
-    m_Array[index].m_Flags.m_Map.m_Valid = false;
-    m_EntityMapper.SetIndex(event.entity, ComponentIndex::Invalid);
-}
-
-//------------------------------------------------------------------------------------------
-#endif
 
 void SkinSystem::Step(const SubsystemUpdateData &xconf) {
     auto *ssm = (Core::Component::SubsystemManager*)subsystemManager;
@@ -72,7 +52,7 @@ void SkinSystem::Step(const SubsystemUpdateData &xconf) {
     auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::Controll>();
     auto &q = Queue;
 
-    subsystemManager->GetComponentArray().Visit<SkinComponent>([this, &conf, &q, &m, rf, ssm](Entity owner, SkinComponent& item) {
+    componentArray->Visit<SkinComponent>([this, &conf, &q, &m, rf, ssm](Entity owner, SkinComponent& item) {
 
         //TODO: visibility test
 
@@ -171,7 +151,8 @@ void SkinSystem::Step(const SubsystemUpdateData &xconf) {
                 emath::Transform::Identity().matrix(),
                 item.vaoHandle,
                 { item.meshData->indexCount, 0, 0, GL_UNSIGNED_INT, GL_TRIANGLES },
-                item.materialHandle
+                item.materialHandle,
+                item.castShadow
             );
         }
     });

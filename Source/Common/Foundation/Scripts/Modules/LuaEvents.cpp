@@ -61,17 +61,16 @@ int LuaEventsModule::EmitEvent(lua_State *lua) {
     auto eid = lua_tointeger(lua, -1);
     lua_pop(lua, 1);
 
-    lua_getfield(lua, -1, "EventName");
+    //lua_getfield(lua, -1, "EventName");
     //const char *evName = lua_tostring(lua, -1);
 
     auto &evInfo = Component::BaseEventInfo::GetEventTypeInfo(static_cast<Component::EventClassId>(eid));
-
 
     void *thisPtr = lua_touserdata(lua, lua_upvalueindex(1));
     assert(thisPtr);
     LuaEventsModule *This = reinterpret_cast<LuaEventsModule*>(thisPtr);
 
-    auto success = evInfo.infoPtr->QueueFromLua(lua, 1, This->eventDispatcher);
+    auto success = evInfo.queueFromLua(lua, 1, This->eventDispatcher);
     if (!success) {
         LuaRunWarning(lua, "Event emission failed", "");
     }

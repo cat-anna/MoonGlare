@@ -16,9 +16,10 @@ public:
     virtual bool Initialize() override;
     virtual void Step(const SubsystemUpdateData &conf) override;
 private:
-    iSubsystemManager *subsystemManager = nullptr;
-    TransformComponent *transformComponent = nullptr;
     Resources::SkeletalAnimationManager* skeletalAnimationManager = nullptr;
+    ComponentArray *componentArray = nullptr;
+    TransformComponent *transformComponent = nullptr;
+    iSubsystemManager *subsystemManager = nullptr;
 };
 
 } 
