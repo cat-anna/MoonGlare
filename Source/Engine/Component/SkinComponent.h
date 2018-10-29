@@ -3,6 +3,7 @@
 #include <Foundation/Component/Entity.h>
 #include <Foundation/Component/iSubsystem.h>
 #include <Foundation/Resources/Mesh.h>
+#include <Foundation/Resources/SkeletalAnimation.h>
 
 #include <Renderer/Resources/Mesh/VAOResource.h>
 #include <Renderer/Resources/MaterialManager.h>
@@ -19,8 +20,9 @@ struct SkinComponent {
 
     const Resources::MeshData *meshData = nullptr;
     bool castShadow = true;
+
     uint8_t validBones = 0;
-    Entity bones[64];
+    Entity bones[Resources::Configuration::BoneCountLimit];
 
     bool Load(ComponentReader &reader, Entity owner);
 };

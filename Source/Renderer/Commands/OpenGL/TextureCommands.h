@@ -193,9 +193,18 @@ struct TextureSettingsCommon {
         }
     }
 
+    static void SetupSwizzle(Configuration::Texture::ColorSwizzle swizzle) {
+        glTexParameteri(TEXTUREMODE, GL_TEXTURE_SWIZZLE_R, Configuration::Texture::ChannelSwizzleToEnum(swizzle.R));
+        glTexParameteri(TEXTUREMODE, GL_TEXTURE_SWIZZLE_G, Configuration::Texture::ChannelSwizzleToEnum(swizzle.G));
+        glTexParameteri(TEXTUREMODE, GL_TEXTURE_SWIZZLE_B, Configuration::Texture::ChannelSwizzleToEnum(swizzle.B));
+        glTexParameteri(TEXTUREMODE, GL_TEXTURE_SWIZZLE_A, Configuration::Texture::ChannelSwizzleToEnum(swizzle.A));
+    }
+
     static void Setup(Configuration::TextureLoad cfg) {
         SetupFiltering(cfg.m_Filtering);
         SetupEdges(cfg.m_Edges);
+        if (cfg.m_Flags.m_Swizzle)
+            SetupSwizzle(cfg.m_Swizzle);
     }
 };
 

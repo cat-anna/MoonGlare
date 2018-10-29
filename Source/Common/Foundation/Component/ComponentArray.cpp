@@ -50,46 +50,7 @@ int ComponentArray::PushToScript(iSubsystemManager *manager, Entity e, Component
     sp(this, manager, e, lua);
 }
 
-//-------------------------------------
-
-#if 0
-bool ComponentArray::AllocatePage(unsigned pageIndex) {
-    if (pageMemory[pageIndex])
-        return true;
-
-    PerComponentArray<int> offsets;
-    offsets.fill(-1);
-
-    int offset = 0;
-    for (ComponentClassId cindex = 0; cindex < offsets.size(); ++cindex) {
-        auto &info = BaseComponentInfo::GetComponentTypeInfo(cindex);
-
-        if (!info.infoPtr)
-            continue;
-
-        if (offset & 0xF) {
-            offset &= ~0xF;
-            offset += 0x10;
-        }
-
-        offsets[cindex] = offset;
-        offset += Configuration::ComponentsPerPage * info.byteSize;
-    }
-
-    pageMemory[pageIndex].reset(new char[offset]);
-    char *mem = pageMemory[pageIndex].get();
-
-    auto &page = componentPageArray[pageIndex];
-    for (size_t cindex = 0; cindex < offsets.size(); ++cindex) {
-        if(offsets[cindex] >= 0)
-            page[cindex] = mem + offsets[cindex];
-    }
-
-    return true;
-}
-#endif
-
-//-------------------------------------
+//------------------------------------- 
 
 void ComponentArray::ReleaseComponents(ComponentClassId cci) {
     if ((size_t)cci >= Configuration::MaxComponentTypes)

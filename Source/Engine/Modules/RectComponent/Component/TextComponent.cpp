@@ -9,7 +9,7 @@
 #define NEED_VAO_BUILDER
 
 #include <nfMoonGlare.h>
-#include <Engine/DataClasses/iFont.h>
+#include <Engine/DataClasses/Font.h>
 #include "Engine/Core/DataManager.h"
 
 #include "../nfGUI.h"

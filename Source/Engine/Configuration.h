@@ -11,26 +11,9 @@ namespace MoonGlare {
 
         namespace Storage {
             enum {
-                TinyBuffer = 32,
-                SmallBuffer = 256,
-                MediumBuffer = 1024,
-                HugeBuffer = 4096, 
-
-                EntityBuffer = HugeBuffer,
-                ComponentBuffer = HugeBuffer,
-
-                MaxComponentCount = TinyBuffer,
-            };
-
-            enum {
+                ComponentBuffer = 4096,
+                MaxComponentCount = 32,
                 CameraComponent = 8,
-            };
-
-            struct Static {
-                enum {
-                    ObjectBuffer = HugeBuffer,
-                    EntityStorage = HugeBuffer,
-                };
             };
         };
 

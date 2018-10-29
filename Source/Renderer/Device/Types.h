@@ -35,6 +35,7 @@ static constexpr ShaderStageHandle InvalidShaderStageHandle = static_cast<Shader
 //-----------------------------------------------------------------------------
 
 enum class PixelFormat : uint16_t {
+    Red = GL_RED,
     RGB8 = GL_RGB,
     RGBA8 = GL_RGBA,
 

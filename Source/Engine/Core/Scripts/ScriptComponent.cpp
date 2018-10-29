@@ -272,7 +272,7 @@ void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
 
         if (!lua_istable(lua, -1)) {
             lua_settop(lua, movedataIndex);
-            AddLog(Error, "ScriptComponent: nil in lua script table at index: %d", i + 1);
+            AddLogf(Error, "ScriptComponent: nil in lua script table at index: %d", i + 1);
             continue;
         }
 

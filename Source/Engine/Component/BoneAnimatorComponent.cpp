@@ -19,7 +19,7 @@ bool BoneAnimatorComponent::Load(ComponentReader &reader, Entity owner) {
     if (reader.localRelationsCount > 0) {
         //TODO: limit is 64
         memcpy(bones, reader.localRelations, reader.localRelationsCount * sizeof(bones[0]));
-        validBones = reader.localRelationsCount;
+        validBones = (uint8_t)reader.localRelationsCount;
     }
 
     return true;

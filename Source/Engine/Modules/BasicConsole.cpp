@@ -4,7 +4,7 @@
 
 #include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
-#include <Engine/DataClasses/iFont.h>
+#include <Engine/DataClasses/Font.h>
 #include "BasicConsole.h"
 #include <Engine/Core/Engine.h>
 
@@ -264,6 +264,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
             if (!line.m_Ready) {
                 DataClasses::Fonts::iFont::FontRenderRequest req{ };
                 req.m_Color = LineTypesColor[line.lineType];
+                req.m_Size = 10;
                 DataClasses::Fonts::iFont::FontRect rect;
                 DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
 
@@ -280,6 +281,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
         if (!m_InputLine->m_TextValid) {
             DataClasses::Fonts::iFont::FontRenderRequest req;
             req.m_Color = LineTypesColor[LineType::Regular];
+            req.m_Size = 10;
             DataClasses::Fonts::iFont::FontRect rect;
             DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
             m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);

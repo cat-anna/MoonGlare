@@ -37,7 +37,7 @@ void BoneAnimatorSystem::Step(const SubsystemUpdateData &conf) {
         Resources::BoneState boneState;
         Resources::AnimationLoopState r = {};
 
-        r = skeletalAnimationManager->UpdateAnimation(item.blendState, conf.timeDelta, &boneState);
+        r = skeletalAnimationManager->UpdateAnimation(item.blendState, (float)conf.timeDelta, &boneState);
 
         switch (r.state) {
         case Resources::AnimationLoopState::LoopState::Loop:
@@ -50,11 +50,12 @@ void BoneAnimatorSystem::Step(const SubsystemUpdateData &conf) {
             break;
         }
 
-        case Resources::AnimationLoopState::LoopState::Error:
-            return;
         case Resources::AnimationLoopState::LoopState::None:
-        default:
             break;
+
+        case Resources::AnimationLoopState::LoopState::Error:
+        default:
+            return;
         }
 
         for (size_t index = 0; index < item.validBones; ++index) {

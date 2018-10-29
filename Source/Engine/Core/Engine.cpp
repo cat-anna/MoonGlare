@@ -122,7 +122,7 @@ void Engine::EngineMain() {
         ++FrameCounter;
         LastFrame = CurrentTime;
 
-        auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
+        //auto &cmdl = conf.m_BufferFrame->GetCommandLayers();
         using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
         auto StartTime = clock::now();

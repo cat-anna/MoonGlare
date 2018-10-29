@@ -32,8 +32,6 @@ public:
     std::string GetFileName(StarVFS::FileID fid) const override;
     std::string GetFullFileName(StarVFS::FileID fid) const override;
 
-
-
     bool LoadContainer(const std::string &URI);
 
     bool TranslateFileName(const std::string & FileName, std::string &path, DataPath origin);

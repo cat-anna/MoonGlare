@@ -159,12 +159,12 @@ struct PayLoad_FolderContent_Item {
 		File, Folder, Shadowed, SymbolicLink, Cached, Used,
 	};
 
-	DefineFlag(Flags, FlagBit(FlagBits::File), File);
-	DefineFlag(Flags, FlagBit(FlagBits::Folder), Folder);
-	DefineFlag(Flags, FlagBit(FlagBits::Shadowed), Shadowed);
-	DefineFlag(Flags, FlagBit(FlagBits::SymbolicLink), SymbolicLink);
-	DefineFlag(Flags, FlagBit(FlagBits::Cached), Cached);
-	DefineFlag(Flags, FlagBit(FlagBits::Used), Used);
+	//DefineFlag(Flags, FlagBit(FlagBits::File), File);
+	//DefineFlag(Flags, FlagBit(FlagBits::Folder), Folder);
+	//DefineFlag(Flags, FlagBit(FlagBits::Shadowed), Shadowed);
+	//DefineFlag(Flags, FlagBit(FlagBits::SymbolicLink), SymbolicLink);
+	//DefineFlag(Flags, FlagBit(FlagBits::Cached), Cached);
+	//DefineFlag(Flags, FlagBit(FlagBits::Used), Used);
 
 	char Name[0];
 };

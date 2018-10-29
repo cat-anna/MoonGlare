@@ -96,7 +96,23 @@ struct Texture {
 
     enum class ChannelSwizzle : uint8_t {
         R, G, B, A,
+        //Zero, One,
     };
+
+    static inline uint16_t ChannelSwizzleToEnum(ChannelSwizzle cs) {
+        switch (cs) {
+        case ChannelSwizzle::R:
+            return GL_RED;
+        case ChannelSwizzle::G:
+            return GL_GREEN;
+        case ChannelSwizzle::B:
+            return GL_BLUE;
+        case ChannelSwizzle::A:
+            return GL_ALPHA;
+        default:
+            __debugbreak();
+        }
+    }
 
     union ColorSwizzle {
         struct {
@@ -106,6 +122,12 @@ struct Texture {
             ChannelSwizzle A : 2;
         };
         uint8_t m_UIntValue;
+
+        ColorSwizzle& operator= (const ColorSwizzle&) = default;
+        ColorSwizzle& operator= (ChannelSwizzle cs) {
+            R = G = B = A = cs;
+            return *this;
+        }
     };
     static_assert(sizeof(ColorSwizzle) == sizeof(uint8_t), "Invalid size!");
 

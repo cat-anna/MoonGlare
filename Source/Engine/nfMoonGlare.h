@@ -11,6 +11,4 @@ using namespace MoonGlare;
 
 #include "FileSystem.h"
 
-#include "DataClasses/DataClass.h"
-
 #include "World.h"

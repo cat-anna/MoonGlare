@@ -6,7 +6,7 @@ uniform Material_t gMaterial;
 vec4 ProcessBaseColor(vec4 fragment) {
 	float a = 1.0f - fragment.a;
 
-	fragment.xyz *= gBaseColor.a ;//* fragment.a;
+	fragment.xyz *= gBaseColor.a * fragment.a;
 	fragment.xyz *= gBaseColor.xyz;
 	fragment.a *= gBaseColor.a;
 

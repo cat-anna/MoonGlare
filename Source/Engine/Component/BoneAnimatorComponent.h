@@ -11,7 +11,7 @@ struct BoneAnimatorComponent {
     static constexpr char* ComponentName = "BoneAnimator";
 
     uint8_t validBones = 0;
-    Entity bones[64] = { };
+    Entity bones[Resources::Configuration::BoneCountLimit] = { };
     Resources::AnimationBlendState blendState = { };
 
     bool Load(ComponentReader &reader, Entity owner);

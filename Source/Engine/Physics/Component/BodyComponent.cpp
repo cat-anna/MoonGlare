@@ -182,7 +182,7 @@ void BodyComponent::Step(const Core::MoveConfig & conf) {
 	CollisionMap cmap;
     m_DynamicsWorld->setInternalTickCallback(&T::myTickCallback, &cmap);
 
-	m_DynamicsWorld->stepSimulation(conf.timeDelta, 5, 1.0f / (60.0f));
+	m_DynamicsWorld->stepSimulation((btScalar)conf.timeDelta, 5, 1.0f / (60.0f));
 
 	CollisionMap last;
 	last.swap(m_LastCollisions);

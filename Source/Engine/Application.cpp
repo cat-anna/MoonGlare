@@ -195,6 +195,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Failed to initialize world!";
     }
 
+    GetDataMgr()->InitFonts();
+
     if (1) {
         //m_Configuration->m_Core.m_EnableConsole) {
         auto c = new Modules::BasicConsole();

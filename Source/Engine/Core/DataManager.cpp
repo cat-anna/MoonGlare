@@ -5,7 +5,7 @@
 #include <Engine/Core/DataManager.h>
 #include <Engine/Core/Configuration.Runtime.h>
 #include <Engine/Core/Scene/ScenesManager.h>
-#include <Engine/DataClasses/iFont.h>
+#include <Engine/DataClasses/Font.h>
 #include <Foundation/Scripts/iLuaRequire.h>
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
@@ -45,11 +45,6 @@ public:
     static void ClearStringTables() {
         GetDataMgr()->stringTables->Clear();
     }
-    static void ClearResources(Manager *mgr) {
-        AddLogf(Warning, "Clearing resources");
-        mgr->m_Fonts.Lock()->clear();
-        mgr->stringTables->Clear();
-    }
 #endif
 };
 
@@ -58,7 +53,6 @@ void Manager::RegisterScriptApi(::ApiInitializer &api) {
     .beginClass<Manager>("cDataManager")
 #ifdef DEBUG_SCRIPTAPI
         .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<Manager, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
-        .addFunction("ClearResources", Utils::Template::InstancedStaticCall<Manager, void>::callee<&DataManagerDebugScritpApi::ClearResources>())
 #endif
         .endClass()
         .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
@@ -133,59 +127,47 @@ void Manager::LoadInitScript(StarVFS::Containers::iContainer *Container) {
 
 //------------------------------------------------------------------------------------------
 
+void Manager::InitFonts() {
+    iFileSystem *fs = nullptr;
+    world->GetObject(fs);
+
+    StarVFS::DynamicFIDTable fontfids;
+    fs->FindFilesByExt(".ttf", fontfids);
+
+    for (auto fileid : fontfids) {
+        std::string name = fs->GetFileName(fileid);
+
+        while (name.back() != '.')
+            name.pop_back();
+        name.pop_back();
+
+        auto uri = "file://" + fs->GetFullFileName(fileid);
+        AddLogf(Debug, "Found font: %s -> %s", uri.c_str(), name.c_str());
+
+        m_Fonts[name] = std::make_shared<DataClasses::Fonts::Font>(uri);
+    }
+}   
+
 DataClasses::FontPtr Manager::GetConsoleFont() {
     return GetFont(world->GetRuntimeConfiguration()->consoleFont);
 }
 
-DataClasses::FontPtr Manager::GetDefaultFont() { 
-    return GetFont(DEFAULT_FONT_NAME); 
-}
-
-//------------------------------------------------------------------------------------------
-
 DataClasses::FontPtr Manager::GetFont(const string &Name) {
-    auto fonts = m_Fonts.Lock();
-
-    auto it = fonts->find(Name);
-    FontResPtr *ptr = nullptr;
-    if (it == fonts->end()) {
-        ptr = &fonts[Name];
-        ptr->SetValid(false);
+    auto it = m_Fonts.find(Name);
+    DataClasses::FontPtr ptr = nullptr;
+    if (it == m_Fonts.end()) {
+        AddLogf(Error, "Font '%s' not found", Name.c_str());
+        return nullptr;
     } else {
-        ptr = &it->second;
-        if (ptr->IsLoaded())
-            return ptr->Get();
-
-        if (!ptr->IsValid()) {
-            AddLogf(Error, "Font '%s' is invalid.", Name.c_str());
-            return nullptr;
+        ptr = it->second;
+        if (!ptr->IsReady()) {
+            if (!ptr->Initialize()) {
+                AddLogf(Error, "Unable to initialize font '%s'", Name.c_str());
+                return nullptr;
+            }
         }
+        return ptr;
     }
-    AddLogf(Debug, "Font '%s' not found. Trying to load.", Name.c_str());
-
-//	AddLog(TODO, "Move ownership of loaded font xml to map instance");
-    XMLFile xml;
-    if (!GetFileSystem()->OpenResourceXML(xml, Name, DataPath::Fonts)) {
-        AddLogf(Error, "Unable to open master resource xml for font '%s'", Name.c_str());
-        fonts.unlock();
-        return GetDefaultFont();
-    }
-    string Class = xml->document_element().attribute(xmlAttr_Class).as_string(ERROR_STR);
-    auto font = DataClasses::Fonts::FontClassRegister::CreateShared(Class, Name);
-    if (!font) {
-        AddLogf(Error, "Unable to create font class '%s' for object '%s'", Class.c_str(), Name.c_str());
-        fonts.unlock();
-        return GetDefaultFont();
-    }
-    AddLogf(Debug, "Loading font '%s' of class '%s'", Name.c_str(), Class.c_str());
-    if (!font->Initialize()) {
-        AddLogf(Error, "Unable to initialize font '%s'", Name.c_str());
-        fonts.unlock();
-        return GetDefaultFont();
-    }
-    ptr->Set(font);
-    ptr->SetValid(true);
-    return font;
 }
 
 } // namespace Data
