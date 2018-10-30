@@ -8,15 +8,51 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
-struct FontGlyph;
-
 class iFont {
 public:
-    using UniqueFontGlyph = std::unique_ptr<FontGlyph>;
-    using FontGlyphMap = std::map<wchar_t, UniqueFontGlyph>;
-
     iFont(const string& URI);
-    ~iFont();          
+    ~iFont();       
+
+    static constexpr uint32_t FontFacesPerDim = 16;
+    static constexpr float DeltaTexUV = 1.0f / (float)FontFacesPerDim;
+
+private:
+    struct FontGlyph {
+        emath::fvec2 fontFacePosition;
+        math::vec2 m_Advance;
+        math::vec2 m_Position;
+        math::vec2 charSize;
+    };
+
+    using FontGlyphMap = std::unordered_map<wchar_t, FontGlyph>;
+
+    std::unique_ptr<uint8_t> facesTexture;
+    Renderer::MaterialResourceHandle facesMaterial = { };
+    uint8_t faceTextureSize = 0;
+    mutable bool faceTextureDirty = false;
+    mutable uint32_t faceAllocIndex = 1;
+    mutable FontGlyphMap glyphCache;
+
+    std::string fileUri;
+    StarVFS::ByteTable fontFileMemory;
+
+
+    uint8_t* GetTextureScanLine(emath::fvec2 pos, uint32_t line) const {
+        uint32_t lineSize = faceTextureSize * FontFacesPerDim;
+        size_t v = (size_t)pos.y() * faceTextureSize;
+        return facesTexture.get() 
+            + (v + line) * lineSize
+            + (size_t)pos.x() * faceTextureSize;
+    }
+
+    void ReloadFacesTexture(MoonGlare::Renderer::Frame * frame, MoonGlare::Renderer::Commands::CommandQueue & q);
+
+    void DumpFacesTexture();
+    void DumpFontCodePoints();
+
+    //old
+public:
+    using UniqueFontGlyph = std::unique_ptr<FontGlyph>;
 
     DefineFlagGetter(m_Flags, Flags::Ready, Ready);
     DefineFlagGetter(m_Flags, Flags::Loaded, Loaded);
@@ -65,20 +101,14 @@ protected:
     DefineFlagSetter(m_Flags, Flags::Ready, Ready);
     DefineFlagSetter(m_Flags, Flags::Loaded, Loaded);
 
-    bool DoInitialize();
-    bool DoFinalize();
-
 	Renderer::ShaderResourceHandle<Renderer::PassthroughShaderDescriptor> m_ShaderHandle{ };
     bool GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame *frame, const std::wstring &text, const FontRenderRequest &options);
-    FontGlyph* GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *q, Renderer::Frame * frame) const;
-private:
+    FontGlyph* GetGlyph(wchar_t codepoint) const;
+
     unsigned m_Flags = 0;
-    std::string fileUri;
-    StarVFS::ByteTable m_FontFile;
     FT_Face m_FontFace = nullptr;
     float m_CacheHight;
 
-    mutable FontGlyphMap m_GlyphCache;
 };
 
 using Font = iFont;

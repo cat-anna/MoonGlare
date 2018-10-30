@@ -99,20 +99,20 @@ void MaterialManager::ApplyTemplate(MaterialResourceHandle handle, const Materia
         }
 
         size_t index = (size_t)type;
-        mat.mapEnabled[index] = false;
-        mat.mapTexture[index] = { };
+        mat.mapEnabled[type] = false;
+        mat.mapTexture[type] = { };
 
         if (handleValid) {
-            mat.mapEnabled[index] = true;
-            mat.mapTexture[index] = map.textureHandle;
+            mat.mapEnabled[type] = true;
+            mat.mapTexture[type] = map.textureHandle;
             return;
         }
 
         if (!map.texture.empty()) {
-            mat.mapEnabled[index] = true;
+            mat.mapEnabled[type] = true;
             auto cfg = map.cfg;
             cfg.m_Flags.useSRGBColorSpace = type == Material::MapType::Diffuse || type == Material::MapType::Specular;
-            mat.mapTexture[index] = texR.LoadTexture(map.texture, cfg);
+            mat.mapTexture[type] = texR.LoadTexture(map.texture, cfg);
             return;
         }
     };

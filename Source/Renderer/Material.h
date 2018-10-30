@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Handles.h"
+#include <Foundation/EnumArray.h>
 
 #include "Configuration.Renderer.h"
 
@@ -16,7 +17,7 @@ struct Material {
     };
 
     template<typename T>
-    using Array = std::array<T, (size_t)MapType::MaxValue>;
+    using Array = EnumArray<MapType, T, (size_t)MapType::MaxValue>;
 
     emath::fvec3 diffuseColor;
     emath::fvec3 specularColor;

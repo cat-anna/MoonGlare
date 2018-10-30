@@ -99,8 +99,8 @@ struct ShaderBuilder {
         cmd.shinessExponent = mat.shiness;
         cmd.mapUnit = { (uint8_t)Sampler::DiffuseMap,(uint8_t)Sampler::NormalMap,(uint8_t)Sampler::ShinessMap,(uint8_t)Sampler::SpecularMap, };
         for (size_t i = 0; i < cmd.mapHandle.size(); ++i) {
-            auto ptr = mat.mapTexture[i].deviceHandle;
-            cmd.mapHandle[i] = ptr ? *ptr : Device::InvalidTextureHandle;
+            auto ptr = mat.mapTexture[(Material::MapType)i].deviceHandle;
+            cmd.mapHandle[(Material::MapType)i] = ptr ? *ptr : Device::InvalidTextureHandle;
         }
         cmd.diffuseColorLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::DiffuseColor)];
         cmd.specularColorLocation = (*m_UniformsPtr)[static_cast<uint32_t>(Uniform::SpecularColor)];

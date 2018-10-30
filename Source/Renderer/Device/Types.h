@@ -36,6 +36,8 @@ static constexpr ShaderStageHandle InvalidShaderStageHandle = static_cast<Shader
 
 enum class PixelFormat : uint16_t {
     Red = GL_RED,
+    RedGreen = GL_RG,
+    RedGreen8 = GL_RG8,
     RGB8 = GL_RGB,
     RGBA8 = GL_RGBA,
 
@@ -45,6 +47,11 @@ enum class PixelFormat : uint16_t {
 
 inline unsigned BppFromPixelFormat(PixelFormat pf) {
     switch (pf) {
+    case PixelFormat::Red:
+        return 8;
+    case PixelFormat::RedGreen8:
+    case PixelFormat::RedGreen:
+        return 16;
     case PixelFormat::RGB8:
     case PixelFormat::SRGB8:
         return 24;

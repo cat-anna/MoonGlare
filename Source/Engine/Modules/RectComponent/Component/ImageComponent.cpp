@@ -136,7 +136,7 @@ void ImageComponent::Step(const Core::MoveConfig & conf) {
 
         //shb.SetMaterial(item.material, key);
 
-        shb.Set<Sampler::DiffuseMap>(item.material.deviceHandle->mapTexture[0], key);
+        shb.Set<Sampler::DiffuseMap>(item.material.deviceHandle->mapTexture[(Material::MapType)0], key);
         shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(item.m_ImageMatrix), key);
         shb.Set<Uniform::BaseColor>(emath::MathCast<emath::fvec4>(item.m_Color), key);
         shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
@@ -226,7 +226,7 @@ bool ImageComponentEntry::Load(const std::string &fileuri, math::uvec2 FrameStri
 
         auto *matPtr = rf->GetResourceManager()->GetMaterialManager().GetMaterial(matH);
 
-        auto TextureSize = emath::MathCast<math::fvec2>(rf->GetResourceManager()->GetTextureResource().GetSize(matPtr->mapTexture[0]));
+        auto TextureSize = emath::MathCast<math::fvec2>(rf->GetResourceManager()->GetTextureResource().GetSize(matPtr->mapTexture[Renderer::Material::MapType::Diffuse]));
         if (TextureSize[0] <= 0 || TextureSize[1] <= 0)
             throw Renderer::FunctionalAsyncTask::RetryLater{}; //TODO: this may be infinite if texture is invalid
 

@@ -96,7 +96,7 @@ struct Texture {
 
     enum class ChannelSwizzle : uint8_t {
         R, G, B, A,
-        //Zero, One,
+        Zero, One,
     };
 
     static inline uint16_t ChannelSwizzleToEnum(ChannelSwizzle cs) {
@@ -109,6 +109,10 @@ struct Texture {
             return GL_BLUE;
         case ChannelSwizzle::A:
             return GL_ALPHA;
+        case ChannelSwizzle::Zero:
+            return GL_ZERO;
+        case ChannelSwizzle::One:
+            return GL_ONE;
         default:
             __debugbreak();
         }
@@ -116,12 +120,13 @@ struct Texture {
 
     union ColorSwizzle {
         struct {
-            ChannelSwizzle R : 2;
-            ChannelSwizzle G : 2;
-            ChannelSwizzle B : 2;
-            ChannelSwizzle A : 2;
+            ChannelSwizzle R : 3;
+            ChannelSwizzle G : 3;
+            ChannelSwizzle B : 3;
+            ChannelSwizzle A : 3;
+            bool enable : 1;
         };
-        uint8_t m_UIntValue;
+        uint16_t m_UIntValue;
 
         ColorSwizzle& operator= (const ColorSwizzle&) = default;
         ColorSwizzle& operator= (ChannelSwizzle cs) {
@@ -129,9 +134,9 @@ struct Texture {
             return *this;
         }
     };
-    static_assert(sizeof(ColorSwizzle) == sizeof(uint8_t), "Invalid size!");
+    static_assert(sizeof(ColorSwizzle) == sizeof(uint16_t), "Invalid size!");
 
-    static ColorSwizzle MakeColorSwizzle(uint8_t v) {
+    static ColorSwizzle MakeColorSwizzle(uint16_t v) {
         ColorSwizzle cs;
         cs.m_UIntValue = v;
         return cs;
@@ -152,12 +157,13 @@ struct TextureLoad {
 
     union Flags {
         struct {
-            bool m_Swizzle : 1;
             bool generateMipMaps : 1;
             bool useSRGBColorSpace : 1;
         };
         uint8_t m_UIntValue;
     } m_Flags;
+
+    uint8_t __padding[3];
 
     static_assert(sizeof(Flags) == sizeof(uint8_t), "Invalid size!");
 
@@ -179,7 +185,7 @@ struct TextureLoad {
         }
     }
 };
-static_assert(sizeof(TextureLoad) == sizeof(uint32_t), "Invalid size");//allowed to be 64bits if necessary
+static_assert(sizeof(TextureLoad) == sizeof(uint64_t), "Invalid size");//allowed to be 64bits if necessary
 static_assert(std::is_pod_v<TextureLoad>, "Must be pod");
 
 struct TextureRenderTask {

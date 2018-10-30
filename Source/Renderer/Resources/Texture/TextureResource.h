@@ -20,6 +20,11 @@ public:
 	void Finalize();
 
 	bool Allocate(TextureResourceHandle &out);
+    TextureResourceHandle Allocate() {
+        TextureResourceHandle r = {};
+        Allocate(r);
+        return r;
+    }
 	void Release(TextureResourceHandle h);
 
     TextureResourceHandle AllocExtTexture(const std::string &uri, Device::TextureHandle devTex, const emath::usvec2 &size = { 0,0 });

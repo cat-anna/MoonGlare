@@ -183,10 +183,10 @@ struct ShaderBindMaterialResourceArgument {
         SET::Set(emissiveColorLocation, emissiveColor);
 
         SET::Set(shinessExponentLocation, shinessExponent);
-        SET::Set(useNormalMapLocation, mapHandle[(size_t)Material::MapType::Normal] != Device::InvalidTextureHandle);
+        SET::Set(useNormalMapLocation, mapHandle[Material::MapType::Normal] != Device::InvalidTextureHandle);
 
         for (size_t i = 0; i < mapHandle.size(); ++i) {
-            BIND::Set(mapUnit[i], mapHandle[i]);
+            BIND::Set(mapUnit[(Material::MapType)i], mapHandle[(Material::MapType)i]);
         }
 	}
 

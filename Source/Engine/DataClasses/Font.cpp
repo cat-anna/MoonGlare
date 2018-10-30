@@ -6,6 +6,8 @@
 #include <nfMoonGlare.h>
 #include "Font.h"
 
+#include "Core/Engine.h"
+
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
 #include <Renderer/Commands/OpenGL/ArrayCommands.h>
 
@@ -37,6 +39,10 @@
 #include FT_MODULE_H 
 #include FT_GLYPH_H
 
+#ifdef DEBUG_DUMP
+#include <FreeImage.h>
+#endif
+
 namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
@@ -65,16 +71,6 @@ struct TrueTypeFontModule {
     }
 };
 
-struct FontGlyph {
-    bool m_Loaded = false;
-    Renderer::MaterialResourceHandle m_GlyphMaterial;
-
-    math::vec2 m_Advance;
-    math::vec2 m_Position;
-    math::vec2 m_BitmapSize;
-    math::vec2 m_TextureSize;//normalized value
-};
-
 //----------------------------------------------------------------
 
 iFont::iFont(const string& uri) : fileUri(uri) {
@@ -85,16 +81,100 @@ iFont::~iFont() {}
 
 //----------------------------------------------------------------
 
+void iFont::DumpFontCodePoints() {
+    FT_ULong  charcode;
+    FT_UInt   gindex;
+    size_t cnt = 0;
+
+    charcode = FT_Get_First_Char(m_FontFace, &gindex);
+    std::stringstream ss;
+    while (gindex != 0) {
+        ++cnt;
+        if (charcode < 256 && isprint(charcode))
+            ss << fmt::format("{}[0x{:02x}] ", (char)charcode, (int)charcode);
+        else
+            ss << fmt::format("\\{}[0x{:02x}] ", (int)charcode, (int)charcode);
+        if ((cnt % 16) == 0)
+            ss << "\n";
+        charcode = FT_Get_Next_Char(m_FontFace, charcode, &gindex);
+    }
+    auto str = ss.str();
+    AddLog(Debug, fmt::format("TTF[{}]: Available code points:[{}]\n{}", cnt, fileUri.c_str(), str));
+}
+
+void iFont::DumpFacesTexture() {
+    uint32_t texSize = faceTextureSize * FontFacesPerDim;
+    FIBITMAP *bitmap = FreeImage_Allocate(texSize, texSize, 8);    memcpy(FreeImage_GetBits(bitmap), facesTexture.get(), texSize*texSize);    std::string fname = "logs/" + fileUri.substr(fileUri.rfind('/')) + ".png";    FreeImage_Save(FIF_PNG, bitmap, fname.c_str());    FreeImage_Unload(bitmap);
+}
+
+//----------------------------------------------------------------
+
 bool iFont::Initialize() {
     if (IsReady())
-        return true;
+        return true;            
 
-    if (!DoInitialize()) {
-        AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", "!", typeid(*this).name());
+    SetReady(true);
+
+    if (!GetFileSystem()->OpenFile(fileUri, DataPath::URI, fontFileMemory)) {
+        AddLog(Error, "Unable to open font file!");
         return false;
     }
 
-    SetReady(true);
+    auto error = FT_New_Memory_Face(ftlib,
+        (const FT_Byte*)fontFileMemory.get(),	        /* first byte in memory */
+        fontFileMemory.size(),							/* size in bytes        */
+        0,										    	/* face_index           */
+        &m_FontFace);
+
+    if (error) {
+        AddLogf(Error, "Unable to load font: '%s' error code: %d", fileUri.c_str(), error);
+        return false;
+    }
+
+#ifdef DEBUG_DUMP
+    DumpFontCodePoints();
+#endif
+
+    faceTextureSize = 40;
+    m_CacheHight = 32;// ((float)faceTextureSize) * 0.75;
+    uint32_t texSize = faceTextureSize * FontFacesPerDim;
+    uint32_t texBytes = texSize * texSize;
+    facesTexture.reset(new uint8_t[texBytes]);
+    memset(facesTexture.get(), 0, texBytes);
+
+    error = FT_Set_Char_Size(
+        m_FontFace,			                /* handle to face object           */
+        0,					                /* char_width in 1/64th of points  */
+        (FT_F26Dot6(m_CacheHight)*64.0f),	    /* char_height in 1/64th of points */
+        96,			    	                /* horizontal device resolution    */
+        96);				                /* vertical device resolution      */
+
+    if (error) {
+        AddLogf(Error, "Unable to set font size: '%s' error code: %d", fileUri.c_str(), error);
+        return Finalize();
+    }
+
+    //todo: select unicode charmap
+
+    auto *e = Core::GetEngine();
+    auto *rf = e->GetWorld()->GetRendererFacade();
+
+    static constexpr wchar_t DefaultChars[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,!@#$%^&*-_=+?()[]{};:'<>\\/\"0123456789";
+    for (auto c : DefaultChars)
+        GetGlyph(c);
+
+    rf->GetAsyncLoader()->PostTask([this, rf](Renderer::ResourceLoadStorage &storage) {
+        auto *resmgr = rf->GetResourceManager();
+        auto &texR = resmgr->GetTextureResource();
+
+        using namespace Renderer::Device;
+
+        Renderer::MaterialTemplate matT;
+        matT.diffuseMap.enabled = true;
+        matT.diffuseMap.textureHandle = texR.CreateTexture(storage.m_Queue, facesTexture.get(), { 1,1 }, {}, PixelFormat::Red, PixelFormat::Red, ValueFormat::UnsignedByte);
+        facesMaterial = resmgr->GetMaterialManager().CreateMaterial("", matT);
+    });
+
     AddLogf(Debug, "Initialized resource '%s' of class '%s'", "!", typeid(*this).name());
     return true;
 }
@@ -105,76 +185,11 @@ bool iFont::Finalize() {
 
     SetReady(false);
 
-    if (!DoFinalize()) {
-        AddLogf(Error, "Unable to initialize resource '%s' of class '%s'", "!", typeid(*this).name());
-        return false;
-    }
-    AddLogf(Debug, "Finalized resource '%s' of class '%s'", "!", typeid(*this).name());
-    return true;
-}
-
-bool iFont::DoInitialize() {
-    if (!GetFileSystem()->OpenFile(fileUri, DataPath::URI, m_FontFile)) {
-        AddLog(Error, "Unable to open font file!");
-        return false;
-    }
-
-    auto error = FT_New_Memory_Face(ftlib,
-        (const FT_Byte*)m_FontFile.get(),	        /* first byte in memory */
-        m_FontFile.size(),							/* size in bytes        */
-        0,											/* face_index           */
-        &m_FontFace);
-
-    if (error) {
-        AddLogf(Error, "Unable to load font: '%s' error code: %d", fileUri.c_str(), error);
-        return false;
-    }
-
-    {
-        FT_ULong  charcode;
-        FT_UInt   gindex;
-        size_t cnt = 0;
-
-        charcode = FT_Get_First_Char(m_FontFace, &gindex);
-        std::stringstream ss;
-        while (gindex != 0) {
-            ++cnt;
-            if (charcode < 256 && isprint(charcode))
-                ss << fmt::format("{}[0x{:02x}] ", (char)charcode, (int)charcode);
-            else
-                ss << fmt::format("\\{}[0x{:02x}] ", (int)charcode, (int)charcode);
-            if ((cnt % 16) == 0)
-                ss << "\n";
-            charcode = FT_Get_Next_Char(m_FontFace, charcode, &gindex);
-        }
-        auto str = ss.str();
-        AddLog(Debug, fmt::format("TTF[{}]: Available code points:[{}]\n{}", cnt, fileUri.c_str(), str));
-    }
-
-    m_CacheHight = 16;
-
-    error = FT_Set_Char_Size(
-        m_FontFace,			            /* handle to face object           */
-        0,					            /* char_width in 1/64th of points  */
-        FT_F26Dot6(m_CacheHight*64.0f),	/* char_height in 1/64th of points */
-        96,			    	            /* horizontal device resolution    */
-        96);				            /* vertical device resolution      */
-
-    if (error) {
-        AddLogf(Error, "Unable to set font size: '%s' error code: %d", fileUri.c_str(), error);
-        return Finalize();
-    }
-
-    //todo: select unicode charmap
-
-    return true;
-}
-
-bool iFont::DoFinalize() {
-    m_GlyphCache.clear();
+    facesTexture.reset();
+    glyphCache.clear();
     FT_Done_Face(m_FontFace);
     m_FontFace = nullptr;
-    m_FontFile.reset();
+    fontFileMemory.reset();
     return true;
 }
 
@@ -218,7 +233,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
     shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
     shb.Set<Uniform::BackColor>(options.m_Color);
 
-    bool fullsucc = GenerateCommands(q, frame, text, options);
+    GenerateCommands(q, frame, text, options);
 
     trt->End();
 
@@ -273,7 +288,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 
     frame->Submit(trt);
 
-    return fullsucc;
+    return true;
 }
 
 //----------------------------------------------------------------
@@ -291,23 +306,16 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
         h = m_CacheHight;
     }
 
-    math::vec3 char_scale(h / m_CacheHight);
+    math::vec3 char_scale(h / faceTextureSize);
     const wstring::value_type *cstr = text.c_str();
-    //	Graphic::vec2 pos(0);
-    //	float hmax = h;
-    //
-    //	auto ScreenSize = ...;
-    //	float Aspect = ScreenSize[0] / ScreenSize[1];
 
     while (*cstr) {
         wchar_t c = *cstr;
-        ++cstr;
+        ++cstr;              
 
-        auto *g = GetGlyph(c, nullptr, nullptr);
-        if (!g)
-            continue;
+        auto *g = GetGlyph(c);
 
-        auto BitmapSize = g->m_BitmapSize * char_scale.x;
+        auto BitmapSize = g->charSize * char_scale.x;
         auto CharPos = g->m_Position * char_scale.x;
 
         topline = std::min(topline, CharPos.y);
@@ -338,7 +346,6 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
     return rect;
 }
 
-
 //
 //  _                    _ 	___________________
 // | |                  | |					   |topline
@@ -350,7 +357,6 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
 //               |___/     	___________________|bottomline
 //
 // |-----------------------| width
-
 
 bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Frame * frame, const std::wstring &text, const FontRenderRequest & options) {
     if (text.empty())
@@ -387,13 +393,23 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
         vaob.BindVAO();
     }
 
-    //    float y = 0;
     float h = m_CacheHight;
 
     if (options.m_Size > 0)
         h = options.m_Size;
 
-    math::vec3 char_scale(h / m_CacheHight);
+    for(auto c : text)
+        GetGlyph(c);
+
+    if (faceTextureDirty) {
+        faceTextureDirty = false;
+        ReloadFacesTexture(frame, q);
+#ifdef DEBUG_DUMP
+        DumpFacesTexture();
+#endif
+    }
+
+    math::vec3 char_scale(h / faceTextureSize);
     const wstring::value_type *cstr = text.c_str();
     math::vec2 pos(0);
     float hmax = h;
@@ -401,20 +417,20 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
     auto CurrentVertexQuad = Verticles;
     auto CurrentTextureUV = TextureUV;
     auto CurrentIndex = VerticleIndexes;
-    bool allglyphs = true;
+    
+    auto *resmgr = frame->GetResourceManager();
+
+    auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
+    auto mat = resmgr->GetMaterialManager().GetMaterial(facesMaterial);
+    texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[Renderer::Material::MapType::Diffuse].index;
+
     while (*cstr) {
         wchar_t c = *cstr;
         ++cstr;
 
-        auto *g = GetGlyph(c, &q, frame);
-        if (!g) {
-            allglyphs = false;
-            continue;
-        }
+        auto *g = GetGlyph(c);
 
-        allglyphs = allglyphs && g->m_Loaded;
-
-        auto bs = g->m_BitmapSize;
+        math::fvec2 bs = { faceTextureSize, faceTextureSize };
         auto chpos = g->m_Position;
         chpos *= char_scale.x;
         bs *= char_scale.x;
@@ -427,11 +443,11 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
             CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
             CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
 
-            const auto &tc = g->m_TextureSize;
-            CurrentTextureUV[0] = emath::fvec2(0, tc.y);
-            CurrentTextureUV[1] = emath::fvec2(0, 0);
-            CurrentTextureUV[2] = emath::fvec2(tc.x, 0);
-            CurrentTextureUV[3] = emath::fvec2(tc.x, tc.y);
+            emath::fvec2 uvBase = g->fontFacePosition / FontFacesPerDim;// *DeltaTexUV;
+            CurrentTextureUV[0] = emath::fvec2(uvBase[0],               uvBase[1]);
+            CurrentTextureUV[1] = emath::fvec2(uvBase[0],               uvBase[1] + DeltaTexUV);
+            CurrentTextureUV[2] = emath::fvec2(uvBase[0] + DeltaTexUV,  uvBase[1] + DeltaTexUV);
+            CurrentTextureUV[3] = emath::fvec2(uvBase[0] + DeltaTexUV,  uvBase[1]);
 
             size_t basevertex = CurrentVertexQuad - Verticles;
             size_t baseIndex = CurrentIndex - VerticleIndexes;
@@ -439,12 +455,6 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
                 *CurrentIndex = static_cast<uint16_t>(idx + basevertex);
                 ++CurrentIndex;
             }
-
-            auto *resmgr = frame->GetResourceManager();
-            auto mat = resmgr->GetMaterialManager().GetMaterial(g->m_GlyphMaterial);
-
-            auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
-            texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[0].index;
 
             auto arg = q.PushCommand<Renderer::Commands::VAODrawTrianglesBase>();
             arg->m_NumIndices = 6;
@@ -459,14 +469,37 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
         hmax = math::max(hmax, bsy);
     }
 
-    return allglyphs;
+    return true;
 }
 
-FontGlyph* iFont::GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *q, Renderer::Frame * frame) const {
-    auto &glyph = m_GlyphCache[codepoint];
+void iFont::ReloadFacesTexture(MoonGlare::Renderer::Frame * frame, MoonGlare::Renderer::Commands::CommandQueue & q) {
+    auto *resmgr = frame->GetResourceManager();
+    auto &texR = resmgr->GetTextureResource();
 
-    if (glyph && glyph->m_Loaded)
-        return glyph.get();
+    Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
+    tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Linear;
+    tload.m_Edges = Renderer::Configuration::Texture::Edges::Repeat;
+    using ChannelSwizzle = Renderer::Configuration::Texture::ChannelSwizzle;
+    tload.m_Flags.generateMipMaps = false;
+    tload.m_Swizzle = ChannelSwizzle::R;
+    tload.m_Swizzle.A = ChannelSwizzle::One;
+    tload.m_Swizzle.enable = true;
+
+    uint32_t texSize = faceTextureSize * FontFacesPerDim;
+
+    using namespace Renderer::Device;
+
+    texR.SetTexturePixels(facesMaterial.deviceHandle->mapTexture[Renderer::Material::MapType::Diffuse], q,
+        facesTexture.get(), { texSize,texSize }, tload, PixelFormat::Red, PixelFormat::Red,
+        false, ValueFormat::UnsignedByte);
+}
+
+iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
+    auto it = glyphCache.find(codepoint);
+    if (it != glyphCache.end())
+        return &it->second;
+    
+    auto *glyph = &glyphCache[codepoint];
 
     auto glyph_index = FT_Get_Char_Index(m_FontFace, codepoint);
     auto load_flags = FT_LOAD_DEFAULT;// FT_LOAD_RENDER;
@@ -480,9 +513,6 @@ FontGlyph* iFont::GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *
         return nullptr;
     }
 
-    if (!glyph)
-        glyph = std::make_unique<FontGlyph>();
-
     FT_Glyph ffglyph = nullptr;
     if (FT_Get_Glyph(m_FontFace->glyph, &ffglyph)) {
         AddLogf(Error, "Get glyph failed! codepoint: 0x%x", (unsigned)codepoint);
@@ -495,67 +525,45 @@ FontGlyph* iFont::GetGlyph(wchar_t codepoint, Renderer::Commands::CommandQueue *
         FT_Done_Glyph(ffglyph);
         return nullptr;
     }
-    FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ffglyph;
 
-    // This Reference Will Make Accessing The Bitmap Easier.
+    FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ffglyph;
     FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
-    glyph->m_BitmapSize = math::vec2(bitmap.width, bitmap.rows);
-    glyph->m_Position = math::vec2(bitmap_glyph->left, -bitmap_glyph->top + m_CacheHight);
-    glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x >> 6, 0);// +glyph->m_Position;
+    unsigned pos = (faceTextureSize - bitmap.rows) / 2;
+    glyph->m_Position = math::vec2(bitmap_glyph->left, faceTextureSize - (bitmap_glyph->top + pos));
+    glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x / 64.0f, 0);
+    glyph->charSize = math::fvec2(bitmap.width + 1, m_CacheHight);// bitmap.rows + 1);      
 
-    if (q && bitmap.width > 0 && bitmap.rows > 0) {
-        //translate it and upload to render device
-        unsigned int width = math::next_power2(bitmap.width);
-        unsigned int height = math::next_power2(bitmap.rows);
-        uint8_t *expanded_data = frame->GetMemory().Allocate<uint8_t>(width * height);
+    if (bitmap.rows > 0 && bitmap.width > 0) {
+        auto idx = faceAllocIndex++;
+        faceTextureDirty = true;
 
-        for (unsigned j = 0; j < height; j++) {
-            for (unsigned i = 0; i < width; i++) {
-                char value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
-                uint8_t u = value;
-                expanded_data[(i + j * width)] = u;
+        glyph->fontFacePosition = { idx % FontFacesPerDim , idx / FontFacesPerDim };
+
+        for (unsigned j = 0; j < bitmap.rows; j++) {
+            unsigned l = faceTextureSize - j - pos - 1;
+            auto line = GetTextureScanLine(glyph->fontFacePosition, l);
+            for (unsigned i = 0; i < bitmap.width; i++) {
+                uint8_t value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
+                line[i] = value;
             }
         }
-
-        float x = (float)bitmap.width / (float)width;
-        float y = (float)bitmap.rows / (float)height;
-        glyph->m_TextureSize = math::vec2(x, y);
-
-        auto *resmgr = frame->GetResourceManager();
-        auto &texR = resmgr->GetTextureResource();
-
-        Renderer::Configuration::TextureLoad tload = Renderer::Configuration::TextureLoad::Default();
-        tload.m_Filtering = Renderer::Configuration::Texture::Filtering::Default;
-        tload.m_Edges = Renderer::Configuration::Texture::Edges::Clamp;
-        tload.m_Flags.m_Swizzle = true;
-        using ChannelSwizzle = Renderer::Configuration::Texture::ChannelSwizzle;
-        tload.m_Swizzle = ChannelSwizzle::R;
-        auto size = emath::usvec2(width, height);
-
-        using namespace Renderer::Device;
-
-        Renderer::MaterialTemplate matT;
-        matT.diffuseMap.enabled = true;
-        matT.diffuseMap.textureHandle = texR.CreateTexture(*q, (const uint8_t*)expanded_data, size, tload, PixelFormat::Red, PixelFormat::Red, ValueFormat::UnsignedByte);
-
-        glyph->m_GlyphMaterial = resmgr->GetMaterialManager().CreateMaterial("", matT);
-
-        glyph->m_Loaded = true;
-        auto faceglyph = m_FontFace->glyph;
-        DebugLogf(Debug, "TTF[%s]: char %c[0x%x]  size:(%3d;%3d) tex:(%3d;%3d) pos:(%4d;%4d) bsize(%3d;%3d)",
-            fileUri.c_str(),
-            (unsigned)codepoint, (unsigned)codepoint,
-            (int)faceglyph->advance.x, (int)faceglyph->advance.y,
-            width, height,
-            (int)bitmap_glyph->left, (int)bitmap_glyph->top,
-            (int)bitmap.width, (int)bitmap.rows
-        );
     } else {
-        //glyph->m_Loaded = true;
+        glyph->fontFacePosition = { 0, 0, };
     }
+
+    auto faceglyph = m_FontFace->glyph;
+    DebugLogf(Debug, "TTF[%s]: char %c[0x%x] size:(%3d;%3d) bitmap:(%3d;%3d) pos:(%4d;%4d) bsize(%3d;%3d)",
+        fileUri.c_str(),
+        (unsigned)codepoint, (unsigned)codepoint,
+        (int)faceglyph->advance.x, (int)faceglyph->advance.y,
+        (int)bitmap.width, (int)bitmap.rows,
+        (int)bitmap_glyph->left, (int)bitmap_glyph->top,
+        (int)bitmap.width, (int)bitmap.rows
+    );                     
+
     FT_Done_Glyph(ffglyph);
-    return glyph.get();
+    return glyph;
 }
 
 } //namespace Fonts
