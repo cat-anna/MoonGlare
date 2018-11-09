@@ -28,7 +28,7 @@ enum class ComponentClassId : uint16_t { Invalid = 0, };
 
 class BaseComponentInfo {
 public:
-    static ComponentClassId GetUsedComponentTypes() { return static_cast<ComponentClassId>(idAlloc); }
+    static ComponentClassId GetUsedComponentTypes() { return static_cast<ComponentClassId>(idAlloc+1); }
     using ComponentFunc = void(void*);
     using ComponentBiFunc = void(void*, void*);
     using ComponentScriptPush = int(ComponentArray *carray, iSubsystemManager *manager, Entity owner, lua_State *lua);

@@ -25,7 +25,8 @@
 #include <StaticFog.x2c.h>
 #include <Scene.x2c.h>
 
-#include <DirectAnimationComponent.x2c.h>
+#include <SkinComponent.x2c.h>
+#include <BoneAnimatorComponent.x2c.h>
 #include <Foundation/SoundSystem/Component/SoundSourceComponent.h>
 #include <SoundSourceComponent.x2c.h>
 
@@ -131,24 +132,6 @@ struct CameraComponentDesc {
     static constexpr SubSystemId Depend = SubSystemId::Transform;
     static constexpr ComponentOrder Order = ComponentOrder::CameraComponent;
 };
-struct MeshComponentDesc {
-    using Entry_t = MeshComponent::MeshEntry_t;
-    using Settings_t = EmptySettings;
-    static constexpr char *DisplayName = "Mesh";
-    static constexpr char *Name = "Mesh";
-    static constexpr SubSystemId CID = SubSystemId::Mesh;
-    static constexpr SubSystemId Depend = SubSystemId::Transform;
-    static constexpr ComponentOrder Order = ComponentOrder::MeshComponent;
-};		
-struct DirectAnimationComponentDesc {
-    using Entry_t = DirectAnimationComponent::DirectAnimationEntry_t;
-    using Settings_t = EmptySettings;
-    static constexpr char *DisplayName = "DirectAnimation";
-    static constexpr char *Name = "DirectAnimation";
-    static constexpr SubSystemId CID = SubSystemId::DirectAnimation;
-    static constexpr SubSystemId Depend = SubSystemId::Transform;
-    static constexpr ComponentOrder Order = ComponentOrder::DirectAnimation;
-};
 
 struct ScriptComponentDesc {
     using Entry_t = ScriptComponent::ScriptEntry_t;
@@ -240,6 +223,28 @@ struct SkinSystemDesc {
     using Settings_t = EmptySettings;
 };
 //-------------------------------------
+struct BoneAnimatorComponentDesc {
+    static constexpr char *DisplayName = "BoneAnimatorComponent";
+    static constexpr char *Name = "BoneAnimator";
+    using Entry_t = x2c::Component::BoneAnimatorComponent_t;
+};
+struct BoneAnimatorSystemDesc {
+    static constexpr char *DisplayName = "BoneAnimatorSystem";
+    static constexpr char *Name = "BoneAnimatorSystem";
+    using Settings_t = EmptySettings;
+};
+//-------------------------------------
+struct MeshComponentDesc {
+    static constexpr char *DisplayName = "MeshComponent";
+    static constexpr char *Name = "Mesh";
+    using Entry_t = x2c::Component::MeshComponent::MeshEntry_t;
+};
+struct MeshSystemDesc {
+    static constexpr char *DisplayName = "MeshSystem";
+    static constexpr char *Name = "MeshSystem";
+    using Settings_t = EmptySettings;
+};
+//-------------------------------------
 //-------------------------------------
 //-------------------------------------
 struct Register {
@@ -259,8 +264,6 @@ struct Register {
         RegComponent<TransformComponentDesc>();
         RegComponent<LightComponentDesc>();
         RegComponent<CameraComponentDesc>();
-        RegComponent<MeshComponentDesc>();
-        RegComponent<DirectAnimationComponentDesc>();
         
         RegComponent<BodyComponentDesc>();
         RegComponent<BodyShapeComponentDesc>();
@@ -274,7 +277,13 @@ struct Register {
         System<SoundSourceSystemDesc>();
 
         Component<SkinComponentDesc>();
-        System<SkinSystemDesc>();
+        System<SkinSystemDesc>();                
+
+        Component<BoneAnimatorComponentDesc>();
+        System<BoneAnimatorSystemDesc>();
+
+        Component<MeshComponentDesc>();
+        System<MeshSystemDesc>();
 
         RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
     }

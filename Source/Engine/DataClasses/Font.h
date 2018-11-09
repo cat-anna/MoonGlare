@@ -8,6 +8,11 @@ namespace MoonGlare {
 namespace DataClasses {
 namespace Fonts {
 
+struct Descriptor {
+    float Size = 0.0f;
+    math::fvec3 Color = math::fvec3(1.0f);
+};
+
 class iFont {
 public:
     iFont(const string& URI);
@@ -26,16 +31,15 @@ private:
 
     using FontGlyphMap = std::unordered_map<wchar_t, FontGlyph>;
 
+    std::string fileUri;
+    StarVFS::ByteTable fontFileMemory;
     std::unique_ptr<uint8_t> facesTexture;
     Renderer::MaterialResourceHandle facesMaterial = { };
-    uint8_t faceTextureSize = 0;
+    uint8_t faceTextureSize = 0;  
+
     mutable bool faceTextureDirty = false;
     mutable uint32_t faceAllocIndex = 1;
     mutable FontGlyphMap glyphCache;
-
-    std::string fileUri;
-    StarVFS::ByteTable fontFileMemory;
-
 
     uint8_t* GetTextureScanLine(emath::fvec2 pos, uint32_t line) const {
         uint32_t lineSize = faceTextureSize * FontFacesPerDim;
@@ -89,7 +93,8 @@ public:
 
     FontRect TextSize(const wstring &text, const Descriptor *style = nullptr, bool UniformPosition = false) const;
 	
-	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
+	bool RenderText(const std::wstring &text, Renderer::Frame *frame, const FontRenderRequest &options, 
+        const FontDeviceOptions &devopt, FontRect &outTextRect, FontResources &resources);
 protected:
     struct Flags {
         enum {

@@ -13,7 +13,7 @@ BaseSystemInfo::SystemClassesTypeTable& BaseSystemInfo::GetSystemClassesTypeInfo
 
 void BaseSystemInfo::Dump(std::ostream &output) {
     output << "System classes:\n";
-    for (std::underlying_type_t<SystemClassId> i = 0; i < (size_t)idAlloc; ++i) {
+    for (std::underlying_type_t<SystemClassId> i = 0; i <= (size_t)idAlloc; ++i) {
         auto tinfo = GetSystemTypeInfo((SystemClassId)i);
         if (!tinfo.infoPtr)
             continue;

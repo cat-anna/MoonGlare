@@ -12,8 +12,8 @@ BaseEventInfo::EventClassesTypeTable& BaseEventInfo::GetEventClassesTypeInfo() {
 
 void BaseEventInfo::Dump(std::ostream &output) {
 	output << "Event classes:\n";
-
-    for (std::underlying_type_t<EventClassId> i = 0; i < idAlloc; ++i) {
+                                                       
+    for (std::underlying_type_t<EventClassId> i = 0; i <= idAlloc; ++i) {
         auto tinfo = GetEventTypeInfo((EventClassId)i);
         if (!tinfo.infoPtr)
             continue;

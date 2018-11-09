@@ -70,7 +70,7 @@ protected:
     ShaderResourceHandle<DirectionalLightShaderDescriptor> m_ShaderLightDirectionalHandle{};
     ShaderResourceHandle<StencilLightShaderDescriptor> m_ShaderStencilHandle{};
     ShaderResourceHandle<GeometryShaderDescriptor> m_ShaderGeometryHandle{};
-    ShaderResourceHandle<PostProcessShader> mm_PostProcessShaderHandle{};
+    ShaderResourceHandle<PostProcessShader> m_PostProcessShaderHandle{};
 
     uint32_t meshcouter = 0;
     float visibility = -1.0f;
@@ -82,9 +82,9 @@ protected:
     MeshResourceHandle sphereMesh;
     MeshResourceHandle coneMesh;
     MeshResourceHandle quadMesh;
+    //MeshResourceHandle doomMesh;
 
     Renderer::StaticFog fog = {};
-    bool fogSet = false;
 
     void InitializeDirectionalQuad();
 };

@@ -27,7 +27,7 @@ enum class SystemClassId : uint16_t { Invalid = 0, };
 
 class BaseSystemInfo {
 public:
-    static SystemClassId GetUsedSystemTypes() { return static_cast<SystemClassId>(idAlloc); }
+    static SystemClassId GetUsedSystemTypes() { return static_cast<SystemClassId>(idAlloc+1); }
 
     struct SystemClassInfo {
         SystemClassId id = SystemClassId::Invalid;

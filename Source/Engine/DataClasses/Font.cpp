@@ -111,8 +111,7 @@ void iFont::DumpFacesTexture() {
 
 bool iFont::Initialize() {
     if (IsReady())
-        return true;            
-
+        return true;          
     SetReady(true);
 
     if (!GetFileSystem()->OpenFile(fileUri, DataPath::URI, fontFileMemory)) {
@@ -181,8 +180,7 @@ bool iFont::Initialize() {
 
 bool iFont::Finalize() {
     if (!IsReady())
-        return true;
-
+        return true;           
     SetReady(false);
 
     facesTexture.reset();
@@ -195,7 +193,8 @@ bool iFont::Finalize() {
 
 //----------------------------------------------------------------
 
-bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
+bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const FontRenderRequest & options, 
+        const FontDeviceOptions &devopt, FontRect & outTextRect, FontResources & resources) {
     using PassthroughShaderDescriptor = Renderer::PassthroughShaderDescriptor;
 
     auto &shres = frame->GetResourceManager()->GetShaderResource();
@@ -443,7 +442,7 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
             CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
             CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
 
-            emath::fvec2 uvBase = g->fontFacePosition / FontFacesPerDim;// *DeltaTexUV;
+            emath::fvec2 uvBase = g->fontFacePosition / FontFacesPerDim;
             CurrentTextureUV[0] = emath::fvec2(uvBase[0],               uvBase[1]);
             CurrentTextureUV[1] = emath::fvec2(uvBase[0],               uvBase[1] + DeltaTexUV);
             CurrentTextureUV[2] = emath::fvec2(uvBase[0] + DeltaTexUV,  uvBase[1] + DeltaTexUV);
@@ -533,7 +532,12 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
     glyph->m_Position = math::vec2(bitmap_glyph->left, faceTextureSize - (bitmap_glyph->top + pos));
     glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x / 64.0f, 0);
     glyph->charSize = math::fvec2(bitmap.width + 1, m_CacheHight);// bitmap.rows + 1);      
+    glyph->fontFacePosition = { 0, 0, };
 
+    if (bitmap.rows > faceTextureSize || bitmap.width > faceTextureSize) {
+        //TODO: report font error!
+    }
+    else
     if (bitmap.rows > 0 && bitmap.width > 0) {
         auto idx = faceAllocIndex++;
         faceTextureDirty = true;
@@ -549,7 +553,6 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
             }
         }
     } else {
-        glyph->fontFacePosition = { 0, 0, };
     }
 
     auto faceglyph = m_FontFace->glyph;

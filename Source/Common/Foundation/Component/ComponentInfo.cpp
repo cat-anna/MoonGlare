@@ -18,7 +18,7 @@ BaseComponentInfo::ComponentClassesTypeTable& BaseComponentInfo::GetComponentCla
 
 void BaseComponentInfo::Dump(std::ostream &output) {
     output << "Component classes:\n";
-    for (std::underlying_type_t<ComponentClassId> i = 0; i < (size_t)idAlloc; ++i) {
+    for (std::underlying_type_t<ComponentClassId> i = 0; i <= (size_t)idAlloc; ++i) {
         auto tinfo = GetComponentTypeInfo((ComponentClassId)i);
         if (!tinfo.infoPtr)
             continue;

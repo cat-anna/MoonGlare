@@ -22,7 +22,7 @@ enum class EventClassId : uint16_t { Invalid = 0, };
 
 class BaseEventInfo {
 public:
-    static EventClassId GetUsedEventTypes() { return static_cast<EventClassId>(idAlloc); }
+    static EventClassId GetUsedEventTypes() { return static_cast<EventClassId>(idAlloc+1); }
 
     virtual const std::type_info &GetTypeInfo() const = 0;
 

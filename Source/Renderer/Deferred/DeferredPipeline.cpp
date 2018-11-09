@@ -91,18 +91,19 @@ void DeferredSink::Initialize(RendererFacade *renderer) {
     shres.Load(m_ShaderLightPointHandle, "Deferred/LightPoint");
     shres.Load(m_ShaderLightSpotHandle, "Deferred/LightSpot");
 
-    shres.Load(mm_PostProcessShaderHandle, "PostProcess");
+    shres.Load(m_PostProcessShaderHandle, "PostProcess");
 
     auto &mm = m_Renderer->GetResourceManager()->GetMeshManager();
 
-    sphereMesh = mm.LoadMesh("file:///Models/PointLightSphere.3ds");
-    coneMesh = mm.LoadMesh("file:///Models/PointLightSphere.3ds");
+    sphereMesh = mm.LoadMesh("file:///Models/sphere.3ds");
+    coneMesh = mm.LoadMesh("file:///Models/sphere.3ds");
+    //doomMesh = mm.LoadMesh("file:///Models/doom.3ds");
     InitializeDirectionalQuad();
 }
 
 void DeferredSink::SetStaticFog(const StaticFog &afog) {
     fog = afog;
-    fogSet = false;
+    //fogSet = false;
     visibility = fog.m_Enabled ? fog.m_End + 1 : -1;
 }
 
@@ -117,7 +118,7 @@ void DeferredSink::Reset(Frame *frame) {
     auto &shres = m_Renderer->GetResourceManager()->GetShaderResource();
     auto &layers = m_frame->GetCommandLayers();
 
-    auto SetFog = [this](auto builder) {
+    auto SetFog = [this](auto &builder) {
         builder.Set("gStaticFog.Enabled", fog.m_Enabled ? 1 : 0);
         if (fog.m_Enabled) {
             builder.Set("gStaticFog.Color", emath::MathCast<emath::fvec3>(fog.m_Color));
@@ -176,9 +177,7 @@ void DeferredSink::Reset(Frame *frame) {
         m_DirectionalLightQueue = frame->AllocateSubQueue();
         m_DirectionalLightShader = shres.GetBuilder(*m_DirectionalLightQueue, m_ShaderLightDirectionalHandle);
         m_DirectionalLightShader.Bind();
-        if (!fogSet) {
-            SetFog(m_DirectionalLightShader);
-        }
+        SetFog(m_DirectionalLightShader);
         m_DirectionalLightShader.Set<Uniform::ScreenSize>(m_ScreenSize);
         m_DirectionalLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
         //she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
@@ -209,9 +208,7 @@ void DeferredSink::Reset(Frame *frame) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_PointLightShader.Bind();//TODO
-        if (!fogSet) {
-            SetFog(m_PointLightShader);
-        }
+        SetFog(m_PointLightShader);
         m_PointLightShader.Set<Uniform::ScreenSize>(m_ScreenSize);
     }
     //------------------------------------------------------------------------------------------
@@ -223,9 +220,7 @@ void DeferredSink::Reset(Frame *frame) {
 
         m_PointLightQueue->MakeCommand<Commands::Enable>((GLenum)GL_STENCIL_TEST);
         m_SpotShader.Bind();//TODO
-        if (!fogSet) {
-            SetFog(m_SpotShader);
-        }
+        SetFog(m_SpotShader);
         m_SpotShader.Set<Uniform::ScreenSize>(m_ScreenSize);
     }
     //------------------------------------------------------------------------------------------
@@ -282,7 +277,7 @@ void DeferredSink::Reset(Frame *frame) {
         //    (GLenum)GL_COLOR_BUFFER_BIT, (GLenum)GL_LINEAR);
         //glBlitFramebuffer(0, 0, size[0], size[1], 0, 0, size[0], size[1], GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-        auto pps = shres.GetBuilder(qpost, mm_PostProcessShaderHandle);
+        auto pps = shres.GetBuilder(qpost, m_PostProcessShaderHandle);
         pps.Bind();
 
         m_GeometryQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -470,7 +465,6 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
             //sm->BindAndClear();
             m_PointLightShadowQueue->MakeCommand<Commands::FramebufferBind>(sm->framebufferHandle);
             m_PointLightShadowQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_DEPTH_BUFFER_BIT));
-
 
             std::array<emath::fmat4, 6> shadowTransforms;
 
