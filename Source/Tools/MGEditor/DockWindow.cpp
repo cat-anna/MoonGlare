@@ -4,8 +4,8 @@
 namespace MoonGlare {
 namespace QtShared {
 
-DockWindow::DockWindow(QWidget *parent, bool AutoRefresh)
-	: QDockWidget(parent)
+DockWindow::DockWindow(QWidget *parent, bool AutoRefresh, SharedModuleManager smm)
+	: QDockWidget(parent), moduleManager(std::move(smm))
 {
 	SetAutoRefresh(AutoRefresh);
 

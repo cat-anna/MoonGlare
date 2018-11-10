@@ -18,11 +18,5 @@ Structure.new {
 			type = bool,
 			default = true,
 		},
-		{
-			name = "PerSecond",
-			description = "",
-			type = bool,
-			default = false,
-		},
 	},
 }

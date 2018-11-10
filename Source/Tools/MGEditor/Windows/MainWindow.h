@@ -9,6 +9,7 @@
 #include <ChangesManager.h>
 
 #include <ToolBase/Module.h>
+#include <ToolBase/interfaces/ActionBarSink.h>
 #include <MiscIfs.h>
 
 namespace Ui { class MainWindow; }
@@ -36,7 +37,9 @@ class MainWindow
 	, public QtShared::UserQuestions
 	, public iSettingsUser
 	, public QtShared::MainWindowProvider
-	, public QtShared::QtWindowProvider<MainWindow> {
+	, public QtShared::QtWindowProvider<MainWindow> 
+    , public iActionBarSink
+    {
 	Q_OBJECT
 public:
 	MainWindow(SharedModuleManager modmgr);
@@ -71,6 +74,22 @@ private:
 	void NewModule(const std::string& MasterFile);
 	void OpenModule(const std::string& MasterFile);
 	void CloseModule();
+
+    void AddAction(std::string id, ActionVariant action, std::weak_ptr<iActionProvider> provider) final;
+    void RemoveProvider(std::weak_ptr<iActionProvider> provider) final;
+    struct ActionInfo {
+        ActionVariant action;
+        std::weak_ptr<iActionProvider> provider;
+        QAction* GetActionPtr() const {
+            return std::visit([this](auto item) ->QAction* {
+                if constexpr (std::is_same_v<QAction*, decltype(item)>)
+                    return item;
+                else
+                    return nullptr;
+            }, action);
+        }
+    };
+    std::unordered_map<std::string, ActionInfo> actionBarItems;
 
 public slots:
     void RefreshStatus();

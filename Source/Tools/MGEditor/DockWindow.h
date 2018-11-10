@@ -2,6 +2,7 @@
 #define DOCKWINDOW_H
 
 #include <qobject.h>
+#include <ToolBase/Module.h>
 #include <ToolBase/iSettingsUser.h>
 #include "qtUtils.h"
 
@@ -15,7 +16,7 @@ class DockWindow
 	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT;
 public:
-	DockWindow(QWidget *parent, bool AutoRefresh = false);
+	DockWindow(QWidget *parent, bool AutoRefresh = false, SharedModuleManager smm = nullptr);
 	~DockWindow();
 
 	void closeEvent(QCloseEvent * event);
@@ -31,9 +32,18 @@ public slots:
 	virtual void Refresh();
 protected slots:
     void UIUpdateImpl(std::function<void()> h);
+protected:
+    SharedModuleManager GetModuleManager() {
+        if (!moduleManager) {
+            __debugbreak();
+            throw std::runtime_error("There is no ModuleManager attached");
+        }
+        return moduleManager;
+    }
 private:
 	bool m_AutoRefresh;
 	std::unique_ptr<QTimer> m_RefreshTimer;
+    SharedModuleManager moduleManager;
 };
 
 } //namespace QtShared

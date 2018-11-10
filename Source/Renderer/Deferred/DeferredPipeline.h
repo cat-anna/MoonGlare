@@ -29,6 +29,8 @@ struct DeferredSink {
     void Reset(Frame *frame);
     void Initialize(RendererFacade *Renderer);
 
+    void SetCamera(const VirtualCamera &camera);
+
     bool MeshVisibilityTest(const emath::fvec3 &position, float radius);
     void Mesh(const emath::fmat4 &ModelMatrix, MeshResourceHandle meshH, MaterialResourceHandle matH, bool castShadow);
 

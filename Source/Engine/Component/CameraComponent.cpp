@@ -110,19 +110,22 @@ void CameraComponent::Step(const Core::MoveConfig & conf) {
         auto &tr = m_TransformComponent->GetTransform(tcindex);
 
         //tr.v
-        emath::Quaternion up = { 0,0,1,0 };
+        emath::Quaternion up = { 0,0,1,0 };//for emath w is first arg
         auto q = emath::Quaternion(tr.linear());
         emath::Quaternion rotatedP = q * up * q.inverse();
 
         emath::fvec3 d = rotatedP.vec();
         emath::fvec3 p = tr.translation();
 
-        auto &cam = *conf.deffered->camera;
+        Renderer::VirtualCamera cam;
+        //AddLog(Debug, "CameraPos:" << p << " ptr:" << &cam);
         cam.m_Position = p; 
         cam.m_Direction = d;
 
         auto view = emath::LookAt(p, (emath::fvec3)(p - d), emath::fvec3(0, 0, 1));
         cam.m_ProjectionMatrix = item.m_ProjectionMatrix * view;
+
+        conf.deffered->SetCamera(cam);
     }
 
     if (InvalidEntryCount > 0) {

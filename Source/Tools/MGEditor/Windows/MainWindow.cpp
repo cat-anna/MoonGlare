@@ -262,6 +262,43 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
 //-----------------------------------------
 
+void MainWindow::AddAction(std::string id, ActionVariant action, std::weak_ptr<iActionProvider> provider) {
+    auto it = actionBarItems.find(id);
+    if (it != actionBarItems.end()) {
+        __debugbreak();
+        return;
+    }
+
+    ActionInfo ai;
+    ai.action = action;
+    ai.provider = provider;
+
+    QAction* ac = ai.GetActionPtr();
+
+    if (ac == nullptr) {
+        ai.action = m_Ui->mainToolBar->addSeparator();
+    } else {
+        m_Ui->mainToolBar->addAction(ac);
+    }
+    actionBarItems[id] = ai;
+}
+
+void MainWindow::RemoveProvider(std::weak_ptr<iActionProvider> provider) {
+    for (auto it = actionBarItems.begin(), jt = actionBarItems.end(); it != jt;)    {
+        const auto &item = it->second;
+        if (item.provider.lock() == provider.lock()) {
+            m_Ui->mainToolBar->removeAction(item.GetActionPtr());
+            auto remove = it;
+            ++it;
+            actionBarItems.erase(remove);
+        } else {
+            ++it;
+        }
+    };
+}
+
+//-----------------------------------------
+
     /*
 void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
     auto inst = info->m_DockEditor->GetInstance();

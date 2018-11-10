@@ -13,6 +13,7 @@
 #include "../Notifications.h"
 #include "../FileSystem.h"
 #include <ChangesManager.h>
+#include <ToolBase/interfaces/ActionBarSink.h>
 
 namespace Ui { class PendingChanges; }
 
@@ -32,7 +33,7 @@ class PendingChanges
 	: public QtShared::DockWindow {
 	Q_OBJECT;
 public:
-	PendingChanges(QWidget *parent = nullptr);
+	PendingChanges(QWidget *parent, SharedModuleManager smm);
  	virtual ~PendingChanges();
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
@@ -50,6 +51,7 @@ protected slots:
 private: 
 	std::unique_ptr<Ui::PendingChanges> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;
+    std::shared_ptr<iActionProvider> actionProvider;
 };
 
 } //namespace DockWindows 

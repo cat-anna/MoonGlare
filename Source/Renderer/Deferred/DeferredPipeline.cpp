@@ -107,7 +107,18 @@ void DeferredSink::SetStaticFog(const StaticFog &afog) {
     visibility = fog.m_Enabled ? fog.m_End + 1 : -1;
 }
 
-static int gFinalIndex = 0;
+void DeferredSink::SetCamera(const VirtualCamera &camera) {
+    m_Camera = camera;
+    {
+        using Uniform = GeometryShaderDescriptor::Uniform;
+        m_GeometryShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
+
+    }
+    {
+        using Uniform = DirectionalLightShaderDescriptor::Uniform;
+        m_DirectionalLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
+    }
+}
 
 void DeferredSink::Reset(Frame *frame) {
 
@@ -150,7 +161,7 @@ void DeferredSink::Reset(Frame *frame) {
         m_GeometryQueue->MakeCommand<Commands::Clear>((GLbitfield)(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         m_GeometryShader.Bind();
-        m_GeometryShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
+        //m_GeometryShader.Set<Uniform::CameraMatrix>(m_Camera.GetProjectionMatrix());
 
         //m_Buffer.BeginGeometryPass();
         //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FrameBuffer);
@@ -179,7 +190,7 @@ void DeferredSink::Reset(Frame *frame) {
         m_DirectionalLightShader.Bind();
         SetFog(m_DirectionalLightShader);
         m_DirectionalLightShader.Set<Uniform::ScreenSize>(m_ScreenSize);
-        m_DirectionalLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
+        //m_DirectionalLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
         //she.Set<Uniform::CameraMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
         //she.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(math::mat4()));
 
@@ -189,7 +200,7 @@ void DeferredSink::Reset(Frame *frame) {
         m_DirectionalLightQueue->MakeCommand<Commands::VAOBindResource>(quadMesh.deviceHandle);// ->m_VAO = m_DeferredPipeline->m_DirectionalQuad.Handle();
 
         //m_Buffer.BeginLightingPass();
-        m_DirectionalLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+        m_DirectionalLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0);
         for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
             m_DirectionalLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i-1);
         }
@@ -523,7 +534,6 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
     garg->m_BaseIndex = (mesh).baseIndex;
     garg->m_BaseVertex = (mesh).baseVertex;
 
-
     {
         using Uniform = PointLightShaderDescriptor::Uniform;
         using Sampler = PointLightShaderDescriptor::Sampler;
@@ -535,7 +545,7 @@ void DeferredSink::SubmitPointLight(const PointLight & linfo) {
         m_PointLightShader.Set<Uniform::CameraPos>(m_Camera.m_Position);
 
         //m_Buffer.BeginLightingPass();
-        m_PointLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+        m_PointLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0);
         for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
             m_PointLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i);
         }
@@ -620,7 +630,7 @@ void DeferredSink::SubmitSpotLight(const SpotLight &linfo) {
     garg->m_BaseVertex = (mesh).baseVertex;
 
     //m_Buffer.BeginLightingPass();
-    m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0 + gFinalIndex);
+    m_SpotLightQueue->MakeCommand<Commands::SetDrawBuffer>((GLenum)GL_COLOR_ATTACHMENT0);
     for (unsigned int i = 1; i < DeferredFrameBuffer::Buffers::MaxValue; i++) {
         m_SpotLightQueue->MakeCommand<Commands::Texture2DBindUnit>(m_Buffer.m_Textures[i], i);
     }

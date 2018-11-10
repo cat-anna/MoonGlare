@@ -19,15 +19,15 @@ BaseDockWindowModule::~BaseDockWindowModule() {
 }
 
 std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
-	if (!parent) {
-		//TODO: this is workaround
-		auto module = dynamic_cast<iModule*>(this);
-		if (module) {
-			auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
-			parent = provider->GetMainWindowWidget();
-		}
-	}
 	if (!m_Instance) {
+	    if (!parent) {
+		    //TODO: this is workaround
+		    auto module = dynamic_cast<iModule*>(this);
+		    if (module) {
+			    auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
+			    parent = provider->GetMainWindowWidget();
+		    }
+	    }
 		m_Instance = CreateInstance(parent);
 		connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow*)), SLOT(WindowClosed(DockWindow*)));
 		m_Instance->LoadSettings();

@@ -32,7 +32,6 @@ struct FileSystemViewerInfo
         return {}; 
     }
 
-
     FileSystemViewerInfo(SharedModuleManager modmgr) : DockWindowModule(std::move(modmgr)) {
         SetSettingID("FileSystemViewerInfo");
         SetDisplayName(tr("Filesystem"));

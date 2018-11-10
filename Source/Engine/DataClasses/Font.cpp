@@ -134,8 +134,8 @@ bool iFont::Initialize() {
     DumpFontCodePoints();
 #endif
 
-    faceTextureSize = 40;
-    m_CacheHight = 32;// ((float)faceTextureSize) * 0.75;
+    faceTextureSize = 64;
+    m_CacheHight = 40;// ((float)faceTextureSize) * 0.75;
     uint32_t texSize = faceTextureSize * FontFacesPerDim;
     uint32_t texBytes = texSize * texSize;
     facesTexture.reset(new uint8_t[texBytes]);
@@ -305,7 +305,7 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
         h = m_CacheHight;
     }
 
-    math::vec3 char_scale(h / faceTextureSize);
+    const float char_scale = h / faceTextureSize;
     const wstring::value_type *cstr = text.c_str();
 
     while (*cstr) {
@@ -314,11 +314,11 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
 
         auto *g = GetGlyph(c);
 
-        auto BitmapSize = g->charSize * char_scale.x;
-        auto CharPos = g->m_Position * char_scale.x;
+        emath::fvec2 BitmapSize = g->charSize * char_scale;
+        emath::fvec2 CharPos = g->position * char_scale;
 
-        topline = std::min(topline, CharPos.y);
-        bottomline = std::max(bottomline, CharPos.y + BitmapSize.y);
+        topline = std::min(topline, CharPos.y());
+        bottomline = std::max(bottomline, CharPos.y() + BitmapSize.y());
 
         //		auto subpos = pos + chpos;
         //		float bsy = bs.y;
@@ -328,7 +328,7 @@ iFont::FontRect iFont::TextSize(const wstring & text, const Descriptor * style, 
         //			bs = bs / ScreenSize * math::fvec2(Aspect * 2.0f, 2.0f);
         //		}
         //
-        width += g->m_Advance.x * char_scale.x;
+        width += g->advance.x() * char_scale;
         //		hmax = math::max(hmax, bsy);
     }
     //	pos.y = hmax;
@@ -361,7 +361,6 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
     if (text.empty())
         return true;
 
-    static const unsigned BaseIndex[] = { 0, 1, 2, 0, 2, 3, };
 
     Renderer::VAOResourceHandle vao{ };
     if (!frame->AllocateFrameResource(vao))
@@ -408,9 +407,9 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
 #endif
     }
 
-    math::vec3 char_scale(h / faceTextureSize);
+    const float char_scale = h / faceTextureSize;
     const wstring::value_type *cstr = text.c_str();
-    math::vec2 pos(0);
+    emath::fvec2 pos(0,0);
     float hmax = h;
 
     auto CurrentVertexQuad = Verticles;
@@ -422,25 +421,25 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
     auto texbind = q.PushCommand<Renderer::Commands::Texture2DResourceBind>();
     auto mat = resmgr->GetMaterialManager().GetMaterial(facesMaterial);
     texbind->m_HandlePtr = resmgr->GetTextureResource().GetHandleArrayBase() + mat->mapTexture[Renderer::Material::MapType::Diffuse].index;
+  
+    emath::fvec2 bs = { faceTextureSize, faceTextureSize };
+    bs *= char_scale;
 
     while (*cstr) {
         wchar_t c = *cstr;
         ++cstr;
 
         auto *g = GetGlyph(c);
-
-        math::fvec2 bs = { faceTextureSize, faceTextureSize };
-        auto chpos = g->m_Position;
-        chpos *= char_scale.x;
-        bs *= char_scale.x;
+        
+        auto chpos = g->position;
+        chpos *= char_scale;
         auto subpos = pos + chpos;
-        float bsy = bs.y;
 
         if (c != L' ') {
-            CurrentVertexQuad[0] = emath::fvec3(subpos.x + 0, subpos.y + bs.y, 0);
-            CurrentVertexQuad[1] = emath::fvec3(subpos.x + 0, subpos.y + 0, 0);
-            CurrentVertexQuad[2] = emath::fvec3(subpos.x + bs.x, subpos.y + 0, 0);
-            CurrentVertexQuad[3] = emath::fvec3(subpos.x + bs.x, subpos.y + bs.y, 0);
+            CurrentVertexQuad[0] = emath::fvec3(subpos.x() + 0, subpos.y() + bs.y(), 0);
+            CurrentVertexQuad[1] = emath::fvec3(subpos.x() + 0, subpos.y() + 0, 0);
+            CurrentVertexQuad[2] = emath::fvec3(subpos.x() + bs.x(), subpos.y() + 0, 0);
+            CurrentVertexQuad[3] = emath::fvec3(subpos.x() + bs.x(), subpos.y() + bs.y(), 0);
 
             emath::fvec2 uvBase = g->fontFacePosition / FontFacesPerDim;
             CurrentTextureUV[0] = emath::fvec2(uvBase[0],               uvBase[1]);
@@ -450,6 +449,8 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
 
             size_t basevertex = CurrentVertexQuad - Verticles;
             size_t baseIndex = CurrentIndex - VerticleIndexes;
+
+            static constexpr unsigned BaseIndex[] = { 0, 1, 2, 0, 2, 3, };
             for (auto idx : BaseIndex) {
                 *CurrentIndex = static_cast<uint16_t>(idx + basevertex);
                 ++CurrentIndex;
@@ -464,8 +465,8 @@ bool iFont::GenerateCommands(Renderer::Commands::CommandQueue &q, Renderer::Fram
             CurrentTextureUV += 4;
         }
 
-        pos.x += g->m_Advance.x * char_scale.x;
-        hmax = math::max(hmax, bsy);
+        pos.x() += g->advance.x() * char_scale;
+        hmax = math::max(hmax, bs.y());
     }
 
     return true;
@@ -528,11 +529,12 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
     FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ffglyph;
     FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
-    unsigned pos = (faceTextureSize - bitmap.rows) / 2;
-    glyph->m_Position = math::vec2(bitmap_glyph->left, faceTextureSize - (bitmap_glyph->top + pos));
-    glyph->m_Advance = math::vec2(m_FontFace->glyph->advance.x / 64.0f, 0);
-    glyph->charSize = math::fvec2(bitmap.width + 1, m_CacheHight);// bitmap.rows + 1);      
+    unsigned pos = (faceTextureSize - bitmap.rows);// / 2;
+    glyph->position = emath::fvec2(bitmap_glyph->left, (faceTextureSize - bitmap_glyph->top));
+    glyph->advance = emath::fvec2(m_FontFace->glyph->advance.x / 64.0f, 0);
+    glyph->charSize = emath::fvec2(bitmap.width + 1, bitmap.rows + 1);      
     glyph->fontFacePosition = { 0, 0, };
+    glyph->faceIndex = 0;
 
     if (bitmap.rows > faceTextureSize || bitmap.width > faceTextureSize) {
         //TODO: report font error!
@@ -545,7 +547,7 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
         glyph->fontFacePosition = { idx % FontFacesPerDim , idx / FontFacesPerDim };
 
         for (unsigned j = 0; j < bitmap.rows; j++) {
-            unsigned l = faceTextureSize - j - pos - 1;
+            unsigned l = faceTextureSize - j - 1;// -pos - 1;
             auto line = GetTextureScanLine(glyph->fontFacePosition, l);
             for (unsigned i = 0; i < bitmap.width; i++) {
                 uint8_t value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];

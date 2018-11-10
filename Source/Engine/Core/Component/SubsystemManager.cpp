@@ -133,6 +133,13 @@ bool SubsystemManager::LoadSystems(pugi::xml_node node) {
     //    }
     //});
 
+    AddLogf(Debug, "System update order: ");
+    for (auto &item : m_Components) {
+        if (!item)
+            continue;
+        AddLogf(Debug, "System: %s", typeid(*item).name());
+    }
+
     return true;
 }
 

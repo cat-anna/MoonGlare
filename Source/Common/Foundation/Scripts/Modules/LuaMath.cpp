@@ -12,6 +12,8 @@
 #include <Foundation/xMath.h>
 #include <Foundation/TemplateUtils.h>
 
+#include <Foundation/Math/Constants.h>
+
 //::Space::RTTI::TypeInfoInitializer<Eigen::Vector2f, Eigen::Vector3f, Eigen::Vector4f, Eigen::Matrix4f> EigenTypeInfo;
 
 namespace MoonGlare::Scripts::Modules {
@@ -31,6 +33,7 @@ template<typename T> inline T VecNormalized(const T * vec) { return glm::normali
 template<typename T> inline void VecNormalize(T *vec) { *vec = glm::normalize(*vec); }
 template<typename T> inline float VecLength(const T *vec) { return glm::length(*vec); }
 template<typename T> inline float VecDotProduct(T *a, T* b) { return glm::dot(*a, *b); }
+template<typename T> inline T VecCrossProduct(T *a, T* b) { return glm::cross(*a, *b); }
 template<typename T> inline T VecDiv(T *a, T* b) { NN(a) NN(b) return *a / *b; }
 template<typename T> inline T VecMul(T *a, T* b) { NN(a) NN(b) return *a * *b; }
 template<typename T> inline T VecAdd(T *a, T* b) { NN(a) NN(b) return *a + *b; }
@@ -57,6 +60,12 @@ template<typename T> inline void VecClampSelf(T *v, const T &min, const T &max) 
 
 //Quaternions/Vec4
 
+inline math::vec3 QuatRotateVec(math::vec4 *a, math::vec3 *b) {
+    auto q = emath::MathCast<emath::Quaternion>(*a);
+    emath::Quaternion vec = { 0.0f, b->x, b->y, b->z };
+    emath::Quaternion r = q * vec * q.inverse();
+    return { r.x(), r.y(), r.z() };
+}
 inline math::vec4 QuaternionCrossProduct(math::vec4 *a, math::vec4* b) {
     auto &q1 = *a;
     auto &q2 = *b;
@@ -113,13 +122,65 @@ inline math::vec4 QuaternionRotationTo(const math::vec3 &a, const math::vec3 &b)
     return convert(q);
 }
 inline math::vec4 QuaternionFromVec3Angle(const math::vec3 &vec, float a) {
-    return convert(math::Quaternion(convert(vec), a));
+    float halfAngle = a * .5f;
+    float s = (float)sin(halfAngle);
+    return math::vec4(vec * s, cos(halfAngle));
 }
 inline math::vec4 QuaternionFromEulerXYZ(float x, float y, float z) {
     return convert(math::Quaternion(x, y, z));
 }
 inline math::vec4 QuaternionFromAxisAngle(float x, float y, float z, float a) {
     return QuaternionFromVec3Angle(math::vec3(x, y, z), a);
+}
+inline math::vec4 QuaternionLookAt(const math::vec3 &sourcePoint, const math::vec3 &destPoint) {
+    //source https://stackoverflow.com/questions/12435671/quaternion-lookat-function
+
+    math::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
+
+    float dot = glm::dot(
+        //Vector3.forward
+        math::fvec3(1, 0, 0)
+        , forwardVector);
+
+    if (abs(dot - (-1.0f)) < 0.000001f) {
+        return math::vec4(math::fvec3(1, 0, 0), emath::constant::pi<float>);
+    }
+    if (abs(dot - (1.0f)) < 0.000001f) {
+        return { 0,0,0,1 };
+    }
+
+    float rotAngle = (float)acos(dot);
+    math::vec3 rotAxis = glm::cross(
+        //Vector3.forward
+        math::fvec3(1, 0, 0), forwardVector);
+
+    rotAxis = glm::normalize(rotAxis);
+    return QuaternionFromVec3Angle(rotAxis, rotAngle);
+#if 0
+    /// <summary>
+    /// Evaluates a rotation needed to be applied to an object positioned at sourcePoint to face destPoint
+    /// </summary>
+    /// <param name="sourcePoint">Coordinates of source point</param>
+    /// <param name="destPoint">Coordinates of destionation point</param>
+    /// <returns></returns>
+    public static Quaternion LookAt(Vector3 sourcePoint, Vector3 destPoint) {
+        Vector3 forwardVector = Vector3.Normalize(destPoint - sourcePoint);
+
+        float dot = Vector3.Dot(Vector3.forward, forwardVector);
+
+        if (Math.Abs(dot - (-1.0f)) < 0.000001f) {
+            return new Quaternion(Vector3.up.x, Vector3.up.y, Vector3.up.z, 3.1415926535897932f);
+        }
+        if (Math.Abs(dot - (1.0f)) < 0.000001f) {
+            return Quaternion.identity;
+        }
+
+        float rotAngle = (float)Math.Acos(dot);
+        Vector3 rotAxis = Vector3.Cross(Vector3.forward, forwardVector);
+        rotAxis = Vector3.Normalize(rotAxis);
+        return CreateFromAxisAngle(rotAxis, rotAngle);
+    }
+#endif
 }
 inline int lua_NewQuaternion(lua_State *lua) {
     int argc = lua_gettop(lua);
@@ -289,12 +350,17 @@ void ScriptMathClasses(lua_State *lua) {
             .addData("y", &math::vec4::y)
             .addData("z", &math::vec4::z)
             .addData("w", &math::vec4::w)
+            .addFunction("dot", Utils::Template::InstancedStaticCall<math::vec4, float, math::vec4*>::callee<VecDotProduct>())
+            .addFunction("cross", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<QuaternionCrossProduct>())
+            .addFunction("rotate", Utils::Template::InstancedStaticCall<math::vec4, math::vec3, math::vec3*>::callee<QuatRotateVec>())
             .DefferCalls<&VecCommon<math::vec4>::f>()
         .endClass()
         .beginClass<math::vec3>("cVec3")
             .addData("x", &math::vec3::x)
             .addData("y", &math::vec3::y)
             .addData("z", &math::vec3::z)
+            .addFunction("dot", Utils::Template::InstancedStaticCall<math::vec3, float, math::vec3*>::callee<VecDotProduct>())
+            .addFunction("cross", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecCrossProduct>())
             .DefferCalls<&VecCommon<math::vec3>::f>()
         .endClass()
         .beginClass<math::vec2>("cVec2")
@@ -317,8 +383,9 @@ void ScriptMathGlobal(lua_State *lua) {
         .addFunction("FromVec3Angle", &QuaternionFromVec3Angle)
         .addFunction("FromEulerXYZ", &QuaternionFromEulerXYZ)
         .addFunction("RotationTo", &QuaternionRotationTo)
+        .addFunction("LookAt", &QuaternionLookAt)
 
-        .addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>)
+        .addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>)  
     .endNamespace()
 
     .beginNamespace("Vec4")

@@ -10,10 +10,13 @@ DefferedFrontend::DefferedFrontend() {
 DefferedFrontend::~DefferedFrontend() { }
 
 void DefferedFrontend::Reset(Frame *frame) {
-    camera = &sink->m_Camera;
     sink->Reset(frame);
 }
 
+void DefferedFrontend::SetCamera(const VirtualCamera &camera) {
+    sink->SetCamera(camera);
+}
+                       
 void DefferedFrontend::Initialize(RendererFacade *Renderer) {
     sink->Initialize(Renderer);
 }

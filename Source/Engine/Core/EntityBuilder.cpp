@@ -297,7 +297,14 @@ void EntityBuilder::Import(ImportData &data, pugi::xml_node node, int32_t entity
                 continue;
             }
             ci.entityIndex = entityIndex;
-            data.components[cid].emplace_back(std::move(ci));
+
+            auto &c = data.components[cid];
+            auto found = std::find_if(c.begin(), c.end(), [entityIndex](const ComponentImport& import) { return import.entityIndex == entityIndex; });
+            if (found != c.cend()) {
+                *found = std::move(ci);
+            } else {
+                c.emplace_back(std::move(ci));
+            }
             continue;
         }
         case "Child"_Hash32: 

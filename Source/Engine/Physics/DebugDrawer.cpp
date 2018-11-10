@@ -97,7 +97,8 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
 
     shb.Bind();
     using Uniform = BtDebugDrawShaderDescriptor::Uniform;
-    shb.Set<Uniform::CameraMatrix>(conf.deffered->camera->GetProjectionMatrix());
+    __debugbreak();
+    //shb.Set<Uniform::CameraMatrix>(conf.deffered->camera->GetProjectionMatrix());
 
     auto &m = frame->GetMemory();
     using ichannels = Renderer::Configuration::VAO::InputChannels;

@@ -24,9 +24,10 @@ public:
 private:
     struct FontGlyph {
         emath::fvec2 fontFacePosition;
-        math::vec2 m_Advance;
-        math::vec2 m_Position;
-        math::vec2 charSize;
+        emath::fvec2 charSize;
+        emath::fvec2 advance;
+        emath::fvec2 position;
+        uint32_t faceIndex;
     };
 
     using FontGlyphMap = std::unordered_map<wchar_t, FontGlyph>;

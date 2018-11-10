@@ -26,6 +26,8 @@ struct DefferedFrontend {
         uint16_t elementMode;
     };
 
+    void SetCamera(const VirtualCamera &camera);
+
     void DrawElements(const emath::fmat4 &ModelMatrix, VAOResourceHandle vao, DrawInfo info, MaterialResourceHandle matH, bool castShadow);
 
     void SubmitDirectionalLight(const LightBase &linfo);
@@ -35,8 +37,6 @@ struct DefferedFrontend {
     bool PointLightVisibilityTest(const emath::fvec3 &position, float radius);
 
     void SetStaticFog(const StaticFog &fog);
-
-    VirtualCamera *camera = nullptr;
 protected:
     std::unique_ptr<DeferredSink> sink;
 };

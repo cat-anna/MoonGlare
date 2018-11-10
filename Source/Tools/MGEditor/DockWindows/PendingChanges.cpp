@@ -19,117 +19,136 @@ namespace Editor {
 namespace DockWindows {
 
 struct PendingChangesInfo 
-	: public QtShared::BaseDockWindowModule {
+    : public QtShared::BaseDockWindowModule {
 
-	virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
-		return std::make_shared<PendingChanges>(parent);
-	}
+    virtual std::shared_ptr<QtShared::DockWindow> CreateInstance(QWidget *parent) override {
+        return std::make_shared<PendingChanges>(parent, GetModuleManager());
+    }
 
-	PendingChangesInfo(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) {
-		SetSettingID("PendingChanges");
-		SetDisplayName(tr("Pending changes"));
-		SetShortcut("F12");
-	}
+    PendingChangesInfo(SharedModuleManager modmgr) : BaseDockWindowModule(std::move(modmgr)) {
+        SetSettingID("PendingChanges");
+        SetDisplayName(tr("Pending changes"));
+        SetShortcut("F12");
+    }
 };
 ModuleClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
 
 //----------------------------------------------------------------------------------
 
-PendingChanges::PendingChanges(QWidget * parent)
-	:  QtShared::DockWindow(parent) {
-	SetSettingID("PendingChanges");
-	m_Ui = std::make_unique<Ui::PendingChanges>();
-	m_Ui->setupUi(this);
+PendingChanges::PendingChanges(QWidget * parent, SharedModuleManager smm)
+    :  QtShared::DockWindow(parent, false, std::move(smm)) {
+    SetSettingID("PendingChanges");
+    m_Ui = std::make_unique<Ui::PendingChanges>(); 
+    m_Ui->setupUi(this);
 
-	auto shd = MainWindow::Get()->GetSharedData();
-	connect(shd->m_ChangesManager.get(), &QtShared::ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
+    auto shd = MainWindow::Get()->GetSharedData();
+    connect(shd->m_ChangesManager.get(), &QtShared::ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
 
-	m_ViewModel = std::make_unique<QStandardItemModel>();
-	m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Editor"));
-	m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Details"));
-	m_Ui->treeView->setModel(m_ViewModel.get());
-	m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
-	m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
-	m_Ui->treeView->setColumnWidth(0, 100);
-	m_Ui->treeView->setColumnWidth(1, 100);
-	connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
-	connect(m_Ui->treeView, SIGNAL(doubleClicked(const QModelIndex&)), SLOT(ItemDoubleClicked(const QModelIndex&)));
+    m_ViewModel = std::make_unique<QStandardItemModel>();
+    m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Editor"));
+    m_ViewModel->setHorizontalHeaderItem(1, new QStandardItem("Details"));
+    m_Ui->treeView->setModel(m_ViewModel.get());
+    m_Ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_Ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_Ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_Ui->treeView->setColumnWidth(0, 100);
+    m_Ui->treeView->setColumnWidth(1, 100);
+    connect(m_Ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+    connect(m_Ui->treeView, SIGNAL(doubleClicked(const QModelIndex&)), SLOT(ItemDoubleClicked(const QModelIndex&)));
 
-	connect(m_Ui->actionSave_All, &QAction::triggered, this, &PendingChanges::SaveAll);
-	connect(m_Ui->actionSave_single, &QAction::triggered, this, &PendingChanges::SaveSingle);
-	m_Ui->actionSave_single->setEnabled(false);
-	m_Ui->actionSave_All->setEnabled(false);
+    connect(m_Ui->actionSave_All, &QAction::triggered, this, &PendingChanges::SaveAll);
+    connect(m_Ui->actionSave_single, &QAction::triggered, this, &PendingChanges::SaveSingle);
+    m_Ui->actionSave_single->setEnabled(false);
+    m_Ui->actionSave_All->setEnabled(false);        
+
+    actionProvider = std::make_shared<iActionProvider>();
+    auto sink = GetModuleManager()->QuerryModule< iActionBarSink>();
+    if (sink) {
+        //sink->AddAction("PendingChanges.SaveSingle", m_Ui->actionSave_single, actionProvider);
+        sink->AddAction("PendingChanges.SaveAll", m_Ui->actionSave_All, actionProvider);
+        sink->AddAction("PendingChanges.Separator", nullptr, actionProvider);
+    }
 }
 
 PendingChanges::~PendingChanges() {
-	m_Ui.reset();
+    auto sink = GetModuleManager()->QuerryModule< iActionBarSink>();
+    if (sink) {
+        sink->RemoveProvider(actionProvider);
+    }
+    m_Ui.reset();
 }
 
 //----------------------------------------------------------------------------------
 
 bool PendingChanges::DoSaveSettings(pugi::xml_node node) const {
-	QtShared::DockWindow::DoSaveSettings(node);
-	return true;
+    QtShared::DockWindow::DoSaveSettings(node);
+    return true;
 }
 
 bool PendingChanges::DoLoadSettings(const pugi::xml_node node) {
-	QtShared::DockWindow::DoLoadSettings(node);
-	return true;
+    QtShared::DockWindow::DoLoadSettings(node);
+    return true;
 }
 
 //----------------------------------------------------------------------------------
 
 void PendingChanges::Refresh() {
-	m_ViewModel->removeRows(0, m_ViewModel->rowCount());
-	auto root = m_ViewModel->invisibleRootItem();
-	auto shd = MainWindow::Get()->GetSharedData();
-	bool state = false;
-	std::unordered_map<QtShared::iChangeContainer*, QStandardItem*> Items;
-	Items[nullptr] = root;
+    m_ViewModel->removeRows(0, m_ViewModel->rowCount());
+    auto root = m_ViewModel->invisibleRootItem();
+    auto shd = MainWindow::Get()->GetSharedData();
+    bool state = false;
+    std::unordered_map<QtShared::iChangeContainer*, QStandardItem*> Items;
+    Items[nullptr] = root;
 
-	auto GetRoot = [root, &Items](QtShared::iChangeContainer* ichg) -> QStandardItem* {
-		auto it = Items.find(ichg);
-		if (it == Items.end()) {
-			return nullptr;
-		}
-		return it->second;
-	};
+    auto GetRoot = [root, &Items](QtShared::iChangeContainer* ichg) -> QStandardItem* {
+        auto it = Items.find(ichg);
+        if (it == Items.end()) {
+            return nullptr;
+        }
+        return it->second;
+    };
+                                       
+    int cnt = 0;
+    for (auto &item : shd->m_ChangesManager->GetStateMap()) {      
+        ++cnt;
+        QStandardItem *qitm;
+        QList<QStandardItem*> cols;
+        cols << (qitm = new QStandardItem(item.first->GetName().c_str()));
+        cols << new QStandardItem(item.first->GetInfoLine().c_str());
 
-	for (auto &item : shd->m_ChangesManager->GetStateMap()) {
+        auto iroot = GetRoot(item.first->GetParent());
+        if (iroot == nullptr) {
+            root->appendRow(cols);
+        } else {
+            Items[item.first] = qitm;
+            iroot->appendRow(cols);
+        }
 
-		QStandardItem *qitm;
-		QList<QStandardItem*> cols;
-		cols << (qitm = new QStandardItem(item.first->GetName().c_str()));
-		cols << new QStandardItem(item.first->GetInfoLine().c_str());
+        state = true;
+    }
+    m_Ui->actionSave_All->setEnabled(state);
+    //m_Ui->actionSave_single->setEnabled(state);
 
-		auto iroot = GetRoot(item.first->GetParent());
-		if (iroot == nullptr) {
-			root->appendRow(cols);
-		} else {
-			Items[item.first] = qitm;
-			iroot->appendRow(cols);
-		}
-
-		state = true;
-	}
-	m_Ui->actionSave_All->setEnabled(state);
-	//m_Ui->actionSave_single->setEnabled(state);
+    if (cnt > 0) {
+        setWindowTitle(fmt::format("Pending changes [{}]", m_ViewModel->rowCount()).c_str());
+    } else {
+        setWindowTitle("Pending changes ");
+    }
 }
 
 void PendingChanges::SaveSingle() {
-	ReportNotImplemented();
+    ReportNotImplemented();
 }
 
 void PendingChanges::SaveAll() {
-	auto shd = MainWindow::Get()->GetSharedData();
-	shd->m_ChangesManager->SaveAll();
+    auto shd = MainWindow::Get()->GetSharedData();
+    shd->m_ChangesManager->SaveAll();
 }
 
 //----------------------------------------------------------------------------------
 
 void PendingChanges::ChangesChanged(QtShared::iChangeContainer * sender, bool state) {
-	Refresh();
+    Refresh();
 }
 
 //----------------------------------------------------------------------------------
