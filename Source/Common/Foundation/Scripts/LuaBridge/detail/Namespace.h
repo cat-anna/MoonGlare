@@ -1311,14 +1311,18 @@ public:
 
   template<typename T, void(T::*PTR)(Namespace&)>
   Namespace& DefferCalls(T *t) {
+      int top = lua_gettop(L);
 	  (t->*PTR)(*this);
+      lua_settop(L, top);
 	  return *this;
   }
 
   template<typename T>
   Namespace& DefferCalls(T t) {
-	  t(*this);
-	  return *this;
+      int top = lua_gettop(L);
+      t(*this);
+      lua_settop(L, top);
+      return *this;
   }
 };
 

@@ -190,7 +190,7 @@ struct PanelComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::PanelComponent;
 };
 struct TextComponentDesc {
-    using Entry_t = x2c::SoundSystem::SoundSourceComponentData_t;
+    using Entry_t = TextComponent::TextEntry_t;
     using Settings_t = TextComponent::TextComponentSettings_t;
     static constexpr char *DisplayName = "Gui.Text";
     static constexpr char *Name = "Text";

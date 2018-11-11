@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<Scene>
+	<Entities Name="Entity">
+		<Entity Name="Left" Enabled="true">
+			<Entity Name="Logo" Enabled="true">
+				<Component Name="RectTransform" Active="true" Enabled="true">
+					<Position X="0" Y="0" />
+					<Size X="411" Y="321" />
+					<AlignMode>10</AlignMode>
+					<Margin Left="0" Top="0" Right="0" Bottom="0" />
+					<UniformMode>false</UniformMode>
+					<Z>0</Z>
+				</Component>
+				<Component Name="Image" Active="true" Enabled="true">
+					<Active>true</Active>
+					<ScaleMode>1</ScaleMode>
+					<Color R="1" G="1" B="1" A="1" />
+					<TextureURI>file:///Scenes/DefaultLoadingScene/MoonClouds.png</TextureURI>
+					<Speed>10</Speed>
+					<StartFrame>0</StartFrame>
+					<FrameCount>12</FrameCount>
+					<FrameStripCount X="12" Y="1" />
+				</Component>
+			</Entity>
+			<Component Name="RectTransform" Active="true" Enabled="true">
+				<Position X="0" Y="0" />
+				<Size X="2" Y="1" />
+				<AlignMode>15</AlignMode>
+				<Margin Left="10" Top="10" Right="10" Bottom="10" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+		</Entity>
+		<Entity Name="Right" Enabled="true">
+			<Entity Name="InfoText" Enabled="true">
+				<Component Name="RectTransform" Active="true" Enabled="true">
+					<Position X="0" Y="0" />
+					<Size X="1" Y="1" />
+					<AlignMode>9</AlignMode>
+					<Margin Left="0" Top="0" Right="0" Bottom="0" />
+					<UniformMode>false</UniformMode>
+					<Z>0</Z>
+				</Component>
+				<Component Name="Text" Active="true" Enabled="true">
+					<Active>true</Active>
+					<Text>${Menu.Loading}</Text>
+					<TextAlignMode>0</TextAlignMode>
+					<Color R="1" G="1" B="1" A="1" />
+					<FontName>Saira-Regular</FontName>
+					<FontSize>40</FontSize>
+				</Component>
+			</Entity>
+			<Entity Name="AsyncLoaderText" Enabled="true">
+				<Component Name="RectTransform" Active="true" Enabled="true">
+					<Position X="0" Y="0" />
+					<Size X="1" Y="1" />
+					<AlignMode>13</AlignMode>
+					<Margin Left="1" Top="1" Right="1" Bottom="1" />
+					<UniformMode>false</UniformMode>
+					<Z>1</Z>
+				</Component>
+				<Component Name="Text" Active="true" Enabled="true">
+					<Active>true</Active>
+					<Text>status</Text>
+					<TextAlignMode>8</TextAlignMode>
+					<Color R="1" G="1" B="1" A="1" />
+					<FontName>Saira-Regular</FontName>
+					<FontSize>16</FontSize>
+				</Component>
+				<Component Name="Script" Active="true" Enabled="true">
+					<Script>/Scenes/DefaultLoadingScene/AsyncLoaderStatus</Script>
+					<Active>true</Active>
+				</Component>
+			</Entity>
+			<Component Name="RectTransform" Active="true" Enabled="true">
+				<Position X="1" Y="0" />
+				<Size X="2" Y="1" />
+				<AlignMode>15</AlignMode>
+				<Margin Left="10" Top="10" Right="10" Bottom="10" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+		</Entity>
+	</Entities>
+	<Configuration>
+		<StaticFog>
+			<Enabled>false</Enabled>
+			<Color X="0" Y="0" Z="0" />
+			<Start>1</Start>
+			<End>10</End>
+		</StaticFog>
+	</Configuration>
+	<Systems>
+		<System Name="Script" />
+		<System Name="RectTransform">
+			<UniformPositionMode>true</UniformPositionMode>
+		</System>
+		<System Name="Image" />
+		<System Name="Text" />
+	</Systems>
+</Scene>

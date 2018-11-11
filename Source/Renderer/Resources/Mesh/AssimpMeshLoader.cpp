@@ -13,6 +13,8 @@
 #include <assimp/postprocess.h>  
 #pragma warning ( pop )
 
+#include <Foundation/Resources/Importer/AssimpMeshImporter.h>
+
 namespace MoonGlare::Renderer::Resources::Loader {
 
 AssimpMeshLoader::AssimpMeshLoader(std::string subpath, MeshResourceHandle handle, MeshManager &Owner) :
@@ -108,6 +110,8 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
         return;
     }
           
+
+#if 0
     {
         auto mesh = scene->mMeshes[meshId];
         meshes.valid = true;
@@ -206,8 +210,12 @@ void AssimpMeshLoader::LoadMeshes(ResourceLoadStorage &storage) {
     }
 
     meshData.UpdateBoundary();
+#endif
 
-    owner.ApplyMeshSource(handle, std::move(meshData));
+    MeshSource ms;
+    Importer::ImportAssimpMesh(scene, meshId, ms);
+
+    owner.ApplyMeshSource(handle, std::move(ms));
 }
 
 } //namespace MoonGlare::Renderer::Resources::Loader 

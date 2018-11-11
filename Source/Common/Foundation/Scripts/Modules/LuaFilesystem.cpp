@@ -4,6 +4,7 @@
 #include "../ApiInit.h"
 #include "../iDynamicModule.h"
 #include "../iLuaRequire.h"
+#include "../ErrorReporting.h"
 
 #include "LuaFilesystem.h"
 
@@ -23,6 +24,7 @@ ApiInitializer LuaFileSystemModule::RegisterScriptApi(ApiInitializer api) {
         .addCFunction("ReadFileContent", &LuaFileSystemModule::ReadFileContent)
         .addCFunction("ReadJSON", &LuaFileSystemModule::ReadJSON)
         .addCFunction("Enumerate", &LuaFileSystemModule::EnumerateFolder)
+        .addCFunction("FindFilesByExt", &LuaFileSystemModule::FindFilesByExt)
     .endClass();
 }
 
@@ -132,5 +134,32 @@ int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
     return overflow.ReturnArgs(1);
 }
 
+int LuaFileSystemModule::FindFilesByExt(lua_State *lua) {
+    static constexpr char *ScriptFunctionName = "FileSystem::FindFilesByExt";
+
+    const char * ext = lua_tostring(lua, -1);
+    if (!ext) {
+        LuaReportInvalidArg(lua, 1, string);
+        return 0;
+    }
+
+    StarVFS::DynamicFIDTable fidT;
+    fs->FindFilesByExt(ext, fidT);
+
+    lua_createtable(lua, fidT.size(), 0);
+
+    int index = 1;
+    for (auto fid : fidT) {
+        std::string fname = fs->GetFullFileName(fid);
+
+        lua_pushinteger(lua, index);
+        lua_pushstring(lua, fname.c_str());
+        lua_settable(lua, -2);
+
+        ++index;
+    }
+
+    return 1;
+}
 
 } //namespace MoonGlare::Scripts::Modules

@@ -8,6 +8,7 @@
 #include "../../Commands/MemoryCommands.h"
 
 #include <Foundation/Resources/Blob/MeshBlob.h>
+#include <Foundation/Resources/Importer/AssimpMeshImporter.h>
 
 namespace MoonGlare::Renderer::Resources {
                                                                          
@@ -153,120 +154,19 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::un
         q.MakeCommand<Commands::MemoryStore<bool>>(true, &mesh[index].valid);
         q.MakeCommand<Commands::MemoryStore<bool>>(true, &meshData[index].ready);
 
-#ifdef DEBUG
+#ifdef DEBUG_DUMP
         SaveMeshObj(h);
-        SaveMeshBin(h);
+        Blob::DumpMeshBlob(meshData[index], std::to_string(h.index));
 #endif 
-
     });
 }
 
-void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
+void MeshManager::ApplyMeshSource(MeshResourceHandle h, const MeshSource &source) {
     if (!IsHandleValid(h))
         return;
 
-    size_t memorySize = 0;
-
-    size_t verticlesSize = source.verticles.size() * sizeof(source.verticles[0]);
-    size_t UV0Size = source.UV0.size() * sizeof(source.UV0[0]);
-    size_t normalsSize = source.normals.size() * sizeof(source.normals[0]);
-    size_t tangentsSize = source.tangents.size() * sizeof(source.tangents[0]);
-    size_t indexSize = source.index.size() * sizeof(source.index[0]);
-
-    size_t vertexBonesSize = source.vertexBones.size() * sizeof(source.vertexBones[0]);
-    size_t vertexBoneWeightsSize = source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]);
-    size_t boneMatricesSize = source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]);
-
-    size_t boneNamesArraySize = source.boneNames.size() * sizeof(const char*);
-    uint16_t boneNamesValuesSize = 0;
-    std::for_each(source.boneNames.begin(), source.boneNames.end(), [&boneNamesValuesSize](auto &item) { boneNamesValuesSize += item.size() + 1; });
-
-    size_t verticlesOffset = memorySize;
-    memorySize += verticlesSize;
-    size_t UV0Offset = memorySize;
-    memorySize += UV0Size;
-    size_t normalsOffset = memorySize;
-    memorySize += normalsSize;
-    size_t tangentsOffset = memorySize;
-    memorySize += tangentsSize;
-    size_t indexOffset = memorySize;
-    memorySize += indexSize;        
-
-    size_t vertexBonesOffset = memorySize;
-    memorySize += vertexBonesSize;
-    size_t vertexBoneWeightsOffset = memorySize;
-    memorySize += vertexBoneWeightsSize;
-
-    size_t boneNamesArrayOffset = memorySize;
-    memorySize += boneNamesArraySize;
-    size_t boneNamesValuesOffset = memorySize;
-    memorySize += boneNamesValuesSize;
-
-    size_t boneMatricesOffset = memorySize;
-    memorySize += boneMatricesSize;
-
-    std::unique_ptr<char[]> memory(new char[memorySize]);
-    char *mem = memory.get();
-
-    MeshData md = {};
-
-    md.verticles = (glm::fvec3*)(mem + verticlesOffset);
-    memcpy(md.verticles, &source.verticles[0], verticlesSize);
-
-    if (source.UV0.size() > 0) {
-        md.UV0 = (glm::fvec2*)(mem + UV0Offset);
-        memcpy(md.UV0, &source.UV0[0], UV0Size);
-    }
-
-    if (source.normals.size() > 0) {
-        md.normals = (glm::fvec3*)(mem + normalsOffset);
-        memcpy(md.normals, &source.normals[0], normalsSize);
-    }
-
-    if (source.tangents.size() > 0) {
-        md.tangents = (glm::fvec3*)(mem + tangentsOffset);
-        memcpy(md.tangents, &source.tangents[0], tangentsSize);
-    }
-
-    md.index = (uint32_t*)(mem + indexOffset);
-    memcpy(md.index, &source.index[0], indexSize);
-
-    if (source.vertexBones.size() > 0) {
-        md.vertexBones = (glm::u8vec4*)(mem + vertexBonesOffset);
-        memcpy(md.vertexBones, &source.vertexBones[0], vertexBonesSize);
-    }
-    if (source.vertexBoneWeights.size() > 0) {
-        md.vertexBoneWeights = (glm::fvec4*)(mem + vertexBoneWeightsOffset);
-        memcpy(md.vertexBoneWeights, &source.vertexBoneWeights[0], vertexBoneWeightsSize);
-    }
-    if (source.boneNames.size() > 0) {
-        md.boneNameValues = (const char*)(mem + boneNamesValuesOffset);
-        md.boneNameOffsets = (uint16_t*)(mem + boneNamesArrayOffset);
-        uint16_t offset = 0;
-        for (size_t i = 0; i < source.boneNames.size(); ++i) {
-            char * str = (char*)(mem + boneNamesValuesOffset + offset);
-            md.boneNameOffsets[i] = offset;
-            size_t len = source.boneNames[i].size();
-            memcpy(str, source.boneNames[i].c_str(), len);
-            str[len] = '\0';
-            offset += len + 1;
-        }
-        assert(offset == boneNamesValuesSize);
-    }
-    if (source.boneOffsetMatrices.size() > 0) {
-        md.boneMatrices = (glm::fmat4*)(mem + boneMatricesOffset);
-        memcpy(md.boneMatrices, &source.boneOffsetMatrices[0], boneMatricesSize);
-    }
-    md.boneCount = source.boneNames.size();
-
-    md.vertexCount = source.verticles.size();
-    md.indexCount = source.index.size();
-
-    md.halfBoundingBox = source.halfBoundingBox;
-    md.boundingRadius = source.boundingRadius;
-    md.memoryBlockSize = memorySize;
-    md.memoryBlockFront = mem;
-    md.ready = false;
+    Importer::MeshImport mi;
+    Importer::ImportMeshSource(source, mi);
 
 #ifdef DEBUG_LOG
     {
@@ -276,10 +176,11 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
                 uri = cu;
                 break;
             }
-        auto b = [](auto v) -> char { return static_cast<bool>(v) ? 'T' : 'F'; };
+        auto b = [](const auto v) -> char { return static_cast<bool>(v) ? 'T' : 'F'; };
+        const auto &md = mi.mesh;
         AddLogf(Resources, "Applied mesh source for '%s'; Memory:%5.1fkib Verts:%u Indices:%u Normals:%c UV0:%c Tangents:%c  Bones:%u", 
             uri.c_str(),
-            memorySize / 1024.0f,
+            md.memoryBlockSize / 1024.0f,
             md.vertexCount, md.indexCount,
             b(md.normals), b(md.UV0), b(md.tangents),
             md.boneCount
@@ -287,10 +188,10 @@ void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshSource source) {
     }
 #endif
 
-    ApplyMeshSource(h, md, std::move(memory));
+    ApplyMeshSource(h, mi.mesh, std::move(mi.memory));
 }
 
-MeshResourceHandle MeshManager::CreateMesh(MeshSource source, const std::string &uri) {
+MeshResourceHandle MeshManager::CreateMesh(const MeshSource &source, const std::string &uri) {
     auto [h, got] = Allocate(uri);
     ApplyMeshSource(h, source);
     return h;
@@ -367,19 +268,6 @@ void MeshManager::SaveMeshObj(MeshResourceHandle h, std::string outFile) {
     }
 
     of.close();
-}
-
-void MeshManager::SaveMeshBin(MeshResourceHandle h, std::string outFile) {
-    if (outFile.empty())
-        outFile = "logs/mesh." + std::to_string(h.index) + ".mesh";
-
-    auto *mptr = GetMeshData(h);
-    if (!mptr)
-        return;
-
-    std::ofstream of(outFile, std::ios::out | std::ios::binary);
-
-    Blob::WriteMeshBlob(of, mptr);
 }
 
 } //namespace MoonGlare::Renderer::Resources 

@@ -24,6 +24,7 @@ public:
     void SetObserver(MoonGlare::Resources::SharedAsyncLoaderObserver o) override;
     void QueueRequest(std::string URI, MoonGlare::Resources::SharedAsyncFileSystemRequest handler) override;
     void QueueTask(MoonGlare::Resources::SharedAsyncTask task) override;
+    JobStatus GetJobStatus() const override;
 
     void SubmitShaderLoad(ShaderResourceHandleBase handle);
 private:
@@ -33,6 +34,7 @@ private:
     iFileSystem *fileSystem;
     const Configuration::RuntimeConfiguration *m_Configuration;
     MoonGlare::Resources::WeakAsyncLoaderObserver observer;
+    uint32_t localJobCount = 0;
 
     struct QueueData {
         Commands::CommitCommandQueue m_ccq;

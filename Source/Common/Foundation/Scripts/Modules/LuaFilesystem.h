@@ -21,6 +21,7 @@ protected:
     int ReadFileContent(lua_State *lua);
     int ReadJSON(lua_State *lua);
     int EnumerateFolder(lua_State *lua);
+    int FindFilesByExt(lua_State *lua);
 };
 
 } //namespace MoonGlare::Scripts::Modules

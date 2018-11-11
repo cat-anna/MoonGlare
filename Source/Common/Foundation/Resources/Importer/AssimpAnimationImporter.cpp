@@ -1,6 +1,4 @@
 
-#include <Foundation/Resources/Blob/AnimationBlob.h>
-
 #pragma warning ( push, 0 )
 #include <assimp/Importer.hpp>     
 #include <assimp/scene.h>          
@@ -9,111 +7,27 @@
 
 #include <Foundation/Memory/AlignedPtr.h>
 
-#include "AssimpAnimationLoader.h"
+#include "AssimpAnimationImporter.h"
 
-namespace MoonGlare::Resources::Loader {
+namespace MoonGlare::Resources::Importer {
 
-AssimpAnimationLoader::AssimpAnimationLoader(std::string subpath, SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner) :
-    owner(Owner), handle(handle), subpath(std::move(subpath)) {}
+void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node animSetXml, AnimationImport &output) {
+    assert(scene);
+    assert(animIndex >= 0 && animIndex < scene->mNumAnimations);
 
-AssimpAnimationLoader::~AssimpAnimationLoader() { }
-
-void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) {
-    importer = std::make_unique<Assimp::Importer>();
-
-    auto loadflags =
-        //aiProcessPreset_TargetRealtime_Fast | 
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_CalcTangentSpace |
-        aiProcess_GenNormals |
-        aiProcess_LimitBoneWeights |
-        //aiProcess_ImproveCacheLocality |
-        //aiProcess_PreTransformVertices |
-        aiProcess_Triangulate |
-        aiProcess_GenUVCoords |
-        aiProcess_SortByPType |
-        aiProcess_GlobalScale |
-        0;
-
-    scene = importer->ReadFileFromMemory(filedata.get(), filedata.size(), loadflags, strrchr(requestedURI.c_str(), '.'));
-
-    if (!scene) {
-        AddLog(Error, fmt::format("Unable to animation model file[{}]. Error: {}", requestedURI, importer->GetErrorString()));
-        return;
-    }
-
-    ModelURI = requestedURI;
-    baseURI = requestedURI;
-    baseURI.resize(baseURI.rfind('/') + 1);
-
-    LoadFile(requestedURI + ".xml", [this](const std::string&, StarVFS::ByteTable &filedata) {
-        if (!animSetXmlDoc.load_string(filedata.c_str())) {
-            //TODO: sth
-            __debugbreak();
-        }
-        LoadAnimation();
-    });
-}
-
-int AssimpAnimationLoader::GetAnimIndex() const {
-    static constexpr std::string_view meshProto = "animation://";
-
-    if (subpath.empty()) {
-        return 0;
-    }
-
-    if (subpath.find(meshProto) != 0) {
-        __debugbreak();
-        return -1;
-    }
-
-    const char *beg = subpath.c_str() + meshProto.size();
-
-    if (*beg == '*') {
-        ++beg;
-        char *end = nullptr;
-        long r = strtol(beg, &end, 10);
-        if (end == beg) {
-            __debugbreak();
-            return -1;
-        }
-        if (r > (int)scene->mNumMeshes)
-            return -1;
-        return r;
-    }
-
-    std::string name(beg);
-    for (unsigned i = 0; i < scene->mNumMeshes; i++) {
-        auto mesh = scene->mMeshes[i];
-        if (name == mesh->mName.data) {
-            return i;
-        }
-    }
-
-    __debugbreak();
-    return -1;
-}
-
-void AssimpAnimationLoader::LoadAnimation() {
-    int animId = GetAnimIndex();
-    if (animId < 0) {
-        __debugbreak();
-        return;
-    }
-
-    const auto *assimpAnim = scene->mAnimations[animId];
-    pugi::xml_node animSetNode = animSetXmlDoc.document_element().find_child_by_attribute("AnimationSet", "Index", std::to_string(animId).c_str());
+    const auto *assimpAnim = scene->mAnimations[animIndex];
+    pugi::xml_node animSetNode = animSetXml.find_child_by_attribute("AnimationSet", "Index", std::to_string(animIndex).c_str());
 
     //calculate memory requirement:
     size_t AnimationDataSize = 0;
     size_t stringArraySize = 1; //first byte to be zero  
-    stringArraySize += assimpAnim->mName.length + 1;     
+    stringArraySize += assimpAnim->mName.length + 1;
 
     for (size_t ch = 0; ch < assimpAnim->mNumChannels; ++ch) {
         size_t chsize = 0;
         auto &channel = assimpAnim->mChannels[ch];
         chsize += Memory::Align16(sizeof(PositionKey) * channel->mNumPositionKeys);
-        chsize += Memory::Align16(sizeof(ScalingKey)  * channel->mNumScalingKeys );
+        chsize += Memory::Align16(sizeof(ScalingKey)  * channel->mNumScalingKeys);
         chsize += Memory::Align16(sizeof(RotationKey) * channel->mNumRotationKeys);
         stringArraySize += channel->mNodeName.length + 1;
         AnimationDataSize += chsize;
@@ -129,10 +43,11 @@ void AssimpAnimationLoader::LoadAnimation() {
     size_t dataAllocOffset = Memory::Align16(stringArraySize);
     AnimationDataSize += dataAllocOffset;
 
-    std::unique_ptr<char[]> memory(new char[AnimationDataSize]);
-    char *mem = memory.get();
+    output.memory.reset(new char[AnimationDataSize]);
+    char *mem = output.memory.get();
     memset(mem, 0, AnimationDataSize);
-    SkeletalAnimation animInfo = {};
+    SkeletalAnimation &animInfo = output.animation;
+    animInfo = {};
 
     animInfo.stringArrayBase = (char*)mem;
 
@@ -228,12 +143,6 @@ void AssimpAnimationLoader::LoadAnimation() {
 
     animInfo.memoryBlockFront = mem;
     animInfo.memoryBlockSize = AnimationDataSize;
-    owner.ApplyAnimationData(handle, std::move(memory), animInfo);
-
-    static int animIndex = 0;
-    std::string outFile = "logs/animation." + std::to_string(animIndex++) + ".anim";
-    std::ofstream of(outFile, std::ios::out | std::ios::binary);
-    Blob::WriteAnimationBlob(of, &animInfo);
 }
 
-} //namespace MoonGlare::Renderer::Resources::Loader 
+}

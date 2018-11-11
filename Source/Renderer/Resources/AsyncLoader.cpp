@@ -106,6 +106,7 @@ void AsyncLoader::ThreadMain() {
 
                     bool v = true;
                     if (working.compare_exchange_strong(v, false) && v == true) {
+                        localJobCount = 0;
                         auto ob = observer.lock();
                         if (ob)
                             ob->OnFinished(this);
@@ -139,6 +140,7 @@ void AsyncLoader::QueuePush(AnyTask at) {
     m_Queue.emplace_back(std::move(at));
     AddLogf(Performance, "Queued Job cnt:%d", m_Queue.size());
     bool v = false;
+    ++localJobCount;
     if (working.compare_exchange_strong(v, true) && v == false) {
         auto ob = observer.lock();
         if (ob)
@@ -146,7 +148,6 @@ void AsyncLoader::QueuePush(AnyTask at) {
     }
     m_Lock.notify_one();
 }
-
 
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
@@ -227,6 +228,14 @@ AsyncLoader::ProcessorResult AsyncLoader::ProcessTask(QueueData *queue, AsyncFST
 
 //---------------------------------------------------------------------------------------
 
+AsyncLoader::JobStatus AsyncLoader::GetJobStatus() const {
+    JobStatus js;
+    LOCK_MUTEX(m_QueueMutex);
+    js.localJobCount = localJobCount;
+    js.pendingJobs = m_Queue.size();
+    return js;
+}            
+                                                         
 void AsyncLoader::SetObserver(MoonGlare::Resources::SharedAsyncLoaderObserver f) {
     //TODO: possible race condition
     observer = f;

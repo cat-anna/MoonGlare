@@ -1,10 +1,11 @@
 
+#include "BlobHeaders.h"
 #include "MeshBlob.h"
 
 namespace MoonGlare::Resources::Blob {
 
-void WriteMeshBlob(std::ostream& output, const MeshData *meshData) {
-    auto data = *meshData;
+void WriteMeshBlob(std::ostream& output, const MeshData &meshData) {
+    auto data = meshData;
     data.UpdatePointers(0x1000'0000);
 
     size_t fileOffset = 0;
@@ -21,8 +22,8 @@ void WriteMeshBlob(std::ostream& output, const MeshData *meshData) {
     meshDataH.fileOffset = fileOffset;
     fileOffset += meshDataH.fileDataSize;
 
-    blobDataH.dataSize = meshData->memoryBlockSize;
-    blobDataH.fileDataSize = meshData->memoryBlockSize;
+    blobDataH.dataSize = meshData.memoryBlockSize;
+    blobDataH.fileDataSize = meshData.memoryBlockSize;
     blobDataH.fileOffset = fileOffset;
     fileOffset += blobDataH.fileDataSize;
 
@@ -31,7 +32,21 @@ void WriteMeshBlob(std::ostream& output, const MeshData *meshData) {
     output.write((char*)&meshDataH, sizeof(meshDataH));
     output.write((char*)&blobDataH, sizeof(blobDataH));
     output.write((char*)&data, sizeof(data));
-    output.write((char*)meshData->memoryBlockFront, blobDataH.fileDataSize);
+    output.write((char*)meshData.memoryBlockFront, blobDataH.fileDataSize);
+}
+
+void DumpMeshBlob(const MeshData &meshData, const std::string name) {
+    static int animIndex = 0;
+
+    std::string outFile = "logs/mesh.";
+    if (name.empty())
+        outFile += std::to_string(animIndex++);
+    else
+        outFile += name;
+    outFile += ".anim";
+
+    std::ofstream of(outFile, std::ios::out | std::ios::binary);
+    Blob::WriteMeshBlob(of, meshData);
 }
 
 }

@@ -56,6 +56,12 @@ public:
 
     using TaskFunc = std::function<void()>;
     void PostTask(TaskFunc func);
+
+    struct JobStatus {
+        uint32_t pendingJobs = 0;
+        uint32_t localJobCount = 0;
+    };
+    virtual JobStatus GetJobStatus() const = 0;
 };
 
 //---------------------------------------------------------------------------------------

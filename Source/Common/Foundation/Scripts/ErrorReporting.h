@@ -21,3 +21,11 @@ do {                                                                            
     AddLogf(ScriptRuntime, msg.c_str());                                                                    \
 } while (false)                                                                                             \
 
+
+#define LuaReportInvalidArg(lua, index, expectedType)                                                       \
+do {                                                                                                        \
+    LuaRunError(lua, "Invalid argument #" ## BOOST_STRINGIZE(index),                                        \
+        " Invalid argument #{} type. Expected {} got {}",                                                   \
+        index, BOOST_STRINGIZE(expectedType), lua_typename(lua, lua_type(lua, -1)));                        \
+} while (false)                                                                                             \
+

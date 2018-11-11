@@ -16,6 +16,7 @@
 #include <Foundation/Scripts/Modules/LuaRequire.h>
 #include <Foundation/Scripts/Modules/LuaEvents.h>
 #include <Foundation/Scripts/Modules/LuaTime.h>
+#include <Foundation/Scripts/Modules/LuaAsyncLoader.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
@@ -151,6 +152,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<LuaFileSystemModule>();
         InstallModule<LuaEventsModule>();
         InstallModule<LuaTimeModule>();
+        InstallModule<LuaAsyncLoaderModule>();
         InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {
@@ -266,7 +268,8 @@ void ScriptEngine::InstallModule() {
         luabridge::getGlobalNamespace(m_Lua)
             .beginNamespace("api")
                 .DefferCalls(regFunc)
-            .endNamespace();
+            .endNamespace()
+            ;
     }
 }
 

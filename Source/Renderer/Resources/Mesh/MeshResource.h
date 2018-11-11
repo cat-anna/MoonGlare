@@ -24,8 +24,8 @@ public:
                                     
     MeshResourceHandle LoadMesh(const std::string &uri);
 
-    MeshResourceHandle CreateMesh(MeshSource source, const std::string &uri = "");
-    void ApplyMeshSource(MeshResourceHandle h, MeshSource source);
+    MeshResourceHandle CreateMesh(const MeshSource &source, const std::string &uri = "");
+    void ApplyMeshSource(MeshResourceHandle h, const MeshSource &source);
     void ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<char[]> sourceMemory);
 
     bool IsHandleValid(MeshResourceHandle &h) const;
@@ -44,21 +44,14 @@ public:
     }
 
     void SaveMeshObj(MeshResourceHandle h, std::string outFile = "");
-    void SaveMeshBin(MeshResourceHandle h, std::string outFile = "");
 private:
     template<typename T>
     using Array = std::array<T, Conf::Limit>;
 
     using Bitmap = ConfRes::BitmapAllocator<Conf::Limit>;
 
-    struct MeshFlags {
-        //bool meshCommited : 1;
-    };
-    static_assert(sizeof(MeshFlags) == 1);
-
     Bitmap allocationBitmap;
     Array<Device::VAOHandle> deviceHandle;
-    //Array<MeshFlags> meshFlags;
 
     Array<Mesh> mesh;
 

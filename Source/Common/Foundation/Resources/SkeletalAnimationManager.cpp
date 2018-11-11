@@ -4,9 +4,9 @@
 #include "SkeletalAnimationManager.h"
 #include "iAsyncLoader.h"
 
-#include "Loaders/AssimpAnimationLoader.h"
+#include "Loader/AssimpAnimationLoader.h"
 
-#include <glm/gtc/quaternion.hpp>
+#include <Foundation/Resources/Blob/AnimationBlob.h>
 
 namespace MoonGlare::Resources {
 
@@ -92,11 +92,15 @@ SkeletalAnimationHandle SkeletalAnimationManager::LoadAnimation(const std::strin
 }   
 
 void SkeletalAnimationManager::ApplyAnimationData(SkeletalAnimationHandle handle, std::unique_ptr<char[]> memory, const SkeletalAnimation &animInfo) {
+#ifdef DEBUG_DUMP
+    Resources::Blob::DumpAnimationBlob(animInfo);
+#endif 
+
     if (!IsHandleValid(handle)) {
         //TODO: log sth?
         return;
     }
-
+       
     SkeletalAnimationHandleDetail hd;
     hd.handle = handle;
 
