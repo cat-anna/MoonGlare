@@ -4,22 +4,19 @@
 #include <unordered_map>
 #include <vector>
 
+#include <Foundation/InterfaceMap.h>
 #include <Foundation/Memory/BitampAllocator.h>
 
 #include "SkeletalAnimation.h"        
-
-namespace MoonGlare {
-class InterfaceMap;
-}
 
 namespace MoonGlare::Resources {
 
 class iAsyncLoader;
 
-class SkeletalAnimationManager {
+class SkeletalAnimationManager final {
 public:
     SkeletalAnimationManager(InterfaceMap &ifaceMap);
-    virtual ~SkeletalAnimationManager();
+    ~SkeletalAnimationManager();
 
     SkeletalAnimationHandle LoadAnimation(const std::string &uri);
     bool IsHandleValid(SkeletalAnimationHandle &h) const;

@@ -4,12 +4,13 @@
 #include <Foundation/Memory/StaticIndexQueue.h>
 
 #include "Handle.h"
+#include "InterfaceMap.h"
 
 namespace MoonGlare {
 
 class HandleTable final {
 public:
- 	HandleTable();
+ 	HandleTable(InterfaceMap &ifaceMap);
  	~HandleTable();
 
 	using HandlePrivateData = uint64_t;

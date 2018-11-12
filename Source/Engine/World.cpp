@@ -60,14 +60,14 @@ bool World::Initialize() {
     entityManager = std::make_unique<Component::EntityManager>(*this);
     SetInterface<Component::EntityManager>(entityManager.get());
 
-    handleTable = std::make_unique<HandleTable>();
-    SetInterface<HandleTable>(handleTable.get());
-
 	m_InputProcessor = std::make_unique<Core::InputProcessor>();
 	if (!m_InputProcessor->Initialize(this)) {
 		AddLogf(Error, "Failed to initialize InputProcessor");
 		return false;
 	}
+
+    CreateObject<HandleTable>();
+    CreateObject<Core::PrefabManager>();
 
 	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>(*this);
     m_ScenesManager->Initialize(&runtimeConfiguration->scene);
@@ -94,10 +94,8 @@ bool World::Finalize() {
 	}
 
     entityManager.reset();
-    handleTable.reset();
 
     ReleaseAllInterfaces();
-
 	return true;
 }
 

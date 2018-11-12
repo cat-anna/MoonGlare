@@ -1,6 +1,4 @@
 
-#include <Foundation/InterfaceMap.h>
-
 #include "SkeletalAnimationManager.h"
 #include "iAsyncLoader.h"
 

@@ -11,7 +11,7 @@
 #include <Engine/Core/DataManager.h>
 #include <Engine/Modules/ModuleManager.h>
 #include <Engine/Core/Engine.h>
-#include <Engine/Core/InputProcessor.h>
+#include <Engine/Core/InputProcessor.h>                   
 #include <Engine/World.h>
 #include "Core/Scene/ScenesManager.h"
 
@@ -172,7 +172,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     m_Renderer->Initialize(GetDisplaySettings(), GetFileSystem());
     m_World->SetRendererFacade(R);
 
-    m_World->SetSharedInterface(std::make_shared<Resources::SkeletalAnimationManager>(*m_World));
+    m_World->CreateObject<Resources::SkeletalAnimationManager>();
 
     {
         auto datamgr = new DataManager(m_World.get());
@@ -181,7 +181,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     LoadDataModules();
 
-#ifdef DEBUG_RESOURCEDUMP
+#ifdef DEBUG_DUMP
     {
         std::ofstream fsvfs("logs/vfs.txt");
         GetFileSystem()->DumpStructure(fsvfs);
@@ -193,7 +193,7 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     if (!m_World->Initialize()) {
         AddLogf(Error, "Failed to initialize world!");
         throw "Failed to initialize world!";
-    }
+    }               
 
     GetDataMgr()->InitFonts();
 
@@ -221,6 +221,10 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         AddLogf(Error, "Post system init action failed!");
         throw "Post system init action failed!";
     }
+
+#ifdef DEBUG_DUMP
+    m_World->DumpObjects();
+#endif
 }
 
 void Application::LoadDataModules() {

@@ -14,7 +14,7 @@ function class:OnTimer(tid)
     local ldr = require "AsyncLoader"
     local js = ldr:GetStatus()
 	self.Text:Set {
-        Text = string.format("remain %d out of %d", js.pendingJobs, js.jobCount),
+        Text = string.format("%d out of %d", js.pendingJobs, js.jobCount),
 	}
 end
 
@@ -22,4 +22,3 @@ function class:Step(data)
 end
 
 return class
-

@@ -3,10 +3,11 @@
 #include <unordered_set>
 
 #include <Foundation/InterfaceMap.h>
+#include <Foundation/Resources/ResourceLoaderEvent.h>
 
 #include "iSceneManager.h"
 
-#include <Foundation/Resources/ResourceLoaderEvent.h>
+#include <Core/PrefabManager.h>
 
 namespace MoonGlare::Core::Scene {
 
@@ -47,6 +48,8 @@ protected:
 
     InterfaceMap &interfaceMap;
     Component::EventDispatcher *eventDispatcher = nullptr;
+    Component::EntityManager *entityManager = nullptr;
+    PrefabManager *prefabManager = nullptr;
     const SceneConfiguration *sceneConfiguration = nullptr;
     std::recursive_mutex mutex;
 

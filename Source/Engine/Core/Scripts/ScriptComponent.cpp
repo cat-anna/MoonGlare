@@ -405,7 +405,8 @@ bool ScriptComponent::Load(ComponentReader &reader, Entity parent, Entity owner)
     //entry.m_Flags.m_Map.m_Event = true;
     m_EntityMapper.SetIndex(owner, index);
 
-    auto *gameObject = gameObjectTable->Set(owner, GetManager(), this, &GetManager()->GetWorld()->GetEntityManager());
+    auto &ifmap = *GetManager()->GetWorld();
+    auto *gameObject = gameObjectTable->Set(owner, GetManager(), this, ifmap.GetInterface<EntityManager>(), ifmap.GetInterface<PrefabManager>());
     if (!gameObject) {
         //TODO
     }
@@ -446,7 +447,8 @@ GameObject* ScriptComponent::GetGameObject(Entity Owner) {
     auto *ptr = gameObjectTable->GetObject(Owner);
     if (!ptr) {
         //TODO: handle this case properly
-        ptr = gameObjectTable->Set(Owner, GetManager(), this, &GetManager()->GetWorld()->GetEntityManager());
+        auto &ifmap = *GetManager()->GetWorld();
+        ptr = gameObjectTable->Set(Owner, GetManager(), this, ifmap.GetInterface<EntityManager>(), ifmap.GetInterface<PrefabManager>());
         if (!ptr) {
             //TODO
         }

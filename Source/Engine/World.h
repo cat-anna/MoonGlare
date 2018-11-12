@@ -46,9 +46,7 @@ private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::iSceneManager> m_ScenesManager;
     std::unique_ptr<Core::RuntimeConfiguration> runtimeConfiguration;
-
     std::unique_ptr<Component::EntityManager> entityManager;
-    std::unique_ptr<HandleTable> handleTable;
 
 	//not owning
     iConsole *m_Console = nullptr;
@@ -56,7 +54,6 @@ private:
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
     Resources::StringTables *stringTables = nullptr;          
     Component::EventDispatcher *eventDispatcher = nullptr;
-
 };
 
 } //namespace MoonGlare

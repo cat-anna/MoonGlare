@@ -92,7 +92,7 @@ struct SceneInstance : private boost::noncopyable {
         eventDispatcher->Queue<SceneStateChangeEvent>(ssce);
     }
 
-    bool Initialize(pugi::xml_node Node) {
+    bool Initialize(pugi::xml_node node, PrefabManager *prefabManager) {
         AddLog(Debug, "Initializing scene: " << sceneName);
 
         if (!entityManager->Allocate(sceneRoot, sceneName)) {
@@ -100,7 +100,7 @@ struct SceneInstance : private boost::noncopyable {
             return false;
         }
 
-        if (!subsystemManager.LoadSystems(Node.child("Systems"))) {
+        if (!subsystemManager.LoadSystems(node.child("Systems"))) {
             AddLogf(Error, "Failed to load components");
             return false;
         }
@@ -112,7 +112,8 @@ struct SceneInstance : private boost::noncopyable {
 
         eventDispatcher->AddSubDispatcher(&subsystemManager.GetEventDispatcher());
 
-        EntityBuilder(&subsystemManager).Build(sceneRoot, sceneName.c_str(), Node.child("Entities"));
+        prefabManager->Spawn(&subsystemManager, sceneRoot, node.child("Entities"), fmt::format("scene://{}", sceneName));
+        //EntityBuilder(&subsystemManager).Build(sceneRoot, sceneName.c_str(), Node.child("Entities"));
         return true;
     }
 
@@ -142,10 +143,6 @@ ScenesManager::~ScenesManager() {
 
 void ScenesManager::RegisterScriptApi(ApiInitializer &api) {
     api
-        //.beginClass<ScenesManager>("cScenesManager")
-        //    .addFunction("LoadScene", &ScenesManager::LoadScene)
-        //    .addFunction("DropSceneState", &ScenesManager::DropSceneState)
-        //.endClass()
         .beginClass<SceneConfiguration>("SceneConfiguration")
             .addData("firstScene", &SceneConfiguration::firstScene, true)
             .addData("loadingScene", &SceneConfiguration::loadingScene, true)
@@ -159,9 +156,10 @@ void ScenesManager::Initialize(const SceneConfiguration *configuration) {
     assert(configuration);
     sceneConfiguration = configuration;
 
-    eventDispatcher = interfaceMap.GetInterface<Component::EventDispatcher>();
-    assert(eventDispatcher);
-
+    interfaceMap.GetObject(eventDispatcher);
+    interfaceMap.GetObject(entityManager);
+    interfaceMap.GetObject(prefabManager);
+    
     eventDispatcher->Register<Resources::ResourceLoaderEvent>(this);
     eventDispatcher->Register<SetSceneEvent>(this);
     eventDispatcher->Register<SetSceneChangeFenceEvent>(this);
@@ -325,11 +323,12 @@ SceneInstance* ScenesManager::CreateScene(const std::string &descName, const std
     auto sceneuptr = std::make_unique<SceneInstance>(sceneName);
     auto &scene = *sceneuptr;
     scene.descriptor = desc;
-    scene.entityManager = interfaceMap.GetInterface<Component::EntityManager>();
+    scene.entityManager = entityManager;
     scene.eventDispatcher = eventDispatcher;
     pendingScene = &scene;
 
-    assert(scene.entityManager);
+    //TODO: loading scenes is synchronous
+
     if (!LoadSceneData(desc, &scene)) {
         AddLogf(Error, "Failed to load scene '%s' from descriptor '%s'", sceneName.c_str(), descName.c_str());
         pendingScene = nullptr;
@@ -454,7 +453,7 @@ bool ScenesManager::LoadSceneData(SceneDescriptor *descriptor, SceneInstance* in
 
     instance->staticFog = sc.m_StaticFog;
 
-    if (!instance->Initialize(xmlroot)) {
+    if (!instance->Initialize(xmlroot, prefabManager)) {
         AddLogf(Error, "Failed to initialize scene '%s'", instance->sceneName.c_str());
         return false;
     }

@@ -61,6 +61,11 @@ public:
         NotExistsException(std::string str) :runtime_error(std::move(str)) {}
     };
 
+    template<typename T, typename ... ARGS>
+    void CreateObject(ARGS&& ... args) {
+        SetSharedInterface(std::make_shared<T>(*this, std::forward<ARGS>(args)...));
+    }
+
     //throws NotExistsException on error
     template<typename T>
     void GetObject(T *& t) {
@@ -74,6 +79,19 @@ public:
         t = GetSharedInterface<T>();
         if (!t)
             throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
+    }
+
+    void DumpObjects() const {
+        std::stringstream ss;
+
+        ss << "Shared[" << sharedInterfaces.size() << "]:\n";
+        for (auto&[index, any] : sharedInterfaces)
+            ss << "\t" << any.type().name() << "\n";
+        ss << "Raw[" << interfaces.size() << "]:\n";
+        for (auto&[index, any] : interfaces)
+            ss << "\t" << any.type().name() << "\n";
+
+        AddLog(Resources, "InterfaceMap " << this << " content:\n" << ss.str());
     }
 protected:
     void ReleaseAllInterfaces() {

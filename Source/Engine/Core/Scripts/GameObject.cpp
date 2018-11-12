@@ -187,12 +187,14 @@ int GameObject::LoadObject(lua_State *lua) {
 
     //stack: self arg arg.objectURI arg.objectName	
 
-    Entity child;
-    if (!EntityBuilder::Build(myWorld, owner, objectURI, child, (objectName ? std::string(objectName) : std::string()))) {
-        lua_settop(lua, argc);
-        LuaRunError(lua, "Load object failed!", "");
-        return 0;
-    }
+    //Entity child;
+    Entity child = prefabManager->Spawn(myWorld, owner, objectURI, (objectName ? std::string(objectName) : std::string()));
+
+    //if (!EntityBuilder::Build(myWorld, owner, objectURI, child, )) {
+        //lua_settop(lua, argc);
+        //LuaRunError(lua, "Load object failed!", "");
+        //return 0;
+    //}
 
     lua_pop(lua, 2);													//stack: self
 
@@ -255,7 +257,8 @@ int GameObject::LoadObject(lua_State *lua) {
 
     lua_settop(lua, argc);
 
-    scriptComponent->GetGameObject(lua, child);
+    if (scriptComponent->GetGameObject(lua, child) == 0)
+        return check.ReturnArgs(0);
 
     if (tagValue.has_value()) {
         lua_pushinteger(lua, tagValue.value());

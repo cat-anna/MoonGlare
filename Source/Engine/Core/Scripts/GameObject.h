@@ -5,6 +5,8 @@
 
 #include "../Component/SubsystemManager.h"
 
+#include <Core/PrefabManager.h>
+
 namespace MoonGlare::Core::Scripts::Component {
 using namespace MoonGlare::Core::Component;
 using namespace MoonGlare::Component;
@@ -21,6 +23,8 @@ struct GameObject {
     SubsystemManager *myWorld;
     ScriptComponent *scriptComponent;
     EntityManager *entityManager;
+    PrefabManager *prefabManager;
+
 
     int CreateComponent(lua_State *lua);
     int GetComponent(lua_State * lua);
@@ -46,11 +50,12 @@ struct GameObjectTable {
         auto &ptr = gameObjectTable[e.GetIndex()];
         ptr = {};
     }
-    GameObject* Set(Entity e, SubsystemManager *world, ScriptComponent *scriptComponent, EntityManager *entityManager) {
+    GameObject* Set(Entity e, SubsystemManager *world, ScriptComponent *scriptComponent, EntityManager *entityManager, PrefabManager *prefabManager) {
         auto &ptr = gameObjectTable[e.GetIndex()];
         ptr = {};
         ptr.owner = e;
         ptr.entityManager = entityManager;
+        ptr.prefabManager = prefabManager;
         ptr.scriptComponent = scriptComponent;
         ptr.myWorld = world;
         return &ptr;

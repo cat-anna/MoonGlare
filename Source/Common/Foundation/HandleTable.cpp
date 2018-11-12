@@ -2,7 +2,7 @@
 
 namespace MoonGlare {
 
-HandleTable::HandleTable() {
+HandleTable::HandleTable(InterfaceMap &ifaceMap) {
     handlePrivateData.fill(0);
     allocator.Clear();
 //#ifdef DEBUG
