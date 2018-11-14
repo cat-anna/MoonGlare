@@ -14,7 +14,7 @@
 namespace MoonGlare {
 namespace QtShared {
 
-struct EditorNotFoundException { };
+struct EditorNotFoundException {};
 
 struct iEditor;
 using SharedEditor = std::shared_ptr<iEditor>;
@@ -37,6 +37,7 @@ protected:
 
 struct iEditorFactory {
 	struct EditorRequestOptions {
+        std::string fileURI;
 	};
 
 	virtual SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const {

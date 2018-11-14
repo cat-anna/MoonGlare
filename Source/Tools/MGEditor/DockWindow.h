@@ -4,14 +4,14 @@
 #include <qobject.h>
 #include <ToolBase/Module.h>
 #include <ToolBase/iSettingsUser.h>
-#include "qtUtils.h"
+#include <ToolBase/UserQuestions.h>
 
 namespace MoonGlare {
 namespace QtShared {
 
 class DockWindow 
 	: public QDockWidget
-	, public UserQuestions
+	, public Editor::UserQuestions
 	, public iSettingsUser
 	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT;

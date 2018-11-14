@@ -5,7 +5,7 @@
 #include "ui_SettingsWindow.h"
 
 #include <DockWindow.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include "Notifications.h"
 

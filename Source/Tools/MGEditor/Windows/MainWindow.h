@@ -3,13 +3,14 @@
 
 #include <DockWindowInfo.h>
 #include <Notifications.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <iEditor.h>
 #include <iFileProcessor.h>
 #include <ChangesManager.h>
 
 #include <ToolBase/Module.h>
 #include <ToolBase/interfaces/ActionBarSink.h>
+#include <ToolBase/interfaces/MainWindowTabs.h>
 #include <MiscIfs.h>
 
 namespace Ui { class MainWindow; }
@@ -34,11 +35,12 @@ struct SharedData {
 class MainWindow
 	: public QMainWindow
 	, public iModule
-	, public QtShared::UserQuestions
+	, public Editor::UserQuestions
 	, public iSettingsUser
 	, public QtShared::MainWindowProvider
 	, public QtShared::QtWindowProvider<MainWindow> 
     , public iActionBarSink
+    , public iMainWindowTabsCtl
     {
 	Q_OBJECT
 public:
@@ -91,6 +93,13 @@ private:
     };
     std::unordered_map<std::string, ActionInfo> actionBarItems;
 
+//iMainWindowTabsCtl
+    QWidget* GetTabParentWidget() const override;
+    void AddTab(const std::string &id, std::shared_ptr<iTabViewBase> tabWidget) override;
+    bool TabExists(const std::string &id) const override;
+    void ActivateTabs(const std::string &id) override;
+    void TabCloseRequested(int index);
+    std::unordered_map<std::string, std::shared_ptr<iTabViewBase>> openedTabs;
 public slots:
     void RefreshStatus();
 protected slots:

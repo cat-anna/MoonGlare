@@ -147,6 +147,10 @@ bool FileSystem::TranslateURI(const std::string & uri, std::string & out) {
         return false;
     }
     auto pos = uri.find("://");
+    if (pos == std::string::npos) {
+        __debugbreak();
+        return false;
+    }
     auto start = pos + 3;
 
     switch (Space::Utils::MakeHash32(uri.c_str(), pos)) {
@@ -322,6 +326,46 @@ void FileSystem::Reload() {
         root.EnumerateChildren(processitem);
         root.Close();
     }
+}
+
+//-----------------------------------------------------------------------------
+
+bool FileSystem::EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive) {
+    auto ParentFID = m_VFS->FindFile(Path);
+
+    if (!m_VFS->IsFileValid(ParentFID)) {
+        AddLogf(Error, "Failed to open '%s' for enumeration", Path.c_str());
+        return false;
+    }
+
+    FileTable.reserve(1024);//because thats why
+    StarVFS::HandleEnumerateFunc svfsfunc;
+
+    svfsfunc = [this, &svfsfunc, &FileTable, Recursive, ParentFID](StarVFS::FileID fid) ->bool {
+        if (ParentFID != fid) {
+            auto path = m_VFS->GetFilePath(fid, ParentFID);
+
+            FileInfo fi;
+            fi.m_IsFolder = m_VFS->IsFileDirectory(fid);
+            fi.m_RelativeFileName = m_VFS->GetFilePath(fid, ParentFID);
+            fi.m_FileName = m_VFS->GetFileName(fid);
+            fi.m_FID = fid;
+            FileTable.push_back(fi);
+        }
+
+        if ((Recursive || ParentFID == fid) && m_VFS->IsFileDirectory(fid)) {
+            auto handle = m_VFS->OpenFile(fid);
+            if (!handle.EnumerateChildren(svfsfunc)) {
+                handle.Close();
+                return true;
+            }
+            handle.Close();
+        }
+
+        return true;
+    };
+
+    return svfsfunc(ParentFID);
 }
 
 } //namespace Editor 

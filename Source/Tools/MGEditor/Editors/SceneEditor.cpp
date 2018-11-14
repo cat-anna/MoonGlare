@@ -58,7 +58,7 @@ ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
 //----------------------------------------------------------------------------------
 
 SceneEditor::SceneEditor(QWidget * parent, SharedModuleManager modmgr)
-		:  QtShared::DockWindow(parent) {
+		:  QtShared::DockWindow(parent), iChangeContainer(modmgr) {
     moduleManager.swap(modmgr);
 
 	SetSettingID("SceneEditor");

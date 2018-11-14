@@ -5,7 +5,7 @@
 #include "BuildOptions.h"
 #include "ui_BuildOptions.h"
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include <icons.h>
 

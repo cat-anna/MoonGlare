@@ -221,7 +221,13 @@ void FileSystemViewer::OpenFileEditor(const MoonGlare::QtShared::EditorProvider:
     try {
         if (editorAction.m_EditorFactory) {
             QtShared::iEditorFactory::EditorRequestOptions ero;
+            ero.fileURI = fullpath;
             auto editorptr = editorAction.m_EditorFactory->GetEditor(editorAction.m_FileHandleMethod, ero);
+            if (!editorptr) {
+                AddLog(Warning, "Editor creation failed!");
+                ErrorMessage("Editor creation failed!");
+                return;
+            }
             if (editorptr->OpenData(fullpath, editorAction.m_FileHandleMethod))
                 return;
             throw false;

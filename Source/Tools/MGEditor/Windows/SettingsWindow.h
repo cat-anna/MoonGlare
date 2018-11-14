@@ -3,7 +3,7 @@
 
 #include <DockWindowInfo.h>
 #include <Notifications.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <ChangesManager.h>
 
 #include <DataModels/StructureEditingModel.h>
@@ -15,7 +15,7 @@ namespace Editor {
 
 class SettingsWindow
 	: public QDialog
-	, public QtShared::UserQuestions
+	, public Editor::UserQuestions
 	, public iSettingsUser {
 	Q_OBJECT
 public:

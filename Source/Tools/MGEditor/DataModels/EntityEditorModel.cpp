@@ -22,7 +22,7 @@ namespace DataModels {
 //----------------------------------------------------------------------------------
 
 EntityEditorModel::EntityEditorModel(QWidget * parent)
-        : QWidget(parent) 
+        : QWidget(parent), iChangeContainer(nullptr)
 {
     m_Ui = std::make_unique<Ui::EntityEditorModel>();
     m_Ui->setupUi(this);

@@ -1,7 +1,7 @@
 #ifndef BUILDOPTIONS_H
 #define BUILDOPTIONS_H
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <SubDialog.h>
 
 #include "BuildProcess.h"
@@ -14,7 +14,7 @@ namespace Editor {
 
 class BuildOptions
     : public QtShared::SubDialog
-    , public QtShared::UserQuestions
+    , public Editor::UserQuestions
 {
     Q_OBJECT
 public:

@@ -6,7 +6,7 @@
 #include "ui_InputConfigurator.h"
 #include <boost/algorithm/string.hpp>
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include <Foundation/InputProcessor.h>
 #include <Input.x2c.h>

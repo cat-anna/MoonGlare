@@ -68,14 +68,7 @@ public:
         throw false;
     };
 
-    bool OpenXML(XMLFile &doc, const std::string& uri) {
-        __debugbreak();
-        throw false;
-    }
-    bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive) override {
-        __debugbreak();
-        throw false;
-    }
+    bool EnumerateFolder(const std::string& Path, FileInfoTable &FileTable, bool Recursive) override;
     
     bool Initialize() override;
     bool PostInit() override;

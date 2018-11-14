@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <SubDialog.h>
 #include <iBackgroundProcess.h>
 
@@ -11,7 +11,7 @@ namespace Editor {
 
 class ForegroundProcess
     : public QtShared::SubDialog
-    , public QtShared::UserQuestions
+    , public Editor::UserQuestions
 {
     Q_OBJECT
 public:

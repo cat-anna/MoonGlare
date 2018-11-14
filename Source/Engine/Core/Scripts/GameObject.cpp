@@ -12,8 +12,6 @@
 #include "ScriptComponent.h"
 #include <Core/Component/ComponentRegister.h>
 
-#include "../EntityBuilder.h"
-
 namespace MoonGlare::Core::Scripts::Component {   
 
 //-------------------------------------------------------------------------------------------------

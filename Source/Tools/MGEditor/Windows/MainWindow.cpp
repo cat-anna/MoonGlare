@@ -6,7 +6,7 @@
 #include "ui_MainWindow.h"
 
 #include <DockWindow.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include "DataModule.h"
 #include "Notifications.h"
@@ -60,6 +60,8 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
     m_Ui->statusBar->addPermanentWidget(jobProcessorStatus, 0);
 
     m_Ui->statusBar->showMessage("", 500);
+
+    connect(m_Ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::TabCloseRequested);
 }
 
 MainWindow::~MainWindow() {
@@ -120,7 +122,7 @@ bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
 
 void MainWindow::NewModuleAction() {
     if (m_DataModule) {
-        if (!QtShared::Utils::AskForPermission(this)) {
+        if (!AskForPermission()) {
             return;
         }
     }
@@ -137,7 +139,7 @@ void MainWindow::NewModuleAction() {
 
 void MainWindow::OpenModuleAction() {
     if (m_DataModule) {
-        if (!QtShared::Utils::AskForPermission(this)) {
+        if (!AskForPermission()) {
             return;
         }
     }
@@ -154,7 +156,7 @@ void MainWindow::OpenModuleAction() {
 
 void MainWindow::CloseModuleAction() {
     if (m_DataModule) {
-        if (!QtShared::Utils::AskForPermission(this)) {
+        if (!AskForPermission()) {
             return;
         }
         CloseModule();
@@ -163,7 +165,7 @@ void MainWindow::CloseModuleAction() {
 
 void MainWindow::CloseEditorAction() {
     if (m_DataModule) {
-        if (!QtShared::Utils::AskForPermission(this)) {
+        if (!AskForPermission()) {
             return;
         }
         CloseModule();
@@ -297,6 +299,57 @@ void MainWindow::RemoveProvider(std::weak_ptr<iActionProvider> provider) {
     };
 }
 
+//-----------------------------------------
+
+//iMainWindowTabsCtl
+QWidget* MainWindow::GetTabParentWidget() const {
+    return m_Ui->tabWidget;
+}
+
+void MainWindow::AddTab(const std::string &id, std::shared_ptr<iTabViewBase> tabWidget) {
+    QWidget *w = dynamic_cast<QWidget*>(tabWidget.get());
+    if (!w) {
+        __debugbreak();
+        return;
+    }
+    if (openedTabs.find(id) == openedTabs.end()) {
+        openedTabs[id] = tabWidget;
+        m_Ui->tabWidget->addTab(w, tabWidget->GetTabTitle().c_str());
+        m_Ui->tabWidget->setCurrentWidget(w);
+    }   
+}
+
+bool MainWindow::TabExists(const std::string &id) const {
+    return openedTabs.find(id) != openedTabs.end();
+}
+
+void MainWindow::ActivateTabs(const std::string &id) {
+    auto it = openedTabs.find(id);
+    if (openedTabs.find(id) == openedTabs.end())
+        return;
+    QWidget *w = dynamic_cast<QWidget*>(it->second.get());
+    if (!w) {
+        __debugbreak();
+        return;
+    }
+    m_Ui->tabWidget->setCurrentWidget(w);
+}
+
+void MainWindow::TabCloseRequested(int index) {
+    auto w = m_Ui->tabWidget->widget(index);
+    if (!w)
+        return;
+
+    for (auto &item : openedTabs) {
+        QWidget *iw = dynamic_cast<QWidget*>(item.second.get());
+        if (iw == w && item.second->CanClose()) {
+            openedTabs.erase(item.first);
+            m_Ui->tabWidget->removeTab(index);
+            return;
+        }
+    }
+}
+    
 //-----------------------------------------
 
     /*

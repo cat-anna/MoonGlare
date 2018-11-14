@@ -8,7 +8,7 @@ namespace QtShared {
 namespace DataModels {
 
 StructureEditingModel::StructureEditingModel(QWidget *parent)
-	: QTreeView(parent)
+	: QTreeView(parent), iChangeContainer(nullptr)
 {
 	m_Model = std::make_unique<QStandardItemModel>();
 	m_Model->setHorizontalHeaderItem(0, new QStandardItem("Name"));

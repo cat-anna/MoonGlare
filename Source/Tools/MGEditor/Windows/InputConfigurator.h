@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <SubDialog.h>
 
 namespace Ui { class InputConfigurator; }
@@ -10,7 +10,7 @@ namespace Editor {
 
 class InputConfigurator
     : public QtShared::SubDialog
-    , public QtShared::UserQuestions
+    , public Editor::UserQuestions
 {
     Q_OBJECT
 public:

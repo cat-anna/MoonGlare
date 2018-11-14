@@ -12,7 +12,7 @@
 #include <ToolBase/iSettingsUser.h>
 #include <iEditor.h>
 #include <ChangesManager.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include <TypeEditor/Structure.h>
 #include <TypeEditor/CustomType.h>
@@ -30,13 +30,13 @@ namespace DataModels {
 
 class EntityEditorModel
 		: public QWidget 
-		, public QtShared::UserQuestions
+		, public Editor::UserQuestions
 		, public QtShared::iChangeContainer
 		, public iSettingsUser
 {
 	Q_OBJECT;
 public:
-	EntityEditorModel(QWidget *parent = nullptr);
+	EntityEditorModel(QWidget *parent);
  	virtual ~EntityEditorModel();
 
 	struct UserRoles {
@@ -73,6 +73,9 @@ public:
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
     void SetModuleManager(SharedModuleManager mm);
+
+//iChangeContainer
+    bool SaveChanges() override { SetModiffiedState(false); return true; };
 public slots:
 	void Refresh();
 	void RefreshDetails();

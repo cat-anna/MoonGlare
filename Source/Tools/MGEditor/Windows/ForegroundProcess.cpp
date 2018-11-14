@@ -4,7 +4,7 @@
 #include "ForegroundProcess.h"
 #include "ui_ForegroundProcess.h"
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 namespace MoonGlare {
 namespace Editor {

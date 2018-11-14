@@ -15,7 +15,6 @@
 
 #include <Renderer/Deferred/DeferredFrontend.h>
 #include <Core/Scripts/LuaApi.h>
-#include <Core/EntityBuilder.h>
 
 #include <Math.x2c.h>
 #include <StaticFog.x2c.h>

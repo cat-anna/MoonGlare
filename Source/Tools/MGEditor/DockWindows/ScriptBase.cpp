@@ -10,7 +10,7 @@
 #include <icons.h>
 #include <iFileProcessor.h>
 #include <iFileIconProvider.h>
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 
 #include <regex>
 
@@ -44,12 +44,12 @@ struct ScriptFileConstructor
     : public QtShared::iEditor {
 public:
     ScriptFileConstructor(SharedModuleManager modmgr) : m_ModuleManager(std::move(modmgr)) {
-        m_UserQuestions = m_ModuleManager->QuerryModule<QtShared::UserQuestions>();
+        m_UserQuestions = m_ModuleManager->QuerryModule<Editor::UserQuestions>();
     }
     virtual ~ScriptFileConstructor() { }
 
     SharedModuleManager m_ModuleManager;
-    std::shared_ptr<QtShared::UserQuestions> m_UserQuestions;
+    std::shared_ptr<Editor::UserQuestions> m_UserQuestions;
 
     // iEditor
     virtual bool Create(const std::string &LocationURI, const QtShared::iEditorInfo::FileHandleMethodInfo& what) override {

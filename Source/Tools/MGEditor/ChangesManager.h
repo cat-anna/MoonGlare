@@ -9,6 +9,8 @@
 #ifndef ChangesManager_H
 #define ChangesManager_H
 
+#include <ToolBase/Module.h>
+
 namespace MoonGlare {
 namespace QtShared {
 
@@ -41,13 +43,15 @@ private:
 };
 
 struct iChangeContainer {
-	iChangeContainer() {  }
+	iChangeContainer(SharedModuleManager sharedModuleManager) 
+        : sharedModuleManager(std::move(sharedModuleManager)){  }
 	virtual ~iChangeContainer() { 
 		SetModiffiedState(false);
 	};
-	virtual bool SaveChanges() { SetModiffiedState(false); return false; }
-	virtual bool CanDropChanges() const { return false; }
-	virtual bool DropChanges() { return false; }
+    virtual bool SaveChanges() = 0;
+	//virtual bool CanDropChanges() const { return false; }
+	//virtual bool DropChanges() { return false; }
+
 	virtual std::string GetInfoLine() const { return ""; }
 	virtual const std::string& GetName() const { return m_Name; }
 
@@ -80,6 +84,7 @@ private:
 	iChangeContainer *m_Parent = nullptr;
 	bool m_Changed = false;
 	std::string m_Name;
+    SharedModuleManager sharedModuleManager;
 	std::vector<iChangeContainer*> m_Children;
 };
 

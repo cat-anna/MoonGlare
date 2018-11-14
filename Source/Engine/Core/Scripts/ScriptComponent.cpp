@@ -8,7 +8,6 @@
 #include "ScriptComponent.h"
 #include <Core/Component/SubsystemManager.h>
 #include <Core/Component/ComponentRegister.h>
-#include <Core/EntityBuilder.h>
 
 #include <Foundation/Scripts/ErrorHandling.h>
 #include <Foundation/Scripts/LuaWrap.h>

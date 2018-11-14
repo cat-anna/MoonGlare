@@ -65,8 +65,6 @@ public:
 	virtual bool TryCloseData();
 //iChangeContainer
 	virtual bool SaveChanges() override { return SaveData(); }
-	virtual bool CanDropChanges() const override { return false; }
-	virtual bool DropChanges() override { return false; }
 	virtual std::string GetInfoLine() const override { return m_SceneURI; }
 protected:
 protected slots:

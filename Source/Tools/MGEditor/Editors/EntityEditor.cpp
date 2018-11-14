@@ -73,7 +73,7 @@ ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("EntityEditor")
 //----------------------------------------------------------------------------------
 
 EntityEditorWindow::EntityEditorWindow(QWidget * parent, SharedModuleManager modmgr)
-    :  QtShared::DockWindow(parent) {
+    :  QtShared::DockWindow(parent), iChangeContainer(modmgr) {
     moduleManager.swap(modmgr);
     m_Ui = std::make_unique<Ui::EntityEditor>();
     m_Ui->setupUi(this);

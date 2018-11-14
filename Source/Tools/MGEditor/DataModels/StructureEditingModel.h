@@ -4,7 +4,7 @@
 
 #include <QtWidgets/QTreeView>
 
-#include <qtUtils.h>
+#include <ToolBase/UserQuestions.h>
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
 #include <ChangesManager.h>
@@ -35,6 +35,9 @@ public:
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
     void SetModuleManager(SharedModuleManager mm);
+
+//iChangeContainer
+    bool SaveChanges() override { SetModiffiedState(false); return true; }
 public slots:
 	void Refresh();
 protected slots:

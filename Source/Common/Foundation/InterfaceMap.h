@@ -7,6 +7,8 @@
 #include <typeinfo>
 #include <typeindex>
 
+#include "OrbitLoggerConf.h"
+
 namespace MoonGlare {
 
 class InterfaceMap : private boost::noncopyable {
