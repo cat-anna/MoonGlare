@@ -13,8 +13,9 @@ end
 function class:OnTimer(tid)
     local ldr = require "AsyncLoader"
     local js = ldr:GetStatus()
+    local done = (js.jobCount - js.pendingJobs) / js.jobCount 
 	self.Text:Set {
-        Text = string.format("%d out of %d", js.pendingJobs, js.jobCount),
+        Text = string.format("%2.0f%%", done * 100),
 	}
 end
 

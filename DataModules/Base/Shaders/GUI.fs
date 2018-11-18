@@ -10,7 +10,7 @@ vec4 ProcessBaseColor(vec4 fragment) {
 	fragment.xyz *= gBaseColor.xyz;
 	fragment.a *= gBaseColor.a;
 
-	fragment.a = 1.0f;
+	// fragment.a = 1.0f;
 	return fragment;
 	// return mix(fragment, vec4(0), a);
 }
