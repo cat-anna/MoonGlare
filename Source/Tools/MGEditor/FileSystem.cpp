@@ -368,5 +368,14 @@ bool FileSystem::EnumerateFolder(const std::string& Path, FileInfoTable &FileTab
     return svfsfunc(ParentFID);
 }
 
+bool FileSystem::FileExists(const std::string &uri) const {
+    std::string u = uri;
+    auto pos = u.find("://");
+    if(pos != std::string::npos)
+        u = u.substr(pos + 3);
+    auto fid = m_VFS->FindFile(u);
+    return m_VFS->IsFileValid(fid);
+}
+
 } //namespace Editor 
 } //namespace MoonGlare 

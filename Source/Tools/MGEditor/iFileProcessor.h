@@ -56,8 +56,20 @@ public:
 protected:
     std::string m_URI;
 
-    std::string MakeIssueId(const std::string &type = "Error") {
-        return fmt::format("{}|" + m_URI + "|{}", typeid(*this).name(), type);
+    std::string MakeIssueId(const std::string &type = "Error", const std::string &subId = "") {
+        return fmt::format("{}|" + m_URI + "|{}|" + subId , typeid(*this).name(), type);
+    }
+
+    std::vector<std::string> FindAllURI(std::string text) {
+        std::regex r(R"(file://([a-zA-Z0-9_/.\(\)\ \-]+))");
+        std::smatch sm;
+        std::vector<std::string> out;
+        while (regex_search(text, sm, r)) {
+            std::cout << sm.str() << '\n';
+            out.emplace_back(sm.str());
+            text = sm.suffix();
+        }
+        return std::move(out);
     }
 private:
     SharedJobFence fence;

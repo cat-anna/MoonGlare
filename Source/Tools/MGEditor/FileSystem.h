@@ -42,8 +42,10 @@ public:
 
 	bool GetFileData(const std::string &uri, StarVFS::ByteTable &data);
 	bool SetFileData(const std::string &uri, StarVFS::ByteTable &data);
+
 	bool CreateFile(const std::string &uri);
 	bool CreateDirectory(const std::string &uri);
+    bool FileExists(const std::string &uri) const override;
 
     std::string TranslateToSystem(const std::string &uri);
 

@@ -144,14 +144,10 @@ void ScriptFileProcessor::InitLua() {
     throw std::runtime_error("Unable to Execute internal lua processor script!");
 }
 
-void ScriptFileProcessor::ReportIssue(MoonGlare::QtShared::Issue issue) {
-    auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
-    issue.internalID = MakeIssueId();
-    reporter->ReportIssue(std::move(issue));  
-}
-
 void ScriptFileProcessor::ExecuteScript() {
     auto fs = module->GetModuleManager()->QuerryModule<FileSystem>();
+    auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
+
     StarVFS::ByteTable bt;
     if (!fs->GetFileData(m_URI, bt)) {
         //todo: log sth
@@ -159,6 +155,20 @@ void ScriptFileProcessor::ExecuteScript() {
     }
     if (bt.byte_size() == 0) {
         //todo: log sth
+    }
+
+    auto uris = FindAllURI(std::string((char*)bt.get(), bt.byte_size()));
+    for (auto &itm : uris) {
+        QtShared::Issue issue;
+        issue.fileName = m_URI;
+        issue.message = "File " + itm + " does not exists!";
+        issue.type = QtShared::Issue::Type::Error;
+        issue.group = "lua";
+        issue.internalID = MakeIssueId("Error", itm);
+        if (fs->FileExists(itm))
+            reporter->DeleteIssue(issue.internalID);
+        else
+            reporter->ReportIssue(std::move(issue));
     }
 
     //script exists, so insert it into custom enum set
@@ -170,7 +180,7 @@ void ScriptFileProcessor::ExecuteScript() {
         }
     }
 
-    auto ParseError = [this](const std::string &errorstr, QtShared::Issue::Type type) {
+    auto ParseError = [reporter, this](const std::string &errorstr, QtShared::Issue::Type type) {
         std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
         std::smatch pieces_match;
         if (std::regex_match(errorstr, pieces_match, pieces_regex)) {
@@ -181,7 +191,7 @@ void ScriptFileProcessor::ExecuteScript() {
             issue.type = type;
             issue.group = "Lua";
        
-            ReportIssue(std::move(issue));
+            reporter->ReportIssue(std::move(issue));
         }
     };
 

@@ -28,6 +28,8 @@ struct XMLProcessor
 
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
+        auto reporter = moduleManager->QuerryModule<QtShared::IssueReporter>();
+
         StarVFS::ByteTable bt;
         if (!fs->GetFileData(m_URI, bt)) {
             //todo: log sth
@@ -37,11 +39,24 @@ struct XMLProcessor
             //todo: log sth
         }
 
+        auto uris = FindAllURI(std::string((char*)bt.get(), bt.byte_size()));
+        for (auto &itm : uris) {
+            QtShared::Issue issue;
+            issue.fileName = m_URI;
+            issue.message = "File " + itm + " does not exists!";
+            issue.type = QtShared::Issue::Type::Error;
+            issue.group = "xml";
+            issue.internalID = MakeIssueId("Error", itm);
+            if (fs->FileExists(itm))
+                reporter->DeleteIssue(issue.internalID);
+            else
+                reporter->ReportIssue(std::move(issue));
+        }
+
         pugi::xml_document xdoc;
 
         auto result = xdoc.load_buffer(bt.get(), bt.byte_size());
 
-        auto reporter = moduleManager->QuerryModule<QtShared::IssueReporter>();
         if(result) {
             reporter->DeleteIssue(MakeIssueId());
         } else {

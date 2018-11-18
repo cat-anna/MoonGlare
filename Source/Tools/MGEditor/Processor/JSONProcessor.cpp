@@ -28,6 +28,7 @@ struct JSONProcessor
 
     ProcessResult ProcessFile() override {
         auto fs = moduleManager->QuerryModule<FileSystem>();
+        auto reporter = moduleManager->QuerryModule<QtShared::IssueReporter>();
         StarVFS::ByteTable bt;
         if (!fs->GetFileData(m_URI, bt)) {
             //todo: log sth
@@ -40,13 +41,26 @@ struct JSONProcessor
         std::stringstream ss;
         ss.write((char*)bt.get(), bt.byte_size());
 
+        auto uris = FindAllURI(ss.str());
+        for (auto &itm : uris) {
+            QtShared::Issue issue;
+            issue.fileName = m_URI;
+            issue.message = "File " + itm + " does not exists!";
+            issue.type = QtShared::Issue::Type::Error;
+            issue.group = "json";
+            issue.internalID = MakeIssueId("Error", itm);
+            if (fs->FileExists(itm))
+                reporter->DeleteIssue(issue.internalID);
+            else
+                reporter->ReportIssue(std::move(issue));
+        }
+
         Json::Value root;
         Json::CharReaderBuilder rbuilder;
 
         std::string errs;
         bool ok = Json::parseFromStream(rbuilder, ss, &root, &errs);
 
-        auto reporter = moduleManager->QuerryModule<QtShared::IssueReporter>();
         if(ok) {
             reporter->DeleteIssue(MakeIssueId());
         } else {

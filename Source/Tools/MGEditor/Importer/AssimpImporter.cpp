@@ -1,10 +1,16 @@
 
 #include PCH_HEADER
 
+#include <filesystem>
+
 #include "AssimpImporter.h"
 
 #include <Foundation/OS/WaitForProcess.h>
-//
+#include <Foundation/Resources/Importer/AssimpMeshImporter.h>
+#include <Foundation/Resources/Importer/AssimpAnimationImporter.h>
+#include <Foundation/Resources/Blob/MeshBlob.h>
+#include <Foundation/Resources/Blob/AnimationBlob.h>
+
 #include <icons.h>
 #include <ToolBase/Module.h>
 #include <iEditor.h>
@@ -52,6 +58,8 @@ struct AssimpImporter
         else {
             outputDirectory = URI.substr(0, dotpos); 
         }
+
+        sourceDirectory = std::filesystem::path(URI).remove_filename().generic_string();
 
         ProcessFile();
         return true; 
@@ -310,7 +318,7 @@ struct AssimpImporter
 
         material.resize(scene->mNumMaterials);
         for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
-            auto mat = scene->mMaterials[i];
+            const auto &mat = scene->mMaterials[i];
 
             Renderer::MaterialTemplate matData;
 
@@ -330,7 +338,9 @@ struct AssimpImporter
                             map.texture = outputDirectory + "/" + textureNames[index];
                         }
                         else {
-                            //__debugbreak();
+                            std::filesystem::path fpath = path.data;
+                            std::string fn = fpath.filename().generic_string();
+                            map.texture = sourceDirectory + fn;
                         }
                         switch (mapmode[0]) {
                         case aiTextureMapMode_Wrap:
@@ -402,12 +412,48 @@ struct AssimpImporter
 
             mi.material = amesh->mMaterialIndex;
 
-            std::string meshPath = "@mesh://";
-            if (amesh->mName.length == 0)
-                meshPath += "*" + std::to_string(i);
-            else
-                meshPath += amesh->mName.data;
-            mi.uri = m_URI + meshPath;
+            std::string meshName = fmt::format("{}.mesh", i);
+            mi.uri = outputDirectory + "/" + meshName;
+
+            {
+                Resources::MeshSource ms;
+                Resources::Importer::ImportAssimpMesh(scene, i, ms);
+                Resources::Importer::MeshImport mi;
+                Resources::Importer::ImportMeshSource(ms, mi);
+                std::stringstream blob;
+                Resources::Blob::WriteMeshBlob(blob, mi.mesh);
+                StarVFS::ByteTable bt;
+                bt.from_string(blob.str());
+                generatedFiles[meshName] = std::move(bt);
+            }
+        }
+    }
+
+    void ImportAnimations() {
+        animationNames.resize(scene->mNumAnimations);
+        for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
+            std::string animName = fmt::format("{}.anim", i);
+            animationNames[i] = animName;
+
+            auto fs = moduleManager->QuerryModule<Editor::FileSystem>();
+            StarVFS::ByteTable bt;
+            if (!fs->GetFileData(m_URI + ".xml", bt)) {
+                //todo: log sth
+                throw std::runtime_error("Unable to read file: " + m_URI);
+            }
+
+            pugi::xml_document xdoc;
+            xdoc.load_string(bt.c_str());
+
+            {
+                Resources::Importer::AnimationImport ai;
+                Resources::Importer::ImportAssimpAnimation(scene, i, xdoc.document_element(), ai);
+                std::stringstream blob;
+                Resources::Blob::WriteAnimationBlob(blob, ai.animation);
+                StarVFS::ByteTable bt;
+                bt.from_string(blob.str());
+                generatedFiles[animName] = std::move(bt);
+            }
         }
     }
 
@@ -446,7 +492,7 @@ struct AssimpImporter
 
             GatherLights();
             ImportMeshes();
-
+            ImportAnimations();
             ImportTextures();
             ImportMaterials();
             ImportEntities();
@@ -478,10 +524,12 @@ private:
         std::string uri;
     };
     std::vector<MaterialInfo> material;
+    std::vector<std::string> animationNames;
 
     std::vector<std::string> textureNames;
 
     std::string outputDirectory;
+    std::string sourceDirectory;
     std::map<std::string, StarVFS::ByteTable> generatedFiles;
 };
 //----------------------------------------------------------------------------------
