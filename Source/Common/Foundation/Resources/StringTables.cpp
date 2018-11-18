@@ -1,20 +1,26 @@
 #include <pch.h>
+
+#include <InterfaceMap.h>
+
 #include "iFileSystem.h"
 #include "StringTables.h"
 
 namespace MoonGlare::Resources {
 
 struct StringTables::StringTableInfo {
-    std::map < std::string, std::string, std::less<> > StringMap;
+    std::unordered_map<std::string, std::string> StringMap;
     XMLFile XMLTableTranslation;
     XMLFile XMLTable;
 };
 
 //------------------------------------------------------------------------------------------
 
-StringTables::StringTables(iFileSystem *fs) {
-    MoonGlareAssert(fs);
-    fileSystem = fs;
+StringTables::StringTables(InterfaceMap &ifaceMap) {
+    ifaceMap.GetObject(fileSystem);
+
+    Settings *settings = nullptr;
+    ifaceMap.GetObject(settings);
+    langCode = settings->GetString("Localization.LangCode", "en");
 
     Clear();
 }
@@ -24,16 +30,8 @@ StringTables::~StringTables() {
 
 //----------------------------------------------------------------------------------
 
-void StringTables::SetLangCode(std::string code) {
-    langCode.swap(code);
-    Clear();
-}
-
-//------------------------------------------------------------------------------------------
-
 void StringTables::InitInternalTable() {
-    auto &mgt = m_TableMap["MoonGlare"].StringMap;
-
+    auto &mgt = m_TableMap["MoonGlareInfo"].StringMap;
     mgt["InfoLine"] = "?";// fmt::format("{} {}", Core::ApplicationName, Core::VersionString);
     mgt["BuildDate"] = "?";// Core::CompilationDate;
     mgt["Version"] = "?";// Core::VersionString;

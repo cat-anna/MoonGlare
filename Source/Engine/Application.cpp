@@ -31,6 +31,8 @@
 #include <Foundation/Component/EventDispatcher.h>
 
 #include <Foundation/Resources/SkeletalAnimationManager.h>
+#include <Foundation/Resources/StringTables.h>
+
 
 namespace MoonGlare {
 
@@ -154,6 +156,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     m_World->SetInterface<iFileSystem>(GetFileSystem());
 
+    m_World->CreateObject<Resources::StringTables>();
+
     if (!ModManager->Initialize()) {
         AddLogf(Error, "Unable to initialize modules manager!");
         throw "Unable to initialize modules manager";
@@ -162,22 +166,16 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
     SoundSystem::Component::SoundSystemRegister::Install(*m_World);
 
     auto scrEngine = new ScriptEngine(m_World.get());
-    m_World->SetScriptEngine(scrEngine);
-    _init_chk(scrEngine, "Unable to initialize script engine!");
     
     m_Renderer = Renderer::iRendererFacade::CreateInstance(*m_World);
     auto *R = (Renderer::RendererFacade*)m_Renderer.get();
-
     R->GetScriptApi()->Install(scrEngine->GetLua());
     m_Renderer->Initialize(GetDisplaySettings(), GetFileSystem());
     m_World->SetRendererFacade(R);
 
     m_World->CreateObject<Resources::SkeletalAnimationManager>();
 
-    {
-        auto datamgr = new DataManager(m_World.get());
-        datamgr->SetLangCode(settings->GetString("Localization.LangCode", "en"));
-    }
+    new DataManager(m_World.get());
 
     LoadDataModules();
 
@@ -312,7 +310,7 @@ void Application::Finalize() {
     MoonGlare::Core::Engine::DeleteInstance();
     DataManager::DeleteInstance();
 
-    _del_chk(ScriptEngine, "Finalization of script engine failed!");
+    ScriptEngine::DeleteInstance();
     _del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
 
     m_World.reset();

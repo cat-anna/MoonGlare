@@ -164,7 +164,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
     for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
         m_Components[i]->Step(config);
     }
-
+    m_EventDispatcher.Step();
 #else
     auto StepStartTime = std::chrono::steady_clock::now();
     auto ComponentStartTime = StepStartTime;

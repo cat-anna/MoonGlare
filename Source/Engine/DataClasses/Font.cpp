@@ -103,8 +103,10 @@ void iFont::DumpFontCodePoints() {
 }
 
 void iFont::DumpFacesTexture() {
+#ifdef DEBUG_DUMP
     uint32_t texSize = faceTextureSize * FontFacesPerDim;
-    FIBITMAP *bitmap = FreeImage_Allocate(texSize, texSize, 8);    memcpy(FreeImage_GetBits(bitmap), facesTexture.get(), texSize*texSize);    std::string fname = "logs/" + fileUri.substr(fileUri.rfind('/')) + ".png";    FreeImage_Save(FIF_PNG, bitmap, fname.c_str());    FreeImage_Unload(bitmap);
+    FIBITMAP *bitmap = FreeImage_Allocate(texSize, texSize, 8);    uint8_t *out = FreeImage_GetBits(bitmap);    for (size_t pos = 0; pos < texSize*texSize; ++pos) {        out[pos] = facesTexture[pos] & 0xFF;    }    std::string fname = "logs/" + fileUri.substr(fileUri.rfind('/')) + ".png";    FreeImage_Save(FIF_PNG, bitmap, fname.c_str());    FreeImage_Unload(bitmap);
+#endif
 }
 
 //----------------------------------------------------------------
@@ -130,7 +132,8 @@ bool iFont::Initialize() {
         return false;
     }
 
-#ifdef DEBUG_DUMP
+#if 0 
+    //DEBUG_DUMP
     DumpFontCodePoints();
 #endif
 
@@ -138,7 +141,7 @@ bool iFont::Initialize() {
     m_CacheHight = 40;// ((float)faceTextureSize) * 0.75;
     uint32_t texSize = faceTextureSize * FontFacesPerDim;
     uint32_t texBytes = texSize * texSize;
-    facesTexture.reset(new uint8_t[texBytes]);
+    facesTexture.reset(new uint16_t[texBytes]);
     memset(facesTexture.get(), 0, texBytes);
 
     error = FT_Set_Char_Size(
@@ -170,7 +173,7 @@ bool iFont::Initialize() {
 
         Renderer::MaterialTemplate matT;
         matT.diffuseMap.enabled = true;
-        matT.diffuseMap.textureHandle = texR.CreateTexture(storage.m_Queue, facesTexture.get(), { 1,1 }, {}, PixelFormat::Red, PixelFormat::Red, ValueFormat::UnsignedByte);
+        matT.diffuseMap.textureHandle = texR.CreateTexture(storage.m_Queue, facesTexture.get(), { 1,1 }, {}, PixelFormat::RedGreen, PixelFormat::RedGreen, ValueFormat::UnsignedByte);
         facesMaterial = resmgr->GetMaterialManager().CreateMaterial("", matT);
     });
 
@@ -482,7 +485,7 @@ void iFont::ReloadFacesTexture(MoonGlare::Renderer::Frame * frame, MoonGlare::Re
     using ChannelSwizzle = Renderer::Configuration::Texture::ChannelSwizzle;
     tload.m_Flags.generateMipMaps = false;
     tload.m_Swizzle = ChannelSwizzle::R;
-    tload.m_Swizzle.A = ChannelSwizzle::One;
+    tload.m_Swizzle.A = ChannelSwizzle::G;
     tload.m_Swizzle.enable = true;
 
     uint32_t texSize = faceTextureSize * FontFacesPerDim;
@@ -490,7 +493,7 @@ void iFont::ReloadFacesTexture(MoonGlare::Renderer::Frame * frame, MoonGlare::Re
     using namespace Renderer::Device;
 
     texR.SetTexturePixels(facesMaterial.deviceHandle->mapTexture[Renderer::Material::MapType::Diffuse], q,
-        facesTexture.get(), { texSize,texSize }, tload, PixelFormat::Red, PixelFormat::Red,
+        facesTexture.get(), { texSize,texSize }, tload, PixelFormat::RedGreen, PixelFormat::RedGreen,
         false, ValueFormat::UnsignedByte);
 }
 
@@ -551,7 +554,8 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
             auto line = GetTextureScanLine(glyph->fontFacePosition, l);
             for (unsigned i = 0; i < bitmap.width; i++) {
                 uint8_t value = (i >= bitmap.width || j >= bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];
-                line[i] = value;
+                uint8_t alpha = value != 0 ? 0xFF : 0;
+                line[i] = value | alpha << 8;
             }
         }
     } else {

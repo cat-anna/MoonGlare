@@ -4,7 +4,7 @@ namespace MoonGlare::Modules {
 
 class iModule : public std::enable_shared_from_this<iModule> {
 public:
-    iModule(World *world) : world(world) {}
+    iModule(InterfaceMap &ifaceMap) : interfaceMap(ifaceMap) { }
     virtual ~iModule() {}
 
     virtual std::string GetName() const { return ""; };
@@ -14,12 +14,10 @@ public:
 
     virtual void OnPostInit() {}
 protected:
-    World *GetWorld() const { return world; }
-private:
-    World *world = nullptr;
+    InterfaceMap &interfaceMap;
 };
 
-using ModuleClassRegister = ::Space::DynamicClassRegister<iModule, World*>;
+using ModuleClassRegister = ::Space::DynamicClassRegister<iModule, InterfaceMap&>;
 
 }
                                            

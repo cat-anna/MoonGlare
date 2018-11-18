@@ -48,7 +48,7 @@ RegisterComponentID<TextComponent>TextComponentIDReg("Text");
 //---------------------------------------------------------------------------------------
 
 TextComponent::TextComponent(SubsystemManager * Owner)
-		: TemplateStandardComponent(Owner) {
+		: TemplateStandardComponent(Owner), m_TextProcessor(*Owner->GetWorld()) {
 	m_RectTransform = nullptr;
 }
 
@@ -88,8 +88,6 @@ bool TextComponent::Initialize() {
 	m_FontDeviceOptions.m_UseUniformMode = m_RectTransform->IsUniformMode();
     m_FontDeviceOptions.m_DeviceSize = GetManager()->GetWorld()->GetRendererFacade()->GetContext()->GetSize();
 	
-	m_TextProcessor.SetTables(GetManager()->GetWorld()->GetStringTables());
-
 	return true;
 }
 

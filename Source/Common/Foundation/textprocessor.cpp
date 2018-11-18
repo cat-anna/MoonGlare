@@ -5,7 +5,8 @@
 
 namespace MoonGlare {
 
-TextProcessor::TextProcessor(Resources::StringTables * Tables) : stringTables(Tables) {
+TextProcessor::TextProcessor(InterfaceMap &ifaceMap) {
+    ifaceMap.GetObject(stringTables);
 }
 
 TextProcessor::~TextProcessor() {}

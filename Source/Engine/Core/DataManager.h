@@ -27,7 +27,6 @@ public:
     static void RegisterScriptApi(::ApiInitializer &api);
 private:
     World *world;
-    std::unique_ptr<Resources::StringTables> stringTables;
     std::unordered_map<std::string, DataClasses::FontPtr> m_Fonts;
     
     void LoadInitScript(StarVFS::Containers::iContainer *Container);

@@ -12,8 +12,6 @@
 
 #include <StarVFS/core/nStarVFS.h>
 
-#include <Foundation/Resources/StringTables.h>
-
 namespace MoonGlare {
 namespace Core {
 namespace Data {
@@ -27,45 +25,21 @@ Manager::Manager(World *world) : world(world) {
     s_instance = this;
 
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
-
-    stringTables = std::make_unique<Resources::StringTables>(GetFileSystem());
-    world->SetStringTables(stringTables.get());
 }
 
 Manager::~Manager() {
     m_Fonts.clear();
-    stringTables.reset();
 }
 
 //-------------------------------------------------------------------------------------------------
 
-class DataManagerDebugScritpApi {
-public:
-#ifdef DEBUG_SCRIPTAPI
-    static void ClearStringTables() {
-        GetDataMgr()->stringTables->Clear();
-    }
-#endif
-};
-
 void Manager::RegisterScriptApi(::ApiInitializer &api) {
     api
-    .beginClass<Manager>("cDataManager")
-#ifdef DEBUG_SCRIPTAPI
-        .addFunction("ClearStringTables", Utils::Template::InstancedStaticCall<Manager, void>::get<&DataManagerDebugScritpApi::ClearStringTables>())
-#endif
-        .endClass()
         .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
             .addData("scene", &RuntimeConfiguration::scene)
             .addData("consoleFont", &RuntimeConfiguration::consoleFont)
         .endClass()                                
     ;
-}
-
-//------------------------------------------------------------------------------------------
-
-void Manager::SetLangCode(std::string langCode) {
-    stringTables->SetLangCode(std::move(langCode));
 }
 
 //------------------------------------------------------------------------------------------

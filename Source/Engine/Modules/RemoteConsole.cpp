@@ -16,12 +16,14 @@
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
+#undef GetObject
+
 namespace MoonGlare::Modules {
 
 using namespace Debug::InsiderApi;
 
 struct RemoteConsoleModule : public iModule {
-    RemoteConsoleModule(World *world) : iModule(world) { }
+    RemoteConsoleModule(InterfaceMap &ifaceMap) : iModule(ifaceMap) { }
 
     ~RemoteConsoleModule() {
         m_Running = false;
@@ -33,11 +35,13 @@ struct RemoteConsoleModule : public iModule {
     virtual std::string GetName() const { return "RemoteConsole"; };
 
     virtual void OnPostInit() {
-        auto stt = GetWorld()->GetInterface<Settings>();
-        if (stt) {
-            enabled = stt->GetBool("RemoteConsole.Enabled", enabled);
-            port = (uint16_t)stt->GetInt("RemoteConsole.Port", port);
-        }
+        interfaceMap.GetObject(scriptEngine);
+
+        Settings *stt = nullptr;
+        interfaceMap.GetObject(stt);
+
+        bool enabled = stt->GetBool("RemoteConsole.Enabled", DEBUG_TRUE);
+        port = (uint16_t)stt->GetInt("RemoteConsole.Port", port);
 
         if (enabled) {
             m_Thread = std::thread(&RemoteConsoleModule::ThreadEntry, this);
@@ -46,7 +50,8 @@ struct RemoteConsoleModule : public iModule {
 private:
     using udp = boost::asio::ip::udp;
 
-    bool enabled = false;
+    Core::Scripts::ScriptEngine *scriptEngine = nullptr;
+    
     uint16_t port = Debug::InsiderApi::Configuration::recon_Port;
 
     std::thread m_Thread;

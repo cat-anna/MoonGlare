@@ -53,7 +53,7 @@ ModulesManager::ModulesManager(World *world) : world(world) {
     s_instance = this;
 
     ModuleClassRegister::GetRegister()->Enumerate([this](auto &item) {
-        auto mod = item.SharedCreate(this->world);
+        auto mod = item.SharedCreate(*this->world);
         DebugLog(Hint, fmt::format("Created module of class '{}'", typeid(*mod).name()));
         moduleList.emplace_back(std::move(mod));
     });

@@ -246,6 +246,11 @@ bool MoonGlareFileSystem::OpenXML(XMLFile &doc, const string& FileName, DataPath
     return static_cast<bool>(result);
 }
 
+bool MoonGlareFileSystem::FileExists(const std::string &uri) const {
+    __debugbreak();
+    return false;
+}
+
 //----------------------------------------------------------------------------------
 
 void MoonGlareFileSystem::DumpStructure(std::ostream &out) const {

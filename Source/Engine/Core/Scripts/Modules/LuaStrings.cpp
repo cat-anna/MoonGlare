@@ -9,12 +9,13 @@
 namespace MoonGlare::Core::Scripts::Modules {
 
 static int GetString(lua_State* lua) {
-    World *w = reinterpret_cast<World*>(lua_touserdata(lua, lua_upvalueindex(1)));
+    auto *st = reinterpret_cast<Resources::StringTables*>(lua_touserdata(lua, lua_upvalueindex(1)));
+    assert(st);
 
     std::string_view str = luaL_checkstring(lua, -2);
     std::string_view table = luaL_checkstring(lua, -1);
 
-    auto ret = w->GetStringTables()->GetString(str, table);
+    auto ret = st->GetString(str, table);
     lua_pushlstring(lua, ret.data(), ret.size());
 
     return 1;
@@ -22,11 +23,13 @@ static int GetString(lua_State* lua) {
 
 void StaticModules::InitStrings(lua_State *lua, World *world) {
     DebugLogf(Debug, "Initializing Strings module");
+
+    Resources::StringTables *st = nullptr;
+    world->GetObject(st);
     
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("string")
-            .addCClosure("Get", &GetString, (void*)world)
-
+            .addCClosure("Get", &GetString, (void*)st)     
         .endNamespace()
         ;
 }

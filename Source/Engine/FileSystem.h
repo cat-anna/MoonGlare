@@ -31,6 +31,8 @@ public:
     void FindFilesByExt(const char *ext, StarVFS::DynamicFIDTable &out) override;
     std::string GetFileName(StarVFS::FileID fid) const override;
     std::string GetFullFileName(StarVFS::FileID fid) const override;
+    bool FileExists(const std::string &uri) const override;
+
 
     bool LoadContainer(const std::string &URI);
 

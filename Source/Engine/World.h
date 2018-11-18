@@ -4,7 +4,6 @@
 
 #include <Core/Scene/iSceneManager.h>
 
-namespace MoonGlare::Resources { class StringTables; }
 namespace MoonGlare::Core::Scripts { class ScriptEngine; }
 
 namespace MoonGlare {
@@ -33,7 +32,6 @@ public:
 	Core::Scene::iSceneManager *GetScenesManager() { return m_ScenesManager.get(); };
 
     iConsole* GetConsole() { return m_Console; }
-    Resources::StringTables* GetStringTables() { return stringTables; }
     Core::Engine* GetEngine();
 
     void SetRendererFacade(Renderer::RendererFacade *c);
@@ -41,7 +39,6 @@ public:
     void SetScriptEngine(Core::Scripts::ScriptEngine *se) { m_ScriptEngine = se; }
 
     void SetConsole(iConsole *c) { m_Console = c; }
-    void SetStringTables(Resources::StringTables *st) { stringTables = st; }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::iSceneManager> m_ScenesManager;
@@ -52,7 +49,6 @@ private:
     iConsole *m_Console = nullptr;
 	Renderer::RendererFacade *m_RendererFacade = nullptr;
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
-    Resources::StringTables *stringTables = nullptr;          
     Component::EventDispatcher *eventDispatcher = nullptr;
 };
 

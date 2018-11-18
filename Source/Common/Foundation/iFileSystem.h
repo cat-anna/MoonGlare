@@ -41,6 +41,7 @@ public:
     virtual std::string GetFileName(StarVFS::FileID fid) const = 0;
     virtual std::string GetFullFileName(StarVFS::FileID fid) const = 0;
 
+    virtual bool FileExists(const std::string &uri) const = 0;
 };
 
 }

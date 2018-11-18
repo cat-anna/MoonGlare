@@ -6,7 +6,6 @@ typedef struct FT_FaceRec_*  FT_Face;
 
 namespace MoonGlare {
 namespace DataClasses {
-namespace Fonts {
 
 struct Descriptor {
     float Size = 0.0f;
@@ -34,7 +33,7 @@ private:
 
     std::string fileUri;
     StarVFS::ByteTable fontFileMemory;
-    std::unique_ptr<uint8_t> facesTexture;
+    std::unique_ptr<uint16_t[]> facesTexture;
     Renderer::MaterialResourceHandle facesMaterial = { };
     uint8_t faceTextureSize = 0;  
 
@@ -42,7 +41,7 @@ private:
     mutable uint32_t faceAllocIndex = 1;
     mutable FontGlyphMap glyphCache;
 
-    uint8_t* GetTextureScanLine(emath::fvec2 pos, uint32_t line) const {
+    auto* GetTextureScanLine(emath::fvec2 pos, uint32_t line) const {
         uint32_t lineSize = faceTextureSize * FontFacesPerDim;
         size_t v = (size_t)pos.y() * faceTextureSize;
         return facesTexture.get() 
@@ -118,9 +117,9 @@ protected:
 };
 
 using Font = iFont;
+using FontPtr = std::shared_ptr<Font>;
 
 //-----------------------------------------------------------------------------
 
-} //namespace Fonts
 } //namespace DataClasses 
 } //namespace MoonGlare 
