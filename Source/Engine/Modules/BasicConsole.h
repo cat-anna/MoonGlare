@@ -19,12 +19,11 @@ public:
     class ConsoleLine;
     class InputLine;
 
-    BasicConsole();
+    void PostInit();
+
+    BasicConsole(InterfaceMap &ifaceMap);
     ~BasicConsole();
 
-    bool Initialize();
-    bool Finalize();
-    bool SetFont(DataClasses::FontPtr Font);
     void SetMaxLines(unsigned Count) { m_MaxLines = Count; }
 
     void AddLine(wstring Text, LineType lineType = LineType::Regular);
@@ -39,6 +38,7 @@ public:
     DefineFlag(m_Flags, FlagBit(Flags::Visible), Visible);
     DefineFlag(m_Flags, FlagBit(Flags::HideOldLines), HideOldLines);
 protected:
+    InterfaceMap &interfaceMap;
     unsigned m_Flags;
     bool m_Active;
     DataClasses::FontPtr m_Font;

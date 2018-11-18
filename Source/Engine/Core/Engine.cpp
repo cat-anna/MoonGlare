@@ -92,6 +92,9 @@ void Engine::EngineMain() {
     conf.m_SecondPeriod = false;
     conf.ResetTime(EntryTime);
 
+    iConsole *console;
+    m_World->GetObject(console);
+
     while (m_Running) {
         CurrentTime = clock::now();
 
@@ -132,9 +135,7 @@ void Engine::EngineMain() {
 
             GetScriptEngine()->Step(conf);
             GetWorld()->Step(conf);
-            auto console = m_World->GetConsole();
-            if (console)
-                console->ProcessConsole(conf);
+            console->ProcessConsole(conf);
         }
         auto MoveTime = clock::now();
 

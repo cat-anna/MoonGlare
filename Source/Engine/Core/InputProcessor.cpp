@@ -94,7 +94,7 @@ bool InputProcessor::Initialize(World *world)  {
 
     AddKeyboardSwitch("Escape", GLFW_KEY_ESCAPE);
 
-    m_Console = m_World->GetConsole();
+    m_World->GetObject(m_Console);
 
     return true;
 }

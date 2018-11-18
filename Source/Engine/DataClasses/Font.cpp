@@ -45,7 +45,6 @@
 
 namespace MoonGlare {
 namespace DataClasses {
-namespace Fonts {
 
 FT_Library ftlib = nullptr;
 
@@ -209,7 +208,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
     if (!trt)
         return false;
 
-    DataClasses::Fonts::Descriptor dummy;
+    DataClasses::Descriptor dummy;
     dummy.Size = options.m_Size;
     auto tsize = TextSize(text.c_str(), &dummy, false);
 
@@ -575,6 +574,5 @@ iFont::FontGlyph* iFont::GetGlyph(wchar_t codepoint) const {
     return glyph;
 }
 
-} //namespace Fonts
 } //namespace DataClasses
 } //namespace MoonGlare 

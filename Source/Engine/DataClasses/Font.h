@@ -19,7 +19,6 @@ public:
 
     static constexpr uint32_t FontFacesPerDim = 16;
     static constexpr float DeltaTexUV = 1.0f / (float)FontFacesPerDim;
-
 private:
     struct FontGlyph {
         emath::fvec2 fontFacePosition;

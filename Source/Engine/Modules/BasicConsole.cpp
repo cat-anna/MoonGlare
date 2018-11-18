@@ -7,6 +7,7 @@
 #include <Engine/DataClasses/Font.h>
 #include "BasicConsole.h"
 #include <Engine/Core/Engine.h>
+#include <Engine/Core/Configuration.Runtime.h>
 
 #include <Source/Renderer/Renderer.h>
 #include <Source/Renderer/Frame.h>
@@ -41,7 +42,7 @@ public:
     float ShowTime;
     wstring Text;
 
-    DataClasses::Fonts::iFont::FontResources m_FontResources{ };
+    DataClasses::iFont::FontResources m_FontResources{ };
 
     bool m_Ready = false;
 };
@@ -105,7 +106,7 @@ public:
         return std::move(text);
     }
     
-    DataClasses::Fonts::iFont::FontResources m_FontResources{  };
+    DataClasses::iFont::FontResources m_FontResources{  };
     bool m_TextValid = false;
 protected:
     wstring m_Text;
@@ -131,51 +132,39 @@ static const LineColorTable LineTypesColor;
 
 //-------------------------------------------------------------------------------------------------
 
-BasicConsole::BasicConsole() :
-        m_Font(0), 
+BasicConsole::BasicConsole(InterfaceMap &ifaceMap) :
+        interfaceMap(ifaceMap),
+        m_Font(nullptr), 
         m_MaxLines(20), 
         m_Lines(), 
         m_InputLine(std::make_unique<InputLine>(this)), 
         m_Flags(0),
         m_Active(false) {
+
     SetVisible(true);
     SetHideOldLines(true);
 }
 
 BasicConsole::~BasicConsole() {
+    Clear();
+    m_Font.reset();
 }
 
-//-------------------------------------------------------------------------------------------------
-
-bool BasicConsole::Initialize() {
-    if (!m_Font)
-        SetFont(GetDataMgr()->GetConsoleFont());
+void BasicConsole::PostInit() {
+    Core::RuntimeConfiguration *cfg;
+    interfaceMap.GetObject(cfg);
+    Core::Data::Manager *dm;
+    interfaceMap.GetObject(dm);
+    m_Font = dm->GetFont(cfg->consoleFont);
 
     auto &shres = Core::GetEngine()->GetWorld()->GetRendererFacade()->GetResourceManager()->GetShaderResource();
     shres.Load(m_ShaderHandle, "Passthrough");
-
-    return true;
-}
-
-bool BasicConsole::Finalize() {
-    Clear();
-    m_Font.reset();
-    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void BasicConsole::AddLine(const std::string &line, LineType type) {
     return AddLine(Utils::Strings::towstring(line), type);
-}
-
-bool BasicConsole::SetFont(DataClasses::FontPtr Font) {
-    Clear();
-    if (!Font) {
-        return false;
-    }
-    m_Font = Font;
-    return true;
 }
 
 void BasicConsole::Clear() {
@@ -228,6 +217,7 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
     shb.Set<Uniform::CameraMatrix>(Camera.GetProjectionMatrix());
     shb.Set<Uniform::BackColor>(emath::fvec4(1,1,1,1));
     q.MakeCommand<Commands::Disable>((GLenum)GL_DEPTH_TEST);
+    q.MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
 
     auto PrintText = [this, &q, key, frame, &shb](const emath::fvec3 &position,
                     Renderer::TextureResourceHandle &Texture,
@@ -248,6 +238,8 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
 
             line.m_FontResources.Release(frame);
             m_Lines.pop_front();
+            while (m_Lines.size() > 5 * m_MaxLines) 
+                m_Lines.pop_front();
         }
 
         static constexpr float LineH = 15.0f;		
@@ -262,11 +254,11 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
             position.y() += LineH;
 
             if (!line.m_Ready) {
-                DataClasses::Fonts::iFont::FontRenderRequest req{ };
+                DataClasses::iFont::FontRenderRequest req{ };
                 req.m_Color = LineTypesColor[line.lineType];
-                req.m_Size = 10;
-                DataClasses::Fonts::iFont::FontRect rect;
-                DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+                req.m_Size = 16;
+                DataClasses::iFont::FontRect rect;
+                DataClasses::iFont::FontDeviceOptions devop{ false, };
 
                 m_Font->RenderText(line.Text, frame, req, devop, rect, line.m_FontResources);
                 line.m_Ready = true;
@@ -279,11 +271,11 @@ bool BasicConsole::ProcessConsole(const Core::MoveConfig &config) {
 
     if (m_Active) {
         if (!m_InputLine->m_TextValid) {
-            DataClasses::Fonts::iFont::FontRenderRequest req;
+            DataClasses::iFont::FontRenderRequest req;
             req.m_Color = LineTypesColor[LineType::Regular];
-            req.m_Size = 10;
-            DataClasses::Fonts::iFont::FontRect rect;
-            DataClasses::Fonts::iFont::FontDeviceOptions devop{ false, };
+            req.m_Size = 16;
+            DataClasses::iFont::FontRect rect;
+            DataClasses::iFont::FontDeviceOptions devop{ false, };
             m_InputLine->m_TextValid = m_Font->RenderText(m_InputLine->DisplayText(), frame, req, devop, rect, m_InputLine->m_FontResources);
         }
         if (m_InputLine->m_TextValid) {

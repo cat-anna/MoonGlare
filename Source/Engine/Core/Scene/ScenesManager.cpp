@@ -295,7 +295,7 @@ void ScenesManager::PostSystemInit() {
 }
 
 void ScenesManager::PreSystemStart() {
-    loadingScene = CreateScene(sceneConfiguration->loadingScene, "LoadingScene");
+    loadingScene = CreateScene(sceneConfiguration->loadingScene, "DefaultLoadingScene");
     if (!loadingScene) {
         AddLogf(Error, "Cannot create loading scene");
         throw std::runtime_error("Cannot create loading scene");

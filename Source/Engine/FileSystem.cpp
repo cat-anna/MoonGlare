@@ -36,28 +36,19 @@ void DataPathsTable::Translate(string& out, DataPath origin) const {
 
 MoonGlareFileSystem* MoonGlareFileSystem::s_instance = nullptr;
 
-MoonGlareFileSystem::MoonGlareFileSystem() : m_StarVFSCallback(this) {
+MoonGlareFileSystem::MoonGlareFileSystem(InterfaceMap &ifaceMap) : interfaceMap(ifaceMap), m_StarVFSCallback(this) {
     s_instance = this;
 
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::FSEvent, "FSEV");
+
+    m_StarVFS = std::make_unique<StarVFS::StarVFS>();
+    m_StarVFS->SetCallback(&m_StarVFSCallback);
 }
 
 MoonGlareFileSystem::~MoonGlareFileSystem() {
-}
-
-//-------------------------------------------------------------------------------------------------
-
-bool MoonGlareFileSystem::Initialize() {
-    ASSERT(!m_StarVFS);
-    m_StarVFS = std::make_unique<StarVFS::StarVFS>();
-    m_StarVFS->SetCallback(&m_StarVFSCallback);
-    return true;
-}
-
-bool MoonGlareFileSystem::Finalize() {
+    s_instance = nullptr;
     m_StarVFS->SetCallback(nullptr);
     m_StarVFS.reset();
-    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -75,7 +66,9 @@ void MoonGlareFileSystem::AfterContainerMounted(StarVFS::Containers::iContainer 
     ASSERT(ptr);
     AddLogf(Info, "Container has been mounted: cid:%d uri:'%s'", ptr->GetContainerID(), ptr->GetContainerURI().c_str());
 
-    if (!GetDataMgr()->InitModule(ptr)) {
+    Core::Data::Manager *manager;
+    interfaceMap.GetObject(manager);//TODO
+    if (!manager->InitModule(ptr)) {
         AddLogf(Error, "Unable to import data module");
     }
     else {

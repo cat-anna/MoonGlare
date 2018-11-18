@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
+#include <boost/tti/has_member_function.hpp>
 
 #include <any>
 #include <unordered_map>
@@ -10,6 +11,13 @@
 #include "OrbitLoggerConf.h"
 
 namespace MoonGlare {
+
+namespace detail {
+BOOST_TTI_HAS_MEMBER_FUNCTION(PostInit);
+
+template<typename T>
+constexpr bool HasPostInit = has_member_function_PostInit<void(T::*)()>::value;
+}
 
 class InterfaceMap : private boost::noncopyable {
 public:
@@ -63,24 +71,37 @@ public:
         NotExistsException(std::string str) :runtime_error(std::move(str)) {}
     };
 
-    template<typename T, typename ... ARGS>
-    void CreateObject(ARGS&& ... args) {
-        SetSharedInterface(std::make_shared<T>(*this, std::forward<ARGS>(args)...));
+    template<typename T, typename ... IFACES>
+    void CreateObject() {
+        auto sptr = std::make_shared<T>(*this);
+        SetSharedInterface(sptr);
+        (SetSharedInterface(std::static_pointer_cast<IFACES>(sptr)), ...);
+        objectActions.emplace_back(ObjectAction{ sptr, (void*)sptr.get(), GetPostInitFunc<T>() });
+    }
+
+    void CallPostInit() {
+        for (auto &itm : objectActions) {
+            itm.CallPostInit();
+        }
     }
 
     //throws NotExistsException on error
     template<typename T>
     void GetObject(T *& t) {
         t = GetInterface<T>();
-        if (!t)
+        if (!t) {
+            __debugbreak();
             throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
+        }
     }
     //throws NotExistsException on error
     template<typename T>
     void GetObject(std::shared_ptr<T> & t) {
         t = GetSharedInterface<T>();
-        if (!t)
+        if (!t) {
+            __debugbreak();
             throw NotExistsException(fmt::format("Object of type {} does not exists", typeid(T).name()));
+        }
     }
 
     void DumpObjects() const {
@@ -92,6 +113,9 @@ public:
         ss << "Raw[" << interfaces.size() << "]:\n";
         for (auto&[index, any] : interfaces)
             ss << "\t" << any.type().name() << "\n";
+        ss << "Objects[" << objectActions.size() << "]:\n";
+        for (auto &itm : objectActions) 
+            ss << "\tPostInit:" << (itm.postInitAction ? "T" : " ") << "  " << itm.anyPointer.type().name() << "\n";
 
         AddLog(Resources, "InterfaceMap " << this << " content:\n" << ss.str());
     }
@@ -103,6 +127,32 @@ protected:
 private:
     std::unordered_map<std::type_index, std::any> interfaces;
     std::unordered_map<std::type_index, std::any> sharedInterfaces;
+
+    using ActionFunc = void(*)(void*);
+    struct ObjectAction {
+        std::any anyPointer;
+        void *pointer;
+        ActionFunc postInitAction;
+
+        void CallPostInit() {
+            if (postInitAction)
+                postInitAction(pointer);
+        }
+    };
+    std::vector<ObjectAction> objectActions;
+
+    template<typename T>
+    static void ExecutePostInit(void *p) {
+        reinterpret_cast<T*>(p)->PostInit();
+    }
+
+    template<typename T>
+    static ActionFunc GetPostInitFunc() {
+        if constexpr (detail::HasPostInit<T>)
+            return &ExecutePostInit<T>;
+        else
+            return nullptr;
+    }
 
     template<typename T>
     void AddInterface(T* ptr, std::shared_ptr<T> sptr) {

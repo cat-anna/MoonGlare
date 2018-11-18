@@ -36,6 +36,8 @@ ScriptEngine::ScriptEngine(World *world) :
         m_LastMemUsage(0) {
 
     s_instance = this;
+    world->SetScriptEngine(this);
+    world->SetInterface(this);
 
     assert(world);
     m_world = world;
@@ -46,9 +48,35 @@ ScriptEngine::ScriptEngine(World *world) :
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptRuntime, "SCRT");
+
+    LOCK_MUTEX(m_Mutex);
+
+    AddLog(Debug, "Constructing script object");
+    if (!ConstructLuaContext()) {
+        AddLog(Error, "Unable to initialize Lua context!");
+        throw std::runtime_error("Unable to initialize Lua context!");
+    }
+
+    auto lua = GetLua();
+    luabridge::Stack<ScriptEngine*>::push(lua, this);
+    lua_setglobal(lua, "Script");
+
+    AddLog(Debug, "Script construction finished");
 }
 
-ScriptEngine::~ScriptEngine() { }
+ScriptEngine::~ScriptEngine() {
+    LOCK_MUTEX(m_Mutex);
+
+    auto lua = GetLua();
+    MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptEngine", this);
+
+    AddLog(Debug, "Destroying script object");
+    if (!ReleaseLuaContext()) {
+        AddLog(Warning, "An error has occur during finalization of Lua context!");
+    }
+
+    AddLog(Debug, "Destruction finished");
+}
 
 //---------------------------------------------------------------------------------------
 
@@ -67,42 +95,6 @@ void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
 }
 
 //---------------------------------------------------------------------------------------
-
-bool ScriptEngine::Initialize() {
-    MoonGlareAssert(!m_Lua);
-
-    LOCK_MUTEX(m_Mutex);
-
-    AddLog(Debug, "Constructing script object");
-    if (!ConstructLuaContext()) {
-        AddLog(Error, "Unable to initialize Lua context!");
-        return false;
-    }
-
-    auto lua = GetLua();
-    luabridge::Stack<ScriptEngine*>::push(lua, this);
-    lua_setglobal(lua, "Script");
-
-    AddLog(Debug, "Script construction finished");
-    return true;
-}
-
-bool ScriptEngine::Finalize() {
-    MoonGlareAssert(m_Lua != nullptr);
-
-    LOCK_MUTEX(m_Mutex);
-
-    auto lua = GetLua();
-    MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptEngine", this);
-
-    AddLog(Debug, "Destroying script object");
-    if (!ReleaseLuaContext()) {
-        AddLog(Warning, "An error has occur during finalization of Lua context!");
-    }
-    
-    AddLog(Debug, "Destruction finished");
-    return true;
-}
 
 bool ScriptEngine::ConstructLuaContext() {
     MoonGlareAssert(m_Lua == nullptr);
@@ -159,7 +151,6 @@ bool ScriptEngine::ConstructLuaContext() {
         AddLogf(Error, "Exception during static module init '%s'", e.what());
         return false;
     }
-
 
     lua_gc(m_Lua, LUA_GCCOLLECT, 0);
     lua_gc(m_Lua, LUA_GCSTOP, 0);

@@ -19,9 +19,6 @@ public:
     ScriptEngine(World *world);
     virtual ~ScriptEngine();
 
-    bool Initialize();
-    bool Finalize();
-
     void Step(const MoveConfig & conf);
 
     template<typename Iface>

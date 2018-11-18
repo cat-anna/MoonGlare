@@ -59,9 +59,9 @@ struct alignas(16) TextComponentEntry {
 	math::mat4 m_Matrix, m_translate;
 
 	DataClasses::FontPtr m_Font;
-	DataClasses::Fonts::iFont::FontRenderRequest m_FontStyle;
-	DataClasses::Fonts::iFont::FontRect m_FontRect;
-	DataClasses::Fonts::iFont::FontResources m_FontResources{  };
+	DataClasses::iFont::FontRenderRequest m_FontStyle;
+	DataClasses::iFont::FontRect m_FontRect;
+	DataClasses::iFont::FontResources m_FontResources{  };
 
 	void Reset() {
 		m_Flags.ClearAll();
@@ -70,7 +70,7 @@ struct alignas(16) TextComponentEntry {
 
 	void SetDirty() { m_Flags.m_Map.m_Dirty = true;  m_Flags.m_Map.m_TextDirty = true; }
 
-	void Update(Renderer::Frame *frame, const DataClasses::Fonts::iFont::FontDeviceOptions &devopt, RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
+	void Update(Renderer::Frame *frame, const DataClasses::Font::FontDeviceOptions &devopt, RectTransformComponentEntry &Parent, bool Uniform, TextProcessor &tproc);
 };
 //static_assert((sizeof(RectTransformComponentEntry) % 16) == 0, "RectTransformComponentEntry has invalid size");
 //static_assert(std::is_pod<RectTransformComponentEntry>::value, "RectTransformComponentEntry must be pod!");
@@ -91,7 +91,7 @@ protected:
 	TextProcessor m_TextProcessor;
 	
 	Renderer::ShaderResourceHandle<GUIShaderDescriptor> m_ShaderHandle;
-	DataClasses::Fonts::iFont::FontDeviceOptions m_FontDeviceOptions;
+	DataClasses::iFont::FontDeviceOptions m_FontDeviceOptions;
 };
 
 } //namespace Component 

@@ -31,14 +31,11 @@ public:
 	Core::Scripts::ScriptEngine *GetScriptEngine() { return m_ScriptEngine; };
 	Core::Scene::iSceneManager *GetScenesManager() { return m_ScenesManager.get(); };
 
-    iConsole* GetConsole() { return m_Console; }
     Core::Engine* GetEngine();
 
     void SetRendererFacade(Renderer::RendererFacade *c);
 	Renderer::RendererFacade* GetRendererFacade() { return m_RendererFacade; }
     void SetScriptEngine(Core::Scripts::ScriptEngine *se) { m_ScriptEngine = se; }
-
-    void SetConsole(iConsole *c) { m_Console = c; }
 private:
 	std::unique_ptr<Core::InputProcessor> m_InputProcessor;
 	std::unique_ptr<Core::Scene::iSceneManager> m_ScenesManager;
@@ -46,7 +43,6 @@ private:
     std::unique_ptr<Component::EntityManager> entityManager;
 
 	//not owning
-    iConsole *m_Console = nullptr;
 	Renderer::RendererFacade *m_RendererFacade = nullptr;
 	Core::Scripts::ScriptEngine *m_ScriptEngine = nullptr;
     Component::EventDispatcher *eventDispatcher = nullptr;

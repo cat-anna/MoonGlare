@@ -1,6 +1,6 @@
 #pragma once
 
-namespace MoonGlare::Resources { class StringTables; }
+#include "DataClasses/Font.h"
 
 namespace MoonGlare {
 namespace Core {
@@ -9,20 +9,14 @@ namespace Data {
 class Manager {
     friend class DataManagerDebugScritpApi;
 public:
-    static Manager *s_instance;
-    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }
-
     Manager(World *world);
-    virtual ~Manager();
+    ~Manager();
 
     bool InitModule(StarVFS::Containers::iContainer *Container);
 
     void InitFonts();
 
-    DataClasses::FontPtr GetConsoleFont();
     DataClasses::FontPtr GetFont(const string &Name);
-
-    void SetLangCode(std::string langCode);
 
     static void RegisterScriptApi(::ApiInitializer &api);
 private:
@@ -34,7 +28,4 @@ private:
 
 } // namespace Data
 } // namespace Core 
-
-inline MoonGlare::Core::Data::Manager* GetDataMgr() { return MoonGlare::Core::Data::Manager::s_instance; }
-
 } // namespace MoonGlare 

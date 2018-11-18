@@ -19,9 +19,8 @@ namespace FileSystem {
 class MoonGlareFileSystem : public iFileSystem {
 public:
     static MoonGlareFileSystem* s_instance;
-    static void DeleteInstance() { delete s_instance; s_instance = nullptr; }   
 
-    MoonGlareFileSystem();
+    MoonGlareFileSystem(InterfaceMap &ifaceMap);
     virtual ~MoonGlareFileSystem();
 
  //iFileSystem
@@ -50,9 +49,6 @@ public:
         return OpenFile((ResName += '/') += FileName, origin, FileData);
     }
 
-    bool Initialize();
-    bool Finalize();
-
     bool EnumerateFolder(DataPath origin, FileInfoTable &FileTable, bool Recursive);
     bool EnumerateFolder(const std::string& SubPath, DataPath origin, FileInfoTable &FileTable, bool Recursive);
 
@@ -68,6 +64,7 @@ private:
     StarVFSCallback::BeforeContainerMountResult BeforeContainerMount(StarVFS::Containers::iContainer *ptr, const StarVFS::String &MountPoint);
     void AfterContainerMounted(StarVFS::Containers::iContainer *ptr);
 
+    InterfaceMap &interfaceMap;
     StarVFSCallback m_StarVFSCallback;
     std::unique_ptr<StarVFS::StarVFS> m_StarVFS;
 };

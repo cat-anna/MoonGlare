@@ -135,6 +135,8 @@ void Application::Initialize() {
     m_World = std::make_unique<World>();
     m_World->SetInterface(this);
 
+    m_World->CreateObject<Modules::BasicConsole, iConsole>();
+
     LoadSettings();
     InitLogger();
 
@@ -149,13 +151,8 @@ void Application::Initialize() {
         AddLogf(Error, "Pre system init action failed!");
         throw "Pre system init action failed";
     }
-#define _init_chk(WHAT, ERRSTR, ...) \
-do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRSTR; } } while(false)
 
-    _init_chk(new MoonGlareFileSystem(), "Unable to initialize internal filesystem!");
-
-    m_World->SetInterface<iFileSystem>(GetFileSystem());
-
+    m_World->CreateObject<MoonGlareFileSystem, iFileSystem>();
     m_World->CreateObject<Resources::StringTables>();
 
     if (!ModManager->Initialize()) {
@@ -175,7 +172,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
 
     m_World->CreateObject<Resources::SkeletalAnimationManager>();
 
-    new DataManager(m_World.get());
+    auto *dataMgr = new DataManager(m_World.get());
+    m_World->SetInterface(dataMgr);
 
     LoadDataModules();
 
@@ -193,14 +191,8 @@ do { if(!(WHAT)->Initialize()) { AddLogf(Error, ERRSTR, __VA_ARGS__); throw ERRS
         throw "Failed to initialize world!";
     }               
 
-    GetDataMgr()->InitFonts();
+    dataMgr->InitFonts();
 
-    if (1) {
-        //m_Configuration->m_Core.m_EnableConsole) {
-        auto c = new Modules::BasicConsole();
-        _init_chk(c, "Unable to initialize console!");
-        m_World->SetConsole(c);
-    }
 
     Engine->Initialize();
 
@@ -290,15 +282,7 @@ void Application::Finalize() {
 
     SaveSettings();
 
-    auto Console = dynamic_cast<Modules::BasicConsole*>(m_World->GetConsole());
-    m_World->SetConsole(nullptr);
-    if (Console) {
-        Console->Finalize();
-        delete Console;
-    }
-
     MoonGlare::Core::Engine::s_instance->Finalize();
-    DataManager::DeleteInstance();
 
     if(m_Renderer)
         m_Renderer->Finalize();
@@ -308,10 +292,8 @@ void Application::Finalize() {
 
     ModulesManager::DeleteInstance();
     MoonGlare::Core::Engine::DeleteInstance();
-    DataManager::DeleteInstance();
 
     ScriptEngine::DeleteInstance();
-    _del_chk(FileSystem::MoonGlareFileSystem, "Finalization of filesystem failed!");
 
     m_World.reset();
 

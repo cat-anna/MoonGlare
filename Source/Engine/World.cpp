@@ -30,6 +30,7 @@ namespace MoonGlare {
 World::World()
 	: m_ScriptEngine(nullptr) {
     runtimeConfiguration = std::make_unique<Core::RuntimeConfiguration>();
+    SetInterface(runtimeConfiguration.get());
 
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Event, "EVNT");
 
@@ -102,6 +103,7 @@ bool World::Finalize() {
 void World::PostSystemInit() {
     if (m_ScenesManager)
         m_ScenesManager->PostSystemInit();
+    CallPostInit();
 }
 
 bool World::PreSystemStart() {

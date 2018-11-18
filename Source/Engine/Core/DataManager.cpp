@@ -16,13 +16,10 @@ namespace MoonGlare {
 namespace Core {
 namespace Data {
 
-Manager *Manager::s_instance = nullptr;
-
 RegisterApiBaseClass(Manager, &Manager::RegisterScriptApi);
 
 Manager::Manager(World *world) : world(world) {
     ASSERT(world);
-    s_instance = this;
 
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 }
@@ -118,13 +115,9 @@ void Manager::InitFonts() {
         auto uri = "file://" + fs->GetFullFileName(fileid);
         AddLogf(Debug, "Found font: %s -> %s", uri.c_str(), name.c_str());
 
-        m_Fonts[name] = std::make_shared<DataClasses::Fonts::Font>(uri);
+        m_Fonts[name] = std::make_shared<DataClasses::Font>(uri);
     }
 }   
-
-DataClasses::FontPtr Manager::GetConsoleFont() {
-    return GetFont(world->GetRuntimeConfiguration()->consoleFont);
-}
 
 DataClasses::FontPtr Manager::GetFont(const string &Name) {
     auto it = m_Fonts.find(Name);

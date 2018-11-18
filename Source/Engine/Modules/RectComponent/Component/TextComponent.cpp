@@ -176,8 +176,11 @@ bool TextComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 		AddLog(Error, "Failed to read ImageEntry!");
 		return false;
 	}
+    
+    Core::Data::Manager *dm;
+    GetManager()->GetInterfaceMap().GetObject(dm);
 
-	entry.m_Font = GetDataMgr()->GetFont(te.m_FontName);
+	entry.m_Font = dm->GetFont(te.m_FontName);
 	if (!entry.m_Font) {
 		AddLogf(Error, "Unknown font: %s", te.m_FontName.c_str());
 		return false;
@@ -198,7 +201,7 @@ bool TextComponent::Load(ComponentReader &reader, Entity parent, Entity owner) {
 
 //---------------------------------------------------------------------------------------
 
-void TextComponentEntry::Update(Renderer::Frame *frame, const DataClasses::Fonts::iFont::FontDeviceOptions &devopt, RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
+void TextComponentEntry::Update(Renderer::Frame *frame, const DataClasses::Font::FontDeviceOptions &devopt, RectTransformComponentEntry & Parent, bool Uniform, TextProcessor &tproc) {
 	if (m_Flags.m_Map.m_TextDirty) {
 		std::string processed;
 		tproc.Process(m_Text, processed);

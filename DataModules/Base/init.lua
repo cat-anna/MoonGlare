@@ -6,6 +6,5 @@ require "/Scripts/Table"
 
 local r = require "RuntimeConfiguration"
 -- r.scene.firstScene = "..."
--- r.scene.loadingScene = "..."
+r.scene.loadingScene = "DefaultLoadingScene"
 r.consoleFont = "Saira-Regular"
--- r.consoleFont = ".."
