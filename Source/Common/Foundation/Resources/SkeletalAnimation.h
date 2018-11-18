@@ -65,6 +65,45 @@ struct SkeletalAnimation {
     bool ready;
     size_t memoryBlockSize;
     void *memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
+
+    bool CheckPointers() const {
+        auto *memEnd = ((const uint8_t*)memoryBlockFront) + memoryBlockSize;
+        auto check = [this, memEnd](const auto *ptr) -> bool {
+            auto *p = (const uint8_t*)ptr;
+            return p == nullptr || (p >= (const uint8_t*)memoryBlockFront && p < memEnd);
+        };
+
+        for (uint16_t i = 0; i < channelCount; ++i) {
+            if (!check(channel[i].positionKey) || !check(channel[i].rotationKey) || !check(channel[i].scalingKey))
+                return false;
+        }
+        
+        return 
+            check(stringArrayBase) &&
+            check(memoryBlockFront);
+    }
+
+    void UpdatePointers(intptr_t newBase) {
+        if (reinterpret_cast<intptr_t>(memoryBlockFront) == newBase)
+            return;
+
+        ptrdiff_t offset = reinterpret_cast<ptrdiff_t>(memoryBlockFront) - static_cast<ptrdiff_t>(newBase);
+
+        auto update = [offset](auto *&ptr) {
+            if (ptr == nullptr)
+                return;
+            ptrdiff_t newPtr = reinterpret_cast<ptrdiff_t>(ptr) - offset;
+            ptr = reinterpret_cast<decltype(ptr)>(newPtr);
+        };
+
+        for (uint16_t i = 0; i < channelCount; ++i) {
+            update(channel[i].positionKey);
+            update(channel[i].rotationKey);
+            update(channel[i].scalingKey);
+        }
+        update(stringArrayBase);
+        update(memoryBlockFront);
+    }
 };                                   
 
 struct AnimationBlendState {

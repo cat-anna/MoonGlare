@@ -151,8 +151,8 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
     size_t boneMatricesOffset = memorySize;
     memorySize += boneMatricesSize;
 
-    output.memory.reset(new char[memorySize]);
-    char *mem = output.memory.get();
+    output.memory.reset(new uint8_t[memorySize]);
+    uint8_t *mem = output.memory.get();
 
     MeshData &md = output.mesh;
     md = {};

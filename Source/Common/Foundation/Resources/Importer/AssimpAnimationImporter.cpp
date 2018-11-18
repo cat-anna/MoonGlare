@@ -13,7 +13,7 @@ namespace MoonGlare::Resources::Importer {
 
 void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node animSetXml, AnimationImport &output) {
     assert(scene);
-    assert(animIndex >= 0 && animIndex < scene->mNumAnimations);
+    assert(animIndex >= 0 && (size_t)animIndex < scene->mNumAnimations);
 
     const auto *assimpAnim = scene->mAnimations[animIndex];
     pugi::xml_node animSetNode = animSetXml.find_child_by_attribute("AnimationSet", "Index", std::to_string(animIndex).c_str());
@@ -43,8 +43,8 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     size_t dataAllocOffset = Memory::Align16(stringArraySize);
     AnimationDataSize += dataAllocOffset;
 
-    output.memory.reset(new char[AnimationDataSize]);
-    char *mem = output.memory.get();
+    output.memory.reset(new uint8_t[AnimationDataSize]);
+    uint8_t *mem = output.memory.get();
     memset(mem, 0, AnimationDataSize);
     SkeletalAnimation &animInfo = output.animation;
     animInfo = {};
@@ -60,7 +60,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         char *out = (char*)animInfo.stringArrayBase + offset;
         strcpy(out, text);
         out[len] = '\0';
-        return offset;
+        return (uint16_t)offset;
     };
 
     auto allocData = [&dataAllocOffset, mem](auto arr, size_t cnt) -> decltype(arr) {
@@ -84,15 +84,15 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
             auto loop = node.attribute("Loop").as_bool();
 
             auto &set = animInfo.animationSet[index];
-            set.firstFrame = start;
-            set.endFrame = end;
+            set.firstFrame = (uint16_t)start;
+            set.endFrame = (uint16_t)end;
             set.loop = loop ? 1 : 0;
             ++index;
         }
         animInfo.animationSetCount = index;
     }
 
-    animInfo.channelCount = assimpAnim->mNumChannels;
+    animInfo.channelCount = (uint16_t)assimpAnim->mNumChannels;
     for (size_t ch = 0; ch < assimpAnim->mNumChannels; ++ch) {
         auto &assimpChannel = assimpAnim->mChannels[ch];
         animInfo.channelNameOffset[ch] = pushString(assimpChannel->mNodeName.data);
@@ -106,7 +106,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         for (size_t key = 0; key < channel.positionKeyCount; ++key) {
             auto &k = channel.positionKey[key];
             const auto &v = assimpChannel->mPositionKeys[key].mValue;
-            k.time = assimpChannel->mPositionKeys[key].mTime;
+            k.time = (float)assimpChannel->mPositionKeys[key].mTime;
             k.value = { v.x, v.y, v.z };
         }
 
@@ -114,7 +114,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         for (size_t key = 0; key < channel.rotationKeyCount; ++key) {
             auto &k = channel.rotationKey[key];
             const auto &v = assimpChannel->mRotationKeys[key].mValue;
-            k.time = assimpChannel->mRotationKeys[key].mTime;
+            k.time = (float)assimpChannel->mRotationKeys[key].mTime;
             if constexpr (std::is_same_v<RotationKey::item_t, emath::Quaternion>) {
                 k.value = { v.w, v.x, v.y, v.z };
             } else {
@@ -130,7 +130,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         for (size_t key = 0; key < channel.scalingKeyCount; ++key) {
             auto &k = channel.scalingKey[key];
             const auto &v = assimpChannel->mScalingKeys[key].mValue;
-            k.time = assimpChannel->mScalingKeys[key].mTime;
+            k.time = (float)assimpChannel->mScalingKeys[key].mTime;
             k.value = { v.x, v.y, v.z };
         }
     }
@@ -138,8 +138,8 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     assert(stringAllocOffset == stringArraySize);
     assert(AnimationDataSize == dataAllocOffset);
 
-    animInfo.duration = assimpAnim->mDuration;
-    animInfo.ticksPerSecond = assimpAnim->mTicksPerSecond;
+    animInfo.duration = (float)assimpAnim->mDuration;
+    animInfo.ticksPerSecond = (float)assimpAnim->mTicksPerSecond;
 
     animInfo.memoryBlockFront = mem;
     animInfo.memoryBlockSize = AnimationDataSize;

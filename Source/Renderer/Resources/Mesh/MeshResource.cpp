@@ -3,6 +3,7 @@
 #include "../ResourceManager.h"
 
 #include "AssimpMeshLoader.h"
+#include "MeshLoader.h"
 #include "VAOBuilder.h"
 
 #include "../../Commands/MemoryCommands.h"
@@ -85,7 +86,7 @@ bool MeshManager::IsHandleValid(MeshResourceHandle &h) const {
 
 //---------------------------------------------------------------------------------------
 
-void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<char[]> sourceMemory) {
+void MeshManager::ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<uint8_t[]> sourceMemory) {
     if (!IsHandleValid(h))
         return;
 
@@ -204,6 +205,13 @@ MeshResourceHandle MeshManager::LoadMesh(const std::string &uri) {
 
     std::string subpath;
     std::string fileuri;
+
+    if (uri.find(".mesh") == uri.size() - 5) {
+        //lazy suffix check
+        auto request = std::make_shared<Loader::MeshLoader>(h, *this);
+        resourceManager->GetLoader()->QueueRequest(uri, request);
+        return h;
+    }
 
     auto pos = uri.find('@');
     if (pos == std::string::npos) {

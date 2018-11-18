@@ -14,6 +14,13 @@ enum class MagicValue : uint32_t {
     Null = 'LLUN', // empty entry
 };             
 
+constexpr size_t HeaderSize = 16;
+struct GenericHeader {
+    uint8_t bytes[HeaderSize] = { };
+};
+static_assert(sizeof(GenericHeader) == HeaderSize);
+static_assert(std::is_standard_layout_v<GenericHeader>);
+
 struct BlobHeader {
     MagicValue magic = MagicValue::Blob;
     MagicValue contentMagic = MagicValue::Blob; // = MagicValue::[[may differ]]
@@ -22,7 +29,7 @@ struct BlobHeader {
     uint8_t __padding8[3] = { };
     uint32_t __padding32[1] = {};
 };
-static_assert(sizeof(BlobHeader) == 16);
+static_assert(sizeof(BlobHeader) == HeaderSize);
 static_assert(std::is_standard_layout_v<BlobHeader>);
        
 struct MeshHeader {
@@ -34,7 +41,7 @@ struct MeshHeader {
 
     uint32_t __padding32[2] = {};
 };
-static_assert(sizeof(MeshHeader) == 16);
+static_assert(sizeof(MeshHeader) == HeaderSize);
 static_assert(std::is_standard_layout_v<MeshHeader>);
 
 struct AnimHeader {
@@ -46,7 +53,7 @@ struct AnimHeader {
 
     uint32_t __padding32[2] = {};
 };
-static_assert(sizeof(AnimHeader) == 16);
+static_assert(sizeof(AnimHeader) == HeaderSize);
 static_assert(std::is_standard_layout_v<AnimHeader>);
 
 struct DataHeader {
@@ -55,7 +62,7 @@ struct DataHeader {
     uint32_t fileDataSize = 0;
     uint32_t dataSize = 0;
 };
-static_assert(sizeof(DataHeader) == 16);
+static_assert(sizeof(DataHeader) == HeaderSize);
 static_assert(std::is_standard_layout_v<DataHeader>);
 
 }

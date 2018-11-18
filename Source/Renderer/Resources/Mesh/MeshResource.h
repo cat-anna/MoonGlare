@@ -26,7 +26,7 @@ public:
 
     MeshResourceHandle CreateMesh(const MeshSource &source, const std::string &uri = "");
     void ApplyMeshSource(MeshResourceHandle h, const MeshSource &source);
-    void ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<char[]> sourceMemory);
+    void ApplyMeshSource(MeshResourceHandle h, MeshData source, std::unique_ptr<uint8_t[]> sourceMemory);
 
     bool IsHandleValid(MeshResourceHandle &h) const;
 
@@ -59,7 +59,7 @@ private:
     Array<MeshResourceHandle::Generation_t> generations;
 
     Array<MeshData> meshData;
-    Array<std::unique_ptr<char[]>> meshDataMemory;
+    Array<std::unique_ptr<uint8_t[]>> meshDataMemory;
 
     std::unordered_map<std::string, MeshResourceHandle> loadedMeshes; //temporary solution
     ResourceManager *resourceManager = nullptr;

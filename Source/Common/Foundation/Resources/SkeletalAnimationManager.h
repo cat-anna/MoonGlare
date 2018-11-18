@@ -21,7 +21,7 @@ public:
     SkeletalAnimationHandle LoadAnimation(const std::string &uri);
     bool IsHandleValid(SkeletalAnimationHandle &h) const;
 
-    void ApplyAnimationData(SkeletalAnimationHandle handle, std::unique_ptr<char[]> memory, const SkeletalAnimation &animInfo);
+    void ApplyAnimationData(SkeletalAnimationHandle handle, std::unique_ptr<uint8_t[]> memory, const SkeletalAnimation &animInfo);
 
     const SkeletalAnimation *GetAnimationData(SkeletalAnimationHandle handle);
 
@@ -33,7 +33,7 @@ private:
     using Array = std::array<T, Configuration::AnimationLimit>;
 
     Array<SkeletalAnimation> animation;
-    Array<std::unique_ptr<char[]>> animationDataMemory;
+    Array<std::unique_ptr<uint8_t[]>> animationDataMemory;
     Array<uint16_t> generations;
 
     using Bitmap = Memory::LinearAtomicBitmapAllocator<Configuration::AnimationLimit>;

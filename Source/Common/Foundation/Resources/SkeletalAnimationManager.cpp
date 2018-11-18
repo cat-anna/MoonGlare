@@ -2,7 +2,8 @@
 #include "SkeletalAnimationManager.h"
 #include "iAsyncLoader.h"
 
-#include "Loader/AssimpAnimationLoader.h"
+#include "Loader/AssimpAnimationLoader.h" 
+#include "Loader/AnimationLoader.h" 
 
 #include <Foundation/Resources/Blob/AnimationBlob.h>
 
@@ -72,6 +73,13 @@ SkeletalAnimationHandle SkeletalAnimationManager::LoadAnimation(const std::strin
     if (got)
         return h;
 
+    if (uri.find(".anim") == uri.size() - 5) {
+        //lazy suffix check
+        auto request = std::make_shared<Loader::AnimationLoader>(h, *this);
+        loader->QueueRequest(uri, request);
+        return h;
+    }
+
     std::string subpath;
     std::string fileuri;
 
@@ -89,7 +97,7 @@ SkeletalAnimationHandle SkeletalAnimationManager::LoadAnimation(const std::strin
     return h;
 }   
 
-void SkeletalAnimationManager::ApplyAnimationData(SkeletalAnimationHandle handle, std::unique_ptr<char[]> memory, const SkeletalAnimation &animInfo) {
+void SkeletalAnimationManager::ApplyAnimationData(SkeletalAnimationHandle handle, std::unique_ptr<uint8_t[]> memory, const SkeletalAnimation &animInfo) {
 #ifdef DEBUG_DUMP
     Resources::Blob::DumpAnimationBlob(animInfo);
 #endif 

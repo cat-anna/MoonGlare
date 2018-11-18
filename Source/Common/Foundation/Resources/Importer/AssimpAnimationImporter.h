@@ -13,7 +13,7 @@ class Importer;
 namespace MoonGlare::Resources::Importer {
 
 struct AnimationImport {
-    std::unique_ptr<char[]> memory;
+    std::unique_ptr<uint8_t[]> memory;
     SkeletalAnimation animation = {};
 };
 
