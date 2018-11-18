@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<Entity Name="MainMenuTable">
+	<Component Name="RectTransform">
+		<Position X="0" Y="0" />
+		<Size X="1" Y="1" />
+		<AlignMode>13</AlignMode>
+		<Margin Left="10" Top="10" Right="10" Bottom="10" />
+		<UniformMode>false</UniformMode>
+		<Z>0</Z>
+	</Component>
+	<Entity Name="Title">
+		<Component Name="RectTransform">
+			<Position X="0" Y="0" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+		<Component Name="Text">
+			<Active>true</Active>
+			<Text>Title</Text>
+			<TextAlignMode>4</TextAlignMode>
+			<Color R="1" G="1" B="1" A="1" />
+			<FontName>Jon Sans</FontName>
+			<FontSize>36</FontSize>
+		</Component>
+	</Entity>
+	<Entity Name="Line0">
+		<Component Name="RectTransform">
+			<Position X="0" Y="2" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line1">
+		<Component Name="RectTransform">
+			<Position X="0" Y="3" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line2">
+		<Component Name="RectTransform">
+			<Position X="0" Y="4" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line3">
+		<Component Name="RectTransform">
+			<Position X="0" Y="5" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line4">
+		<Component Name="RectTransform">
+			<Position X="0" Y="6" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line5">
+		<Component Name="RectTransform">
+			<Position X="0" Y="7" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line6">
+		<Component Name="RectTransform">
+			<Position X="0" Y="8" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+	<Entity Name="Line7">
+		<Component Name="RectTransform">
+			<Position X="0" Y="9" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>	
+	<Entity Name="Line8">
+		<Component Name="RectTransform">
+			<Position X="0" Y="10" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>	
+		<Entity Name="Line9">
+		<Component Name="RectTransform">
+			<Position X="0" Y="11" />
+			<Size X="1" Y="15" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="5" Top="5" Right="5" Bottom="5" />
+			<UniformMode>false</UniformMode>
+			<Z>0</Z>
+		</Component>
+	</Entity>
+</Entity>

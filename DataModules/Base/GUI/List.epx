@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<Entity Name="List">
+	<Component Name="RectTransform">
+		<Position X="0" Y="0" />
+		<Size X="1" Y="1" />
+		<AlignMode>13</AlignMode>
+		<Margin Left="0" Top="0" Right="0" Bottom="0" />
+		<UniformMode>false</UniformMode>
+		<Z>0</Z>
+	</Component>
+	<Component Name="Script">
+		<Script>/GUI/Gui.List</Script>
+		<Active>true</Active>
+		<PerSecond>false</PerSecond>
+	</Component>
+	<Entity Name="Caption">
+		<Component Name="RectTransform">
+			<Position X="0" Y="0" />
+			<Size X="2" Y="1" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="0" Top="0" Right="0" Bottom="0" />
+			<UniformMode>true</UniformMode>
+			<Z>0</Z>
+		</Component>
+		<Component Name="Text">
+			<Active>true</Active>
+			<Text>There is no text here</Text>
+			<TextAlignMode>4</TextAlignMode>
+			<Color R="1" G="1" B="1" A="1" />
+			<FontName>Jon Sans</FontName>
+			<FontSize>32</FontSize>
+		</Component>
+	</Entity>
+	<Entity Name="Value">
+		<Component Name="RectTransform">
+			<Position X="1" Y="0" />
+			<Size X="2" Y="1" />
+			<AlignMode>15</AlignMode>
+			<Margin Left="0" Top="0" Right="0" Bottom="0" />
+			<UniformMode>true</UniformMode>
+			<Z>0</Z>
+		</Component>
+		<Component Name="Text">
+			<Active>true</Active>
+			<Text>There is no text here</Text>
+			<TextAlignMode>4</TextAlignMode>
+			<Color R="1" G="1" B="1" A="1" />
+			<FontName>Jon Sans</FontName>
+			<FontSize>32</FontSize>
+		</Component>
+		<Entity Name="Left">
+			<Component Name="RectTransform">
+				<Position X="0" Y="0" />
+				<Size X="32" Y="1" />
+				<AlignMode>3</AlignMode>
+				<Margin Left="0" Top="0" Right="0" Bottom="0" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+			<Component Name="Image">
+				<Active>true</Active>
+				<ScaleMode>4</ScaleMode>
+				<Color R="1" G="1" B="1" A="1" />
+				<TextureURI>file:///Textures/leftarrow.png</TextureURI>
+				<Speed>1</Speed>
+				<StartFrame>0</StartFrame>
+				<FrameCount>0</FrameCount>
+				<FrameStripCount X="1" Y="1" />
+				<Spacing X="0" Y="0" />
+				<FrameSize X="0" Y="0" />
+			</Component>
+		</Entity>
+		<Entity Name="Right">
+			<Component Name="RectTransform">
+				<Position X="0" Y="0" />
+				<Size X="32" Y="1" />
+				<AlignMode>4</AlignMode>
+				<Margin Left="0" Top="0" Right="0" Bottom="0" />
+				<UniformMode>false</UniformMode>
+				<Z>0</Z>
+			</Component>
+			<Component Name="Image">
+				<Active>true</Active>
+				<ScaleMode>4</ScaleMode>
+				<Color R="1" G="1" B="1" A="1" />
+				<TextureURI>file:///Textures/rightarrow.png</TextureURI>
+				<Speed>1</Speed>
+				<StartFrame>0</StartFrame>
+				<FrameCount>0</FrameCount>
+				<FrameStripCount X="1" Y="1" />
+				<Spacing X="0" Y="0" />
+				<FrameSize X="0" Y="0" />
+			</Component>
+		</Entity>
+	</Entity>
+</Entity>
