@@ -18,5 +18,11 @@ Structure.new {
 			type = bool,
 			default = true,
 		},
+		{
+			name = "Properties",
+			description = "",
+			type = Global.string,
+			default = "",
+		},
 	},
 }

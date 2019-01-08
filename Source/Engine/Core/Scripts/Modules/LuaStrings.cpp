@@ -8,6 +8,13 @@
 
 namespace MoonGlare::Core::Scripts::Modules {
 
+/*@ [StaticModules/LuaStringModule] String module
+    This is an extension to lua `string` module.
+@*/
+
+/*@ [LuaStringModule/_] `string.get(tableName, entryName)`
+    Get string from current language string tables.  
+@*/
 static int GetString(lua_State* lua) {
     auto *st = reinterpret_cast<Resources::StringTables*>(lua_touserdata(lua, lua_upvalueindex(1)));
     assert(st);
@@ -29,7 +36,8 @@ void StaticModules::InitStrings(lua_State *lua, World *world) {
     
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("string")
-            .addCClosure("Get", &GetString, (void*)st)     
+            .addCClosure("get", &GetString, (void*)st)     
+            .addCClosure("Get", &GetString, (void*)st)     //TODO: remove compatibility string.Get method
         .endNamespace()
         ;
 }

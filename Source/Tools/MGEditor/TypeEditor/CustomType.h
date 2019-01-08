@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Structure.h"
+#include <ToolBase/Module.h>
 
 Q_DECLARE_METATYPE(MoonGlare::TypeEditor::StructureValue*)
 
@@ -16,30 +17,39 @@ namespace TypeEditor {
 
 class CustomTypeEditor {
 public:
-	virtual ~CustomTypeEditor() {}
-	virtual void SetValue(const std::string &in) = 0;
-	virtual std::string GetValue() = 0;
-	virtual QWidget *GetWidget() { return dynamic_cast<QWidget*>(this); }
+    virtual ~CustomTypeEditor() {}
+    virtual void SetValue(const std::string &in) = 0;
+    virtual std::string GetValue() = 0;
+    virtual QWidget *GetWidget() { return dynamic_cast<QWidget*>(this); }
+    virtual void SetDataSource(std::function<QVariant(int)>) { };
+    void SetModuleManager(SharedModuleManager smm) { sharedModuleManager.swap(smm); }
+protected:
+    SharedModuleManager GetModuleManager() const {
+        assert(sharedModuleManager);
+        return sharedModuleManager;
+    }
+private:
+    SharedModuleManager sharedModuleManager;
 };
 
 class TypeEditorInfo {
 public:
-	virtual ~TypeEditorInfo() {}
-	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) const = 0;
-	virtual std::string ToDisplayText(const std::string &in) const = 0;
+    virtual ~TypeEditorInfo() {}
+    virtual CustomTypeEditor* CreateEditor(QWidget *Parent) const = 0;
+    virtual std::string ToDisplayText(const std::string &in) const = 0;
 
-	static void RegisterTypeEditor(std::shared_ptr<const TypeEditorInfo> typeinfo, const std::string &Name);
-	static std::shared_ptr<const TypeEditorInfo> GetEditor(const std::string &Name);
+    static void RegisterTypeEditor(std::shared_ptr<const TypeEditorInfo> typeinfo, const std::string &Name);
+    static std::shared_ptr<const TypeEditorInfo> GetEditor(const std::string &Name);
 };
 
 template<class EDITOR>
 struct TemplateTypeEditorInfo : public TypeEditorInfo {
-	virtual CustomTypeEditor* CreateEditor(QWidget *Parent) const override {
-		return new EDITOR(Parent);
-	};
-	virtual std::string ToDisplayText(const std::string &in) const override {
-		return EDITOR::ToDisplayText(in);
-	}
+    virtual CustomTypeEditor* CreateEditor(QWidget *Parent) const override {
+        return new EDITOR(Parent);
+    };
+    virtual std::string ToDisplayText(const std::string &in) const override {
+        return EDITOR::ToDisplayText(in);
+    }
 };
 
 } //namespace TypeEditor

@@ -11,7 +11,7 @@ struct Material_t {
 	vec3 diffuseColor;
 	vec3 specularColor;
 	vec3 emissiveColor;
-	float shinessExponent;
+	float shiness;
 	float opacity;
 };
 

@@ -37,6 +37,12 @@ struct DefferedFrontend {
     bool PointLightVisibilityTest(const emath::fvec3 &position, float radius);
 
     void SetStaticFog(const StaticFog &fog);
+
+    emath::fvec2 GetScreenSize() const;
+    float GetAspect() const {
+        auto ss = GetScreenSize();
+        return  ss.x() / ss.y();
+    }
 protected:
     std::unique_ptr<DeferredSink> sink;
 };

@@ -18,8 +18,9 @@ ComponentArray::ComponentArray() {
             &info,
         };
 
-        size_t byteSize = info.byteSize * storageStatus[cindex].capacity;
-        componentMemory[cindex] = ComponentMemory(new char[byteSize]);
+
+        size_t byteSize = info.byteSize * capacity;
+        componentMemory[cindex] = Memory::make_aligned_array<uint8_t>(byteSize, 16);
         memset(componentMemory[cindex].get(), 0, byteSize);
 
         componentOwner[cindex] = ComponentOwnerArray(new Entity[capacity]);

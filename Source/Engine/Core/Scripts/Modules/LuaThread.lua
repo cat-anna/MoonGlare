@@ -2,6 +2,9 @@ local ThreadList = {}
 local SuspendedThreads = {}
 local Threadidcnt = 0
 
+--[[@ [LuaThreadModule/_] `coroutine.create(function[, name])`
+    Create runnable coroutine. This is only a wrapper.
+@]]
 local org_coroutine_create = coroutine.create
 function coroutine.create(f, name)
     Threadidcnt = Threadidcnt + 1
@@ -15,6 +18,9 @@ function coroutine.create(f, name)
     return thread.handle
 end   
 
+--[[@ [LuaThreadModule/_] `coroutine.sleep(seconds)`
+    Suspend execution of current coroutine. 
+@]]
 function coroutine.sleep(sec)
     local h = coroutine.running()
     if h == nil then

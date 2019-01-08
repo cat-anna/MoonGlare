@@ -22,21 +22,19 @@ namespace DockWindows {
 
 static const char LuaScriptPattern[] = R"(-- {name} script
 
-local {name} = oo.Class()
+local class = oo.Inherit("ScriptComponent")
 
-function {name}:OnCreate()
-    --self:SetPerSecond(true)
+function class:OnCreate()
     --self:SetStep(false)
 end
 
-function {name}:OnDestroy()
+function class:OnDestroy()
 end
 
-function {name}:Step(data)
+function class:Step(data)
 end
 
-function {name}:PerSecond()
-end
+return class
 
 )";
 

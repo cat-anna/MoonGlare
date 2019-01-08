@@ -43,7 +43,7 @@ bool ComponentRegister::ExtractCIDFromXML(pugi::xml_node node, SubSystemId & out
                 return true;
             }
 
-            AddLogf(Error, "Unknown component name: %s", namexml.as_string(""));
+            AddLogf(Warning, "Unknown component name: %s", namexml.as_string(""));
             return false;
         }
     }

@@ -2,6 +2,10 @@
 
 namespace MoonGlare::Scripts::Modules {
 
+/*@ [Scripts/StaticModules] Static modules
+    This modules are accessible by global variable
+@*/
+
 void InitLuaMath(lua_State *lua);
 void InitLuaRandom(lua_State *lua);
 

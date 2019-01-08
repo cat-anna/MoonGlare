@@ -63,7 +63,7 @@ struct SkeletalAnimation {
     const char *stringArrayBase;
 
     bool ready;
-    size_t memoryBlockSize;
+    uint32_t memoryBlockSize;
     void *memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
 
     bool CheckPointers() const {

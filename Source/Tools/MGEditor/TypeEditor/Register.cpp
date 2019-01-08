@@ -114,25 +114,6 @@ struct TransformComponentDesc {
     static constexpr ComponentOrder Order = ComponentOrder::Transform;
 };
 //-------------------------------------
-struct LightComponentDesc {
-    using Entry_t = LightComponent::LightEntry_t;
-    using Settings_t = EmptySettings;
-    static constexpr char *DisplayName = "Light";
-    static constexpr char *Name = "Light";
-    static constexpr SubSystemId CID = SubSystemId::Light;
-    static constexpr SubSystemId Depend = SubSystemId::Transform;
-    static constexpr ComponentOrder Order = ComponentOrder::LightComponent;
-};
-struct CameraComponentDesc {
-    using Entry_t = CameraComponent::CameraEntry_t;
-    using Settings_t = EmptySettings;
-    static constexpr char *DisplayName = "Camera";
-    static constexpr char *Name = "Camera";
-    static constexpr SubSystemId CID = SubSystemId::Camera;
-    static constexpr SubSystemId Depend = SubSystemId::Transform;
-    static constexpr ComponentOrder Order = ComponentOrder::CameraComponent;
-};
-
 struct ScriptComponentDesc {
     using Entry_t = ScriptComponent::ScriptEntry_t;
     using Settings_t = EmptySettings;
@@ -245,6 +226,28 @@ struct MeshSystemDesc {
     using Settings_t = EmptySettings;
 };
 //-------------------------------------
+struct CameraComponentDesc {
+    static constexpr char *DisplayName = "Camera";
+    static constexpr char *Name = "Camera";
+    using Entry_t = CameraComponent::CameraEntry_t;
+};
+struct CameraSystemDesc {
+    static constexpr char *DisplayName = "Camera";
+    static constexpr char *Name = "CameraSystem";
+    using Settings_t = EmptySettings;
+};
+//-------------------------------------
+struct LightComponentDesc {
+    static constexpr char *DisplayName = "Light";
+    static constexpr char *Name = "Light";
+    using Entry_t = LightComponent::LightEntry_t;
+};
+struct LightSystemDesc {
+    static constexpr char *DisplayName = "LightSystem";
+    static constexpr char *Name = "LightSystem";
+    using Settings_t = EmptySettings;
+};
+//-------------------------------------
 //-------------------------------------
 //-------------------------------------
 struct Register {
@@ -260,14 +263,9 @@ struct Register {
         RegEnum<bool_TypeInfo>();
 
         RegComponent<ScriptComponentDesc>();
-
         RegComponent<TransformComponentDesc>();
-        RegComponent<LightComponentDesc>();
-        RegComponent<CameraComponentDesc>();
-        
         RegComponent<BodyComponentDesc>();
         RegComponent<BodyShapeComponentDesc>();
-
         RegComponent<RectTransformComponentDesc>();
         RegComponent<ImageComponentDesc>();
         RegComponent<PanelComponentDesc>();
@@ -284,6 +282,12 @@ struct Register {
 
         Component<MeshComponentDesc>();
         System<MeshSystemDesc>();
+
+        Component<CameraComponentDesc>();
+        System<CameraSystemDesc>();
+
+        Component<LightComponentDesc>();
+        System<LightSystemDesc>();
 
         RegStructure<x2c::Core::Scene::SceneConfiguration_t>();
     }

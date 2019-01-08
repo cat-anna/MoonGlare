@@ -226,7 +226,7 @@ bool iFont::RenderText(const std::wstring & text, Renderer::Frame * frame, const
 
     using Uniform = PassthroughShaderDescriptor::Uniform;
     shb.Bind();
-    shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::translate(glm::mat4(), math::vec3(tsize.m_TextPosition, 0))));
+    shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::translate(glm::identity<glm::fmat4>(), math::vec3(tsize.m_TextPosition, 0))));
 
     VirtualCamera Camera;
     Camera.SetDefaultOrthogonal(tsize.m_CanvasSize);

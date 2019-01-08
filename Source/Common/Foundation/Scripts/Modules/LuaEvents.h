@@ -3,6 +3,7 @@
 #include <Foundation/InterfaceMap.h>
 #include <Foundation/Scripts/iLuaRequire.h>
 #include <Foundation/Scripts/iDynamicModule.h>
+#include <Foundation/Scripts/ApiInit.h> 
 
 #include <Foundation/Component/nfComponent.h>
 
@@ -14,12 +15,12 @@ public:
     ~LuaEventsModule() override;
 
     bool OnRequire(lua_State *lua, std::string_view name) override;
+	static ApiInitializer RegisterScriptApi(ApiInitializer api);
+	static ApiInitializer RegisterDebugScriptApi(ApiInitializer api) ;
 protected:
     Component::EventDispatcher *eventDispatcher;
 
-    void InitSelfTable(lua_State *lua);
-
-    static int EmitEvent(lua_State *lua);
+    int EmitEvent(lua_State *lua);
 };
 
 }

@@ -63,14 +63,14 @@ struct MeshData {
     uint8_t boneCount;
     uint8_t __padding[3];
 
-    size_t vertexCount;
-    size_t indexCount;
+    uint32_t vertexCount;
+    uint32_t indexCount;
 
     emath::fvec3 halfBoundingBox;
     float boundingRadius;
 
     bool ready;
-    size_t memoryBlockSize;
+    uint32_t memoryBlockSize;
     void *memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
 
     bool CheckPointers() const {
@@ -91,32 +91,6 @@ struct MeshData {
             check(boneMatrices) &&
             check(boneNameValues) &&
             check(boneNameOffsets);
-    }
-
-    void UpdatePointers(intptr_t newBase) {
-        if (reinterpret_cast<intptr_t>(memoryBlockFront) == newBase)
-            return;
-
-        ptrdiff_t offset = reinterpret_cast<ptrdiff_t>(memoryBlockFront) - static_cast<ptrdiff_t>(newBase);
-
-        auto update = [offset](auto *&ptr) {
-            if (ptr == nullptr)
-                return;
-            ptrdiff_t newPtr = reinterpret_cast<ptrdiff_t>(ptr) - offset;
-            ptr = reinterpret_cast<decltype(ptr)>(newPtr);
-        };
-
-        update(verticles);
-        update(UV0);
-        update(normals);
-        update(tangents);
-        update(index);
-        update(vertexBones);
-        update(vertexBoneWeights);
-        update(boneMatrices);
-        update(boneNameValues);
-        update(boneNameOffsets);
-        update(memoryBlockFront);
     }
 };
 

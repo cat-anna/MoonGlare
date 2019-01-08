@@ -31,9 +31,23 @@ struct RandomObject {
 
 static RandomObject randomDevice;
 
+/*@ [StaticModules/RandomModule] Random module
+    Available through `Random` global variable.
+@*/
+
 void RandomNamespace(lua_State *lua) {
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("Random")
+
+/*@ [RandomModule/_] Get next value functions family
+    This functions generates next random value.
+    * `Random.nextBool()` - true/false, probability 0.5
+    * `Random.nextFloat()` - [0-1) uniform distribution
+    * `Random.nextFloatRange(a, b)` - [a-b) uniform distribution
+    * `Random.nextGaussian()` - [0-1) normal distribution
+    * `Random.nextInt()` - full int range, normal distribution
+    * `Random.nextIntRange(a, b)` - [a-b) uniform distribution
+@*/
             .addObjectFunction("nextBool", &randomDevice, &RandomObject::nextBool)
             .addObjectFunction("nextFloat", &randomDevice, &RandomObject::nextDouble)
             .addObjectFunction("nextFloatRange", &randomDevice, &RandomObject::nextDoubleRange)
@@ -41,9 +55,19 @@ void RandomNamespace(lua_State *lua) {
             .addObjectFunction("nextInt", &randomDevice, &RandomObject::nextInt)
             .addObjectFunction("nextIntRange", &randomDevice, &RandomObject::nextIntRange)
 
+/*@ [RandomModule/_] Seed control methods
+    This functions influence  next generated random value
+    * `Random.SetSeed(value)` - set seed value.
+    * `Random.Randomize()` - set random seed
+@*/
             .addObjectFunction("SetSeed", &randomDevice, &RandomObject::SetSeed)
             .addObjectFunction("Randomize", &randomDevice, &RandomObject::Randomize)
 
+/*@ [RandomModule/_] `Random.New()`
+    Create and return new Random object.   
+    Random object share the same set of function as global Random object.  
+    However they do not share the internal state and generation from one does not influence others.  
+@*/
             .addFunction("New", &RandomObject::Create)
         .endNamespace()
         .beginNamespace("api")

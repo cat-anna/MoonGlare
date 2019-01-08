@@ -41,12 +41,8 @@ void MeshSystem::Step(const SubsystemUpdateData &xconf) {
     auto *ssm = (Core::Component::SubsystemManager*)subsystemManager;
     auto *rf = ssm->GetWorld()->GetRendererFacade();
     const Core::MoveConfig &conf = (const Core::MoveConfig &)xconf;
-    auto &layers = conf.m_BufferFrame->GetCommandLayers();
-    auto &m = conf.m_BufferFrame->GetMemory();
-    auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::Controll>();
-    auto &q = Queue;
 
-    componentArray->Visit<MeshComponent>([this, &conf, &q, &m, rf, ssm](Entity owner, MeshComponent& item) {
+    componentArray->Visit<MeshComponent>([this, &conf, rf, ssm](Entity owner, MeshComponent& item) {
         //TODO: visibility test
         auto tindex = transformComponent->GetComponentIndex(owner);
         if (tindex == ComponentIndex::Invalid) {

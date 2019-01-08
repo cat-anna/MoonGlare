@@ -157,13 +157,13 @@ struct ShaderBindMaterialResourceArgument {
     emath::fvec3 specularColor;
     emath::fvec3 emissiveColor;
 
-    float shinessExponent; 
+    float shiness; 
 
     Device::ShaderUniformHandle diffuseColorLocation;
     Device::ShaderUniformHandle specularColorLocation;
     Device::ShaderUniformHandle emissiveColorLocation;
 
-    Device::ShaderUniformHandle shinessExponentLocation;
+    Device::ShaderUniformHandle shinessLocation;
     Device::ShaderUniformHandle useNormalMapLocation;
 
     Material::Array<uint8_t> mapUnit;
@@ -182,7 +182,7 @@ struct ShaderBindMaterialResourceArgument {
         SET::Set(specularColorLocation, specularColor);
         SET::Set(emissiveColorLocation, emissiveColor);
 
-        SET::Set(shinessExponentLocation, shinessExponent);
+        SET::Set(shinessLocation, shiness);
         SET::Set(useNormalMapLocation, mapHandle[Material::MapType::Normal] != Device::InvalidTextureHandle);
 
         for (size_t i = 0; i < mapHandle.size(); ++i) {

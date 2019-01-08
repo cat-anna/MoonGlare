@@ -25,6 +25,12 @@ LuaStaticStorageModule::~LuaStaticStorageModule() {
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [RequireModules/StaticStorageModule] StaticStorage module
+    This module provides storage which will be preserved between engine executions.
+    There is no specific api provided by this module. Returned lua table is freely available. 
+    NOTE: Only primitive values can be preserved (boolean, number, string).
+@*/
+
 bool LuaStaticStorageModule::OnRequire(lua_State *lua, std::string_view name) {
     lua_pushlightuserdata(lua, this);
     lua_gettable(lua, LUA_REGISTRYINDEX);

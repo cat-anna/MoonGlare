@@ -252,7 +252,7 @@ void TextComponentEntry::Update(Renderer::Frame *frame, const DataClasses::Font:
 		break;
 	}
 
-	m_translate = glm::translate(math::mat4(), Pos);
+	m_translate = glm::translate(glm::identity<glm::fmat4>(), Pos);
 	m_Matrix = Parent.m_GlobalMatrix * m_translate;
 	m_Flags.m_Map.m_Dirty = m_Flags.m_Map.m_TextDirty;
 }

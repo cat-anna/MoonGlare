@@ -125,7 +125,6 @@ bool SubsystemManager::LoadSystems(pugi::xml_node node) {
     //BaseSystemInfo::ForEachSystem([this](SystemClassId sci, const auto &info) {
     //    if (info.required) {
     //        auto cptr = info.infoPtr->MakeInstance(this);
-
     //        AddLogf(Hint, "Installing component cid:%d (%s)", (int)sci, typeid(*cptr.get()).name());
     //        if (!InsertComponent(std::move(cptr), (SubSystemId)sci)) {
     //            AddLog(Error, "Failed to install TransformComponent");

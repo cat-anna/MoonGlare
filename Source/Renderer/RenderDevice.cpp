@@ -13,6 +13,8 @@
 #include "Device/ErrorHandler.h"
 #include "Device/DeviceInfo.h"
 
+#include "Resources/Texture/FreeImageStore.h"
+
 namespace MoonGlare::Renderer {
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
@@ -137,8 +139,6 @@ void RenderDevice::Step() {
 void RenderDevice::ProcessFrame(Frame *frame) {
     assert(frame);
 
-    //frame->EndFrame();
-
     using Layer = Renderer::Frame::CommandLayers::LayerEnum;
 
     auto &cmdl = frame->GetCommandLayers();
@@ -155,7 +155,23 @@ void RenderDevice::ProcessFrame(Frame *frame) {
 
     Ctx->Flush();
 
+    if (captureScreenShoot.exchange(false)) {
+        CaptureScreenshoot(Ctx);
+    }
+
     IncrementPerformanceCounter(FramesProcessed);
+}
+
+void RenderDevice::CaptureScreenshoot(MoonGlare::Renderer::iContext * Ctx) {
+    auto s = Ctx->GetSize();
+    uint32_t bytes = s[0] * s[1] * 4;    std::unique_ptr<uint8_t[]> memory(new uint8_t[bytes]);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glFlush();
+    glFinish();
+    glReadPixels(0, 0, s[0], s[1], GL_BGRA, GL_UNSIGNED_BYTE, memory.get());
+    m_RendererFacade->GetAsyncLoader()->QueueTask(
+        std::make_shared<Resources::Texture::FreeImageStore>(std::move(memory), s, 32));
+    AddLogf(Info, "Queued screen shoot store task");
 }
 
 //----------------------------------------------------------------------------------

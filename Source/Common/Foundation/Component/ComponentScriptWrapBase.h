@@ -7,6 +7,9 @@
 
 namespace MoonGlare::Component {
 
+/*@ [Scripts/ComponentReference] Component api reference 
+    All component have their id registered in global `Component` namespace.
+@*/
 struct ComponentScriptWrapBase {
     ComponentArray *componentArray = nullptr;
     iSubsystemManager *subsystemManager = nullptr;
@@ -28,7 +31,11 @@ struct ComponentScriptWrapBase {
         using LuaWrapper = ComponentScriptWrapBase;
         return api
             .beginClass<ComponentScriptWrapBase>("ComponentScriptWrapBase")
-                .addProperty("Active", &LuaWrapper::IsActive, &LuaWrapper::SetActive)
+/*@ [ComponentReference/ComponentCommonApi] Common api
+    All component handles share some common api  
+    * `ComponentHandle.active` set/get component active flag. Inactive components are not processed. 
+@*/            
+                .addProperty("active", &LuaWrapper::IsActive, &LuaWrapper::SetActive)
             .endClass()
             ;
     }

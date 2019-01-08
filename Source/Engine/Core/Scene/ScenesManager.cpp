@@ -213,7 +213,6 @@ void ScenesManager::HandleEvent(const SetSceneChangeFenceEvent &event) {
             if (inst == nextScene) {
                 nextScene = loadingScene;
                 pendingScene = inst;
-                return;
             }
             if (inst == pendingScene)
                 UpdatePendingSceneFence(fenceName, event.active);
@@ -247,7 +246,7 @@ void ScenesManager::ChangeScene(Core::MoveConfig & config) {
         currentScene->PauseTime(config, currentTime);
         currentScene->SendState(SceneState::Paused);
     } else {
-        eventDispatcher->Queue(SetSceneEvent( sceneConfiguration->firstScene.c_str()));
+        eventDispatcher->Queue(SetSceneEvent(sceneConfiguration->firstScene.c_str()));
     }
                                              
     auto *prevScene = currentScene;
@@ -324,6 +323,7 @@ SceneInstance* ScenesManager::CreateScene(const std::string &descName, const std
     scene.descriptor = desc;
     scene.entityManager = entityManager;
     scene.eventDispatcher = eventDispatcher;
+    eventDispatcher->AddSubDispatcher(&scene.subsystemManager.GetEventDispatcher()); //TODO:!!
     pendingScene = &scene;
 
     //TODO: loading scenes is synchronous
@@ -395,7 +395,10 @@ void ScenesManager::UpdatePendingSceneFence(const std::string_view fenceName, bo
     auto pending = pendingScene.load();
     if (pending) {
         bool ready = pending->SetFenceState(std::string(fenceName), state);
-        if (ready) {
+        static bool d = true;
+        if (d && 
+            ready) {
+            //d = false;
             pendingScene = nullptr;
             nextScene = pending;
         }

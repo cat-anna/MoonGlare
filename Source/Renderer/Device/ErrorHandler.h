@@ -18,6 +18,8 @@ struct ErrorHandler {
 			auto ptr = (char*) gluErrorString(err);
 			if (ptr)
 				AddLog(Error, "OpenGL error: " << ptr);
+			else
+				AddLog(Error, "OpenGL error code " << err);
 		}
 	}
 };

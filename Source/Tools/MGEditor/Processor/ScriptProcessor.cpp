@@ -19,6 +19,10 @@
 #include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
 #include "ScriptProcessor.h"
+#include "../ScriptProperty.h"
+
+#include <boost/algorithm/string.hpp>
+
 
 namespace MoonGlare {
 namespace Editor {
@@ -34,7 +38,17 @@ struct ScriptFileProcessorInfo
 
     ScriptFileProcessorInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
-    std::shared_ptr<QtShared::SetEnum>  scriptListEnum = std::make_shared<QtShared::SetEnum>("string:Script.Script");
+    std::shared_ptr<QtShared::SetEnum> scriptListEnum = std::make_shared<QtShared::SetEnum>("string:Script.Script");
+
+    bool PostInit() override {
+
+        ScriptPropertySetInfo spsi;
+        spsi.className = "ScriptComponent";
+        auto spp = GetModuleManager()->QuerryModule<ScriptPropertyProvider>();
+        spp->SetScriptProperties(std::make_shared<ScriptPropertySetInfo>(std::move(spsi)));
+
+        return true;
+    }
 
     QtShared::SharedFileProcessor CreateFileProcessor(std::string URI) override {
         return std::make_shared<ScriptFileProcessor>(this, std::move(URI));
@@ -57,19 +71,6 @@ ModuleClassRgister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg
 //----------------------------------------------------------------------------------
 
 static const char InternalScript[] = R"===(
-
-Script = { 
-    Table = { },
-}
-    
-function Script:New(Name) 
-    local s = { }
-    self.Table[Name] = s
-    return s
-end
-
-local Script_mt = { __index = Script, }
-setmetatable(Script, Script_mt)
 
 oo = { }        
 
@@ -102,9 +103,11 @@ ScriptFileProcessor::ScriptFileProcessor(ScriptFileProcessorInfo *Module, std::s
 
 ScriptFileProcessor::ProcessResult ScriptFileProcessor::ProcessFile()  {
     try {
+        LoadScript();
         InitLua();
         ExecuteScript();
-        ProcessOutput();
+        CheckReferences();
+        CheckProperties();
         Finalize();
     }
     catch (...) {
@@ -145,40 +148,7 @@ void ScriptFileProcessor::InitLua() {
 }
 
 void ScriptFileProcessor::ExecuteScript() {
-    auto fs = module->GetModuleManager()->QuerryModule<FileSystem>();
     auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
-
-    StarVFS::ByteTable bt;
-    if (!fs->GetFileData(m_URI, bt)) {
-        //todo: log sth
-        throw std::runtime_error("Unable to read file: " + m_URI);
-    }
-    if (bt.byte_size() == 0) {
-        //todo: log sth
-    }
-
-    auto uris = FindAllURI(std::string((char*)bt.get(), bt.byte_size()));
-    for (auto &itm : uris) {
-        QtShared::Issue issue;
-        issue.fileName = m_URI;
-        issue.message = "File " + itm + " does not exists!";
-        issue.type = QtShared::Issue::Type::Error;
-        issue.group = "lua";
-        issue.internalID = MakeIssueId("Error", itm);
-        if (fs->FileExists(itm))
-            reporter->DeleteIssue(issue.internalID);
-        else
-            reporter->ReportIssue(std::move(issue));
-    }
-
-    //script exists, so insert it into custom enum set
-    {
-        std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\.\/]+)\.lua)", std::regex::icase);
-        std::smatch pieces_match;
-        if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
-            module->scriptListEnum->Add(pieces_match[1]);
-        }
-    }
 
     auto ParseError = [reporter, this](const std::string &errorstr, QtShared::Issue::Type type) {
         std::regex pieces_regex(R"==(\[(.+)\]\:(\d+)\:\ (.+))==", std::regex::icase);
@@ -196,7 +166,7 @@ void ScriptFileProcessor::ExecuteScript() {
     };
 
     auto lua = m_Lua.get();
-    int result = luaL_loadstring(lua, bt.c_str());
+    int result = luaL_loadstring(lua, scriptString.c_str());
     switch (result) {
     case 0: {
        //only syntax check is working correctly
@@ -219,24 +189,88 @@ void ScriptFileProcessor::ExecuteScript() {
         AddLogf(Error, "Unable to load '%s': Memory allocation failed!", m_URI.c_str());
         break;
     }
-
-    throw std::runtime_error("Unable to load script: " + m_URI);
 }
 
-void ScriptFileProcessor::ProcessOutput() {
-    auto lua = m_Lua.get();
-    lua_getfield(lua, LUA_GLOBALSINDEX, "Script");
-    lua_getfield(lua, -1, "Table");
-    int tbidx = lua_gettop(lua);
-    lua_pushnil(lua);							
+void ScriptFileProcessor::CheckReferences() {
+    auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
+    auto fs = module->GetModuleManager()->QuerryModule<FileSystem>();
 
-    while (lua_next(lua, tbidx) != 0) {
-        const char *name = lua_tostring(lua, -2);
-
-        AddLogf(Error, "Script: %s", name);
+    auto uris = FindAllURI(scriptString);
+    for (auto &itm : uris) {
+        QtShared::Issue issue;
+        issue.fileName = m_URI;
+        issue.message = "File " + itm + " does not exists!";
+        issue.type = QtShared::Issue::Type::Error;
+        issue.group = "lua";
+        issue.internalID = MakeIssueId("Error", itm);
+        if (fs->FileExists(itm))
+            reporter->DeleteIssue(issue.internalID);
+        else
+            reporter->ReportIssue(std::move(issue));
     }
+}
 
-    lua_pop(lua, 2);
+void ScriptFileProcessor::CheckProperties() {     
+    std::vector<std::string> lines;
+    boost::split(lines, scriptString, boost::is_any_of("\n"));
+
+    ScriptPropertySetInfo spsi;
+
+    {
+        std::regex r(R"==(oo\.Inherit\(\"(.+?)\"\))==");
+        std::smatch sm;
+        std::vector<std::string> out;
+        if (std::regex_search(scriptString, sm, r)) {
+            spsi.parentClassName = sm[1];
+        }
+    }
+    spsi.className = regName;
+
+    for (auto &line : lines) {
+        if (line.find("--#") == std::string::npos)
+            continue;
+
+        std::regex r(R"==(\s*(\w+)\s*\.\s*(\w+)\s*=\s*(.+?)\s*\-\-\#\s*(.+))==");
+        std::smatch sm;
+        if (std::regex_search(line, sm, r)) {
+            std::string localType = sm[1];
+            std::string member = sm[2];
+            std::string defaultValue = sm[3];
+            std::string propComment = sm[4];
+
+            ScriptProperty sp;
+            sp.comment = propComment;
+            sp.memberName = member;
+            sp.defaultValue = defaultValue;
+            //sp.type = "";
+            //sp.conditions = {};
+            spsi.properties.emplace_back(std::make_shared<ScriptProperty>(std::move(sp)));
+        }
+
+    }
+    auto spp = module->GetModuleManager()->QuerryModule<ScriptPropertyProvider>();
+    spp->SetScriptProperties(std::make_shared<ScriptPropertySetInfo>(std::move(spsi)));
+}
+
+void ScriptFileProcessor::LoadScript() {
+    auto fs = module->GetModuleManager()->QuerryModule<FileSystem>();
+    StarVFS::ByteTable scriptData;
+    if (!fs->GetFileData(m_URI, scriptData)) {
+        //todo: log sth
+        throw std::runtime_error("Unable to read file: " + m_URI);
+    }
+    if (scriptData.byte_size() == 0) {
+        //todo: log sth
+    }
+    scriptString = std::string((char*)scriptData.get(), scriptData.byte_size());
+
+    //script exists, so insert it into custom enum set
+    std::regex pieces_regex(R"(file\:\/\/(\/[a-z0-9\.\/]+)\.lua)", std::regex::icase);
+    std::smatch pieces_match;
+    if (std::regex_match(m_URI, pieces_match, pieces_regex)) {
+        regName = pieces_match[1];
+        module->scriptListEnum->Add(regName);
+    }
 }
 
 void ScriptFileProcessor::Finalize() {

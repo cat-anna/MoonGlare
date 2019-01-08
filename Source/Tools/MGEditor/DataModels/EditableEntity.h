@@ -117,6 +117,9 @@ public:
         void Set(const std::string &name, const std::string &value) {
             (*items[name])->SetValue(value);
         }
+        std::string get(const std::string &name) {
+            return (*items[name])->GetValue();
+        }
     private:
         std::unordered_map<std::string, const TypeEditor::UniqueStructureValue*> items;
         const TypeEditor::StructureValueList& values;
@@ -135,4 +138,8 @@ protected:
 } //namespace DataModels
 } //namespace QtShared
 } //namespace MoonGlare
+
+Q_DECLARE_METATYPE(MoonGlare::QtShared::DataModels::EditableComponent*);
+Q_DECLARE_METATYPE(MoonGlare::QtShared::DataModels::EditableEntity*);
+
 

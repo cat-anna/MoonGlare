@@ -65,7 +65,9 @@ public:
 
     template<typename EVENT>
     void Send(const EVENT& event) {
-        AddLog(Event, "Dispatching event: " << event);
+		if (EventInfo<EVENT>::logsEnabled) {
+			AddLog(Event, "Dispatching event: " << event);
+		}
         auto classid = EventInfo<EVENT>::GetClassId();
         assert((uint32_t)classid < Configuration::MaxEventTypes);
         eventDispatchers[(size_t)classid].Dispatch(event);      
@@ -78,8 +80,10 @@ public:
 
     template<typename EVENT>
     void Queue(const EVENT& event) {
-        AddLog(Event, "Queued event: " << event);
-        std::lock_guard<std::recursive_mutex> lock(bufferMutex);
+		if (EventInfo<EVENT>::logsEnabled) {
+			AddLog(Event, "Queued event: " << event);
+		}
+		std::lock_guard<std::recursive_mutex> lock(bufferMutex);
         auto *buf = buffer.Allocate<QueuedEvent<EVENT>>();
         buf->event = event;
         buf->sendFunc = reinterpret_cast<BaseQueuedEvent::SendFunc>(&EventDispatcher::SendQueuedEvent<EVENT>);
@@ -130,8 +134,8 @@ private:
     void SendQueuedEvent(const QueuedEvent<EVENT> &qev) { Send(qev.event); }
 
     Array<BaseEventCallDispatcher> eventDispatchers;
-    lua_State *luaState;
-    EventScriptSink *eventSink;
+    lua_State *luaState = nullptr;
+    EventScriptSink *eventSink = nullptr;
     std::recursive_mutex bufferMutex;
     std::set<EventDispatcher*> subDispatcher;
     Memory::DynamicBuffer<Configuration::EventDispatcherQueueSize> buffer;

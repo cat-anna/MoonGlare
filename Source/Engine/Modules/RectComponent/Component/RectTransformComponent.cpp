@@ -224,8 +224,8 @@ bool RectTransformComponent::Initialize() {
     RootEntry.m_Revision = 1;
     RootEntry.m_Position = RootEntry.m_ScreenRect.LeftTop;
     RootEntry.m_Size = RootEntry.m_ScreenRect.GetSize();
-    RootEntry.m_GlobalMatrix = glm::translate(math::mat4(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
-    RootEntry.m_LocalMatrix = math::mat4();
+    RootEntry.m_GlobalMatrix = glm::translate(glm::identity<glm::fmat4>(), math::vec3(RootEntry.m_ScreenRect.LeftTop, 1.0f));
+    RootEntry.m_LocalMatrix = glm::identity<glm::fmat4>();
 
     auto &rb = RootEntry.m_ScreenRect;
     m_Camera.SetOrthogonalRect(rb.LeftTop.x, rb.LeftTop.y, rb.RightBottom.x, rb.RightBottom.y, -100.0f, 100.0f);
@@ -440,7 +440,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
         auto cell = (parentsize - (parentmargin.TotalMargin())) / m_Size;
         auto cellpos = parentmargin.LeftTopMargin() + cell * m_Position;
         m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, cellpos, cell);
-        m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(cellpos, 0));
+        m_LocalMatrix = glm::translate(glm::identity<glm::fmat4>(), math::vec3(cellpos, 0));
         doslice = false;
         break;
     }
@@ -452,7 +452,7 @@ void RectTransformComponentEntry::Recalculate(RectTransformComponentEntry &Paren
 
     if (doslice) {
         m_ScreenRect.SliceFromParent(Parent.m_ScreenRect, m_Position, m_Size);
-        m_LocalMatrix = glm::translate(glm::mat4(), math::vec3(m_Position, 0));
+        m_LocalMatrix = glm::translate(glm::identity<glm::fmat4>(), math::vec3(m_Position, 0));
     }
 
     m_GlobalMatrix = Parent.m_GlobalMatrix * m_LocalMatrix;

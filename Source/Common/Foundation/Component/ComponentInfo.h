@@ -66,6 +66,10 @@ public:
     virtual const std::type_info &GetTypeInfo() const = 0;
     virtual uint32_t GetDefaultCapacity() const = 0;
 
+    virtual Scripts::ClassKey GetClassKey() const = 0;
+    virtual Scripts::ClassKey GetClassStaticKey() const = 0;
+    virtual Scripts::ClassKey GetClassConstKey() const = 0;
+
     static const std::array<Scripts::ApiInitFunc, 1> additionalApiInitFuncs;
 protected:
     template<typename T> 
@@ -114,6 +118,10 @@ struct ComponentInfo : public BaseComponentInfo {
         GetComponentClassesTypeInfo()[(size_t)GetClassId()].scriptPush = &ScriptPush<T, WRAP>;
         GetComponentClassesTypeInfo()[(size_t)GetClassId()].apiInitFunc = Scripts::GetApiInitFunc<WRAP>();
     }
+
+    virtual Scripts::ClassKey GetClassKey() const { return luabridge::ClassInfo<T>::getClassKey();}
+    virtual Scripts::ClassKey GetClassStaticKey() const { return luabridge::ClassInfo<T>::getStaticKey(); }
+    virtual Scripts::ClassKey GetClassConstKey() const { return luabridge::ClassInfo<T>::getConstKey(); }
 private:
     static const ComponentClassId classId;
 };
@@ -147,6 +155,10 @@ static ComponentClassId BaseComponentInfo::AllocateComponentClass() {
     auto id = AllocateId();
     static const ComponentInfo<T> t;
     assert((uint32_t)id < Configuration::MaxComponentTypes);
+
+    //size_t typeSize = sizeof(T);
+    //size_t alignment = std::alignment_of_v<T>;
+
     GetComponentClassesTypeInfo()[(size_t)id] = {
         id,
         sizeof(T),

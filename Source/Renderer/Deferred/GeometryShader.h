@@ -19,7 +19,7 @@ struct GeometryShaderDescriptor {
         DiffuseColor,
         SpecularColor,
         EmissiveColor,
-        ShinessExponent,
+        Shiness,
 
         UseNormalMap,
 
@@ -41,7 +41,7 @@ struct GeometryShaderDescriptor {
         case Uniform::DiffuseColor: return "gMaterial.diffuseColor";
         case Uniform::SpecularColor: return "gMaterial.specularColor";
         case Uniform::EmissiveColor: return "gMaterial.emissiveColor";
-        case Uniform::ShinessExponent: return "gMaterial.shinessExponent";
+        case Uniform::Shiness: return "gMaterial.shiness";
 
         case Uniform::UseNormalMap: return "gUseNormalMap";
         default: return nullptr;

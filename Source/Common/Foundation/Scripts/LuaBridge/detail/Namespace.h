@@ -109,6 +109,18 @@ private:
     lua_State* const L;
     int mutable m_stackSize;
 
+  public:
+      template<typename Func>
+      void RawLua(Func func) {
+          int top_front = lua_gettop(L);
+          func(L);
+          int top_back = lua_gettop(L);
+          if (top_back != top_front) {
+              __debugbreak();
+              throw std::logic_error("ClassBase::RawLua functor has made lua stack clobbered.");
+          }      
+      }
+
   protected:
     //--------------------------------------------------------------------------
     /**

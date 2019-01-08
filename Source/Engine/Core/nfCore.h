@@ -29,7 +29,6 @@ extern const char *CompilationDate;
 struct MoveConfig : MoonGlare::Component::SubsystemUpdateData {
     emath::fvec2 m_ScreenSize;
     Renderer::Frame *m_BufferFrame;
-    mutable Renderer::VirtualCamera *Camera = nullptr;
     MoonGlare::Renderer::Deferred::DefferedFrontend *deffered;
     bool m_SecondPeriod;
 };

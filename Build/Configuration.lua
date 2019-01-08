@@ -54,6 +54,7 @@ local function SetCommonConfig()
 	filter "system:windows"
 		links { "opengl32", "glu32", "gdi32", }
 		defines{ "WINDOWS", "OS_NAME=\"Windows\"", "_SCL_SECURE_NO_WARNINGS" }
+		systemversion "latest"
 	filter "system:linux"
 		links { "GL", "GLU", "X11", "Xxf86vm", "Xrandr", "Xi", "rt", }
 		defines{ "LINUX", "OS_NAME=\"Linux\"" }
@@ -120,6 +121,11 @@ local function SetCommonConfig()
 		optimize "Speed"
 		warnings "Default"
 		runtime "Release"
+
+	filter 'files:**.lua'
+		buildmessage 'Processing %{file.name} with bin2c'
+		buildcommands '%{bin2c} -o "%{cfg.objdir}%{file.basename}".lua.h -n %{file.basename}_lua "%{file.relpath}"'
+		buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
 
 	filter { }
 end

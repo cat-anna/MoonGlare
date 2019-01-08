@@ -8,6 +8,7 @@
 #pragma once
 
 #include "nfRenderer.h"
+#include "iRenderDevice.h"
 #include "Configuration.Renderer.h"
 
 #include "TextureRenderTask.h"
@@ -16,7 +17,7 @@ namespace MoonGlare::Renderer {
 
 class RendererFacade;
 
-class alignas(16) RenderDevice final {
+class alignas(16) RenderDevice final : public iRenderDevice {
     using ThisClass = RenderDevice;
     using Conf = Configuration::FrameBuffer;
 public:
@@ -44,12 +45,14 @@ public:
     }
 
     uint64_t FrameCounter() const { return frameCouter; }
+    void SetCaptureScreenShoot() override { captureScreenShoot = true; }
 private:
     std::array<Memory::aligned_ptr<Frame>, Conf::Count> m_Frames;
     std::atomic<uint32_t> m_FreeFrameBuffers = 0;
     std::atomic<Frame*> m_PendingFrame = nullptr;
     std::atomic<Commands::CommitCommandQueue*> m_CommitCommandQueue = nullptr;
     uint64_t frameCouter = 0;
+    std::atomic<bool> captureScreenShoot = false;
 
     Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
     std::array<TextureRenderTask, Configuration::TextureRenderTask::Limit> m_TextureRenderTask;
@@ -60,6 +63,7 @@ private:
     DeclarePerformanceCounter(FramesProcessed);
     
     void ProcessFrame(Frame *frame);
+    void CaptureScreenshoot(MoonGlare::Renderer::iContext * Ctx);
 };
 
 } //namespace MoonGlare::Renderer

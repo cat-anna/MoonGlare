@@ -11,7 +11,7 @@
 namespace MoonGlare::Component {
 
 struct SkinComponent {
-    static constexpr uint32_t ComponentLimit = 64;
+    static constexpr uint32_t ComponentLimit = 1024;
     static constexpr char* ComponentName = "Skin";
 
     Renderer::MeshResourceHandle meshHandle = {};

@@ -2,6 +2,9 @@
 
 namespace MoonGlare::Core {
 
+/*@ [ScriptObjectEventHandler/_] ScriptObject::OnCharEvent(charEventData)
+    This method is called when entity receives this event. See definition of this event for details.
+@*/
 struct InputProcessorOnCharEvent {
     static constexpr char* EventName = "Char";
     static constexpr char* HandlerName = "OnCharEvent";
@@ -29,6 +32,9 @@ struct InputProcessorOnCharEvent {
     }
 };
 
+/*@ [ScriptObjectEventHandler/_] ScriptObject::OnKeyEvent(keyEventData)
+    This method is called when entity receives this event. See definition of this event for details.
+@*/
 struct InputProcessorOnKeyEvent {
     static constexpr char* EventName = "Key";
     static constexpr char* HandlerName = "OnKeyEvent";

@@ -82,9 +82,9 @@ If `GameObject` is removed all its children as removed as well.
 
 ### GameObject interface
 TODO
-#### GameObject:GetComponent(SubSystemId [, Owner])
+#### GameObject:GetComponent(ComponentId [, Owner])
 TODO
-#### GameObject:CreateComponent(SubSystemId)
+#### GameObject:CreateComponent(ComponentId)
 TODO
 #### GameObject:SpawnChild(TODO)
 TODO

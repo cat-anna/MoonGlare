@@ -264,6 +264,9 @@ bool LuaSettingsModule::OnRequire(lua_State *lua, std::string_view name) {
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [RequireModules/LuaSettingsModule] Settings module
+    This module allows to change engine configuration.  
+    TODO @*/
 void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
     scriptApiRegistered = true;
 

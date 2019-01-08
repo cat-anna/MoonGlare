@@ -9,6 +9,11 @@ namespace MoonGlare::Scripts::Modules {
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [StaticModules/RequireModule] Require module
+    Module is accessible directly via global *require* variable.  
+    Extensions are available only in debug mode.
+@*/
+
 LuaRequireModule::LuaRequireModule(lua_State *lua, InterfaceMap *world) {
     DebugLogf(Debug, "Initializing Require module");
 

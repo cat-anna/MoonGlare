@@ -6,7 +6,7 @@ struct BaseLight_t {
     float DiffuseIntensity;
 };
 
-vec4 CalcLightReflected(BaseLight_t BaseLight, Material_t mat, vec3 LightDirection, vec3 WorldPos, vec3 Normal) {
+vec4 CalcLightReflected(BaseLight_t BaseLight, Material_t mat, vec3 LightDirection, vec3 WorldPos, vec3 Normal, float factor) {
     vec4 DiffuseColor  = vec4(0, 0, 0, 0);
     vec4 SpecularColor = vec4(0, 0, 0, 0);
 
@@ -19,16 +19,19 @@ vec4 CalcLightReflected(BaseLight_t BaseLight, Material_t mat, vec3 LightDirecti
 	vec3 VertexToEye = normalize(CameraPos - WorldPos);
 	vec3 LightReflect = normalize(reflect(LightDirection, Normal));
 	float SpecularFactor = dot(VertexToEye, LightReflect);
-	SpecularFactor = pow(max(SpecularFactor, 0.0),
-		 (1.0f - mat.shinessExponent) * SHINESS_SCALER
-	);
+	SpecularFactor = pow(max(SpecularFactor, 0.0), mat.shiness);
+
 	if (SpecularFactor > 0.0) {
-		SpecularColor = vec4(BaseLight.Color, 1.0) * 
-		vec4(mat.specularColor, 1) 
-		* SpecularFactor;
+		float dist = distance(CameraPos, WorldPos);
+		SpecularColor = 
+			vec4(BaseLight.Color, 1.0)
+			* vec4(mat.specularColor, 1.0) 
+			* SpecularFactor
+			* pow(dist, -1.5)
+			;
 	}
 
-    vec4 result = DiffuseColor  * vec4(mat.diffuseColor, 1) + SpecularColor;
+    vec4 result = DiffuseColor * vec4(mat.diffuseColor, 1) + SpecularColor;
 	result.a = 1.0;
 	return result;
 };
@@ -60,8 +63,8 @@ vec4 CalcPointLight(vec3 WorldPos, vec3 Normal, PointLight_t light, Material_t m
 	vec4 AmbientColor = vec4(light.Base.Color, 1.0) * light.Base.AmbientIntensity;
 	AmbientColor *= vec4(mat.diffuseColor, 1);
 
-    vec4 Color = CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal);
 	float factor = CalcAttenuation(light.Attenuation, Distance);
+    vec4 Color = CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal, factor);
 
     Color.xyz *= shadow;
 	Color.xyz += AmbientColor.xyz;
@@ -107,8 +110,8 @@ vec4 CalcSpotLight(vec3 WorldPos, vec3 Normal, SpotLight_t light, Material_t mat
 
 		float Distance = length(LightToWord);
 		vec4 Color = vec4(0);
-		Color += CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal);
 		float factor = CalcAttenuation(light.Attenuation, Distance);
+		Color += CalcLightReflected(light.Base, mat, LightToPixel, WorldPos, Normal, factor);
 
 		Color.xyz *= shadow;
 		Color.xyz += AmbientColor.xyz;

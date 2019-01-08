@@ -57,7 +57,7 @@ void RectTransformComponent::RectTransformDebugDraw::DebugDraw(const Core::MoveC
 
     auto shb = shres.GetBuilder<GUIShaderDescriptor>(q, shaderHandle);
 
-    shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(math::mat4()), key);
+    shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::identity<glm::fmat4>()), key);
     shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
     shb.Set<Uniform::BaseColor>(emath::fvec4(1, 1, 1, 1), key);
 

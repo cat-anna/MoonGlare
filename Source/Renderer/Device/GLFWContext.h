@@ -2,12 +2,13 @@
 
 #include "../nfRenderer.h"
 #include "../iContext.h"
+#include "../iRenderDevice.h"
 
 namespace MoonGlare::Renderer::Device {
 
 class GLFWContext final : public iContext {
 public:
-    GLFWContext(const ContextCreationInfo &ctxifo);
+    GLFWContext(const ContextCreationInfo &ctxifo, iRenderDevice *device);
     ~GLFWContext();
 
     static bool InitializeSubSystem();
@@ -39,12 +40,11 @@ public:
     void Process();
 
     emath::fvec2 CursorPos();
-
-    //void CaptureScreenShot();
 private:
     emath::ivec2 m_Size;
     GLFWwindow *m_Window = nullptr;
     iContextInputHandler *m_InputHandler = nullptr;
+    iRenderDevice *device;
 
     bool m_CharMode;
     bool m_MouseHooked;

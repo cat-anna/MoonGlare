@@ -2,6 +2,18 @@
 
 namespace MoonGlare::Component {
 
+/*@ [Scripts/EventsReference] Event reference 
+    Some events are accessible through Events module, but most of them
+    are only available through proper handler in ScriptObject.
+@*/
+
+/*@ [EventsReference/EventsCommonApi] Events common api
+    All event objects share following constants:
+    * `EventObject.EventName` - Name of the event
+    * `EventObject.HandlerName` - Handler name to be called in ScriptObject
+    * `EventObject.EventId` - internal event id
+@*/
+
 std::underlying_type_t<EventClassId> BaseEventInfo::idAlloc = 0;
 //BaseEventInfo::EventClassesTypeTable BaseEventInfo::eventClassesTypeInfo;
 

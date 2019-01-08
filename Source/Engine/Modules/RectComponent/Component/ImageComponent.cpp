@@ -363,7 +363,7 @@ void ImageComponentEntry::Update(float TimeDelta, RectTransformComponentEntry &r
             LogInvalidEnum(m_ScaleMode);
             return;
         }
-        m_ImageMatrix = rectTransform.m_GlobalMatrix * glm::scale(glm::translate(math::mat4(), Pos), Scale);
+        m_ImageMatrix = rectTransform.m_GlobalMatrix * glm::scale(glm::translate(glm::identity<glm::fmat4>(), Pos), Scale);
     }
 }
 

@@ -36,8 +36,8 @@ struct SceneStateChangeEvent : public SceneEventCommon {
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SceneStateChangeEvent>("cSceneStateChangeEvent")
-                .addProperty("Scene", &SceneStateChangeEvent::GetSceneName, &SceneStateChangeEvent::SetSceneName)
-                .addProperty("State", &SceneStateChangeEvent::GetSceneState, &SceneStateChangeEvent::SetSceneState)
+                .addProperty("scene", &SceneStateChangeEvent::GetSceneName, &SceneStateChangeEvent::SetSceneName)
+                .addProperty("state", &SceneStateChangeEvent::GetSceneState, &SceneStateChangeEvent::SetSceneState)
 
                 .addStaticString("EventName", EventName)
                 .addStaticString("HandlerName", HandlerName)
@@ -80,6 +80,12 @@ private:
     }
 };
 
+/*@ [PublicLuaEvents/_] `SetSceneEvent` @*/   
+/*@ [EventsReference/SetSceneEvent] `SetSceneEvent` Event
+    Send this event to change current scene. If scene cannot be executed immediately 
+    (i.e. some resources are still loading) the loading scene will show.  
+    Unique scene name must be unique. It may be equal to scene type name 
+    in cases when multiple instances are not needed. @*/       
 struct SetSceneEvent : public SceneEventCommon {
     static constexpr char* EventName = "SetSceneEvent";
     static constexpr char* HandlerName = "OnSetSceneEvent";
@@ -103,9 +109,9 @@ struct SetSceneEvent : public SceneEventCommon {
 
     friend std::ostream& operator<<(std::ostream& out, const SetSceneEvent & dt) {
         out << "SetSceneEvent"
-            << "[Scene:" << dt.sceneName.c_str()
-            << ",TypeName:" << dt.sceneTypeName.c_str()
-            << ",Suspend:" << (int)dt.suspendCurrent
+            << "[scene:" << dt.sceneName.c_str()
+            << ",typeName:" << dt.sceneTypeName.c_str()
+            << ",suspend:" << (int)dt.suspendCurrent
             << "]";
         return out;
     }
@@ -113,11 +119,19 @@ struct SetSceneEvent : public SceneEventCommon {
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
             .beginClass<SetSceneEvent>("SetSceneEvent")
+/*@ [SetSceneEvent/_] SetSceneEvent constructor
+    `SetSceneEvent([uniqueSceneName[, suspend]])` @*/
                 .addConstructor<void(*)(const char*, bool)>()
 
-                .addProperty("Scene", &SetSceneEvent::GetSceneName, &SetSceneEvent::SetSceneName)
-                .addProperty("TypeName", &SetSceneEvent::GetSceneTypeName, &SetSceneEvent::SetSceneTypeName)
-                .addData("Suspend", &SetSceneEvent::suspendCurrent, true)
+/*@ [SetSceneEvent/_] `SetSceneEvent.scene`
+    Unique name of scene @*/
+                .addProperty("scene", &SetSceneEvent::GetSceneName, &SetSceneEvent::SetSceneName)
+/*@ [SetSceneEvent/_] `SetSceneEvent.typeName`
+    Scene type name @*/
+                .addProperty("typeName", &SetSceneEvent::GetSceneTypeName, &SetSceneEvent::SetSceneTypeName)
+/*@ [SetSceneEvent/_] `SetSceneEvent.suspend`
+    Boolean. Does current scene should be suspended or deleted@*/                
+                .addData("suspend", &SetSceneEvent::suspendCurrent, true)
 
                 .addStaticString("EventName", EventName)
                 .addStaticString("HandlerName", HandlerName)
@@ -131,6 +145,9 @@ private:
     const char *GetSceneTypeName() const { return sceneTypeName.c_str(); }
 };
 
+/*@ [PublicLuaEvents/_] `SetSceneChangeFenceEvent` @*/
+/*@ [EventsReference/SetSceneChangeFenceEvent] `SetSceneChangeFenceEvent` Event
+    This event allows to set fence to prohibit scene execution. All fences must be cleared to execute scene. @*/   
 struct SetSceneChangeFenceEvent : public SceneEventCommon {
     static constexpr char* EventName = "SetSceneChangeFenceEvent";
     static constexpr char* HandlerName = "OnSetSceneChangeFenceEvent";
@@ -149,8 +166,9 @@ struct SetSceneChangeFenceEvent : public SceneEventCommon {
 
     friend std::ostream& operator<<(std::ostream& out, const SetSceneChangeFenceEvent & dt) {
         out << "SetSceneChangeFenceEvent"
-            << "[Fence:" << dt.fence.c_str()
-            << ",Active:" << dt.active
+            << "[fence:" << dt.fence.c_str()
+            << ",sceneName:" << dt.sceneName.c_str()
+            << ",active:" << dt.active
             << "]";
         return out;
     }
@@ -158,11 +176,19 @@ struct SetSceneChangeFenceEvent : public SceneEventCommon {
     static Scripts::ApiInitializer RegisterScriptApi(Scripts::ApiInitializer api) {
         return api
         .beginClass<SetSceneChangeFenceEvent>("SetSceneChangeFenceEvent")
+/*@ [PublicLuaEvents/SetSceneEvent] SetSceneEvent constructor
+    `SetSceneEvent([uniqueSceneName[, suspend]])` @*/        
             .addConstructor<void(*)(const char*, bool)>()
 
-            .addProperty("Fence", &SetSceneChangeFenceEvent::GetFence, &SetSceneChangeFenceEvent::SetFence)
-            .addData("Active", &SetSceneChangeFenceEvent::active, true)
-            .addProperty("Scene", &SetSceneChangeFenceEvent::GetSceneName, &SetSceneChangeFenceEvent::SetSceneName)
+/*@ [SetSceneChangeFenceEvent/_] `SetSceneChangeFenceEvent.fence`
+    Name of fence @*/
+            .addProperty("fence", &SetSceneChangeFenceEvent::GetFence, &SetSceneChangeFenceEvent::SetFence)
+/*@ [SetSceneChangeFenceEvent/_] `SetSceneChangeFenceEvent.active`
+    Whether set or remove fence @*/
+            .addData("active", &SetSceneChangeFenceEvent::active, true)
+/*@ [SetSceneChangeFenceEvent/_] `SetSceneChangeFenceEvent.scene`
+    Unique name of affected scene. If empty defaults to pending scene @*/            
+            .addProperty("scene", &SetSceneChangeFenceEvent::GetSceneName, &SetSceneChangeFenceEvent::SetSceneName)
 
             .addStaticString("EventName", EventName)
             .addStaticString("HandlerName", HandlerName)

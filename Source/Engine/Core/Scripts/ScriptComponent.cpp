@@ -253,7 +253,7 @@ void ScriptComponent::Step(const SubsystemUpdateData & xconf) {
     size_t LastInvalidEntry = 0;
     size_t InvalidEntryCount = 0;
 
-    for (size_t i = 0; i < m_Array.Allocated(); ++i) {
+    for (size_t i = 1; i < m_Array.Allocated(); ++i) {
         auto &item = m_Array[i];
         if (!item.m_Flags.m_Map.m_Valid) {
             //mark and ignore
@@ -412,16 +412,51 @@ bool ScriptComponent::Load(ComponentReader &reader, Entity parent, Entity owner)
 
     //stack: ScriptClass ObjectRoot GameObject 
 
-    lua_createtable(lua, 0, 0);											//stack: ScriptClass Script
+    if (se.m_Properties.empty())
+        lua_createtable(lua, 0, 0);
+    else {
+        std::string initTable = "return " + se.m_Properties;
+
+        int loadStatus = luaL_loadstring(lua, initTable.c_str());
+        if (loadStatus != 0) {
+            const char *errmesg = lua_tostring(lua, -1);
+            AddLogf(Error, "Cannot parse script props: '%s' script: %s error: %s", se.m_Properties.c_str(), se.m_Script.c_str(), errmesg);
+            lua_pop(lua, 1);
+            lua_createtable(lua, 0, 0);
+        } else {
+            auto succ = lua_pcall(lua, 0, 1, errf);
+            if (succ != 0) {
+                const char *errmesg = lua_tostring(lua, -1);
+                AddLogf(Error, "Cannot execute script props: '%s' script: %s", se.m_Properties.c_str(), se.m_Script.c_str(), errmesg);
+                lua_pop(lua, 1);
+                lua_createtable(lua, 0, 0);
+            }
+        }
+    }
+
+    //stack: ScriptClass Script
+    	
     lua_insert(lua, -2);                                        		//stack: Script ScriptClass 
     lua_setmetatable(lua, -2);                                  		//stack: Script
 
+/*@ [ScriptObjectConstants/_] ScriptObject.gameObject
+    This is a pointer to GameObject instance owning ScriptComponent.  
+    [TODO] Note: **this not a real constant**. Any changes to this value may cause issues.
+@*/
     luabridge::push<GameObject*>(lua, gameObject);              		//stack: Script gameObject
     lua_setfield(lua, -2, ScriptObject::ScriptInstance_GameObject);		//stack: Script
 
+/*@ [ScriptObjectConstants/_] ScriptObject.__Entity
+    This is a internal entity handle. This value is not usable by scripts.  
+    [TODO] Note: **this not a real constant**. Any changes to this value may cause issues.
+@*/
     lua_pushlightuserdata(lua, owner.GetVoidPtr());				        //stack: Script Entity
     lua_setfield(lua, -2, ScriptObject::ScriptInstance_Entity);			//stack: Script
 
+/*@ [ScriptObjectConstants/_] ScriptObject.__SubSystem
+    This is a internal ScriptComponent system handle. This value is not usable by scripts.  
+    [TODO] Note: **this not a real constant**. Any changes to this value may cause issues.
+@*/
     lua_pushlightuserdata(lua, this);				            		//stack: Script SubSystem
     lua_setfield(lua, -2, ScriptObject::ScriptInstance_SubSystem);		//stack: Script
 

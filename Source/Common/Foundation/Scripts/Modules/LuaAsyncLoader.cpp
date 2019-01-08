@@ -15,9 +15,17 @@ LuaAsyncLoaderModule::LuaAsyncLoaderModule(lua_State *lua, InterfaceMap *world) 
 
 LuaAsyncLoaderModule::~LuaAsyncLoaderModule() {}
 
+/*@ [RequireModules/LuaAsyncLoaderModule] AsyncLoader module
+    This module allows to access internal async loader queue to get its status.
+@*/
 ApiInitializer LuaAsyncLoaderModule::RegisterScriptApi(ApiInitializer api) {
     return api
         .beginClass<LuaAsyncLoaderModule>("LuaAsyncLoaderModule")
+/*@ [LuaAsyncLoaderModule/_] `AsyncLoader:GetStatus()`
+    Get async loader status. Returned object contain fields:
+    * status.pendingJobs - count of queued jobs
+    * status.jobCount - last known job count. This value wiil be reset to 0 after all pending jobs are done
+@*/        
             .addFunction("GetStatus", &LuaAsyncLoaderModule::GetStatus)
         .endClass()
         .beginClass<Resources::iAsyncLoader::JobStatus>("AsyncLoaderJobStatus")

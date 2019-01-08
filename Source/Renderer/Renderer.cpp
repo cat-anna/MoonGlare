@@ -86,7 +86,7 @@ void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *
     m_Device = Memory::make_aligned<RenderDevice>();
     m_ResourceManager = Memory::make_aligned<Resources::ResourceManager>();
 
-    m_Context = Memory::make_aligned<Device::GLFWContext>(ctxifo);
+    m_Context = Memory::make_aligned<Device::GLFWContext>(ctxifo, m_Device.get());
 
     if(!m_Device->Initialize(this)) {
         AddLogf(Error, "Render device initialization failed!");

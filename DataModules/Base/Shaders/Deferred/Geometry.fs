@@ -28,7 +28,7 @@ Writes emissive to an X8R8G8B8 target
 void main() {
     vec4 diffuseColor = texture2D(gDiffuseMap, VertexUV0);
     vec4 specularColor = texture2D(gSpecularMap, VertexUV0);
-    float shinessValue = gMaterial.shinessExponent;
+    float shinessValue = gMaterial.shiness;
 
     if(diffuseColor.a < 0.5f)
         discard;

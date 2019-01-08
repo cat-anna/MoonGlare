@@ -39,22 +39,42 @@ struct ScriptObject : public iDynamicScriptModule, public iRequireRequest {
 
     bool OnRequire(lua_State *lua, std::string_view name) override;
 
-
+/*@ [ScriptObjectOverridable/_] ScriptObject::OnCreate()
+    This function is called before entity destruction. [TODO: Is it called at all?]   
+    ScriptComponent is destructed as first one, so it is safe to access other component in this method.
+    Function should not return anything.
+@*/
     //Calls OnCreate. Script shall be on top, pops it from stack
     static void OnCreate(lua_State *lua, int ErrFuncIndex) { 
         CallFunction(lua, ScriptObject_OnCreate, 0, ErrFuncIndex); 
     }
+/*@ [ScriptObjectOverridable/_] ScriptObject::OnDestroy()
+    This function is called after entity construction.   
+    ScriptComponent is initialized as last one, so it is safe to access other component in this method.
+    Function should not return anything.
+@*/    
     //Calls OnDestroy. Script shall be on top, pops it from stack
     static void OnDestroy(lua_State *lua, int ErrFuncIndex) {
         CallFunction(lua, ScriptObject_OnDestroy, 0, ErrFuncIndex);
     }
 
+/*@ [ScriptObjectOverridable/_] ScriptObject::Step(stepData)
+    This function is called every engine loop.
+    TODO: stepData
+    Function should not return anything
+@*/
     //Calls Step. Script shall be on top, pops it from stack
     static bool Step(lua_State *lua, int MoveCfgIndex, int ErrFuncIndex) {
         lua_pushvalue(lua, MoveCfgIndex);
         return CallFunction(lua, ScriptObject_Step, 1, ErrFuncIndex);
     }
 
+/*@ [ScriptObjectEventHandler/_] ScriptObject::OnTimer(cookie, timerHandle)
+    This function is called when one of timers is expired. Single shot timers are removed automatically.
+    Cookie value is the same value as passed to one of timer setup metods.
+    If you want to remove periodic timer here pass timerHandle to KillTimer method.
+    Function should not return anything.
+@*/
     //Calls Step. Script shall be on top, pops it from stack
     static bool OnTimer(lua_State *lua, int timerId, Handle timerH, int ErrFuncIndex) {
         lua_pushinteger(lua, timerId);

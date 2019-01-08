@@ -4,6 +4,7 @@
 #include <string>
 
 #include <boost/tti/has_member_data.hpp>
+#include <boost/tti/has_static_member_data.hpp>
 
 #include "Configuration.h"
 #include "Entity.h"
@@ -14,6 +15,7 @@ namespace MoonGlare::Component {
 
 namespace detail {
 BOOST_TTI_HAS_MEMBER_DATA(recipient)
+BOOST_TTI_HAS_STATIC_MEMBER_DATA(logsEnabled)
 }
 
 class EventDispatcher;
@@ -25,6 +27,13 @@ public:
     static EventClassId GetUsedEventTypes() { return static_cast<EventClassId>(idAlloc+1); }
 
     virtual const std::type_info &GetTypeInfo() const = 0;
+	virtual bool& GetLogsEnabled() const {
+		static bool v = false;
+		return v;
+	};
+    virtual Scripts::ClassKey GetClassKey() const = 0;
+    virtual Scripts::ClassKey GetClassStaticKey() const = 0;
+    virtual Scripts::ClassKey GetClassConstKey() const = 0;
 
     using QueueFromLuaFunc = bool(*)(lua_State *lua, int index, EventDispatcher *dispatcher);
     using GetFromLuaFunc = const void*(*)(lua_State *lua, int index);
@@ -54,7 +63,7 @@ public:
 
     template<typename FUNC>
     static void ForEachEvent(FUNC && func) {
-        for (EventClassId i = 1; i < GetUsedEventTypes(); ++i)
+        for (EventClassId i = (EventClassId)1; i < GetUsedEventTypes(); i = (EventClassId)((int)i + 1))
             func(i, GetEventTypeInfo(i));
     }
 
@@ -96,9 +105,25 @@ struct EventInfo : public BaseEventInfo {
     using HasRecipient = detail::has_member_data_recipient<T, Entity>;
     
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
+
+#ifdef DEBUG_SCRIPTAPI
+	static bool logsEnabled;
+	bool& GetLogsEnabled() const override { return logsEnabled; }
+#else
+	static constexpr bool logsEnabled = false;
+#endif
+
+    virtual Scripts::ClassKey GetClassKey() const { return luabridge::ClassInfo<T>::getClassKey();}
+    virtual Scripts::ClassKey GetClassStaticKey() const { return luabridge::ClassInfo<T>::getStaticKey(); }
+    virtual Scripts::ClassKey GetClassConstKey() const { return luabridge::ClassInfo<T>::getConstKey(); }
 private:
 	static const EventClassId classId;
 };
+
+#ifdef DEBUG_SCRIPTAPI
+template<class T>
+bool EventInfo<T>::logsEnabled = detail::has_static_member_data_logsEnabled<T, bool>::value;
+#endif
 
 template<typename T>
 const EventClassId EventInfo<T>::classId = BaseEventInfo::AllocateEventClass<T>();
@@ -111,6 +136,10 @@ EventClassId BaseEventInfo::AllocateEventClass() {
     auto id = AllocateId();
     static const EventInfo<T> t;
     assert((size_t)id < Configuration::MaxEventTypes);
+
+    //size_t typeSize = sizeof(T);
+    //size_t alignment = std::alignment_of_v<T>;
+
     GetEventClassesTypeInfo()[(size_t)id] = {
         id,
         sizeof(T),

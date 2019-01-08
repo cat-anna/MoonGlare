@@ -84,7 +84,7 @@ EntityEditorModel::EntityEditorModel(QWidget * parent)
             menu = m_AddComponentMenu.get();
         }
             
-        menu->addAction(info->m_DisplayName.c_str(), [this, info]() {
+        menu->addAction(info->m_DisplayName.c_str(), [this, info]() {                                                             
             m_CurrentItem.m_EditableEntity->AddComponent(info->m_Name);
             SetModiffiedState(true);
             RefreshDetails();
@@ -220,6 +220,7 @@ void EntityEditorModel::RefreshDetails() {
             CaptionElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
             ValueElem->setData(QVariant::fromValue(ecvi), UserRoles::EditableComponentValueInfo);
             ValueElem->setData(QVariant::fromValue(ecvi.m_ValueInterface), TypeEditor::CustomEditorItemDelegate::QtRoles::StructureValue);
+            ValueElem->setData(QVariant::fromValue(component.get()), TypeEditor::CustomEditorItemDelegate::QtRoles::EditableComponent);
 
             {
                 QList<QStandardItem*> cols;
@@ -241,7 +242,7 @@ void EntityEditorModel::EntityClicked(const QModelIndex& index) {
 
     auto itemptr = m_EntityModel->itemFromIndex(selectedindex);
     if (!itemptr) {
-        m_CurrentItem = EditableItemInfo();
+        m_CurrentItem = EditableItemInfo() ;
     } else {
         m_CurrentItem = itemptr->data(UserRoles::EditableItemInfo).value<EditableItemInfo>();
     }

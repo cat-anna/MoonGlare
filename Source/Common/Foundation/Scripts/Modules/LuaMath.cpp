@@ -316,17 +316,30 @@ inline float Clamp01(float v) { return Clamp(v, 0.0f, 1.0f); }
 
 //Common
 
+/*@ [MathModule/VecCommon] Vec4/Vec3/Vec2 share some commion api @*/            
 template<typename VEC>
 struct VecCommon {
     template<typename API>
     static void f(API &api) {
         api
+/*@ [VecCommon/_] vec.Normalized 
+    Get vector normalized  value @*/            
             .addProperty<VEC>("Normalized", &VecNormalized<VEC>)
+/*@ [VecCommon/_] vec.Length 
+    Get vector length  value @*/                
             .addProperty<float>("Length", &VecLength<VEC>)
 
+/*@ [VecCommon/_] vec:Normalize() 
+    Normalize vector in place@*/       
             .addFunction("Normalize", Utils::Template::InstancedStaticCall<VEC, void>::callee<VecNormalize>())
+            
+/*@ [VecCommon/_] vec:Clamp(min, max) 
+    Clamp vector values in place @*/             
             .addFunction("Clamp", Utils::Template::InstancedStaticCall<VEC, void, const VEC&, const VEC&>::callee<VecClampSelf>())
 
+/*@ [VecCommon/_] Overloaded operators
+    Each vector object have overloaded operators: * + - one can use them to perform calculations.  
+    Also `tostring(vev)` is overloaded, all vectors are nicely converted to string @*/     
             .addFunction("__tostring", Utils::Template::InstancedStaticCall<VEC, std::string>::callee<ToString>())
             .addFunction("__mul", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecMul>())
             .addFunction("__add", Utils::Template::InstancedStaticCall<VEC, VEC, VEC*>::callee<VecAdd>())
@@ -339,31 +352,59 @@ struct VecCommon {
 
 void ScriptMathClasses(lua_State *lua) {
     luabridge::getGlobalNamespace(lua)
+/*@ [MathModule/MathLibExtension] Extensions to lua math library
+    TODO @*/      
     .beginNamespace("math")
+/*@ [MathLibExtension/_] `math.Clamp(value, min, max)`
+    TODO @*/     
         .addFunction("Clamp", &Clamp)
+/*@ [MathLibExtension/_] `math.Clamp01(value)`
+    TODO @*/             
         .addFunction("Clamp01", &Clamp01)
     //	.addProperty("pi", &getPi)
     //	.addProperty("pi_half", &getPi<1, 2>)
 
+/*@ [MathModule/Vec4Reference] Vec4/Quaternion object reference
+    TODO @*/    
         .beginClass<math::vec4>("cVec4")
+/*@ [Vec4Reference/_] Members
+    `vec4.x`, `vec4.y`, `vec4.z`, `vec4.w` - access corresponding value @*/            
             .addData("x", &math::vec4::x)
             .addData("y", &math::vec4::y)
             .addData("z", &math::vec4::z)
             .addData("w", &math::vec4::w)
+/*@ [Vec4Reference/_] `vec4:dot(vec4)`
+    Get vector dot product @*/            
             .addFunction("dot", Utils::Template::InstancedStaticCall<math::vec4, float, math::vec4*>::callee<VecDotProduct>())
+/*@ [Vec4Reference/_] `vec4:cross(vec4)`
+    Get vector cross product @*/                
             .addFunction("cross", Utils::Template::InstancedStaticCall<math::vec4, math::vec4, math::vec4*>::callee<QuaternionCrossProduct>())
+/*@ [Vec4Reference/_] `vec4:rotate(vec3)`
+    TODO @*/                 
             .addFunction("rotate", Utils::Template::InstancedStaticCall<math::vec4, math::vec3, math::vec3*>::callee<QuatRotateVec>())
             .DefferCalls<&VecCommon<math::vec4>::f>()
         .endClass()
+/*@ [MathModule/Vec3Reference] Vec3 object reference
+    TODO @*/            
         .beginClass<math::vec3>("cVec3")
+/*@ [Vec3Reference/_] Members
+    `vec3.x`, `vec3.y`, `vec3.z` - access corresponding value @*/             
             .addData("x", &math::vec3::x)
             .addData("y", &math::vec3::y)
             .addData("z", &math::vec3::z)
+/*@ [Vec3Reference/_] `vec3:dot(vec3)`
+    Get vector dot product @*/                      
             .addFunction("dot", Utils::Template::InstancedStaticCall<math::vec3, float, math::vec3*>::callee<VecDotProduct>())
+/*@ [Vec3Reference/_] `vec3:cross(vec3)`
+    Get vector cross product @*/                 
             .addFunction("cross", Utils::Template::InstancedStaticCall<math::vec3, math::vec3, math::vec3*>::callee<VecCrossProduct>())
             .DefferCalls<&VecCommon<math::vec3>::f>()
         .endClass()
+/*@ [MathModule/Vec2Reference] Vec2 object reference
+    TODO @*/         
         .beginClass<math::vec2>("cVec2")
+/*@ [Vec2Reference/_] Members
+    `vec2.x`, `vec2.y` - access corresponding value @*/                 
             .addData("x", &math::vec2::x)
             .addData("y", &math::vec2::y)
             .DefferCalls<&VecCommon<math::vec2>::f>()
@@ -376,22 +417,65 @@ void ScriptMathClasses(lua_State *lua) {
 
 void ScriptMathGlobal(lua_State *lua) {
     luabridge::getGlobalNamespace(lua)
+
+/*@ [MathModule/NamespaceQuaternion] Quaternion namespace
+    Global `Quaternion` namespace groups methods related only to quaternions.  
+    However internally vec4 and Quaternion types are equivalent. @*/    
+
     .beginNamespace("Quaternion")
+/*@ [NamespaceQuaternion/_] `Quaternion([x [, y , z , w]])`
+    Creates new quaternion object. Created quaternion depend on count of arguments.
+    * 0 -> all 4 values are set to 0
+    * 1 -> all 4 values of object are set to x
+    * 2,3 -> not allowed
+    * 4 -> all 4 values are used
+    NOTE: created quaternion is not normalized @*/   
         .addCFunction("__call", &lua_NewQuaternion)
 
+/*@ [NamespaceQuaternion/_] `Quaternion.FromVec3Angle(x, y, z, angle)`
+    TODO @*/            
         .addFunction("FromAxisAngle", &QuaternionFromAxisAngle)
+
+/*@ [NamespaceQuaternion/_] `Quaternion.FromVec3Angle(vec3, angle)`
+    TODO @*/            
         .addFunction("FromVec3Angle", &QuaternionFromVec3Angle)
+
+/*@ [NamespaceQuaternion/_] `Quaternion.FromEulerXYZ(z, y, x)`
+    TODO @*/            
         .addFunction("FromEulerXYZ", &QuaternionFromEulerXYZ)
+
+/*@ [NamespaceQuaternion/_] `Quaternion.RotationTo(vec3, vec3)`
+    TODO @*/            
         .addFunction("RotationTo", &QuaternionRotationTo)
+
+/*@ [NamespaceQuaternion/_] `Quaternion.LookAt(vec3_sourcePoint, vec3_destPoint)`
+    TODO @*/            
         .addFunction("LookAt", &QuaternionLookAt)
 
+/*@ [NamespaceQuaternion/_] `Quaternion.Identity`
+    Return identity quaternion @*/    
         .addProperty("Identity", &StaticVec<math::vec4, float, 0, 0, 0, 1>)  
     .endNamespace()
 
+/*@ [MathModule/NamespaceVec4] Vec4 namespace
+    Global `Vec4` namespace groups methods related only to 4 element vector.  
+    However internally vec4 and Quaternion types are equivalent. @*/   
     .beginNamespace("Vec4")
+
+/*@ [NamespaceQuaternion/_] `Vec4([x [, y , z , w]])`
+    Behaves exactly the same as Quaternion([x [, y , z , w]]) @*/       
         .addCFunction("__call", &lua_NewQuaternion)
+
+/*@ [NamespaceQuaternion/_] `Vec4.Clamp(vec4, vec4_min, vec4_max)`
+    Clamps each vec4 element between vec4_min and vec4_max. @*/            
         .addFunction("Clamp", &VecClamp<math::vec4>)
 
+/*@ [NamespaceQuaternion/_] Static values
+    Namespace `Vec4` has several static values:
+    * `Vec4.X`, `Vec4.Y`, `Vec4.Z`, `Vec4.W` - returned vector contain single 1 in specified axis
+    * `Vec4.R`, `Vec4.G`, `Vec4.B` - returned vector contain single 1 in specified color and 1 as alpha value
+    * `Vec4.White`, `Vec4.Black` - four 1's or 0's
+    * `Vec4.One`, `Vec4.Zero` - four 1's or 0's @*/            
         .addProperty("X", &StaticVec<math::vec4, float, 1, 0, 0, 0>)
         .addProperty("Y", &StaticVec<math::vec4, float, 0, 1, 0, 0>)
         .addProperty("Z", &StaticVec<math::vec4, float, 0, 0, 1, 0>)
@@ -407,11 +491,29 @@ void ScriptMathGlobal(lua_State *lua) {
         .addProperty("One", &StaticVec<math::vec4, float, 1, 1, 1, 1>)
     .endNamespace()
 
+/*@ [MathModule/NamespaceVec3] Vec3 namespace
+    Global `Vec3` namespace groups methods related only to 3 element vector. @*/   
     .beginNamespace("Vec3")
+/*@ [NamespaceVec3/_] `Vec3([x [, y , z]])`
+    Creates new vec3 object. Created object depend on count of arguments.
+    * 0 -> all 3 values are set to 0
+    * 1 -> all 3 values of object are set to x
+    * 2 -> not allowed
+    * 3 -> all 3 values are used @*/       
         .addCFunction("__call", &lua_NewVec3)
+
+/*@ [NamespaceVec3/_] `Vec3.FromSpherical(vec2)`
+    TODO @*/               
         .addFunction("FromSpherical", &SphericalToCartesian)
+/*@ [NamespaceVec3/_] `Vec3.Clamp(vec3, vec3_min, vec3_max)`
+    TODO @*/                       
         .addFunction("Clamp", &VecClamp<math::vec3>)
 
+/*@ [NamespaceVec3/_] Static values
+    Namespace `Vec3` has several static values:
+    * `Vec3.Zero`, `Vec3.One` - all 0's or 1's
+    * `Vec3.Up`, `Vec3.Down`, `Vec3.Forward`, `Vec3.Backward`, `Vec3.Left`, `Vec3.Right` - 1 or -1 in proper axis
+    * `Vec3.X`, `Vec3.Y`, `Vec3.Z` - returned vector contain single 1 in specified axis @*/
         .addProperty("Zero", &StaticVec<math::vec3, float, 0, 0, 0>)
         .addProperty("One", &StaticVec<math::vec3, float, 1, 1, 1>)
 
@@ -429,10 +531,24 @@ void ScriptMathGlobal(lua_State *lua) {
         .addProperty("Z", &StaticVec<math::vec3, float, 0, 0, 1>)
     .endNamespace()
         
+/*@ [MathModule/NamespaceVec2] Vec2 namespace
+    Global `Vec2` namespace groups methods related only to 2 element vector. @*/           
     .beginNamespace("Vec2")
+/*@ [NamespaceVec2/_] `Vec2([x [, y , z]])`
+    Creates new vec2 object. Created object depend on count of arguments.
+    * 0 -> all 2 values are set to 0
+    * 1 -> all 2 values of object are set to x
+    * 2 -> all 2 values are used @*/       
         .addCFunction("__call", &lua_NewVec2)
+
+/*@ [NamespaceVec2/_] `Vec2.Clamp(vec2, vec2_min, vec2_max)`
+    TODO @*/             
         .addFunction("Clamp", &VecClamp<math::vec2>)
 
+/*@ [NamespaceVec2/_] Static values
+    Namespace `Vec2` has several static values:
+    * `Vec2.Zero`, `Vec2.One` - all 0's or 1's
+    * `Vec2.X`, `Vec2.Y` - returned vector contain single 1 in specified axis @*/
         .addProperty("Zero", &StaticVec<math::vec2, float, 0, 0>)
         .addProperty("One", &StaticVec<math::vec2, float, 1, 1>)
 
@@ -443,6 +559,11 @@ void ScriptMathGlobal(lua_State *lua) {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+/*@ [StaticModules/MathModule] Math module
+    Standard lua math library is available, but it does not support vector operations.  
+    To address this issue few additional global namespaces are available and dedicated vector classes.
+@*/
 
 void InitLuaMath(lua_State *lua) {
     DebugLogf(Debug, "Initializing Math module");

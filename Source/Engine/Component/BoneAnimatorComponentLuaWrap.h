@@ -10,6 +10,8 @@
 
 namespace MoonGlare::Component {
 
+/*@ [ComponentReference/BoneAnimatorComponentLuaWrap] BoneAnimator component
+    Component is responsible for skeletal animation @*/    
 struct BoneAnimatorComponentLuaWrap : public ComponentScriptWrapTemplate<BoneAnimatorComponent> {
     Resources::SkeletalAnimationManager *skeletalAnimationManager = nullptr;
 
@@ -26,6 +28,8 @@ struct BoneAnimatorComponentLuaWrap : public ComponentScriptWrapTemplate<BoneAni
         using LuaWrapper = BoneAnimatorComponentLuaWrap;
         return api
             .deriveClass<LuaWrapper, ComponentScriptWrapBase>("BoneAnimatorComponent")
+/*@ [BoneAnimatorComponentLuaWrap/_] `BoneAnimator:Reset(animationName)`
+    TODO @*/               
                 .addFunction("Reset", &LuaWrapper::Reset)
             //TODO: change BoneAnimator to base on global time, not timeDelta
             //TODO: set localSpeed(...)

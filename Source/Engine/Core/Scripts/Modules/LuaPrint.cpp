@@ -45,6 +45,11 @@ int ClosureWrap(lua_State* lua) {
     return F(lua, t);
 }
 
+/*@ [StaticModules/LuaPrintModule] Print&Logging module
+    Provide printing to engine console or to logs.  
+    Partially accessible through global `Log`
+@*/
+
 void StaticModules::InitPrint(lua_State *lua, World *world) {
     DebugLogf(Debug, "Initializing Print module");
 
@@ -56,6 +61,14 @@ void StaticModules::InitPrint(lua_State *lua, World *world) {
     world->GetObject(c);
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("Log")
+/*@ [LuaPrintModule/_] Log global namespace
+    Provides access to primary log methods, does not do any text formatting. This function should not be used directly:
+    * `Log.Error(text)` 
+    * `Log.Warning(text)` 
+    * `Log.Hint(text)` 
+    * `Log.Console(text)` 
+    * `Log.Debug(text)`
+@*/
             .addCClosure("Error", &ClosureWrap<iConsole, &Lua_put<iConsole::LineType::Error>>, (void*)c)
             .addCClosure("Warning", &ClosureWrap<iConsole, &Lua_put<iConsole::LineType::Warning>>, (void*)c)
             .addCClosure("Hint", &ClosureWrap<iConsole, &Lua_put<iConsole::LineType::Hint>>, (void*)c)

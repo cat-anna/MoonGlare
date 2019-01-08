@@ -9,6 +9,11 @@ namespace MoonGlare::Core::Scripts::Modules {
 
 #include <LuaThread.lua.h>
 
+/*@ [StaticModules/LuaThreadModule] Thread module
+    This is an extension to lua `coroutine` module. Basic concept remains the same.  
+    Pending coroutines are executed each step. Their execution cannot be paused from engine,
+    so they must explicitly call `coroutine.yield()` often enough to keep framerate stable.
+@*/
 void StaticModules::ThreadStep(lua_State *lua, World *world) {
     lua_pushlightuserdata(lua, (void*)LuaThread_lua);
     lua_gettable(lua, LUA_REGISTRYINDEX);

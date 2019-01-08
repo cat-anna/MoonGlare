@@ -26,10 +26,14 @@ private:
 
 	void InitLua();
     void ExecuteScript();
-	void ProcessOutput();
+    void CheckReferences();
+    void CheckProperties();
+    void LoadScript();
 	void Finalize();
 
 	std::unique_ptr<lua_State, LuaWrap::LuaDeleter> m_Lua;
+    std::string scriptString;
+    std::string regName;
 };
 
 } //namespace Processor 

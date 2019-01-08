@@ -7,6 +7,7 @@
 #include PCH_HEADER
 
 #include <fmt/format.h>
+#include <filesystem>
 
 #include <icons.h>
 #include <iFileProcessor.h>
@@ -70,35 +71,30 @@ struct AssimpProcessor
                 return ProcessResult::UnknownFailure;
             }
 
-            std::string meshsubPath = m_URI + "@mesh://";
+            std::filesystem::path puri(m_URI);
+            std::string uri = puri.replace_extension("").generic_string() + "/";
+
             for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
                 auto mesh = scene->mMeshes[i];
-                MeshEnum->Add(meshsubPath + "*" + std::to_string(i));
-                if (mesh->mName.length > 0) {
-                    MeshEnum->Add(meshsubPath + mesh->mName.data);
-                }
+                MeshEnum->Add(fmt::format("{}{}.mesh", uri, i));
             }
 
-            std::string materialsubPath = m_URI + "@material://";
             for (unsigned i = 0; i < scene->mNumMaterials; ++i) {
                 auto material = scene->mMaterials[i];
-                MaterialEnum->Add(materialsubPath + "*" + std::to_string(i));
+                //MaterialEnum->Add(fmt::format("{}material_{}.mat", uri, material.));
 
-                //try {
-                //    if (aiString v;  material->Get("?mat.name", 0, 0, v) == aiReturn_SUCCESS) {
-                //        MaterialEnum->Add(materialsubPath + v.data);
-                //    }
-                //}
-                //catch (...) {}
+                try {
+                    if (aiString v;  material->Get("?mat.name", 0, 0, v) == aiReturn_SUCCESS) {
+                        MaterialEnum->Add(fmt::format("{}material_{}.mat", uri, v.data));
+                        //MaterialEnum->Add(materialsubPath + v.data);
+                    }
+                }
+                catch (...) {}
             }
 
-            std::string animsubPath = m_URI + "@animation://";
             for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
                 auto anim = scene->mAnimations[i];
-                AnimationEnum->Add(animsubPath + "*" + std::to_string(i));
-                if (anim->mName.length > 0) {
-                    AnimationEnum->Add(animsubPath + anim->mName.data);
-                }
+                AnimationEnum->Add(fmt::format("{}{}.anim", uri, i));
             }
         }
         catch (...) {

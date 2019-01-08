@@ -57,7 +57,7 @@ struct MaterialTemplate {
     math::fvec3 specularColor = math::fvec3{ 1,1,1, };
     math::fvec3 emissiveColor = math::fvec3{ 0,0,0, };
 
-    float shiness = 16.0f / 128.0f;
+    float shiness = 16.0f;
 
     Map diffuseMap;
     Map normalMap;

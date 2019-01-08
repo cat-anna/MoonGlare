@@ -284,8 +284,8 @@ void FileSystem::Reload() {
             return true;
         };
         processFiles = true;
-        Load("./MoonGlare/DataModules/Base/");
-        Load("./MoonGlare/DataModules/Debug/");
+        Load("e:/Programowanie/Projekty/!gry/MoonGlare/MoonGlare/DataModules/Base/");
+        Load("e:/Programowanie/Projekty/!gry/MoonGlare/MoonGlare/DataModules/Debug/");
         Load(m_BasePath);
     } else {
         for (size_t i = 0; i < m_VFS->GetContainerCount(); ++i) {

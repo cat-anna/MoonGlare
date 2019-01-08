@@ -49,7 +49,6 @@ void TextureRenderTask::Begin() {
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_DEPTH_TEST);
     m_CommandQueue.MakeCommand<Disable>((GLenum)GL_BLEND);
 
-
     if (*m_TargetTexture.deviceHandle == Device::InvalidTextureHandle)
         m_CommandQueue.MakeCommand<TextureSingleAllocate>(m_TargetTexture.deviceHandle);
 

@@ -42,8 +42,11 @@ struct DeferredSink {
     void SubmitSpotLight(const SpotLight &linfo);
 
     void SetStaticFog(const StaticFog &afog);
-    VirtualCamera m_Camera;
+
+    emath::fvec2 GetScreenSize() const { return m_ScreenSize; }
+
 protected:
+    VirtualCamera m_Camera;
     DeferredFrameBuffer m_Buffer;
     emath::fvec2 m_ScreenSize;
     uint16_t shadowMapSize = 0;

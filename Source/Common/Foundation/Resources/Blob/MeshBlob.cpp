@@ -5,18 +5,117 @@
 
 namespace MoonGlare::Resources::Blob {
 
-void WriteMeshBlob(std::ostream& output, const MeshData &meshData) {
-    auto data = meshData;
-    data.UpdatePointers(0x1000'0000);
+struct V_0 {
 
-    size_t fileOffset = 0;
+    using OffsetType = uint32_t;
+    static constexpr VersionValue VersionValue = 0;
+    static constexpr OffsetType InvalidOffsetValue = static_cast<OffsetType>(~0);
+    struct MeshDataBlob {
+        OffsetType verticlesOffset;
+        OffsetType UV0;
+        OffsetType normals;
+        OffsetType tangents;
+        OffsetType index;
+        OffsetType vertexBones;
+        OffsetType vertexBoneWeights;
+        OffsetType boneMatrices;
+        OffsetType boneNameValues;
+        OffsetType boneNameOffsets;
+        uint8_t boneCount;
+        uint8_t __padding[3];
+
+        uint32_t vertexCount;
+        uint32_t indexCount;
+
+        emath::fvec3 halfBoundingBox;
+        float boundingRadius;
+
+        uint32_t memoryBlockSize;
+
+        MeshDataBlob() {
+            memset(this, 0, sizeof(*this));
+        }
+
+        void StoreData(const MeshData &data) {
+            auto offset = [&](auto *ptr) -> OffsetType {
+                if (ptr == nullptr) {
+                    return InvalidOffsetValue;
+                }
+                uintptr_t base = reinterpret_cast<uintptr_t>(data.memoryBlockFront);
+                auto diff = reinterpret_cast<uintptr_t>(ptr) - base;
+                if (diff > std::numeric_limits<OffsetType>::max()) {
+                    __debugbreak();
+                    throw std::runtime_error("MeshDataBlob offset overflow");
+                }
+                return static_cast<OffsetType>(diff);
+            };
+
+            verticlesOffset		= offset(data.verticles);
+            UV0					= offset(data.UV0);
+            normals				= offset(data.normals);
+            tangents			= offset(data.tangents);
+            index				= offset(data.index);
+            vertexBones			= offset(data.vertexBones);
+            vertexBoneWeights	= offset(data.vertexBoneWeights);
+            boneMatrices		= offset(data.boneMatrices);
+            boneNameValues		= offset(data.boneNameValues);
+            boneNameOffsets		= offset(data.boneNameOffsets);
+
+            boneCount 			= data.boneCount;
+            vertexCount 		= data.vertexCount;
+            indexCount			= data.indexCount;
+            halfBoundingBox 	= data.halfBoundingBox;
+            boundingRadius		= data.boundingRadius;
+            memoryBlockSize		= data.memoryBlockSize;
+        }
+
+        bool ReadData(MeshData &data) const {
+            if (memoryBlockSize != data.memoryBlockSize || data.memoryBlockFront == nullptr) {
+                return false;
+            }
+
+            auto read = [&](OffsetType offset, auto *&ptr) -> void {
+                if (offset == InvalidOffsetValue) {
+                    ptr = nullptr;
+                    return;
+                }
+                uintptr_t base = reinterpret_cast<uintptr_t>(data.memoryBlockFront);
+				uintptr_t position = base + offset;
+				ptr = reinterpret_cast<decltype(ptr)>(position);
+            };
+
+            read(verticlesOffset		, data.verticles);
+            read(UV0					, data.UV0);
+            read(normals				, data.normals);
+            read(tangents				, data.tangents);
+            read(index					, data.index);
+            read(vertexBones			, data.vertexBones);
+            read(vertexBoneWeights		, data.vertexBoneWeights);
+            read(boneMatrices			, data.boneMatrices);
+            read(boneNameValues			, data.boneNameValues);
+            read(boneNameOffsets		, data.boneNameOffsets);
+
+            data.boneCount 			= boneCount;
+            data.vertexCount 		= vertexCount;
+            data.indexCount			= indexCount;
+            data.halfBoundingBox 	= halfBoundingBox;
+            data.boundingRadius		= boundingRadius;
+        }
+    };
+};
+
+void WriteMeshBlob(std::ostream& output, const MeshData &meshData) {
+    using Version = V_0;
+
+    Version::MeshDataBlob data;
+    data.StoreData(meshData);
 
     BlobHeader blobH = { MagicValue::Blob, MagicValue::Mesh, 4 };
-    MeshHeader meshH = { MagicValue::Mesh, 2, 3 };
+    MeshHeader meshH = { MagicValue::Mesh, 2, 3, Version::VersionValue, 0 };
     DataHeader meshDataH = { MagicValue::Data, 0, 0, 0 };
     DataHeader blobDataH = { MagicValue::Data, 0, 0, 0 };
 
-    fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
+    size_t fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
 
     meshDataH.dataSize = sizeof(data);
     meshDataH.fileDataSize = sizeof(data);
@@ -37,6 +136,8 @@ void WriteMeshBlob(std::ostream& output, const MeshData &meshData) {
 }
 
 bool ReadMeshBlob(gsl::span<uint8_t> memory, MeshLoad &output) {
+    using Version = V_0;
+
     assert(!memory.empty());
 
     if (memory.size_bytes() < sizeof(BlobHeader)) {
@@ -79,13 +180,15 @@ bool ReadMeshBlob(gsl::span<uint8_t> memory, MeshLoad &output) {
 
     //TODO: check header version
     BlobReader br(bh);
+    Version::MeshDataBlob dataBlob;
+    constexpr size_t meshBlobSize = sizeof(dataBlob);
 
-    if (dhMesh->fileDataSize != sizeof(output.mesh)) {
+    if (dhMesh->fileDataSize != meshBlobSize) {
         AddLogf(Error, "Cannot interpret mesh blob: invalid mesh size");
         return false;
     }
 
-    bool r1 = br.ReadDataBlob(memory, *dhMesh, { (uint8_t*)&output.mesh , sizeof(output.mesh) });
+    bool r1 = br.ReadDataBlob(memory, *dhMesh, { (uint8_t*)&dataBlob, (intptr_t)meshBlobSize });
     bool r2 = br.ReadDataBlob(memory, *dhBlob, output.memory);
 
     if (!r1 || !r2) {
@@ -93,7 +196,16 @@ bool ReadMeshBlob(gsl::span<uint8_t> memory, MeshLoad &output) {
         return false;
     }   
 
-    output.mesh.UpdatePointers((intptr_t) output.memory.get());
+    output.mesh = {};
+    output.mesh.memoryBlockFront = output.memory.get();
+    output.mesh.memoryBlockSize = dhBlob->dataSize;
+    output.mesh.ready = false;
+
+    if(!dataBlob.ReadData(output.mesh)) {
+        AddLogf(Error, "Blob data read failed");
+        return false;
+    }
+
     if (!output.mesh.CheckPointers()) {
         AddLogf(Error, "Cannot interpret mesh blob: pointer validation failed");
         return false;

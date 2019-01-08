@@ -14,6 +14,10 @@
 
 namespace MoonGlare::Core::Scripts::Component {   
 
+/*@ [Scripts/GameObjectClass] GameObject class
+    GameObject class is metaobject which represents entity within script system.
+@*/
+
 //-------------------------------------------------------------------------------------------------
 
 MoonGlare::Scripts::ApiInitializer GameObject::RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root) {
@@ -26,8 +30,14 @@ MoonGlare::Scripts::ApiInitializer GameObject::RegisterScriptApi(MoonGlare::Scri
         .addFunction("GetName", &GameObject::GetName)
         .addFunction("SetName", &GameObject::SetName)
 
+/*@ [GameObjectClass/_] GameObject.Name
+    This property allows to set string name of object. Can be used for scripting or display purposes.
+ @*/
         .addProperty("Name", &GameObject::GetName, &GameObject::SetName)
 
+/*@ [GameObjectClass/_] GameObject.Tag
+    Tag is a numeric property. Can be used for scripting purposes.
+ @*/
         .addData(TagFieldName, &GameObject::Tag)
     .endClass()
     ;
@@ -35,6 +45,11 @@ MoonGlare::Scripts::ApiInitializer GameObject::RegisterScriptApi(MoonGlare::Scri
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [GameObjectClass/_] GameObject:CreateComponent(ComponentId)
+    Create specified component. If requested component already exists existsing instance is returned
+    Created component have its default values
+    Returns component pointer
+@*/
 int GameObject::CreateComponent(lua_State *lua) {
     static constexpr char *ScriptFunctionName = "GameObject::CreateComponent";
 
@@ -90,6 +105,9 @@ int GameObject::CreateComponent(lua_State *lua) {
     }
 }
 
+/*@ [GameObjectClass/_] GameObject:GetComponent(ComponentId)
+    Get component pointer. Returns nil if component does not exists
+@*/
 int GameObject::GetComponent(lua_State * lua) {
     static constexpr char *ScriptFunctionName = "GameObject::GetComponent";
     LuaStackOverflowAssert check(lua);
@@ -136,6 +154,9 @@ int GameObject::GetComponent(lua_State * lua) {
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [GameObjectClass/_] GameObject:LoadObject({args})
+    Load child object from prefab.
+@*/
 int GameObject::LoadObject(lua_State *lua) {
     static constexpr char *ScriptFunctionName = "GameObject::LoadObject";
 
@@ -268,6 +289,9 @@ int GameObject::LoadObject(lua_State *lua) {
 
 //-------------------------------------------------------------------------------------------------
 
+/*@ [GameObjectClass/_] GameObject:Destroy()
+    Destroy game object and all its children
+ @*/
 void GameObject::Destroy() {
     static constexpr char *ScriptFunctionName = "GameObject::Destroy";
 

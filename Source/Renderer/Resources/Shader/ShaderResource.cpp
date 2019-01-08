@@ -248,7 +248,7 @@ std::string ShaderResource::GenerateGaussianDisc(size_t length, float baseRadius
     std::string buf;
     buf.reserve(4096);
 
-    length = std::max(1u, length);
+    length = std::max((size_t)1, length);
 
 #ifdef DEBUG_DUMP
     buf += fmt::format("// baseRadius={}\n", baseRadius);

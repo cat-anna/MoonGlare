@@ -5,6 +5,13 @@
 #include <Foundation/Scripts/iDynamicModule.h>
 #include <Foundation/iFileSystem.h>
 
+/*@ [Scripts/RequireModules] Dynamic modules
+    This modules are accessible by
+```lua
+local module = require "module"
+```
+@*/
+
 namespace MoonGlare::Scripts::Modules {
 
 class LuaRequireModule : public iDynamicScriptModule, public iRequireModule {

@@ -1,9 +1,5 @@
 #include "GLFWContext.h"
 
-//#include "Commands/CommandQueue.h"
-//#include "Commands/OpenGL/ControllCommands.h"
-//#include "Commands/OpenGL/FramebufferCommands.h"
-
 namespace MoonGlare::Renderer::Device {
 
 static bool IsModeEnabled(const GLFWvidmode* mode) {
@@ -38,7 +34,7 @@ static std::string DumpMode(GLFWContext::VideoMode mode) {
 
 //----------------------------------------------------------------------------------
 
-GLFWContext::GLFWContext(const ContextCreationInfo &ctxifo) {
+GLFWContext::GLFWContext(const ContextCreationInfo &ctxifo, iRenderDevice *device) : device(device) {
     m_CharMode = false;
     m_MouseHooked = false;
     m_Focused = false;
@@ -211,18 +207,6 @@ void GLFWContext::Flush() {
     glfwSwapBuffers(m_Window);
 }
 
-#if 0
-void GLFWContext::CaptureScreenShot() {
-    //TODO: restore back screen shots
-
-    auto *assiface = m_Renderer->GetAssets();
-    auto texl = assiface->GetTextureLoader();
-    auto tex = texl->AllocateImage(Asset::TextureLoader::PixelFormat::RGB8, { m_Size[0], m_Size[1] });
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glReadPixels(0, 0, m_Size[0], m_Size[1], GL_BGR, GL_UNSIGNED_BYTE, tex.m_Pixels); //(GLenum)tex.m_PixelFormat
-    texl->StoreScreenShot(std::move(tex));
-}
-#endif
 //----------------------------------------------------------------------------------
 
 void GLFWContext::DestroyWindow() {
@@ -441,14 +425,13 @@ void GLFWContext::GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, in
     bool Pressed = (action == GLFW_PRESS);
 
     switch (key) {
-#if 0
     case GLFW_KEY_PRINT_SCREEN: {
         if (!Pressed)
             return;
-        ctx->CaptureScreenShot();
+        AddLogf(Info, "Got screen shoot key");
+        ctx->device->SetCaptureScreenShoot();
         return;
     }
-#endif
     case GLFW_KEY_ESCAPE:
         if (!Pressed) 
             return;

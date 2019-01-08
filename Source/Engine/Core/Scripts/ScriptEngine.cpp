@@ -254,14 +254,23 @@ void ScriptEngine::InstallModule() {
     m_world->SetInterface<Iface>(uptr.get());
     mod.basePtr = std::move(uptr);
 
-    auto regFunc = MoonGlare::Scripts::GetApiInitFunc<Class>();
-    if (regFunc) {
+    if (auto regFunc = MoonGlare::Scripts::GetApiInitFunc<Class>(); regFunc) {
         luabridge::getGlobalNamespace(m_Lua)
             .beginNamespace("api")
                 .DefferCalls(regFunc)
             .endNamespace()
             ;
     }
+
+#ifdef DEBUG_SCRIPTAPI
+	if (auto regFunc = MoonGlare::Scripts::GetDebugApiInitFunc<Class>(); regFunc) {
+		luabridge::getGlobalNamespace(m_Lua)
+			.beginNamespace("debug")
+				.DefferCalls(regFunc)
+			.endNamespace()
+			;
+	}
+#endif
 }
 
 } //namespace Scripts

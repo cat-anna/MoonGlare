@@ -47,4 +47,8 @@ bool DefferedFrontend::PointLightVisibilityTest(const emath::fvec3 &position, fl
     return sink->PointLightVisibilityTest(position, radius);
 }
 
+emath::fvec2 DefferedFrontend::GetScreenSize() const {
+    return sink->GetScreenSize();
+}
+
 } 

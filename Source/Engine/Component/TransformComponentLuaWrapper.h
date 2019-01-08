@@ -2,6 +2,8 @@
 
 namespace MoonGlare::Component {
 
+/*@ [ComponentReference/TransformComponentLuaWrapper] Transform component
+    Component is responsible for 3d space transformation @*/   
 struct TransformComponent::LuaWrapper {
     TransformComponent *component;
     Core::Scripts::Component::ScriptComponent *scriptComponent;

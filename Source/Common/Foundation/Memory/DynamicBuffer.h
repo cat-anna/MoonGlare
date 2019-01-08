@@ -7,7 +7,7 @@ namespace MoonGlare::Memory {
 template<size_t SIZE>
 struct DynamicBuffer {
     static constexpr size_t BufferSize = SIZE;
-    using ElementSize = uint16_t;
+    using ElementSize = uint32_t;
     using ArrayType = std::array<uint8_t, BufferSize>;
 
     DynamicBuffer() { }
@@ -15,13 +15,14 @@ struct DynamicBuffer {
     void Clear() { allocatedBytes = 0; buffer[0] = 0; }
     bool Empty() const { return allocatedBytes == 0; }
 
-    enum class Magic : uint16_t {
-        Value = 0xFADE,
+    enum class Magic : uint32_t {
+        Value = 'tnve',
     };
 
     struct EntryHeader {
         Magic magic;
         ElementSize size;
+
     };
 
     template<typename T>
@@ -31,10 +32,10 @@ struct DynamicBuffer {
 
     template<typename T>
     T* Allocate() {
-        static_assert(std::is_trivial_v<T>);
-        if (allocatedBytes + sizeof(T) >= BufferSize)
-            return nullptr;       
         using E = Entry<T>;
+        static_assert(std::is_trivial_v<T>);
+        if (allocatedBytes + sizeof(E) >= BufferSize)
+            return nullptr;       
         E* ptr = reinterpret_cast<E*>(&buffer[0] + allocatedBytes);
         ptr->magic = Magic::Value;
         ptr->size = sizeof(E);

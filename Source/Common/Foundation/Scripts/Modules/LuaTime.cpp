@@ -11,6 +11,10 @@ using TimePoint = Component::SubsystemUpdateData::TimePoint;
 
 static const TimePoint startTimePoint = TimePoint::clock::now();
 
+/*@ [StaticModules/TimeModule] Time module
+    Provides some info about passing time. Accessible by global `Time`.
+@*/
+
 static int TimeIndex(lua_State *lua) {
     static constexpr char *ScriptFunctionName = "Time::__index";
 
@@ -19,12 +23,22 @@ static int TimeIndex(lua_State *lua) {
     auto what = luaL_checkstring(lua, -1);
 
     switch (Space::Utils::MakeHash32(what)) {
+
+/*@ [TimeModule/_] `Time.delta`
+    Current time delta
+@*/        
     case "delta"_Hash32:
         lua_pushnumber(lua, sud->timeDelta);
         return 1;
+/*@ [TimeModule/_] `Time.global`
+    Global execution time. This value is value is increased each engine loop
+@*/             
     case "global"_Hash32:
         lua_pushnumber(lua, sud->globalTime);
         return 1;
+/*@ [TimeModule/_] `Time.scene`
+    Current scene execution time. TODO: See Scene.localTime
+@*/             
     case "scene"_Hash32:
         lua_pushnumber(lua, sud->localTime);
         return 1;

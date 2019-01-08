@@ -7,6 +7,8 @@
 
 namespace MoonGlare::SoundSystem::Component {
 
+/*@ [ComponentReference/SoundSourceComponentLuaWrap] SoundSource component
+    Component is responsible for emitting sound @*/    
 struct SoundSourceComponentLuaWrap : public ComponentScriptWrapTemplate<SoundSourceComponent> {
     static HandleApi handleApi;
 
@@ -14,17 +16,35 @@ struct SoundSourceComponentLuaWrap : public ComponentScriptWrapTemplate<SoundSou
         using LuaWrapper = SoundSourceComponentLuaWrap;
         return api
             .beginClass<LuaWrapper>("SoundSourceComponent")
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent:Play()`
+    TODO @*/             
                 .addFunction("Play", &LuaWrapper::Play)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent:Pause()`
+    TODO @*/                      
                 .addFunction("Pause", &LuaWrapper::Pause)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent:Stop()`
+    TODO @*/                      
                 .addFunction("Stop", &LuaWrapper::Stop)
 
-                .addProperty("State", &LuaWrapper::GetState)
-                .addProperty("Position", &LuaWrapper::GetPosition)
-                .addProperty("Duration", &LuaWrapper::GetDuration)
-
-                .addProperty("File", &LuaWrapper::GetURI, &LuaWrapper::SetUri)
-                .addProperty("Loop", &LuaWrapper::GetLoop, &LuaWrapper::SetLoop)
-                .addProperty("Kind", &LuaWrapper::GetKind, &LuaWrapper::SetKind)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.state`
+    TODO @*/      
+                .addProperty("state", &LuaWrapper::GetState)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.position`
+    TODO @*/                      
+                .addProperty("position", &LuaWrapper::GetPosition)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.duration`
+    TODO @*/                      
+                .addProperty("duration", &LuaWrapper::GetDuration)
+    
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.file`
+    TODO @*/      
+                .addProperty("file", &LuaWrapper::GetURI, &LuaWrapper::SetUri)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.loop`
+    TODO @*/                      
+                .addProperty("loop", &LuaWrapper::GetLoop, &LuaWrapper::SetLoop)
+/*@ [SoundSourceComponentLuaWrap/_] `SoundSourceComponent.kind`
+    TODO @*/                      
+                .addProperty("kind", &LuaWrapper::GetKind, &LuaWrapper::SetKind)
             .endClass();
     }
 
@@ -38,6 +58,7 @@ struct SoundSourceComponentLuaWrap : public ComponentScriptWrapTemplate<SoundSou
     void SetUri(const char *c) {
         Check();
         handleApi.ReopenStream(Handle(), c);
+        handleApi.SetUserData(Handle(), owner.GetIntValue());
     }
 
     bool GetLoop() const {

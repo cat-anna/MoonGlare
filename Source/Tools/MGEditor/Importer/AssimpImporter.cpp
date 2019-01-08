@@ -340,6 +340,11 @@ struct AssimpImporter
                         else {
                             std::filesystem::path fpath = path.data;
                             std::string fn = fpath.filename().generic_string();
+                            if (fn.empty()) {
+                                fn = path.data;
+                                while (fn.front() == '/')
+                                    fn = fn.substr(1);
+                            }
                             map.texture = sourceDirectory + fn;
                         }
                         switch (mapmode[0]) {
@@ -364,7 +369,7 @@ struct AssimpImporter
             matData.diffuseColor = getVec3Prop(mat, "$clr.diffuse");
             matData.specularColor = getVec3Prop(mat, "$clr.specular");
             matData.emissiveColor = getVec3Prop(mat, "$clr.emissive", { 0,0,0, });
-            matData.shiness = getFloaProp(mat, "$mat.shininess", 32) / 128.0f;
+            matData.shiness = getFloaProp(mat, "$mat.shininess", 32);
 
             pugi::xml_document xdoc;
             x2c::Renderer::MaterialTemplate_t_Write(xdoc.append_child("Material"), matData, nullptr);

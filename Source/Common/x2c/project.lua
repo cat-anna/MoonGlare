@@ -35,7 +35,7 @@ project "x2c"
 	filter 'files:**.x2c'
 		buildmessage 'Processing %{file.name} with xml2cpp'
 		buildcommands(bin.x2c .. ' --enable-all --input "%{file.relpath}" --output "%{cfg.objdir}%{file.basename}.x2c.h"')
-        buildoutputs '%{cfg.objdir}%{file.basename}.x2c.h'
+        buildoutputs '%{cfg.objdir}/%{file.basename}.x2c.h'
 
     filter "configurations:Debug"
     filter "configurations:Release"

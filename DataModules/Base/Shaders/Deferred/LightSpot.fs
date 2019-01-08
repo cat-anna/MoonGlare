@@ -23,7 +23,7 @@ void main() {
 	mat.diffuseColor = Color.xyz;
 	mat.specularColor = specularColor.xyz;
 	mat.emissiveColor = emissiveColor.xyz;
-	mat.shinessExponent = shiness;
+	mat.shiness = shiness;
 	mat.opacity = 1.0f;
 
 	float shadow = PlaneShadowTest(worldPos);

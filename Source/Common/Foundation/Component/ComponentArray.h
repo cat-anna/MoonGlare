@@ -6,6 +6,7 @@
 
 #include <Foundation/FlagSet.h>
 #include <Foundation/EnumArray.h>
+#include <Foundation/Memory/AlignedPtr.h>
 
 #include "Configuration.h"
 #include "ComponentInfo.h"
@@ -199,7 +200,7 @@ public:
     void ReleaseAllComponents();
 private:
     template<typename T> using PerComponentType = EnumArray<ComponentClassId, T, Configuration::MaxComponentTypes>;
-    using ComponentMemory = std::unique_ptr<char[]>;
+    using ComponentMemory = Memory::aligned_array<uint8_t>;
 
     using ComponentFlagArray = std::unique_ptr<ComponentFlagSet[]>;
     using ComponentOwnerArray = std::unique_ptr<Entity[]>;

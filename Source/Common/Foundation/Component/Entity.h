@@ -35,10 +35,6 @@ enum class SubSystemId : uint8_t {
     Script = 0x11,
     Transform = 0x12,
 
-//Renderer
-    Light = 0x22,
-    Camera = 0x23,
-
 //Physics
     Body = 0x50,
     BodyShape = 0x51,
