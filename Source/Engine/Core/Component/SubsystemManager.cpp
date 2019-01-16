@@ -159,6 +159,10 @@ bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, SubSystemId cid) {
 
 void SubsystemManager::Step(const MoveConfig &config) {
 
+    if (config.m_SecondPeriod) {
+        componentArray.DumpStatus("Periodic");     
+    }
+
 #ifndef PERF_PERIODIC_PRINT
     for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
         m_Components[i]->Step(config);
@@ -208,7 +212,7 @@ iSubsystem* SubsystemManager::GetComponent(SubSystemId cid) {
         }
     }
 
-    AddLogf(Error, "There is no component with id %d", cid);
+    //AddLogf(Error, "There is no component with id %d", cid);
     return nullptr;
 }
 

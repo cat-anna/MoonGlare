@@ -2,39 +2,46 @@
 group ""
 
 project "*"
-	startproject "Engine"
+    startproject "Engine"
 
 project "Engine"
-	kind "WindowedApp"
-	MoonGlare.SetOutputDir("Engine")   
+    kind "WindowedApp"
+    MoonGlare.SetOutputDir("Engine")   
 
-	SetPCH { hdr = "pch.h", src = "pch.cpp", }
+    SetPCH { hdr = "pch.h", src = "pch.cpp", }
 
-	defines {
-		"_BUILDING_ENGINE_",
-		"BT_EULER_DEFAULT_ZYX",    
-		"_FEATURE_EXTENDED_PERF_COUNTERS_",
-	}
+    dependson "x2c"
 
-	files {
-		"**",
-		"../Config/**",
-		"../Utils/**",
-	}
-	includedirs {
-		".",
-		"%{cfg.objdir}",
-	}
-	links {
-		"libSpace",
-		"OrbitLogger",
-		"StarVFS",
+    defines {
+        "_BUILDING_ENGINE_",
+        "BT_EULER_DEFAULT_ZYX",    
+        "_FEATURE_EXTENDED_PERF_COUNTERS_",
+    }
 
-		"Renderer",
-		"Foundation",
-	--	"x2c",
-	}
+    files {
+        "**",
+        "../Config/**",
+    }
+    includedirs {
+        ".",
+        "%{cfg.objdir}",
+    }
+    links {
+        "libSpace",
+        "OrbitLogger",
+        "StarVFS",
 
-	postbuildcommands {
-		[["%{cfg.targetdir}/../svfs" -m "%{cfg.targetdir}" -s "rm('.*%%.[^eEdD]..$')" -e RDCExporter:%{cfg.targetdir}/../Modules/Engine.rdc:/ ]],
-	}
+        "Renderer",
+        "Foundation",
+    --	"x2c",
+    }
+
+group "Modules"
+    project "EngineBinaries"
+        kind "Utility"
+        MoonGlare.SetOutputDir("Modules")
+        dependson{ "svfs", "Engine", }
+
+        postbuildcommands {
+            [["%{cfg.targetdir}/../svfs" -m "%{cfg.targetdir}/../Engine/" -s "rm('.*%%.[^eEdD]..$')" -e RDCExporter:%{cfg.targetdir}/Engine.rdc:/ ]],
+        }

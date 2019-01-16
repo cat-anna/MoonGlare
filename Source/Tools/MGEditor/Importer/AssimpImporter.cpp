@@ -416,8 +416,13 @@ struct AssimpImporter
             }
 
             mi.material = amesh->mMaterialIndex;
-
-            std::string meshName = fmt::format("{}.mesh", i);
+						
+			std::string meshName;
+			if (amesh->mName.length > 0)
+				meshName = amesh->mName.C_Str();
+			else
+				meshName = fmt::format("{}", i);
+			meshName += ".mesh";
             mi.uri = outputDirectory + "/" + meshName;
 
             {

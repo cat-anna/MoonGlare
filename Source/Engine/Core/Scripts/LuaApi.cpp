@@ -53,11 +53,15 @@ void ApiInit::Initialize(ScriptEngine *s) {
     unsigned ApiInitFunctionsRun = 0;
     AddLog(Performance, "Processing api init functions");
 #endif
+
+    auto lua = s->GetLua();
+
     if (!_InitFuncs) {
         if (!_GatherList) {
             AddLog(Error, "Nothing to register!");
             return;
         }
+
 
         std::map<const Space::RTTI::TypeInfo*, const Space::RTTI::TypeInfo*> registered;
         _InitFuncs = new std::list < CallInfo > ;
@@ -177,8 +181,8 @@ void ApiInit::Initialize(ScriptEngine *s) {
             auto info = BaseEventInfo::GetEventTypeInfo(it);
             if (info.apiInitFunc) {
                 ++ApiInitFunctionsRun;
-                s->GetApiInitializer()
-                    .beginNamespace("api")
+                luabridge::getGlobalNamespace(lua)
+                    //.beginNamespace("api")
                         .beginNamespace("Event")
                             .DefferCalls([&info](auto &n) { info.apiInitFunc(n); });
             }

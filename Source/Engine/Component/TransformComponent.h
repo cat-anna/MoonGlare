@@ -15,18 +15,18 @@ using namespace MoonGlare::Core::Component;
 struct EntityDestructedEvent;
 
 class TransformComponent 
-	: public iSubsystem
-	, public SubSystemIdWrap<SubSystemId::Transform>
+    : public iSubsystem
+    , public SubSystemIdWrap<SubSystemId::Transform>
 {
 public:
-	TransformComponent(Core::Component::SubsystemManager *Owner);
-	virtual ~TransformComponent();
+    TransformComponent(Core::Component::SubsystemManager *Owner);
+    virtual ~TransformComponent();
 
     using RuntimeRevision = MoonGlare::Configuration::RuntimeRevision;
 
     bool Initialize() override;
-	bool Load(Component::ComponentReader &reader, Entity parent, Entity owner) override;
-	void Step(const SubsystemUpdateData &conf) override;
+    bool Load(Component::ComponentReader &reader, Entity parent, Entity owner) override;
+    void Step(const SubsystemUpdateData &conf) override;
     int PushToLua(lua_State *lua, Entity Owner) override;
 
     void HandleEvent(const EntityDestructedEvent &event);
@@ -56,7 +56,7 @@ public:
     Entity GetOwner(Entity item);
 
     RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
-	static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
+    static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
 protected:
     Core::Component::SubsystemManager *subSystemManager;
     Core::Scripts::Component::ScriptComponent *scriptComponent;
@@ -75,8 +75,8 @@ protected:
         void ClearAll() { UIntValue = 0; }
     };
     static_assert(sizeof(EntryFlags) == sizeof(uint8_t));
-	
-    struct Values : public MoonGlare::Memory::ArrayIndexTree<ComponentIndex, (ComponentIndex)MoonGlare::Configuration::Storage::ComponentBuffer, Values>{
+    
+    struct Values : public MoonGlare::Memory::ArrayIndexTree<ComponentIndex, (ComponentIndex)(1<<14), Values>{
         Array<Entity>               owner;
         Array<EntryFlags>           flags;
         Array<RuntimeRevision>      revision;

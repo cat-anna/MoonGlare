@@ -13,7 +13,7 @@ namespace MoonGlare::Editor {
 
 class TreeViewDialog;
 
-class ScriptPropertyEditor : public TypeEditor::CustomTypeEditor, public TreeViewDialog, public UserQuestions {
+class ScriptPropertyEditor : public TypeEditor::CustomTypeEditor, public QWidget, public UserQuestions {
 public:
     ScriptPropertyEditor(QWidget *Parent);
 
@@ -35,6 +35,7 @@ public:
     static constexpr int PropertyCustomTitleRole = Qt::UserRole + 3;
 protected:                          
 private:
+	std::unique_ptr<TreeViewDialog> dialog;
     std::function<QVariant(int)> dataSouce;
 
     std::unique_ptr<QStandardItemModel> model;

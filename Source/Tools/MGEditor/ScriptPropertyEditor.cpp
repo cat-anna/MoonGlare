@@ -9,15 +9,17 @@
 
 namespace MoonGlare::Editor {
 
-ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent): TreeViewDialog(Parent, "ScriptPropertyEditor") {
+ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent): QWidget(Parent) {
 
+    dialog = std::make_unique<TreeViewDialog>(this, "ScriptPropertyEditor");
     model = std::make_unique<QStandardItemModel>();
 
-    auto tv = GetTreeView();
+    auto tv = dialog->GetTreeView();
     tv->setColumnWidth(0, 400);
     tv->setColumnWidth(1, 200);
     tv->setModel(model.get());
-    setWindowTitle("Script property editor");
+    dialog->setWindowTitle("Script property editor");
+    dialog->LoadSettings();
 
     tv->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -115,11 +117,14 @@ void ScriptPropertyEditor::SetValue(const std::string &in) {
         cols << valueItem;
         root->appendRow(cols);
     }
+
+    dialog->show();
 }
 
 std::string ScriptPropertyEditor::GetValue()  {
     if (!instance)
         return "";
+    dialog->SaveSettings();
     return instance->Serialize();
 }
 

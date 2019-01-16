@@ -31,76 +31,117 @@ bool LuaEventsModule::OnRequire(lua_State *lua, std::string_view name) {
 /*@ [RequireModules/LuaEventsModule] Events module
     TODO @*/
 ApiInitializer LuaEventsModule::RegisterScriptApi(ApiInitializer api) {
-    auto Class = api
+
+    //api.beginNamespace("Event")
+    //    .RawLua([&](lua_State *lua) {
+    //        int top = lua_gettop(lua);
+    //        const char *t0 = lua_typename(lua, lua_type(lua, -1));
+
+    //        int i = -1;
+    //        luabridge::rawgetfield(lua, i, "SetSceneChangeFenceEvent");
+    //        const char *t1 = lua_typename(lua, lua_type(lua, -1));
+    //        lua_settop(lua, top);
+
+    //       })
+        //.endNamespace()
+               //;
+    //auto Class =
+    return     api
         .beginClass<LuaEventsModule>("LuaEventsModule")
 /*@ [LuaEventsModule/_] `Events:EmitEvent(event)`
     TODO @*/        
-            .addFunction("EmitEvent", &LuaEventsModule::EmitEvent);
+            .addFunction("Emit", &LuaEventsModule::EmitEvent)
+        //;
 
 /*@ [LuaEventsModule/PublicLuaEvents] Available events 
     This events can be created and send through events module @*/    
-    using BaseEventInfo = MoonGlare::Component::BaseEventInfo;
-    BaseEventInfo::ForEachEvent([&](auto evId, auto &evInfo) {
-        if (evInfo.apiInitFunc && evInfo.isPublic)
-        Class.RawLua([&](lua_State *lua) {
-            int top = lua_gettop(lua);
-            luabridge::lua_rawgetp(lua, LUA_REGISTRYINDEX, evInfo.infoPtr->GetClassStaticKey());
-            if (lua_isnil(lua, -1)) {
-                lua_pop(lua, 1);
-                //TODO: error
-            } else {
-                luabridge::rawgetfield(lua, -1, "__call");
-                if (lua_isnil(lua, -1)) {
-                    lua_pop(lua, 1);
-                    //TODO: error
-                } else {
-                    int top_ = lua_gettop(lua);
-                    lua_insert(lua, -2);
-                    lua_pop(lua, 1);
-                    luabridge::rawsetfield(lua, (-2) + (-1), evInfo.EventName);
-                }
-            }
-            int top2 = lua_gettop(lua);
-        });
-    });
+    //using BaseEventInfo = MoonGlare::Component::BaseEventInfo;
+    //BaseEventInfo::ForEachEvent([&](auto evId, auto &evInfo) {
+    //    if (evInfo.apiInitFunc && evInfo.isPublic)
+//        Class.RawLua([&](lua_State *lua) {
+//            int top = lua_gettop(lua);
+//            luaL_dostring(lua,
+//R"==(
+//for k,v in pairs(api) do
+//    print(k, v)
+//end
+//print(api, api.Event)
+//return api
+//)==");
+//
+//            int top2 = lua_gettop(lua);
+//            const char *t = lua_typename(lua, lua_type(lua, -1));
+//            //lua_getglobal(lua, "api");
+//            //if (lua_isnil(lua, -1)) {
+//            //    lua_settop(lua, top);
+//            //    return;
+//            //}
+//            //lua_getfield(lua, -1, "Event");
+//            if (lua_isnil(lua, -1)) {
+//                lua_settop(lua, top);
+//                return;
+//            }
+//            luabridge::rawsetfield(lua, (-2) + (-1), "Event");
 
-    return Class.endClass();
+    //        int top = lua_gettop(lua);
+    //        luabridge::lua_rawgetp(lua, LUA_REGISTRYINDEX, evInfo.infoPtr->GetClassStaticKey());
+    //        if (lua_isnil(lua, -1)) {
+    //            lua_pop(lua, 1);
+    //            //TODO: error
+    //        } else {
+    //            luabridge::rawgetfield(lua, -1, "__call");
+    //            if (lua_isnil(lua, -1)) {
+    //                lua_pop(lua, 1);
+    //                //TODO: error
+    //            } else {
+    //                int top_ = lua_gettop(lua);
+    //                lua_insert(lua, -2);
+    //                lua_pop(lua, 1);
+    //                luabridge::rawsetfield(lua, (-2) + (-1), evInfo.EventName);
+    //            }
+    //        }
+            //int top2 = lua_gettop(lua);
+        //});
+    //});
+
+    //return Class
+        .endClass();
 }
 
 /*@ [DebugApi/LuaEventsModuleDebug] Events module debug api @*/
 ApiInitializer LuaEventsModule::RegisterDebugScriptApi(ApiInitializer api) {
-	struct T {
-		static int AllEvents(lua_State *lua) {
-			lua_createtable(lua, 0, 0);
-			Component::BaseEventInfo::ForEachEvent([lua](Component::EventClassId evid, const Component::BaseEventInfo::EventClassInfo& info) {
-				lua_pushinteger(lua, static_cast<int>(evid));
-				lua_setfield(lua, -2, info.EventName);
-			});
-			return 1;
-		}
+    struct T {
+        static int AllEvents(lua_State *lua) {
+            lua_createtable(lua, 0, 0);
+            Component::BaseEventInfo::ForEachEvent([lua](Component::EventClassId evid, const Component::BaseEventInfo::EventClassInfo& info) {
+                lua_pushinteger(lua, static_cast<int>(evid));
+                lua_setfield(lua, -2, info.EventName);
+            });
+            return 1;
+        }
 
-		static int SetEventLogs(lua_State *lua) {
-			static constexpr char *ScriptFunctionName = "debug.SetEventLogs";
-			auto index = lua_tointeger(lua, 1);
-			if (index < 0 || index >= (int)Component::BaseEventInfo::GetUsedEventTypes()) {
-				LuaReportInvalidArg(lua, 1, integer);
-				return 0;
-			}
-			bool v = lua_toboolean(lua, 2);
+        static int SetEventLogs(lua_State *lua) {
+            static constexpr char *ScriptFunctionName = "debug.SetEventLogs";
+            auto index = lua_tointeger(lua, 1);
+            if (index < 0 || index >= (int)Component::BaseEventInfo::GetUsedEventTypes()) {
+                LuaReportInvalidArg(lua, 1, integer);
+                return 0;
+            }
+            bool v = lua_toboolean(lua, 2);
 
-			auto &info = Component::BaseEventInfo::GetEventTypeInfo((Component::EventClassId)index);
-			info.infoPtr->GetLogsEnabled() = v;
-			return 0;
-		}
-	};
-	return api
+            auto &info = Component::BaseEventInfo::GetEventTypeInfo((Component::EventClassId)index);
+            info.infoPtr->GetLogsEnabled() = v;
+            return 0;
+        }
+    };
+    return api
 /*@ [LuaEventsModuleDebug/_] debug.AllEvents()
-	Returns table with all events. Key is event name, value is event id @*/
-		.addCFunction("AllEvents", &T::AllEvents)
+    Returns table with all events. Key is event name, value is event id @*/
+        .addCFunction("AllEvents", &T::AllEvents)
 /*@ [LuaEventsModuleDebug/_] debug.SetEventLogs(eventId, value)
-	Enable logs for specific event @*/
-		.addCFunction("SetEventLogs", &T::SetEventLogs)
-		;
+    Enable logs for specific event @*/
+        .addCFunction("SetEventLogs", &T::SetEventLogs)
+        ;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -108,7 +149,7 @@ ApiInitializer LuaEventsModule::RegisterDebugScriptApi(ApiInitializer api) {
 int LuaEventsModule::EmitEvent(lua_State *lua) {
     static constexpr char *ScriptFunctionName = "Event::Emit";
 
-    if (lua_gettop(lua) != 1) {
+    if (lua_gettop(lua) != 2) {
         LuaRunError(lua, "Invalid argument count", "Expected 1 argument, got {}", lua_gettop(lua) - 1);
         return 0;
     }
@@ -142,7 +183,7 @@ int LuaEventsModule::EmitEvent(lua_State *lua) {
 
     auto &evInfo = Component::BaseEventInfo::GetEventTypeInfo(static_cast<Component::EventClassId>(eid));
 
-    auto success = evInfo.queueFromLua(lua, 1, eventDispatcher);
+    auto success = evInfo.queueFromLua(lua, 2, eventDispatcher);
     if (!success) {
         LuaRunWarning(lua, "Event emission failed", "");
     }

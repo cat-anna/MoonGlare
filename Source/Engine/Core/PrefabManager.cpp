@@ -391,7 +391,7 @@ void PrefabManager::SpawnComponent(ImportTask &task, const ComponentImport &ci) 
 
     auto c = ssm.GetComponent(cid);
     if (!c) {
-        AddLogf(Warning, "No such component: %d", cid);
+        //AddLogf(Warning, "No such component: %d", cid);
         return;
     }
 

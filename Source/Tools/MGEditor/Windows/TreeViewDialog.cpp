@@ -13,7 +13,7 @@ namespace MoonGlare {
 namespace Editor {
 
 TreeViewDialog::TreeViewDialog(QWidget *parent, const std::string settingsName)
-    : QDialog(parent)
+    : QDialog(parent, Qt::Window)
 {
     SetSettingID(settingsName);
     ui = std::make_unique<Ui::TreeViewDialog>();

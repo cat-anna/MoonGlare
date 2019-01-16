@@ -239,25 +239,34 @@ function DocGen:ProcessEntries()
         end
 
         entries = delayedEntries
-        print("Processed Entries in loop: " .. tostring((processedCnt)))
+        print("Processed Entries in loop: " .. tostring(processedCnt) .. " remain: " .. tostring(#entries))
     end
 
     if #entries > 0 then
-        print("Error: not all entries were processed: " .. tostring(#entries))
+        print("Warning: not all entries were processed: " .. tostring(#entries))
+
+		for _,v in ipairs(entries) do
+			print("Warning: Cannot process entry with topic: " .. v.topic.path)
+		end
     end
     return true
 end
 
 
 function DocGen:OpenOutput()
-    local f = io.open("bin/doc.md", "w")
+	local fn = self.output .. "/doc.md"
+    local f = io.open(fn, "w")
 
     local mt = { } 
     mt.__index = mt
 
     function mt:Close() self.f:close() self.f = nil end
 
-    function mt:Write(str) if str then self.f:write(str) end end
+    function mt:Write(str) 
+		if str then 
+			self.f:write(str) 
+		end 
+	end
     function mt:Line(str) self:Write(str .. "\n") end
 
     function mt:Header(str, lvl) if str then self:Line(string.dup("#", lvl) .. " " .. str) end end
@@ -286,6 +295,7 @@ function DocGen:GenerateEntryOutput(out, entry, level)
 end
 
 function DocGen:GenerateOutput()
+	print("Generating output")
     local output, errm = self:OpenOutput()
     if not output then
         return false, errm
@@ -297,6 +307,7 @@ Auto-generated documentation. Do not edit directly.
 ]]
 
     for _,v in ipairs(self.topicsTree) do
+
         self:GenerateEntryOutput(output, v, 1)
     end
 
@@ -327,20 +338,33 @@ function DocGen:ProcessArguments(argTable)
     self.src = { }
     self.output = ""
 
-    for _,v in ipairs(argTable) do
+	local function putInput(v)
+		if v:sub(-1) == "/" then
+			v = v:sub(1, -2)
+		end
+
         local attr = lfs.attributes(v)
-        if attr then
-            if attr.mode == "file" or attr.mode == "directory" then 
-                table.insert( self.src, { attr = attr, path = v } )
-            end
-        else
-            local arg, value = v:match("%-%-(%w+)=?(%w*)")
+
+		if attr and (attr.mode == "file" or attr.mode == "directory") then 
+			--print("input:", v)	
+			table.insert( self.src, { attr = attr, path = v } )
+			return true
+		end
+
+		return false
+	end
+
+    for _,v in ipairs(argTable) do
+        if not putInput(v) then
+            local arg, value = v:match("%-%-(%w+)=?(.*)")
             if not arg then
                 print("Ignoring invalid argument: " .. v)
                 -- TODO
             elseif arg == "output" then
-                    self.output = value
-                    self.output = self.output .. "/"
+				print("output:", value)	
+                self.output = value
+            elseif arg == "input" then
+                putInput(value)
             else
                 print("Ignoring unknown argument: " .. arg)
             end
@@ -350,7 +374,6 @@ function DocGen:ProcessArguments(argTable)
 end
 
 function DocGen:RunApp(argTable)
-
     if not self:ProcessArguments(argTable) then
         return 
     end

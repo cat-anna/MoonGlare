@@ -2,9 +2,9 @@
 group "Modules"
 
     project "Debug"
-        kind "Makefile"
+        kind "Utility"
         MoonGlare.SetOutputDir("Modules")
-        files "Debug/**"
+      --  files "Debug/**"
         dependson "svfs"
 
         buildcommands {
@@ -12,9 +12,9 @@ group "Modules"
         }
 
     project "Base"
-        kind "Makefile"
+        kind "Utility"
         MoonGlare.SetOutputDir("Modules")
-        files "Base/**"
+       -- files "Base/**"
         dependson "svfs"
 
         buildcommands {
