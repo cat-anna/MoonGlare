@@ -1,6 +1,6 @@
 #include PCH_HEADER
-#include <ui_StringTableEditor.h>
 #include "StringTableEditor.h"
+#include <ui_StringTableEditor.h>
 
 #include <fmt/format.h>
 
@@ -106,7 +106,8 @@ StringTableEditor::StringTableEditor(QWidget * parent, SharedModuleManager smm, 
 }
 
 StringTableEditor::~StringTableEditor() {
-
+    itemModel.reset();
+    ui.reset();
 }
 
 //-------------------------------------------------------------------------------------------------

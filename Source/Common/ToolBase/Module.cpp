@@ -3,7 +3,6 @@
 
 #include "AppConfig.h"    
 #include "Module.h"
-#include "ModuleRegistration.h"
 #include "iSettingsUser.h"    
 
 namespace MoonGlare {

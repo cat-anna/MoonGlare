@@ -9,13 +9,13 @@
 #include <ui_FileSystemViewer.h>
 
 #include <DockWindowInfo.h>
-#include <iFileProcessor.h>
 #include <iFileIconProvider.h>
+#include <iFileProcessor.h>
 
 #include <icons.h>
 
-#include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
+#include "../Windows/MainWindow.h"
 
 namespace MoonGlare {
 namespace Editor {
@@ -93,6 +93,7 @@ FileSystemViewer::FileSystemViewer(QWidget * parent,WeakModule module)
 FileSystemViewer::~FileSystemViewer() {
     m_EditorProvider.reset();
     m_FileIconProvider.reset();
+    m_ViewModel.reset();
     m_Ui.reset();
 }
 

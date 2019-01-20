@@ -7,10 +7,10 @@
 #include PCH_HEADER
 #include "PendingChanges.h"
 
-#include <ui_PendingChanges.h>
+#include "../Windows/MainWindow.h"
 #include <DockWindowInfo.h>
 #include <icons.h>
-#include "../Windows/MainWindow.h"
+#include <ui_PendingChanges.h>
 
 #include <ToolBase/Module.h>
 
@@ -41,8 +41,9 @@ PendingChanges::PendingChanges(QWidget * parent, SharedModuleManager smm)
     m_Ui = std::make_unique<Ui::PendingChanges>(); 
     m_Ui->setupUi(this);
 
-    auto shd = MainWindow::Get()->GetSharedData();
-    connect(shd->m_ChangesManager.get(), &QtShared::ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
+    changesManager = GetModuleManager()->QuerryModule<ChangesManager>();
+
+    connect(changesManager.get(), &ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
 
     m_ViewModel = std::make_unique<QStandardItemModel>();
     m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Editor"));
@@ -62,7 +63,7 @@ PendingChanges::PendingChanges(QWidget * parent, SharedModuleManager smm)
     m_Ui->actionSave_All->setEnabled(false);        
 
     actionProvider = std::make_shared<iActionProvider>();
-    auto sink = GetModuleManager()->QuerryModule< iActionBarSink>();
+    auto sink = GetModuleManager()->QuerryModule<iActionBarSink>();
     if (sink) {
         //sink->AddAction("PendingChanges.SaveSingle", m_Ui->actionSave_single, actionProvider);
         sink->AddAction("PendingChanges.SaveAll", m_Ui->actionSave_All, actionProvider);
@@ -95,12 +96,12 @@ bool PendingChanges::DoLoadSettings(const pugi::xml_node node) {
 void PendingChanges::Refresh() {
     m_ViewModel->removeRows(0, m_ViewModel->rowCount());
     auto root = m_ViewModel->invisibleRootItem();
-    auto shd = MainWindow::Get()->GetSharedData();
+
     bool state = false;
-    std::unordered_map<QtShared::iChangeContainer*, QStandardItem*> Items;
+    std::unordered_map<iChangeContainer*, QStandardItem*> Items;
     Items[nullptr] = root;
 
-    auto GetRoot = [root, &Items](QtShared::iChangeContainer* ichg) -> QStandardItem* {
+    auto GetRoot = [root, &Items](iChangeContainer* ichg) -> QStandardItem* {
         auto it = Items.find(ichg);
         if (it == Items.end()) {
             return nullptr;
@@ -109,7 +110,7 @@ void PendingChanges::Refresh() {
     };
                                        
     int cnt = 0;
-    for (auto &item : shd->m_ChangesManager->GetStateMap()) {      
+    for (auto &item : changesManager->GetStateMap()) {      
         ++cnt;
         QStandardItem *qitm;
         QList<QStandardItem*> cols;
@@ -141,13 +142,12 @@ void PendingChanges::SaveSingle() {
 }
 
 void PendingChanges::SaveAll() {
-    auto shd = MainWindow::Get()->GetSharedData();
-    shd->m_ChangesManager->SaveAll();
+    changesManager->SaveAll();
 }
 
 //----------------------------------------------------------------------------------
 
-void PendingChanges::ChangesChanged(QtShared::iChangeContainer * sender, bool state) {
+void PendingChanges::ChangesChanged(iChangeContainer * sender, bool state) {
     Refresh();
 }
 

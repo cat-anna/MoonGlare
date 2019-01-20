@@ -7,7 +7,7 @@ void RegisterImporterModules();
 
 inline void RegisterAllModules() {
     RegisterBaseModules();
-    RegisterAllModules();
+    RegisterImporterModules();
 }
 
 }

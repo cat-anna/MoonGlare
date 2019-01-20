@@ -6,13 +6,11 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef FileSystemViewer_H
-#define FileSystemViewer_H
 
-#include <DockWindow.h>
-#include <iEditor.h>
-#include <ChangesManager.h>
 #include <DataModels/EntityEditorModel.h>
+#include <DockWindow.h>
+#include <ToolBase/Modules/ChangesManager.h>
+#include <iEditor.h>
 
 #include "../Notifications.h"
 
@@ -53,7 +51,7 @@ struct UserRoles {
 
 class EntityEditorWindow
 		: public QtShared::DockWindow 
-		, public QtShared::iChangeContainer
+		, public iChangeContainer
 		, public QtShared::iEditor {
 	Q_OBJECT;
 public:
@@ -90,5 +88,3 @@ private:
 
 Q_DECLARE_METATYPE(MoonGlare::Editor::EntityEditor::EditableItemInfo);
 Q_DECLARE_METATYPE(MoonGlare::Editor::EntityEditor::EditableComponentValueInfo);
-
-#endif

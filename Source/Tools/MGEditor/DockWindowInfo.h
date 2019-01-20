@@ -48,6 +48,7 @@ private:
 	QString m_ShortCut;
 	std::shared_ptr<DockWindow> m_Instance;
 	bool m_DisableMainMenu;
+    bool visible = false;
 };
 
 template<typename DOCK>

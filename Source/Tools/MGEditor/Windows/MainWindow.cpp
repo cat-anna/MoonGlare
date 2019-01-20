@@ -1,19 +1,19 @@
 #include PCH_HEADER
-#include <qobject.h>
-#include <qlabel.h>
-#include "EditorSettings.h"
 #include "MainWindow.h"
+#include "EditorSettings.h"
 #include "ui_MainWindow.h"
+#include <qlabel.h>
+#include <qobject.h>
 
 #include <DockWindow.h>
 #include <ToolBase/UserQuestions.h>
 
 #include "DataModule.h"
-#include "Notifications.h"
 #include "FileSystem.h"
+#include "Notifications.h"
 
-#include "SettingsWindow.h"
 #include "ForegroundProcess.h"
+#include "SettingsWindow.h"
 
 #include "Build/BuildOptions.h"
 #include "Build/BuildProcess.h"
@@ -21,6 +21,8 @@
 
 namespace MoonGlare {
 namespace Editor {
+
+MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
 
 static MainWindow *_Instance = nullptr;
 
@@ -39,7 +41,7 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
     connect(m_Ui->actionBuild, SIGNAL(triggered()), SLOT(BuildModuleAction()));
     connect(m_Ui->actionActionPackModule, SIGNAL(triggered()), SLOT(PackModuleAction()));
     connect(m_Ui->actionEditorConfiguration, &QAction::triggered, [this]() {
-        SettingsWindow sw(this);
+        SettingsWindow sw(GetModuleManager(), this);
         sw.exec();
     } );
 
@@ -79,6 +81,8 @@ bool MainWindow::PostInit() {
         }
     }
 
+
+    show();
     return true;
 }
 
@@ -109,11 +113,13 @@ bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
     LoadGeometry(node, this, "Qt:Geometry");
     LoadState(node, this, "Qt:State");
 
-    auto conf = GetSettings().getConfiguration();
-    auto state = GetSettings().getState();
+    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+
+    auto conf = stt->GetConfiguration();
+    auto state = stt->GetState();
     if (conf.m_LoadLastModule && !state.m_LastModule.empty()) {
-        QTimer::singleShot(500, [this] {
-            auto state = GetSettings().getState();
+        QTimer::singleShot(500, [this, stt] {
+            auto state = stt->GetState();
             OpenModule(state.m_LastModule);
         });
     }
@@ -221,7 +227,9 @@ void MainWindow::NewModule(const std::string& MasterFile) {
     if (!m_DataModule)
         return;
 
-    GetSettings().getState().m_LastModule = MasterFile;
+    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+
+    stt->GetState().m_LastModule = MasterFile;
     Notifications::SendProjectChanged(m_DataModule);
     AddLogf(Info, "New module: %s", MasterFile.c_str());
 }
@@ -237,7 +245,10 @@ void MainWindow::OpenModule(const std::string& MasterFile)  {
     m_DataModule = Module::DataModule::OpenModule(MasterFile);
     if (!m_DataModule)
         return;
-    GetSettings().getState().m_LastModule = MasterFile;
+
+    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+
+    stt->GetState().m_LastModule = MasterFile;
     Notifications::SendProjectChanged(m_DataModule);
     AddLogf(Info, "Open module: %s", MasterFile.c_str());
 }

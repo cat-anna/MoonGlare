@@ -1,17 +1,17 @@
 #ifndef DOCKWINDOW_H
 #define DOCKWINDOW_H
 
-#include <qobject.h>
 #include <ToolBase/Module.h>
-#include <ToolBase/iSettingsUser.h>
 #include <ToolBase/UserQuestions.h>
+#include <ToolBase/iSettingsUser.h>
+#include <qobject.h>
 
 namespace MoonGlare {
 namespace QtShared {
 
 class DockWindow 
 	: public QDockWidget
-	, public Editor::UserQuestions
+	, public UserQuestions
 	, public iSettingsUser
 	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT;

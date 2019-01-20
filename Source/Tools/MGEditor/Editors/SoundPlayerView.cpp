@@ -1,6 +1,6 @@
 #include PCH_HEADER
-#include <ui_SoundPlayerView.h>
 #include "SoundPlayerView.h"
+#include <ui_SoundPlayerView.h>
 
 #include <fmt/format.h>
 
@@ -25,6 +25,7 @@ SoundPlayerView::SoundPlayerView(QWidget * parent, SoundSystem::iSoundSystem *ss
 SoundPlayerView::~SoundPlayerView() {
     handleApi.Close(handle, false);
     handle = SoundSystem::SoundHandle::Invalid;
+    timer.reset();
     ui.reset();
 }
 

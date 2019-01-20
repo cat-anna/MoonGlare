@@ -9,14 +9,14 @@
 #ifndef EntityEditorModel_H
 #define EntityEditorModel_H
 
+#include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/UserQuestions.h>
 #include <ToolBase/iSettingsUser.h>
 #include <iEditor.h>
-#include <ChangesManager.h>
-#include <ToolBase/UserQuestions.h>
 
-#include <TypeEditor/Structure.h>
-#include <TypeEditor/CustomType.h>
 #include <TypeEditor/ComponentInfo.h>
+#include <TypeEditor/CustomType.h>
+#include <TypeEditor/Structure.h>
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
@@ -30,8 +30,8 @@ namespace DataModels {
 
 class EntityEditorModel
 		: public QWidget 
-		, public Editor::UserQuestions
-		, public QtShared::iChangeContainer
+		, public UserQuestions
+		, public iChangeContainer
 		, public iSettingsUser
 {
 	Q_OBJECT;

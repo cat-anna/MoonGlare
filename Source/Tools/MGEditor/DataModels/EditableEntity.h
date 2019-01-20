@@ -3,16 +3,17 @@
 #include <ToolBase/UserQuestions.h>
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
-#include <ChangesManager.h>
-#include <ToolBase/iSettingsUser.h>
+
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/iSettingsUser.h>
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
-#include <TypeEditor/x2cDataTree.h>
-#include <TypeEditor/Structure.h>
-#include <TypeEditor/CustomEditorItemDelegate.h>
 #include <TypeEditor/ComponentInfo.h>
+#include <TypeEditor/CustomEditorItemDelegate.h>
+#include <TypeEditor/Structure.h>
+#include <TypeEditor/x2cDataTree.h>
 
 namespace MoonGlare {
 namespace QtShared {

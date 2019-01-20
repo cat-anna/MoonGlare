@@ -9,10 +9,11 @@
 #ifndef FileSystemViewer_H
 #define FileSystemViewer_H
 
-#include <DockWindow.h>
-#include "../Notifications.h"
 #include "../FileSystem.h"
-#include <ChangesManager.h>
+#include "../Notifications.h"
+#include <DockWindow.h>
+
+#include <ToolBase/Modules/ChangesManager.h>
 #include <ToolBase/interfaces/ActionBarSink.h>
 
 namespace Ui { class PendingChanges; }
@@ -40,7 +41,7 @@ public:
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 protected:
 protected slots:
-	void ChangesChanged(QtShared::iChangeContainer* sender, bool state);
+	void ChangesChanged(iChangeContainer* sender, bool state);
 	void Refresh();
 	void SaveSingle();
 	void SaveAll();
@@ -52,6 +53,7 @@ private:
 	std::unique_ptr<Ui::PendingChanges> m_Ui;
 	std::unique_ptr<QStandardItemModel> m_ViewModel;
     std::shared_ptr<iActionProvider> actionProvider;
+    std::shared_ptr<ChangesManager> changesManager;
 };
 
 } //namespace DockWindows 
@@ -59,3 +61,4 @@ private:
 } //namespace MoonGlare 
 
 #endif
+

@@ -10,6 +10,8 @@
 
 namespace MoonGlare::PerfView {
 
+MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
+
 MainWindow::MainWindow(SharedModuleManager modmgr)
     : QMainWindow(nullptr), iModule(std::move(modmgr))
 {
@@ -17,14 +19,6 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
 
     ui = std::make_unique<Ui::MainWindow>();
     ui->setupUi(this);
-
-    //Chart *chart = new Chart();
-    //chart->setTitle("Dynamic spline chart");
-    //chart->legend()->hide();
-    //chart->setAnimationOptions(QChart::NoAnimation);
-    //QChartView *chartView = new QChartView(chart);
-    //chartView->setRenderHint(QPainter::Antialiasing);
-    //ui->verticalLayout->addWidget(chartView);
 
     chartManager = std::make_unique<ChartManager>(ui->scrollAreaContent, ui->verticalLayout_2);
 }

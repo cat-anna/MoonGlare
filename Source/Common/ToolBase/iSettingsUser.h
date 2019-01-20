@@ -93,14 +93,16 @@ public:
 		bool m_EnableSettings = true;
 	};
 
+    struct CustomConfigSet {
+        virtual ~CustomConfigSet() = default;
+        virtual void SaveSettings(pugi::xml_node node) = 0;
+        virtual void LoadSettings(pugi::xml_node node) = 0;
+        virtual std::string GetName() const = 0;
+    };
 protected:
-
-	virtual void SaveStaticSettings(pugi::xml_node node);
-	virtual void LoadStaticSettings(pugi::xml_node node);
-
 	void SaveSettings(iSettingsUser *user);
 	void LoadSettings(iSettingsUser *user);
-	pugi::xml_node StaticSettingsRoot();
+	pugi::xml_node CustomSettingsRoot();
 	pugi::xml_node DynamicSettingsRoot();
 	
 	std::unique_ptr<pugi::xml_document> m_SettingsDoc;

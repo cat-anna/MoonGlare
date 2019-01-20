@@ -19,8 +19,7 @@ bool iSettings::Initialize() {
 
     auto appc = GetModuleManager()->QuerryModule<AppConfig>();
 
-
-    m_FileName = appc->Get("ConfigFile");
+    m_FileName = appc->Get("ConfigPath") + "/" + appc->Get("AppName") + ".xml";
 
     Load();
     GetModuleManager()->LoadSettigs();
@@ -44,15 +43,30 @@ iSettings* iSettings::GetiSettings() {
 void iSettings::Load() {
 	m_SettingsDoc = std::make_unique<pugi::xml_document>();
 	m_SettingsDoc->load_file(m_FileName.c_str());
-	LoadStaticSettings(StaticSettingsRoot());
+
+    auto customRoot = CustomSettingsRoot();
+    for (auto mod : GetModuleManager()->QuerryInterfaces<CustomConfigSet>()) {
+        auto name = mod.m_Interface->GetName();
+        auto node = customRoot.child(name.c_str());
+        mod.m_Interface->LoadSettings(node);
+    }
 }
 
 void iSettings::Save() {
 	{
-		auto root = StaticSettingsRoot();
+		auto root = CustomSettingsRoot();
 		root.parent().remove_child(root);
 	}
-	SaveStaticSettings(StaticSettingsRoot());
+
+    auto customRoot = CustomSettingsRoot();
+    for (auto mod : GetModuleManager()->QuerryInterfaces<CustomConfigSet>()) {
+        auto name = mod.m_Interface->GetName();
+        auto node = customRoot.child(name.c_str());
+        if (!node)
+            node = customRoot.append_child(name.c_str());
+        mod.m_Interface->SaveSettings(node);
+    }
+
 	m_SettingsDoc->save_file(m_FileName.c_str());
 }
 
@@ -75,14 +89,14 @@ void iSettings::LoadSettings(iSettingsUser *user) {
 	user->DoLoadSettings(DynamicSettingsRoot().child(group.c_str()));
 }
 
-pugi::xml_node iSettings::StaticSettingsRoot() {
+pugi::xml_node iSettings::CustomSettingsRoot() {
 	auto root = m_SettingsDoc->document_element();
 	if (!root) {
 		root = m_SettingsDoc->append_child("Settings");
 	}
-	auto Static = root.child("Settings");
+	auto Static = root.child("Custom");
 	if (!Static) {
-		Static = root.append_child("Settings");
+		Static = root.append_child("Custom");
 	}
 	return Static;
 }
@@ -98,9 +112,6 @@ pugi::xml_node iSettings::DynamicSettingsRoot() {
 	}
 	return dynamic;
 }
-
-void iSettings::SaveStaticSettings(pugi::xml_node node) {}
-void iSettings::LoadStaticSettings(pugi::xml_node node) {}
 
 //-----------------------------------------
 

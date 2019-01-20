@@ -1,11 +1,11 @@
 #ifndef BUILDOPTIONS_H
 #define BUILDOPTIONS_H
 
-#include <ToolBase/UserQuestions.h>
 #include <SubDialog.h>
+#include <ToolBase/UserQuestions.h>
 
-#include "BuildProcess.h"
 #include "../DataModule.h"
+#include "BuildProcess.h"
 
 namespace Ui { class BuildOptions; }
 
@@ -14,7 +14,7 @@ namespace Editor {
 
 class BuildOptions
     : public QtShared::SubDialog
-    , public Editor::UserQuestions
+    , public UserQuestions
 {
     Q_OBJECT
 public:

@@ -3,11 +3,12 @@
 #include <unordered_set>
 
 #include <qwidget.h>
-#include <ChangesManager.h>
-#include <iEditor.h>
+
 #include <Filesystem.h>
-#include <ToolBase/UserQuestions.h>
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/UserQuestions.h>
+#include <iEditor.h>
 
 #include <Foundation/SoundSystem/iSoundSystem.h>
 #include <ToolBase/interfaces/MainWindowTabs.h>
@@ -19,7 +20,7 @@ namespace MoonGlare::Editor {
 class StringTableEditor
     : public QWidget
     , public QtShared::iEditor
-    , public QtShared::iChangeContainer 
+    , public iChangeContainer 
     , public iTabViewBase
     , public UserQuestions
 {

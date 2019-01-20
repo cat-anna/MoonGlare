@@ -6,14 +6,14 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 
-#include <ui_EntityEditorModel.h>
 #include <icons.h>
+#include <ui_EntityEditorModel.h>
 
 #include "EntityEditorModel.h"
 
-#include <TypeEditor/x2cDataTree.h>
-#include <TypeEditor/Structure.h>
 #include <TypeEditor/CustomEditorItemDelegate.h>
+#include <TypeEditor/Structure.h>
+#include <TypeEditor/x2cDataTree.h>
 
 namespace MoonGlare {
 namespace QtShared {
@@ -93,6 +93,8 @@ EntityEditorModel::EntityEditorModel(QWidget * parent)
 }
 
 EntityEditorModel::~EntityEditorModel() {
+    m_EntityModel.reset();
+    m_ComponentModel.reset();
     m_Ui.reset();
 }
 

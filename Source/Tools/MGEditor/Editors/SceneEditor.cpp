@@ -7,14 +7,14 @@
 #include PCH_HEADER
 #include "SceneEditor.h"
 
-#include <ui_SceneEditor.h>
-#include <DockWindowInfo.h>
-#include <icons.h>
 #include "../Windows/MainWindow.h"
+#include <DockWindowInfo.h>
 #include <FileSystem.h>
+#include <icons.h>
+#include <ui_SceneEditor.h>
 
-#include <iFileIconProvider.h>
 #include <TypeEditor/CustomEditorItemDelegate.h>
+#include <iFileIconProvider.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -94,6 +94,8 @@ SceneEditor::SceneEditor(QWidget * parent, SharedModuleManager modmgr)
 }
 
 SceneEditor::~SceneEditor() {
+    m_ComponentModel.reset();
+    m_ComponentModel.reset();
 	m_Ui.reset();
 }
 

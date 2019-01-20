@@ -3,8 +3,8 @@
 
 #include <DockWindowInfo.h>
 #include <Notifications.h>
+#include <ToolBase/Modules/ChangesManager.h>
 #include <ToolBase/UserQuestions.h>
-#include <ChangesManager.h>
 
 #include <DataModels/StructureEditingModel.h>
 
@@ -15,11 +15,11 @@ namespace Editor {
 
 class SettingsWindow
 	: public QDialog
-	, public Editor::UserQuestions
+	, public UserQuestions
 	, public iSettingsUser {
 	Q_OBJECT
 public:
-	SettingsWindow(QWidget *parent = 0);
+	SettingsWindow(SharedModuleManager modmgr, QWidget *parent = 0);
 	~SettingsWindow();
 protected:
 	void closeEvent(QCloseEvent * event);
@@ -27,8 +27,13 @@ protected:
 
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
+
+    SharedModuleManager GetModuleManager() {
+        return moduleManager;
+    }
 private:
 	std::unique_ptr<Ui::SettingsWindow> m_Ui;
+    SharedModuleManager moduleManager;
 protected slots:
 };
 

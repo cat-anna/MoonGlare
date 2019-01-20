@@ -9,13 +9,14 @@
 #ifndef SceneEditor_H
 #define SceneEditor_H
 
-#include <DockWindow.h>
-#include "../Notifications.h"
 #include "../FileSystem.h"
-#include <ChangesManager.h>
+#include "../Notifications.h"
+#include <DockWindow.h>
 
-#include <DataModels/StructureEditingModel.h>
+#include <ToolBase/Modules/ChangesManager.h>
+
 #include <DataModels/EntityEditorModel.h>
+#include <DataModels/StructureEditingModel.h>
 #include <TypeEditor/ComponentInfo.h>
 
 namespace Ui { class SceneEditor; }
@@ -44,7 +45,7 @@ struct SceneEditorRole {
 
 class SceneEditor
 	: public QtShared::DockWindow
-	, public QtShared::iChangeContainer
+	, public iChangeContainer
 	, public QtShared::iEditor {
 	Q_OBJECT;
 public:

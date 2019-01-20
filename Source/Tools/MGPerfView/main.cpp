@@ -18,7 +18,7 @@ namespace {
 MoonGlare::AppConfig::MapType GetAppConig() {
     return {
         {"AppName", "MGPerfView"},
-        {"ConfigFile", MoonGlare::OS::GetSettingsDirectory() + "/MGPerfView.xml" },
+        {"ConfigPath", MoonGlare::OS::GetSettingsDirectory() },
     };
 }
 
@@ -27,7 +27,6 @@ MoonGlare::AppConfig::MapType GetAppConig() {
 int main(int argc, char* argv[]) {
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
-    //auto basep = boost::filesystem::path(argv[0]).parent_path();
     LogCollector::AddLogSink<StdFileLoggerSink>("logs/MGPerfView.log");
 
     using MoonGlare::PerfView::MainWindow;
@@ -37,7 +36,6 @@ int main(int argc, char* argv[]) {
     qInstallMessageHandler(&MoonGlare::QtLogSink);
 
     MoonGlare::RegisterBaseModules();
-    MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
 
     {
         auto modmgr = MoonGlare::ModuleManager::CreateModuleManager(GetAppConig());
@@ -47,7 +45,6 @@ int main(int argc, char* argv[]) {
         modmgr.reset();
     }
 
-    //MoonGlare::Editor::EditorSettings::getInstance().Save();
     LogCollector::Stop();
     return r;
 }

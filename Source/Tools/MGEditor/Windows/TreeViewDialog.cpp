@@ -1,8 +1,8 @@
 #include PCH_HEADER
-#include <qobject.h>
-#include "EditorSettings.h"
 #include "TreeViewDialog.h"
+#include "EditorSettings.h"
 #include "ui_TreeViewDialog.h"
+#include <qobject.h>
 
 #include <DockWindow.h>
 #include <ToolBase/UserQuestions.h>
@@ -29,7 +29,7 @@ TreeViewDialog::TreeViewDialog(QWidget *parent, const std::string settingsName)
 
 TreeViewDialog::~TreeViewDialog() {
     SaveSettings();
-    ui.release();
+    ui.reset();
 }
 
 QTreeView* TreeViewDialog::GetTreeView() {
@@ -62,3 +62,4 @@ void TreeViewDialog::closeEvent(QCloseEvent * event) {
 
 } //namespace Editor
 } //namespace MoonGlare
+

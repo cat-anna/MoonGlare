@@ -1,10 +1,10 @@
-#ifndef SETTINGSWINDOW_H
-#define SETTINGSWINDOW_H
+#pragma once
 
 #include <DockWindowInfo.h>
 #include <Notifications.h>
+
+#include <ToolBase/Modules/ChangesManager.h>
 #include <ToolBase/UserQuestions.h>
-#include <ChangesManager.h>
 
 #include <DataModels/StructureEditingModel.h>
 
@@ -35,5 +35,3 @@ protected slots:
 
 } //namespace Editor
 } //namespace MoonGlare
-
-#endif // SETTINGSWINDOW_H

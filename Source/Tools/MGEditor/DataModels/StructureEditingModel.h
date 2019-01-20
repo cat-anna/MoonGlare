@@ -4,11 +4,12 @@
 
 #include <QtWidgets/QTreeView>
 
-#include <ToolBase/UserQuestions.h>
 #include <TypeEditor/CustomType.h>
 #include <TypeEditor/Structure.h>
-#include <ChangesManager.h>
+
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/UserQuestions.h>
 #include <ToolBase/iSettingsUser.h>
 
 #include "EditableEntity.h"
@@ -20,7 +21,7 @@ namespace DataModels {
 class StructureEditingModel 
 		: public QTreeView
 		, public iSettingsUser
-		, public QtShared::iChangeContainer {
+		, public iChangeContainer {
 	Q_OBJECT;
 public:
 	StructureEditingModel(QWidget *parent);

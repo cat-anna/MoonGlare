@@ -1,7 +1,7 @@
 #include PCH_HEADER
 
-#include "DockWindow.h"
 #include "DockWindowInfo.h"
+#include "DockWindow.h"
 
 #include <ToolBase/Module.h>
 
@@ -48,21 +48,25 @@ void BaseDockWindowModule::ReleaseInstance() {
 }
 
 void BaseDockWindowModule::WindowClosed(DockWindow* Sender) {
+    visible = false;
 	ReleaseInstance();
 }
 
 void BaseDockWindowModule::Show() {
+    visible = true;
 	GetInstance(nullptr)->show();
 }
 
 bool BaseDockWindowModule::DoSaveSettings(pugi::xml_node node) const {
-	XML::UniqeChild(node, "BaseDockWindowModule:Visible").text() = static_cast<bool>(m_Instance);
+    XML::UniqeChild(node, "BaseDockWindowModule:Visible").text() = visible;
 	return true;
 }
 
 bool BaseDockWindowModule::DoLoadSettings(const pugi::xml_node node) {
-	if (node.child("BaseDockWindowModule:Visible").text().as_bool())
-		Show();
+    if (node.child("BaseDockWindowModule:Visible").text().as_bool()) {
+        visible = true;
+        Show();
+    }
 	return false;
 }
 

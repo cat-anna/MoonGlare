@@ -11,16 +11,18 @@
 
 namespace MoonGlare {
 namespace QtShared {
-								 
+                                 
 struct MainWindowProvider {
-	virtual ~MainWindowProvider() {}
-	virtual QWidget *GetMainWindowWidget() = 0;
+    virtual ~MainWindowProvider() {}
+    virtual QWidget *GetMainWindowWidget() = 0;
 };
 
 template<typename T>
 struct QtWindowProvider {
-	virtual ~QtWindowProvider() {}
-	virtual T *GetWindow() = 0;
+    virtual ~QtWindowProvider() {}
+    virtual T *GetWindow() {
+        return dynamic_cast<T*>(this);
+    }
 };
 
 } //namespace QtShared

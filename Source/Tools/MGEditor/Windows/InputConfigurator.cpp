@@ -1,10 +1,10 @@
 #include PCH_HEADER
-#include <qobject.h>
-#include <pugixml.hpp>
-#include <GLFW/glfw3.h>
 #include "InputConfigurator.h"
 #include "ui_InputConfigurator.h"
+#include <GLFW/glfw3.h>
 #include <boost/algorithm/string.hpp>
+#include <pugixml.hpp>
+#include <qobject.h>
 
 #include <ToolBase/UserQuestions.h>
 
@@ -460,6 +460,8 @@ InputConfigurator::InputConfigurator(QWidget *parent, SharedModuleManager Module
 }
 
 InputConfigurator::~InputConfigurator() {
+    dataModel.reset();
+    model.reset();
     ui.reset();
 }
 

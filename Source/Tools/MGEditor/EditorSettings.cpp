@@ -13,15 +13,9 @@
 namespace MoonGlare {
 namespace Editor {
 
-EditorSettings* EditorSettings::_Instance = nullptr;
+MoonGlare::ModuleClassRgister::Register<EditorSettings> EditorSettingsReg("EditorSettings");
 
-EditorSettings::EditorSettings(std::string basePath): basePath(std::move(basePath)) {
-	_Instance = this;
-	m_FileName = "Editor.xml";
-    if (!this->basePath.empty()) {
-        m_FileName = this->basePath + "/" + m_FileName;
-    }
-
+EditorSettings::EditorSettings(SharedModuleManager modmgr): iModule(modmgr) {
 	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorConfiguration_t>();
 	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorState_t>();
 }
@@ -29,18 +23,17 @@ EditorSettings::EditorSettings(std::string basePath): basePath(std::move(basePat
 EditorSettings::~EditorSettings() {
 }
 
-EditorSettings& EditorSettings::getInstance() {
-	return *_Instance;
+//-----------------------------------------
+std::string EditorSettings::GetName() const {
+    return "Settings";
 }
 
-//-----------------------------------------
-
-void EditorSettings::SaveStaticSettings(pugi::xml_node node) {
+void EditorSettings::SaveSettings(pugi::xml_node node) {
 	m_State.Write(node, "State");
 	m_Configuration.Write(node, "Configuration");
 }
 
-void EditorSettings::LoadStaticSettings(pugi::xml_node node) {
+void EditorSettings::LoadSettings(pugi::xml_node node) {
 	m_State.ResetToDefault();
 	m_State.Read(node, "State");
 	m_Configuration.ResetToDefault();
@@ -49,3 +42,4 @@ void EditorSettings::LoadStaticSettings(pugi::xml_node node) {
 
 } //namespace Editor
 } //namespace MoonGlare
+
