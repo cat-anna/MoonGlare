@@ -1,23 +1,25 @@
 #include <pch.h>
 
+#include <nfMoonGlare.h>
+
 #include <libSpace/src/Container/EnumMapper.h>
 
 #include <Foundation/iFileSystem.h>
 
-#include <Foundation/Component/EventDispatcher.h>
 #include <Foundation/Component/EntityManager.h>
+#include <Foundation/Component/EventDispatcher.h>
 
-#include <nfMoonGlare.h>
 #include "ScenesManager.h"
 #include <Engine/Core/Engine.h>
 
 #include "../Component/SubsystemManager.h"
 
-#include <Renderer/Deferred/DeferredFrontend.h>
 #include <Core/Scripts/LuaApi.h>
+#include <Renderer/Deferred/DeferredFrontend.h>
 
 #include <Math.x2c.h>
 #include <StaticFog.x2c.h>
+
 #include <Scene.x2c.h>
 
 #include "Scene.Events.h"
@@ -54,7 +56,7 @@ struct SceneInstance : private boost::noncopyable {
     MoonGlare::Renderer::StaticFog staticFog = { };
     Entity sceneRoot;
 
-    SceneInstance(std::string name) : sceneName(std::move(name)) {
+    SceneInstance(InterfaceMap &ifaceMap, std::string name) : sceneName(std::move(name)), subsystemManager(ifaceMap) {
         SetFenceState(std::string(SceneNotReadyFenceName), true);
     }
 
@@ -318,7 +320,7 @@ SceneInstance* ScenesManager::CreateScene(const std::string &descName, const std
         return nullptr;
     }
 
-    auto sceneuptr = std::make_unique<SceneInstance>(sceneName);
+    auto sceneuptr = std::make_unique<SceneInstance>(interfaceMap, sceneName);
     auto &scene = *sceneuptr;
     scene.descriptor = desc;
     scene.entityManager = entityManager;

@@ -2,15 +2,19 @@
 
 #include <pugixml.hpp>
 
-#include <qobject.h>
-
+#include "Module.h"
 #include <Foundation/XMLUtils.h>
 
 namespace MoonGlare {
 
-class iSettings : public QObject {
-	Q_OBJECT;
+class iSettings : public iModule {
 public:
+    iSettings(SharedModuleManager modmgr);
+    virtual ~iSettings() override;
+
+    bool Initialize()  override;
+    bool Finalize()  override;
+
 	void Save();
 	void Load();
 
@@ -90,8 +94,6 @@ public:
 	};
 
 protected:
-	iSettings();
-	~iSettings();
 
 	virtual void SaveStaticSettings(pugi::xml_node node);
 	virtual void LoadStaticSettings(pugi::xml_node node);

@@ -2,13 +2,14 @@
 #include<Foundation/Settings.h>
 
 #include "nfRenderer.h"
+
 #include "Renderer.h"
 
-#include "RenderDevice.h"
-#include "Frame.h"
 #include "Device/GLFWContext.h"
-#include "Resources/ResourceManager.h"
+#include "Frame.h"
+#include "RenderDevice.h"
 #include "Resources/AsyncLoader.h"
+#include "Resources/ResourceManager.h"
 #include "ScriptApi.h"
 
 namespace MoonGlare::Renderer {
@@ -83,7 +84,7 @@ void RendererFacade::Initialize(const ContextCreationInfo& ctxifo, iFileSystem *
         throw InitFailureException("Context subsystem initialization failed!");
     }
 
-    m_Device = Memory::make_aligned<RenderDevice>();
+    m_Device = Memory::make_aligned<RenderDevice>(interfaceMap);
     m_ResourceManager = Memory::make_aligned<Resources::ResourceManager>();
 
     m_Context = Memory::make_aligned<Device::GLFWContext>(ctxifo, m_Device.get());
@@ -151,3 +152,4 @@ iAsyncLoader* RendererFacade::GetAsyncLoader() {
 }
 
 } //namespace MoonGlare::Renderer
+

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <libSpace/src/Utils/DynamicClassRegister.h>
 #include <Foundation/InterfaceMap.h>
+#include <libSpace/src/Utils/DynamicClassRegister.h>
 
 namespace MoonGlare {
 
@@ -63,7 +63,7 @@ struct ModuleInterfacePair {
 class ModuleManager : public std::enable_shared_from_this<ModuleManager> {
 public:
 	virtual ~ModuleManager() {}
-	static SharedModuleManager CreateModuleManager();
+    static SharedModuleManager CreateModuleManager(std::unordered_map<std::string, std::string> AppConfig = {});
 	bool Initialize();
 	bool Finalize();
 
@@ -129,7 +129,6 @@ public:
 	void SaveSettigs();
 protected:
 	ModuleManager();
-private:
     InterfaceMap interfaceMap;
 	std::vector<SharedModule> m_Modules;
     std::unordered_map<std::type_index, std::any> m_CustomInterfaces;

@@ -7,7 +7,7 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
              
-using namespace MoonGlare::Debug::InsiderApi;
+using namespace MoonGlare::Tools::RemoteConsole;
 
 //--------------------------------
 

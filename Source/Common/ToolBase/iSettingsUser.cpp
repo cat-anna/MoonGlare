@@ -1,16 +1,39 @@
 #include "iSettingsUser.h"
+#include "AppConfig.h"
 
 namespace MoonGlare {
 
 static iSettings *l_iSettingsInstance = nullptr;
 
-iSettings::iSettings() {
+iSettings::iSettings(SharedModuleManager modmgr) : iModule(modmgr) {
 	l_iSettingsInstance = this;
 	m_FileName = "Unknown.Settings.xml";
 }
 
 iSettings::~iSettings() {
 }
+
+bool iSettings::Initialize() {
+    if (!GetModuleManager())
+        return true;
+
+    auto appc = GetModuleManager()->QuerryModule<AppConfig>();
+
+
+    m_FileName = appc->Get("ConfigFile");
+
+    Load();
+    GetModuleManager()->LoadSettigs();
+    return true;
+}
+
+bool iSettings::Finalize() {
+    GetModuleManager()->SaveSettigs();
+    Save();
+    return true;
+}
+
+//-----------------------------------------
 
 iSettings* iSettings::GetiSettings() {
 	return l_iSettingsInstance;

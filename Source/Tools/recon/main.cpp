@@ -3,10 +3,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#include <string.h>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <string.h>
 
 #pragma warning ( disable: 4966 )
 
@@ -16,24 +16,24 @@
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
-#include <Foundation/Memory/nMemory.h>
 #include <Foundation/Memory/Memory.h>
+#include <Foundation/Memory/nMemory.h>
 
-#include <libSpace/src/Memory/Handle.h>
 #include <Engine/Configuration.h>
-#include <Foundation/MoonGlareInsider.h>
+#include <Foundation/Tools/RemoteConsoleApi.h>
+#include <libSpace/src/Memory/Handle.h>
 
 #include <libSpace/src/Utils/ParamParser.cpp>
 
-#include "Recon.h"
 #include "MainWindow.h"
+#include "Recon.h"
 
 
 using namespace std;
-using namespace MoonGlare::Debug::InsiderApi;
+using namespace MoonGlare::Tools::RemoteConsole;
 
 string _infile = "";
-string _Port = std::to_string(Configuration::recon_Port);
+string _Port = std::to_string(ReconPort);
 string _Host = "localhost";
 std::vector<std::string> Lines4Send;
 
@@ -73,11 +73,11 @@ int main(int argc, char** argv) {
         Params.Parse(argc, argv);
         auto recon = std::make_shared<ReconData>(_Host, _Port);
 
-        char buffer[Configuration::MaxMessageSize];
+        char buffer[MoonGlare::Tools::MaxMessageSize];
         auto *header = reinterpret_cast<MessageHeader*>(buffer);
-        header->MessageType = MessageTypes::ExecuteCode;
+        header->messageType = MessageType::ExecuteCode;
 
-        char *strbase = (char*)header->PayLoad;
+        char *strbase = (char*)header->payLoad;
 
         if (Params.Flags & Flags::SendFile) {
             std::ifstream inp(_infile, std::ios::in | std::ios::binary);
@@ -86,14 +86,14 @@ int main(int argc, char** argv) {
             inp.seekg(0);
             inp.read(strbase, len);
             strbase[len] = 0;
-            header->PayloadSize = strlen(strbase) + 1;
+            header->payloadSize = strlen(strbase) + 1;
             recon->Send(header);
             return 0;
         }
 
         if (Params.Flags & Flags::Lines) {
             for (auto &l : Lines4Send) {
-                header->PayloadSize = l.length() + 1;
+                header->payloadSize = l.length() + 1;
                 memcpy(strbase, l.c_str(), l.length());
                 strbase[l.length()] = 0;
                 recon->Send(header);
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
                 if (!(Params.Flags & Flags::Buffer))
                     break;
             }
-            header->PayloadSize = strlen(strbase) + 1;
+            header->payloadSize = strlen(strbase) + 1;
             recon->Send(header);
         } while (repetitive);
     }

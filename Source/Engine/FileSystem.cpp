@@ -1,9 +1,10 @@
 #include <pch.h>
+
 #include <nfMoonGlare.h>
 
-#include <StarVFS/core/nStarVFS.h>
-#include <Core/Scripts/LuaApi.h>
 #include "Core/DataManager.h"
+#include <Core/Scripts/LuaApi.h>
+#include <StarVFS/core/nStarVFS.h>
 
 namespace MoonGlare {
 namespace FileSystem {
@@ -287,3 +288,4 @@ std::string MoonGlareFileSystem::GetFullFileName(StarVFS::FileID fid) const {
 
 } //namespace FileSystem 
 } //namespace MoonGlare 
+

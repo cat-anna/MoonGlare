@@ -2,6 +2,12 @@
 
 namespace MoonGlare {
 
-void RegisterTollBaseAllModules();
+void RegisterBaseModules();
+void RegisterImporterModules();
+
+inline void RegisterAllModules() {
+    RegisterBaseModules();
+    RegisterAllModules();
+}
 
 }

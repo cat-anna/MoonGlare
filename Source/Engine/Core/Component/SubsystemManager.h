@@ -1,16 +1,20 @@
 #pragma once
 
 #include <Foundation/Component/EventDispatcher.h>
+
 #include <Foundation/Component/iSubsystem.h>
+
 #include <Foundation/Component/EntityEvents.h>
+
+#include <Foundation/Tools/PerfViewClient.h>
 
 namespace MoonGlare::Core::Component {
 using namespace MoonGlare::Component;
 
 class SubsystemManager final  
-        : public MoonGlare::Component::iSubsystemManager {
+        : public MoonGlare::Component::iSubsystemManager, protected Tools::PerfView::PerfProducer {
 public:
-    SubsystemManager();
+    explicit SubsystemManager(InterfaceMap &ifaceMap);
     ~SubsystemManager() override;
 
     bool Initialize(Entity root);
@@ -55,9 +59,9 @@ private:
     EventDispatcher m_EventDispatcher;
     ComponentArray componentArray;
 
-#ifdef PERF_PERIODIC_PRINT
-    std::array<ComponentInfo, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentInfo;
-#endif
+//#ifdef PERF_PERIODIC_PRINT
+//    std::array<ComponentInfo, MoonGlare::Configuration::Storage::MaxComponentCount> m_ComponentInfo;
+//#endif
 
     bool InsertComponent(UniqueSubsystem cptr, SubSystemId cid);
 };

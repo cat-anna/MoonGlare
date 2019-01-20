@@ -5,17 +5,22 @@
 */
 /*--END OF HEADER BLOCK--*/
 
-#include "nfRenderer.h"
 #include "RenderDevice.h"
-#include "Renderer.h"
 #include "Frame.h"
+#include "Renderer.h"
+#include "nfRenderer.h"
 
-#include "Device/ErrorHandler.h"
 #include "Device/DeviceInfo.h"
+#include "Device/ErrorHandler.h"
 
 #include "Resources/Texture/FreeImageStore.h"
 
 namespace MoonGlare::Renderer {
+
+RenderDevice::RenderDevice(InterfaceMap &ifaceMap) : PerfProducer(ifaceMap) {
+    auto cid = AddChart("FrameStats");
+    AddSeries("RenderTime", Unit::Miliseconds, cid);
+}
 
 bool RenderDevice::Initialize(RendererFacade *renderer) {
     assert(renderer);
@@ -132,8 +137,11 @@ void RenderDevice::Step() {
     if (!frame)
         return;
 
+    auto start = std::chrono::steady_clock::now();
     ProcessFrame(frame);
     ReleaseFrame(frame);
+    auto end = std::chrono::steady_clock::now();
+    AddData(1, (float)TimeDiff(start, end));
 }
 
 void RenderDevice::ProcessFrame(Frame *frame) {

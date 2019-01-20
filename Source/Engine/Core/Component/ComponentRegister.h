@@ -17,6 +17,8 @@ namespace Component {
 
 using namespace MoonGlare::Component;
 
+class SubsystemManager;
+
 struct LuaMetamethods {
 	lua_CFunction m_Index = nullptr;
 	lua_CFunction m_NewIndex = nullptr;

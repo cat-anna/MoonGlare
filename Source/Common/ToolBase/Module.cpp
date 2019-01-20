@@ -1,24 +1,37 @@
 
 #include <OrbitLogger/src/OrbitLogger.h>
 
+#include "AppConfig.h"    
 #include "Module.h"
-#include "iSettingsUser.h"    
 #include "ModuleRegistration.h"
+#include "iSettingsUser.h"    
 
 namespace MoonGlare {
 
-SharedModuleManager ModuleManager::CreateModuleManager() {
-	struct ModMgrImpl : public ModuleManager {
-		ModMgrImpl() {}
-	};
-	return std::make_shared<ModMgrImpl>();
+struct AppConfigImpl : public AppConfig {
+    AppConfigImpl(SharedModuleManager modmgr, MapType appConfig) :AppConfig(modmgr){
+        values.swap(appConfig);
+        SetAlias("AppConfig");
+    }
+};
+
+struct ModMgrImpl : public ModuleManager {
+    ModMgrImpl() { }
+
+    void SetAppConfig(AppConfig::MapType appConfig) {
+        m_Modules.emplace_back(std::make_shared<AppConfigImpl>(shared_from_this(), std::move(appConfig)));
+    }
+};
+
+SharedModuleManager ModuleManager::CreateModuleManager(AppConfig::MapType AppConfig) {
+	auto modmgr = std::make_shared<ModMgrImpl>();
+    modmgr->SetAppConfig(std::move(AppConfig));
+    return modmgr;
 }
 
 ModuleManager::ModuleManager() {}
 
 bool ModuleManager::Initialize() {
-    RegisterTollBaseAllModules();
-
 	bool ret = true;
 	auto self = shared_from_this();
 	ModuleClassRgister::GetRegister()->Enumerate([this, &ret, self] (auto &ci) {

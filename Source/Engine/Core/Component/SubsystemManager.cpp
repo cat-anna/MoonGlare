@@ -1,21 +1,22 @@
 #include <pch.h>
 
+#include <nfMoonGlare.h>
+
 #include <Foundation/Component/SystemInfo.h>
 
-#include <nfMoonGlare.h>
-#include <Engine/Core/Engine.h>
-#include "SubsystemManager.h"
 #include "ComponentRegister.h"
+#include "SubsystemManager.h"
+#include <Engine/Core/Engine.h>
 
-#include "TemplateStandardComponent.h"
 #include "../../Component/TransformComponent.h"
+#include "TemplateStandardComponent.h"
 
 #include <Core/Scripts/ScriptComponent.h>
 
 namespace MoonGlare::Core::Component {
 
-SubsystemManager::SubsystemManager() 
-    : m_UsedCount(0) {
+SubsystemManager::SubsystemManager(InterfaceMap &ifaceMap) 
+    : m_UsedCount(0), componentArray(ifaceMap), PerfProducer(ifaceMap) {
 
     m_World = GetEngine()->GetWorld();//TODO
 }
@@ -35,9 +36,9 @@ void SubsystemManager::HandleEvent(const EntityDestructedEvent &event) {
 bool SubsystemManager::Initialize(Entity root) {
     rootEntity = root;
 
-#ifdef PERF_PERIODIC_PRINT
-    m_ComponentInfo.fill({});
-#endif
+//#ifdef PERF_PERIODIC_PRINT
+    //m_ComponentInfo.fill({});
+//#endif
     
     for (size_t i = 0; i < m_UsedCount; ++i) {
         if (!m_Components[i]->Initialize()) {
@@ -67,14 +68,16 @@ bool SubsystemManager::Finalize() {
 //---------------------------------------------------------------------------------------
 
 bool SubsystemManager::LoadSystems(pugi::xml_node node) {
-#ifdef PERF_PERIODIC_PRINT
-    m_ComponentInfo.fill({});
-#endif
+//#ifdef PERF_PERIODIC_PRINT
+//    m_ComponentInfo.fill({});
+//#endif
     m_UsedCount = 0;
     if (!node) {
         AddLog(Warning, "Attempt to load components from invalid node!");
         return true;
     }
+
+    auto chartid = AddChart(fmt::format("SubsystemManager_{}", this));
 
     for (auto it = node.first_child(); it; it = it.next_sibling()) {
         SubSystemId cid = SubSystemId::Invalid;
@@ -90,11 +93,13 @@ bool SubsystemManager::LoadSystems(pugi::xml_node node) {
             auto cptr = info.infoPtr->MakeInstance(this);
 
             AddLogf(Hint, "Installing system sci:%d (%s)", (int)infoopt.value(), typeid(*cptr.get()).name());
+            AddSeries((unsigned)m_UsedCount, std::string(it.attribute("Name").as_string()), Unit::Miliseconds, chartid);
             if (!InsertComponent(std::move(cptr), (SubSystemId)infoopt.value())) {
-                AddLog(Error, "Failed to install TransformComponent");
+                AddLog(Error, "Failed to install component");
             }
 
-            AddLogf(Warning, "Unknown component!");
+
+            //AddLogf(Warning, "Unknown component!");
             continue;
         }
 
@@ -116,8 +121,9 @@ bool SubsystemManager::LoadSystems(pugi::xml_node node) {
         }
 
         AddLogf(Hint, "Installing component cid:%d (%s)", cid, typeid(*cptr.get()).name());
+        AddSeries((unsigned)m_UsedCount, std::string(info->m_Name), Unit::Miliseconds, chartid);
         if (!InsertComponent(std::move(cptr), cid)) {
-            AddLog(Error, "Failed to install TransformComponent");
+            AddLog(Error, "Failed to install component");
             continue;
         }
     }
@@ -159,9 +165,11 @@ bool SubsystemManager::InsertComponent(UniqueSubsystem cptr, SubSystemId cid) {
 
 void SubsystemManager::Step(const MoveConfig &config) {
 
-    if (config.m_SecondPeriod) {
-        componentArray.DumpStatus("Periodic");     
-    }
+    componentArray.Step();
+
+    //if (config.m_SecondPeriod) {
+        //componentArray.DumpStatus("Periodic");     
+    //}
 
 #ifndef PERF_PERIODIC_PRINT
     for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
@@ -176,30 +184,31 @@ void SubsystemManager::Step(const MoveConfig &config) {
         m_Components[i]->Step(config);
         auto StopTime = std::chrono::steady_clock::now();
         std::chrono::duration<float> delta = StopTime - ComponentStartTime;
-        m_ComponentInfo[i].m_TotalStepDuration += delta.count();
-        ++m_ComponentInfo[i].m_PeriodCount;
+        //m_ComponentInfo[i].m_TotalStepDuration += delta.count();
+        //++m_ComponentInfo[i].m_PeriodCount;
         ComponentStartTime = StopTime;
+        AddData(i, delta.count());
     }
 
     m_EventDispatcher.Step();
 
-    if (config.m_SecondPeriod) {
-        std::string oss;
-        oss.reserve(1024);
-        char buf[256];
-        float sum = 0.0f;
-        for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
-            auto &ci = m_ComponentInfo[i];
-            float ms = (ci.m_TotalStepDuration / (float)ci.m_PeriodCount) * 1000.0f;
-            sum += ms;
-            ci.m_TotalStepDuration = 0.0f;
-            ci.m_PeriodCount = 0;
-            sprintf_s(buf, "%02x:%7.5fms | ", m_ComponentsIDs[i], ms);
-            oss += buf;
-        }
-         
-        AddLogf(Performance, "SubsystemManager:%p  %sTotal:%7.5fms", this, oss.c_str(), sum);
-    }
+    //if (config.m_SecondPeriod) {
+    //    std::string oss;
+    //    oss.reserve(1024);
+    //    char buf[256];
+    //    float sum = 0.0f;
+    //    for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
+    //        auto &ci = m_ComponentInfo[i];
+    //        float ms = (ci.m_TotalStepDuration / (float)ci.m_PeriodCount) * 1000.0f;
+    //        sum += ms;
+    //        ci.m_TotalStepDuration = 0.0f;
+    //        ci.m_PeriodCount = 0;
+    //        sprintf_s(buf, "%02x:%7.5fms | ", m_ComponentsIDs[i], ms);
+    //        oss += buf;
+    //    }
+    //     
+    //    AddLogf(Performance, "SubsystemManager:%p  %sTotal:%7.5fms", this, oss.c_str(), sum);
+    //}
 
 #endif
 }

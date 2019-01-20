@@ -5,10 +5,12 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+
 #include <nfMoonGlare.h>
-#include <Engine/Modules/iModule.h>
-#include <Foundation/MoonGlareInsider.h>
+
 #include <Core/Scripts/ScriptEngine.h>
+#include <Engine/Modules/iModule.h>
+#include <Foundation/Tools/RemoteConsoleApi.h>
 
 #include <Foundation/InterfaceMap.h>
 #include <Foundation/Settings.h>
@@ -20,7 +22,7 @@
 
 namespace MoonGlare::Modules {
 
-using namespace Debug::InsiderApi;
+namespace RemoteConsole = MoonGlare::Tools::RemoteConsole::Api;
 
 struct RemoteConsoleModule : public iModule {
     RemoteConsoleModule(InterfaceMap &ifaceMap) : iModule(ifaceMap) { }
@@ -52,7 +54,7 @@ private:
 
     Core::Scripts::ScriptEngine *scriptEngine = nullptr;
     
-    uint16_t port = Debug::InsiderApi::Configuration::recon_Port;
+    uint16_t port = RemoteConsole::ReconPort;
 
     std::thread m_Thread;
     bool m_Running;
@@ -62,8 +64,8 @@ private:
         ::OrbitLogger::ThreadInfo::SetName("RECO");
         AddLog(Info, "RemoteConsole Thread started");
 
-        char buffer[Debug::InsiderApi::Configuration::MaxMessageSize];
-        auto *header = reinterpret_cast<MessageHeader*>(buffer);
+        char buffer[Tools::Api::MaxMessageSize];
+        auto *header = reinterpret_cast<RemoteConsole::MessageHeader*>(buffer);
 
         udp::socket sock(m_ioservice, udp::endpoint(udp::v4(), port));
 
@@ -81,14 +83,14 @@ private:
                 if (error && error != boost::asio::error::message_size)
                     continue;
 
-                switch (header->MessageType) {
-                case MessageTypes::ExecuteCode: {
-                    AddLogf(Info, "Received lua command. Size: %d bytes. Data: %s ", header->PayloadSize, header->PayLoad);
-                    MoonGlare::Core::GetScriptEngine()->ExecuteCode((char*)header->PayLoad, header->PayloadSize - 1, "RemoteConsole");
+                switch (header->messageType) {
+                case RemoteConsole::MessageType::ExecuteCode: {
+                    AddLogf(Info, "Received lua command. Size: %d bytes. Data: %s ", header->payloadSize, header->payLoad);
+                    MoonGlare::Core::GetScriptEngine()->ExecuteCode((char*)header->payLoad, header->payloadSize - 1, "RemoteConsole");
                     break;
                 }
                 default:
-                    AddLogf(Info, "Unknown command. Size: %d bytes, type: %d ", header->PayloadSize, header->MessageType);
+                    AddLogf(Info, "Unknown command. Size: %d bytes, type: %d ", header->payloadSize, header->messageType);
                 }
             }
             catch (...) {

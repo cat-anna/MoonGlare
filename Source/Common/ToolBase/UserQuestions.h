@@ -1,9 +1,12 @@
 #pragma once
 
-namespace MoonGlare::Editor {
+#include <qinputdialog.h>
+#include <qmessagebox.h>
+
+namespace MoonGlare {
 
 struct UserQuestions {
-	bool AskForPermission( const char *msg = nullptr) {
+	bool AskForPermission(const char *msg = nullptr) {
 		return QMessageBox::question(GetParentWidget(), GetTitle(), msg ? msg : "Are you sure?") == QMessageBox::Yes;
 	}
 	void ErrorMessage(const char *message) {

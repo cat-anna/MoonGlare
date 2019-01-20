@@ -1,25 +1,25 @@
 #include <pch.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 #include <OrbitLogger/src/sink/FileSink.h>
 #include <OrbitLogger/src/sink/MSVCDebuggerSink.h>
 
 #include <nfMoonGlare.h>
 
+#include "Core/Scene/ScenesManager.h"
 #include <Engine/Core/DataManager.h>
-#include <Engine/Modules/ModuleManager.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/InputProcessor.h>                   
+#include <Engine/Modules/ModuleManager.h>
 #include <Engine/World.h>
-#include "Core/Scene/ScenesManager.h"
 
+#include <Core/Scripts/ScriptEngine.h>
+#include <Foundation/OS/Path.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/ScriptApi.h>
 #include <Source/Renderer/RenderDevice.h>
-#include <Foundation/OS/Path.h>
-#include <Core/Scripts/ScriptEngine.h>
 
 #include "Modules/BasicConsole.h"
 
@@ -27,11 +27,13 @@
 
 #include <RendererSettings.x2c.h>
 
-#include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
 #include <Foundation/Component/EventDispatcher.h>
+#include <Foundation/SoundSystem/Component/SoundSystemRegister.h>
 
 #include <Foundation/Resources/SkeletalAnimationManager.h>
 #include <Foundation/Resources/StringTables.h>
+
+#include <Foundation/Tools/PerfViewClient.h>
 
 
 namespace MoonGlare {
@@ -135,6 +137,7 @@ void Application::Initialize() {
     m_World = std::make_unique<World>();
     m_World->SetInterface(this);
 
+    m_World->CreateObject<Tools::PerfView::PerfViewClient>();
     m_World->CreateObject<Modules::BasicConsole, iConsole>();
 
     LoadSettings();
@@ -352,3 +355,4 @@ std::string Application::SettingsPath() const {
 }
 
 } //namespace MoonGlare
+

@@ -1,4 +1,5 @@
 ﻿#include <pch.h>
+
 #include <nfMoonGlare.h>
 
 #include <Foundation/TimeUtils.h>
@@ -10,9 +11,9 @@
 
 #include <Renderer/Frame.h>
 
-#include <Source/Renderer/Renderer.h>
-#include <Source/Renderer/RenderDevice.h>
 #include <Core/Scripts/ScriptEngine.h>
+#include <Source/Renderer/RenderDevice.h>
+#include <Source/Renderer/Renderer.h>
 
 using namespace std::chrono_literals;
 
@@ -27,7 +28,7 @@ const char *CompilationDate = __DATE__ " at " __TIME__;
 
 Engine* Engine::s_instance = nullptr;
 
-Engine::Engine(World *world) :
+Engine::Engine(World *world) : PerfProducer(*world),
         m_Dereferred(),
         m_World(world)
 {
@@ -38,6 +39,9 @@ Engine::Engine(World *world) :
     m_Renderer = m_World->GetRendererFacade();
 
     s_instance = this;
+
+    auto cid = AddChart("FrameStats");
+    AddSeries("FrameTime", Unit::Miliseconds, cid);
 }
 
 Engine::~Engine() { }
@@ -143,6 +147,8 @@ void Engine::EngineMain() {
 
         auto EndTime = clock::now();
         LastMoveTime = CurrentTime;
+
+        AddData(1, (float)FrameTimeDelta);
 
         if (conf.m_SecondPeriod) {
             TitleRefresh = CurrentTime;

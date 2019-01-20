@@ -7,20 +7,24 @@
 
 #pragma once
 
-#include "nfRenderer.h"
-#include "iRenderDevice.h"
 #include "Configuration.Renderer.h"
+#include "iRenderDevice.h"
+#include "nfRenderer.h"
 
 #include "TextureRenderTask.h"
+#include <Foundation/InterfaceMap.h>
+#include <Foundation/Tools/PerfViewClient.h>
 
 namespace MoonGlare::Renderer {
 
 class RendererFacade;
 
-class alignas(16) RenderDevice final : public iRenderDevice {
+class alignas(16) RenderDevice final : public iRenderDevice, protected Tools::PerfView::PerfProducer {
     using ThisClass = RenderDevice;
     using Conf = Configuration::FrameBuffer;
 public:
+    RenderDevice(InterfaceMap &ifaceMap);
+
     bool Initialize(RendererFacade *renderer);
     bool Finalize();
     

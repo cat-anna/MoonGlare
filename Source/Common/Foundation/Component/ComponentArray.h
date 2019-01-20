@@ -4,19 +4,21 @@
 
 #include <boost/core/noncopyable.hpp>
 
-#include <Foundation/FlagSet.h>
 #include <Foundation/EnumArray.h>
+#include <Foundation/FlagSet.h>
+#include <Foundation/InterfaceMap.h>
 #include <Foundation/Memory/AlignedPtr.h>
+#include <Foundation/Tools/PerfViewClient.h>
 
-#include "Configuration.h"
 #include "ComponentInfo.h"
+#include "Configuration.h"
 #include "EntityArrayMapper.h"
 
 namespace MoonGlare::Component {
 
-class ComponentArray : private boost::noncopyable {
+class ComponentArray : private boost::noncopyable, protected Tools::PerfView::PerfProducer {
 public:
-    ComponentArray();
+    ComponentArray(InterfaceMap &ifaceMap);
     ~ComponentArray();
 
     using ComponentFlagSet = FlagSet<ComponentFlags>;
@@ -198,6 +200,8 @@ public:
 
     void ReleaseComponents(ComponentClassId cci);
     void ReleaseAllComponents();
+
+    void Step();
 private:
     template<typename T> using PerComponentType = EnumArray<ComponentClassId, T, Configuration::MaxComponentTypes>;
     using ComponentMemory = Memory::aligned_array<uint8_t>;
