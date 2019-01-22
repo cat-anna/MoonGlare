@@ -1,6 +1,7 @@
 #include PCH_HEADER
 
 #include "ScriptProperty.h"
+
 #include "ScriptPropertyEditor.h"
 
 #include <DataModels/EditableEntity.h>

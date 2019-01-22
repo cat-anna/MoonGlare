@@ -31,7 +31,7 @@ struct PendingChangesInfo
         SetShortcut("F12");
     }
 };
-ModuleClassRgister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
+ModuleClassRegister::Register<PendingChangesInfo> PendingChangesInfoReg("PendingChanges");
 
 //----------------------------------------------------------------------------------
 
@@ -72,10 +72,11 @@ PendingChanges::PendingChanges(QWidget * parent, SharedModuleManager smm)
 }
 
 PendingChanges::~PendingChanges() {
-    auto sink = GetModuleManager()->QuerryModule< iActionBarSink>();
+    auto sink = GetModuleManager()->QuerryModule<iActionBarSink>();
     if (sink) {
         sink->RemoveProvider(actionProvider);
     }
+    m_ViewModel.reset();
     m_Ui.reset();
 }
 
@@ -177,3 +178,4 @@ void PendingChanges::ProjectChanged(Module::SharedDataModule datamod) {
 } //namespace DockWindows 
 } //namespace Editor 
 } //namespace MoonGlare 
+

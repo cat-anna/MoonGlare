@@ -8,7 +8,19 @@ namespace MoonGlare::PerfView
 {
 using namespace Tools::PerfView;
 
-ChartManager::ChartManager(QWidget* parent, QLayout* chartParent)
+
+ChartManager::ChartWidgetInfo::~ChartWidgetInfo() {
+    if (chartWidget && chartView) {
+        chartWidget->ReleaseChart(chartView.get());
+    }
+
+    chartView.reset();
+    chartWidget.reset();
+}
+
+//-----------------------------
+
+ChartManager::ChartManager(QWidget* parent, QVBoxLayout* chartParent)
     : QWidget(parent)
     , chartParent(chartParent) {
 
@@ -35,8 +47,7 @@ void ChartManager::InactiveTimeout(ChartView *cv) {
         auto &item = *it;
         if (item.second.chartView.get() == cv) {
             chartParent->removeWidget(item.second.chartWidget.get());
-            item.second.chartWidget->setVisible(false);
-            //charts.erase(it);
+            charts.erase(it);
             return;
         }
     }
@@ -47,8 +58,7 @@ void ChartManager::OnCloseButtonPressed(ChartWidget * cw) {
         auto &item = *it;
         if (item.second.chartWidget.get() == cw) {
             chartParent->removeWidget(item.second.chartWidget.get());
-            item.second.chartWidget->setVisible(false);
-            //charts.erase(it);
+            charts.erase(it);
             return;
         }
     }
@@ -64,7 +74,7 @@ void ChartManager::BeginSession() {
 void ChartManager::AddChart(const std::string_view chartName, ChartId chartId) {
     auto action = [this, name = std::string(chartName), chartId]() {
         auto chartWidget = std::make_unique<ChartWidget>();
-        chartParent->addWidget(chartWidget.get());
+        chartParent->insertWidget(0, chartWidget.get());
 
         auto chart = std::make_unique<ChartView>();
         chart->SetTitle(name);
@@ -88,7 +98,7 @@ void ChartManager::AddSeries(const std::string_view seriesName, SeriesInfo serie
 
         auto &chart = charts[seriesInfo.chartId];
         if (!chart.chartView) {
-            __debugbreak();
+            //__debugbreak();
             return; 
         }
 
@@ -103,7 +113,7 @@ void ChartManager::AddData(SeriesId seriesId, float x, float y) {
     auto action = [this, seriesId, x, y] () {
         auto chart = series[seriesId];
         if (!chart) {
-            __debugbreak();
+            //__debugbreak();
             return;
         }
 

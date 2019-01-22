@@ -1,7 +1,9 @@
 #include PCH_HEADER
 
-#include "DockWindowInfo.h"
+#include <qmainwindow.h>
+
 #include "DockWindow.h"
+#include "DockWindowInfo.h"
 
 #include <ToolBase/Module.h>
 
@@ -20,15 +22,21 @@ BaseDockWindowModule::~BaseDockWindowModule() {
 
 std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
 	if (!m_Instance) {
+        QMainWindow *mw = nullptr;
 	    if (!parent) {
 		    //TODO: this is workaround
 		    auto module = dynamic_cast<iModule*>(this);
 		    if (module) {
 			    auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
-			    parent = provider->GetMainWindowWidget();
+			    parent = mw = provider->GetMainWindowWidget();
 		    }
 	    }
 		m_Instance = CreateInstance(parent);
+        if (!m_Instance)
+            return nullptr;
+        if (mw)
+            mw->addDockWidget(Qt::LeftDockWidgetArea, m_Instance.get());
+        
 		connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow*)), SLOT(WindowClosed(DockWindow*)));
 		m_Instance->LoadSettings();
 	}
@@ -43,6 +51,14 @@ bool BaseDockWindowModule::Finalize() {
 void BaseDockWindowModule::ReleaseInstance() {
 	if (!m_Instance)
 		return;
+
+    auto module = dynamic_cast<iModule*>(this);
+    if (module) {
+        auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
+        auto mw = provider->GetMainWindowWidget();
+        mw->removeDockWidget(m_Instance.get());
+    }
+
 	m_Instance->SaveSettings();
 	m_Instance.reset();
 }
@@ -54,7 +70,9 @@ void BaseDockWindowModule::WindowClosed(DockWindow* Sender) {
 
 void BaseDockWindowModule::Show() {
     visible = true;
-	GetInstance(nullptr)->show();
+    auto inst = GetInstance(nullptr);
+    if (inst)
+        inst->show();
 }
 
 bool BaseDockWindowModule::DoSaveSettings(pugi::xml_node node) const {

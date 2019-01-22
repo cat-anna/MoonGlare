@@ -14,6 +14,7 @@ DockWindow::DockWindow(QWidget *parent, bool AutoRefresh, SharedModuleManager sm
 
 DockWindow::~DockWindow()
 {
+    m_RefreshTimer.reset();
 }
 
 void DockWindow::UIUpdateImpl(std::function<void()> h) {
@@ -37,6 +38,9 @@ bool DockWindow::DoSaveSettings(pugi::xml_node node) const {
 }
 
 bool DockWindow::DoLoadSettings(const pugi::xml_node node) {
+    setFloating(false);
+    setAllowedAreas(Qt::AllDockWidgetAreas);
+
 	restoreGeometry(QByteArray::fromHex(node.child("DockWindow:Geometry").text().as_string()));
 	return true;
 }

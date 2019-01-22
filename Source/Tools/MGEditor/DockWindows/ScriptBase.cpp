@@ -120,7 +120,7 @@ struct ScriptBaseInfo
         };
     }
 };
-ModuleClassRgister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
+ModuleClassRegister::Register<ScriptBaseInfo> ScriptBaseInfoReg("ScriptBase");
 
 //----------------------------------------------------------------------------------
 

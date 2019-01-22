@@ -2,7 +2,7 @@
 
 #include <EditorSettings.x2c.h>
 #include <ToolBase/Module.h>
-#include <ToolBase/iSettingsUser.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 
 namespace MoonGlare {
 namespace Editor {

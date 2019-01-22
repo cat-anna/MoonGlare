@@ -1,6 +1,6 @@
 #include "iImporter.h"
 
-#include <ToolBase/StringUtils.h>
+#include <boost/algorithm/string/case_conv.hpp>
 
 //#include "AssimpImporter.h"
 
@@ -16,7 +16,7 @@ struct ImporterFactoryImpl : public ImporterFactory {
 //----------------------------------------------------------------------------------
 
 void ImporterProvider::RegisterModule() {
-    ModuleClassRgister::Register<ImporterProvider> ImporterProviderReg("ImporterProvider");
+    ModuleClassRegister::Register<ImporterProvider> ImporterProviderReg("ImporterProvider");
 }                                           
 
 ImporterProvider::ImporterProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
@@ -43,7 +43,7 @@ void ImporterProvider::AddImporter(ImporterInfo ii) {
 }
 
 const std::shared_ptr<ImporterProvider::ImporterInfo> ImporterProvider::GetImporter(const std::string &ext) const {
-    return importerMap.at(ToLower(ext));
+    return importerMap.at(boost::to_lower_copy(ext));
 }
 
 }

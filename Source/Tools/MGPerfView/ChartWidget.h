@@ -14,6 +14,7 @@ public:
     virtual ~ChartWidget();
 
     void AddChart(QWidget *widget);
+    void ReleaseChart(QWidget *widget);
 signals:
     void OnCloseButtonPressed(ChartWidget*);
 protected:

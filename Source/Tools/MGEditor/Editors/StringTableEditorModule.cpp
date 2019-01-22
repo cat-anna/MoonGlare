@@ -2,9 +2,9 @@
 
 #include <FileSystem.h>
 
-#include <icons.h>
-#include "iFileIconProvider.h"
 #include "iEditor.h"
+#include "iFileIconProvider.h"
+#include <icons.h>
 
 #include "StringTableEditor.h"
 
@@ -41,6 +41,8 @@ struct StringTableEditorModule
         return true;
     }
     bool Finalize() override {
+        fileSystem.reset();
+        tabCtl.reset();
         if (!iModule::Finalize())
             return false;
         return true;
@@ -63,7 +65,7 @@ struct StringTableEditorModule
 
         auto delim = options.fileURI.rfind("/");
         auto name = options.fileURI.substr(delim + 1);
-        auto xlen = strlen("file://");
+        //auto xlen = strlen("file://");
         auto path = options.fileURI.substr(0, delim + 1);
 
         if (path != "file:///Tables/")
@@ -71,7 +73,7 @@ struct StringTableEditorModule
 
         auto delim2 = name.find(".");
         auto tname = name.substr(0, delim2);
-        auto tabName = "StringTale." + tname;
+        auto tabName = "StringTable." + tname;
 
         if (tabCtl->TabExists(tabName))
             return nullptr;
@@ -82,6 +84,6 @@ struct StringTableEditorModule
     }
 };
 
-ModuleClassRgister::Register<StringTableEditorModule> StringTableEditorReg("StringTableEditor");
+ModuleClassRegister::Register<StringTableEditorModule> StringTableEditorReg("StringTableEditor");
 
 }

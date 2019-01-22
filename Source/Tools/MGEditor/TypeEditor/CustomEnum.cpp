@@ -41,7 +41,7 @@ void CustomEnum::SetValue(const std::string &in) {
 }
 
 std::string CustomEnum::GetValue() {
-    return currentText().toLocal8Bit().constData();
+    return currentText().toUtf8().constData();
 }
 
 } //namespace MoonGlare::TypeEditor 

@@ -6,32 +6,38 @@
 #include "AssimpImporter.h"
 
 #include <Foundation/OS/WaitForProcess.h>
-#include <Foundation/Resources/Importer/AssimpMeshImporter.h>
-#include <Foundation/Resources/Importer/AssimpAnimationImporter.h>
-#include <Foundation/Resources/Blob/MeshBlob.h>
-#include <Foundation/Resources/Blob/AnimationBlob.h>
 
-#include <icons.h>
+#include <Foundation/Resources/Importer/AssimpAnimationImporter.h>
+#include <Foundation/Resources/Importer/AssimpMeshImporter.h>
+
+#include <Foundation/Resources/Blob/AnimationBlob.h>
+#include <Foundation/Resources/Blob/MeshBlob.h>
+
+#include "../FileSystem.h"
 #include <ToolBase/Module.h>
 #include <iEditor.h>
-#include <iFileProcessor.h>
 #include <iFileIconProvider.h>
-#include "../FileSystem.h"
+#include <iFileProcessor.h>
+#include <icons.h>
 
 #pragma warning ( push, 0 )
 #include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
 #include <assimp/postprocess.h>  
+#include <assimp/scene.h>          
 #pragma warning ( pop )
 
 #include <DataModels/EditableEntity.h>
 
 #include <gl/glew.h>
+
 #include <Renderer/Configuration.Renderer.h>
+
 #include <Renderer/Material.h>
 
-#include <Common.x2c.h>
 #include <Math.x2c.h>
+
+#include <Common.x2c.h>
+
 #include <Material.x2c.h>
 
 namespace MoonGlare::Importer {
@@ -428,10 +434,10 @@ struct AssimpImporter
             {
                 Resources::MeshSource ms;
                 Resources::Importer::ImportAssimpMesh(scene, i, ms);
-                Resources::Importer::MeshImport mi;
-                Resources::Importer::ImportMeshSource(ms, mi);
+                Resources::Importer::MeshImport mimport;
+                Resources::Importer::ImportMeshSource(ms, mimport);
                 std::stringstream blob;
-                Resources::Blob::WriteMeshBlob(blob, mi.mesh);
+                Resources::Blob::WriteMeshBlob(blob, mimport.mesh);
                 StarVFS::ByteTable bt;
                 bt.from_string(blob.str());
                 generatedFiles[meshName] = std::move(bt);
@@ -460,9 +466,9 @@ struct AssimpImporter
                 Resources::Importer::ImportAssimpAnimation(scene, i, xdoc.document_element(), ai);
                 std::stringstream blob;
                 Resources::Blob::WriteAnimationBlob(blob, ai.animation);
-                StarVFS::ByteTable bt;
-                bt.from_string(blob.str());
-                generatedFiles[animName] = std::move(bt);
+                StarVFS::ByteTable btgen;
+                btgen.from_string(blob.str());
+                generatedFiles[animName] = std::move(btgen);
             }
         }
     }
@@ -564,8 +570,9 @@ public:
     }
 };
 
-ModuleClassRgister::Register<AssimpImporterInfo> AssimpImporterInfoReg("AssimpImporter");
+ModuleClassRegister::Register<AssimpImporterInfo> AssimpImporterInfoReg("AssimpImporter");
 
 //----------------------------------------------------------------------------------
 
 } //namespace MoonGlare::Importer 
+

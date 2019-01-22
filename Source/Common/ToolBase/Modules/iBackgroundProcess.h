@@ -1,14 +1,15 @@
 #pragma once
 
-#include <optional>
-#include <memory>
-#include <thread>
 #include <atomic>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
+
 #include <ToolBase/Module.h>
-#include "iOutput.h"
+#include <ToolBase/iOutput.h>
 
 namespace MoonGlare {
-namespace QtShared {
 
 class BackgroundProcessManager;
 using SharedBackgroundProcessManager = std::shared_ptr<BackgroundProcessManager>;
@@ -84,5 +85,4 @@ private:
     mutable std::recursive_mutex mutex;
 };
 
-} //namespace QtShared
 } //namespace MoonGlare

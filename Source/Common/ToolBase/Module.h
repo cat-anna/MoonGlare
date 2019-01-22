@@ -49,7 +49,7 @@ private:
 	WeakModuleManager m_ModuleManager;
 };
 
-using ModuleClassRgister = Space::DynamicClassRegister<iModule, SharedModuleManager>;
+using ModuleClassRegister = Space::DynamicClassRegister<iModule, SharedModuleManager>;
 using SharedModule = std::shared_ptr<iModule>;
 using WeakModule = std::weak_ptr<iModule>;
 using SharedModuleTable = std::vector<SharedModule>;
@@ -136,4 +136,5 @@ protected:
 using SharedModuleManager = std::shared_ptr<ModuleManager>;
 
 }
+
 

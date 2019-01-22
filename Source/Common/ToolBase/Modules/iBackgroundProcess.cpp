@@ -1,8 +1,6 @@
-#include PCH_HEADER
 #include "iBackgroundProcess.h"
 
 namespace MoonGlare {
-namespace QtShared {
 
 iBackgroundProcess::iBackgroundProcess(const std::string & id, SharedModuleManager moduleManager) :moduleManager(moduleManager), id(id) {
     processManager = this->moduleManager->QuerryModule<BackgroundProcessManager>();
@@ -98,8 +96,6 @@ void iBackgroundProcess::ExecuteSteps(const std::vector<StepInfo> &steps) {
 
 //-------------------------------------------------------------------------------------------------
 
-ModuleClassRgister::Register<BackgroundProcessManager> BackgroundProcessManagerReg("BackgroundProcessManager");
-
 BackgroundProcessManager::BackgroundProcessManager(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {
 }
 
@@ -113,35 +109,33 @@ bool BackgroundProcessManager::Finalize() {
 }
 
 std::list<SharedBackgroundProcess> BackgroundProcessManager::GetAllProcesses() const {
-    LOCK_MUTEX(mutex);
+    std::lock_guard lock(mutex);
     return processes;
 }
 
 void BackgroundProcessManager::AddProcess(SharedBackgroundProcess process) {
-    LOCK_MUTEX(mutex);
+    std::lock_guard lock(mutex);
     processes.emplace_back(std::move(process));
 }
 
 void BackgroundProcessManager::ProcessCompleted(SharedBackgroundProcess process) {
-    LOCK_MUTEX(mutex);
+    std::lock_guard lock(mutex);
     processes.remove(process);
 }
 
 void BackgroundProcessManager::WaitForAll() {
     for (;;) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        LOCK_MUTEX(mutex);
+        std::lock_guard lock(mutex);
         if (processes.empty())
             return;
     }
 }
 
 void BackgroundProcessManager::AbortAll() {
-    LOCK_MUTEX(mutex);
+    std::lock_guard lock(mutex);
     for (auto &itm : processes)
         itm->Abort();
 }
 
-
-} //namespace QtShared 
 } //namespace MoonGlare 

@@ -8,12 +8,12 @@
 #include PCH_HEADER
 #include "iEditor.h"
 
-#include <ToolBase/StringUtils.h>
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace MoonGlare {
 namespace QtShared {
 
-ModuleClassRgister::Register<EditorProvider> EditorProviderReg("EditorProvider");
+ModuleClassRegister::Register<EditorProvider> EditorProviderReg("EditorProvider");
 
 EditorProvider::EditorProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
@@ -39,28 +39,34 @@ bool EditorProvider::PostInit() {
     return true;
 }
 
+bool EditorProvider::Finalize() {
+    m_CreateMethods.clear();
+    m_OpenMethods.clear();
+    return true;
+}
+
 std::vector<EditorProvider::EditorActionInfo> EditorProvider::GetOpenMethods(std::string ext) const {
-    ext = ToLower(ext);
+    boost::to_lower(ext);
     if (ext.front() == '.')
         ext = ext.substr(1);
 
     std::vector<EditorProvider::EditorActionInfo> r;
     for (auto &method : m_OpenMethods) {
-        if (ToLower(method.m_FileHandleMethod.m_Ext) == ext)
+        if (boost::to_lower_copy(method.m_FileHandleMethod.m_Ext) == ext)
             r.emplace_back(method);
     }
     return r;
 }
 
 const EditorProvider::EditorActionInfo EditorProvider::FindOpenEditor(std::string ext) {
-    ext = ToLower(ext);
+    boost::to_lower(ext);
     if (!ext.empty()) {
         if (ext.front() == '.')
             ext = ext.substr(1);
 
         for (auto item : GetModuleManager()->QuerryInterfaces<iEditorInfo>())
             for (auto &method : item.m_Interface->GetOpenFileMethods())
-                if (ToLower(method.m_Ext) == ext) {
+                if (boost::to_lower_copy(method.m_Ext) == ext) {
                     return EditorActionInfo{ item.m_Module,item.m_Module->cast<iEditorFactory>(), method };
                 }
     }

@@ -7,16 +7,16 @@
 
 #pragma once
 
-#include <qobject.h>
 #include <QFileSystemWatcher>
+#include <qobject.h>
 
 #include "Notifications.h"
 
-#include <StarVFS/core/nStarVFS.h>
 #include <Foundation/iFileSystem.h>
+#include <StarVFS/core/nStarVFS.h>
 
-#include <iFileProcessor.h>
 #include <ToolBase/Module.h>
+#include <iFileProcessor.h>
 
 
 namespace StarVFS {
@@ -74,6 +74,7 @@ public:
     
     bool Initialize() override;
     bool PostInit() override;
+    bool Finalize() override;
 
 	void QueueFileProcessing(const std::string &URI);
 public slots:
@@ -105,3 +106,4 @@ using SharedFileSystem = std::shared_ptr<FileSystem>;
 
 } //namespace Editor 
 } //namespace MoonGlare 
+

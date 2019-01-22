@@ -8,12 +8,13 @@
 #include PCH_HEADER
 #include "iCustomEnum.h"
 
-#include <ToolBase/StringUtils.h>
+#include <boost/algorithm/string/case_conv.hpp>
+
 
 namespace MoonGlare {
 namespace QtShared {
 
-ModuleClassRgister::Register<CustomEnumProvider> CustomEnumProviderReg("CustomEnumProvider");
+ModuleClassRegister::Register<CustomEnumProvider> CustomEnumProviderReg("CustomEnumProvider");
 
 CustomEnumProvider::CustomEnumProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
@@ -32,7 +33,8 @@ void CustomEnumProvider::SetAlias(const std::string &Typename, std::shared_ptr<i
 }
 
 void CustomEnumProvider::RegisterEnum(std::shared_ptr<iCustomEnum> e) {
-    auto name = ToLower(e->GetEnumTypeName());
+    auto name = e->GetEnumTypeName();
+    boost::to_lower(name);
     auto it = enumMap.find(name);
     if(it == enumMap.end())
         enumMap[name] = e;
@@ -46,7 +48,7 @@ void CustomEnumProvider::RegisterEnum(std::shared_ptr<iCustomEnum> e) {
 }
 
 const std::shared_ptr<iCustomEnum> CustomEnumProvider::GetEnum(const std::string &Typename) const {
-    auto it = enumMap.find(ToLower(Typename));
+    auto it = enumMap.find(boost::to_lower_copy(Typename));
     if (it == enumMap.end())
         return nullptr;
     return it->second;

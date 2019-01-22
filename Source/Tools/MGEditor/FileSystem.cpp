@@ -10,14 +10,14 @@
 
 #include "FileSystem.h"
 
-#include <StarVFS/core/Container/FolderContainer.h>
-#include "DataModule.h"
 #include "AsyncFileProcessor.h"
+#include "DataModule.h"
+#include <StarVFS/core/Container/FolderContainer.h>
 
 namespace MoonGlare {
 namespace Editor {
 
-ModuleClassRgister::Register<FileSystem> FileSystemReg("FileSystem");
+ModuleClassRegister::Register<FileSystem> FileSystemReg("FileSystem");
 
 FileSystem::FileSystem(SharedModuleManager modmgr) :
         iModule(std::move(modmgr)), fsWatcher(this) {
@@ -33,10 +33,11 @@ FileSystem::FileSystem(SharedModuleManager modmgr) :
     watcherTimeout.setInterval(1000);
     watcherTimeout.setSingleShot(true);
     connect(&watcherTimeout, &QTimer::timeout, [this]() { RefreshChangedPaths(); });
-
 }
 
 FileSystem::~FileSystem() {
+    jobFence.reset();
+    m_VFS.reset();
 }
 
 bool FileSystem::Initialize() {
@@ -58,6 +59,14 @@ bool FileSystem::PostInit() {
     jobProcessor = GetModuleManager()->QuerryModule<QtShared::iJobProcessor>();
     return true;
 }
+
+bool FileSystem::Finalize() {
+    m_ExtFileProcessorList.clear();
+    jobProcessor.reset();
+
+    return true;
+}
+
 
 bool FileSystem::GetFileData(const std::string &uri, StarVFS::ByteTable & data) {
     LOCK_MUTEX(m_Mutex);

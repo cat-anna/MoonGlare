@@ -1,8 +1,8 @@
 #pragma once
 
 #include <SubDialog.h>
+#include <ToolBase/Modules/iBackgroundProcess.h>
 #include <ToolBase/UserQuestions.h>
-#include <iBackgroundProcess.h>
 
 namespace Ui { class ForegroundProcess; }
 
@@ -15,11 +15,11 @@ class ForegroundProcess
 {
     Q_OBJECT
 public:
-    ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground);
+    ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, SharedBackgroundProcess Process, bool AllowGotoBackground);
     ~ForegroundProcess();
 private:
     std::unique_ptr<Ui::ForegroundProcess> ui;
-    QtShared::SharedBackgroundProcess process;
+    SharedBackgroundProcess process;
     std::unique_ptr<QTimer> refreshTimer;
     bool FirstRefresh = true;
     void Refresh(bool CanStart);

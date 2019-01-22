@@ -14,7 +14,7 @@ namespace QtShared {
                                  
 struct MainWindowProvider {
     virtual ~MainWindowProvider() {}
-    virtual QWidget *GetMainWindowWidget() = 0;
+    virtual QMainWindow *GetMainWindowWidget() = 0;
 };
 
 template<typename T>

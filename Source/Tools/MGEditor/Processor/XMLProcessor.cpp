@@ -8,12 +8,12 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <icons.h>
-#include <iFileProcessor.h>
-#include <iFileIconProvider.h>
-#include <iCustomEnum.h>
 #include <ToolBase/Module.h>
+#include <iCustomEnum.h>
+#include <iFileIconProvider.h>
+#include <iFileProcessor.h>
 #include <iIssueReporter.h>
+#include <icons.h>
 
 #include "../FileSystem.h"
 
@@ -133,7 +133,8 @@ struct XMLProcessorModule
     }
 };
 
-ModuleClassRgister::Register<XMLProcessorModule> XMLProcessorModuleReg("XMLProcessorModule");
+ModuleClassRegister::Register<XMLProcessorModule> XMLProcessorModuleReg("XMLProcessorModule");
 
 //----------------------------------------------------------------------------------
 } 
+

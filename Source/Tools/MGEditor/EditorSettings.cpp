@@ -13,7 +13,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-MoonGlare::ModuleClassRgister::Register<EditorSettings> EditorSettingsReg("EditorSettings");
+ModuleClassRegister::Register<EditorSettings> EditorSettingsReg("EditorSettings");
 
 EditorSettings::EditorSettings(SharedModuleManager modmgr): iModule(modmgr) {
 	TypeEditor::Structure::RegisterX2CStructure<x2c::Settings::EditorConfiguration_t>();

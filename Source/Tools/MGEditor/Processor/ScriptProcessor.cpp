@@ -6,20 +6,20 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 
-#include <icons.h>
-#include <iFileProcessor.h>
-#include <iFileIconProvider.h>
-#include <iCustomEnum.h>
 #include <ToolBase/Module.h>
+#include <iCustomEnum.h>
+#include <iFileIconProvider.h>
+#include <iFileProcessor.h>
 #include <iIssueReporter.h>
+#include <icons.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
 #include <libs/LuaWrap/src/LuaException.h>
 
-#include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
-#include "ScriptProcessor.h"
 #include "../ScriptProperty.h"
+#include "../Windows/MainWindow.h"
+#include "ScriptProcessor.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -66,7 +66,7 @@ struct ScriptFileProcessorInfo
         return{ FileIconInfo{ "lua", ICON_16_LUALOGO_RESOURCE, }, };
     }
 };
-ModuleClassRgister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg("ScriptFileProcessorInfo");
+ModuleClassRegister::Register<ScriptFileProcessorInfo> ScriptFileProcessorInfoReg("ScriptFileProcessorInfo");
 
 //----------------------------------------------------------------------------------
 
@@ -175,7 +175,6 @@ void ScriptFileProcessor::ExecuteScript() {
        // std::string errorstr = lua_tostring(lua, -1);
        // ParseError(errorstr, QtShared::Issue::Type::Warning);
        // AddLogf(Hint, "Lua script '%s' error: %s", m_URI.c_str(), errorstr.c_str());
-        auto reporter = module->GetModuleManager()->QuerryModule<QtShared::IssueReporter>();
         reporter->DeleteIssue(MakeIssueId());
         break;
     }
@@ -280,3 +279,4 @@ void ScriptFileProcessor::Finalize() {
 } //namespace Processor 
 } //namespace Editor 
 } //namespace MoonGlare 
+

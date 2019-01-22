@@ -10,8 +10,8 @@
 #define EntityEditorModel_H
 
 #include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 #include <ToolBase/UserQuestions.h>
-#include <ToolBase/iSettingsUser.h>
 #include <iEditor.h>
 
 #include <TypeEditor/ComponentInfo.h>

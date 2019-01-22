@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <iBackgroundProcess.h>
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/iBackgroundProcess.h>
 
 namespace MoonGlare {
 namespace Editor {
@@ -32,7 +32,7 @@ struct BuildSettings {
     std::string svfsExeName = "svfs";
 };
 
-class BuildProcess : public QtShared::iBackgroundProcess {
+class BuildProcess : public iBackgroundProcess {
 public:
     BuildProcess(const std::string &id, SharedModuleManager moduleManager, BuildSettings Settings);
 protected:
@@ -56,3 +56,4 @@ protected:
 
 } //namespace Editor 
 } //namespace MoonGlare 
+

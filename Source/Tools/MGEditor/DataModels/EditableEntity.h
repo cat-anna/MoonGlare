@@ -6,7 +6,7 @@
 
 #include <ToolBase/Module.h>
 #include <ToolBase/Modules/ChangesManager.h>
-#include <ToolBase/iSettingsUser.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 

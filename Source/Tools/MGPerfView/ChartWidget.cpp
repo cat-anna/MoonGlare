@@ -23,4 +23,8 @@ void ChartWidget::AddChart(QWidget *widget) {
     ui->content->addWidget(widget);
 }
 
+void ChartWidget::ReleaseChart(QWidget *widget) {
+    ui->content->removeWidget(widget);
+}
+
 }

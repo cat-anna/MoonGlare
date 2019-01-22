@@ -1,15 +1,15 @@
 #include PCH_HEADER
-#include <qobject.h>
-#include <qabstractbutton.h>
 #include "ForegroundProcess.h"
 #include "ui_ForegroundProcess.h"
+#include <qabstractbutton.h>
+#include <qobject.h>
 
 #include <ToolBase/UserQuestions.h>
 
 namespace MoonGlare {
 namespace Editor {
 
-ForegroundProcess::ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, QtShared::SharedBackgroundProcess Process, bool AllowGotoBackground)
+ForegroundProcess::ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, SharedBackgroundProcess Process, bool AllowGotoBackground)
     : SubDialog(parent, ModuleManager), process(Process)
 {
     ui = std::make_unique<Ui::ForegroundProcess>();
@@ -45,7 +45,7 @@ void ForegroundProcess::Refresh(bool CanStart) {
         ui->pushButtonAbort->setEnabled(false);
     };
 
-    using State = QtShared::iBackgroundProcess::State;
+    using State = iBackgroundProcess::State;
     switch (process->GetState())
     {
     case State::NotStarted:
@@ -103,7 +103,7 @@ void ForegroundProcess::ButtonAbort() {
     if (!AskForPermission())
         return;
 
-    using AbortAction = QtShared::iBackgroundProcess::AbortAction;
+    using AbortAction = iBackgroundProcess::AbortAction;
     if (process->Abort() == AbortAction::Impossible)
         ErrorMessage("Process refused to abort");
 }

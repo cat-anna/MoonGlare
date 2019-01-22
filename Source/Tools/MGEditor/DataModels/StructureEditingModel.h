@@ -9,8 +9,8 @@
 
 #include <ToolBase/Module.h>
 #include <ToolBase/Modules/ChangesManager.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 #include <ToolBase/UserQuestions.h>
-#include <ToolBase/iSettingsUser.h>
 
 #include "EditableEntity.h"
 

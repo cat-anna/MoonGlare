@@ -7,10 +7,10 @@
 #include PCH_HEADER
 #include "OutputDock.h"
 
-#include <ui_OutputDock.h>
-#include <DockWindowInfo.h>
 #include "OutputDockTab.h"
+#include <DockWindowInfo.h>
 #include <icons.h>
+#include <ui_OutputDock.h>
 
 #include <ToolBase/Module.h>
 
@@ -20,7 +20,7 @@ namespace MoonGlare {
 namespace Editor {
 namespace DockWindows {
 
-struct OutputProxy : public QtShared::iOutput {
+struct OutputProxy : public iOutput {
     std::string title;
 
     void PushLine(const std::string &line) override {
@@ -45,7 +45,7 @@ struct OutputProxy : public QtShared::iOutput {
         }
     };
 
-    void SetEndpoint(QtShared::SharedOutput e) {
+    void SetEndpoint(SharedOutput e) {
         endpoint = e;
         if (e) {
             LOCK_MUTEX(mutex);
@@ -53,7 +53,7 @@ struct OutputProxy : public QtShared::iOutput {
         }
     }
 protected:
-    QtShared::SharedOutput endpoint;
+    SharedOutput endpoint;
     std::list<std::string> lines;
     std::recursive_mutex mutex;
 };
@@ -62,7 +62,7 @@ protected:
 
 struct OutputDockInfo
     : public QtShared::BaseDockWindowModule
-    , public QtShared::iOutputProvider {
+    , public iOutputProvider {
 
     std::weak_ptr<OutputDock> dock;
 
@@ -78,10 +78,10 @@ struct OutputDockInfo
         SetShortcut("F10");
     }
 
-    std::unordered_map<std::string, std::weak_ptr<QtShared::iOutput>> outputs;
+    std::unordered_map<std::string, std::weak_ptr<iOutput>> outputs;
     mutable std::recursive_mutex outputsMutex;
 
-    QtShared::SharedOutput CreateOutput(const std::string &id, const std::string &title) override {
+    SharedOutput CreateOutput(const std::string &id, const std::string &title) override {
         LOCK_MUTEX(outputsMutex);
         auto existing = GetOutput(id);
         if (existing)
@@ -101,7 +101,7 @@ struct OutputDockInfo
         return proxy;
     };
 
-    QtShared::SharedOutput GetOutput(const std::string &id) override {
+    SharedOutput GetOutput(const std::string &id) override {
         LOCK_MUTEX(outputsMutex);
         auto it = outputs.find(id);
         if (it != outputs.end()) {
@@ -109,9 +109,9 @@ struct OutputDockInfo
         }
         return nullptr;
     }
-    std::unordered_map<std::string, QtShared::SharedOutput> GetAllOutputs() const override {
+    std::unordered_map<std::string, SharedOutput> GetAllOutputs() const override {
         LOCK_MUTEX(outputsMutex);
-        std::unordered_map<std::string, QtShared::SharedOutput> r;
+        std::unordered_map<std::string, SharedOutput> r;
         for (auto &it : outputs) {
             auto ptr = it.second.lock();
             if (ptr)
@@ -131,7 +131,7 @@ struct OutputDockInfo
     }
 
 };
-ModuleClassRgister::Register<OutputDockInfo> OutputDockInfoReg("OutputDock");
+ModuleClassRegister::Register<OutputDockInfo> OutputDockInfoReg("OutputDock");
 
 //----------------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ OutputDock::OutputDock(QWidget * parent, SharedModuleManager modmgr)
             auto sptr = ptr->shared_from_this();
             auto it = tabs.find(sptr);
             if (it != tabs.end()) {
-                moduleManager->QuerryModule<QtShared::iOutputProvider>()->Close(it->second);
+                moduleManager->QuerryModule<iOutputProvider>()->Close(it->second);
                 tabs.erase(it);
             }
         }
@@ -168,7 +168,7 @@ void OutputDock::Clear() {
     if (tabs.empty())
         return;
 
-    auto op = moduleManager->QuerryModule<QtShared::iOutputProvider>();
+    auto op = moduleManager->QuerryModule<iOutputProvider>();
     if (op) {
         for (auto &o : tabs) {
             op->Close(o.second);
@@ -196,7 +196,7 @@ bool OutputDock::DoLoadSettings(const pugi::xml_node node) {
 
 //----------------------------------------------------------------------------------
 
-QtShared::SharedOutput OutputDock::CreateOutput(const std::string &title, const std::string &id) {
+SharedOutput OutputDock::CreateOutput(const std::string &title, const std::string &id) {
     auto output = std::make_shared<OutputTabWidget>(this);
     tabs[output] = id;
     m_Ui->tabWidget->addTab(output.get(), title.c_str());
@@ -204,7 +204,7 @@ QtShared::SharedOutput OutputDock::CreateOutput(const std::string &title, const 
 }
 
 void OutputDock::ReopenOutputs() {
-    for (auto &output : moduleManager->QuerryModule<QtShared::iOutputProvider>()->GetAllOutputs()) {
+    for (auto &output : moduleManager->QuerryModule<iOutputProvider>()->GetAllOutputs()) {
         auto proxy = std::dynamic_pointer_cast<OutputProxy>(output.second);
         if (proxy) {
             proxy->SetEndpoint(CreateOutput(proxy->title, output.first));

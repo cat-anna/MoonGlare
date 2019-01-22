@@ -105,7 +105,6 @@ std::string ScriptPropertyInstance::Serialize() const {
 //-------------------------------------------------------
 
 ScriptPropertyProvider::ScriptPropertyProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {
-
     TypeEditor::TypeEditorInfo::RegisterTypeEditor(std::make_shared<
         TypeEditor::TemplateTypeEditorInfo<ScriptPropertyEditor>>(), "string:Script.Properties");
 }
@@ -162,6 +161,7 @@ void ScriptPropertyProvider::CheckOrphans() {
 
 }
 
-ModuleClassRgister::Register<ScriptPropertyProvider> ScriptPropertyProviderReg("ScriptPropertyProvider");
+ModuleClassRegister::Register<ScriptPropertyProvider> ScriptPropertyProviderReg("ScriptPropertyProvider");
 
 }
+

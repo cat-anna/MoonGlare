@@ -7,15 +7,15 @@
 #include PCH_HEADER
 #include "EntityEditor.h"
 
-#include <ui_EntityEditor.h>
-#include <DockWindowInfo.h>
-#include <icons.h>
 #include "../Windows/MainWindow.h"
+#include <DockWindowInfo.h>
 #include <FileSystem.h>
+#include <icons.h>
+#include <ui_EntityEditor.h>
 
-#include <TypeEditor/x2cDataTree.h>
-#include <TypeEditor/Structure.h>
 #include <TypeEditor/CustomType.h>
+#include <TypeEditor/Structure.h>
+#include <TypeEditor/x2cDataTree.h>
 
 #include <iFileIconProvider.h>
 
@@ -68,7 +68,7 @@ struct EntityEditorModule
         return window;
     }
 };
-ModuleClassRgister::Register<EntityEditorModule> EntityEditorReg("EntityEditor");
+ModuleClassRegister::Register<EntityEditorModule> EntityEditorReg("EntityEditor");
 
 //----------------------------------------------------------------------------------
 

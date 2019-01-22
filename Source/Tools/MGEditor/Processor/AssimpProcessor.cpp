@@ -6,26 +6,26 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 
-#include <fmt/format.h>
 #include <filesystem>
+#include <fmt/format.h>
 
-#include <icons.h>
-#include <iFileProcessor.h>
-#include <iFileIconProvider.h>
-#include <iCustomEnum.h>
 #include <ToolBase/Module.h>
+#include <iCustomEnum.h>
+#include <iFileIconProvider.h>
+#include <iFileProcessor.h>
 #include <iIssueReporter.h>
+#include <icons.h>
 
 #include <libs/LuaWrap/src/LuaDeleter.h>
 #include <libs/LuaWrap/src/LuaException.h>
 
-#include "../Windows/MainWindow.h"
 #include "../FileSystem.h"
+#include "../Windows/MainWindow.h"
 
 #pragma warning ( push, 0 )
 #include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
 #include <assimp/postprocess.h>  
+#include <assimp/scene.h>          
 #pragma warning ( pop )
 
 namespace MoonGlare {
@@ -75,7 +75,7 @@ struct AssimpProcessor
             std::string uri = puri.replace_extension("").generic_string() + "/";
 
             for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
-                auto mesh = scene->mMeshes[i];
+                //auto mesh = scene->mMeshes[i];
                 MeshEnum->Add(fmt::format("{}{}.mesh", uri, i));
             }
 
@@ -93,7 +93,7 @@ struct AssimpProcessor
             }
 
             for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
-                auto anim = scene->mAnimations[i];
+                //auto anim = scene->mAnimations[i];
                 AnimationEnum->Add(fmt::format("{}{}.anim", uri, i));
             }
         }
@@ -152,10 +152,11 @@ struct AssimpProcessorModule
         };
     }
 };
-ModuleClassRgister::Register<AssimpProcessorModule> AssimpProcessorModuleReg("AssimpProcessorModule");
+ModuleClassRegister::Register<AssimpProcessorModule> AssimpProcessorModuleReg("AssimpProcessorModule");
 
 //----------------------------------------------------------------------------------
 
 } //namespace Processor 
 } //namespace Editor 
 } //namespace MoonGlare 
+

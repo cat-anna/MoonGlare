@@ -7,9 +7,9 @@
 #include PCH_HEADER
 #include "IssueReportDock.h"
 
-#include <ui_IssueReportDock.h>
 #include <DockWindowInfo.h>
 #include <icons.h>
+#include <ui_IssueReportDock.h>
 
 #include <ToolBase/Module.h>
 
@@ -32,7 +32,7 @@ struct IssueReportDockInfo
         SetShortcut("F11");
     }
 };
-ModuleClassRgister::Register<IssueReportDockInfo> IssueReportDockInfoReg("IssueReportDock");
+ModuleClassRegister::Register<IssueReportDockInfo> IssueReportDockInfoReg("IssueReportDock");
 
 //----------------------------------------------------------------------------------
 
@@ -190,3 +190,4 @@ void IssueReport::ItemDoubleClicked(const QModelIndex&) {
 } //namespace DockWindows 
 } //namespace Editor 
 } //namespace MoonGlare 
+

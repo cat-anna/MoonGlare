@@ -2,8 +2,8 @@
 
 #include <pugixml.hpp>
 
-#include "Module.h"
 #include <Foundation/XMLUtils.h>
+#include <ToolBase/Module.h>
 
 namespace MoonGlare {
 

@@ -50,7 +50,7 @@ struct FileSystemViewerInfo
 
     void SetPreviewEditor(QtShared::SharedEditor editor) { }
 };
-ModuleClassRgister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
+ModuleClassRegister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("FileSystemViewer");
 
 //-----------------------------------------
 
@@ -123,50 +123,55 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
     QModelIndex index = m_Ui->treeView->indexAt(point);
     auto itemptr = m_ViewModel->itemFromIndex(index);
 
-    std::string fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
+    std::string fullpath;
+    if(itemptr)
+     fullpath = itemptr->data(FileSystemViewerRole::FileURI).toString().toLocal8Bit().constData();
 
     bool folder = !index.data(FileSystemViewerRole::IsFile).toBool();
-    if (folder) {
-        auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
-        auto methods = m_EditorProvider.lock()->GetCreateMethods();
-        for (auto methodmodule : methods) {
-            if (!methodmodule.m_EditorFactory)
-                continue;
+    if (!fullpath.empty()) {
+        if (folder) {
+            auto *CreateMenu = menu.addMenu(ICON_16_CREATE_RESOURCE, "Create");
+            auto methods = m_EditorProvider.lock()->GetCreateMethods();
+            for (auto methodmodule : methods) {
+                if (!methodmodule.m_EditorFactory)
+                    continue;
 
-            auto &method = methodmodule.m_FileHandleMethod;
+                auto &method = methodmodule.m_FileHandleMethod;
 
-            CreateMenu->addAction(QIcon(method.m_Icon.c_str()), method.m_Caption.c_str(), [this, methodmodule, fullpath]() {
-                OpenFileEditor(methodmodule, fullpath);
-            });
+                CreateMenu->addAction(QIcon(method.m_Icon.c_str()), method.m_Caption.c_str(), [this, methodmodule, fullpath] () {
+                    OpenFileEditor(methodmodule, fullpath);
+                                      });
+            }
         }
-    } else {
-        auto methods = m_EditorProvider.lock()->GetOpenMethods(boost::filesystem::path(fullpath).extension().string());
-        if (methods.size() == 0) {
-            menu.addAction("Open")->setEnabled(false);
-        } else {
-            bool single = methods.size() == 1;
+        else {
+            auto methods = m_EditorProvider.lock()->GetOpenMethods(boost::filesystem::path(fullpath).extension().string());
+            if (methods.size() == 0) {
+                menu.addAction("Open")->setEnabled(false);
+            }
+            else {
+                bool single = methods.size() == 1;
 
-            QMenu *openItem;
-            if (!single)
-                openItem = menu.addMenu("Open...");
+                QMenu *openItem = nullptr;
+                if (!single)
+                    openItem = menu.addMenu("Open...");
 
-            for (auto &method : methods) {
-                auto action = [this, fullpath, method]() {
-                    OpenFileEditor(method, fullpath);
-                };
+                for (auto &method : methods) {
+                    auto action = [this, fullpath, method] () {
+                        OpenFileEditor(method, fullpath);
+                    };
 
-                if (single) {
-                    auto item = menu.addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
-                    item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
-                }
-                else {
-                    auto item = openItem->addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
-                    item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
+                    if (single) {
+                        auto item = menu.addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
+                        item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
+                    }
+                    else {
+                        auto item = openItem->addAction(method.m_FileHandleMethod.m_Caption.c_str(), this, action);
+                        item->setIcon(QIcon(method.m_FileHandleMethod.m_Icon.c_str()));
+                    }
                 }
             }
         }
     }
-
     menu.addSeparator();
 
     if (itemptr) {
@@ -388,3 +393,4 @@ void FileSystemViewer::SetPreviewEditor(QtShared::SharedEditor editor) {
 } //namespace DockWindows 
 } //namespace Editor 
 } //namespace MoonGlare 
+

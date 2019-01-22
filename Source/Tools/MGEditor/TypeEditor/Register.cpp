@@ -4,35 +4,38 @@
 
 #include <Source/Engine/Core/Component/nfComponent.h>
 
+#include <Engine/Modules/RectComponent/Types.h>
 #include <Source/Renderer/Light.h>
 #include <Source/Renderer/StaticFog.h>
-#include <Engine/Modules/RectComponent/Types.h>
 
 #include <ComponentCommon.x2c.h>
+
 #include <Math.x2c.h>
-#include <LightComponent.x2c.h>
+
+#include <StaticFog.x2c.h>
+
 #include <BodyComponent.x2c.h>
 #include <BodyShapeComponent.x2c.h>
-#include <TransformComponent.x2c.h>
 #include <CameraComponent.x2c.h>
-#include <MeshComponent.x2c.h>
-#include <ScriptComponent.x2c.h>
-#include <RectTransformComponent.x2c.h>
 #include <ImageComponent.x2c.h>
+#include <LightComponent.x2c.h>
+#include <MeshComponent.x2c.h>
 #include <PanelComponent.x2c.h>
-#include <TextComponent.x2c.h>
-#include <SkinComponent.x2c.h>
-#include <StaticFog.x2c.h>
+#include <RectTransformComponent.x2c.h>
 #include <Scene.x2c.h>
-
+#include <ScriptComponent.x2c.h>
 #include <SkinComponent.x2c.h>
+#include <TextComponent.x2c.h>
+#include <TransformComponent.x2c.h>
+
 #include <BoneAnimatorComponent.x2c.h>
 #include <Foundation/SoundSystem/Component/SoundSourceComponent.h>
+#include <SkinComponent.x2c.h>
 #include <SoundSourceComponent.x2c.h>
 
+#include "ComponentInfo.h"
 #include "CustomType.h"
 #include "Structure.h"
-#include "ComponentInfo.h"
 
 #include <TypeEditor/x2cEnum.h>
 #include <TypeEditor/x2cStructure.h>

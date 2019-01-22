@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <DockWindow.h>
 #include "../iIssueReporter.h"
-#include <iOutput.h>
+#include <DockWindow.h>
+#include <ToolBase/iOutput.h>
 
 namespace Ui { class OutputDock; }
 
@@ -33,13 +33,13 @@ public:
     virtual bool DoSaveSettings(pugi::xml_node node) const override;
     virtual bool DoLoadSettings(const pugi::xml_node node) override;
 
-    QtShared::SharedOutput CreateOutput(const std::string &title, const std::string &id);
+    SharedOutput CreateOutput(const std::string &title, const std::string &id);
     void ReopenOutputs();
     void OnTabDestroy(OutputTabWidget *tab);
 protected:
     SharedModuleManager moduleManager;
     std::unique_ptr<Ui::OutputDock> m_Ui;
-    std::map<QtShared::SharedOutput, std::string> tabs;
+    std::map<SharedOutput, std::string> tabs;
 };                   
 
 

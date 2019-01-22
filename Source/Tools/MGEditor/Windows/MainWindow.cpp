@@ -22,7 +22,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
+MoonGlare::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow");
 
 static MainWindow *_Instance = nullptr;
 
@@ -67,7 +67,7 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
 }
 
 MainWindow::~MainWindow() {
-    m_Ui.release();
+    m_Ui.reset();
 }
 
 bool MainWindow::PostInit() {
@@ -81,8 +81,13 @@ bool MainWindow::PostInit() {
         }
     }
 
-
     show();
+    return true;
+}
+
+bool MainWindow::Finalize() {
+    jobProcessor.reset();
+
     return true;
 }
 
@@ -190,7 +195,7 @@ void MainWindow::BuildModuleAction() {
     settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
     settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
 
-    auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
+    auto pm = GetModuleManager()->QuerryModule<BackgroundProcessManager>();
     auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
     ForegroundProcess fp(this, GetModuleManager(), process, false);
     fp.exec();
@@ -266,6 +271,7 @@ void MainWindow::CloseModule() {
 //-----------------------------------------
 
 void MainWindow::showEvent(QShowEvent * event) {
+    event->accept();
 }
 
 void MainWindow::closeEvent(QCloseEvent * event) {

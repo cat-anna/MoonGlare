@@ -4,8 +4,8 @@
 #include <qmainwindow.h>
 
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 #include <ToolBase/UserQuestions.h>
-#include <ToolBase/iSettingsUser.h>
 #include <ToolBase/interfaces/ActionBarSink.h>
 
 #include "ToolBase/Tools/PerfViewServer.h"

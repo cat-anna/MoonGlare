@@ -53,7 +53,7 @@ struct SceneEditorModule
 		};
 	}
 };
-ModuleClassRgister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
+ModuleClassRegister::Register<SceneEditorModule> EntityEditorReg("SceneEditor");
 
 //----------------------------------------------------------------------------------
 

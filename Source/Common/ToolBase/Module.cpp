@@ -3,7 +3,7 @@
 
 #include "AppConfig.h"    
 #include "Module.h"
-#include "iSettingsUser.h"    
+#include "Modules/iSettingsUser.h"    
 
 namespace MoonGlare {
 
@@ -33,13 +33,16 @@ ModuleManager::ModuleManager() {}
 bool ModuleManager::Initialize() {
 	bool ret = true;
 	auto self = shared_from_this();
-	ModuleClassRgister::GetRegister()->Enumerate([this, &ret, self] (auto &ci) {
+
+    m_Modules.reserve(ModuleClassRegister::GetRegister()->GetCount());
+    ModuleClassRegister::GetRegister()->Enumerate([this, &ret, self] (auto &ci) {
 		auto ptr = ci.SharedCreate(self);
 		m_Modules.emplace_back(ptr);
         if (ptr->GetModuleName().empty()) {
             ptr->SetAlias(ci.Alias);
         }
 	});
+    m_Modules.shrink_to_fit();
 
     size_t modcnt = 0;
   	for (auto &it : m_Modules) {
@@ -85,4 +88,5 @@ void ModuleManager::SaveSettigs() {
 }
 
 }
+
 

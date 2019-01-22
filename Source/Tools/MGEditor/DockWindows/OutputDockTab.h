@@ -7,7 +7,7 @@
 
 #pragma once
 #include <DockWindow.h>
-#include <iOutput.h>
+#include <ToolBase/iOutput.h>
 
 namespace Ui { class OutputDockTab; }
 
@@ -17,7 +17,7 @@ namespace DockWindows {
 
 class OutputDock;
 
-class OutputTabWidget : public QWidget, public QtShared::iOutput {
+class OutputTabWidget : public QWidget, public iOutput {
     Q_OBJECT;
 public:
     OutputTabWidget(OutputDock *parent);

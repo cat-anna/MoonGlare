@@ -16,6 +16,8 @@ public:
 	BaseDockWindowModule(SharedModuleManager modmgr);
 	virtual ~BaseDockWindowModule();
 
+    bool Finalize() override;
+
 	const QString& GetIconResName() const{ return m_IconResName; }
 	const QString& GetDisplayName() const { return m_DisplayName; }
 	const QString& GetShortcut() const { return m_ShortCut; }
@@ -26,8 +28,6 @@ public:
 
 	std::shared_ptr<DockWindow> GetInstance(QWidget *parent = nullptr);
 	void ReleaseInstance();
-     
-    bool Finalize() override;
 public slots:
 	void Show();
 protected:

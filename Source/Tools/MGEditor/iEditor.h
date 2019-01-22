@@ -49,7 +49,8 @@ protected:
 
 struct EditorProvider :	iModule {
 	EditorProvider(SharedModuleManager modmgr);
-	bool PostInit() override;
+    bool PostInit() override;
+    bool Finalize() override;
 
 	struct EditorActionInfo {
 		SharedModule m_Module;

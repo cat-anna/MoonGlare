@@ -4,6 +4,7 @@
 #include <mutex>
 #include <vector>
 
+#include <QVBoxLayout>
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QChart>
 #include <QtCharts/QSplineSeries>
@@ -25,7 +26,7 @@ class ChartWidget;
 class ChartManager : public QWidget, protected PerfServer {
     Q_OBJECT
 public:
-    ChartManager(QWidget *parent, QLayout *chartParent);
+    ChartManager(QWidget *parent, QVBoxLayout *chartParent);
     ~ChartManager();
 
     void Reset();
@@ -42,9 +43,18 @@ private:
     struct ChartWidgetInfo {
         std::unique_ptr<ChartView> chartView;
         std::unique_ptr<ChartWidget> chartWidget;
+
+        ChartWidgetInfo() = default;
+        ChartWidgetInfo(const ChartWidgetInfo&) = default;
+        ChartWidgetInfo(ChartWidgetInfo&&) = default;
+
+        ChartWidgetInfo& operator =(const ChartWidgetInfo&) = default;
+        ChartWidgetInfo& operator =(ChartWidgetInfo&&) = default;
+
+        ~ChartWidgetInfo();
     };
 
-    QLayout *chartParent;
+    QVBoxLayout *chartParent;
     std::unordered_map<ChartId, ChartWidgetInfo> charts;
     std::unordered_map<SeriesId, ChartView*> series;
     QTimer timer;

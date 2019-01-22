@@ -1,9 +1,13 @@
 #pragma once
 
+#include <list>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include <fmt/format.h>
 
 namespace MoonGlare {
-namespace QtShared {
 
 class iOutput : public std::enable_shared_from_this<iOutput> {
 public:
@@ -31,5 +35,4 @@ public:
     virtual void Close(const std::string &id) {}
 };
 
-} //namespace QtShared
 } //namespace MoonGlare

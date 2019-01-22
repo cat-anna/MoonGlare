@@ -6,15 +6,15 @@
 /*--END OF HEADER BLOCK--*/
 #include PCH_HEADER
 
-#include <filesystem>
 #include <boost/algorithm/string.hpp>
+#include <filesystem>
 
-#include <icons.h>
-#include <iFileProcessor.h>
-#include <iFileIconProvider.h>
-#include <iCustomEnum.h>
 #include <ToolBase/Module.h>
+#include <iCustomEnum.h>
+#include <iFileIconProvider.h>
+#include <iFileProcessor.h>
 #include <iIssueReporter.h>
+#include <icons.h>
 
 #include "../FileSystem.h"
 
@@ -80,7 +80,8 @@ struct MeshProcessorModule
     }
 };
 
-ModuleClassRgister::Register<MeshProcessorModule> MeshProcessorModuleReg("MeshProcessorModule");
+ModuleClassRegister::Register<MeshProcessorModule> MeshProcessorModuleReg("MeshProcessorModule");
 
 //----------------------------------------------------------------------------------
 } 
+

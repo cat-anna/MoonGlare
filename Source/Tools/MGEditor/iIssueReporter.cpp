@@ -4,7 +4,7 @@
 namespace MoonGlare {
 namespace QtShared {
 
-ModuleClassRgister::Register<IssueReporter> IssueReporterReg("IssueReporter");
+ModuleClassRegister::Register<IssueReporter> IssueReporterReg("IssueReporter");
 
 IssueReporter::IssueReporter(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {
     qRegisterMetaType<Issue>("Issue");

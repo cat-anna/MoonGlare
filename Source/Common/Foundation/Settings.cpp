@@ -1,6 +1,6 @@
+#include <boost/algorithm/string.hpp>
 #include <fstream>
 #include <regex>
-#include <boost/algorithm/string.hpp>
 
 #include <Foundation/OS/File.h>
 
@@ -198,13 +198,13 @@ float Settings::GetFloat(const std::string &key, float default)  {
         if constexpr (std::is_same_v<nullptr_t, type_t>)
             return 0.0;
         else if constexpr (std::is_same_v<int, type_t>)
-            return value;
+            return static_cast<float>(value);
         else if constexpr (std::is_same_v<float, type_t>)
             return value;
         else if constexpr (std::is_same_v<std::string, type_t>)
             return strtof(value.c_str(), nullptr);
         else if constexpr (std::is_same_v<bool, type_t>)
-            return value ? 1 : 0;
+            return value ? 1.0f : 0.0f;
         else {
             __debugbreak();
             throw std::runtime_error("reached unreachable code!");

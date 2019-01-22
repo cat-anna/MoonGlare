@@ -8,19 +8,19 @@
 #include PCH_HEADER
 #include "iFileIconProvider.h"
 
-#include <ToolBase/StringUtils.h>
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace MoonGlare {
 namespace QtShared {
 
-ModuleClassRgister::Register<FileIconProvider> FileIconProviderReg("FileIconProvider");
+ModuleClassRegister::Register<FileIconProvider> FileIconProviderReg("FileIconProvider");
 
 FileIconProvider::FileIconProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {} 
 
 bool FileIconProvider::PostInit() {
 	for (auto module : GetModuleManager()->QuerryInterfaces<QtShared::iFileIconInfo>()) {
 		for (auto &item : module.m_Interface->GetFileIconInfo()) {
-			m_FileIconMap[ToLower(item.m_Ext)] = item.m_Icon;
+			m_FileIconMap[boost::to_lower_copy(item.m_Ext)] = item.m_Icon;
 			AddLogf(Info, "Associated icon: %s->%s", item.m_Ext.c_str(), module.m_Module->GetModuleName().c_str());
 		}
 	}
@@ -28,11 +28,11 @@ bool FileIconProvider::PostInit() {
 }
 
 const std::string& FileIconProvider::GetExtensionIcon(const std::string &ext) const {
-	return m_FileIconMap.at(ToLower(ext));
+	return m_FileIconMap.at(boost::to_lower_copy(ext));
 }
 
 const std::string& FileIconProvider::GetExtensionIcon(const std::string &ext, const std::string& default) const {
-	auto it = m_FileIconMap.find(ToLower(ext));
+	auto it = m_FileIconMap.find(boost::to_lower_copy(ext));
 	if (it == m_FileIconMap.end())
 		return default;
 	return it->second;

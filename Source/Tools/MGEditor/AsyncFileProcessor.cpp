@@ -10,7 +10,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-ModuleClassRgister::Register<AsyncFileProcessor> AsyncFileProcessorReg("AsyncFileProcessor");
+ModuleClassRegister::Register<AsyncFileProcessor> AsyncFileProcessorReg("AsyncFileProcessor");
 
 //----------------------------------------------------------------------------------
 

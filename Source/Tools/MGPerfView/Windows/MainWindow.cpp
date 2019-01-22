@@ -10,7 +10,7 @@
 
 namespace MoonGlare::PerfView {
 
-MoonGlare::ModuleClassRgister::Register<MainWindow> MainWindowReg("MainWindow");
+MoonGlare::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow");
 
 MainWindow::MainWindow(SharedModuleManager modmgr)
     : QMainWindow(nullptr), iModule(std::move(modmgr))
@@ -35,6 +35,7 @@ bool MainWindow::PostInit() {
 
 void MainWindow::showEvent(QShowEvent* event)
 {
+    event->accept();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

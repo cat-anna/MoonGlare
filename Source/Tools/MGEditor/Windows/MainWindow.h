@@ -44,8 +44,9 @@ protected:
 	virtual bool DoSaveSettings(pugi::xml_node node) const override;
 	virtual bool DoLoadSettings(const pugi::xml_node node) override;
 	
-	QWidget *GetMainWindowWidget() override { return this; }
+	QMainWindow *GetMainWindowWidget() override { return this; }
 	bool PostInit() override;
+    bool Finalize() override;
 private:
 	std::unique_ptr<Ui::MainWindow> m_Ui;
     QTimer refreshTimer;

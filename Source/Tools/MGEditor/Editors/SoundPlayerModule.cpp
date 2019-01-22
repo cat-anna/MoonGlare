@@ -1,13 +1,13 @@
 #include PCH_HEADER
 //#include "iSoundPlayer.h"
 
-#include <icons.h>
-#include "iFileIconProvider.h"
 #include "iEditor.h"
+#include "iFileIconProvider.h"
+#include <icons.h>
 
-#include <Foundation/SoundSystem/iSoundSystem.h>
-#include "SoundPlayerView.h"
 #include "DockWindows/iFileSystemViewerPreview.h"
+#include "SoundPlayerView.h"
+#include <Foundation/SoundSystem/iSoundSystem.h>
 
 namespace MoonGlare::Editor {
 using namespace QtShared;
@@ -85,6 +85,7 @@ struct SoundPlayerModule
     }
 };
 
-ModuleClassRgister::Register<SoundPlayerModule> SoundPlayerReg("SoundPlayer");
+ModuleClassRegister::Register<SoundPlayerModule> SoundPlayerReg("SoundPlayer");
 
 }
+

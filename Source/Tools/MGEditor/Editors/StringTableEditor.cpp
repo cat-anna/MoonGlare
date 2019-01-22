@@ -167,7 +167,7 @@ bool StringTableEditor::SaveChanges() {
         auto node = xdoc.append_child("StringTable");
         //root.append_attribute("lang") = ...
 
-        for (size_t i = 0; i < root->rowCount(); ++i) {
+        for (int i = 0; i < root->rowCount(); ++i) {
             auto idItm = root->child(i, 0);
             auto colItm = root->child(i, item.column);
 
