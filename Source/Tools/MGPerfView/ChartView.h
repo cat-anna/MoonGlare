@@ -46,6 +46,7 @@ protected:
 
     struct SeriesData {
         std::unique_ptr<QtCharts::QLineSeries> series;
+        std::unique_ptr<QtCharts::QLineSeries> secondarySeries;
         QtCharts::QValueAxis *customAxis;
     };
     std::unordered_map<SeriesId, SeriesData> series;

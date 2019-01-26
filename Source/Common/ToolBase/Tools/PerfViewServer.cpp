@@ -8,9 +8,10 @@ struct PerfServer::Internals : public UdpSocket<Api::MessageBuffer> {
     PerfServer* owner;
 
     Internals(PerfServer* owner)
-        : UdpSocket(Api::PerfViewPort)
+        : UdpSocket()
         , owner(owner)
     {
+        Bind(Api::PerfViewPort);
         Listen();
     }
 

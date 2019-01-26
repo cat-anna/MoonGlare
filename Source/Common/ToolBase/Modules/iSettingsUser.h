@@ -5,7 +5,7 @@
 #include <Foundation/XMLUtils.h>
 #include <ToolBase/Module.h>
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 class iSettings : public iModule {
 public:

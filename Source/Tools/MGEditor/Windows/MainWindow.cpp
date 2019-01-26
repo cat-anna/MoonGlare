@@ -64,6 +64,9 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
     m_Ui->statusBar->showMessage("", 500);
 
     connect(m_Ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::TabCloseRequested);
+#ifdef DEBUG
+    setWindowTitle(windowTitle() + " [DEBUG]"); 
+#endif
 }
 
 MainWindow::~MainWindow() {
@@ -195,7 +198,7 @@ void MainWindow::BuildModuleAction() {
     settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
     settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
 
-    auto pm = GetModuleManager()->QuerryModule<BackgroundProcessManager>();
+    auto pm = GetModuleManager()->QuerryModule<MoonGlare::Module::BackgroundProcessManager>();
     auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
     ForegroundProcess fp(this, GetModuleManager(), process, false);
     fp.exec();

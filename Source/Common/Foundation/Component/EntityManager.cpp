@@ -10,6 +10,7 @@ EntityManager::EntityManager(InterfaceMap &ifaceMap) {
 
 //#ifdef DEBUG
     generationbuffer.Fill(1);
+    //generationbuffer.Fill([] () {return rand() % 32; });
 //#else
     //generationbuffer.FillRandom(); //there is no mask!!
 //#endif // DEBUG
@@ -71,6 +72,7 @@ bool EntityManager::Release(Entity entity) {
         return false;
     }
     auto index = entity.GetIndex();
+    parentEntity[index] = {};
 
     generationbuffer.NewGeneration(index);
     allocator.Release(index);

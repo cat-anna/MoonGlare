@@ -1,6 +1,6 @@
 #include "iBackgroundProcess.h"
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 iBackgroundProcess::iBackgroundProcess(const std::string & id, SharedModuleManager moduleManager) :moduleManager(moduleManager), id(id) {
     processManager = this->moduleManager->QuerryModule<BackgroundProcessManager>();

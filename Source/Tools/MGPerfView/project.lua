@@ -2,7 +2,7 @@
 require "premake-qt/qt"
 local qt = premake.extensions.qt
 
-group ""
+group "Tools"
 project "MGPerfView"
 
     qt.enable()
@@ -34,7 +34,6 @@ project "MGPerfView"
     links {
         "OrbitLogger",
         "libSpace",
-        "StarVFS",
 
         "Foundation",
         "ToolBase",

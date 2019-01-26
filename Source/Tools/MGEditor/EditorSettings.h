@@ -7,7 +7,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-class EditorSettings : public iModule, public iSettings::CustomConfigSet {
+class EditorSettings : public iModule, public MoonGlare::Module::iSettings::CustomConfigSet {
 public:
 	EditorSettings(SharedModuleManager modmgr);
 	~EditorSettings();
@@ -25,4 +25,5 @@ protected:
 
 } //namespace Editor
 } //namespace MoonGlare
+
 

@@ -15,11 +15,11 @@ class ForegroundProcess
 {
     Q_OBJECT
 public:
-    ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, SharedBackgroundProcess Process, bool AllowGotoBackground);
+    ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, MoonGlare::Module::SharedBackgroundProcess Process, bool AllowGotoBackground);
     ~ForegroundProcess();
 private:
     std::unique_ptr<Ui::ForegroundProcess> ui;
-    SharedBackgroundProcess process;
+    MoonGlare::Module::SharedBackgroundProcess process;
     std::unique_ptr<QTimer> refreshTimer;
     bool FirstRefresh = true;
     void Refresh(bool CanStart);

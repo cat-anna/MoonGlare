@@ -9,7 +9,7 @@
 #include <ToolBase/Module.h>
 #include <ToolBase/iOutput.h>
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 class BackgroundProcessManager;
 using SharedBackgroundProcessManager = std::shared_ptr<BackgroundProcessManager>;

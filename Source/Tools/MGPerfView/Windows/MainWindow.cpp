@@ -21,6 +21,10 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
     ui->setupUi(this);
 
     chartManager = std::make_unique<ChartManager>(ui->scrollAreaContent, ui->verticalLayout_2);
+
+#ifdef DEBUG
+    setWindowTitle(windowTitle() + " [DEBUG]");
+#endif
 }
 
 MainWindow::~MainWindow() {
@@ -52,7 +56,6 @@ bool MainWindow::DoSaveSettings(pugi::xml_node node) const {
 bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
     LoadGeometry(node, this, "Qt:Geometry");
     LoadState(node, this, "Qt:State");
-
     return true;
 }
 

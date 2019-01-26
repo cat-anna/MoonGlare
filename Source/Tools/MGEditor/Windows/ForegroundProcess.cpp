@@ -9,7 +9,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-ForegroundProcess::ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, SharedBackgroundProcess Process, bool AllowGotoBackground)
+ForegroundProcess::ForegroundProcess(QWidget *parent, SharedModuleManager ModuleManager, MoonGlare::Module::SharedBackgroundProcess Process, bool AllowGotoBackground)
     : SubDialog(parent, ModuleManager), process(Process)
 {
     ui = std::make_unique<Ui::ForegroundProcess>();
@@ -45,7 +45,7 @@ void ForegroundProcess::Refresh(bool CanStart) {
         ui->pushButtonAbort->setEnabled(false);
     };
 
-    using State = iBackgroundProcess::State;
+    using State = MoonGlare::Module::iBackgroundProcess::State;
     switch (process->GetState())
     {
     case State::NotStarted:
@@ -103,7 +103,7 @@ void ForegroundProcess::ButtonAbort() {
     if (!AskForPermission())
         return;
 
-    using AbortAction = iBackgroundProcess::AbortAction;
+    using AbortAction = MoonGlare::Module::iBackgroundProcess::AbortAction;
     if (process->Abort() == AbortAction::Impossible)
         ErrorMessage("Process refused to abort");
 }

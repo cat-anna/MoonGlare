@@ -16,7 +16,7 @@ namespace Editor {
 class SettingsWindow
 	: public QDialog
 	, public UserQuestions
-	, public iSettingsUser {
+	, public MoonGlare::Module::iSettingsUser {
 	Q_OBJECT
 public:
 	SettingsWindow(SharedModuleManager modmgr, QWidget *parent = 0);

@@ -15,7 +15,7 @@ namespace Editor {
 
 class TreeViewDialog
 	: public QDialog
-	, public iSettingsUser {
+	, public MoonGlare::Module::iSettingsUser {
 	Q_OBJECT
 public:
     TreeViewDialog(QWidget *parent, const std::string settingsName);

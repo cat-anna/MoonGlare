@@ -1,11 +1,13 @@
 #include "ComponentArray.h"
 #include "ComponentInfo.h"
+#include "EntityManager.h"
 
 namespace MoonGlare::Component {
 
 ComponentArray::ComponentArray(InterfaceMap& ifaceMap)
-    : PerfProducer(ifaceMap)
-{
+    : PerfProducer(ifaceMap) {
+    ifaceMap.GetObject(entityManager);
+
     storageStatus.fill({});
 
     auto cid = AddChart(fmt::format("ComponentArray_{}", this));
@@ -38,17 +40,80 @@ ComponentArray::ComponentArray(InterfaceMap& ifaceMap)
     DumpStatus("AfterConstruction");
 }
 
-ComponentArray::~ComponentArray()
-{
+ComponentArray::~ComponentArray() {
     DumpStatus("BeforeDestruction");
     ReleaseAllComponents();
 }
 
-void ComponentArray::Step()
-{
+void ComponentArray::Step() {
     BaseComponentInfo::ForEachComponent([this](auto cindex, const BaseComponentInfo::ComponentClassInfo& info) {
         AddData((unsigned)cindex, (float)storageStatus[cindex].allocated);
     });
+
+    //GCStep();
+}
+
+void ComponentArray::GCStep() {
+    BaseComponentInfo::ForEachComponent([this](auto cindex, const BaseComponentInfo::ComponentClassInfo& info) {
+        GCStep(cindex);
+    });
+}
+
+void ComponentArray::GCStep(ComponentClassId ccid) {
+    auto &status = storageStatus[ccid];
+    if (status.allocated == 0)
+        return;
+
+    bool done = false;
+    do {
+        ComponentIndex start = static_cast<ComponentIndex>(rand() % status.allocated);
+
+        constexpr size_t stepSize = 16;
+
+        for (ComponentIndex i = start; i < status.allocated && i - start < stepSize; i = (ComponentIndex)(i + 1)) {
+            auto entity = componentOwner[ccid][i];
+            if (entityManager->IsValid(entity)) {
+                done = true;
+                continue;
+            }
+
+            RemoveComponent(ccid, entity, i);
+        }
+    }
+    while (!done);
+}
+
+//-------------------------------------
+
+void ComponentArray::SwapComponents(ComponentClassId cci, ComponentIndex a, ComponentIndex b) {
+    if (a == b)
+        return;
+    
+    auto aE = componentOwner[cci][a];
+    auto aMem = GetComponentMemory(a, cci);
+
+    auto bE = componentOwner[cci][b];
+    auto bMem = GetComponentMemory(b, cci);
+
+    arrayMappers[cci]->SetIndex(aE, b);
+    arrayMappers[cci]->SetIndex(bE, a);
+    componentOwner[cci][a] = bE;
+    componentOwner[cci][b] = aE;
+
+    storageStatus[cci].info->swap(bMem, aMem);
+}
+
+void ComponentArray::RemoveComponent(ComponentClassId cci, Entity e, ComponentIndex index) {
+    auto lastIndex = storageStatus[cci].Last();
+    if (lastIndex != index)
+        SwapComponents(cci, index, lastIndex);
+
+    auto mem = GetComponentMemory(lastIndex, cci);
+    storageStatus[cci].info->destructor(mem);
+
+    arrayMappers[cci]->ClearIndex(e);
+
+    storageStatus[cci].Deallocate();
 }
 
 //-------------------------------------

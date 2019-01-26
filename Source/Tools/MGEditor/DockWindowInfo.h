@@ -10,7 +10,7 @@ namespace QtShared {
 class BaseDockWindowModule 
 		: public QObject
 		, public iModule
-		, public iSettingsUser {
+		, public Module::iSettingsUser {
 	Q_OBJECT;
 public:
 	BaseDockWindowModule(SharedModuleManager modmgr);

@@ -4,10 +4,10 @@
 
 #include "MeshComponent.h"
 
-#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/Resources/MaterialManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
-#include <Renderer/Renderer.h>
+#include <Renderer/Resources/ResourceManager.h>
 
 namespace MoonGlare::Component {
      

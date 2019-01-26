@@ -76,13 +76,13 @@ bool ModuleManager::Finalize() {
 }
 
 void ModuleManager::LoadSettigs() {
-	for (auto &item : QuerryInterfaces<iSettingsUser>()) {
+	for (auto &item : QuerryInterfaces<Module::iSettingsUser>()) {
 		item.m_Interface->LoadSettings();
 	}
 }
 
 void ModuleManager::SaveSettigs() {
-	for (auto &item : QuerryInterfaces<iSettingsUser>()) {
+	for (auto &item : QuerryInterfaces<Module::iSettingsUser>()) {
 		item.m_Interface->SaveSettings();
 	}
 }

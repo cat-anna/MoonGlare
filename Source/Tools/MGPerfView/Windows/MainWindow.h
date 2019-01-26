@@ -6,7 +6,6 @@
 #include <ToolBase/Module.h>
 #include <ToolBase/Modules/iSettingsUser.h>
 #include <ToolBase/UserQuestions.h>
-#include <ToolBase/interfaces/ActionBarSink.h>
 
 #include "ToolBase/Tools/PerfViewServer.h"
 
@@ -23,7 +22,7 @@ class ChartManager;
 class MainWindow
     : public QMainWindow,
       public iModule,
-      public iSettingsUser,
+      public Module::iSettingsUser,
       public UserQuestions {
     Q_OBJECT
 public:

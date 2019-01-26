@@ -57,7 +57,7 @@ ChartView::~ChartView() {
 void ChartView::resizeEvent(QResizeEvent *event) {
     QChartView::resizeEvent(event);
     auto area = chart->plotArea();
-    VisibleDuration = area.width()/20.0f;
+    VisibleDuration = area.width()/40.0f;
 }
 
 void ChartView::SetTitle(const std::string &title) {
@@ -95,16 +95,24 @@ QPen ChartView::GetPen() const {
 
 void ChartView::AddSeries(const std::string &name, SeriesInfo seriesInfo, AxisInfo axes) {
     auto newSeries = std::make_unique<QtCharts::QLineSeries>(chart.get());
+    auto newSeries2 = std::make_unique<QtCharts::QLineSeries>(chart.get());
 
     newSeries->setPen(GetPen());
     chart->addSeries(newSeries.get());
     newSeries->attachAxis(axisX.get());
     newSeries->setName(name.c_str());
-
     newSeries->attachAxis(axisPrimary.get());
+
+    newSeries2->setPen(newSeries->pen());
+    chart->addSeries(newSeries2.get());
+    newSeries2->attachAxis(axisX.get());
+    newSeries2->setName("");
+    newSeries2->attachAxis(axisPrimary.get());
+    //newSeries2->
 
     SeriesData si;
     si.series = std::move(newSeries);
+    si.secondarySeries = std::move(newSeries2);
     series[seriesInfo.seriesId] = std::move(si);
 }
 
@@ -118,7 +126,7 @@ void ChartView::AddData(SeriesId seriesId, float x, float y) {
     lastDataTimePoint = std::chrono::steady_clock::now();
 
     //while(s.series->count() > 1024)
-        //s.series->remove(0);
+    //    s.series->remove(0);
 
     s.series->append(x, y);
 
@@ -127,11 +135,16 @@ void ChartView::AddData(SeriesId seriesId, float x, float y) {
     ++lastDataIndex;
 
     xMax = std::max(xMax, x);
+
+    if (s.series->count() > 1024) {
+        s.series.swap(s.secondarySeries);
+        s.series->clear();
+    }
 }
 
 void ChartView::RefreshAxes() {
     axisX->setRange(std::max(xMax - VisibleDuration, 0.0f), xMax);
-    float yMax = 0.01;
+    float yMax = 0.001;
     for (auto [sid, lx, ly] : lastValues) {
         if(lx + VisibleDuration > xMax)
             yMax = std::max(yMax, ly);

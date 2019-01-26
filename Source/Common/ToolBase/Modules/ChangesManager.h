@@ -4,7 +4,7 @@
 
 #include <ToolBase/Module.h>
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 class ChangesManager;
 struct iChangeContainer;

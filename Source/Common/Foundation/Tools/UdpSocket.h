@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <Libs/libSpace/src/Memory/DynamicMessageBuffer.h>
@@ -20,25 +21,30 @@ struct UdpSocket {
     virtual ~UdpSocket()
     {
         canRun = false;
-        thread.join();
-    }
-    
-    UdpSocket(uint16_t Port)
-        : io_service()
-        , sock(io_service, udp::endpoint(udp::v4(), Port))
-    {
+        if (thread.joinable())
+            thread.join();
     }
 
-    UdpSocket(const std::string& Port, const std::string& Host)
+    UdpSocket()
         : io_service()
         , sock(io_service)
     {
+    }
+
+    void Bind(uint16_t port)
+    {
+        sock = udp::socket(io_service, udp::endpoint(udp::v4(), port));
+    }
+
+    void ConnectTo(uint16_t port, const std::string& host)
+    {
         udp::resolver resolver(io_service);
-        endpoint = *resolver.resolve({ udp::v4(), Host, Port });
+        endpoint = *resolver.resolve({ udp::v4(), host, std::to_string(port) });
         sock.open(udp::v4());
     }
-   
-    void Listen() {
+
+    void Listen()
+    {
         if (!thread.joinable()) {
             thread = std::thread([this]() {
                 canRun = true;
@@ -49,20 +55,22 @@ struct UdpSocket {
 
     using MessageHeader = typename BufferType::Header;
     using MessageType = typename MessageHeader::MessageType;
+    constexpr static size_t MaxMessageSize = typename BufferType::Size;
 
-    virtual void OnMessage(const MessageHeader *request, const udp::endpoint &sender) {}
+    virtual void OnMessage(const MessageHeader* request, const udp::endpoint& sender) {}
 
-    bool Send(MessageHeader* header)
+    bool Send(const MessageHeader* header, std::optional<udp::endpoint> destination = std::nullopt)
     {
         uint32_t size = sizeof(MessageHeader) + header->payloadSize;
-        sock.send_to(boost::asio::buffer(header, size), endpoint);
+        sock.send_to(boost::asio::buffer(header, size), destination.value_or(endpoint));
         ++packetsSend;
         bytesSend += size;
         return true;
     }
 
+
     template <typename PayloadType>
-    void Send(const PayloadType& payload, MessageType messageType, u32 requestID = 0)
+    void Send(const PayloadType& payload, MessageType messageType, u32 requestID = 0, std::optional<udp::endpoint> destination = std::nullopt)
     {
         char buffer[Api::MaxMessageSize];
         auto* header = reinterpret_cast<MessageHeader*>(buffer);
@@ -73,7 +81,7 @@ struct UdpSocket {
 
         memcpy(header->payLoad, &payload, sizeof(payload));
 
-        Send(header);
+        Send(header, destination.value_or(endpoint));
     }
 
 private:
@@ -85,11 +93,12 @@ private:
     uint64_t bytesSend = 0;
     std::atomic<bool> canRun = false;
 
-    void ThreadMain() {
-               //::OrbitLogger::ThreadInfo::SetName("RECO");
+    void ThreadMain()
+    {
+        //::OrbitLogger::ThreadInfo::SetName("RECO");
 
         char buffer[Tools::Api::MaxMessageSize];
-        auto *header = reinterpret_cast<MessageHeader*>(buffer);
+        auto* header = reinterpret_cast<MessageHeader*>(buffer);
 
         while (canRun) {
             try {
@@ -105,8 +114,7 @@ private:
                     continue;
 
                 OnMessage(header, remote_endpoint);
-            }
-            catch (...) {
+            } catch (...) {
                 __debugbreak();
             }
         }

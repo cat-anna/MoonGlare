@@ -1,7 +1,7 @@
 #include "iSettingsUser.h"
 #include "AppConfig.h"
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 static iSettings *l_iSettingsInstance = nullptr;
 

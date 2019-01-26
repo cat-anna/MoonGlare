@@ -2,8 +2,8 @@
 
 #include <Foundation/Memory/ArrayIndexTree.h>
 
-#include <Foundation/Component/iSubsystem.h>
 #include <Foundation/Component/EntityEvents.h>
+#include <Foundation/Component/iSubsystem.h>
 
 #include <Core/Scripts/ScriptComponent.h>
 
@@ -33,7 +33,7 @@ public:
 
 //------------------------------------------------------------------------------------------
 
-    ComponentIndex GetComponentIndex(Entity e) const { return values.entityMapper.GetIndex(e); }
+    ComponentIndex GetComponentIndex(Entity e) const;
     
     void SetDirty(ComponentIndex ci) { values.flags[ci].dirty = true; }
 
@@ -51,6 +51,7 @@ public:
     //const emath::Transform &GetLocalTransform(ComponentIndex ci) const { return values.localTransform[ci]; }
     //void SetLocalTransform(ComponentIndex ci, const emath::Transform & tr) { values.localTransform[ci] = tr; }
     RuntimeRevision GetRevision(ComponentIndex ci) const { return values.revision[ci]; }
+    Entity GetIndexOwner(ComponentIndex ci) const { return values.owner[ci]; }
 
     std::optional<Entity> FindChildByName(Entity root, std::string_view name);
     Entity GetOwner(Entity item);
@@ -107,6 +108,7 @@ protected:
             entityMapper.Swap(owner[a], owner[b]);
             std::swap(owner[a], owner[b]);
             std::swap(flags[a], flags[b]);
+            std::swap(revision[a], revision[b]);
             std::swap(scale[a], scale[b]);
             std::swap(globalScale[a], globalScale[b]);
             std::swap(position[a], position[b]);
@@ -119,6 +121,8 @@ protected:
             component->ElementRemoved(e);
             //owner[e] = Entity::Invalid;
             owner[e] = {};
+            revision[e] = 0;
+            flags[e].dirty = true;
         }
         void InitElemenent(ElementIndex e, ElementIndex parent){
         }

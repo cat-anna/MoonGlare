@@ -15,7 +15,7 @@ static constexpr uint32_t EventDispatcherQueueSize = 64 * 1024; //bytes
 static constexpr uint32_t EntityIndexBitCount = 14;
 static constexpr uint32_t EntityGenerationBitCount = 32 - EntityIndexBitCount;
 
-static constexpr uint32_t EntityLimit = 1 << EntityIndexBitCount;
+static constexpr uint32_t EntityLimit = (1 << EntityIndexBitCount)/2;
 
 template<typename T>
 using EntityArray = std::array<T, EntityLimit>;                  

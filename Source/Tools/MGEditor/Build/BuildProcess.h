@@ -32,7 +32,7 @@ struct BuildSettings {
     std::string svfsExeName = "svfs";
 };
 
-class BuildProcess : public iBackgroundProcess {
+class BuildProcess : public MoonGlare::Module::iBackgroundProcess {
 public:
     BuildProcess(const std::string &id, SharedModuleManager moduleManager, BuildSettings Settings);
 protected:

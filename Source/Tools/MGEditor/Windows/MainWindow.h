@@ -8,6 +8,7 @@
 
 #include <MiscIfs.h>
 #include <ToolBase/Module.h>
+#include <ToolBase/Modules/iSettingsUser.h>
 #include <ToolBase/interfaces/ActionBarSink.h>
 #include <ToolBase/interfaces/MainWindowTabs.h>
 
@@ -26,7 +27,7 @@ class MainWindow
 	: public QMainWindow
 	, public iModule
 	, public UserQuestions
-	, public iSettingsUser
+	, public MoonGlare::Module::iSettingsUser
 	, public QtShared::MainWindowProvider
 	, public QtShared::QtWindowProvider<MainWindow> 
     , public iActionBarSink

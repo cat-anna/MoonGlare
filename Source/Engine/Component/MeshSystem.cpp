@@ -1,18 +1,19 @@
 #include <pch.h>
+
 #include <nfMoonGlare.h>
 
-#include "MeshSystem.h"
 #include "MeshComponent.h"
+#include "MeshSystem.h"
 
 #include "TransformComponent.h"
 
 #include <Renderer/Deferred/DeferredFrontend.h>
 
-#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Frame.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/Resources/MaterialManager.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
-#include <Renderer/Renderer.h>
-#include <Renderer/Frame.h>
+#include <Renderer/Resources/ResourceManager.h>
 
 #include <Core/Component/SubsystemManager.h>
 
@@ -44,9 +45,21 @@ void MeshSystem::Step(const SubsystemUpdateData &xconf) {
 
     componentArray->Visit<MeshComponent>([this, &conf, rf, ssm](Entity owner, MeshComponent& item) {
         //TODO: visibility test
+
+        auto idx = owner.GetIndex();
+        auto gen = owner.GetGeneration();
+
+        if (idx == 105 && gen == 2) {
+            int i = 0;
+        }
+
+
         auto tindex = transformComponent->GetComponentIndex(owner);
         if (tindex == ComponentIndex::Invalid) {
             //shall not happen
+            if (gen == 2) {
+                int i = 0;
+            }
             return;
         }
 

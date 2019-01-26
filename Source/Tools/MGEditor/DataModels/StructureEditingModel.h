@@ -20,8 +20,8 @@ namespace DataModels {
 
 class StructureEditingModel 
 		: public QTreeView
-		, public iSettingsUser
-		, public iChangeContainer {
+		, public MoonGlare::Module::iSettingsUser
+		, public MoonGlare::Module::iChangeContainer {
 	Q_OBJECT;
 public:
 	StructureEditingModel(QWidget *parent);

@@ -1,4 +1,5 @@
 #include <pch.h>
+
 #include <nfMoonGlare.h>
 
 #include "Component/ComponentRegister.h"
@@ -208,9 +209,13 @@ Component::Entity PrefabManager::Spawn(ImportTask &task) {
         else
             thisParent = task.parent;
 
-        if (!entityManager->Allocate(thisParent, task.spawnEntity[index], ei.name)) {
+        auto &eout = task.spawnEntity[index];
+        if (!entityManager->Allocate(thisParent,eout, ei.name)) {
             AddLogf(Error, "Failed to allocate entity!");
             //return {};
+        }
+        if (thisParent.GetIndex() > eout.GetIndex()) {
+            int i = 0;
         }
     }
 
@@ -365,6 +370,11 @@ void PrefabManager::SpawnComponent(ImportTask &task, const ComponentImport &ci) 
     } else {
         __debugbreak();
         //owner = Owner;
+    }
+
+    auto gen = owner.GetGeneration();
+    if (gen > 1) {
+        int i = 0;
     }
 
     task.localRelationsBuffer.clear();

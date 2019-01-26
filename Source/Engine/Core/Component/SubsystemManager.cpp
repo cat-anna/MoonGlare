@@ -171,12 +171,12 @@ void SubsystemManager::Step(const MoveConfig &config) {
         //componentArray.DumpStatus("Periodic");     
     //}
 
-#ifndef PERF_PERIODIC_PRINT
-    for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
-        m_Components[i]->Step(config);
-    }
-    m_EventDispatcher.Step();
-#else
+//#ifndef PERF_PERIODIC_PRINT
+    //for (size_t i = 0, j = m_UsedCount; i < j; ++i) {
+        //m_Components[i]->Step(config);
+    //}
+    //m_EventDispatcher.Step();
+//#else
     auto StepStartTime = std::chrono::steady_clock::now();
     auto ComponentStartTime = StepStartTime;
 
@@ -210,7 +210,7 @@ void SubsystemManager::Step(const MoveConfig &config) {
     //    AddLogf(Performance, "SubsystemManager:%p  %sTotal:%7.5fms", this, oss.c_str(), sum);
     //}
 
-#endif
+//#endif
 }
 
 iSubsystem* SubsystemManager::GetComponent(SubSystemId cid) {

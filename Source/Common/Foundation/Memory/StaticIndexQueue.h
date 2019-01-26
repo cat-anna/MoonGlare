@@ -1,7 +1,7 @@
 #pragma once
 
-#include <type_traits>
 #include <cassert>
+#include <type_traits>
 
 namespace MoonGlare::Memory {
 
@@ -17,6 +17,10 @@ struct StaticIndexQueue  {
         count = Size;
         for (Item i = 0; i < (Item)Size; ++i)
             memory[i] = i;
+
+        for (Item i = 0; i < (Item)Size / 2; ++i)
+            std::swap(memory[i], memory[Size - i - 1]);
+
     }
 
     bool Empty() const { return count == 0; }

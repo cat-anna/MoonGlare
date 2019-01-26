@@ -31,8 +31,8 @@ namespace DataModels {
 class EntityEditorModel
 		: public QWidget 
 		, public UserQuestions
-		, public iChangeContainer
-		, public iSettingsUser
+		, public Module::iChangeContainer
+		, public Module::iSettingsUser
 {
 	Q_OBJECT;
 public:

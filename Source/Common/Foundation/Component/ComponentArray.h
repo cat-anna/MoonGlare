@@ -16,6 +16,8 @@
 
 namespace MoonGlare::Component {
 
+class EntityManager;
+
 class ComponentArray : private boost::noncopyable, protected Tools::PerfView::PerfProducer {
 public:
     ComponentArray(InterfaceMap &ifaceMap);
@@ -35,7 +37,7 @@ public:
         }
         index = storageStatus[cci].Next();
         if (index == ComponentIndex::Invalid) {
-            //TODO: ?
+            AddLogf(Warning, "Cannot assign component: Component buffer is full; ccid: %d ", (int)cci);
             return nullptr;
         }
         arrayMappers[cci]->SetIndex(e, index);
@@ -50,10 +52,11 @@ public:
     bool Create(Entity e, ComponentClassId cci) {
         auto index = arrayMappers[cci]->GetIndex(e);
         if (index != ComponentIndex::Invalid) {
+            AddLogf(Warning, "Cannot create component: Component exists; ccid: %d ", (int)cci);
             return true;
         }
         if (storageStatus[cci].Full()) {
-            //TODO: ?
+            AddLogf(Warning, "Cannot create component: Component buffer is full; ccid: %d ", (int)cci);
             return false;
         }
         index = storageStatus[cci].Next();
@@ -70,10 +73,11 @@ public:
     bool Load(Entity e, ComponentClassId cci, ComponentReader &reader) {
         auto index = arrayMappers[cci]->GetIndex(e);
         if (index != ComponentIndex::Invalid) {
+            AddLogf(Warning, "Cannot load component: Component exists; ccid: %d ", (int)cci);
             return true;
         }
         if (storageStatus[cci].Full()) {
-            //TODO: ?
+            AddLogf(Warning, "Cannot load component: Component buffer is full; ccid: %d ", (int)cci);
             return false;
         }
         index = storageStatus[cci].Next();
@@ -124,21 +128,13 @@ public:
         if (index == ComponentIndex::Invalid)
             return;
 
-        auto lastIndex = storageStatus[cci].Last();
-        SwapComponents(cci, index, lastIndex);
-        
-        auto mem = GetComponentMemory(lastIndex, cci);
-        storageStatus[cci].info->destructor(mem);
-        arrayMappers[cci]->ClearIndex(e);
-
-        storageStatus[cci].Deallocate();
+        RemoveComponent(cci, e, index);
     }
 
     void RemoveAll(Entity e) {
         for (size_t i = 0; i < storageStatus.size(); ++i) {
-            if (!storageStatus[(ComponentClassId)i].info)
-                break;
-            Remove(e, static_cast<ComponentClassId>(i));
+            if (storageStatus[(ComponentClassId)i].info)
+                Remove(e, static_cast<ComponentClassId>(i));
         }
     }
     
@@ -202,12 +198,17 @@ public:
     void ReleaseAllComponents();
 
     void Step();
+    void GCStep();
+    void GCStep(ComponentClassId ccid);
 private:
     template<typename T> using PerComponentType = EnumArray<ComponentClassId, T, Configuration::MaxComponentTypes>;
     using ComponentMemory = Memory::aligned_array<uint8_t>;
 
     using ComponentFlagArray = std::unique_ptr<ComponentFlagSet[]>;
     using ComponentOwnerArray = std::unique_ptr<Entity[]>;
+
+    EntityManager *entityManager = nullptr;
+    void *__padding = nullptr;
 
     struct StorageStatus {
         size_t allocated;
@@ -218,7 +219,7 @@ private:
         bool Full() const { return allocated >= capacity; }
 
         void Deallocate() { --allocated; }
-        ComponentIndex Last() const { return  static_cast<ComponentIndex>(allocated); } 
+        ComponentIndex Last() const { return static_cast<ComponentIndex>(allocated - 1); } 
         ComponentIndex Next() {
             auto ci = static_cast<ComponentIndex>(allocated);
             if (ci == capacity)
@@ -247,20 +248,8 @@ private:
         return componentFlag[cci][index];
     }
 
-    void SwapComponents(ComponentClassId cci, ComponentIndex a, ComponentIndex b) {
-        auto aE = componentOwner[cci][a];
-        auto aMem = GetComponentMemory(a, cci);
-
-        auto bE = componentOwner[cci][b];
-        auto bMem = GetComponentMemory(b, cci);
-
-        arrayMappers[cci]->SetIndex(aE, b);
-        arrayMappers[cci]->SetIndex(bE, a);
-        componentOwner[cci][a] = bE;
-        componentOwner[cci][b] = aE;
-
-        storageStatus[cci].info->swap(bMem, aMem);
-    }
+    void SwapComponents(ComponentClassId cci, ComponentIndex a, ComponentIndex b);
+    void RemoveComponent(ComponentClassId cci,  Entity e, ComponentIndex index);
 };
 
 }

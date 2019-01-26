@@ -45,7 +45,7 @@ struct SceneEditorRole {
 
 class SceneEditor
 	: public QtShared::DockWindow
-	, public iChangeContainer
+	, public MoonGlare::Module::iChangeContainer
 	, public QtShared::iEditor {
 	Q_OBJECT;
 public:

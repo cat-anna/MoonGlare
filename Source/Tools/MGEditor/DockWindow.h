@@ -12,7 +12,7 @@ namespace QtShared {
 class DockWindow 
 	: public QDockWidget
 	, public UserQuestions
-	, public iSettingsUser
+	, public Module::iSettingsUser
 	, public std::enable_shared_from_this<DockWindow> {
 	Q_OBJECT;
 public:

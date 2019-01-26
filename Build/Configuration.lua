@@ -70,6 +70,7 @@ local function SetCommonConfig()
 		defines{
 			"MSVC",
             "_ENABLE_EXTENDED_ALIGNED_STORAGE",
+            "_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING",
 		}
 		disablewarnings {
 			"4100", -- unreferenced formal parameter

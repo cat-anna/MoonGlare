@@ -4,13 +4,13 @@
 #include <Foundation/Resources/Mesh.h>
 
 #include <Renderer/Frame.h>
-#include <Renderer/Renderer.h>
 #include <Renderer/RenderDevice.h>
-#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
 #include <Renderer/Resources/Mesh/VAOResource.h>
-#include <Renderer/Resources/Texture/TextureResource.h>
+#include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Renderer/Resources/Texture/TextureResource.h>
 
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/FramebufferCommands.h>
@@ -429,16 +429,16 @@ void DeferredSink::SubmitDirectionalLight(const LightBase & linfo) {
 }
 
 bool DeferredSink::MeshVisibilityTest(const emath::fvec3 &position, float radius) {
-    if (visibility < 0)
-        return true;    
-    emath::fvec3 delta = m_Camera.m_Position - position;
+    //if (visibility < 0)
+    //    return true;    
+    //emath::fvec3 delta = m_Camera.m_Position - position;
 
-    auto sqnorm = delta.squaredNorm();
-    //if (sqnorm < pow(radius, 2.0f))
-        //return true;
+    //auto sqnorm = delta.squaredNorm();
+    ////if (sqnorm < pow(radius, 2.0f))
+    //    //return true;
 
-    if (sqnorm > pow(radius + visibility, 2.0f))
-        return false;
+    //if (sqnorm > pow(radius + visibility, 2.0f))
+    //    return false;
 
     //if (delta.dot(m_Camera.m_Direction) < 0)
         //return false;

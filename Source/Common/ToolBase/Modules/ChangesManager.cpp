@@ -1,6 +1,6 @@
 #include "ChangesManager.h"
 
-namespace MoonGlare {
+namespace MoonGlare::Module {
 
 ChangesManager::ChangesManager(SharedModuleManager modmgr) : iModule(modmgr) {
 }

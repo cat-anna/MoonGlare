@@ -9,8 +9,8 @@ struct PerfViewClient::Internals {
     UdpSocket<Api::MessageBuffer> socket;
 
     Internals()
-        : socket(std::to_string(Api::PerfViewPort), "localhost")
     {
+        socket.ConnectTo(Api::PerfViewPort, "localhost");
     }
 
     void SendPacket(const Api::PayLoad_AddData& data)

@@ -20,7 +20,7 @@ namespace MoonGlare::Editor {
 class StringTableEditor
     : public QWidget
     , public QtShared::iEditor
-    , public iChangeContainer 
+    , public MoonGlare::Module::iChangeContainer 
     , public iTabViewBase
     , public UserQuestions
 {

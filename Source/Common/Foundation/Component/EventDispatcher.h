@@ -1,8 +1,8 @@
 #pragma once
 
-#include "nfComponent.h"
 #include "Configuration.h"
 #include "EventInfo.h"    
+#include "nfComponent.h"
 
 #include <Foundation/Memory/DynamicBuffer.h>
 

@@ -2,7 +2,7 @@ require "premake-qt/qt"
 local qt = premake.extensions.qt
 
 group "Tools"
-    project "recon"
+    project "MGReconGui"
         kind "WindowedApp"
         
         qt.enable()
@@ -16,12 +16,13 @@ group "Tools"
         filter {}
     
         links {
+            "OrbitLogger",
+            "libSpace",
+
             "ToolBase",
             "Foundation",
         }
 
-        SetPCH { hdr = "Tools/recon/pch.h", src = "pch.cpp", }	
-        
         defines { 
             "_BUILDING_TOOL_", 
             "_BUILDING_RECON_", 

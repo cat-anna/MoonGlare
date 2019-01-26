@@ -41,9 +41,9 @@ PendingChanges::PendingChanges(QWidget * parent, SharedModuleManager smm)
     m_Ui = std::make_unique<Ui::PendingChanges>(); 
     m_Ui->setupUi(this);
 
-    changesManager = GetModuleManager()->QuerryModule<ChangesManager>();
+    changesManager = GetModuleManager()->QuerryModule<MoonGlare::Module::ChangesManager>();
 
-    connect(changesManager.get(), &ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
+    connect(changesManager.get(), &MoonGlare::Module::ChangesManager::Changed, this, &PendingChanges::ChangesChanged);
 
     m_ViewModel = std::make_unique<QStandardItemModel>();
     m_ViewModel->setHorizontalHeaderItem(0, new QStandardItem("Editor"));
@@ -99,10 +99,10 @@ void PendingChanges::Refresh() {
     auto root = m_ViewModel->invisibleRootItem();
 
     bool state = false;
-    std::unordered_map<iChangeContainer*, QStandardItem*> Items;
+    std::unordered_map<MoonGlare::Module::iChangeContainer*, QStandardItem*> Items;
     Items[nullptr] = root;
 
-    auto GetRoot = [root, &Items](iChangeContainer* ichg) -> QStandardItem* {
+    auto GetRoot = [root, &Items](MoonGlare::Module::iChangeContainer* ichg) -> QStandardItem* {
         auto it = Items.find(ichg);
         if (it == Items.end()) {
             return nullptr;
@@ -148,7 +148,7 @@ void PendingChanges::SaveAll() {
 
 //----------------------------------------------------------------------------------
 
-void PendingChanges::ChangesChanged(iChangeContainer * sender, bool state) {
+void PendingChanges::ChangesChanged(MoonGlare::Module::iChangeContainer * sender, bool state) {
     Refresh();
 }
 

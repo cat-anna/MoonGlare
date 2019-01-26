@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
 #include "Configuration.h"
 #include "Entity.h"
+#include <array>
 
 namespace MoonGlare::Component {
 
@@ -15,7 +15,6 @@ struct EntityArrayMapper {
 
     using Array = std::array<IndexType, SizeLimit>;
     static constexpr IndexType InvalidIndex = InvalidValue;
-
 
     void Clear() { Fill(InvalidIndex); }
     void Fill(IndexType t) { mapper.fill(t); }

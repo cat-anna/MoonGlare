@@ -1,41 +1,46 @@
-#include PCH_HEADER
+#include <QSyntaxHighlighter>
+#include <QTextStream>
+#include <qmenu.h>
 #include <qobject.h>
+#include <qtextdocumentwriter.h>
 
-#include "Recon.h"
-#include <Foundation/OS/Path.h>
+#include <ToolBase/AppConfig.h>
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
              
-using namespace MoonGlare::Tools::RemoteConsole;
-
 //--------------------------------
 
-MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
-    : QMainWindow(nullptr), recon(std::move(recon))
-{
-    m_Ui = std::make_unique<Ui::MainWindow>();
-    m_Ui->setupUi(this);
+namespace MoonGlare::Recon {
 
-    connect(m_Ui->pushButton, &QPushButton::clicked, [this]() {
-        auto txt = m_Ui->plainTextEdit->toPlainText();
-        //m_Ui->lineEdit->setText("");
+MoonGlare::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow");
+
+MainWindow::MainWindow(SharedModuleManager modmgr)
+    : QMainWindow(nullptr), iModule(std::move(modmgr)) {
+    SetSettingID("MainWindow");
+
+    ui = std::make_unique<Ui::MainWindow>();
+    ui->setupUi(this);
+
+    connect(ui->pushButton, &QPushButton::clicked, [this] () {
+        auto txt = ui->plainTextEdit->toPlainText();
+        //ui->lineEdit->setText("");
         Send(txt, true);
-    });
+            });
 
-    connect(m_Ui->listWidget, &QListWidget::itemDoubleClicked, [this](QListWidgetItem*item) {
+    connect(ui->listWidget, &QListWidget::itemDoubleClicked, [this] (QListWidgetItem*item) {
         auto t = item->text();
         t.replace("|", "\n");
         Send(t, false);
-    });
+            });
 
-    connect(m_Ui->buttonBox, &QDialogButtonBox::clicked, [this](QAbstractButton *item) {
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, [this] (QAbstractButton *item) {
         close();
-    });
+            });
 
-    m_Ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(m_Ui->listWidget, &QListWidget::customContextMenuRequested, [this](const QPoint & p) {
-        auto item = m_Ui->listWidget->itemAt(p);
+    ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listWidget, &QListWidget::customContextMenuRequested, [this] (const QPoint & point) {
+        auto item = ui->listWidget->itemAt(point);
         if (item) {
             QMenu menu;
             auto parts = item->text().split("|", QString::SkipEmptyParts);
@@ -45,20 +50,36 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
             }
 
             menu.addSeparator();
-            menu.addAction("Send", [this, item]() {
+            menu.addAction("Send", [this, item] () {
                 Send(item->text().replace("|", "\n"), false);
-            });
+                           });
             menu.addSeparator();
-            menu.addAction("Edit", [this, item]() {
-                m_Ui->plainTextEdit->setPlainText(item->text().replace("|", "\n"));
-            });
-            menu.addAction("Remove", [this, item]() {
+            menu.addAction("Edit", [this, item] () {
+                ui->plainTextEdit->setPlainText(item->text().replace("|", "\n"));
+                           });
+            menu.addAction("Remove", [this, item] () {
                 RemoveAll(item->text());
                 Save();
-            });
-            menu.exec(m_Ui->listWidget->mapToGlobal(p));
+                           });
+            menu.exec(ui->listWidget->mapToGlobal(point));
         }
-    });
+            });
+
+#ifdef DEBUG
+    setWindowTitle(windowTitle() + " [DEBUG]");
+#endif
+}
+
+MainWindow::~MainWindow() {
+    Save();
+    ui.release();
+}
+
+bool MainWindow::Initialize() {
+    reconClient = GetModuleManager()->QuerryModule<Tools::RemoteConsole::ReconClient>();
+
+    auto appc = GetModuleManager()->QuerryModule<AppConfig>();
+    historyFileName = appc->Get("ConfigPath") + "/ReconHistory.txt";
 
     try {
         Load();
@@ -66,17 +87,36 @@ MainWindow::MainWindow(std::shared_ptr<ReconData> recon)
     catch (...) {
         //ignore
     }
+
+    return true;
 }
 
-MainWindow::~MainWindow() {
-    Save();
-    m_Ui.release();
+bool MainWindow::PostInit() { 
+    show();
+    return true;
+}
+
+bool MainWindow::Finalize() {
+    reconClient.reset();
+    return true;
+}
+
+bool MainWindow::DoSaveSettings(pugi::xml_node node) const {
+    SaveGeometry(node, this, "Qt:Geometry");
+    SaveState(node, this, "Qt:State");
+    return true;
+}
+
+bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
+    LoadGeometry(node, this, "Qt:Geometry");
+    LoadState(node, this, "Qt:State");
+    return true;
 }
 
 void MainWindow::RemoveAll(const QString &text) {
-    for (int i = 0; i < m_Ui->listWidget->count();) {
-        if (m_Ui->listWidget->item(i)->text() == text) {
-            m_Ui->listWidget->takeItem(i);
+    for (int i = 0; i < ui->listWidget->count();) {
+        if (ui->listWidget->item(i)->text() == text) {
+            ui->listWidget->takeItem(i);
         }
         else {
             ++i;
@@ -89,26 +129,24 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
     t.replace("\n", "|");
     if (addToHistory) {
         RemoveAll(t);
-        m_Ui->listWidget->insertItem(0, t);
+        ui->listWidget->insertItem(0, t);
         Save();
     }
 
     std::string txt = text.toUtf8().data();
-    recon->Send(txt);
-    m_Ui->statusbar->showMessage(QString("Send ") + text, 5000);
+    reconClient->Send(txt);
+    ui->statusbar->showMessage(QString("Send ") + text, 5000);
 }
 
-static const std::string HistoryFileName = MoonGlare::OS::GetSettingsDirectory() + "ReconHistory.txt";
-
 void MainWindow::Save() {
-               
+
     QStringList SL;
-    for (int i = 0; i < m_Ui->listWidget->count(); ++i) {
-        SL.append(m_Ui->listWidget->item(i)->text());
+    for (int i = 0; i < ui->listWidget->count(); ++i) {
+        SL.append(ui->listWidget->item(i)->text());
     }
     SL.sort();
-    
-    QFile fOut(HistoryFileName.c_str());
+
+    QFile fOut(historyFileName.c_str());
     if (fOut.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream s(&fOut);
         for (int i = 0; i < SL.size(); ++i) {
@@ -121,7 +159,7 @@ void MainWindow::Save() {
 }
 
 void MainWindow::Load() {
-    QFile fIn(HistoryFileName.c_str());
+    QFile fIn(historyFileName.c_str());
     if (fIn.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream sIn(&fIn);
     }
@@ -129,11 +167,13 @@ void MainWindow::Load() {
         return;
 
     }
-    m_Ui->listWidget->clear();
+    ui->listWidget->clear();
 
     while (!fIn.atEnd()) {
         QString t = fIn.readLine().trimmed();
-        if(!t.isEmpty())
-            m_Ui->listWidget->addItem(t);
+        if (!t.isEmpty())
+            ui->listWidget->addItem(t);
     }
+}
+
 }
