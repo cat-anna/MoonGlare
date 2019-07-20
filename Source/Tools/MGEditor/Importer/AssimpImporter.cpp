@@ -1,6 +1,8 @@
 
 #include PCH_HEADER
 
+#include <xxhash.h>
+
 #include <filesystem>
 
 #include "AssimpImporter.h"
@@ -209,6 +211,59 @@ struct AssimpImporter
     }
 
     void ImportEntities() {
+        for (int i = scene->mRootNode->mNumChildren - 1; i >= 0; --i) {
+            auto node = scene->mRootNode->mChildren[i];
+            std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
+
+            entity = std::make_unique<EditableEntity>();
+
+            std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
+            queue.emplace_back(entity.get(), node);
+
+            std::size_t cnt = 0;
+            while (!queue.empty()) {
+                ++cnt;
+                auto item = queue.back();
+                queue.pop_back();
+                EditableEntity* parent = item.first;
+                auto node = item.second;
+
+                parent->SetName(node->mName.data);
+
+                ImportTransformComponent(node, parent);
+                ImportMeshComponent(node, parent);
+                ImportLightComponent(parent);
+                ImportBodyComponent(node, parent);
+                ImportBodyShapeComponent(node, parent);
+
+                for (int i = node->mNumChildren - 1; i >= 0; --i) {
+                    auto ch = node->mChildren[i];
+                    //if( ch->mNumMeshes == 1 )
+                    queue.emplace_back(parent->AddChild(), ch);
+                }
+            }
+
+            std::string name = node->mName.data;
+            std::string fname = name + ".epx";
+            for (int idx = 0; name.empty() || generatedFiles.find(fname) != generatedFiles.end();++i) {
+                if(node->mName.length > 0)
+                    name = node->mName.data + std::string(".") + std::to_string(i);
+                else
+                    name = std::to_string(i);
+                fname = name + ".epx";
+            }
+            entity->SetName(name);
+
+            pugi::xml_document xdoc;
+            if (!entity->Write(xdoc.append_child("Entity"))) {
+                //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
+                throw false;
+            }
+            generatedFiles[fname] = XmlToData(xdoc);
+        }
+    }
+
+    void ImportEntityTree() {
         std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
 
         entity = std::make_unique<EditableEntity>();
@@ -253,13 +308,24 @@ struct AssimpImporter
         if (!scene->HasTextures())
             return;
 
+        std::unordered_map<XXH64_hash_t, unsigned> textureHashes;
+
         textureNames.resize(scene->mNumTextures);
         for (unsigned i = 0; i < scene->mNumTextures; ++i) {
             auto tex = scene->mTextures[i];
             if (tex->mHeight == 0) {
-                std::string path = fmt::format("texture_{:02}.{}", i, (const char*)tex->achFormatHint);
-                textureNames[i] = path;
-                generatedFiles[path].copy_from(tex->pcData, tex->mWidth);
+
+                auto h = XXH64(tex->pcData, tex->mWidth, 'text');
+                if (auto it = textureHashes.find(h); it != textureHashes.end()) {
+                    auto mappedTo = it->second;
+                    textureNames[i] =textureNames[mappedTo];
+                }
+                else {
+                    std::string path = fmt::format("texture_{:02}.{}", i, (const char*)tex->achFormatHint);
+                    textureNames[i] = path;
+                    generatedFiles[path].copy_from(tex->pcData, tex->mWidth);
+                    textureHashes[h] = i;
+                }
             }
             else {
                 __debugbreak();
@@ -512,6 +578,7 @@ struct AssimpImporter
             ImportTextures();
             ImportMaterials();
             ImportEntities();
+            ImportEntityTree();
 
             StoreResult();
         }

@@ -100,6 +100,7 @@ EntityEditorModel::~EntityEditorModel() {
 
 void EntityEditorModel::SetModuleManager(SharedModuleManager mm) {
     moduleManager.swap(mm);
+    iChangeContainer::SetModuleManager(moduleManager);
     m_Ui->treeViewDetails->setItemDelegate(new TypeEditor::CustomEditorItemDelegate(moduleManager, this));
 }
 
@@ -467,3 +468,4 @@ void EntityEditorModel::ShowAddComponentMenu() {
 } //namespace DataModels
 } //namespace QtShared
 } //namespace MoonGlare
+

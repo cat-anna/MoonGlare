@@ -1,22 +1,25 @@
 #include <pch.h>
+
 #include <nfMoonGlare.h>
+
 #include <Engine/Core/DataManager.h>
 
-#include <Foundation/Scripts/ErrorHandling.h>
 #include <Core/Scripts/LuaApi.h>
+#include <Foundation/Scripts/ErrorHandling.h>
 
 #include "ScriptEngine.h"
 
-#include "Modules/StaticModules.h"
 #include "Modules/LuaSettings.h"
+#include "Modules/StaticModules.h"
 #include "ScriptObject.h"
 
-#include <Foundation/Scripts/Modules/LuaFilesystem.h>
-#include <Foundation/Scripts/Modules/LuaStaticStorage.h>
-#include <Foundation/Scripts/Modules/LuaRequire.h>
-#include <Foundation/Scripts/Modules/LuaEvents.h>
-#include <Foundation/Scripts/Modules/LuaTime.h>
 #include <Foundation/Scripts/Modules/LuaAsyncLoader.h>
+#include <Foundation/Scripts/Modules/LuaDebugContext.h>
+#include <Foundation/Scripts/Modules/LuaEvents.h>
+#include <Foundation/Scripts/Modules/LuaFilesystem.h>
+#include <Foundation/Scripts/Modules/LuaRequire.h>
+#include <Foundation/Scripts/Modules/LuaStaticStorage.h>
+#include <Foundation/Scripts/Modules/LuaTime.h>
 #include <Foundation/Scripts/Modules/StaticModules.h>
 
 #include <Core/Component/ComponentRegister.h>
@@ -145,6 +148,7 @@ bool ScriptEngine::ConstructLuaContext() {
         InstallModule<LuaEventsModule>();
         InstallModule<LuaTimeModule>();
         InstallModule<LuaAsyncLoaderModule>();
+        InstallModule<LuaDebugContextModule>();
         InstallModule<Component::ScriptObject>();
     }
     catch (const std::exception &e) {
@@ -263,13 +267,13 @@ void ScriptEngine::InstallModule() {
     }
 
 #ifdef DEBUG_SCRIPTAPI
-	if (auto regFunc = MoonGlare::Scripts::GetDebugApiInitFunc<Class>(); regFunc) {
-		luabridge::getGlobalNamespace(m_Lua)
-			.beginNamespace("debug")
-				.DefferCalls(regFunc)
-			.endNamespace()
-			;
-	}
+    if (auto regFunc = MoonGlare::Scripts::GetDebugApiInitFunc<Class>(); regFunc) {
+        luabridge::getGlobalNamespace(m_Lua)
+            .beginNamespace("debug")
+                .DefferCalls(regFunc)
+            .endNamespace()
+            ;
+    }
 #endif
 }
 

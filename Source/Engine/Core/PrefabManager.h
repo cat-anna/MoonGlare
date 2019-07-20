@@ -4,10 +4,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <Foundation/iFileSystem.h>
-#include <Foundation/InterfaceMap.h>
 #include <Foundation/Component/Entity.h>
 #include <Foundation/Component/iSubsystem.h>
+#include <Foundation/InterfaceMap.h>
+#include <Foundation/iFileSystem.h>
 
 #include <Foundation/Component/EntityManager.h>
 
@@ -19,7 +19,7 @@ public:
     PrefabManager(InterfaceMap &ifaceMap);
     ~PrefabManager();
 
-    //void ClearCache();
+    void ClearCache();
     void PrintCache() const;
 
     void LoadPrefab(const std::string &uri) { Import(uri); }

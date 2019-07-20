@@ -33,6 +33,7 @@
 #include <Foundation/Resources/SkeletalAnimationManager.h>
 #include <Foundation/Resources/StringTables.h>
 
+#include <Foundation/Module/DebugContext.h>
 #include <Foundation/Tools/PerfViewClient.h>
 
 
@@ -137,6 +138,7 @@ void Application::Initialize() {
     m_World = std::make_unique<World>();
     m_World->SetInterface(this);
 
+    m_World->CreateObject<Module::DebugContext, Module::iDebugContext>();
     m_World->CreateObject<Tools::PerfView::PerfViewClient>();
     m_World->CreateObject<Modules::BasicConsole, iConsole>();
 

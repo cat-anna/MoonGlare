@@ -7,6 +7,8 @@
 
 #include "PrefabManager.h"
 
+#include <Foundation/Module/iDebugContext.h>
+
 #include <boost/algorithm/string.hpp>
 
 namespace MoonGlare::Core {
@@ -156,12 +158,24 @@ struct PrefabManager::ImportTask {
 PrefabManager::PrefabManager(InterfaceMap &ifaceMap) {
     ifaceMap.GetObject(fileSystem);
     ifaceMap.GetObject(entityManager);
+
+
+    auto dbgCtx = ifaceMap.GetInterface<Module::iDebugContext>();
+    if (dbgCtx) {
+        dbgCtx->AddDebugCommand("ClearPrefabCache", [this] () { ClearCache(); });
+        dbgCtx->AddDebugCommand("PrintPrefabCache", [this] () { PrintCache(); });
+    }
 }
 
 PrefabManager::~PrefabManager() {
 #ifdef DEBUG_DUMP
     PrintCache();
 #endif //  DEBUG_DUMP
+}
+
+void PrefabManager::ClearCache() { 
+    prefabCache.clear();
+    xmlCache.clear();
 }
 
 //-------------------------------------------------------------------------------------------------

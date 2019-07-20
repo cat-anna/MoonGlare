@@ -5,30 +5,32 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include <pch.h>
+
 #include <nfMoonGlare.h>
+
 #include "World.h"
 
+#include "Core/Configuration.Runtime.h"
 #include "Core/InputProcessor.h"
 #include "Core/Scene/ScenesManager.h"
-#include "Core/Configuration.Runtime.h"
 
-#include "iConsole.h"
 #include "Core/Engine.h"
+#include "iConsole.h"
 
 #include <Foundation/Component/EntityManager.h>
 #include <Foundation/HandleTable.h>
 
-#include <Renderer/iRendererFacade.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/iAsyncLoader.h>
+#include <Renderer/iRendererFacade.h>
 
-#include <Foundation/Resources/iAsyncLoader.h>
 #include <Foundation/Resources/AsyncLoaderEventObserver.h>
+#include <Foundation/Resources/iAsyncLoader.h>
 
 namespace MoonGlare {
 
 World::World()
-	: m_ScriptEngine(nullptr) {
+    : m_ScriptEngine(nullptr) {
     runtimeConfiguration = std::make_unique<Core::RuntimeConfiguration>();
     SetInterface(runtimeConfiguration.get());
 
@@ -56,48 +58,48 @@ void World::SetRendererFacade(Renderer::RendererFacade *c) {
 }
 
 bool World::Initialize() {
-	THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
+    THROW_ASSERT(m_ScriptEngine, "m_ScriptEngine assert failed!");
 
     entityManager = std::make_unique<Component::EntityManager>(*this);
     SetInterface<Component::EntityManager>(entityManager.get());
 
-	m_InputProcessor = std::make_unique<Core::InputProcessor>();
-	if (!m_InputProcessor->Initialize(this)) {
-		AddLogf(Error, "Failed to initialize InputProcessor");
-		return false;
-	}
+    m_InputProcessor = std::make_unique<Core::InputProcessor>();
+    if (!m_InputProcessor->Initialize(this)) {
+        AddLogf(Error, "Failed to initialize InputProcessor");
+        return false;
+    }
 
     CreateObject<HandleTable>();
     CreateObject<Core::PrefabManager>();
 
-	m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>(*this);
+    m_ScenesManager = std::make_unique<Core::Scene::ScenesManager>(*this);
     m_ScenesManager->Initialize(&runtimeConfiguration->scene);
 
-	return true;
+    return true;
 }
 
 bool World::Finalize() {
     if (m_ScenesManager) 
         m_ScenesManager->Finalize();
-	m_ScenesManager.reset();
+    m_ScenesManager.reset();
 
-	if (m_InputProcessor) {
+    if (m_InputProcessor) {
 
 #ifdef DEBUG_DUMP
-		pugi::xml_document xdoc;
-		m_InputProcessor->Save(xdoc.append_child("KeyConfDump"));
-		xdoc.save_file("logs/KeyConfDump.xml");
+        pugi::xml_document xdoc;
+        m_InputProcessor->Save(xdoc.append_child("KeyConfDump"));
+        xdoc.save_file("logs/KeyConfDump.xml");
 #endif
-		if (!m_InputProcessor->Finalize()) {
-			AddLogf(Error, "Failed to finalize InputProcessor");
-		}
-		m_InputProcessor.reset();
-	}
+        if (!m_InputProcessor->Finalize()) {
+            AddLogf(Error, "Failed to finalize InputProcessor");
+        }
+        m_InputProcessor.reset();
+    }
 
     entityManager.reset();
 
     ReleaseAllInterfaces();
-	return true;
+    return true;
 }
 
 void World::PostSystemInit() {
@@ -109,13 +111,13 @@ void World::PostSystemInit() {
 bool World::PreSystemStart() {
     if (m_ScenesManager)
         m_ScenesManager->PreSystemStart();
-	return true;
+    return true;
 }
 
 bool World::PreSystemShutdown() {
     if (m_ScenesManager)
         m_ScenesManager->PreSystemShutdown();
-	return true;
+    return true;
 }
 
 bool World::Step(const Core::MoveConfig & config) {
@@ -123,7 +125,7 @@ bool World::Step(const Core::MoveConfig & config) {
     eventDispatcher->Step();
     ((Core::Scene::ScenesManager*)m_ScenesManager.get())->Step(const_cast<Core::MoveConfig&>(config)); //TODO:!
     entityManager->GCStep();
-	return true;
+    return true;
 }
 
 //------------------------------------------------------------------------------------------
