@@ -83,12 +83,6 @@ using LockGuard = std::lock_guard < std::mutex >;
 #define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard < decltype(mutex) > name (mutex)
 #define LOCK_MUTEX(mutex) LOCK_MUTEX_NAMED(mutex, LOCK_MUTEX_LABEL_UNIQUE)
 
-#ifdef WINDOWS
-#include "PlatformWindows.h"
-#else
-#error unknown platform!
-#endif
-
 #define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)
 
 #define AS_STRING(X) BOOST_PP_STRINGIZE(X)

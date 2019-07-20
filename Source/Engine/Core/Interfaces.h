@@ -7,13 +7,15 @@
 #ifndef INTERFACESH
 #define INTERFACES_H
 
+#include <iostream>
+
 namespace MoonGlare {
 namespace Core {
 
 class Interfaces {
 public:
 	Interfaces() = delete;
-	static void DumpLists(ostream &out);
+	static void DumpLists(std::ostream &out);
 private:
 };
 

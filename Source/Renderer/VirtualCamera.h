@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace MoonGlare::Renderer {
 
 struct alignas(16) VirtualCamera {

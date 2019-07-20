@@ -10,7 +10,8 @@ ComponentArray::ComponentArray(InterfaceMap& ifaceMap)
 
     storageStatus.fill({});
 
-    auto cid = AddChart(fmt::format("ComponentArray_{}", this));
+	auto name = fmt::format(std::string("ComponentArray_{}"), (void*)this);
+    auto cid = AddChart(name);
 
     BaseComponentInfo::ForEachComponent([this, cid](auto cindex, const BaseComponentInfo::ComponentClassInfo& info) {
         AddSeries((unsigned)cindex, info.componentName, Unit::Count, cid);

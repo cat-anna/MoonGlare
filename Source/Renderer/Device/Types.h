@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <gl/glew.h>
+
 namespace MoonGlare::Renderer::Device {
 
 //-----------------------------------------------------------------------------

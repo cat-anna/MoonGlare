@@ -37,7 +37,7 @@ public:
         LOCK_MUTEX(m_Mutex);
         return MoonGlare::Scripts::ExecuteString(m_Lua, code, len, CodeName, rets); 
     }
-    bool ExecuteCode(const string& code, const char *CodeName = nullptr, int rets = 0) { return ExecuteCode(code.c_str(), code.length(), CodeName, rets); }
+    bool ExecuteCode(const std::string& code, const char *CodeName = nullptr, int rets = 0) { return ExecuteCode(code.c_str(), code.length(), CodeName, rets); }
 
     lua_State *GetLua() { return m_Lua; }
     std::recursive_mutex& GetLuaMutex() { return m_Mutex; }

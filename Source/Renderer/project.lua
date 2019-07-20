@@ -15,6 +15,10 @@ group ""
 			"_FEATURE_EXTENDED_PERF_COUNTERS_",
 		}
 
+		links {
+			"Foundation",
+		}
+
 		files {
 			"**",
 			"../Config/*.h",

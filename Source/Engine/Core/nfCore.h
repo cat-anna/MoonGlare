@@ -2,6 +2,8 @@
 
 #include <Foundation/Component/iSubsystem.h>
 
+#include <Foundation/xMath.h>
+
 namespace MoonGlare {
 namespace Core {
 

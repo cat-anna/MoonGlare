@@ -26,7 +26,7 @@ end
 local function SetCommonConfig()
 	editorintegration "on"
 	configurations { "Debug", "Release", }
-	platforms { "x32", "x64", }
+	platforms { "x64", }
 	language "C++"
 
 	links {
@@ -41,6 +41,7 @@ local function SetCommonConfig()
 		dir.base .. "Libs",
 		dir.src,
 		dir.src .. "Common",
+		-- dir.src .. "Common/Foundation",
 	}
 
 	basedir "."

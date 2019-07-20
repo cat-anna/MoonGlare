@@ -4,6 +4,7 @@
 #include "Core/Interfaces.h"
 
 #include <Core/Scripts/LuaApi.h>
+#include <Foundation/Scripts/ApiInit.h>
 #include <Foundation/Component/EventInfo.h>
 #include <Foundation/Component/ComponentInfo.h>
 
@@ -21,7 +22,7 @@ void DebugSleep(int ms) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
-void ScriptDebug(ApiInitializer &root){
+void ScriptDebug(MoonGlare::Scripts::ApiInitializer &root){
 	root
 	.addFunction("Sleep", &DebugSleep)
 	.beginNamespace("Flags")

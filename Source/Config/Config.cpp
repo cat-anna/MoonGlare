@@ -7,7 +7,7 @@ namespace Config {
 
 static const char* GetConfigName() { return CONFIGURATION_NAME; }
 
-void ConfigScriptApi(ApiInitializer &root) {
+void ConfigScriptApi(MoonGlare::Scripts::ApiInitializer &root) {
 	root
 		.addProperty("Debug", &Utils::Template::StaticReturn<bool, DEBUG_TRUE>, (void(*)(bool))0)
 		.addProperty("Name", &GetConfigName, (void(*)(const char*))0)

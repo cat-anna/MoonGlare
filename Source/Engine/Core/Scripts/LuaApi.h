@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Foundation/Scripts/ApiInit.h>
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 
 namespace MoonGlare::Core::Scripts {

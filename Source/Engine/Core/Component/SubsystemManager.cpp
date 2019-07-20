@@ -77,7 +77,7 @@ bool SubsystemManager::LoadSystems(pugi::xml_node node) {
         return true;
     }
 
-    auto chartid = AddChart(fmt::format("SubsystemManager_{}", this));
+    auto chartid = AddChart(fmt::format("SubsystemManager_{}", (void*)this));
 
     for (auto it = node.first_child(); it; it = it.next_sibling()) {
         SubSystemId cid = SubSystemId::Invalid;

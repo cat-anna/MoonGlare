@@ -1,5 +1,4 @@
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 
 #pragma warning ( disable: 4005 )
 #pragma warning ( disable: 4800 )
@@ -79,4 +78,3 @@ using namespace Space::Utils::HashLiterals;
 
 using MoonGlare::Scripts::ApiInitializer;
                        
-#endif

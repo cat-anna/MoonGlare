@@ -1,5 +1,6 @@
 #pragma once
 
+namespace MoonGlare {}
 using namespace MoonGlare;
 
 #include <Source/Renderer/nfRenderer.h>

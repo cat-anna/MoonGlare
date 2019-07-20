@@ -43,9 +43,21 @@ function project(Name)
 
 	local projbin = dir.project .. "%{prj.group}/%{prj.name}"
 	location (projbin)
-	includedirs(projbin)
-
+	includedirs {
+		projbin,
+	}
+	defines {
+		"_FEATURE_EXTENDED_PERF_COUNTERS_",
+	}
     debugdir(dir.bin)
+
+	return proj
+end
+
+function StaticLib(name)
+	group "lib"
+	local proj = project(name)
+	kind "StaticLib"
 
 	return proj
 end
