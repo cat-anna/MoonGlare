@@ -80,8 +80,8 @@ struct V_0 {
                     return;
                 }
                 uintptr_t base = reinterpret_cast<uintptr_t>(data.memoryBlockFront);
-				uintptr_t position = base + offset;
-				ptr = reinterpret_cast<decltype(ptr)>(position);
+                uintptr_t position = base + offset;
+                ptr = reinterpret_cast<decltype(ptr)>(position);
             };
 
             read(verticlesOffset		, data.verticles);
@@ -100,6 +100,8 @@ struct V_0 {
             data.indexCount			= indexCount;
             data.halfBoundingBox 	= halfBoundingBox;
             data.boundingRadius		= boundingRadius;
+
+			return true;
         }
     };
 };
@@ -115,7 +117,7 @@ void WriteMeshBlob(std::ostream& output, const MeshData &meshData) {
     DataHeader meshDataH = { MagicValue::Data, 0, 0, 0 };
     DataHeader blobDataH = { MagicValue::Data, 0, 0, 0 };
 
-    size_t fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
+    uint32_t fileOffset = sizeof(blobH) + sizeof(meshH) + sizeof(meshDataH) + sizeof(blobDataH);
 
     meshDataH.dataSize = sizeof(data);
     meshDataH.fileDataSize = sizeof(data);
@@ -153,7 +155,7 @@ bool ReadMeshBlob(gsl::span<uint8_t> memory, MeshLoad &output) {
         return false;
     }
 
-    if (memory.size_bytes() < bh->headerCount * HeaderSize) {
+    if (static_cast<size_t>(memory.size_bytes()) < bh->headerCount * HeaderSize) {
         AddLogf(Error, "Cannot interpret mesh blob: invalid header size");
         return false;
     }
@@ -173,7 +175,7 @@ bool ReadMeshBlob(gsl::span<uint8_t> memory, MeshLoad &output) {
     }                                                           
 
     size_t fileSize = std::max(dhBlob->fileOffset + dhBlob->fileDataSize, dhMesh->fileOffset + dhMesh->fileDataSize);
-    if (memory.size_bytes() < fileSize) {
+    if (static_cast<size_t>(memory.size_bytes()) < fileSize) {
         AddLogf(Error, "Cannot interpret mesh blob: invalid data size");
         return false;
     }

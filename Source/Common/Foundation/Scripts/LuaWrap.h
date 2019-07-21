@@ -7,15 +7,17 @@ namespace MoonGlare::Scripts {
 template<class T> inline T Lua_to(lua_State *lua, int idx);
 template<> inline bool Lua_to<bool>(lua_State *lua, int idx) { return lua_toboolean(lua, idx) != 0; }
 template<> inline float Lua_to<float>(lua_State *lua, int idx) { return static_cast<float>(lua_tonumber(lua, idx)); }
-template<> inline double Lua_to<double>(lua_State *lua, int idx) { return static_cast<double>(lua_tonumber(lua, idx)); }
+template<> inline lua_Number Lua_to<lua_Number>(lua_State *lua, int idx) { return static_cast<double>(lua_tonumber(lua, idx)); }
 template<> inline const char* Lua_to<const char*>(lua_State *lua, int idx) { return lua_tostring(lua, idx); }
-template<> inline int Lua_to<int>(lua_State *lua, int idx) { return lua_tointeger(lua, idx); }
+template<> inline lua_Integer Lua_to<lua_Integer>(lua_State* lua, int idx) { return lua_tointeger(lua, idx); }
+template<> inline int Lua_to<int>(lua_State *lua, int idx) { return static_cast<int>(lua_tointeger(lua, idx)); }
 
 inline void Lua_push(lua_State *lua, bool t) { lua_pushboolean(lua, t); }
-inline void Lua_push(lua_State *lua, float t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
-inline void Lua_push(lua_State *lua, double t) { lua_pushnumber(lua, static_cast<LUA_NUMBER>(t)); }
+inline void Lua_push(lua_State *lua, float t) { lua_pushnumber(lua, static_cast<lua_Number>(t)); }
+inline void Lua_push(lua_State *lua, lua_Number t) { lua_pushnumber(lua, static_cast<lua_Number>(t)); }
 inline void Lua_push(lua_State *lua, const char* t) { lua_pushstring(lua, t); }
-inline void Lua_push(lua_State *lua, int t) { lua_pushinteger(lua, t); }
+inline void Lua_push(lua_State* lua, lua_Integer t) { lua_pushinteger(lua, t); }
+inline void Lua_push(lua_State *lua, int t) { lua_pushinteger(lua, static_cast<lua_Integer>(t)); }
 inline void Lua_push(lua_State *lua, unsigned t) { Lua_push(lua, static_cast<int>(t)); }
 inline void Lua_push(lua_State *lua, void* t) { lua_pushlightuserdata(lua, t); }
 

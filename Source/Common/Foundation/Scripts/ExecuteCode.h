@@ -25,7 +25,7 @@ inline bool CallFunction(lua_State *lua, int args, int rets) {
     return false;
 }
 
-inline bool ExecuteString(lua_State *lua, const char* Code, unsigned len, const char* ChunkName, int rets = 0) {
+inline bool ExecuteString(lua_State *lua, const char* Code, size_t len, const char* ChunkName, int rets = 0) {
     assert(lua);
     assert(Code);
     assert(len > 0);
@@ -52,7 +52,7 @@ inline bool ExecuteString(lua_State *lua, const char* Code, unsigned len, const 
 inline bool ExecuteString(lua_State *lua, const std::string &code, const char* ChunkName, int rets = 0) {
     return ExecuteString(lua, code.c_str(), code.size(), ChunkName, rets);
 }
-inline bool ExecuteString(lua_State *lua, const unsigned char* Code, unsigned len, const char* ChunkName, int rets = 0) {
+inline bool ExecuteString(lua_State *lua, const unsigned char* Code, size_t len, const char* ChunkName, int rets = 0) {
     return ExecuteString(lua, (const char *)Code, len, ChunkName, rets);
 }
 

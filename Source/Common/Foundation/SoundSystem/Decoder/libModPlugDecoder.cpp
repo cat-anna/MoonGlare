@@ -39,7 +39,7 @@ public:
         if (fileData.empty())
             return false;
 
-        modPlugFile.reset(ModPlug_Load(fileData.get(), fileData.byte_size()));
+        modPlugFile.reset(ModPlug_Load(fileData.get(), static_cast<int>(fileData.byte_size())));
         if (!modPlugFile) {
             AddLogf(Error, "Cannot load file : %s", fileName.c_str());
             return false;
@@ -50,7 +50,7 @@ public:
         return true;
     }
 
-    DecodeState DecodeBuffer(SoundBuffer buffer, uint32_t *decodedBytes) override {
+    DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t *decodedBytes) override {
         if (!modPlugFile)
             return DecodeState::Error;
 

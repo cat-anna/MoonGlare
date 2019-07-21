@@ -9,7 +9,7 @@ void WriteAnimationBlob(std::ostream& output, const SkeletalAnimation &animation
     auto data = animationData;
     data.UpdatePointers(0x1000'0000);
 
-    size_t fileOffset = 0;
+    uint32_t fileOffset = 0;
 
     BlobHeader blobH = { MagicValue::Blob, MagicValue::Anim, 4 };
     AnimHeader animH = { MagicValue::Anim, 2, 3 };
@@ -52,7 +52,7 @@ bool ReadAnimationBlob(gsl::span<uint8_t> memory, AnimationLoad &output) {
         return false;
     }
 
-    if (memory.size_bytes() <= bh->headerCount * HeaderSize) {
+    if (static_cast<size_t>(memory.size_bytes()) <= bh->headerCount * HeaderSize) {
         AddLogf(Error, "Cannot interpret animation blob: invalid header size");
         return false;
     }
@@ -72,7 +72,7 @@ bool ReadAnimationBlob(gsl::span<uint8_t> memory, AnimationLoad &output) {
     }
 
     size_t fileSize = std::max(dhBlob->fileOffset + dhBlob->fileDataSize, dhAnim->fileOffset + dhAnim->fileDataSize);
-    if (memory.size_bytes() < fileSize) {
+    if (static_cast<size_t>(memory.size_bytes()) < fileSize) {
         AddLogf(Error, "Cannot interpret animation blob: invalid data size");
         return false;
     }

@@ -46,7 +46,7 @@ ChartId PerfViewClient::AddChart(const std::string &name) {
     if (it != chartMapping.end())
         return it->second;
 
-    ChartId cid = chartMapping.size() + 1;
+    ChartId cid = static_cast<ChartId>(chartMapping.size() + 1);
     chartMapping[name] = cid;
     Api::PayLoad_AddChart chart = {};
     chart.chartId = cid;
@@ -57,7 +57,7 @@ ChartId PerfViewClient::AddChart(const std::string &name) {
 
 SeriesId PerfViewClient::AddSeries(const std::string& name, Unit yUnit, Unit xUnit, ChartId chartId)
 {
-    SeriesId sid = seriesMapping.size() + 1;
+    SeriesId sid = static_cast<SeriesId>(seriesMapping.size() + 1);
     seriesMapping[std::to_string(chartId) + "." + name] = sid;
 
     Api::PayLoad_AddSeries series = {};

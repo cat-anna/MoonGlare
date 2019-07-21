@@ -177,7 +177,7 @@ int LuaEventsModule::EmitEvent(lua_State *lua) {
 #ifdef DEBUG_LOG
     lua_getfield(lua, -1, "EventName");
     const char *evName = lua_tostring(lua, -1);
-    AddLog(Debug, "Emitting event: %s", evName);
+    AddLogf(Debug, "Emitting event: %s", evName);
     lua_pop(lua, 1);
 #endif // DEBUG_LOG
 

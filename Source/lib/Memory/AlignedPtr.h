@@ -35,7 +35,8 @@ inline aligned_array<T> make_aligned_array(size_t count, size_t alignment = boos
     return aligned_array<T>(reinterpret_cast<T*>(ptr));
 }
 
-inline size_t Align16(size_t value) {
+template<typename T>
+inline T Align16(T value) {
     if (value & 0xF)
         value = (value & ~0xF) + 0x10;
     return value;

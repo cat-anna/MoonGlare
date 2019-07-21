@@ -1,12 +1,8 @@
 #pragma once
 
-namespace MoonGlare::Memory {
+#include <fmt/format.h>
 
-template <class VALUETYPE>
-struct BaseSingleHandle {
-	using ValueType = VALUETYPE;
-	ValueType m_Index;
-};
+namespace MoonGlare::Memory {
 
 template<size_t BITS>
 struct IntegerSizeSelector {
@@ -61,7 +57,7 @@ struct AbstractDoubleHandle : public HandleValueTypeSelector<GENERATIONBITS, IND
 	void SetIndex(Index_t value) { m_Index = value; }
 	void SetGeneration(Generation_t value) { m_Generation = value; }
 	IntValue_t GetIntValue() const { return m_IntegerValue; }
-	void* GetVoidPtr() const { return reinterpret_cast<void*>(m_IntegerValue); }
+	void* GetVoidPtr() const { return reinterpret_cast<void*>(static_cast<uintptr_t>(m_IntegerValue)); }
 
 	void Swap(AbstractDoubleHandle & other) {
 		std::swap(m_IntegerValue, other.m_IntegerValue);
@@ -70,9 +66,7 @@ struct AbstractDoubleHandle : public HandleValueTypeSelector<GENERATIONBITS, IND
 
 template<size_t GENERATIONBITS, size_t INDEXBITS>
 inline std::ostream& operator << (std::ostream &o, AbstractDoubleHandle<GENERATIONBITS, INDEXBITS> h) {
-	char b[256];
-	sprintf(b, "(%llu; %llu)", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration());
-	return (o << b);
+	return o << fmt::format("({}; {})", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration());
 }
 
 template<size_t GENERATIONBITS, size_t INDEXBITS = 32 - GENERATIONBITS>
@@ -83,7 +77,7 @@ struct DoubleHandle32 : public AbstractDoubleHandle<GENERATIONBITS, INDEXBITS> {
 	
 	static_assert(BaseClass::BitSize == 32, "DoubleHandle32 has to be 32 bit long!");
 	static ThisClass FromIntValue(IntValue_t value) { ThisClass h; h.m_IntegerValue = value; return h; }
-	static ThisClass FromVoidPtr(void* value) { ThisClass h; h.m_IntegerValue = reinterpret_cast<IntValue_t>(value); return h; }
+	static ThisClass FromVoidPtr(void* value) { ThisClass h; h.m_IntegerValue = static_cast<IntValue_t>(reinterpret_cast<uintptr_t>(value)); return h; }
 
     bool operator == (ThisClass other) const { return m_IntegerValue == other.m_IntegerValue; }
     bool operator != (ThisClass other) const { return m_IntegerValue != other.m_IntegerValue; }
@@ -138,7 +132,7 @@ struct AbstractTripleHandle : public HandleValueTypeSelector<GENERATIONBITS, IND
 	void SetGeneration(Generation_t value) { m_Generation = value; }
 	void SetType(Type_t value) { m_Type = value; }
 	IntValue_t GetIntValue() const { return m_IntegerValue; }
-	void* GetVoidPtr() const { return reinterpret_cast<void*>(m_IntegerValue); }
+	void* GetVoidPtr() const { return reinterpret_cast<void*>(static_cast<uintptr_t>(m_IntegerValue)); }
 
 	void Swap(AbstractTripleHandle & other) {
 		std::swap(m_IntegerValue, other.m_IntegerValue);
@@ -147,9 +141,7 @@ struct AbstractTripleHandle : public HandleValueTypeSelector<GENERATIONBITS, IND
 
 template<size_t GENERATIONBITS, size_t INDEXBITS, size_t TYPEBITS>
 inline std::ostream& operator << (std::ostream &o, AbstractTripleHandle<GENERATIONBITS, INDEXBITS, TYPEBITS> h) {
-	char b[256];
-	sprintf(b, "(%llu; %llu; %llu)", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration(), (uint64_t)h.GetType());
-	return (o << b);
+	return o << fmt::format("({}; {}; {})", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration(), (uint64_t)h.GetType());
 }
 
 template<size_t GENERATIONBITS, size_t INDEXBITS, size_t TYPEBITS = 32 - (INDEXBITS + GENERATIONBITS)>
@@ -161,7 +153,7 @@ struct TripleHandle32 : public AbstractTripleHandle<GENERATIONBITS, INDEXBITS, T
 	static_assert(BaseClass::BitSize == 32, "TripleHandle32 has to be 32 bit long!");
 	static_assert(sizeof(BaseClass) == 4, "Invalid handle size!");
 	static ThisClass FromIntValue(IntValue_t value) { ThisClass h; h.m_IntegerValue = value; return h; }
-	static ThisClass FromVoidPtr(void* value) { ThisClass h; h.m_IntegerValue = reinterpret_cast<IntValue_t>(value); return h; }
+	static ThisClass FromVoidPtr(void* value) { ThisClass h; h.m_IntegerValue = static_cast<IntValue_t>(reinterpret_cast<uintptr_t>(value)); return h; }
 
 	bool operator == (ThisClass other) const { return m_IntegerValue == other.m_IntegerValue; }
     bool operator != (ThisClass other) const { return m_IntegerValue != other.m_IntegerValue; }
@@ -229,9 +221,7 @@ struct AbstractQuadrupleHandle : public HandleValueTypeSelector<GENERATIONBITS, 
 
 template<size_t GENERATIONBITS, size_t INDEXBITS, size_t TYPEBITS, size_t VALUEBITS>
 inline std::ostream& operator << (std::ostream &o, AbstractQuadrupleHandle<GENERATIONBITS, INDEXBITS, TYPEBITS, VALUEBITS> h) {
-	char b[256];
-	sprintf(b, "(%llu; %llu; %llu; %llu)", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration(), (uint64_t)h.GetType(), (uint64_t)h.GetValue());
-	return (o << b);
+	return o << fmt::format("({}; {}; {}; {})", (uint64_t)h.GetIndex(), (uint64_t)h.GetGeneration(), (uint64_t)h.GetType(), (uint64_t)h.GetValue());
 }
 
 template<size_t GENERATIONBITS, size_t INDEXBITS, size_t TYPEBITS, size_t VALUEBITS = 32 - (INDEXBITS + GENERATIONBITS + TYPEBITS)>

@@ -59,24 +59,24 @@ public:
         return true;
     }
 
-    static const uint32_t StepSize = 16 * 1024;
+    static const uint64_t StepSize = 16 * 1024;
 
-    DecodeState DecodeBuffer(SoundBuffer buffer, uint32_t *decodedBytes) override {
+    DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t*decodedBytes) override {
         if(!handle)
             return DecodeState::Error;
 
         char *buf = decodeBuffer.get();
 
-        uint32_t totalSize = 0;
+        uint64_t totalSize = 0;
         bool finished = false;
         while (!finished && totalSize < Configuration::DesiredBufferSize) {
-            size_t toRead = std::min(StepSize, static_cast<uint32_t>(fileData.byte_size() - position));
+            size_t toRead = std::min(StepSize, static_cast<uint64_t>(fileData.byte_size() - position));
             size_t remain = std::min(StepSize, Configuration::DesiredBufferSize - totalSize);
 
             size_t done = 0;
             int r = mpg123_decode(handle.get(), fileData.get() + position, toRead, (unsigned char *)buf + totalSize, remain, &done);
 
-            totalSize += done;
+            totalSize += static_cast<uint64_t>(done);
             position += toRead;
 
             switch (r) {
@@ -131,7 +131,7 @@ public:
             AddLogf(Error, "Invalid mp3 stream format! [%s]", fileName.c_str());
             return DecodeState::Error;
         }
-        alBufferData(buffer, format, buf, totalSize, streamRate);
+        alBufferData(buffer, format, buf, static_cast<ALsizei>(totalSize), streamRate);
 
         if (totalSize < sizeof(Configuration::DesiredBufferSize))
             return DecodeState::LastBuffer;

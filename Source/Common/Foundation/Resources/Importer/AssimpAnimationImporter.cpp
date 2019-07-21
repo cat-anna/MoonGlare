@@ -19,16 +19,16 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     pugi::xml_node animSetNode = animSetXml.find_child_by_attribute("AnimationSet", "Index", std::to_string(animIndex).c_str());
 
     //calculate memory requirement:
-    size_t AnimationDataSize = 0;
+    uint32_t AnimationDataSize = 0;
     size_t stringArraySize = 1; //first byte to be zero  
     stringArraySize += assimpAnim->mName.length + 1;
 
     for (size_t ch = 0; ch < assimpAnim->mNumChannels; ++ch) {
-        size_t chsize = 0;
+        uint32_t chsize = 0;
         auto &channel = assimpAnim->mChannels[ch];
-        chsize += Memory::Align16(sizeof(PositionKey) * channel->mNumPositionKeys);
-        chsize += Memory::Align16(sizeof(ScalingKey)  * channel->mNumScalingKeys);
-        chsize += Memory::Align16(sizeof(RotationKey) * channel->mNumRotationKeys);
+        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(PositionKey) * channel->mNumPositionKeys));
+        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(ScalingKey)  * channel->mNumScalingKeys));
+        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(RotationKey) * channel->mNumRotationKeys));
         stringArraySize += channel->mNodeName.length + 1;
         AnimationDataSize += chsize;
     }
@@ -40,7 +40,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         }
     }
 
-    size_t dataAllocOffset = Memory::Align16(stringArraySize);
+	uint32_t dataAllocOffset = Memory::Align16(static_cast<uint32_t>(stringArraySize));
     AnimationDataSize += dataAllocOffset;
 
     output.memory.reset(new uint8_t[AnimationDataSize]);
@@ -76,7 +76,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     animInfo.animationNameOffset = pushString(assimpAnim->mName.data);
 
     if (animSetNode) {
-        size_t index = 0;
+        uint32_t index = 0;
         for (auto node = animSetNode.first_child(); node; node = node.next_sibling()) {
             animInfo.animationSetNameOffset[index] = pushString(node.attribute("Name").as_string(""));
             auto start = node.attribute("Start").as_uint();

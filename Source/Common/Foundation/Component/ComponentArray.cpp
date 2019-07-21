@@ -128,7 +128,7 @@ int ComponentArray::PushToScript(iSubsystemManager* manager, Entity e, Component
     auto sp = storageStatus[cci].info->scriptPush;
     if (!sp)
         return 0;
-    sp(this, manager, e, lua);
+    return sp(this, manager, e, lua);
 }
 
 //-------------------------------------
@@ -163,7 +163,7 @@ void ComponentArray::DumpStatus(const char* id) const
         auto& sst = storageStatus[(ComponentClassId)index];
         if (!sst.info)
             continue;
-        float mem = sst.capacity * (sst.elementByteSize + sizeof(Entity) + sizeof(ComponentFlags)) + sizeof(EntityArrayMapper<>);
+        float mem = static_cast<float>(sst.capacity * (sst.elementByteSize + sizeof(Entity) + sizeof(ComponentFlags)) + sizeof(EntityArrayMapper<>));
         mem /= 1024.0f;
         AddLogf(Debug, "ComponentArray [%p:%s] %02u/%02u %20s : size: %3u bytes; used:%6u cap:%6u  mem:%5.1fkib",
             this, id ? id : "?", index, storageStatus.size() - 1, sst.info->componentName, sst.elementByteSize, sst.allocated, sst.capacity,

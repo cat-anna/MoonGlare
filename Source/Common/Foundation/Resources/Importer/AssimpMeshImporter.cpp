@@ -13,7 +13,7 @@ namespace MoonGlare::Resources::Importer {
 
 void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
     assert(scene);
-    assert(meshIndex >= 0 && meshIndex < scene->mNumMeshes);
+    assert(meshIndex >= 0 && static_cast<unsigned>(meshIndex) < scene->mNumMeshes);
     
     auto mesh = scene->mMeshes[meshIndex];
     size_t numIndices = mesh->mNumFaces * 3;
@@ -60,7 +60,7 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
         auto meshIndices = &meshData.index[baseIndex];
         for (size_t face = 0; face < mesh->mNumFaces; face++) {
             aiFace *f = &mesh->mFaces[face];
-            assert(f->mNumIndices == 3, 0);
+            assert(f->mNumIndices == 3);
             meshIndices[face * 3 + 0] = f->mIndices[0];
             meshIndices[face * 3 + 1] = f->mIndices[1];
             meshIndices[face * 3 + 2] = f->mIndices[2];
@@ -101,7 +101,7 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
                     continue;
                 }
 
-                meshData.vertexBones[vertexid][localboneid] = boneIndex;
+                meshData.vertexBones[vertexid][localboneid] = static_cast<uint8_t>(boneIndex);
                 meshData.vertexBoneWeights[vertexid][localboneid] = VertexWeight.mWeight;
             }
         }
@@ -111,44 +111,46 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
 }   
                                                                                                                                                                                    
 void ImportMeshSource(const MeshSource &source, MeshImport &output) {
-    size_t memorySize = 0;
+    uint32_t memorySize = 0;
 
-    size_t verticlesSize = source.verticles.size() * sizeof(source.verticles[0]);
-    size_t UV0Size = source.UV0.size() * sizeof(source.UV0[0]);
-    size_t normalsSize = source.normals.size() * sizeof(source.normals[0]);
-    size_t tangentsSize = source.tangents.size() * sizeof(source.tangents[0]);
-    size_t indexSize = source.index.size() * sizeof(source.index[0]);
+    uint32_t verticlesSize = static_cast<uint32_t>(source.verticles.size() * sizeof(source.verticles[0]));
+    uint32_t UV0Size = static_cast<uint32_t>(source.UV0.size() * sizeof(source.UV0[0]));
+    uint32_t normalsSize = static_cast<uint32_t>(source.normals.size() * sizeof(source.normals[0]));
+    uint32_t tangentsSize = static_cast<uint32_t>(source.tangents.size() * sizeof(source.tangents[0]));
+    uint32_t indexSize = static_cast<uint32_t>(source.index.size() * sizeof(source.index[0]));
 
-    size_t vertexBonesSize = source.vertexBones.size() * sizeof(source.vertexBones[0]);
-    size_t vertexBoneWeightsSize = source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]);
-    size_t boneMatricesSize = source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]);
+    uint32_t vertexBonesSize = static_cast<uint32_t>(source.vertexBones.size() * sizeof(source.vertexBones[0]));
+    uint32_t vertexBoneWeightsSize = static_cast<uint32_t>(source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]));
+    uint32_t boneMatricesSize = static_cast<uint32_t>(source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]));
 
-    size_t boneNamesArraySize = source.boneNames.size() * sizeof(const char*);
+    uint32_t boneNamesArraySize = static_cast<uint32_t>(source.boneNames.size() * sizeof(const char*));
     uint16_t boneNamesValuesSize = 0;
-    std::for_each(source.boneNames.begin(), source.boneNames.end(), [&boneNamesValuesSize](auto &item) { boneNamesValuesSize += item.size() + 1; });
+    for(const auto & item :source.boneNames) {
+        boneNamesValuesSize += static_cast<uint16_t>(item.size() + 1);
+    }
 
-    size_t verticlesOffset = memorySize;
+    uint32_t verticlesOffset = memorySize;
     memorySize += verticlesSize;
-    size_t UV0Offset = memorySize;
+    uint32_t UV0Offset = memorySize;
     memorySize += UV0Size;
-    size_t normalsOffset = memorySize;
+    uint32_t normalsOffset = memorySize;
     memorySize += normalsSize;
-    size_t tangentsOffset = memorySize;
+    uint32_t tangentsOffset = memorySize;
     memorySize += tangentsSize;
-    size_t indexOffset = memorySize;
+    uint32_t indexOffset = memorySize;
     memorySize += indexSize;
 
-    size_t vertexBonesOffset = memorySize;
+    uint32_t vertexBonesOffset = memorySize;
     memorySize += vertexBonesSize;
-    size_t vertexBoneWeightsOffset = memorySize;
+    uint32_t vertexBoneWeightsOffset = memorySize;
     memorySize += vertexBoneWeightsSize;
 
-    size_t boneNamesArrayOffset = memorySize;
+    uint32_t boneNamesArrayOffset = memorySize;
     memorySize += boneNamesArraySize;
-    size_t boneNamesValuesOffset = memorySize;
+    uint32_t boneNamesValuesOffset = memorySize;
     memorySize += boneNamesValuesSize;
 
-    size_t boneMatricesOffset = memorySize;
+    uint32_t boneMatricesOffset = memorySize;
     memorySize += boneMatricesSize;
 
     output.memory.reset(new uint8_t[memorySize]);
@@ -196,7 +198,7 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
             size_t len = source.boneNames[i].size();
             memcpy(str, source.boneNames[i].c_str(), len);
             str[len] = '\0';
-            offset += len + 1;
+            offset += static_cast<uint16_t>(len + 1);
         }
         assert(offset == boneNamesValuesSize);
     }
@@ -204,10 +206,10 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
         md.boneMatrices = (glm::fmat4*)(mem + boneMatricesOffset);
         memcpy(md.boneMatrices, &source.boneOffsetMatrices[0], boneMatricesSize);
     }
-    md.boneCount = source.boneNames.size();
+    md.boneCount = static_cast<uint8_t>(source.boneNames.size());
 
-    md.vertexCount = source.verticles.size();
-    md.indexCount = source.index.size();
+    md.vertexCount = static_cast<uint32_t>(source.verticles.size());
+    md.indexCount = static_cast<uint32_t>(source.index.size());
 
     md.halfBoundingBox = source.halfBoundingBox;
     md.boundingRadius = source.boundingRadius;

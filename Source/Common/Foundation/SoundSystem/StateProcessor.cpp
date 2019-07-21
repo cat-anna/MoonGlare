@@ -85,7 +85,7 @@ void StateProcessor::Finalize() {
     activeSources.ClearAllocation();
     sourceAcivationQueue.ClearAllocation();
 
-    alDeleteBuffers(standbyBuffers.Allocated(), &standbyBuffers[0]);
+    alDeleteBuffers(static_cast<ALsizei>(standbyBuffers.Allocated()), &standbyBuffers[0]);
     standbyBuffers.ClearAllocation();
 
     //todo InvalidSoundHandleGenration
@@ -320,7 +320,7 @@ void StateProcessor::CheckSoundKind(SourceState & state, SoundBuffer b) {
 
 bool StateProcessor::LoadBuffer(SourceState &state, SoundBuffer sb) {
     Decoder::DecodeState s = Decoder::DecodeState::Completed;
-    uint32_t bytes = 0;
+    uint64_t bytes = 0;
     if (!state.streamFinished) {
         s = state.decoder->DecodeBuffer(sb, &bytes);
         state.processedBytes += bytes;
@@ -410,7 +410,7 @@ bool StateProcessor::GenSources() {
     if (canAlloc == 0)
         return false;
     SoundSource::type arr[Configuration::SourceGenCount] = {};
-    alGenSources(canAlloc, arr);
+    alGenSources(static_cast<ALsizei>(canAlloc), arr);
     CheckOpenAlError();
     lock_guard lock(standbySourcesMutex);
     for (size_t i = 0; i < canAlloc; ++i) {

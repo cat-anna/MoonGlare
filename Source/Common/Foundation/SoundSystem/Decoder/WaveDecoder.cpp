@@ -70,7 +70,7 @@ public:
         size_t bytes = 0;
         for (size_t pos = sizeof(header); pos < fileData.byte_size(); ) {
             const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + pos);
-            const char *dataPtr = data + pos + sizeof(chunk);
+            //const char *dataPtr = data + pos + sizeof(chunk);
             pos += sizeof(chunk);
             pos += chunk.size;
 
@@ -81,7 +81,7 @@ public:
         return true;
     }
 
-    DecodeState DecodeBuffer(SoundBuffer buffer, uint32_t *decodedBytes) override {
+    DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t *decodedBytes) override {
         if (!fileData || format == 0)
             return DecodeState::Error;
 
@@ -98,7 +98,7 @@ public:
 
                 alBufferData(buffer, format, dataPtr, chunk.size, header.sampleRate);
                 if (decodedBytes)
-                    *decodedBytes = static_cast<uint32_t>(chunk.size);
+                    *decodedBytes = static_cast<uint64_t>(chunk.size);
                 gotData = true;
                 //AddLogf(Debug, "Decoded buffer size: %u", chunk.size);
             }

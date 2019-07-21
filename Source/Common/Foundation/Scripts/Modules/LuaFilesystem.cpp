@@ -170,7 +170,7 @@ int LuaFileSystemModule::FindFilesByExt(lua_State *lua) {
     StarVFS::DynamicFIDTable fidT;
     fs->FindFilesByExt(ext, fidT);
 
-    lua_createtable(lua, fidT.size(), 0);
+    lua_createtable(lua, static_cast<int>(fidT.size()), 0);
 
     int index = 1;
     for (auto fid : fidT) {

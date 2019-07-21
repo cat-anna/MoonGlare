@@ -159,7 +159,7 @@ AnimationLoopState SkeletalAnimationManager::UpdateAnimation(AnimationBlendState
         return { AnimationLoopState::LoopState::Finished };
 
     auto &aset = adata->animationSet[as.animationSetIndex];
-    float frameCount = aset.endFrame - aset.firstFrame + 1;
+    float frameCount = static_cast<float>(aset.endFrame - aset.firstFrame + 1);
 
     as.localTime += dt / (frameCount / adata->ticksPerSecond);
     bool loop = false;
@@ -214,7 +214,7 @@ AnimationLoopState SkeletalAnimationManager::UpdateAnimation(AnimationBlendState
                 presentPosition = key.value;
             }
 
-            as.boneStates[a].positionKey = frame;
+            as.boneStates[a].positionKey = static_cast<uint16_t>(frame);
         }
 
         RotationKey::item_t presentRotation(0, 0, 0, 1);
@@ -249,7 +249,7 @@ AnimationLoopState SkeletalAnimationManager::UpdateAnimation(AnimationBlendState
                 presentRotation = key.value;
             }
 
-            as.boneStates[a].rotationKey = frame;
+            as.boneStates[a].rotationKey = static_cast<uint16_t>(frame);
         }
 
         ScalingKey::item_t presentScaling(1, 1, 1);
@@ -262,7 +262,7 @@ AnimationLoopState SkeletalAnimationManager::UpdateAnimation(AnimationBlendState
             }
 
             presentScaling = channel.scalingKey[frame].value;
-            as.boneStates[a].scaleKey = frame;
+            as.boneStates[a].scaleKey = static_cast<uint16_t>(frame);
         }
 
         if (boneStates) {

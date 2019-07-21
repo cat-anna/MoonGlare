@@ -54,7 +54,7 @@ struct SourceState {
     std::unique_ptr<Decoder::iDecoder> decoder;
 
     uint32_t processedBuffers = 0;
-    uint32_t processedBytes = 0;
+    uint64_t processedBytes = 0;
     float processedSeconds = 0;
     float duration = 0;
 
