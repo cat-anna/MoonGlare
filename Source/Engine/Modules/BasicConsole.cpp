@@ -4,7 +4,7 @@
 
 #include <nfMoonGlare.h>
 #include <Engine/Core/DataManager.h>
-#include <Engine/DataClasses/Font.h>
+#include <Engine/Font.h>
 #include "BasicConsole.h"
 #include <Engine/Core/Engine.h>
 #include <Engine/Core/Configuration.Runtime.h>
@@ -21,7 +21,7 @@
 #include <Source/Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Source/Renderer/Commands/OpenGL/TextureCommands.h>
 
-#include <libSpace/src/Container/EnumMapper.h>
+#include <Memory/EnumMapper.h>
 
 #include <Renderer/VirtualCamera.h>
 #include <Core/Scripts/ScriptEngine.h>
@@ -116,7 +116,7 @@ protected:
 
 //-------------------------------------------------------------------------------------------------
          
-struct LineColorTable : public Space::Container::EnumMapper<iConsole::LineType, emath::fvec4> {
+struct LineColorTable : public Memory::EnumMapper<iConsole::LineType, emath::fvec4> {
     LineColorTable() {
         using E = iConsole::LineType;
         at(E::Regular)   = emath::fvec4{ 0.8f, 0.8f, 0.8f, 1.0f, };

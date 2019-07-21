@@ -11,13 +11,13 @@ class alignas(16) Frame final {
     using Conf = Configuration::FrameBuffer;
     using ConfRes = Configuration::FrameResourceStorage;
 public:
-    using TextureRenderQueue = Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
+    using TextureRenderQueue = Memory::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit>;
     using SubQueue = Commands::CommandQueue;
-    using SubQueueTable = Space::Container::StaticVector<SubQueue, Conf::SubQueueCount>;
+    using SubQueueTable = Memory::StaticVector<SubQueue, Conf::SubQueueCount>;
 
     template<typename T>
-    using ByteArray = Space::Memory::StaticMemory<T, Conf::MemorySize>;
-    using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
+    using ByteArray = Memory::StaticMemory<T, Conf::MemorySize>;
+    using Allocator_t = Memory::StackAllocator<ByteArray>;
     using CommandLayers = Commands::CommandQueueLayers<Conf::Layer>;
 
     CommandLayers& GetCommandLayers() { 
@@ -136,9 +136,9 @@ private:
     TextureRenderQueue m_QueuedTextureRender;
 
     //::Space::Container::StaticAllocationPool<TextureResourceHandle, Conf::TextureLimit> m_Textures;
-    ::Space::Container::StaticAllocationPool<VAOResourceHandle, ConfRes::VAOLimit> m_VAOs;
-    ::Space::Container::StaticVector<ShadowMap, ConfRes::PlaneShadowMapLimit> planeShadowMaps;
-    ::Space::Container::StaticVector<ShadowMap, ConfRes::CubeShadowMapLimit> cubeShadowMaps;
+    Memory::StaticAllocationPool<VAOResourceHandle, ConfRes::VAOLimit> m_VAOs;
+    Memory::StaticVector<ShadowMap, ConfRes::PlaneShadowMapLimit> planeShadowMaps;
+    Memory::StaticVector<ShadowMap, ConfRes::CubeShadowMapLimit> cubeShadowMaps;
 
     Allocator_t m_Memory;
 

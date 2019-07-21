@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Libs/libSpace/src/Memory/DynamicMessageBuffer.h>
+#include <Memory/DynamicMessageBuffer.h>
 
 namespace MoonGlare::Tools {
 using u64 = uint64_t;

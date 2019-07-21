@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Handles.h"
-#include <Foundation/xMath.h>
-#include <Foundation/EnumArray.h>
+#include <Math/libMath.h>
+#include <Memory/EnumArray.h>
 
 #include "Configuration.Renderer.h"
 

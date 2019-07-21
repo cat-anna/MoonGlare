@@ -1,7 +1,8 @@
 #pragma once
 
-namespace Utils {
-namespace Memory {
+#include <mutex>
+
+namespace MoonGlare::Memory {
 
 struct MemoryNoLockPolicy {
 	struct Guard_t { Guard_t(MemoryNoLockPolicy&) {} };
@@ -24,4 +25,3 @@ using DefaultSingleThreadedLockPolicy = MemoryNoLockPolicy;
 using DefaultLockPolicy = DefaultSingleThreadedLockPolicy;
 
 } //namespace Memory
-} //namespace Utils

@@ -50,7 +50,7 @@ void MeshSystem::Step(const SubsystemUpdateData &xconf) {
         auto gen = owner.GetGeneration();
 
         if (idx == 105 && gen == 2) {
-            int i = 0;
+        //    int i = 0;
         }
 
 

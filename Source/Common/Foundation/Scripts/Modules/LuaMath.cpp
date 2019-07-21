@@ -9,12 +9,8 @@
 #include <glm/glm.hpp>
 #include <eigen3/Eigen/Core>
 
-#include <Foundation/xMath.h>
+#include <Math/libMath.h>
 #include <Foundation/TemplateUtils.h>
-
-#include <Foundation/Math/Constants.h>
-
-//::Space::RTTI::TypeInfoInitializer<Eigen::Vector2f, Eigen::Vector3f, Eigen::Vector4f, Eigen::Matrix4f> EigenTypeInfo;
 
 namespace MoonGlare::Scripts::Modules {
 

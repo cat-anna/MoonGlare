@@ -4,7 +4,7 @@
 #include "EventInfo.h"    
 #include "nfComponent.h"
 
-#include <Foundation/Memory/DynamicBuffer.h>
+#include <Memory/DynamicBuffer.h>
 
 namespace MoonGlare::Component {
     

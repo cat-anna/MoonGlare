@@ -2,8 +2,8 @@
 
 #include <boost/core/noncopyable.hpp>
 
-#include <Foundation/Memory/StaticGenerationBuffer.h>
-#include <Foundation/Memory/StaticIndexQueue.h>
+#include <Memory/StaticGenerationBuffer.h>
+#include <Memory/StaticIndexQueue.h>
 #include <Foundation/InterfaceMap.h>
 
 #include "Configuration.h"

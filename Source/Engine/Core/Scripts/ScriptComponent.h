@@ -11,7 +11,7 @@
 
 #include <Foundation/TimerDispatcher.h>
 
-#include <libSpace/src/Container/StaticVector.h>
+#include <Memory/StaticVector.h>
 
 #include <Core/Scripts/ScriptEngine.h>
 
@@ -94,7 +94,7 @@ protected:
     ScriptObject *scriptObject;
     EventScriptSinkProxy<ScriptComponent> eventScriptSinkProxy{ this };
 
-    template<class T> using Array = Space::Container::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
+    template<class T> using Array = Memory::StaticVector<T, MoonGlare::Configuration::Storage::ComponentBuffer>;
     Array<ScriptEntry> m_Array;
     EntityArrayMapper<> m_EntityMapper;
     TimerDispatcher<TimerData, 1024> timerDispatcher;

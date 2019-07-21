@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Memory/ActionQueue.h>
 #include <Foundation/Tools/PerfViewClient.h>
 
 namespace MoonGlare::Core {
@@ -35,7 +36,7 @@ public:
     World* GetWorld() { return m_World; }
 
 protected:
-    Space::ActionQueue m_ActionQueue;
+    Memory::ActionQueue m_ActionQueue;
 
     World* m_World = nullptr;
     Renderer::RendererFacade* m_Renderer = nullptr;

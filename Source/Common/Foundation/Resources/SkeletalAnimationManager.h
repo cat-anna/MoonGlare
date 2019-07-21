@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <Foundation/InterfaceMap.h>
-#include <Foundation/Memory/BitampAllocator.h>
+#include <Memory/BitampAllocator.h>
 
 #include "SkeletalAnimation.h"        
 

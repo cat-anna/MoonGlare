@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Foundation/Memory/BitampAllocator.h>
+#include <Memory/BitampAllocator.h>
 
 #include "Device/Types.h"
 #include "Handles.h"

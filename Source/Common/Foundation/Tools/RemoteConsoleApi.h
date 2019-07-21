@@ -29,7 +29,7 @@ enum class MessageType : u32 {
 };
 
 using MessageHeader = BaseMessageHeader<MessageType, SignatureValue>;
-using MessageBuffer = Space::Memory::DynamicMessageBuffer<MaxMessageSize, MessageHeader>;
+using MessageBuffer = Memory::DynamicMessageBuffer<MaxMessageSize, MessageHeader>;
 
 //----------------------------------------------------------------------------------
 

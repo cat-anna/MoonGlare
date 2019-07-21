@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Foundation/iFileSystem.h>
-#include <libSpace/src/Utils/ActionQueue.h>
+#include <Memory/ActionQueue.h>
+#include <Memory/StaticVector.h>
 
 #include "Decoder/iDecoder.h"
 #include "Configuration.h"
@@ -124,7 +125,7 @@ private:
     iFileSystem * fileSystem = nullptr;
 
     template<typename T, size_t S>
-    using StaticVector = Space::Container::StaticVector<T, S>;
+    using StaticVector = Memory::StaticVector<T, S>;
 
     std::unordered_map<std::string, std::shared_ptr<Decoder::iDecoderFactory>> decoderFactories;
 
@@ -140,7 +141,7 @@ private:
 
     uint32_t allocatedBuffersCount = 0;
     SoundSettings settings;
-    Space::ActionQueue actionQueue;
+    Memory::ActionQueue actionQueue;
 
     std::mutex standbySourcesMutex;
     std::mutex sourceAcivationQueueMutex;

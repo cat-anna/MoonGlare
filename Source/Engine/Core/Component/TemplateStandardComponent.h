@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libSpace/src/Container/StaticVector.h>
+#include <Memory/StaticVector.h>
 #include "ComponentRegister.h"
 
 #include <Foundation/Component/iSubsystem.h>
@@ -63,7 +63,7 @@ public:
 		return true;
 	}
 protected:
-	template<class T> using Array = Space::Container::StaticVector<ELEMENT, BUFFER>;
+	template<class T> using Array = Memory::StaticVector<ELEMENT, BUFFER>;
 	Array<ComponentEntry> m_Array;
 	EntityArrayMapper<> m_EntityMapper;
 

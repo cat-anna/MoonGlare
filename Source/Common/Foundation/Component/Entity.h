@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Libs/libSpace/src/Memory/Handle.h>
+#include <Memory/Handle.h>
 
 #include "Configuration.h"
 
 namespace MoonGlare::Component {
 
-using Entity = Space::Memory::DoubleHandle32<Configuration::EntityIndexBitCount>;
+using Entity = Memory::DoubleHandle32<Configuration::EntityIndexBitCount>;
 
 struct EntityHasher {
     std::size_t operator()(const Entity& k) const {

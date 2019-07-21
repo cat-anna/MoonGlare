@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Foundation/xMath.h>
+#include <Math/libMath.h>
 
 namespace MoonGlare::Resources {
 

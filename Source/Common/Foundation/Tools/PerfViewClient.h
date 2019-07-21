@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <Libs/libSpace/src/Memory/DynamicMessageBuffer.h>
+#include <Memory/DynamicMessageBuffer.h>
 
 #include <Foundation/InterfaceMap.h>
 #include <Foundation/Settings.h>

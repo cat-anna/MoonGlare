@@ -49,11 +49,11 @@ using namespace Space::Utils::HashLiterals;
 
 #include <libSpace/src/Space.h>
 
-#include <libSpace/src/Memory/Memory.h>
-#include <libSpace/src/Memory/StackAllocator.h>
+#include <Memory/Memory.h>
+#include <Memory/StackAllocator.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 #include <Foundation/PerfCounters.h>
-#include <Foundation/xMath.h>
+#include <Math/libMath.h>
 
 //#pragma warning (error: 4324) // structure was padded due to alignment specifier

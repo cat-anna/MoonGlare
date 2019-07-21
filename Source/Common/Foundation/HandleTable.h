@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Foundation/Memory/StaticGenerationBuffer.h>
-#include <Foundation/Memory/StaticIndexQueue.h>
+#include <Memory/StaticGenerationBuffer.h>
+#include <Memory/StaticIndexQueue.h>
 
 #include "Handle.h"
 #include "InterfaceMap.h"

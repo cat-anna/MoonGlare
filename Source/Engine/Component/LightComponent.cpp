@@ -12,7 +12,7 @@
 #include <ComponentCommon.x2c.h>
 #include <LightComponent.x2c.h>
 
-#include <Foundation/Math/Geometry.h>
+#include <Math/Geometry.h>
 
 namespace MoonGlare::Component {
 

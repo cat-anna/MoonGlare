@@ -2,7 +2,7 @@
 
 #include <nfMoonGlare.h>
 
-#include <libSpace/src/Container/EnumMapper.h>
+#include <Memory/EnumMapper.h>
 
 #include <Foundation/iFileSystem.h>
 

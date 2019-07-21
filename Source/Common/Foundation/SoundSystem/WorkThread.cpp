@@ -3,7 +3,7 @@
 #include "WorkThread.h"
 #include "StateProcessor.h"
 
-#include <libSpace/src/Container/StaticVector.h>
+#include <Memory/StaticVector.h>
 
 namespace MoonGlare::SoundSystem {
 

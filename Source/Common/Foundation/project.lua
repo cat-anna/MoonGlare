@@ -14,6 +14,9 @@ project "Foundation"
 		"_FEATURE_EXTENDED_PERF_COUNTERS_",
 	}
 
+	links {
+	}
+
 	files {
 		"**",
 	}

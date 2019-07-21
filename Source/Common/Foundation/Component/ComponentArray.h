@@ -4,10 +4,11 @@
 
 #include <boost/core/noncopyable.hpp>
 
-#include <Foundation/EnumArray.h>
+#include <Memory/EnumArray.h>
+#include <Memory/AlignedPtr.h>
+
 #include <Foundation/FlagSet.h>
 #include <Foundation/InterfaceMap.h>
-#include <Foundation/Memory/AlignedPtr.h>
 #include <Foundation/Tools/PerfViewClient.h>
 
 #include "ComponentInfo.h"

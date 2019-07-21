@@ -93,10 +93,11 @@ using LockGuard = std::lock_guard < std::mutex >;
 #define ERROR_STR				"{?}"
 #endif
 
-#include <Foundation/Memory/AlignedPtr.h>
+#include <Memory/AlignedPtr.h>
+#include <Memory/StaticVector.h>
+#include <Memory/StaticAllocationBuffer.h>
+
 #include <Foundation/OrbitLoggerConf.h>
 
-#include <libSpace/src/Container/StaticVector.h>
-#include <libSpace/src/Container/StaticAllocationBuffer.h>
 #include <libSpace/src/Utils/FmtStream.h>
 #include <libSpace/src/Utils/DynamicClassRegister.h>

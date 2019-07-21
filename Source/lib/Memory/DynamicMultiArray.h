@@ -1,7 +1,6 @@
 #pragma once
 
-namespace Utils {
-namespace Memory {
+namespace MoonGlare::Memory {
 
 template<size_t ElementCount, class PointerTuple>
 struct PointerTupleHelper {
@@ -102,4 +101,3 @@ private:
 };
 
 } //namespace Memory
-} //namespace Utils

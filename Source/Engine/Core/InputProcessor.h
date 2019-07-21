@@ -70,7 +70,7 @@ public:
     virtual void OnMouseHookChange(bool State) override;
     virtual bool ShouldClose(bool Focus, bool MouseHook) override;
 protected:
-    using InputStateArray = Space::Container::StaticVector<InputState, Configuration::Input::MaxInputStates>;
+    using InputStateArray = Memory::StaticVector<InputState, Configuration::Input::MaxInputStates>;
     using KeyMapArray = std::array<KeyAction, Configuration::Input::MaxKeyCode>;
     using MouseAxesArray = std::array<AxisAction, Configuration::Input::MaxMouseAxes>;
 

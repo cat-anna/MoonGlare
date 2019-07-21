@@ -5,7 +5,7 @@
 #include <assimp/postprocess.h>  
 #pragma warning ( pop )
 
-#include <Foundation/Memory/AlignedPtr.h>
+#include <Memory/AlignedPtr.h>
 
 #include "AssimpAnimationImporter.h"
 

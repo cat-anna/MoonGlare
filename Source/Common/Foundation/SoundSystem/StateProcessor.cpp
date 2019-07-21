@@ -3,8 +3,6 @@
 #include "StateProcessor.h"
 #include "WorkThread.h"
 
-#include <libSpace/src/Container/StaticVector.h>
-
 namespace MoonGlare::SoundSystem {
 
 char *copystr(const char *str) {

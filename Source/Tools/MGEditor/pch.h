@@ -61,7 +61,7 @@
 #include <Foundation/Flags.h>
 #include "Foundation/Memory/nMemory.h"
 #include "Foundation/Memory/Memory.h"
-#include <Foundation/xMath.h>
+#include <Math/libMath.h>
 
 #include <libSpace/src/Utils/EnumConverter.h>
 #include <libSpace/src/RTTI/RTTI.h>

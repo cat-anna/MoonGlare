@@ -5,8 +5,7 @@
 #include <vector>
 
 #include "Configuration.h"
-
-#include <Foundation/xMath.h>
+#include <Math/libMath.h>
 
 namespace MoonGlare::Resources {
 

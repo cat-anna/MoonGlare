@@ -58,7 +58,7 @@ private:
     uint64_t frameCouter = 0;
     std::atomic<bool> captureScreenShoot = false;
 
-    Space::Container::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
+    Memory::StaticVector<TextureRenderTask*, Configuration::TextureRenderTask::Limit> m_UnusedTextureRender;
     std::array<TextureRenderTask, Configuration::TextureRenderTask::Limit> m_TextureRenderTask;
 
     RendererFacade *m_RendererFacade = nullptr;

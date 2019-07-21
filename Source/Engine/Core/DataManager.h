@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataClasses/Font.h"
+#include "Font.h"
 
 namespace MoonGlare {
 namespace Core {

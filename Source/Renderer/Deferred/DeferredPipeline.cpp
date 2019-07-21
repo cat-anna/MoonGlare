@@ -1,6 +1,6 @@
 #define NEED_VAO_BUILDER
 
-#include <Foundation/Math/Geometry.h>
+#include <Math/libMath.h>
 #include <Foundation/Resources/Mesh.h>
 
 #include <Renderer/Frame.h>

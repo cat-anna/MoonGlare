@@ -15,8 +15,8 @@ public:
     CommandQueue& operator=(const CommandQueue&) = delete;
 
     template<typename T>
-    using ByteArray = Space::Memory::StaticMemory<T, Conf::ArgumentMemoryBuffer>;
-    using Allocator_t = Space::Memory::StackAllocator<ByteArray>;
+    using ByteArray = Memory::StaticMemory<T, Conf::ArgumentMemoryBuffer>;
+    using Allocator_t = Memory::StackAllocator<ByteArray>;
 
     uint32_t CommandsCapacity() const { return Conf::CommandLimit; }
     uint32_t MemoryCapacity() const { return Conf::ArgumentMemoryBuffer; }

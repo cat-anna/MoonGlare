@@ -5,13 +5,15 @@
 
 #include "Exceptions.h"
 
+#include <Memory/StackAllocator.h>
+
 namespace MoonGlare::Renderer {
 
 class iContext;
 class iContextInputHandler;
 class iRendererFacade;
 
-using StackAllocator = ::Space::Memory::StackAllocator<::Space::Memory::StaticTableMemory>;
+using StackAllocator = Memory::StackAllocator<Memory::StaticTableMemory>;
 
 template<uint32_t SIZE>
 struct StackAllocatorMemory {

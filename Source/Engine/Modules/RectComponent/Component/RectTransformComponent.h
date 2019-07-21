@@ -1,7 +1,8 @@
 #pragma once
 
+#include <Memory/ArrayIndexTree.h>
+
 #include <Foundation/Component/EntityEvents.h>
-#include <Foundation/Memory/ArrayIndexTree.h>
 
 #include <Core/Component/TemplateStandardComponent.h>
 #include <Core/Scripts/ScriptComponent.h>

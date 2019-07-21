@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Foundation/Memory/ArrayIndexTree.h>
+#include <Memory/ArrayIndexTree.h>
 
 #include <Foundation/Component/EntityEvents.h>
 #include <Foundation/Component/iSubsystem.h>

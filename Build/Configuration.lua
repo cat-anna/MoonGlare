@@ -41,7 +41,7 @@ local function SetCommonConfig()
 		dir.base .. "Libs",
 		dir.src,
 		dir.src .. "Common",
-		-- dir.src .. "Common/Foundation",
+		dir.src .. "lib",
 	}
 
 	basedir "."
