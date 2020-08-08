@@ -1,3 +1,2 @@
 
-dir = { root = os.getcwd() .. "/", }
-include "Build/MoonGlare.lua"
+include "scripts/build/bootstrap.lua"
