@@ -6,9 +6,9 @@ project "*"
 
 project "Engine"
     kind "WindowedApp"
-    MoonGlare.SetOutputDir("Engine")   
+    -- MoonGlare.SetOutputDir("Engine")   
 
-    SetPCH { hdr = "pch.h", src = "pch.cpp", }
+    -- SetPCH { hdr = "pch.h", src = "pch.cpp", }
 
     dependson "x2c"
 
@@ -39,7 +39,7 @@ project "Engine"
 group "Modules"
     project "EngineBinaries"
         kind "Utility"
-        MoonGlare.SetOutputDir("Modules")
+        -- -- MoonGlare.SetOutputDir("Modules")
         dependson{ "svfs", "Engine", }
 
         postbuildcommands {

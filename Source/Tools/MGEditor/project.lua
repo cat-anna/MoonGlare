@@ -5,17 +5,9 @@ local qt = premake.extensions.qt
 group ""
 project "MGEditor"
 
-    qt.enable()
-    filter "platforms:x32"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
-    filter "platforms:x64"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
+    enable("qt")
 
-    filter {}
-    qtprefix "Qt5"
-    qtmodules { "core", "gui", "widgets", "network" }
-
-    SetPCH { hdr = "Tools/MGEditor/pch.h", src = "pch.cpp", }
+    -- SetPCH { hdr = "Tools/MGEditor/pch.h", src = "pch.cpp", }
 
     kind "WindowedApp"
     defines {

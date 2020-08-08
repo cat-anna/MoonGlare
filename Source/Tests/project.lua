@@ -3,7 +3,7 @@
 group ""
 project "Test"
 	kind "ConsoleApp"
-	MoonGlare.SetOutputDir("Test")   
+	-- MoonGlare.SetOutputDir("Test")   
 
 	defines {
 	}

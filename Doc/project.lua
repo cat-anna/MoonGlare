@@ -1,13 +1,12 @@
 
-group "Tools"
+-- group "Tools"
+--     project "docs"
+--         kind "Utility"
+--         files "**"
 
-    project "docs"
-        kind "Utility"
-        files "**"
+--         -- MoonGlare.SetOutputDir("doc")
 
-        MoonGlare.SetOutputDir("doc")
-
-        postbuildcommands {
-            [[lua "]] .. dir.build .. [[/DocGen.lua" --output=]] .. "%{cfg.targetdir}" ..  [[ --input=]] .. path.getabsolute(dir.src),
-        }
-		 
+--         postbuildcommands {
+--             [[lua "]] .. dir.build .. [[/DocGen.lua" --output=]] .. "%{cfg.targetdir}" ..  [[ --input=]] .. path.getabsolute(dir.src),
+--         }
+        

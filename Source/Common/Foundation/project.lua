@@ -4,7 +4,7 @@ group "Common"
 project "Foundation"
 	kind "StaticLib"
 
-	SetPCH { hdr = "pch.h", src = "pch.cpp", }
+	-- SetPCH { hdr = "pch.h", src = "pch.cpp", }
 	forceincludes {
 		"pch.h",
 	}

@@ -12,7 +12,7 @@ group "Tools"
 		qtmodules { "core", "gui", "widgets", "network", }
 	--	qtlibsuffix ""	
 
-		SetPCH { hdr = "Tools/MGInsider/pch.h", src = "pch.cpp", }
+		-- SetPCH { hdr = "Tools/MGInsider/pch.h", src = "pch.cpp", }
 
 		kind "WindowedApp" --"ConsoleApp"
 		defines {

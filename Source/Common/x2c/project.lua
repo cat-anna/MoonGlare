@@ -8,7 +8,7 @@ group "Common"
 
 project "x2c"
     kind "StaticLib"
-    -- MoonGlare.SetOutputDir("Engine")   
+    -- -- MoonGlare.SetOutputDir("Engine")   
 
     defines { }
 

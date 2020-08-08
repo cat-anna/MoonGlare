@@ -5,17 +5,9 @@ local qt = premake.extensions.qt
 group "Tools"
 project "MGPerfView"
 
-    qt.enable()
-    filter "platforms:x32"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
-    filter "platforms:x64"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
+    enable("qt")
 
-    filter {}
-    qtprefix "Qt5"
-    qtmodules { "core", "gui", "widgets", "network", "charts" }
-
-   -- SetPCH { hdr = "Tools/MGPerfView/pch.h", src = "pch.cpp", }
+   -- -- SetPCH { hdr = "Tools/MGPerfView/pch.h", src = "pch.cpp", }
 
     kind "WindowedApp"
     defines {

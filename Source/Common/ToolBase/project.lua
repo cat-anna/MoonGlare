@@ -6,15 +6,10 @@ group "Common"
 project "ToolBase"
     kind "StaticLib"
 
-    qt.enable()
-    qtprefix "Qt5"
-    qtmodules { "core", "gui", "widgets", "network" }
+    enable("qt")
 
-    filter "platforms:x32"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath", group="Qt"}))
-    filter "platforms:x64"
-        qtpath(MoonGlare.GetBuildSetting({name = "qtPath_x64", group="Qt"}))
-    filter {}
+
+
 
     defines {
     }
