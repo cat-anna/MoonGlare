@@ -1,9 +1,9 @@
-#include <pch.h>
 #include <nfMoonGlare.h>
+#include <pch.h>
 
 #include "../../Engine.h"
-#include <Application.h>
 #include "../ScriptEngine.h"
+#include <Application.h>
 
 #include "LuaSettings.h"
 
@@ -18,24 +18,23 @@ struct LuaSettingsModule::SettingsObject {
     Application *application;
     std::shared_ptr<MoonGlare::Settings> settings;
 
-    ~SettingsObject() {
-        Cancel();
-    }
+    ~SettingsObject() { Cancel(); }
 
-    void Apply()  {
+    void Apply() {
         for (auto &i : settingsChangedMap) {
             try {
                 i.second.settingInfo->provider->Set(i.second.prefix, i.second.id, i.second.value);
-            }
-            catch (Settings::iSettingsProvider::InvalidSettingId) {
-                AddLog(Error, fmt::format("Apply failed(InvalidSettingId): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
+            } catch (Settings::iSettingsProvider::InvalidSettingId) {
+                AddLog(Error, fmt::format("Apply failed(InvalidSettingId): {}.{} = {}", i.second.prefix.data(),
+                                          i.second.id.data(), ValueVariantToString(i.second.value)));
                 Core::GetEngine()->Exit();
                 throw LuaPanic(fmt::format("Invalid setting '{}'", i.second.id.data()));
-            }
-            catch (const std::bad_variant_access &eacces) {
-                AddLog(Error, fmt::format("Apply failed(bad_variant_access): {}.{} = {}", i.second.prefix.data(), i.second.id.data(), ValueVariantToString(i.second.value)));
+            } catch (const std::bad_variant_access &eacces) {
+                AddLog(Error, fmt::format("Apply failed(bad_variant_access): {}.{} = {}", i.second.prefix.data(),
+                                          i.second.id.data(), ValueVariantToString(i.second.value)));
                 Core::GetEngine()->Exit();
-                throw LuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
+                throw LuaPanic(
+                    fmt::format("Invalid setting value type '{}' -> '{}'", i.second.id.data(), eacces.what()));
             }
         }
 
@@ -44,10 +43,9 @@ struct LuaSettingsModule::SettingsObject {
             Core::GetEngine()->Exit();
         }
     }
-    void Cancel() {
-    }
+    void Cancel() {}
 
-    int lua_Get(lua_State* lua) {
+    int lua_Get(lua_State *lua) {
         std::string_view rawid = luaL_checkstring(lua, -1);
 
         {
@@ -69,12 +67,11 @@ struct LuaSettingsModule::SettingsObject {
         try {
             auto vv = s->provider->Get(provider, id);
             return PushValueVariant(lua, vv);
-        }
-        catch (Settings::iSettingsProvider::InvalidSettingId) {
+        } catch (Settings::iSettingsProvider::InvalidSettingId) {
             throw LuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
         }
     }
-    int lua_Set(lua_State* lua) {
+    int lua_Set(lua_State *lua) {
         std::string_view rawid = luaL_checkstring(lua, -2);
 
         std::string_view provider, id;
@@ -85,34 +82,31 @@ struct LuaSettingsModule::SettingsObject {
             if (settings->HasValue(rawid.data())) {
                 am = settings->SetValue(rawid.data(), vv);
                 needRestart = needRestart || am == Settings::ApplyMethod::Restart;
-            } 
+            }
             return 0;
         }
 
         if (s->settingData.applyMethod == Settings::ApplyMethod::Immediate) {
             try {
                 s->provider->Set(provider, id, vv);
-            }
-            catch (Settings::iSettingsProvider::InvalidSettingId) {
+            } catch (Settings::iSettingsProvider::InvalidSettingId) {
                 __debugbreak();
                 throw LuaPanic(fmt::format("Invalid setting '{}'", rawid.data()));
-            }
-            catch (const std::bad_variant_access &eacces) {
+            } catch (const std::bad_variant_access &eacces) {
                 __debugbreak();
                 throw LuaPanic(fmt::format("Invalid setting value type '{}' -> '{}'", rawid.data(), eacces.what()));
             }
-        }
-        else {
-            settingsChangedMap[std::string(rawid)] = ChangedSettingInfo{ s, std::string(provider), std::string(id), vv };
+        } else {
+            settingsChangedMap[std::string(rawid)] = ChangedSettingInfo{s, std::string(provider), std::string(id), vv};
             needRestart = true;
         }
         return 0;
     }
-    int lua_GetDefault(lua_State* lua) {
-        //TODO
+    int lua_GetDefault(lua_State *lua) {
+        // TODO
         return 0;
     }
-    int lua_ListAll(lua_State* lua) {
+    int lua_ListAll(lua_State *lua) {
         lua_newtable(lua);
 
         int cnt = 1;
@@ -167,7 +161,7 @@ struct LuaSettingsModule::SettingsObject {
     std::unordered_map<std::string, ChangedSettingInfo> settingsAppliedMap;
     bool needRestart = false;
 
-    const SettingInfo* FindSetting(std::string_view rawid, std::string_view &provider, std::string_view &id) {
+    const SettingInfo *FindSetting(std::string_view rawid, std::string_view &provider, std::string_view &id) {
         auto dot = rawid.find('.');
         provider = rawid.substr(0, dot);
         id = rawid;
@@ -192,30 +186,29 @@ struct LuaSettingsModule::SettingsObject {
             item.provider = pit->second;
             item.settingData = data;
             return &item;
-        }
-        catch (...) {
+        } catch (...) {
             return nullptr;
         }
     }
 
     static int PushValueVariant(lua_State *lua, Settings::ValueVariant v) {
-        return std::visit([lua](auto &value) -> int {
-            if constexpr (std::is_same_v<nullptr_t, std::remove_reference_t<decltype(value)>>) {
-                lua_pushnil(lua);
-            } else {
-                luabridge::push(lua, value);
-            }
-            return 1;
-        }, v);
+        return std::visit(
+            [lua](auto &value) -> int {
+                if constexpr (std::is_same_v<nullptr_t, std::remove_reference_t<decltype(value)>>) {
+                    lua_pushnil(lua);
+                } else {
+                    luabridge::push(lua, value);
+                }
+                return 1;
+            },
+            v);
     }
 
-    template<typename T> static std::string tostr(T t) { return std::to_string(t); }
+    template <typename T> static std::string tostr(T t) { return std::to_string(t); }
     static std::string tostr(nullptr_t) { return "[NULL]"; }
     static std::string tostr(const std::string &str) { return fmt::format("\"{}\"", str); }
     static std::string ValueVariantToString(Settings::ValueVariant v) {
-        return std::visit([](auto &value) -> std::string {
-            return tostr(value);
-        }, v);
+        return std::visit([](auto &value) -> std::string { return tostr(value); }, v);
     }
 
     static Settings::ValueVariant GetValueVariant(lua_State *lua, int idx, bool preferInteger = false) {
@@ -225,8 +218,7 @@ struct LuaSettingsModule::SettingsObject {
         case LUA_TNUMBER:
             if (preferInteger) {
                 return static_cast<int>(lua_tonumber(lua, idx));
-            }
-            else {
+            } else {
                 return static_cast<float>(lua_tonumber(lua, idx));
             }
         case LUA_TSTRING:
@@ -241,15 +233,15 @@ struct LuaSettingsModule::SettingsObject {
 //-------------------------------------------------------------------------------------------------
 
 LuaSettingsModule::LuaSettingsModule(lua_State *lua, World *world) : world(world) {
-    world->GetScriptEngine()->QuerryModule<iRequireModule>()->RegisterRequire("Settings", this);
+    world->GetScriptEngine()->QueryModule<iRequireModule>()->RegisterRequire("Settings", this);
 }
 
-LuaSettingsModule::~LuaSettingsModule() { }
+LuaSettingsModule::~LuaSettingsModule() {}
 
 //-------------------------------------------------------------------------------------------------
 
 void LuaSettingsModule::RegisterProvider(std::string prefix, Settings::iSettingsProvider *provider) {
-    //FIXME: make reregistration impossible
+    // FIXME: make reregistration impossible
     providerMap[prefix] = provider;
 }
 
@@ -257,7 +249,8 @@ bool LuaSettingsModule::OnRequire(lua_State *lua, std::string_view name) {
     if (!scriptApiRegistered)
         RegisterScriptApi(lua);
 
-    luabridge::push(lua, SettingsObject{ this, world->GetInterface<Application>(), world->GetSharedInterface<MoonGlare::Settings>() });
+    luabridge::push(lua, SettingsObject{this, world->GetInterface<Application>(),
+                                        world->GetSharedInterface<MoonGlare::Settings>()});
 
     return true;
 }
@@ -265,28 +258,26 @@ bool LuaSettingsModule::OnRequire(lua_State *lua, std::string_view name) {
 //-------------------------------------------------------------------------------------------------
 
 /*@ [RequireModules/LuaSettingsModule] Settings module
-    This module allows to change engine configuration.  
+    This module allows to change engine configuration.
     TODO @*/
 void LuaSettingsModule::RegisterScriptApi(lua_State *lua) {
     scriptApiRegistered = true;
 
     luabridge::getGlobalNamespace(lua)
         .beginNamespace("api")
-            .beginClass<SettingsObject>("SettingsHandler")
-                .addCFunction("Get", &SettingsObject::lua_Get)
-                .addCFunction("Set", &SettingsObject::lua_Set)
-                .addCFunction("GetDefault", &SettingsObject::lua_GetDefault)
-                .addCFunction("ListAll", &SettingsObject::lua_ListAll)
+        .beginClass<SettingsObject>("SettingsHandler")
+        .addCFunction("Get", &SettingsObject::lua_Get)
+        .addCFunction("Set", &SettingsObject::lua_Set)
+        .addCFunction("GetDefault", &SettingsObject::lua_GetDefault)
+        .addCFunction("ListAll", &SettingsObject::lua_ListAll)
 
-                .addFunction("Apply", &SettingsObject::Apply)
-                //.addFunction("Cancel", &SettingsObject::Cancel)
+        .addFunction("Apply", &SettingsObject::Apply)
+    //.addFunction("Cancel", &SettingsObject::Cancel)
 #ifdef DEBUG_SCRIPTAPI
-                .addFunction("Dump", &SettingsObject::Dump)
+        .addFunction("Dump", &SettingsObject::Dump)
 #endif
-           .endClass()
-        .endNamespace()
-        ;
+        .endClass()
+        .endNamespace();
 }
 
-} //namespace MoonGlare::Core::Scripts::Modules
-                             
+} // namespace MoonGlare::Core::Scripts::Modules

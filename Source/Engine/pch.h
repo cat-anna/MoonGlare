@@ -1,77 +1,76 @@
 #pragma once
 
-#pragma warning ( disable: 4005 )
-#pragma warning ( disable: 4800 )
-#pragma warning ( disable: 4100 )
-#pragma warning ( disable: 4505 )
-#pragma warning ( disable: 4996 )
-#pragma warning ( disable: 4702 )
-#pragma warning ( disable: 4127 )
-//warning C4201: nonstandard extension used : nameless struct/union
-#pragma warning ( disable: 4201 )
+#pragma warning(disable : 4005)
+#pragma warning(disable : 4800)
+#pragma warning(disable : 4100)
+#pragma warning(disable : 4505)
+#pragma warning(disable : 4996)
+#pragma warning(disable : 4702)
+#pragma warning(disable : 4127)
+// warning C4201: nonstandard extension used : nameless struct/union
+#pragma warning(disable : 4201)
 
 #ifdef DEBUG
 #include <intrin.h>
 #endif
-//gl include
+// gl include
 //#define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-//std include
+// std include
 
-#include <locale>
 #include <codecvt>
+#include <locale>
 
 #include <Config/pch_common.h>
 
 using std::istream;
 using std::ostream;
 using std::string;
-using wstring = std::wstring;//u16string
+using wstring = std::wstring; // u16string
 
-#pragma warning ( push, 0 )
+#pragma warning(push, 0)
 
-#include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/btBulletCollisionCommon.h>
+#include <bullet/btBulletDynamicsCommon.h>
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#pragma warning ( pop )
+#pragma warning(pop)
 
 #include <pugixml.hpp>
-using pugi::xml_node;
 using pugi::xml_attribute;
 using pugi::xml_document;
+using pugi::xml_node;
 
 //#include <libSpace/src/RTTI.h>
 #include <libSpace/src/Utils.h>
 #include <libSpace/src/Utils/CompileMurmurhash3.h>
 using namespace Space::Utils::HashLiterals;
 
-//scripts
-#include <lua.hpp>
+// scripts
 #include <Foundation/Scripts/LuaBridge/LuaBridge.h>
+#include <lua.hpp>
 
 #include "Config/Config.h"
 #include <StarVFS/core/nfStarVFS.h>
-#include <OrbitLogger/src/OrbitLogger.h>
+#include <orbit_logger.h>
 
 #include <libSpace/src/Space.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 
-#include <Foundation/StringUtils.h>
 #include <Foundation/PerfCounters.h>
+#include <Foundation/StringUtils.h>
 #include <Math/libMath.h>
 
 #include "Foundation/Flags.h"
-#include "Memory/Memory.h"
 #include "Foundation/TemplateUtils.h"
 #include "Foundation/XMLUtils.h"
+#include "Memory/Memory.h"
 
 #include <Foundation/Scripts/ApiInit.h>
 
 using MoonGlare::Scripts::ApiInitializer;
-                       

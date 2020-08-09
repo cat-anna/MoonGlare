@@ -2,65 +2,65 @@
 
 #define NOMINMAX
 
-#include <unordered_map>
-#include <map>
-#include <set>
-#include <list>
-#include <vector>
-#include <queue>
-#include <deque>
-#include <stack>
+#include <any>
 #include <array>
 #include <bitset>
-#include <variant>      
+#include <deque>
+#include <list>
+#include <map>
 #include <optional>
-#include <any>
+#include <queue>
+#include <set>
+#include <stack>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
-#include <string>
 #include <cstring>
 #include <regex>
+#include <string>
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
+#include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <cmath>
-#include <cassert>
 
-#include <memory>
 #include <algorithm>
 #include <chrono>
+#include <memory>
 #include <random>
 #include <type_traits>
 #include <typeindex>
 
+#include <atomic>
+#include <condition_variable>
+#include <future>
 #include <mutex>
 #include <thread>
-#include <atomic>
-#include <future>
-#include <condition_variable>
 
-#include <locale>
 #include <codecvt>
+#include <locale>
 
-using StringVector = std::vector < std::string >;
-using StringDeque = std::deque < std::string >;
-using StringList = std::list < std::string >;
-using StringStringMap = std::unordered_map < std::string, std::string >;
+using StringVector = std::vector<std::string>;
+using StringDeque = std::deque<std::string>;
+using StringList = std::list<std::string>;
+using StringStringMap = std::unordered_map<std::string, std::string>;
 
-#include <boost/preprocessor/stringize.hpp>
-#include <boost/preprocessor/seq.hpp>
 #include <boost/align.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
+#include <boost/preprocessor/seq.hpp>
+#include <boost/preprocessor/stringize.hpp>
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
-#pragma warning ( push, 0 )
+#pragma warning(push, 0)
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -69,35 +69,33 @@ using StringStringMap = std::unordered_map < std::string, std::string >;
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-#pragma warning ( pop )
-                                 
-using LockGuard = std::lock_guard < std::mutex >;
-#define MERGE_(a,b)  a##b
+#pragma warning(pop)
+
+using LockGuard = std::lock_guard<std::mutex>;
+#define MERGE_(a, b) a##b
 #define LABEL_(a) MERGE_(unique_name_, a)
 #define UNIQUE_NAME LABEL_(__LINE__)
 
-#define LOCK_MUTEX_MERGE(a, b) a ## b
+#define LOCK_MUTEX_MERGE(a, b) a##b
 #define LOCK_MUTEX_LABEL(name) LOCK_MUTEX_MERGE(__lock_, name)
 #define LOCK_MUTEX_LABEL_UNIQUE LOCK_MUTEX_LABEL(__LINE__)
 
-#define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard < decltype(mutex) > name (mutex)
+#define LOCK_MUTEX_NAMED(mutex, name) std::lock_guard<decltype(mutex)> name(mutex)
 #define LOCK_MUTEX(mutex) LOCK_MUTEX_NAMED(mutex, LOCK_MUTEX_LABEL_UNIQUE)
-
-#define CriticalCheck(COND, MSG)					do { if(!(COND)) { AddLogf(Error, "Critical check failed!!! condition '%s' returned false. Error message: '%s'", #COND, (MSG?MSG:"No error message")); throw MSG; } } while(0)
 
 #define AS_STRING(X) BOOST_PP_STRINGIZE(X)
 
 #ifdef DEBUG
-#define ERROR_STR				"{badstr in " __FUNCTION__ " at " AS_STRING(__LINE__) "}"
+#define ERROR_STR "{badstr in " __FUNCTION__ " at " AS_STRING(__LINE__) "}"
 #else
-#define ERROR_STR				"{?}"
+#define ERROR_STR "{?}"
 #endif
 
 #include <Memory/AlignedPtr.h>
-#include <Memory/StaticVector.h>
 #include <Memory/StaticAllocationBuffer.h>
+#include <Memory/StaticVector.h>
 
 #include <Foundation/OrbitLoggerConf.h>
 
+#include <dynamic_class_register.h>
 #include <libSpace/src/Utils/FmtStream.h>
-#include <libSpace/src/Utils/DynamicClassRegister.h>

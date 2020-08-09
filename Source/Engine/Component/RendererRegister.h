@@ -1,9 +1,9 @@
-#pragma once 
+#pragma once
 
 #include <Foundation/Component/ECSRegister.h>
 #include <Foundation/Component/EventDispatcher.h>
 
-#include <Foundation/InterfaceMap.h>
+#include <interface_map.h>
 
 namespace MoonGlare::Component {
 
@@ -11,4 +11,4 @@ struct RendererRegister {
     static void Register(ECSRegister &r);
 };
 
-}
+} // namespace MoonGlare::Component

@@ -1,14 +1,14 @@
-#include <pch.h>
-#include <nfMoonGlare.h>
-#include <Engine/Modules/ModuleManager.h>
-#include <Engine/Core/Engine.h>
-#include <Engine/Core/DataManager.h>
-#include <Engine/Core/Configuration.Runtime.h>
-#include <Engine/Core/Scene/ScenesManager.h>
-#include <Engine/Font.h>
-#include <Foundation/Scripts/iLuaRequire.h>
 #include <Core/Scripts/LuaApi.h>
 #include <Core/Scripts/ScriptEngine.h>
+#include <Engine/Core/Configuration.Runtime.h>
+#include <Engine/Core/DataManager.h>
+#include <Engine/Core/Engine.h>
+#include <Engine/Core/Scene/ScenesManager.h>
+#include <Engine/Font.h>
+#include <Engine/Modules/ModuleManager.h>
+#include <Foundation/Scripts/iLuaRequire.h>
+#include <nfMoonGlare.h>
+#include <pch.h>
 
 #include <StarVFS/core/nStarVFS.h>
 
@@ -24,19 +24,15 @@ Manager::Manager(World *world) : world(world) {
     OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Resources, "RES");
 }
 
-Manager::~Manager() {
-    m_Fonts.clear();
-}
+Manager::~Manager() { m_Fonts.clear(); }
 
 //-------------------------------------------------------------------------------------------------
 
 void Manager::RegisterScriptApi(::ApiInitializer &api) {
-    api
-        .beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
-            .addData("scene", &RuntimeConfiguration::scene)
-            .addData("consoleFont", &RuntimeConfiguration::consoleFont)
-        .endClass()                                
-    ;
+    api.beginClass<RuntimeConfiguration>("cRuntimeConfiguration")
+        .addData("scene", &RuntimeConfiguration::scene)
+        .addData("consoleFont", &RuntimeConfiguration::consoleFont)
+        .endClass();
 }
 
 //------------------------------------------------------------------------------------------
@@ -55,7 +51,7 @@ void Manager::LoadInitScript(StarVFS::Containers::iContainer *Container) {
     MoonGlareAssert(Container);
 
     struct RTCfg : public Scripts::iRequireRequest {
-        RTCfg(RuntimeConfiguration*r):currconf(*r), rtconf(r){}
+        RTCfg(RuntimeConfiguration *r) : currconf(*r), rtconf(r) {}
         RuntimeConfiguration currconf;
         RuntimeConfiguration *rtconf;
         bool requested = false;
@@ -73,23 +69,22 @@ void Manager::LoadInitScript(StarVFS::Containers::iContainer *Container) {
     auto cfid = Container->FindFile("/init.lua");
     StarVFS::ByteTable data;
     if (!Container->GetFileData(cfid, data)) {
-        //FIXME: read error / file does exists -> is it detectable
+        // FIXME: read error / file does exists -> is it detectable
         AddLogf(Error, "Failed to read init script! (cid:%d;cfid:%d)", (int)Container->GetContainerID(), (int)cfid);
-    }
-    else {
+    } else {
         RTCfg require(world->GetRuntimeConfiguration());
-        auto rmod = world->GetScriptEngine()->QuerryModule<Scripts::iRequireModule>();
+        auto rmod = world->GetScriptEngine()->QueryModule<Scripts::iRequireModule>();
         rmod->RegisterRequire("RuntimeConfiguration", &require);
-        
+
         try {
             std::string furi = fmt::format("cfid://{}/{}", (int)Container->GetContainerID(), "init.lua");
-            world->GetScriptEngine()->ExecuteCode((char*)data.get(), data.byte_size(), furi.c_str());
-        }
-        catch (const std::exception &e) {
-            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : %s", (int)Container->GetContainerID(), (int)cfid, e.what());
-        }
-        catch (...) {
-            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : unknown error", (int)Container->GetContainerID(), (int)cfid);
+            world->GetScriptEngine()->ExecuteCode((char *)data.get(), data.byte_size(), furi.c_str());
+        } catch (const std::exception &e) {
+            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : %s", (int)Container->GetContainerID(),
+                    (int)cfid, e.what());
+        } catch (...) {
+            AddLogf(Error, "Init script execution error (cid:%d;cfid:%d) : unknown error",
+                    (int)Container->GetContainerID(), (int)cfid);
         }
 
         rmod->RegisterRequire("RuntimeConfiguration", nullptr);
@@ -117,7 +112,7 @@ void Manager::InitFonts() {
 
         m_Fonts[name] = std::make_shared<DataClasses::Font>(uri);
     }
-}   
+}
 
 DataClasses::FontPtr Manager::GetFont(const string &Name) {
     auto it = m_Fonts.find(Name);
