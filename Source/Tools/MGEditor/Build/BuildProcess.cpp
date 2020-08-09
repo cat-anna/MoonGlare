@@ -1,9 +1,10 @@
 #include PCH_HEADER
-#include <icons.h>
 #include <ToolBase/Module.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/process.hpp>
 #include <boost/asio.hpp>
+#include <boost/process.hpp>
+#include <icons.h>
+
 
 #include "BuildProcess.h"
 
@@ -12,7 +13,7 @@
 namespace MoonGlare {
 namespace Editor {
 
-BuildProcess::BuildProcess(const std::string& id, SharedModuleManager moduleManager, BuildSettings Settings)
+BuildProcess::BuildProcess(const std::string &id, SharedModuleManager moduleManager, BuildSettings Settings)
     : iBackgroundProcess(id, std::move(moduleManager)), settings(std::move(Settings)) {
 
     readableName = "Module build";
@@ -22,24 +23,24 @@ void BuildProcess::Run() {
     progress = -1;
 
     std::vector<StepInfo> steps = {
-        {"Preparing", [this] {
-            CheckSettings();
-            CheckOutput();
-        }},
+        {"Preparing",
+         [this] {
+             CheckSettings();
+             CheckOutput();
+         }},
     };
 
-    steps.emplace_back(StepInfo{ "Packing module", [this] { PackModule(); } });
+    steps.emplace_back(StepInfo{"Packing module", [this] { PackModule(); }});
 
     if (!settings.RDCPackOnly) {
-        steps.emplace_back(StepInfo{ "Preparing base modules", [this] { PrepareBaseModules(); } });
-        steps.emplace_back(StepInfo{ "Unpack engine binaries", [this] { UnpackEngineBinaries(); } });
-        steps.emplace_back(StepInfo{ "Write configuration", [this] { PrepareConfiguration(); } });
+        steps.emplace_back(StepInfo{"Preparing base modules", [this] { PrepareBaseModules(); }});
+        steps.emplace_back(StepInfo{"Unpack engine binaries", [this] { UnpackEngineBinaries(); }});
+        steps.emplace_back(StepInfo{"Write configuration", [this] { PrepareConfiguration(); }});
     }
 
     try {
         ExecuteSteps(steps);
-    }
-    catch (...) {
+    } catch (...) {
         throw;
     }
 }
@@ -49,12 +50,10 @@ void BuildProcess::PackModule() {
 
     std::list<std::string> command;
     command.push_back(settings.binLocation + settings.rdccExeName);
-    //command.push_back(fmt::format("-v"));
+    // command.push_back(fmt::format("-v"));
     command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
     command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
-    OS::WaitForProcess(command, {}, [this](std::string line) {
-        Print("[RDC] {}", line);
-    });
+    OS::WaitForProcess(command, {}, [this](std::string line) { Print("[RDC] {}", line); });
 
     settings.runtimeModules.push_back(settings.RDCModuleFileName);
 }
@@ -68,8 +67,8 @@ void BuildProcess::UnpackEngineBinaries() {
     std::list<std::string> command;
     command.push_back(settings.binLocation + settings.svfsExeName);
     command.push_back(fmt::format("-s prompt=nil"));
-    //command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
-    //command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
+    // command.push_back(fmt::format("-i {}", settings.moduleSourceLocation));
+    // command.push_back(fmt::format("-o {}", settings.outputLocation + "/" + settings.RDCModuleFileName));
 
     std::list<std::string> input;
     input.push_back(fmt::format("inputRDC = [==[{}]==]", engineBinRDC));
@@ -79,10 +78,8 @@ void BuildProcess::UnpackEngineBinaries() {
     input.push_back(fmt::format("exporter:DoExport([[/]], outputDir)"));
     input.push_back(fmt::format("io.flush()"));
     input.push_back(fmt::format("os.exit(0)"));
-    
-    OS::WaitForProcess(command, input, [this](std::string line) {
-        Print("[SVFS] {}", line);
-    });
+
+    OS::WaitForProcess(command, input, [this](std::string line) { Print("[SVFS] {}", line); });
 }
 
 void BuildProcess::PrepareBaseModules() {
@@ -96,7 +93,7 @@ void BuildProcess::PrepareBaseModules() {
         boost::filesystem::copy_file(fullName, settings.outputLocation + "/" + name);
     };
     processModule("Base.rdc");
-    if(settings.debugBuild)
+    if (settings.debugBuild)
         processModule("Debug.rdc");
 }
 
@@ -129,7 +126,7 @@ void BuildProcess::CheckSettings() {
             throw "Output is not specified";
     } else {
         if (settings.InputSettingsFile.empty())
-            throw "InputSettigs file is not specified";
+            throw "InputSettings file is not specified";
     }
 
 #ifdef WINDOWS
@@ -146,19 +143,19 @@ void BuildProcess::CheckOutput() {
             boost::filesystem::directory_iterator end_it;
             boost::filesystem::directory_iterator it(settings.outputLocation);
             std::for_each(it, end_it, [](auto arg) { boost::filesystem::remove_all(arg); });
-        }
-        catch (const std::exception &e) {
+        } catch (const std::exception &e) {
             Print("Cannot clear output directory: {}", e.what());
         }
 
     if (!boost::filesystem::exists(settings.outputLocation))
         boost::filesystem::create_directories(settings.outputLocation);
-   
+
     if (!settings.RDCPackOnly && settings.RDCModuleFileName.empty()) {
-        settings.RDCModuleFileName = boost::filesystem::path(settings.moduleSourceLocation).parent_path().filename().string();
+        settings.RDCModuleFileName =
+            boost::filesystem::path(settings.moduleSourceLocation).parent_path().filename().string();
         settings.RDCModuleFileName += ".rdc";
     }
 }
 
-} //namespace Editor 
-} //namespace MoonGlare 
+} // namespace Editor
+} // namespace MoonGlare

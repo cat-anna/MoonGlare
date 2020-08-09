@@ -26,9 +26,7 @@ MoonGlare::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow")
 
 static MainWindow *_Instance = nullptr;
 
-MainWindow::MainWindow(SharedModuleManager modmgr)
-    : QMainWindow(nullptr), iModule(std::move(modmgr))
-{
+MainWindow::MainWindow(SharedModuleManager modmgr) : QMainWindow(nullptr), iModule(std::move(modmgr)) {
     _Instance = this;
     SetSettingID("MainWindow");
     m_Ui = std::make_unique<Ui::MainWindow>();
@@ -43,7 +41,7 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
     connect(m_Ui->actionEditorConfiguration, &QAction::triggered, [this]() {
         SettingsWindow sw(GetModuleManager(), this);
         sw.exec();
-    } );
+    });
 
     connect(m_Ui->actionInputSettings, &QAction::triggered, [this]() {
         InputConfigurator ic(this, GetModuleManager(), m_DataModule->GetInputSettingsFile());
@@ -65,21 +63,20 @@ MainWindow::MainWindow(SharedModuleManager modmgr)
 
     connect(m_Ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::TabCloseRequested);
 #ifdef DEBUG
-    setWindowTitle(windowTitle() + " [DEBUG]"); 
+    setWindowTitle(windowTitle() + " [DEBUG]");
 #endif
 }
 
-MainWindow::~MainWindow() {
-    m_Ui.reset();
-}
+MainWindow::~MainWindow() { m_Ui.reset(); }
 
 bool MainWindow::PostInit() {
     auto mm = GetModuleManager();
-    jobProcessor = mm->QuerryModule<QtShared::iJobProcessor>();
+    jobProcessor = mm->QueryModule<QtShared::iJobProcessor>();
 
-    for (auto &item : mm->QuerryInterfaces<QtShared::BaseDockWindowModule>()) {
+    for (auto &item : mm->QueryInterfaces<QtShared::BaseDockWindowModule>()) {
         if (item.m_Interface->IsMainMenu()) {
-            m_Ui->menuWindows->addAction(item.m_Interface->GetIcon(), item.m_Interface->GetDisplayName(), item.m_Interface.get(), SLOT(Show()), item.m_Interface->GetKeySequence());
+            m_Ui->menuWindows->addAction(item.m_Interface->GetIcon(), item.m_Interface->GetDisplayName(),
+                                         item.m_Interface.get(), SLOT(Show()), item.m_Interface->GetKeySequence());
             AddLogf(Info, "Registered DockWindow: %s", item.m_Module->GetModuleName().c_str());
         }
     }
@@ -94,7 +91,7 @@ bool MainWindow::Finalize() {
     return true;
 }
 
-void MainWindow::RefreshStatus() {   
+void MainWindow::RefreshStatus() {
     if (jobProcessor) {
         auto jobs = jobProcessor->GetQueuedJobCount();
         if (jobs > 0) {
@@ -107,9 +104,7 @@ void MainWindow::RefreshStatus() {
     }
 }
 
-MainWindow* MainWindow::Get() {
-    return _Instance;
-}
+MainWindow *MainWindow::Get() { return _Instance; }
 
 bool MainWindow::DoSaveSettings(pugi::xml_node node) const {
     SaveGeometry(node, this, "Qt:Geometry");
@@ -121,7 +116,7 @@ bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
     LoadGeometry(node, this, "Qt:Geometry");
     LoadState(node, this, "Qt:State");
 
-    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+    auto stt = GetModuleManager()->QueryModule<EditorSettings>();
 
     auto conf = stt->GetConfiguration();
     auto state = stt->GetState();
@@ -162,7 +157,7 @@ void MainWindow::OpenModuleAction() {
     if (f.isEmpty())
         return;
 
-    if (m_DataModule) 
+    if (m_DataModule)
         CloseModule();
 
     OpenModule(f.toLatin1().constData());
@@ -198,7 +193,7 @@ void MainWindow::BuildModuleAction() {
     settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
     settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
 
-    auto pm = GetModuleManager()->QuerryModule<MoonGlare::Module::BackgroundProcessManager>();
+    auto pm = GetModuleManager()->QueryModule<MoonGlare::Module::BackgroundProcessManager>();
     auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
     ForegroundProcess fp(this, GetModuleManager(), process, false);
     fp.exec();
@@ -206,28 +201,28 @@ void MainWindow::BuildModuleAction() {
 
 void MainWindow::PackModuleAction() {
     ReportNotImplemented();
-    //BuildOptions w(this, GetModuleManager());
-    //if (w.exec() != QDialog::Accepted)
-        //return;
+    // BuildOptions w(this, GetModuleManager());
+    // if (w.exec() != QDialog::Accepted)
+    // return;
 
-    //bs.outputLocation = ui->lineEditOutput->text().toLocal8Bit().begin();
-    //bs.debugBuild = ui->checkBoxDebug->isChecked();
-    //bs.disableValidation = ui->checkBoxDisableValidation->isChecked();
+    // bs.outputLocation = ui->lineEditOutput->text().toLocal8Bit().begin();
+    // bs.debugBuild = ui->checkBoxDebug->isChecked();
+    // bs.disableValidation = ui->checkBoxDisableValidation->isChecked();
 
-    //Editor::BuildOptions settings = w.GetSettings(
-    //settings.
-    //settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
-    //settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
+    // Editor::BuildOptions settings = w.GetSettings(
+    // settings.
+    // settings.moduleSourceLocation = m_DataModule->GetBaseDirectory();
+    // settings.binLocation = std::string(QApplication::applicationDirPath().toLocal8Bit().data()) + "/";
 
-    //auto pm = GetModuleManager()->QuerryModule<QtShared::BackgroundProcessManager>();
-    //auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
-    //ForegroundProcess fp(this, GetModuleManager(), process, false);
-    //fp.exec();
+    // auto pm = GetModuleManager()->QueryModule<QtShared::BackgroundProcessManager>();
+    // auto process = pm->CreateProcess<BuildProcess>(std::to_string(rand()), settings);
+    // ForegroundProcess fp(this, GetModuleManager(), process, false);
+    // fp.exec();
 }
 
 //-----------------------------------------
 
-void MainWindow::NewModule(const std::string& MasterFile) {
+void MainWindow::NewModule(const std::string &MasterFile) {
     if (m_DataModule)
         return;
 
@@ -235,26 +230,26 @@ void MainWindow::NewModule(const std::string& MasterFile) {
     if (!m_DataModule)
         return;
 
-    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+    auto stt = GetModuleManager()->QueryModule<EditorSettings>();
 
     stt->GetState().m_LastModule = MasterFile;
     Notifications::SendProjectChanged(m_DataModule);
     AddLogf(Info, "New module: %s", MasterFile.c_str());
 }
 
-void MainWindow::OpenModule(const std::string& MasterFile)  {
+void MainWindow::OpenModule(const std::string &MasterFile) {
     if (m_DataModule)
         return;
 
-    //QFileInfo check_file(MasterFile.c_str());
-    //if (!check_file.exists())
-        //return;
+    // QFileInfo check_file(MasterFile.c_str());
+    // if (!check_file.exists())
+    // return;
 
     m_DataModule = Module::DataModule::OpenModule(MasterFile);
     if (!m_DataModule)
         return;
 
-    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+    auto stt = GetModuleManager()->QueryModule<EditorSettings>();
 
     stt->GetState().m_LastModule = MasterFile;
     Notifications::SendProjectChanged(m_DataModule);
@@ -273,13 +268,11 @@ void MainWindow::CloseModule() {
 
 //-----------------------------------------
 
-void MainWindow::showEvent(QShowEvent * event) {
-    event->accept();
-}
+void MainWindow::showEvent(QShowEvent *event) { event->accept(); }
 
-void MainWindow::closeEvent(QCloseEvent * event) {
+void MainWindow::closeEvent(QCloseEvent *event) {
     m_DataModule.reset();
-    event->accept();       
+    event->accept();
 }
 
 //-----------------------------------------
@@ -295,7 +288,7 @@ void MainWindow::AddAction(std::string id, ActionVariant action, std::weak_ptr<i
     ai.action = action;
     ai.provider = provider;
 
-    QAction* ac = ai.GetActionPtr();
+    QAction *ac = ai.GetActionPtr();
 
     if (ac == nullptr) {
         ai.action = m_Ui->mainToolBar->addSeparator();
@@ -306,7 +299,7 @@ void MainWindow::AddAction(std::string id, ActionVariant action, std::weak_ptr<i
 }
 
 void MainWindow::RemoveProvider(std::weak_ptr<iActionProvider> provider) {
-    for (auto it = actionBarItems.begin(), jt = actionBarItems.end(); it != jt;)    {
+    for (auto it = actionBarItems.begin(), jt = actionBarItems.end(); it != jt;) {
         const auto &item = it->second;
         if (item.provider.lock() == provider.lock()) {
             m_Ui->mainToolBar->removeAction(item.GetActionPtr());
@@ -321,13 +314,11 @@ void MainWindow::RemoveProvider(std::weak_ptr<iActionProvider> provider) {
 
 //-----------------------------------------
 
-//iMainWindowTabsCtl
-QWidget* MainWindow::GetTabParentWidget() const {
-    return m_Ui->tabWidget;
-}
+// iMainWindowTabsCtl
+QWidget *MainWindow::GetTabParentWidget() const { return m_Ui->tabWidget; }
 
 void MainWindow::AddTab(const std::string &id, std::shared_ptr<iTabViewBase> tabWidget) {
-    QWidget *w = dynamic_cast<QWidget*>(tabWidget.get());
+    QWidget *w = dynamic_cast<QWidget *>(tabWidget.get());
     if (!w) {
         __debugbreak();
         return;
@@ -336,18 +327,16 @@ void MainWindow::AddTab(const std::string &id, std::shared_ptr<iTabViewBase> tab
         openedTabs[id] = tabWidget;
         m_Ui->tabWidget->addTab(w, tabWidget->GetTabTitle().c_str());
         m_Ui->tabWidget->setCurrentWidget(w);
-    }   
+    }
 }
 
-bool MainWindow::TabExists(const std::string &id) const {
-    return openedTabs.find(id) != openedTabs.end();
-}
+bool MainWindow::TabExists(const std::string &id) const { return openedTabs.find(id) != openedTabs.end(); }
 
 void MainWindow::ActivateTabs(const std::string &id) {
     auto it = openedTabs.find(id);
     if (openedTabs.find(id) == openedTabs.end())
         return;
-    QWidget *w = dynamic_cast<QWidget*>(it->second.get());
+    QWidget *w = dynamic_cast<QWidget *>(it->second.get());
     if (!w) {
         __debugbreak();
         return;
@@ -361,7 +350,7 @@ void MainWindow::TabCloseRequested(int index) {
         return;
 
     for (auto &item : openedTabs) {
-        QWidget *iw = dynamic_cast<QWidget*>(item.second.get());
+        QWidget *iw = dynamic_cast<QWidget *>(item.second.get());
         if (iw == w && item.second->CanClose()) {
             openedTabs.erase(item.first);
             m_Ui->tabWidget->removeTab(index);
@@ -369,27 +358,27 @@ void MainWindow::TabCloseRequested(int index) {
         }
     }
 }
-    
+
 //-----------------------------------------
 
-    /*
+/*
 void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
-    auto inst = info->m_DockEditor->GetInstance();
-    auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
-    if (!editor) {
-        AddLogf(Error, "Fatal Error!");
-        ErrorMessage("Fatal Error!");
-        return;
-    }
+auto inst = info->m_DockEditor->GetInstance();
+auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
+if (!editor) {
+    AddLogf(Error, "Fatal Error!");
+    ErrorMessage("Fatal Error!");
+    return;
+}
 
-    if (editor->Create(URI, info->m_Info)) {
-        inst->show();
-    } else {
-        ErrorMessage("Failed to create file!");
-        AddLog(Error, "Failed to create file!");
-    }
+if (editor->Create(URI, info->m_Info)) {
+    inst->show();
+} else {
+    ErrorMessage("Failed to create file!");
+    AddLog(Error, "Failed to create file!");
+}
 }
 */
 
-} //namespace Editor
-} //namespace MoonGlare
+} // namespace Editor
+} // namespace MoonGlare

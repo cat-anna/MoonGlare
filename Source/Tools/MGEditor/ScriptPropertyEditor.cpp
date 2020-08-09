@@ -10,7 +10,7 @@
 
 namespace MoonGlare::Editor {
 
-ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent): QWidget(Parent) {
+ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent) : QWidget(Parent) {
 
     dialog = std::make_unique<TreeViewDialog>(this, "ScriptPropertyEditor");
     model = std::make_unique<QStandardItemModel>();
@@ -33,7 +33,7 @@ ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent): QWidget(Parent) {
             auto csp = std::make_shared<CustomScriptProperty>();
             instance->customValues[csp] = "";
 
-            QList<QStandardItem*> cols;
+            QList<QStandardItem *> cols;
             auto title = new QStandardItem("");
             title->setEditable(true);
             title->setData(QVariant::fromValue(csp), PropertyCustomTitleRole);
@@ -75,12 +75,12 @@ ScriptPropertyEditor::ScriptPropertyEditor(QWidget *Parent): QWidget(Parent) {
 
         if (auto variant = item->data(PropertyCustomValueRole); variant.isValid()) {
             auto sp = variant.value<std::shared_ptr<CustomScriptProperty>>();
-            if(auto it = instance->customValues.find(sp); it != instance->customValues.end()) 
+            if (auto it = instance->customValues.find(sp); it != instance->customValues.end())
                 instance->customValues[sp] = text;
             return;
         }
     });
-}                
+}
 
 void ScriptPropertyEditor::SetValue(const std::string &in) {
     if (!instance)
@@ -92,7 +92,7 @@ void ScriptPropertyEditor::SetValue(const std::string &in) {
 
     auto root = model->invisibleRootItem();
     for (auto &[item, value] : instance->values) {
-        QList<QStandardItem*> cols;
+        QList<QStandardItem *> cols;
         auto title = new QStandardItem(item->memberName.c_str());
         title->setEditable(false);
         cols << title;
@@ -105,7 +105,7 @@ void ScriptPropertyEditor::SetValue(const std::string &in) {
     }
 
     for (auto &[item, value] : instance->customValues) {
-        QList<QStandardItem*> cols;
+        QList<QStandardItem *> cols;
         auto title = new QStandardItem(item->memberName.c_str());
         title->setEditable(true);
         title->setData(QVariant::fromValue(item), PropertyCustomTitleRole);
@@ -122,7 +122,7 @@ void ScriptPropertyEditor::SetValue(const std::string &in) {
     dialog->show();
 }
 
-std::string ScriptPropertyEditor::GetValue()  {
+std::string ScriptPropertyEditor::GetValue() {
     if (!instance)
         return "";
     dialog->SaveSettings();
@@ -134,7 +134,8 @@ void ScriptPropertyEditor::ReloadDialog() {
     model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
     model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
 
-    auto *component = dataSouce(TypeEditor::CustomEditorItemDelegate::QtRoles::EditableComponent).value<QtShared::DataModels::EditableComponent*>();
+    auto *component = dataSouce(TypeEditor::CustomEditorItemDelegate::QtRoles::EditableComponent)
+                          .value<QtShared::DataModels::EditableComponent *>();
     if (!component) {
         return;
     }
@@ -142,7 +143,7 @@ void ScriptPropertyEditor::ReloadDialog() {
     auto valuesEditor = component->GetValuesEditor();
     auto script = valuesEditor->get("Script");
 
-    auto spp = GetModuleManager()->QuerryModule<ScriptPropertyProvider>();
+    auto spp = GetModuleManager()->QueryModule<ScriptPropertyProvider>();
     auto properties = spp->GetScriptProperties(script);
 
     if (!properties) {
@@ -152,4 +153,4 @@ void ScriptPropertyEditor::ReloadDialog() {
     instance = properties->CreateInstance();
 }
 
-}
+} // namespace MoonGlare::Editor

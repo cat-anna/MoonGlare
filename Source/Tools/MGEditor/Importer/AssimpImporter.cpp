@@ -22,11 +22,11 @@
 #include <iFileProcessor.h>
 #include <icons.h>
 
-#pragma warning ( push, 0 )
-#include <assimp/Importer.hpp>     
-#include <assimp/postprocess.h>  
-#include <assimp/scene.h>          
-#pragma warning ( pop )
+#pragma warning(push, 0)
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#pragma warning(pop)
 
 #include <DataModels/EditableEntity.h>
 
@@ -44,41 +44,35 @@
 
 namespace MoonGlare::Importer {
 
-
 using QtShared::DataModels::EditableEntity;
 
-struct AssimpImporter 
-    : public QtShared::iFileProcessor 
-    , public QtShared::iEditor {
+struct AssimpImporter : public QtShared::iFileProcessor, public QtShared::iEditor {
 
-    AssimpImporter(SharedModuleManager modmgr, std::string URI) 
-        : QtShared::iFileProcessor(std::move(URI)), moduleManager(modmgr) { 
-    
-    }
-            
-    bool OpenData(const std::string &URI)  override {
+    AssimpImporter(SharedModuleManager modmgr, std::string URI)
+        : QtShared::iFileProcessor(std::move(URI)), moduleManager(modmgr) {}
+
+    bool OpenData(const std::string &URI) override {
         m_URI = URI;
 
         auto dotpos = URI.rfind(".");
         if (dotpos == std::string::npos || dotpos < URI.rfind("/")) {
             outputDirectory = URI + ".imported";
-        } 
-        else {
-            outputDirectory = URI.substr(0, dotpos); 
+        } else {
+            outputDirectory = URI.substr(0, dotpos);
         }
 
         sourceDirectory = std::filesystem::path(URI).remove_filename().generic_string();
 
         ProcessFile();
-        return true; 
+        return true;
     }
 
     void StoreResult() {
-        auto fs = moduleManager->QuerryModule<Editor::FileSystem>();
+        auto fs = moduleManager->QueryModule<Editor::FileSystem>();
 
         if (!fs->CreateDirectory(outputDirectory)) {
             __nop();
-            //todo
+            // todo
             return;
         }
 
@@ -86,21 +80,23 @@ struct AssimpImporter
             auto outf = outputDirectory + "/" + fname;
             if (!fs->CreateFile(outf)) {
                 __debugbreak();
-                //ErrorMessage("Failed during creating epx file");
+                // ErrorMessage("Failed during creating epx file");
                 AddLog(Hint, "Failed to create file: " << outf);
-                //return;// false;
+                // return;// false;
             }
             if (!fs->SetFileData(outf, bt)) {
                 __debugbreak();
                 AddLog(Hint, "Failed to write file: " << outf);
-                //todo: log sth
-                //return;// false;
+                // todo: log sth
+                // return;// false;
             }
         };
-        
+
         std::stringstream ss;
-        ss << ".gitignore" << "\n";
-        ss << "mdmp.txt" << "\n";
+        ss << ".gitignore"
+           << "\n";
+        ss << "mdmp.txt"
+           << "\n";
 
         for (auto &item : generatedFiles) {
             ss << item.first << "\n";
@@ -111,7 +107,6 @@ struct AssimpImporter
         gi.from_string(ss.str());
         storeFile(".gitignore", gi);
 
-
         auto qtpath = QApplication::applicationDirPath();
         std::string path = qtpath.toUtf8().constData();
         path += "/mdmp.exe";
@@ -119,7 +114,7 @@ struct AssimpImporter
         auto outF = fs->TranslateToSystem(outputDirectory) + "/mdmp.txt";
         auto inF = fs->TranslateToSystem(m_URI);
 
-        OS::WaitForProcess({ path, "--input", inF, "--output", outF });
+        OS::WaitForProcess({path, "--input", inF, "--output", outF});
     }
 
     static StarVFS::ByteTable XmlToData(pugi::xml_document &doc) {
@@ -130,7 +125,7 @@ struct AssimpImporter
         return std::move(bt);
     }
 
-    void ImportBodyShapeComponent(const aiNode * node, EditableEntity * parent) {
+    void ImportBodyShapeComponent(const aiNode *node, EditableEntity *parent) {
         if (node->mNumMeshes != 1)
             return;
 
@@ -143,13 +138,13 @@ struct AssimpImporter
         shio->Set("size.z", std::to_string(std::max(mi.boxSize.z / 2, 0.01f)));
     }
 
-    void ImportBodyComponent(const aiNode * node, EditableEntity * parent) {
+    void ImportBodyComponent(const aiNode *node, EditableEntity *parent) {
         auto bodyC = parent->AddComponent("Body");
         auto bdio = bodyC->GetValuesEditor();
         bdio->Set("Kinematic", "1");
     }
 
-    void ImportTransformComponent(const aiNode * node, EditableEntity * parent) {
+    void ImportTransformComponent(const aiNode *node, EditableEntity *parent) {
         aiQuaternion q;
         aiVector3D pos;
         aiVector3D scale;
@@ -161,7 +156,6 @@ struct AssimpImporter
         trio->Set("Position.y", std::to_string(pos.y));
         trio->Set("Position.z", std::to_string(pos.z));
 
-
         trio->Set("Scale.x", std::to_string(scale.x));
         trio->Set("Scale.y", std::to_string(scale.y));
         trio->Set("Scale.z", std::to_string(scale.z));
@@ -172,12 +166,12 @@ struct AssimpImporter
         trio->Set("Rotation.w", std::to_string(q.w));
     }
 
-    void ImportMeshComponent(const aiNode * node, EditableEntity * parent) {
+    void ImportMeshComponent(const aiNode *node, EditableEntity *parent) {
         if (node->mNumMeshes != 1)
             return;
 
         auto meshSrc = scene->mMeshes[node->mMeshes[0]];
-        if(!meshSrc->HasBones()) {
+        if (!meshSrc->HasBones()) {
             auto meshC = parent->AddComponent("Mesh");
             auto meio = meshC->GetValuesEditor();
             auto &meshinfo = mesh[node->mMeshes[0]];
@@ -201,13 +195,13 @@ struct AssimpImporter
         }
     }
 
-    void ImportLightComponent( EditableEntity * parent) {
-        //auto it = sceneLights.find(parent->GetName());
-        //if (it == sceneLights.end())
+    void ImportLightComponent(EditableEntity *parent) {
+        // auto it = sceneLights.find(parent->GetName());
+        // if (it == sceneLights.end())
         //    return;
-        //auto light = it->second;
-        //auto lightC = parent->AddComponent(Core::SubSystemId::Light);
-        //auto liio = lightC->GetValuesEditor();
+        // auto light = it->second;
+        // auto lightC = parent->AddComponent(Core::SubSystemId::Light);
+        // auto liio = lightC->GetValuesEditor();
     }
 
     void ImportEntities() {
@@ -217,7 +211,7 @@ struct AssimpImporter
 
             entity = std::make_unique<EditableEntity>();
 
-            std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
+            std::vector<std::pair<EditableEntity *, const aiNode *>> queue;
             queue.emplace_back(entity.get(), node);
 
             std::size_t cnt = 0;
@@ -225,7 +219,7 @@ struct AssimpImporter
                 ++cnt;
                 auto item = queue.back();
                 queue.pop_back();
-                EditableEntity* parent = item.first;
+                EditableEntity *parent = item.first;
                 auto node = item.second;
 
                 parent->SetName(node->mName.data);
@@ -238,15 +232,15 @@ struct AssimpImporter
 
                 for (int i = node->mNumChildren - 1; i >= 0; --i) {
                     auto ch = node->mChildren[i];
-                    //if( ch->mNumMeshes == 1 )
+                    // if( ch->mNumMeshes == 1 )
                     queue.emplace_back(parent->AddChild(), ch);
                 }
             }
 
             std::string name = node->mName.data;
             std::string fname = name + ".epx";
-            for (int idx = 0; name.empty() || generatedFiles.find(fname) != generatedFiles.end();++i) {
-                if(node->mName.length > 0)
+            for (int idx = 0; name.empty() || generatedFiles.find(fname) != generatedFiles.end(); ++i) {
+                if (node->mName.length > 0)
                     name = node->mName.data + std::string(".") + std::to_string(i);
                 else
                     name = std::to_string(i);
@@ -256,7 +250,7 @@ struct AssimpImporter
 
             pugi::xml_document xdoc;
             if (!entity->Write(xdoc.append_child("Entity"))) {
-                //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
+                // AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
                 throw false;
             }
             generatedFiles[fname] = XmlToData(xdoc);
@@ -268,7 +262,7 @@ struct AssimpImporter
 
         entity = std::make_unique<EditableEntity>();
 
-        std::vector<std::pair<EditableEntity*, const aiNode*>> queue;
+        std::vector<std::pair<EditableEntity *, const aiNode *>> queue;
         queue.emplace_back(entity.get(), scene->mRootNode);
 
         std::size_t cnt = 0;
@@ -276,7 +270,7 @@ struct AssimpImporter
             ++cnt;
             auto item = queue.back();
             queue.pop_back();
-            EditableEntity* parent = item.first;
+            EditableEntity *parent = item.first;
             auto node = item.second;
 
             parent->SetName(node->mName.data);
@@ -289,7 +283,7 @@ struct AssimpImporter
 
             for (int i = node->mNumChildren - 1; i >= 0; --i) {
                 auto ch = node->mChildren[i];
-                //if( ch->mNumMeshes == 1 )
+                // if( ch->mNumMeshes == 1 )
                 queue.emplace_back(parent->AddChild(), ch);
             }
         }
@@ -298,7 +292,7 @@ struct AssimpImporter
 
         pugi::xml_document xdoc;
         if (!entity->Write(xdoc.append_child("Entity"))) {
-            //AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
+            // AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
             throw false;
         }
         generatedFiles["entity.epx"] = XmlToData(xdoc);
@@ -318,19 +312,17 @@ struct AssimpImporter
                 auto h = XXH64(tex->pcData, tex->mWidth, 'text');
                 if (auto it = textureHashes.find(h); it != textureHashes.end()) {
                     auto mappedTo = it->second;
-                    textureNames[i] =textureNames[mappedTo];
-                }
-                else {
-                    std::string path = fmt::format("texture_{:02}.{}", i, (const char*)tex->achFormatHint);
+                    textureNames[i] = textureNames[mappedTo];
+                } else {
+                    std::string path = fmt::format("texture_{:02}.{}", i, (const char *)tex->achFormatHint);
                     textureNames[i] = path;
                     generatedFiles[path].copy_from(tex->pcData, tex->mWidth);
                     textureHashes[h] = i;
                 }
-            }
-            else {
+            } else {
                 __debugbreak();
                 throw false;
-                //out << "\tHeight: " << tex->mHeight << "\n";
+                // out << "\tHeight: " << tex->mHeight << "\n";
             }
         }
     }
@@ -346,45 +338,49 @@ struct AssimpImporter
                 if (mat->Get(name, 0, 0, &v, &cnt) == aiReturn_SUCCESS) {
                     return v;
                 }
+            } catch (...) {
             }
-            catch (...) {}
             return default;
         };
 
         auto getVec4Prop = [](aiMaterial *mat, const char *name) -> math::fvec4 {
             try {
                 unsigned cnt = 4;
-                float v[4] = { 1,1,1,1 };
+                float v[4] = {1, 1, 1, 1};
                 if (mat->Get(name, 0, 0, v, &cnt) == aiReturn_SUCCESS) {
                     __nop();
                 }
-                return math::fvec4{ v[0], v[1], v[2], v[3] };
+                return math::fvec4{v[0], v[1], v[2], v[3]};
+            } catch (...) {
             }
-            catch (...) { }
             return {};
         };
 
-        auto getVec3Prop = [](aiMaterial *mat, const char *name, math::fvec3 def = { 1,1,1, }) -> math::fvec3 {
+        auto getVec3Prop = [](aiMaterial *mat, const char *name,
+                              math::fvec3 def = {
+                                  1,
+                                  1,
+                                  1,
+                              }) -> math::fvec3 {
             try {
                 unsigned cnt = 3;
-                float v[3] = { 1,1,1 };
+                float v[3] = {1, 1, 1};
                 if (mat->Get(name, 0, 0, v, &cnt) == aiReturn_SUCCESS) {
-                    return math::fvec3{ v[0], v[1], v[2] };
+                    return math::fvec3{v[0], v[1], v[2]};
                 }
-            }
-            catch (...) {
+            } catch (...) {
             }
             return def;
         };
 
         auto getStringProp = [](aiMaterial *mat, const char *name) -> std::string {
             try {
-                if (aiString v;  mat->Get(name, 0, 0, v) == aiReturn_SUCCESS) {
+                if (aiString v; mat->Get(name, 0, 0, v) == aiReturn_SUCCESS) {
                     return v.data;
                 }
                 return "";
+            } catch (...) {
             }
-            catch (...) {}
             return "";
         };
 
@@ -408,8 +404,7 @@ struct AssimpImporter
                         if (path.data[0] == '*') {
                             int index = strtol(&path.data[1], nullptr, 10);
                             map.texture = outputDirectory + "/" + textureNames[index];
-                        }
-                        else {
+                        } else {
                             std::filesystem::path fpath = path.data;
                             std::string fn = fpath.filename().generic_string();
                             if (fn.empty()) {
@@ -422,7 +417,7 @@ struct AssimpImporter
                         switch (mapmode[0]) {
                         case aiTextureMapMode_Wrap:
                             map.edges = Renderer::Configuration::Texture::Edges::Repeat;
-                                break;
+                            break;
                         case aiTextureMapMode_Clamp:
                         case aiTextureMapMode_Decal:
                         case aiTextureMapMode_Mirror:
@@ -434,13 +429,18 @@ struct AssimpImporter
             };
 
             loadMap(aiTextureType_DIFFUSE, matData.diffuseMap);
-            //loadMap(aiTextureType_SPECULAR, matData.specularMap);
+            // loadMap(aiTextureType_SPECULAR, matData.specularMap);
             loadMap(aiTextureType_NORMALS, matData.normalMap);
             loadMap(aiTextureType_SHININESS, matData.shinessMap);
-            
+
             matData.diffuseColor = getVec3Prop(mat, "$clr.diffuse");
             matData.specularColor = getVec3Prop(mat, "$clr.specular");
-            matData.emissiveColor = getVec3Prop(mat, "$clr.emissive", { 0,0,0, });
+            matData.emissiveColor = getVec3Prop(mat, "$clr.emissive",
+                                                {
+                                                    0,
+                                                    0,
+                                                    0,
+                                                });
             matData.shiness = getFloaProp(mat, "$mat.shininess", 32);
 
             pugi::xml_document xdoc;
@@ -448,7 +448,7 @@ struct AssimpImporter
 
             std::string fname;
             std::string matName = getStringProp(mat, "?mat.name");
-            if(matName.empty())
+            if (matName.empty())
                 fname = fmt::format("material_{:02}.mat", i);
             else
                 fname = fmt::format("material_{}.mat", matName);
@@ -464,16 +464,16 @@ struct AssimpImporter
     void ImportMeshes() {
         mesh.clear();
         if (!scene->HasMeshes())
-            return;       
+            return;
         mesh.resize(scene->mNumMeshes);
         for (unsigned i = 0; i < scene->mNumMeshes; ++i) {
             auto amesh = scene->mMeshes[i];
-            
+
             auto &mi = mesh[i];
             auto &maxs = mi.boxSize;
-            maxs = { 0,0,0 };
+            maxs = {0, 0, 0};
 
-            aiVector3D center = { 0,0,0 };
+            aiVector3D center = {0, 0, 0};
             for (size_t vertid = 0; vertid < amesh->mNumVertices; vertid++) {
                 center += amesh->mVertices[vertid];
             }
@@ -488,13 +488,13 @@ struct AssimpImporter
             }
 
             mi.material = amesh->mMaterialIndex;
-						
-			std::string meshName;
-			if (amesh->mName.length > 0)
-				meshName = amesh->mName.C_Str();
-			else
-				meshName = fmt::format("{}", i);
-			meshName += ".mesh";
+
+            std::string meshName;
+            if (amesh->mName.length > 0)
+                meshName = amesh->mName.C_Str();
+            else
+                meshName = fmt::format("{}", i);
+            meshName += ".mesh";
             mi.uri = outputDirectory + "/" + meshName;
 
             {
@@ -517,10 +517,10 @@ struct AssimpImporter
             std::string animName = fmt::format("{}.anim", i);
             animationNames[i] = animName;
 
-            auto fs = moduleManager->QuerryModule<Editor::FileSystem>();
+            auto fs = moduleManager->QueryModule<Editor::FileSystem>();
             StarVFS::ByteTable bt;
             if (!fs->GetFileData(m_URI + ".xml", bt)) {
-                //todo: log sth
+                // todo: log sth
                 throw std::runtime_error("Unable to read file: " + m_URI);
             }
 
@@ -551,18 +551,18 @@ struct AssimpImporter
 
     ProcessResult ProcessFile() override {
         try {
-            auto fs = moduleManager->QuerryModule<Editor::FileSystem>();
+            auto fs = moduleManager->QueryModule<Editor::FileSystem>();
             StarVFS::ByteTable bt;
             if (!fs->GetFileData(m_URI, bt)) {
-                //todo: log sth
+                // todo: log sth
                 throw std::runtime_error("Unable to read file: " + m_URI);
             }
             if (bt.byte_size() == 0) {
-                //todo: log sth
+                // todo: log sth
             }
 
-            unsigned flags = aiProcess_JoinIdenticalVertices |/* aiProcess_PreTransformVertices | */
-                aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
+            unsigned flags = aiProcess_JoinIdenticalVertices | /* aiProcess_PreTransformVertices | */
+                             aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
 
             scene = importer.ReadFileFromMemory(bt.get(), bt.byte_size(), flags, strrchr(m_URI.c_str(), '.'));
 
@@ -570,7 +570,7 @@ struct AssimpImporter
                 return ProcessResult::UnknownFailure;
             }
 
-            //output
+            // output
 
             GatherLights();
             ImportMeshes();
@@ -581,22 +581,21 @@ struct AssimpImporter
             ImportEntityTree();
 
             StoreResult();
-        }
-        catch (const std::exception &) {
+        } catch (const std::exception &) {
             return ProcessResult::UnknownFailure;
-
         }
         return ProcessResult::Success;
     }
+
 private:
-    const aiScene* scene;
+    const aiScene *scene;
     Assimp::Importer importer;
     SharedModuleManager moduleManager;
-    std::map<std::string, const aiLight*> sceneLights;
+    std::map<std::string, const aiLight *> sceneLights;
     std::set<std::string> skippedNodes;
 
     struct MeshInfo {
-        math::fvec3 boxSize = { 1,1,1 };
+        math::fvec3 boxSize = {1, 1, 1};
         std::string uri;
         unsigned material;
     };
@@ -617,22 +616,35 @@ private:
 };
 //----------------------------------------------------------------------------------
 
-class AssimpImporterInfo
-	: public iModule	
-	, public QtShared::iEditorInfo
-    , public QtShared::iEditorFactory {
+class AssimpImporterInfo : public iModule, public QtShared::iEditorInfo, public QtShared::iEditorFactory {
 public:
-	AssimpImporterInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
+    AssimpImporterInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
-	virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
-		return std::vector<FileHandleMethodInfo> {
-			FileHandleMethodInfo{ "blend", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
-			FileHandleMethodInfo{ "3ds", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
-			FileHandleMethodInfo{ "fbx", ICON_16_3DMODEL_RESOURCE, "Import to entity pattern", "open", },
-		};
-	}
+    virtual std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
+        return std::vector<FileHandleMethodInfo>{
+            FileHandleMethodInfo{
+                "blend",
+                ICON_16_3DMODEL_RESOURCE,
+                "Import to entity pattern",
+                "open",
+            },
+            FileHandleMethodInfo{
+                "3ds",
+                ICON_16_3DMODEL_RESOURCE,
+                "Import to entity pattern",
+                "open",
+            },
+            FileHandleMethodInfo{
+                "fbx",
+                ICON_16_3DMODEL_RESOURCE,
+                "Import to entity pattern",
+                "open",
+            },
+        };
+    }
 
-    QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
+    QtShared::SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method,
+                                     const EditorRequestOptions &options) const override {
         return std::make_shared<AssimpImporter>(GetModuleManager(), "");
     }
 };
@@ -641,5 +653,4 @@ ModuleClassRegister::Register<AssimpImporterInfo> AssimpImporterInfoReg("AssimpI
 
 //----------------------------------------------------------------------------------
 
-} //namespace MoonGlare::Importer 
-
+} // namespace MoonGlare::Importer

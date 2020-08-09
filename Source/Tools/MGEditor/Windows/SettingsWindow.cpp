@@ -13,18 +13,17 @@ namespace MoonGlare {
 namespace Editor {
 
 SettingsWindow::SettingsWindow(SharedModuleManager modmgr, QWidget *parent)
-    : QDialog(parent), moduleManager(std::move(modmgr))
-{
+    : QDialog(parent), moduleManager(std::move(modmgr)) {
     SetSettingID("SettingsWindow");
     m_Ui = std::make_unique<Ui::SettingsWindow>();
     m_Ui->setupUi(this);
-    
-    //m_Model = std::make_unique<QtShared::DataModels::StructureEditingModel>(this);
-    //m_Model->SetTreeView(m_Ui->treeView);
+
+    // m_Model = std::make_unique<QtShared::DataModels::StructureEditingModel>(this);
+    // m_Model->SetTreeView(m_Ui->treeView);
 
     m_Ui->treeView->SetSettingID("treeView");
 
-    auto stt = GetModuleManager()->QuerryModule<EditorSettings>();
+    auto stt = GetModuleManager()->QueryModule<EditorSettings>();
     auto &conf = stt->GetConfiguration();
     auto info = TypeEditor::Structure::GetStructureInfo(conf.GetTypeName());
     if (info) {
@@ -35,9 +34,7 @@ SettingsWindow::SettingsWindow(SharedModuleManager modmgr, QWidget *parent)
         AddLogf(Error, "Failed to get settings structure description!");
     }
 
-    connect(m_Ui->pushButtonClose, &QPushButton::clicked, [this]() {
-        close();
-    });
+    connect(m_Ui->pushButtonClose, &QPushButton::clicked, [this]() { close(); });
 
     LoadSettings();
     m_Ui->treeView->Refresh();
@@ -63,16 +60,11 @@ bool SettingsWindow::DoLoadSettings(const pugi::xml_node node) {
 
 //----------------------------------------------------------------------------------
 
-void SettingsWindow::showEvent(QShowEvent * event) {
-    event->accept();
-}
+void SettingsWindow::showEvent(QShowEvent *event) { event->accept(); }
 
-void SettingsWindow::closeEvent(QCloseEvent * event) {
-    event->accept();
-}
+void SettingsWindow::closeEvent(QCloseEvent *event) { event->accept(); }
 
 //----------------------------------------------------------------------------------
 
-} //namespace Editor
-} //namespace MoonGlare
-
+} // namespace Editor
+} // namespace MoonGlare

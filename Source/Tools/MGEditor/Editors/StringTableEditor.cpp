@@ -10,10 +10,10 @@ namespace MoonGlare::Editor {
 
 class EmptyCellDelegate : public QStyledItemDelegate {
 public:
-    EmptyCellDelegate::EmptyCellDelegate() {
-    }
+    EmptyCellDelegate::EmptyCellDelegate() {}
 
-    void EmptyCellDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    void EmptyCellDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                                  const QModelIndex &index) const {
         bool e = index.data(Qt::DisplayRole).toString().isEmpty();
 
         if (e) {
@@ -26,20 +26,20 @@ public:
 
 //-------------------------------------------------------------------------------------------------
 
-StringTableEditor::StringTableEditor(QWidget * parent, SharedModuleManager smm, std::string tableName)
-    :  QWidget(parent), iChangeContainer(smm), sharedModuleManager(std::move(smm)), tableName(std::move(tableName)) {
+StringTableEditor::StringTableEditor(QWidget *parent, SharedModuleManager smm, std::string tableName)
+    : QWidget(parent), iChangeContainer(smm), sharedModuleManager(std::move(smm)), tableName(std::move(tableName)) {
     ui = std::make_unique<Ui::StringTableEditor>();
     ui->setupUi(this);
 
     SetChangesName("String table " + this->tableName);
 
-    fileSystem = sharedModuleManager->QuerryModule<FileSystem>();
+    fileSystem = sharedModuleManager->QueryModule<FileSystem>();
     assert(fileSystem);
 
     FileInfoTable fit;
     fileSystem->EnumerateFolder("/Tables", fit, false);
 
-    languages.emplace_back(LangInfo{ "default" , "" , 1, true});
+    languages.emplace_back(LangInfo{"default", "", 1, true});
 
     std::set<std::string> langs;
     for (const auto &item : fit) {
@@ -49,19 +49,18 @@ StringTableEditor::StringTableEditor(QWidget * parent, SharedModuleManager smm, 
         bool exists = true;
         if (parts[0] != this->tableName)
             exists = false;
-            
+
         if (parts.size() == 3) {
             if (langs.find(parts[1]) == langs.end()) {
                 langs.insert(parts[1]);
-                languages.emplace_back(LangInfo{ parts[1], "." + parts[1], (int)languages.size() + 1 , exists });
+                languages.emplace_back(LangInfo{parts[1], "." + parts[1], (int)languages.size() + 1, exists});
             }
         }
-    }     
+    }
 
     itemModel = std::make_unique<QStandardItemModel>();
-    connect(itemModel.get(), &QStandardItemModel::itemChanged, [this](QStandardItem * item) {
-        SetModiffiedState(true);
-    });
+    connect(itemModel.get(), &QStandardItemModel::itemChanged,
+            [this](QStandardItem *item) { SetModiffiedState(true); });
 
     ui->treeView->setModel(itemModel.get());
 
@@ -82,7 +81,7 @@ StringTableEditor::StringTableEditor(QWidget * parent, SharedModuleManager smm, 
         bool selection = ui->treeView->currentIndex().isValid();
 
         menu.addAction("Add row", [this]() {
-            QList<QStandardItem*> cols;
+            QList<QStandardItem *> cols;
             cols << new QStandardItem();
             for (auto &l : languages)
                 cols << new QStandardItem("");
@@ -93,11 +92,13 @@ StringTableEditor::StringTableEditor(QWidget * parent, SharedModuleManager smm, 
 
         menu.addSeparator();
 
-        menu.addAction("Remove row", [this]() {
-            int row = ui->treeView->currentIndex().row();
-            itemModel->removeRow(row);
-            SetModiffiedState(true);
-        })->setEnabled(selection);
+        menu.addAction("Remove row",
+                       [this]() {
+                           int row = ui->treeView->currentIndex().row();
+                           itemModel->removeRow(row);
+                           SetModiffiedState(true);
+                       })
+            ->setEnabled(selection);
 
         menu.exec(QCursor::pos());
     });
@@ -113,9 +114,9 @@ StringTableEditor::~StringTableEditor() {
 //-------------------------------------------------------------------------------------------------
 
 void StringTableEditor::Reload() {
-    //itemModel->clear();
+    // itemModel->clear();
     auto root = itemModel->invisibleRootItem();
-    std::unordered_map<std::string, QStandardItem*> idToRow;
+    std::unordered_map<std::string, QStandardItem *> idToRow;
 
     for (const auto &li : languages) {
         if (!li.exists)
@@ -134,7 +135,7 @@ void StringTableEditor::Reload() {
 
             auto &row = idToRow[id];
             if (!row) {
-                QList<QStandardItem*> cols;
+                QList<QStandardItem *> cols;
                 cols << (row = new QStandardItem(id.c_str()));
                 for (auto &l : languages)
                     cols << new QStandardItem("");
@@ -165,7 +166,7 @@ bool StringTableEditor::SaveChanges() {
     for (auto &item : languages) {
         pugi::xml_document xdoc;
         auto node = xdoc.append_child("StringTable");
-        //root.append_attribute("lang") = ...
+        // root.append_attribute("lang") = ...
 
         for (int i = 0; i < root->rowCount(); ++i) {
             auto idItm = root->child(i, 0);
@@ -194,22 +195,16 @@ bool StringTableEditor::SaveChanges() {
 
     SetModiffiedState(false);
     return true;
-}     
-                  
+}
+
 //-------------------------------------------------------------------------------------------------
 
-std::string StringTableEditor::GetTabTitle() const {
-    return "String table " + tableName;
-}
+std::string StringTableEditor::GetTabTitle() const { return "String table " + tableName; }
 
 bool StringTableEditor::CanClose() const {
     if (isWindowModified()) {
-
     }
     return true;
 }
 
-
-
-} 
-
+} // namespace MoonGlare::Editor

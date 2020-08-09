@@ -13,13 +13,12 @@
 namespace MoonGlare::Editor {
 using namespace QtShared;
 
-struct StringTableEditorModule
-    : public iModule
+struct StringTableEditorModule : public iModule
     //, public iSoundPlayer
-    , public QtShared::iEditorInfo
-    , public QtShared::iEditorFactory
-{
-    StringTableEditorModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
+    ,
+                                 public QtShared::iEditorInfo,
+                                 public QtShared::iEditorFactory {
+    StringTableEditorModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
     std::shared_ptr<FileSystem> fileSystem;
     std::shared_ptr<iMainWindowTabsCtl> tabCtl;
@@ -28,9 +27,9 @@ struct StringTableEditorModule
         if (!iModule::Initialize())
             return false;
 
-        fileSystem = GetModuleManager()->QuerryModule<FileSystem>();
+        fileSystem = GetModuleManager()->QueryModule<FileSystem>();
         assert(fileSystem);
-        tabCtl = GetModuleManager()->QuerryModule<iMainWindowTabsCtl>();
+        tabCtl = GetModuleManager()->QueryModule<iMainWindowTabsCtl>();
         assert(tabCtl);
 
         return true;
@@ -48,13 +47,14 @@ struct StringTableEditorModule
         return true;
     }
 
-    std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override { 
+    std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
         std::vector<FileHandleMethodInfo> ret;
-        ret.emplace_back(FileHandleMethodInfo{ "xml", ICON_16_CONFIG_FILE, "Edit string table", "edit"});
+        ret.emplace_back(FileHandleMethodInfo{"xml", ICON_16_CONFIG_FILE, "Edit string table", "edit"});
         return std::move(ret);
     }
 
-    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions &options) const override {
+    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method,
+                           const EditorRequestOptions &options) const override {
         XMLFile xfile;
         if (!fileSystem->OpenXML(xfile, options.fileURI))
             return nullptr;
@@ -65,7 +65,7 @@ struct StringTableEditorModule
 
         auto delim = options.fileURI.rfind("/");
         auto name = options.fileURI.substr(delim + 1);
-        //auto xlen = strlen("file://");
+        // auto xlen = strlen("file://");
         auto path = options.fileURI.substr(0, delim + 1);
 
         if (path != "file:///Tables/")
@@ -78,7 +78,8 @@ struct StringTableEditorModule
         if (tabCtl->TabExists(tabName))
             return nullptr;
 
-        auto sp = std::make_shared<StringTableEditor>(tabCtl->GetTabParentWidget(), GetModuleManager(), std::move(tname));
+        auto sp =
+            std::make_shared<StringTableEditor>(tabCtl->GetTabParentWidget(), GetModuleManager(), std::move(tname));
         tabCtl->AddTab(tabName, sp);
         return sp;
     }
@@ -86,4 +87,4 @@ struct StringTableEditorModule
 
 ModuleClassRegister::Register<StringTableEditorModule> StringTableEditorReg("StringTableEditor");
 
-}
+} // namespace MoonGlare::Editor

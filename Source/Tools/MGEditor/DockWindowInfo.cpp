@@ -12,35 +12,34 @@
 namespace MoonGlare {
 namespace QtShared {
 
-BaseDockWindowModule::BaseDockWindowModule(SharedModuleManager modmgr): iModule(std::move(modmgr)) {
-	m_DisplayName = "{?}";
-	m_DisableMainMenu = true;
+BaseDockWindowModule::BaseDockWindowModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {
+    m_DisplayName = "{?}";
+    m_DisableMainMenu = true;
 }
 
-BaseDockWindowModule::~BaseDockWindowModule() {
-}
+BaseDockWindowModule::~BaseDockWindowModule() {}
 
 std::shared_ptr<DockWindow> BaseDockWindowModule::GetInstance(QWidget *parent) {
-	if (!m_Instance) {
+    if (!m_Instance) {
         QMainWindow *mw = nullptr;
-	    if (!parent) {
-		    //TODO: this is workaround
-		    auto module = dynamic_cast<iModule*>(this);
-		    if (module) {
-			    auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
-			    parent = mw = provider->GetMainWindowWidget();
-		    }
-	    }
-		m_Instance = CreateInstance(parent);
+        if (!parent) {
+            // TODO: this is workaround
+            auto module = dynamic_cast<iModule *>(this);
+            if (module) {
+                auto provider = module->GetModuleManager()->QueryModule<MainWindowProvider>();
+                parent = mw = provider->GetMainWindowWidget();
+            }
+        }
+        m_Instance = CreateInstance(parent);
         if (!m_Instance)
             return nullptr;
         if (mw)
             mw->addDockWidget(Qt::LeftDockWidgetArea, m_Instance.get());
-        
-		connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow*)), SLOT(WindowClosed(DockWindow*)));
-		m_Instance->LoadSettings();
-	}
-	return m_Instance;
+
+        connect(m_Instance.get(), SIGNAL(WindowClosed(DockWindow *)), SLOT(WindowClosed(DockWindow *)));
+        m_Instance->LoadSettings();
+    }
+    return m_Instance;
 }
 
 bool BaseDockWindowModule::Finalize() {
@@ -49,23 +48,23 @@ bool BaseDockWindowModule::Finalize() {
 }
 
 void BaseDockWindowModule::ReleaseInstance() {
-	if (!m_Instance)
-		return;
+    if (!m_Instance)
+        return;
 
-    auto module = dynamic_cast<iModule*>(this);
+    auto module = dynamic_cast<iModule *>(this);
     if (module) {
-        auto provider = module->GetModuleManager()->QuerryModule<MainWindowProvider>();
+        auto provider = module->GetModuleManager()->QueryModule<MainWindowProvider>();
         auto mw = provider->GetMainWindowWidget();
         mw->removeDockWidget(m_Instance.get());
     }
 
-	m_Instance->SaveSettings();
-	m_Instance.reset();
+    m_Instance->SaveSettings();
+    m_Instance.reset();
 }
 
-void BaseDockWindowModule::WindowClosed(DockWindow* Sender) {
+void BaseDockWindowModule::WindowClosed(DockWindow *Sender) {
     visible = false;
-	ReleaseInstance();
+    ReleaseInstance();
 }
 
 void BaseDockWindowModule::Show() {
@@ -77,7 +76,7 @@ void BaseDockWindowModule::Show() {
 
 bool BaseDockWindowModule::DoSaveSettings(pugi::xml_node node) const {
     XML::UniqeChild(node, "BaseDockWindowModule:Visible").text() = visible;
-	return true;
+    return true;
 }
 
 bool BaseDockWindowModule::DoLoadSettings(const pugi::xml_node node) {
@@ -85,8 +84,8 @@ bool BaseDockWindowModule::DoLoadSettings(const pugi::xml_node node) {
         visible = true;
         Show();
     }
-	return false;
+    return false;
 }
 
-} //namespace QtShared
-} //namespace MoonGlare
+} // namespace QtShared
+} // namespace MoonGlare

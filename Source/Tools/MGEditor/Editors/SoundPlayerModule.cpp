@@ -12,18 +12,17 @@
 namespace MoonGlare::Editor {
 using namespace QtShared;
 
-struct SoundPlayerModule
-    : public iModule
-    , public iFileIconInfo
+struct SoundPlayerModule : public iModule,
+                           public iFileIconInfo
     //, public iSoundPlayer
-    , public QtShared::iEditorInfo
-    , public QtShared::iEditorFactory
-{
+    ,
+                           public QtShared::iEditorInfo,
+                           public QtShared::iEditorFactory {
     std::shared_ptr<SoundSystem::iSoundSystem> soundSystem;
 
-    SoundPlayerModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) { }
+    SoundPlayerModule(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
-    //void Play(const std::string &uri) override {
+    // void Play(const std::string &uri) override {
     //}
 
     bool Initialize() override {
@@ -53,30 +52,34 @@ struct SoundPlayerModule
 
     std::vector<FileIconInfo> GetFileIconInfo() const override {
         if (!soundSystem)
-            return { };
+            return {};
 
         std::vector<FileIconInfo> ret;
         for (auto &format : soundSystem->GetSupportedFormats()) {
-            ret.emplace_back(FileIconInfo{ format.fileExtension, ICON_16_SOUND_RESOURCE, });
+            ret.emplace_back(FileIconInfo{
+                format.fileExtension,
+                ICON_16_SOUND_RESOURCE,
+            });
         }
 
         return std::move(ret);
     }
 
-    std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override { 
+    std::vector<FileHandleMethodInfo> GetOpenFileMethods() const override {
         if (!soundSystem)
             return {};
 
         std::vector<FileHandleMethodInfo> ret;
         for (auto &format : soundSystem->GetSupportedFormats()) {
-            ret.emplace_back(FileHandleMethodInfo{ format.fileExtension, ICON_16_SOUND_RESOURCE, "Play...", "play"});
+            ret.emplace_back(FileHandleMethodInfo{format.fileExtension, ICON_16_SOUND_RESOURCE, "Play...", "play"});
         }
 
         return std::move(ret);
     }
 
-    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions&options) const override {
-        auto iface = GetModuleManager()->QuerryModule<DockWindows::iFileSystemViewerPreview>();
+    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method,
+                           const EditorRequestOptions &options) const override {
+        auto iface = GetModuleManager()->QueryModule<DockWindows::iFileSystemViewerPreview>();
         if (!iface)
             return nullptr;
         auto player = std::make_shared<SoundPlayerView>(nullptr, soundSystem.get());
@@ -87,5 +90,4 @@ struct SoundPlayerModule
 
 ModuleClassRegister::Register<SoundPlayerModule> SoundPlayerReg("SoundPlayer");
 
-}
-
+} // namespace MoonGlare::Editor
