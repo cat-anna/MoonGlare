@@ -2,7 +2,7 @@
 	path = Libs/libSpace
 url=git@github.com:pgrabas/libSpace.git
 [submodule "Libs/OrbitLogger"]
-	path = Libs/OrbitLogger
+	path = lib/orbit_logger
 url=git@github.com:pgrabas/OrbitLogger.git
 [submodule "Libs/StarVFS"]
 	path = Libs/StarVFS

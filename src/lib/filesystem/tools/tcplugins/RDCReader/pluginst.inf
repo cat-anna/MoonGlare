@@ -1,0 +1,6 @@
+[plugininstall]
+description=RDC container reader for Total Commander
+type=wcx
+file=RDCReader.wcx
+defaultdir=RDCReader
+defaultextension=rdc,fdc

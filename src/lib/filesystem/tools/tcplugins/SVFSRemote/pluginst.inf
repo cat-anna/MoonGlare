@@ -1,0 +1,6 @@
+[plugininstall]
+description=StarVFS Remote client - plugin for TotalCommander
+type=wfx
+file=SVFSRemote.wfx
+defaultdir=SVFSRemote
+
