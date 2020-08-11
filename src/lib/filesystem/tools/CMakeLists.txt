@@ -1,2 +1,1 @@
-
-add_subdirectory(svfs)
+add_subdirectory(svfs_cli)

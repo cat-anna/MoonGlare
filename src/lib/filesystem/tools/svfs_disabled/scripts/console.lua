@@ -1,4 +1,0 @@
-
-function stdout(...)
-	print(...)
-end
