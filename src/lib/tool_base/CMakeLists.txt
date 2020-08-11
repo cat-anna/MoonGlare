@@ -7,5 +7,5 @@ target_link_libraries(
   # boost
   fmt::fmt
   # luajit
-  orgit_logger
+  orbit_logger
   base)

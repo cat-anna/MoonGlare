@@ -14,7 +14,7 @@ if(Qt5_FOUND)
            Qt5::Core
            Qt5::Widgets
            Qt5::Gui
-           orgit_logger
+           orbit_logger
            base
            tool_base
            tool_base_qt)

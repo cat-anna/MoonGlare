@@ -11,4 +11,4 @@ target_link_libraries(
   pugixml
   glfw3
   glew
-  orgit_logger)
+  orbit_logger)

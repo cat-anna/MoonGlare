@@ -5,4 +5,4 @@ target_include_directories(${TARGET} PUBLIC .)
 target_link_libraries(
   ${TARGET}
   # boost
-  fmt::fmt orgit_logger)
+  fmt::fmt orbit_logger)
