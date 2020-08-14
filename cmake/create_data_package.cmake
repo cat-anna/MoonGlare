@@ -12,11 +12,11 @@ function(create_data_package source_directory_name)
 
   add_custom_target(
     ${package_name}
-    COMMAND svfs_cli --action
+    COMMAND svfs-cli --action
             "build_package;${source_directory};${out_file_name}"
     WORKING_DIRECTORY ${TARGET_DESTINATTION}
     COMMENT "Building package ${source_directory_name}"
-    DEPENDS svfs_cli
+    DEPENDS svfs-cli
     BYPRODUCTS ${out_file_name}
     VERBATIM
     SOURCES ${package_srcs})

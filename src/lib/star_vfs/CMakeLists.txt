@@ -13,5 +13,3 @@ add_library(${TARGET} ${SRC})
 target_include_directories(${TARGET} PUBLIC include)
 
 target_link_libraries(${TARGET} base orbit_logger fmt::fmt libzippp::libzippp)
-
-add_subdirectory(tools)

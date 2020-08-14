@@ -1,4 +1,4 @@
-set(TARGET svfs_cli)
+set(TARGET svfs-cli)
 
 file(GLOB_RECURSE SRC *.h *.cpp)
 file(GLOB_RECURSE SCRIPTS scripts/*.lua)
