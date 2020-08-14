@@ -15,8 +15,7 @@ public:
 
     struct ContainerFileEntry {
         std::string file_name;
-        // uint32_t file_size;
-        // bool is_directory;
+
         ContainerFileId container_file_id{0};
         FilePathHash parent_path_hash{0};
         FilePathHash file_path_hash{0};
@@ -27,10 +26,7 @@ public:
 
     virtual bool RegisterFileStructure(const std::vector<ContainerFileEntry> &Structure) = 0;
 
-    virtual void CreateDirectory(const std::string &path) = 0;
-    void CreateDirectory(const std::string_view &path) {
-        CreateDirectory(std::string(path)); // TODO
-    }
+    virtual void CreateDirectory(const std::string_view &path) = 0;
 };
 
 } // namespace MoonGlare::StarVfs

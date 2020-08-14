@@ -11,7 +11,7 @@ enum GlobalChanels : LogChannel {
     StdErr = FirstUserChannel + 4,
     StdOut,
 
-    Insider = FirstUserChannel + 8,
+    Verbose = FirstUserChannel + 8,
     Script,
     ScriptCall,
     ScriptRuntime,

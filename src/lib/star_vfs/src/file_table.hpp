@@ -13,7 +13,7 @@ class FileTable {
 public:
     explicit FileTable();
 
-    bool CreateDirectory(std::string_view path);
+    bool CreateDirectory(const std::string_view &path);
 
     FileEntry *FindFileByPath(FilePathHash path_hash) const {
         auto it = file_by_path_hash.find(path_hash);

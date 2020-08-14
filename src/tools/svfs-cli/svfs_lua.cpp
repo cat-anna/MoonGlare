@@ -1,11 +1,15 @@
 
 #include "svfs_lua.h"
 #include "luainterface.h"
+#include <svfs_modules/assimp_container.hpp>
+#include <svfs_modules/assimp_importer_module.hpp>
 
 namespace MoonGlare::Tools::VfsCli {
 
 SVfsLua::SVfsLua(SharedLua lua) : StarVirtualFileSystem(&class_register), lua(lua) {
     class_register.RegisterAll();
+    class_register.RegisterModuleClass<SvfsModules::AssimpImporterModule>();
+    class_register.RegisterContainerClass<SvfsModules::AssimpContainer>();
     Initialize();
 }
 

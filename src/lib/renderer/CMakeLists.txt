@@ -6,7 +6,7 @@ target_link_libraries(
   ${TARGET}
   base
   resources
-  filesystem
+  star_vfs
   fmt::fmt
   pugixml
   glfw3

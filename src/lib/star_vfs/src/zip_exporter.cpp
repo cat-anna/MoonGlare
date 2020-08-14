@@ -1,19 +1,17 @@
 #include "svfs/zip_exporter.hpp"
 #include "file_entry.hpp"
 #include "file_table.hpp"
-#include "path_utils.hpp"
+#include "svfs/path_utils.hpp"
 #include "svfs/vfs_module_interface.hpp"
 #include "zip_container_manifest.hpp"
 #include <fmt/format.h>
 #include <fstream>
-#include <iostream>
 #include <json_helpers.hpp>
 #include <libzippp.h>
 #include <nlohmann/json.hpp>
 #include <orbit_logger.h>
 #include <stdexcept>
 #include <vector>
-
 
 namespace MoonGlare::StarVfs {
 
@@ -27,7 +25,6 @@ ZipExporter::ZipExporter(iVfsModuleInterface *module_interface, const VariantArg
     arguments.get_to(include_hidden_files, "include_hidden_files", false);
     arguments.get_to(generate_resource_id, "generate_resource_id", true);
     arguments.get_to(deflate, "deflate", false);
-    arguments.get_to(verbose, "verbose", false);
 }
 
 ZipExporter::~ZipExporter() {
@@ -46,12 +43,10 @@ void ZipExporter::StartExport() {
     zf.open(ZipArchive::NEW);
     std::list<std::string> loaded_files;
 
-    if (verbose) {
-        std::cout << fmt::format("Starting export to zip {}\n", output_path);
-        std::cout << fmt::format("Deflate: {}\n", deflate);
-        std::cout << fmt::format("Include hidden files: {}\n", include_hidden_files);
-        std::cout << fmt::format("Generate resource id: {}\n", generate_resource_id);
-    }
+    AddLog(Info, fmt::format("Starting export to zip {}", output_path));
+    AddLog(Verbose, fmt::format("Deflate: {}", deflate));
+    AddLog(Verbose, fmt::format("Include hidden files: {}", include_hidden_files));
+    AddLog(Verbose, fmt::format("Generate resource id: {}", generate_resource_id));
 
     size_t file_index = 0;
     size_t total_size = 0;
@@ -80,8 +75,8 @@ void ZipExporter::StartExport() {
         }
 
         ++file_index;
-        if (verbose && (file_index % 50) == 0) {
-            std::cout << fmt::format("Reading file {}\n", file_index);
+        if ((file_index % 50) == 0) {
+            AddLog(Verbose, fmt::format("Reading file {}", file_index));
         }
 
         std::string file_data;
@@ -117,18 +112,14 @@ void ZipExporter::StartExport() {
     zf.addData(kContainerManifestFileName, manifest_data.c_str(), manifest_data.size());
     zf.getEntry(kContainerManifestFileName).setCompressionEnabled(deflate);
 
-    if (verbose) {
-        std::cout << fmt::format("Closing archive {}\n", output_path);
-        std::cout << fmt::format("File count: {}\n", file_index);
-        std::cout << fmt::format("Hashed file count: {}\n", hashed_files);
-        std::cout << fmt::format("Total source file size: {:.02f} MiB\n", total_size / 1024.0 / 1024.0);
-    }
+    AddLog(Verbose, fmt::format("Closing archive {}", output_path));
+    AddLog(Verbose, fmt::format("File count: {}", file_index));
+    AddLog(Verbose, fmt::format("Hashed file count: {}", hashed_files));
+    AddLog(Verbose, fmt::format("Total source file size: {:.02f} MiB", total_size / 1024.0 / 1024.0));
 
     zf.close();
 
-    if (verbose) {
-        std::cout << fmt::format("Export to zip {} completed\n", output_path);
-    }
+    AddLog(Info, fmt::format("Export to zip {} completed", output_path));
 };
 
 } // namespace MoonGlare::StarVfs

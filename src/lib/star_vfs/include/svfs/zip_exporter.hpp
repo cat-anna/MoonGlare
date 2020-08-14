@@ -24,7 +24,6 @@ private:
     bool include_hidden_files = false;
     bool generate_resource_id = false;
     bool deflate = false;
-    bool verbose = false;
 };
 
 } // namespace MoonGlare::StarVfs

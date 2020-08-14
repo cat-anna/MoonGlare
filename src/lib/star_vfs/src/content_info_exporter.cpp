@@ -1,7 +1,7 @@
 #include "svfs/content_info_exporter.hpp"
 #include "file_entry.hpp"
 #include "file_table.hpp"
-#include "path_utils.hpp"
+#include "svfs/path_utils.hpp"
 #include "svfs/vfs_module_interface.hpp"
 #include <fmt/format.h>
 #include <fstream>

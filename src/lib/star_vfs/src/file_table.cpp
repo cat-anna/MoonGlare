@@ -1,4 +1,5 @@
 #include "file_table.hpp"
+#include "svfs/path_utils.hpp"
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <orbit_logger.h>
@@ -11,8 +12,8 @@ FileTable::FileTable() {
     AddFileEntry(&root_file);
 }
 
-bool FileTable::CreateDirectory(std::string_view path) {
-    if (path.size() < 1 || path[0] != '/') {
+bool FileTable::CreateDirectory(const std::string_view &path) {
+    if (path.size() < 1) {
         return false;
     }
 
@@ -21,7 +22,6 @@ bool FileTable::CreateDirectory(std::string_view path) {
     }
 
     std::vector<std::string> path_parts;
-    path.remove_prefix(1);
     if (path.empty()) {
         return true;
     }
@@ -30,7 +30,9 @@ bool FileTable::CreateDirectory(std::string_view path) {
 
     std::string parent_position = "";
     for (auto &item : path_parts) {
-        std::string position = parent_position + "/" + item;
+        if (item.empty())
+            continue;
+        std::string position = JoinPath(parent_position, item);
 
         auto relative_hash = Hasher::Hash(position);
         auto child = FindFileByPath(relative_hash);
@@ -44,6 +46,7 @@ bool FileTable::CreateDirectory(std::string_view path) {
             child = parent->AddChild(item, relative_hash);
             AddFileEntry(child);
         }
+        parent_position = std::move(position);
     }
 
     return true;

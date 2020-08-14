@@ -8,4 +8,6 @@ target_link_libraries(
   fmt::fmt
   # luajit
   orbit_logger
-  base)
+  base
+  resources
+  star_vfs)

@@ -27,7 +27,7 @@ public:
     //     return static_cast<bool>(result);
     // }
 
-    virtual bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) = 0;
+    virtual bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const = 0;
 
     // virtual void FindFilesByExt(const char *ext, StarVFS::DynamicFIDTable &out) = 0;
     // virtual std::string GetFileName(StarVFS::FileID fid) const = 0;

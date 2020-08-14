@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <orbit_logger/sink/file_sink.h>
+#include <orbit_logger/sink/stdout_sink.h>
 #include <string>
 #include <vector>
 
@@ -15,12 +16,9 @@ using namespace MoonGlare::Tools::VfsCli;
 
 using OrbitLogger::LogCollector;
 using OrbitLogger::StdFileLoggerSink;
+using OrbitLogger::StdOutSink;
 
 int main(int argc, char *argv[]) {
-    OrbitLogger::ThreadInfo::SetName("MAIN", true);
-    LogCollector::Start();
-    LogCollector::AddLogSink<StdFileLoggerSink>("logs/svfs_cli.log");
-
     InitEnv initenv;
     Parser p;
     if (!p.Run(initenv, argc, argv)) {
@@ -28,21 +26,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    auto lua = Lua::New();
+    OrbitLogger::ThreadInfo::SetName("MAIN", true);
+    LogCollector::Start();
+    LogCollector::AddLogSink<StdOutSink>();
+    LogCollector::SetChannelState(OrbitLogger::LogChannels::Verbose, initenv.verbose);
 
+    auto lua = Lua::New(initenv);
     auto svfs = std::make_unique<SVfsLua>(lua);
-
-    // if (!svfs->Initialize()) {
-    // 	printf("Unable to initialize svfs!\n");
-    // 	return 1;
-    // }
-
-    // SVFS *svfsptr = svfs.get();
-    // luabridge::getGlobalNamespace(lua->GetState())
-    //     .beginNamespace("inst")
-    //     .addVariable<SVFS *>("svfs", &svfsptr, false)
-    //     .endNamespace();
-
     CLI cli(lua);
 
     if (!lua->Initialize()) {
@@ -69,6 +59,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+
+    LogCollector::Stop();
 
     return 0;
 }

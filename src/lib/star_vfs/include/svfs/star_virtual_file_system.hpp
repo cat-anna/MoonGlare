@@ -28,7 +28,7 @@ public:
 
     bool ReadFileByPath(const std::string &path, std::string &file_data) const override;
 
-    bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) override;
+    bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const override;
 
 private:
     struct Impl;

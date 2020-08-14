@@ -60,7 +60,7 @@ MetaModule::~MetaModule(){};
 std::string MetaModule::DumpFileTree() const {
     std::stringstream out;
 
-    static const char *kLineFormat = "{:16} {:16s} {:16s} {:1s} {}{}\n";
+    static const char *kLineFormat = "{:16} {:16s} {:16s} {:2s} {}{}\n";
     out << fmt::format(kLineFormat, "PARENT_HASH", "FILE_HASH", "RESOURCE_HASH", "F", "TREE", "");
 
     size_t file_count = 0;
@@ -75,11 +75,16 @@ std::string MetaModule::DumpFileTree() const {
                 level += "| ";
             }
             ++file_count;
+
+            std::string flags;
+            flags += file->IsDirectory() ? "D" : " ";
+            flags += file->IsHidden() ? "H" : " ";
+
             out << fmt::format(kLineFormat,                                    //
                                fmt::format("{:016x}", file->parent_path_hash), //
                                fmt::format("{:016x}", file->file_path_hash),   //
                                fmt::format("{:016x}", file->resource_id),      //
-                               file->IsDirectory() ? "D" : " ",                //
+                               flags,                                          //
                                level,                                          //
                                file->file_name                                 //
             );

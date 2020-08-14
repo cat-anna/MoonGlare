@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 namespace MoonGlare::StarVfs {
 
 struct MountedContainerEntry {
@@ -45,6 +44,8 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
 
             container_info.instance = class_register->CreateContainerObject(
                 std::string(container_class), container_info.file_table_interface.get(), arguments);
+            if (!container_info.instance)
+                throw std::runtime_error("Failed to create container object");
 
             container_info.instance->ReloadContainer();
 
@@ -61,6 +62,9 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         auto &module_info = loaded_modules.back();
         try {
             module_info.instance = class_register->CreateModuleObject(std::string(module_class), this, arguments);
+            if (!module_info.instance)
+                throw std::runtime_error("Failed to create module object");
+            module_info.instance->Execute();
             AddLog(Debug, fmt::format("Loaded module of class {}", module_class));
         } catch (const std::exception &e) {
             AddLog(Error, fmt::format("Failed to load module of class {}: {}", module_class, e.what()));
@@ -73,6 +77,8 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
                                                  const VariantArgumentMap &arguments) {
         try {
             auto instance = class_register->CreateExporterObject(std::string(module_class), this, arguments);
+            if (!instance)
+                throw std::runtime_error("Failed to create exporter object");
             AddLog(Debug, fmt::format("Created exporter of class {}", module_class));
             return instance;
         } catch (const std::exception &e) {
@@ -91,6 +97,11 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
     const FileTable *GetFileTable() const { return &file_table; };
     iClassRegister *GetClassRegister() const override { return class_register; };
 
+    const FileEntry *GetFileByPath(const std::string &file_path) const override {
+        //
+        return file_table.FindFileByPath(file_path);
+    }
+
     bool ReadFile(const FileEntry *file, std::string &file_data) const override {
         if (file == nullptr) {
             return false;
@@ -103,6 +114,63 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         }
 
         return container->ReadFileContent(file->container_file_id, file_data);
+    };
+    bool IsDirectory(const FileEntry *file_entry) const override {
+        if (file_entry == nullptr) {
+            return false;
+        }
+        return file_entry->IsDirectory();
+    }
+    std::string GetFullPath(const FileEntry *file_entry) const override {
+        if (file_entry == nullptr) {
+            return "";
+        }
+        return file_entry->GetFullPath();
+    }
+    FileResourceId GetResourceId(const FileEntry *file_entry) const override {
+        if (file_entry == nullptr) {
+            return 0;
+        }
+        return file_entry->resource_id;
+    }
+    bool IsHidden(const FileEntry *file_entry) const override {
+        if (file_entry == nullptr) {
+            return 0;
+        }
+        return file_entry->IsHidden();
+    }
+    void SetHidden(const FileEntry *file_entry, bool value) override {
+        if (file_entry == nullptr) {
+            return;
+        }
+        file_entry->is_hidden = value;
+    }
+
+    bool EnumerateFile(const FileEntry *file_entry, EnumerateFileFunctor &functor, bool recursive) const override {
+        if (file_entry == nullptr) {
+            return false;
+        }
+        for (auto &child : file_entry->children) {
+            if (!functor(child.get(), std::string_view(child->file_name))) {
+                return false;
+            }
+            if (recursive && child->IsDirectory()) {
+                if (!EnumerateFile(child.get(), functor, recursive)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool EnumeratePath(const std::string_view &start_path, EnumerateFileFunctor &functor,
+                       bool recursive) const override {
+        auto *parent_file = file_table.FindFileByPath(start_path);
+        if (!parent_file) {
+            return false;
+        }
+
+        return EnumerateFile(parent_file, functor, recursive);
     };
 
     std::vector<MountedContainerEntry> mounted_containers;
@@ -143,20 +211,14 @@ bool StarVirtualFileSystem::ReadFileByPath(const std::string &path, std::string 
     return impl->ReadFile(file, file_data);
 };
 
-bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) {
+bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const {
     result_file_table.clear();
-    auto *parent_file = impl->file_table.FindFileByPath(path);
-
-    if (!parent_file) {
-        return false;
-    }
-
-    for (auto &child : parent_file->children) {
+    iVfsModuleInterface::EnumerateFileFunctor functor = [&result_file_table](const FileEntry *child, auto) -> bool {
         FileInfoTable::value_type entry{child->file_name, child->IsDirectory()};
         result_file_table.emplace_back(std::move(entry));
-    }
-
-    return true;
+        return true;
+    };
+    return impl->EnumeratePath(path, functor, false);
 };
 
 } // namespace MoonGlare::StarVfs

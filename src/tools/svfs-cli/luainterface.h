@@ -1,6 +1,7 @@
 #pragma once
 
 #define SOL_ALL_SAFETIES_ON 1
+#include "arguments.h"
 #include <luasupport.h>
 #include <memory>
 #include <sol/sol.hpp>
@@ -15,9 +16,11 @@ struct Lua;
 using SharedLua = std::shared_ptr<Lua>;
 
 struct Lua {
-    static SharedLua New() {
-        struct L : public Lua {};
-        return std::make_shared<L>();
+    static SharedLua New(const InitEnv &env) {
+        struct L : public Lua {
+            L(const InitEnv &env) : Lua(env) {}
+        };
+        return std::make_shared<L>(env);
     }
 
     lua_State *GetState() { return sol_lua.lua_state(); }
@@ -31,7 +34,7 @@ struct Lua {
     bool ExecuteChunk(const unsigned char *data, size_t len, const char *name);
 
 protected:
-    Lua();
+    Lua(const InitEnv &env);
     virtual ~Lua() {}
 
     void RegisterAPI();

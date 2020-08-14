@@ -1,13 +1,14 @@
 #include "file_entry.hpp"
+#include "svfs/hashes.hpp"
+#include "svfs/path_utils.hpp"
 #include <sstream>
-#include <svfs/hashes.hpp>
 
 namespace MoonGlare::StarVfs {
 
 std::string FileEntry::GetFullPath() const {
     if (parent == nullptr)
-        return "/";
-    return parent->GetFullPath() + "/" + file_name;
+        return "";
+    return JoinPath(parent->GetFullPath(), file_name);
 }
 
 FileEntry *FileEntry::AddChild(std::string child_file_name, FilePathHash child_path_hash) {

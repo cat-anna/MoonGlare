@@ -1,5 +1,5 @@
 #include "svfs/zip_container.hpp"
-#include "path_utils.hpp"
+#include "svfs/path_utils.hpp"
 #include "zip_container_manifest.hpp"
 #include <filesystem>
 #include <fmt/format.h>
@@ -10,7 +10,6 @@
 #include <orbit_logger.h>
 #include <stdexcept>
 #include <vector>
-
 
 namespace MoonGlare::StarVfs {
 
@@ -44,7 +43,7 @@ struct ZipContainer::ZipMapper {
 //-------------------------------------------------------------------------------------------------
 
 ZipContainer::ZipContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments) : iVfsContainer(fti) {
-    mount_point = OptimizeMountPointPath(arguments.get<std::string>("mountpoint", ""));
+    mount_point = OptimizeMountPointPath(arguments.get<std::string>("mount_point", ""));
     zip_password = arguments.get<std::string>("password", "");
     zip_file_path = std::filesystem::absolute(arguments.get<std::string>("zip_file_path"));
     if (!std::filesystem::is_regular_file(zip_file_path)) {
@@ -78,8 +77,7 @@ void ZipContainer::ReloadContainer() {
 
         auto [zip_parent_path, file_name] = GetParentAndFileName(zip_path);
 
-        std::string parent_string = mount_point;
-        parent_string = CheckPath(parent_string += zip_parent_path);
+        auto parent_string = JoinPath(mount_point, zip_parent_path);
 
         auto parent_hash = Hasher::Hash(parent_string);
         auto file_hash = Hasher::HashTogether(parent_string, "/", file_name);

@@ -13,7 +13,7 @@ public:
     ~FileTableProxy() override = default;
 
     bool RegisterFileStructure(const std::vector<ContainerFileEntry> &Structure) override;
-    void CreateDirectory(const std::string &path) override;
+    void CreateDirectory(const std::string_view &path) override;
 
 private:
     uint32_t source_container_id;

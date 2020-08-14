@@ -34,6 +34,6 @@ bool FileTableProxy::RegisterFileStructure(const std::vector<ContainerFileEntry>
     return true;
 }
 
-void FileTableProxy::CreateDirectory(const std::string &path) { file_table->CreateDirectory(path); }
+void FileTableProxy::CreateDirectory(const std::string_view &path) { file_table->CreateDirectory(path); }
 
 } // namespace MoonGlare::StarVfs

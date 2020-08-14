@@ -24,8 +24,10 @@ public:
     std::string GetFullPath() const;
     FileEntry *AddChild(std::string child_file_name, FilePathHash child_path_hash);
 
+    mutable bool is_hidden = false; // TODO
+
     bool IsDirectory() const { return !children.empty(); }
-    bool IsHidden() const { return file_name.size() > 0 && file_name[0] == '.'; }
+    bool IsHidden() const { return (file_name.size() > 0 && file_name[0] == '.') || is_hidden; }
 };
 
 } // namespace MoonGlare::StarVfs

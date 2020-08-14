@@ -1,6 +1,6 @@
 #include "svfs/host_folder_container.hpp"
-#include "path_utils.hpp"
 #include "svfs/host_file_svfs_manifest.hpp"
+#include "svfs/path_utils.hpp"
 #include <fmt/format.h>
 #include <fstream>
 #include <json_helpers.hpp>
@@ -101,8 +101,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
         auto relative_path = fs::relative(current_file.path(), host_path);
         auto parent_path = relative_path.parent_path();
 
-        std::string relative_string = mount_point + relative_path.generic_string();
-        std::string parent_string = CheckPath(mount_point + parent_path.generic_string());
+        std::string relative_string = JoinPath(mount_point, relative_path.generic_string());
+        std::string parent_string = JoinPath(mount_point, parent_path.generic_string());
 
         auto local_hash = Hasher::Hash(current_file.path().generic_string());
         auto relative_hash = Hasher::Hash(relative_string);
@@ -139,7 +139,6 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
             try {
                 if (generate_resource_id && entry.resource_id == 0) {
                     std::string file_content;
-                    AddLog(Info, fmt::format("Meta write hasing: {}", current_path.generic_string()));
                     if (!ReadHostFileContent(current_path, file_content)) {
                         throw std::runtime_error("Source file read failed");
                     }

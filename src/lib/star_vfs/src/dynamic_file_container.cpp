@@ -1,6 +1,6 @@
 
 #include "svfs/dynamic_file_container.hpp"
-#include "path_utils.hpp"
+#include "svfs/path_utils.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
 

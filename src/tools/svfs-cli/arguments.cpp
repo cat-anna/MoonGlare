@@ -22,6 +22,7 @@ struct PrivData {
     po::variables_map m_vm;
     std::list<std::string> m_Lines;
     bool verbose = false;
+    bool imply_no_cli = false;
 
     std::string GetInitScript() {
         std::stringstream ss;
@@ -95,7 +96,7 @@ struct PrivData {
                 AddLine("actions.execute_action([===[{}]===])", it);
             }
             AddLine("");
-            // out.run_cli = false;
+            imply_no_cli = true;
         }
 
         return true;
@@ -105,18 +106,22 @@ struct PrivData {
         if (m_vm["list-container-classes"].as<bool>()) {
             AddPrint("List of known container classes:");
             AddLine(R"==(print(table.concat(table_from_sol(StarVfs:GetContainerClassList()), " ")))==");
+            imply_no_cli = true;
         }
         if (m_vm["list-module-classes"].as<bool>()) {
             AddPrint("List of known module classes:");
             AddLine(R"==(print(table.concat(table_from_sol(StarVfs:GetModuleClassList()), " ")))==");
+            imply_no_cli = true;
         }
         if (m_vm["list-exporter-classes"].as<bool>()) {
             AddPrint("List of known exporter classes:");
             AddLine(R"==(print(table.concat(table_from_sol(StarVfs:GetExporterClassList()), " ")))==");
+            imply_no_cli = true;
         }
         if (m_vm["list-actions"].as<bool>()) {
             AddPrint("List of predefined actions");
             AddLine(R"==(actions.list_actions())==");
+            imply_no_cli = true;
         }
         return true;
     }
@@ -137,12 +142,13 @@ struct PrivData {
 
             ("script,s", po::value<std::vector<std::string>>(), "Load and execute lua chunk or file") //
 
-            ("list-container-classes", po::bool_switch(), "List available exporters classes") //
-            ("list-module-classes", po::bool_switch(), "List available container classes")    //
-            ("list-exporter-classes", po::bool_switch(), "List available module classes")     //
+            ("list-container-classes", po::bool_switch(), "List available exporters classes, implies --no-cli") //
+            ("list-module-classes", po::bool_switch(), "List available container classes, implies --no-cli")    //
+            ("list-exporter-classes", po::bool_switch(), "List available module classes, implies --no-cli")     //
 
-            ("action", po::value<std::vector<std::string>>(), "Execute one of predefined actions. Implies --no-cli") //
-            ("list-actions", po::bool_switch(), "List available predefined actions")                                 //
+            ("action", po::value<std::vector<std::string>>(), "Execute one of predefined actions, implies --no-cli") //
+            ("list-actions", po::bool_switch(), "List available predefined actions, implies --no-cli")               //
+
             ;
     }
 
@@ -166,11 +172,6 @@ struct PrivData {
         out.verbose = verbose = m_vm["verbose"].as<bool>();
         out.bash_mode = !m_vm["no-bash-mode"].as<bool>();
 
-        out.run_cli = !m_vm["no-cli"].as<bool>();
-        if (m_vm.count("action") > 0) {
-            out.run_cli = false;
-        }
-
         if (!GenInitScriptEnv())
             return false;
         if (!ProcessInitialSettings())
@@ -180,6 +181,10 @@ struct PrivData {
         if (!ProcessFinalSettings())
             return false;
 
+        out.run_cli = !m_vm["no-cli"].as<bool>();
+        if (imply_no_cli) {
+            out.run_cli = false;
+        }
         out.run_cli = out.run_cli || m_vm["cli"].as<bool>();
 
         if (m_vm["print-init-script"].as<bool>()) {

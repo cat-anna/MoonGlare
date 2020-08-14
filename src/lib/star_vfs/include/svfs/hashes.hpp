@@ -13,9 +13,10 @@ using FileResourceId = XXH64_hash_t;
 using ContainerFileId = XXH64_hash_t;
 
 struct Hasher {
-    static constexpr unsigned long long kSeed = 0;
+    using SeedType = unsigned long long;
+    static constexpr SeedType kDefaultSeed = 0;
 
-    Hasher() { XXH64_reset(state.get(), kSeed); }
+    Hasher(SeedType seed = kDefaultSeed) { XXH64_reset(state.get(), seed); }
 
     void update(const void *data, size_t size) {
         if (size > 0) {
@@ -34,10 +35,20 @@ struct Hasher {
         return r;
     }
 
-    static XXH64_hash_t Hash(const void *data, size_t size) { return XXH64(data, size, kSeed); }
-    static XXH64_hash_t Hash(const std::string &str) { return Hash(str.c_str(), str.size()); }
-    static XXH64_hash_t Hash(const std::string_view &str) { return Hash(str.data(), str.size()); }
-
+    static XXH64_hash_t Hash(const void *data, size_t size, SeedType seed = kDefaultSeed) {
+        return XXH64(data, size, seed);
+    }
+    static XXH64_hash_t Hash(const std::string &str, SeedType seed = kDefaultSeed) {
+        return Hash(str.c_str(), str.size(), seed);
+    }
+    static XXH64_hash_t Hash(const std::string_view &str, SeedType seed = kDefaultSeed) {
+        return Hash(str.data(), str.size(), seed);
+    }
+    template <typename... ARGS> static XXH64_hash_t HashTogether(SeedType seed, const ARGS &... args) {
+        Hasher h{seed};
+        (h.update(args), ...);
+        return h.get();
+    }
     template <typename... ARGS> static XXH64_hash_t HashTogether(const ARGS &... args) {
         Hasher h;
         (h.update(args), ...);

@@ -17,7 +17,6 @@ inline std::string OptimizeMountPointPath(std::string mount_point) {
     while (!mount_point.empty() && mount_point.back() == '/') {
         mount_point.pop_back();
     }
-    mount_point += "/";
     return mount_point;
 }
 
@@ -26,6 +25,13 @@ inline std::string CheckPath(std::string path) {
         return "";
     }
     return path;
+}
+
+template <typename A, typename B> //
+inline std::string JoinPath(const A &mount_point, const B &sub_path) {
+    if (mount_point.empty())
+        return std::string(sub_path);
+    return std::string(mount_point) + "/" + std::string(sub_path);
 }
 
 } // namespace MoonGlare::StarVfs

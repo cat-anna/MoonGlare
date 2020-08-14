@@ -19,14 +19,16 @@ function actions.execute_action(argument_string)
 end
 
 function actions.build_package(host_source_path, output_file)
-    mount_host_folder(host_source_path, "/", {
+    mount_host_folder(host_source_path, "", {
         generate_resource_id = true,
         store_resource_id = false,
     })
-    create_exporter("zip", output_file, "/", {
+    load_module("assimp_import", {
+        root_point = "",
+    })
+    create_exporter("zip", output_file, "", {
         generate_resource_id = false,
-        verbose = true,
         deflate = false,
     }):StartExport()
-    create_exporter("content_info", output_file .. ".info", "/"):StartExport()
+    create_exporter("content_info", output_file .. ".info", ""):StartExport()
 end
