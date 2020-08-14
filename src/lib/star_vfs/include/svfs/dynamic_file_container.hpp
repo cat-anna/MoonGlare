@@ -6,9 +6,9 @@
 #include <string_view>
 #include <svfs/file_table_interface.hpp>
 #include <svfs/hashes.hpp>
-#include <svfs/variant_argument_map.hpp>
 #include <svfs/vfs_container.hpp>
 #include <unordered_map>
+#include <variant_argument_map.hpp>
 
 namespace MoonGlare::StarVfs {
 

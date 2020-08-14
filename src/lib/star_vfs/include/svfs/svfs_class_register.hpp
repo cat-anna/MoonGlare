@@ -4,7 +4,6 @@
 #include "star_vfs.h"
 #include "svfs/definitions.hpp"
 #include "svfs/file_table_interface.hpp"
-#include "svfs/variant_argument_map.hpp"
 #include "svfs/vfs_container.hpp"
 #include "svfs/vfs_exporter.hpp"
 #include "svfs/vfs_module.hpp"
@@ -13,6 +12,8 @@
 #include <string_view>
 #include <svfs/class_register.hpp>
 #include <template_class_list.h>
+#include <variant_argument_map.hpp>
+
 
 namespace MoonGlare::StarVfs {
 

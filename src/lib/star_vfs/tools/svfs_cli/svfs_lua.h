@@ -21,8 +21,8 @@ private:
 
     bool Initialize();
 
-    StarVfs::VariantArgumentMap SolTableToVarMap(sol::table &sol_table) {
-        StarVfs::VariantArgumentMap args;
+    VariantArgumentMap SolTableToVarMap(sol::table &sol_table) {
+        VariantArgumentMap args;
         for (auto &item : sol_table) {
             if (item.second.is<bool>()) {
                 args.set(item.first.as<const char *>(), item.second.as<bool>());

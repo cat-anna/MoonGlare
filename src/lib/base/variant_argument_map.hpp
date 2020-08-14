@@ -10,16 +10,18 @@
 #include <unordered_map>
 #include <variant>
 
-namespace MoonGlare::StarVfs {
+namespace MoonGlare {
 
 struct VariantArgumentMap {
+
+    using VariantType = std::variant<nullptr_t, int64_t, double, bool, std::string>;
+    using MapType = std::unordered_map<std::string, VariantType>;
 
     void set(const std::string &key, nullptr_t) { container[key] = nullptr; }
     void set(const std::string &key, int64_t value) { container[key] = value; }
     void set(const std::string &key, bool value) { container[key] = value; }
     void set(const std::string &key, double value) { container[key] = value; }
     void set(const std::string &key, std::string value) { container[key] = std::move(value); }
-    void set(const std::string &key, std::any value) { container[key] = std::move(value); }
 
     template <typename WantedType> void get_to(WantedType &output, const std::string &key) const {
         output = get<WantedType>(key);
@@ -52,9 +54,6 @@ struct VariantArgumentMap {
     }
 
 private:
-    using VariantType = std::variant<nullptr_t, int64_t, double, bool, std::string, std::any>;
-    using MapType = std::unordered_map<std::string, VariantType>;
-
     template <typename WantedType> WantedType CastVariant(const VariantType &variant) const {
         return std::visit(
             [](auto &&arg) -> WantedType {
@@ -73,4 +72,4 @@ private:
     MapType container;
 };
 
-} // namespace MoonGlare::StarVfs
+} // namespace MoonGlare

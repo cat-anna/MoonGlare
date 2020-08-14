@@ -1,7 +1,7 @@
 #pragma once
 
-#include <svfs/variant_argument_map.hpp>
 #include <svfs/vfs_module.hpp>
+#include <variant_argument_map.hpp>
 
 namespace MoonGlare::StarVfs {
 
