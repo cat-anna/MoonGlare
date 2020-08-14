@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <string_view>
 
 namespace MoonGlare::Tools::VfsCli {
 
@@ -82,36 +83,38 @@ bool Lua::ExecuteScriptFile(const char *fname) {
 }
 
 bool Lua::ExecuteScriptChunk(const char *code, const char *name) {
-    auto L = GetState();
-    int status = luaL_dostring(L, code);
-    if (status) {
-        if (lua_isnil(L, -1))
-            lua_pop(L, 1);
-        luaL_traceback(L, L, "", 1);
-        printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", name ? name : code, lua_tostring(L, -1));
-        lua_pop(L, 1);
-        return false;
-    }
-    lua_settop(L, 0);
+    sol_lua.script(std::string_view(code), name);
+    // auto L = GetState();
+    // int status = luaL_dostring(L, code);
+    // if (status) {
+    //     if (lua_isnil(L, -1))
+    //         lua_pop(L, 1);
+    //     luaL_traceback(L, L, "", 1);
+    //     printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", name ? name : code, lua_tostring(L, -1));
+    //     lua_pop(L, 1);
+    //     return false;
+    // }
+    // lua_settop(L, 0);
     return true;
 }
 
 bool Lua::ExecuteChunk(const unsigned char *data, size_t len, const char *name) {
-    auto L = GetState();
-    int status = luaL_loadbuffer(L, (const char *)data, len, name);
-    if (status) {
-        printf("Error: %s\n", lua_tostring(L, -1));
-        lua_pop(L, 1);
-        printf("Unable to load script %s\n", name);
-        return false;
-    }
-    status = lua_pcall(L, 0, LUA_MULTRET, 0);
-    if (status) {
-        luaL_traceback(L, L, "", 1);
-        printf("Unable to execute '%s'\nTrace:\n%s\n\n", name, lua_tostring(L, -1));
-        lua_pop(L, 1);
-        return false;
-    }
+    sol_lua.script(std::string_view(reinterpret_cast<const char *>(data), len), name);
+    // auto L = GetState();
+    // int status = luaL_loadbuffer(L, (const char *)data, len, name);
+    // if (status) {
+    //     printf("Error: %s\n", lua_tostring(L, -1));
+    //     lua_pop(L, 1);
+    //     printf("Unable to load script %s\n", name);
+    //     return false;
+    // }
+    // status = lua_pcall(L, 0, LUA_MULTRET, 0);
+    // if (status) {
+    //     luaL_traceback(L, L, "", 1);
+    //     printf("Unable to execute '%s'\nTrace:\n%s\n\n", name, lua_tostring(L, -1));
+    //     lua_pop(L, 1);
+    //     return false;
+    // }
     return true;
 }
 

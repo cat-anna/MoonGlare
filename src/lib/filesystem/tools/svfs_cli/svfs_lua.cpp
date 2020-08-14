@@ -20,6 +20,7 @@ bool SVfsLua::Initialize() {
     classes.new_usertype<SVfsLua>("StarVFS",                                     //
                                   "MountContainer", &SVfsLua::LuaMountContainer, //
                                   "LoadModule", &SVfsLua::LuaLoadModule,         //
+                                  "CreateExporter", &SVfsLua::LuaCreateExporter, //
                                   "EnumeratePath", &SVfsLua::LuaEnumeratePath,   //
                                   "ReadFileByPath", &SVfsLua::LuaReadFileByPath, //
 
@@ -31,6 +32,10 @@ bool SVfsLua::Initialize() {
     classes.new_usertype<FileInfo>("FileInfo",                              //
                                    "is_directory", &FileInfo::is_directory, //
                                    "file_name", &FileInfo::file_name        //
+    );
+
+    classes.new_usertype<StarVfs::iVfsExporter>("iVfsExporter",                                    //
+                                                "StartExport", &StarVfs::iVfsExporter::StartExport //
     );
 
     sol["StarVfs"] = this;

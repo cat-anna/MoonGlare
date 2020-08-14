@@ -9,7 +9,7 @@
 namespace MoonGlare::StarVfs {
 
 using FilePathHash = XXH64_hash_t;
-using FileContentHash = XXH64_hash_t;
+using FileResourceId = XXH64_hash_t;
 using ContainerFileId = XXH64_hash_t;
 
 struct Hasher {
@@ -22,6 +22,11 @@ struct Hasher {
             XXH64_update(state.get(), data, size);
         }
     }
+
+    void update(const std::string &str) { update(str.c_str(), str.size()); }
+    void update(const std::string_view &str) { update(str.data(), str.size()); }
+    void update(const char *str) { update(str, strlen(str)); }
+
     XXH64_hash_t get() { return XXH64_digest(state.get()); }
     Hasher clone() const {
         Hasher r;
@@ -32,6 +37,12 @@ struct Hasher {
     static XXH64_hash_t Hash(const void *data, size_t size) { return XXH64(data, size, kSeed); }
     static XXH64_hash_t Hash(const std::string &str) { return Hash(str.c_str(), str.size()); }
     static XXH64_hash_t Hash(const std::string_view &str) { return Hash(str.data(), str.size()); }
+
+    template <typename... ARGS> static XXH64_hash_t HashTogether(const ARGS &... args) {
+        Hasher h;
+        (h.update(args), ...);
+        return h.get();
+    }
 
 private:
     struct FreeInstance {

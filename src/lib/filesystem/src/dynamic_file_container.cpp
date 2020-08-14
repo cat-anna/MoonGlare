@@ -1,24 +1,10 @@
 
+#include "svfs/dynamic_file_container.hpp"
+#include "path_utils.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
-#include <svfs/dynamic_file_container.hpp>
-#include <tuple>
 
 namespace MoonGlare::StarVfs {
-
-namespace {
-
-std::tuple<std::string_view, std::string_view> GetParentAndFileName(const std::string_view &path) {
-    auto last_slash = path.find_last_of("/");
-    if (last_slash == std::string_view::npos) {
-        return {{}, path};
-    }
-    std::string_view parent = path.substr(0, last_slash);
-    std::string_view file_name = path.substr(last_slash + 1);
-    return {parent, file_name};
-}
-
-} // namespace
 
 bool DynamicFileContainer::FunctorFileInterface::ReadFileContent(std::string &out) const {
     try {
@@ -47,7 +33,7 @@ void DynamicFileContainer::ReloadContainer() {
         entry.container_file_id = item.first;
         entry.parent_path_hash = item.second.file_parent_hash;
         entry.file_path_hash = item.second.file_path_hash;
-        entry.file_content_hash = item.second.file_content_hash;
+        entry.resource_id = item.second.resource_id;
 
         request_table.emplace_back(std::move(entry));
     }

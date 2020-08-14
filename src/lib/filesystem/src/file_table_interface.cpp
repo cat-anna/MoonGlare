@@ -1,4 +1,4 @@
-#include "svfs/file_table_interface.h"
+#include "svfs/file_table_interface.hpp"
 
 namespace MoonGlare::StarVfs {
 

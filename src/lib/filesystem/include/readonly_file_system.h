@@ -1,6 +1,6 @@
 #pragma once
 
-#include "svfs/definitions.h"
+#include "svfs/definitions.hpp"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -13,7 +13,7 @@ protected:
 
 public:
     // virtual bool OpenFile(ByteTable &FileData, StarVFS::FileID fid) = 0;
-    virtual bool ReadFileByPath(const std::string &path, std::string &file_data) = 0;
+    virtual bool ReadFileByPath(const std::string &path, std::string &file_data) const = 0;
 
     // template <typename T> bool OpenXML(XMLFile &doc, const T &file) {
     //     doc.reset();

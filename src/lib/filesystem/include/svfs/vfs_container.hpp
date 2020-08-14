@@ -1,6 +1,6 @@
 #pragma once
 
-#include <svfs/definitions.h>
+#include <svfs/definitions.hpp>
 #include <svfs/hashes.hpp>
 
 namespace MoonGlare::StarVfs {

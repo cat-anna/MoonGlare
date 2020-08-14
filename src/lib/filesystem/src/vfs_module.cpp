@@ -1,5 +1,5 @@
 
-#include "svfs/vfs_module.h"
+#include "svfs/vfs_module.hpp"
 
 namespace MoonGlare::StarVfs {
 

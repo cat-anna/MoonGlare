@@ -1,7 +1,7 @@
 #pragma once
 
 #include <svfs/variant_argument_map.hpp>
-#include <svfs/vfs_module.h>
+#include <svfs/vfs_module.hpp>
 
 namespace MoonGlare::StarVfs {
 
@@ -14,16 +14,12 @@ public:
     MetaModule(iVfsModuleInterface *module_interface, const VariantArgumentMap &arguments);
     virtual ~MetaModule();
 
-    // virtual bool Enable() override;
-    // virtual bool Disable() override;
-
 private:
     DynamicFileContainer *dynamic_container;
-    // std::vector<Containers::SharedVirtualFileInterface> m_MetaFiles;
 
     std::string DumpFilePathHashMap() const;
     std::string DumpFileTree() const;
-    std::string DumpFileContentHashMap() const;
+    std::string DumpResourceIdMap() const;
 };
 
 } // namespace MoonGlare::StarVfs

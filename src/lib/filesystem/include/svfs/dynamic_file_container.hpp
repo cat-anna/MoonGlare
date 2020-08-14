@@ -4,10 +4,10 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <svfs/file_table_interface.h>
+#include <svfs/file_table_interface.hpp>
 #include <svfs/hashes.hpp>
 #include <svfs/variant_argument_map.hpp>
-#include <svfs/vfs_container.h>
+#include <svfs/vfs_container.hpp>
 #include <unordered_map>
 
 namespace MoonGlare::StarVfs {
@@ -56,7 +56,7 @@ private:
         std::string file_name;
         FilePathHash file_path_hash{0};
         FilePathHash file_parent_hash{0};
-        FileContentHash file_content_hash{0};
+        FileResourceId resource_id{0};
     };
     std::unordered_map<FilePathHash, FileInfo> file_map;
 };

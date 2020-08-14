@@ -10,7 +10,7 @@ bool FileTableProxy::RegisterFileStructure(const std::vector<ContainerFileEntry>
         if (child == nullptr) {
             auto *parent = file_table->FindFileByPath(item.parent_path_hash);
             if (!parent) {
-                AddLogf(Error, "Cannot find parent for %s", item.file_name.c_str());
+                AddLogf(Error, "Cannot find parent for '%s'", item.file_name.c_str());
                 return false;
             }
 
@@ -21,7 +21,7 @@ bool FileTableProxy::RegisterFileStructure(const std::vector<ContainerFileEntry>
                 child->container_file_id = item.container_file_id;
             }
 
-            child->file_content_hash = item.file_content_hash;
+            child->resource_id = item.resource_id;
             file_table->AddFileEntry(child);
         } else {
             if (child->IsDirectory() != item.is_directory) {

@@ -77,30 +77,31 @@ function fileinfo(id)
 		fullpath = function() return vfs:GetFullFilePath(id) end,
 		directory = function() return vfs:IsFileDirectory(id) end,
 	}
-end
+end]]
 
 Help.Register { Command="cd", Brief="goto folder", Usage="cd(FOLDER)" }
 function cd(subpath)
-	subpath = subpath or "/"
+	subpath = absolute(subpath)
+	current_path = SplitPath(subpath)
 
-	local r = SplitPath(subpath)
-	local rp = ConcatPath(r)
+	-- local r = SplitPath(subpath)
+	-- local rp = ConcatPath(r)
 	
-	local h = vfs:OpenFile(rp, 1, 1)
-	if h:IsValid() == 0 then
-		print "Not a valid file"
-		return 
-	end
+	-- local h = vfs:OpenFile(rp, 1, 1)
+	-- if h:IsValid() == 0 then
+	-- 	print "Not a valid file"
+	-- 	return 
+	-- end
 	
-	if h:IsDirectory() == 0 then
-		print "Cannot enter into file!"
-		return
-	end
+	-- if h:IsDirectory() == 0 then
+	-- 	print "Cannot enter into file!"
+	-- 	return
+	-- end
 	
-	Path = r
-	stdout(rp)
+	-- Path = r
+	-- -- print(cwd())
 end
-]]
+
 
 Help.Register { Command="pwd", Brief="get current directory" }
 function pwd()
@@ -121,7 +122,7 @@ function ls(p)
 	end
 end
 
-Help.Register { Command="mount_host_folder", Brief="mount host folder", Usage="mount_host_foder(host_path, [monunt_point])" }
+Help.Register { Command="mount_host_folder", Brief="mount host folder", Usage="mount_host_foder(host_path, [monunt_point, [mount_args]])" }
 function mount_host_folder(host_path, monunt_point, opt_args)
 	-- if not host_path  then
 	-- 	return
@@ -130,6 +131,22 @@ function mount_host_folder(host_path, monunt_point, opt_args)
 	opt_args.host_path=host_path
 	opt_args.monunt_point=absolute(monunt_point)
 	return StarVfs:MountContainer("host_folder", opt_args)
+end
+
+Help.Register { Command="mount_zip", Brief="mount zip file", Usage="mount_zip(zip_file_path, [monunt_point, [mount_args]])" }
+function mount_zip(zip_file_path, monunt_point, opt_args)
+	opt_args = opt_args or {}
+	opt_args.zip_file_path=zip_file_path
+	opt_args.monunt_point=absolute(monunt_point)
+	return StarVfs:MountContainer("zip", opt_args)
+end
+
+Help.Register { Command="create_exporter", Brief="create exporter", Usage="create_exporter(class, host_output_path, root_point, [opt_args])" }
+function create_exporter(class, host_output_path, root_point, opt_args)
+	opt_args = opt_args or {}
+	opt_args.output_path=host_output_path
+	opt_args.root_point=absolute(root_point)
+	return StarVfs:CreateExporter(class, opt_args)
 end
 
 --[[

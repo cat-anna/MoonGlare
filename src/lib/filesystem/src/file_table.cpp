@@ -49,17 +49,17 @@ bool FileTable::CreateDirectory(std::string_view path) {
     return true;
 }
 
-void FileTable::AddFileEntry(FileEntry *entry) { //
+void FileTable::AddFileEntry(FileEntry *entry) {
     file_by_path_hash.insert_or_assign(entry->file_path_hash, entry);
-    if (entry->file_content_hash != 0) {
-        file_by_content_hash.insert_or_assign(entry->file_content_hash, entry);
+    if (entry->resource_id != 0) {
+        file_by_resource_id.insert_or_assign(entry->resource_id, entry);
     }
 }
 
-std::vector<std::pair<FileContentHash, FileEntry *>> FileTable::GetFileContentHashMap() const {
-    std::vector<std::pair<FileContentHash, FileEntry *>> r;
-    r.reserve(file_by_content_hash.size());
-    for (auto &item : file_by_content_hash)
+std::vector<std::pair<FileResourceId, FileEntry *>> FileTable::GetResourceIdMap() const {
+    std::vector<std::pair<FileResourceId, FileEntry *>> r;
+    r.reserve(file_by_resource_id.size());
+    for (auto &item : file_by_resource_id)
         r.emplace_back(item);
     return r;
 }

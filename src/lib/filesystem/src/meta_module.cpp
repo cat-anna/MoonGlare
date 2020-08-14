@@ -1,4 +1,4 @@
-#include "svfs/meta_module.h"
+#include "svfs/meta_module.hpp"
 #include "file_entry.hpp"
 #include "file_table.hpp"
 #include "svfs/dynamic_file_container.hpp"
@@ -20,12 +20,12 @@ std::string DumpHashMap(std::vector<std::pair<FilePathHash, FileEntry *>> data) 
     out << fmt::format(kLineFormat, "PARENT_HASH", "FILE_HASH", "CONTENT_HASH", "F", "FILENAME");
 
     for (const auto &item : data) {
-        out << fmt::format(kLineFormat,                                            //
-                           fmt::format("{:016x}", item.second->parent_path_hash),  //
-                           fmt::format("{:016x}", item.second->file_path_hash),    //
-                           fmt::format("{:016x}", item.second->file_content_hash), //
-                           item.second->IsDirectory() ? "D" : " ",                 //
-                           item.second->file_name                                  //
+        out << fmt::format(kLineFormat,                                           //
+                           fmt::format("{:016x}", item.second->parent_path_hash), //
+                           fmt::format("{:016x}", item.second->file_path_hash),   //
+                           fmt::format("{:016x}", item.second->resource_id),      //
+                           item.second->IsDirectory() ? "D" : " ",                //
+                           item.second->file_name                                 //
         );
     };
 
@@ -48,7 +48,7 @@ MetaModule::MetaModule(iVfsModuleInterface *module_interface, const VariantArgum
     }
 
     dynamic_container->AddFile("/.file_path_hash_map", [this] { return DumpFilePathHashMap(); });
-    dynamic_container->AddFile("/.file_content_hash_map", [this] { return DumpFileContentHashMap(); });
+    dynamic_container->AddFile("/.resource_map", [this] { return DumpResourceIdMap(); });
     dynamic_container->AddFile("/.file_tree", [this] { return DumpFileTree(); });
     dynamic_container->ReloadContainer();
 
@@ -61,7 +61,7 @@ std::string MetaModule::DumpFileTree() const {
     std::stringstream out;
 
     static const char *kLineFormat = "{:16} {:16s} {:16s} {:1s} {}{}\n";
-    out << fmt::format(kLineFormat, "PARENT_HASH", "FILE_HASH", "CONTENT_HASH", "F", "TREE", "");
+    out << fmt::format(kLineFormat, "PARENT_HASH", "FILE_HASH", "RESOURCE_HASH", "F", "TREE", "");
 
     size_t file_count = 0;
     std::function<void(const FileEntry *, int)> printer;
@@ -75,13 +75,13 @@ std::string MetaModule::DumpFileTree() const {
                 level += "| ";
             }
             ++file_count;
-            out << fmt::format(kLineFormat,                                     //
-                               fmt::format("{:016x}", file->parent_path_hash),  //
-                               fmt::format("{:016x}", file->file_path_hash),    //
-                               fmt::format("{:016x}", file->file_content_hash), //
-                               file->IsDirectory() ? "D" : " ",                 //
-                               level,                                           //
-                               file->file_name                                  //
+            out << fmt::format(kLineFormat,                                    //
+                               fmt::format("{:016x}", file->parent_path_hash), //
+                               fmt::format("{:016x}", file->file_path_hash),   //
+                               fmt::format("{:016x}", file->resource_id),      //
+                               file->IsDirectory() ? "D" : " ",                //
+                               level,                                          //
+                               file->file_name                                 //
             );
         }
         for (auto &item : file->children) {
@@ -98,8 +98,8 @@ std::string MetaModule::DumpFilePathHashMap() const {
     return DumpHashMap(module_interface->GetFileTable()->GetFilePathHashMap());
 }
 
-std::string MetaModule::DumpFileContentHashMap() const {
-    return DumpHashMap(module_interface->GetFileTable()->GetFileContentHashMap());
+std::string MetaModule::DumpResourceIdMap() const {
+    return DumpHashMap(module_interface->GetFileTable()->GetResourceIdMap());
 }
 
 #if 0

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "luainterface.h"
+#include "svfs/star_virtual_file_system.hpp"
+#include "svfs/vfs_module.hpp"
 #include <iostream>
 #include <memory>
-#include <svfs/star_virtual_file_system.h>
 #include <svfs/svfs_class_register.hpp>
-#include <svfs/vfs_container.h>
-#include <svfs/vfs_module.h>
+#include <svfs/vfs_container.hpp>
 
 namespace MoonGlare::Tools::VfsCli {
 
@@ -24,7 +24,13 @@ private:
     StarVfs::VariantArgumentMap SolTableToVarMap(sol::table &sol_table) {
         StarVfs::VariantArgumentMap args;
         for (auto &item : sol_table) {
-            args.set(item.first.as<const char *>(), item.second.as<const char *>());
+            if (item.second.is<bool>()) {
+                args.set(item.first.as<const char *>(), item.second.as<bool>());
+            } else if (item.second.is<int>()) {
+                args.set(item.first.as<const char *>(), static_cast<int64_t>(item.second.as<int>()));
+            } else {
+                args.set(item.first.as<const char *>(), std::string(item.second.as<const char *>()));
+            }
         }
         return args;
     }
@@ -35,6 +41,10 @@ private:
 
     StarVfs::iVfsModule *LuaLoadModule(const std::string &module_class, sol::table args) {
         return this->LoadModule(module_class, SolTableToVarMap(args));
+    }
+
+    std::unique_ptr<StarVfs::iVfsExporter> LuaCreateExporter(const std::string &module_class, sol::table args) {
+        return this->CreateExporter(module_class, SolTableToVarMap(args));
     }
 
     FileInfoTable LuaEnumeratePath(const std::string &path) {
@@ -63,9 +73,10 @@ private:
     // 		return false;
     // 	}
 
-    // 	::StarVFS::FileHandle RawOpenFile(const char* FileName, int ReadMode = (int)::StarVFS::RWMode::R, int FileMode =
-    // (int)::StarVFS::OpenMode::OpenExisting) { 		if (!FileName) 			return
-    // ::StarVFS::FileHandle(); return OpenFile(FileName, (::StarVFS::RWMode)ReadMode, (::StarVFS::OpenMode)FileMode);
+    // 	::StarVFS::FileHandle RawOpenFile(const char* FileName, int ReadMode = (int)::StarVFS::RWMode::R, int
+    // FileMode = (int)::StarVFS::OpenMode::OpenExisting) { 		if (!FileName) 			return
+    // ::StarVFS::FileHandle(); return OpenFile(FileName, (::StarVFS::RWMode)ReadMode,
+    // (::StarVFS::OpenMode)FileMode);
     // 	}
 
     // 	const char* RawGetFileName(int fid) const { return GetFileName((::StarVFS::FileID)fid); }
