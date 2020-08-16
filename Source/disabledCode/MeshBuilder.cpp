@@ -1,18 +1,16 @@
-#include <pch.h>
-
 #define NEED_MATERIAL_BUILDER
 #define NEED_VAO_BUILDER
 #define NEED_MESH_BUILDER
 
-#include <MoonGlare.h>
 #include "iModule.h"
-#include <Foundation/Scripts/iLuaRequire.h>
 #include <Core/Scripts/ScriptEngine.h>
+#include <Foundation/Scripts/iLuaRequire.h>
+#include <MoonGlare.h>
 
-#include <Renderer/Renderer.h>
 #include <Renderer/Configuration/Mesh.h>
-#include <Renderer/Resources/ResourceManager.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/Resources/Mesh/MeshResource.h>
+#include <Renderer/Resources/ResourceManager.h>
 
 #include <Renderer/Resources/Mesh/MeshUpdate.h>
 
@@ -34,11 +32,11 @@ struct MeshBuilder {
         normals.reserve(StorageReserve);
     }
 
-    //bool weld = false;
+    // bool weld = false;
 
     void AddTriangle(int MaterialIndex, int p0, int p1, int p2) {
         if (MaterialIndex < 0 || MaterialIndex >= materials.size()) {
-            //TODO: some error
+            // TODO: some error
             return;
         }
         auto &mat = materials[MaterialIndex];
@@ -48,7 +46,7 @@ struct MeshBuilder {
     }
     void AddQuad(int MaterialIndex, int p0, int p1, int p2, int p3) {
         if (MaterialIndex < 0 || MaterialIndex >= materials.size()) {
-            //TODO: some error
+            // TODO: some error
             return;
         }
         auto &mat = materials[MaterialIndex];
@@ -97,7 +95,7 @@ struct MeshBuilder {
             of << fmt::format("# material uri: {}\n", mat.TextureURI);
             for (size_t i = 0; i < mat.index.size(); i += 3) {
                 auto *base = &mat.index[i];
-                of << fmt::format("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n", base[0]+1, base[1]+1, base[2]+1);
+                of << fmt::format("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n", base[0] + 1, base[1] + 1, base[2] + 1);
             }
         }
 
@@ -180,15 +178,16 @@ struct MeshBuilder {
         normals.clear();
 
         auto *rf = world->GetRendererFacade();
-//        auto *resmgr = rf->GetResourceManager();
-//        auto &matm = resmgr->GetMaterialManager();
-        for (auto &mat : materials) {             
-            //matm.Release(mat.matHandle);
-            //TODO: release materials
+        //        auto *resmgr = rf->GetResourceManager();
+        //        auto &matm = resmgr->GetMaterialManager();
+        for (auto &mat : materials) {
+            // matm.Release(mat.matHandle);
+            // TODO: release materials
         }
 
         materials.clear();
     }
+
 private:
     Renderer::MeshResourceHandle handle;
 
@@ -198,14 +197,14 @@ private:
 
     std::vector<MaterialInfo> materials;
 
-    World * world = nullptr;
+    World *world = nullptr;
 };
 
 struct MeshBuilderModule : public MoonGlare::Modules::iModule, public Core::Scripts::iRequireRequest {
     MeshBuilderModule(World *world) : iModule(world) {}
 
     void OnPostInit() override {
-        auto smod = Core::GetScriptEngine()->QuerryModule<Core::Scripts::iRequireModule>();
+        auto smod = Core::GetScriptEngine()->QueryModule<Core::Scripts::iRequireModule>();
         RegisterApi(Core::GetScriptEngine()->GetLua());
         smod->RegisterRequire("MeshBuilder", this);
     }
@@ -215,36 +214,33 @@ struct MeshBuilderModule : public MoonGlare::Modules::iModule, public Core::Scri
         return true;
     }
 
-    MeshBuilder CreateBuilder() {
-        return MeshBuilder(GetWorld());
-    }
+    MeshBuilder CreateBuilder() { return MeshBuilder(GetWorld()); }
 
     void RegisterApi(lua_State *lua) {
         luabridge::getGlobalNamespace(lua)
             .beginNamespace("api")
-                .beginClass<MeshBuilderModule>("cMeshBuilderModule")
-                    .addFunction("New", &MeshBuilderModule::CreateBuilder)
-                .endClass()
-                .beginClass<MeshBuilder>("cMeshBuilder")
-                    .addFunction("AddMaterial", &MeshBuilder::AddMaterial)
-                    .addFunction("AddNode", &MeshBuilder::AddNode)
+            .beginClass<MeshBuilderModule>("cMeshBuilderModule")
+            .addFunction("New", &MeshBuilderModule::CreateBuilder)
+            .endClass()
+            .beginClass<MeshBuilder>("cMeshBuilder")
+            .addFunction("AddMaterial", &MeshBuilder::AddMaterial)
+            .addFunction("AddNode", &MeshBuilder::AddNode)
 
-                    .addFunction("AddTriangle", &MeshBuilder::AddTriangle)
-                    .addFunction("AddQuad", &MeshBuilder::AddQuad)
+            .addFunction("AddTriangle", &MeshBuilder::AddTriangle)
+            .addFunction("AddQuad", &MeshBuilder::AddQuad)
 
-                    .addFunction("GetHandle", &MeshBuilder::GetHandle)
-                    .addFunction("Update", &MeshBuilder::Update)
-                    .addFunction("Clear", &MeshBuilder::Clear)
+            .addFunction("GetHandle", &MeshBuilder::GetHandle)
+            .addFunction("Update", &MeshBuilder::Update)
+            .addFunction("Clear", &MeshBuilder::Clear)
 
 #ifdef DEBUG_SCRIPTAPI
-                    .addFunction("Dump", &MeshBuilder::Dump)
+            .addFunction("Dump", &MeshBuilder::Dump)
 #endif
-                .endClass()
-            .endNamespace()
-            ;
+            .endClass()
+            .endNamespace();
     }
 };
 
 static ModuleClassRegister::Register<MeshBuilderModule> Reg("MeshBuilder");
 
-} //namespace MoonGlare::Modules
+} // namespace MoonGlare::Modules

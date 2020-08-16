@@ -5,7 +5,8 @@
 
 namespace MoonGlare::StarVfs {
 
-inline std::tuple<std::string_view, std::string_view> GetParentAndFileName(const std::string_view &path) {
+inline std::tuple<std::string_view, std::string_view>
+GetParentAndFileName(const std::string_view &path) {
     auto last_slash = path.find_last_of("/");
     if (last_slash == std::string_view::npos) {
         return {{}, path};
@@ -32,6 +33,15 @@ inline std::string JoinPath(const A &mount_point, const B &sub_path) {
     if (mount_point.empty())
         return std::string(sub_path);
     return std::string(mount_point) + "/" + std::string(sub_path);
+}
+
+template <typename T>
+T GetExtension(const T &input) {
+    auto dot_pos = input.find_last_of(".");
+    if (dot_pos == T::npos) {
+        return T("");
+    }
+    return T(input.substr(dot_pos));
 }
 
 } // namespace MoonGlare::StarVfs
