@@ -13,7 +13,7 @@
 namespace MoonGlare::Tools::Recon {
 
 MainWindow::MainWindow(SharedModuleManager modmgr) : QMainWindow(nullptr), iModule(std::move(modmgr)) {
-    SetSettingID("MainWindow");
+    SetSettingId("recon_main_window");
 
     ui = std::make_unique<Ui::MainWindow>();
     ui->setupUi(this);
@@ -63,7 +63,7 @@ MainWindow::MainWindow(SharedModuleManager modmgr) : QMainWindow(nullptr), iModu
 
 MainWindow::~MainWindow() {
     Save();
-    ui.release();
+    ui.reset();
 }
 
 bool MainWindow::Initialize() {
@@ -88,18 +88,6 @@ bool MainWindow::PostInit() {
 
 bool MainWindow::Finalize() {
     reconClient.reset();
-    return true;
-}
-
-bool MainWindow::DoSaveSettings(pugi::xml_node node) const {
-    SaveGeometry(node, this, "Qt:Geometry");
-    SaveState(node, this, "Qt:State");
-    return true;
-}
-
-bool MainWindow::DoLoadSettings(const pugi::xml_node node) {
-    LoadGeometry(node, this, "Qt:Geometry");
-    LoadState(node, this, "Qt:State");
     return true;
 }
 
@@ -128,7 +116,6 @@ void MainWindow::Send(const QString &text, bool addToHistory) {
 }
 
 void MainWindow::Save() {
-
     QStringList SL;
     for (int i = 0; i < ui->listWidget->count(); ++i) {
         SL.append(ui->listWidget->item(i)->text());

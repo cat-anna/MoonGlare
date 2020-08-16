@@ -4,7 +4,7 @@
 #include <qmainwindow.h>
 #include <recon_client.h>
 #include <runtime_modules.h>
-#include <runtime_modules/settings_user.h>
+#include <runtime_modules/widget_settings_provider.hpp>
 
 namespace Ui {
 class MainWindow;
@@ -12,14 +12,11 @@ class MainWindow;
 
 namespace MoonGlare::Tools::Recon {
 
-class MainWindow : public QMainWindow, public iModule, public RuntineModules::iSettingsUser {
+class MainWindow : public QMainWindow, public iModule, public RuntineModules::iWidgetSettingsProvider {
     Q_OBJECT
 public:
     MainWindow(SharedModuleManager modmgr);
     ~MainWindow();
-
-    bool DoSaveSettings(pugi::xml_node node) const override;
-    bool DoLoadSettings(const pugi::xml_node node) override;
 
     bool Initialize() override;
     bool PostInit() override;

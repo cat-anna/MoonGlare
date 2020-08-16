@@ -51,7 +51,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="CodeEditor" name="plainTextEdit">
+            <widget class="MoonGlare::Tools::CodeEditor" name="plainTextEdit">
              <property name="font">
               <font>
                <family>Consolas</family>
@@ -87,9 +87,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CodeEditor</class>
+   <class>MoonGlare::Tools::CodeEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>CodeEditor.h</header>
+   <header>code_editor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

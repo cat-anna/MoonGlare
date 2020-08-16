@@ -1,6 +1,6 @@
 if(Qt5_FOUND)
 
-  file(GLOB_RECURSE SRC *.cpp *.h *.hpp *.ui)
+  file(GLOB_RECURSE SRC *.cpp *.h *.hpp)
 
   set(TARGET recon-gui)
 
@@ -8,8 +8,7 @@ if(Qt5_FOUND)
   target_include_directories(${TARGET} PUBLIC .)
   target_link_libraries(
     ${TARGET}
-    PUBLIC # boost
-           fmt::fmt
+    PUBLIC fmt::fmt
            pugixml
            Qt5::Core
            Qt5::Widgets

@@ -1,22 +1,21 @@
-#include "MainWindow.h"
 #include <QApplication>
 #include <orbit_logger.h>
+#include <orbit_logger/sink/file_sink.h>
 #include <os/Path.h>
 #include <qt_log_sink.h>
 #include <runtime_modules.h>
 #include <runtime_modules/app_config.h>
 #include <tool_base_module_registration.h>
 #include <tool_base_qt_module_registration.h>
-// #include <OrbitLogger/src/sink/FileSink.h>
 
 using OrbitLogger::LogCollector;
-// using OrbitLogger::StdFileLoggerSink;
+using OrbitLogger::StdFileLoggerSink;
 
 namespace {
 
 MoonGlare::Tools::RuntineModules::AppConfig::MapType GetAppConfig() {
     return {
-        {"AppName", "recon-gui"},
+        {"AppName", "editor"},
         {"ConfigPath", MoonGlare::OS::GetSettingsDirectory()},
     };
 }
@@ -26,7 +25,7 @@ MoonGlare::Tools::RuntineModules::AppConfig::MapType GetAppConfig() {
 int main(int argc, char *argv[]) {
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
-    // LogCollector::AddLogSink<StdFileLoggerSink>("logs/MGReconGui.log");
+    LogCollector::AddLogSink<StdFileLoggerSink>("logs/editor.log");
 
     int r;
     QApplication a(argc, argv);
@@ -34,8 +33,6 @@ int main(int argc, char *argv[]) {
 
     MoonGlare::Tools::RegisterBaseModules();
     MoonGlare::Tools::RegisterBaseQtModules();
-
-    MoonGlare::Tools::ModuleClassRegister::Register<MoonGlare::Tools::Recon::MainWindow> MainWindowReg("MainWindow");
 
     {
         auto modmgr = MoonGlare::Tools::ModuleManager::CreateModuleManager(GetAppConfig());

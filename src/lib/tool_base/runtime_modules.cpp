@@ -1,7 +1,7 @@
 
 #include "runtime_modules.h"
 #include "runtime_modules/app_config.h"
-#include "runtime_modules/settings_user.h"
+#include "runtime_modules/application_settings.hpp"
 #include <orbit_logger.h>
 
 namespace MoonGlare::Tools {
@@ -61,29 +61,27 @@ bool ModuleManager::Initialize() {
         }
     }
 
-    LoadSettings();
+    try {
+        QueryModule<RuntineModules::ApplicationSettings>()->Load();
+    } catch (const std::exception &e) {
+        AddLogf(Error, "Failed to load settings: %s", e.what());
+    }
+
     return true;
 }
 
 bool ModuleManager::Finalize() {
-    SaveSettings();
+    try {
+        QueryModule<RuntineModules::ApplicationSettings>()->Save();
+    } catch (const std::exception &e) {
+        AddLogf(Error, "Failed to save settings: %s", e.what());
+    }
+
     for (auto &it : m_Modules) {
         it->Finalize();
     }
     auto mod = std::move(m_Modules);
     return true;
-}
-
-void ModuleManager::LoadSettings() {
-    for (auto &item : QueryInterfaces<RuntineModules::iSettingsUser>()) {
-        item.m_Interface->LoadSettings();
-    }
-}
-
-void ModuleManager::SaveSettings() {
-    for (auto &item : QueryInterfaces<RuntineModules::iSettingsUser>()) {
-        item.m_Interface->SaveSettings();
-    }
 }
 
 } // namespace MoonGlare::Tools
