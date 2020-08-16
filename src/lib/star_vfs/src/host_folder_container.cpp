@@ -24,7 +24,23 @@ bool ReadHostFileContent(const fs::path &path, std::string &file_data) {
         file_data.resize(sz);
         file.read(file_data.data(), sz);
         return true;
-    } catch (...) {
+    } catch (const std::exception &e) {
+        AddLogf(Error, "Failed to read file %s : %s", path.generic_string().c_str(), e.what());
+        return false;
+    }
+}
+
+bool WriteHostFileContent(const fs::path &path, const std::string &file_data) {
+    try {
+        std::ofstream file;
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        file.open(path, std::ios_base::binary | std::ios_base::out);
+        if (!file_data.empty()) {
+            file.write(file_data.c_str(), file_data.size());
+        }
+        return true;
+    } catch (const std::exception &e) {
+        AddLogf(Error, "Failed to write file %s : %s", path.generic_string().c_str(), e.what());
         return false;
     }
 }
@@ -41,7 +57,8 @@ struct HostFolderContainer::ScanPathOutput {
 
 //-------------------------------------------------------------------------------------------------
 
-HostFolderContainer::HostFolderContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments)
+HostFolderContainer::HostFolderContainer(iFileTableInterface *fti,
+                                         const VariantArgumentMap &arguments)
     : iVfsContainer(fti) {
 
     host_path = std::filesystem::absolute(arguments.get<std::string>("host_path"));
@@ -49,13 +66,15 @@ HostFolderContainer::HostFolderContainer(iFileTableInterface *fti, const Variant
 
     arguments.get_to(generate_resource_id, "generate_resource_id", generate_resource_id);
     arguments.get_to(store_resource_id, "store_resource_id", store_resource_id);
+    access_mode = arguments.get<std::string>("mode", "r") == "rw" ? AccessMode::ReadWrite
+                                                                  : AccessMode::ReadOnly;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void HostFolderContainer::ReloadContainer() {
-    AddLog(FSEvent,
-           fmt::format("Reloading host folder container '{}' mounted at {}", host_path.generic_string(), mount_point));
+    AddLog(FSEvent, fmt::format("Reloading host folder container '{}' mounted at {}",
+                                host_path.generic_string(), mount_point));
 
     ScanPathOutput scan_result{};
     scan_result.old_file_mapper = file_mapper;
@@ -74,7 +93,8 @@ void HostFolderContainer::ReloadContainer() {
     }
 }
 
-bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id, std::string &file_data) const {
+bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id,
+                                          std::string &file_data) const {
     auto it = file_mapper.find(container_file_id);
     if (it == file_mapper.end()) {
         AddLog(Error, "File does not exists");
@@ -84,6 +104,23 @@ bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id, std::s
     const FileEntry &entry = it->second;
 
     return ReadHostFileContent(entry.host_path, file_data);
+}
+
+bool HostFolderContainer::WriteFileContent(FilePathHash container_file_id,
+                                           const std::string &file_data) {
+    if (!CanWrite()) {
+        AddLogf(Warning, "Host folder Container %s is opened in read only mode", host_path.c_str());
+        return false;
+    }
+
+    auto it = file_mapper.find(container_file_id);
+    if (it == file_mapper.end()) {
+        AddLog(Error, "File does not exists");
+        return false;
+    }
+
+    const FileEntry &entry = it->second;
+    return WriteHostFileContent(entry.host_path, file_data);
 }
 
 bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
@@ -134,7 +171,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
                     entry.resource_id = file_manifest.resource_id;
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta read failed for {} : {}", meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta read failed for {} : {}",
+                                          meta_file.generic_string(), e.what()));
             }
             try {
                 if (generate_resource_id && entry.resource_id == 0) {
@@ -151,7 +189,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
                     }
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta write failed for {} : {}", meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta write failed for {} : {}",
+                                          meta_file.generic_string(), e.what()));
             }
         }
 
@@ -170,18 +209,6 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
 #if 0
 
 //-------------------------------------------------------------------------------------------------
-
-bool FolderContainer::SetFileData(FileID ContainerFID, const ByteTable &in) const {
-	if (ContainerFID >= m_FileEntry.size() || ContainerFID == 0)
-		return false;
-
-	auto &f = m_FileEntry[ContainerFID];
-	std::ofstream outf(f.m_FullPath.c_str(), std::ios::out | std::ios::binary);
-	outf.write(in.c_str(), in.byte_size());
-	outf.close();
-
-	return true;
-}
 
 FileID FolderContainer::FindFile(const String& ContainerFileName) const {
 	for (auto it = m_FileEntry.begin(), jt = m_FileEntry.end(); it != jt; ++it)

@@ -7,6 +7,8 @@
 #include <svfs_modules/assimp_container.hpp>
 #include <svfs_modules/assimp_importer_module.hpp>
 
+using namespace std::string_literals;
+
 namespace MoonGlare::Tools::Editor::Modules {
 
 struct FileSystemModule::StarVfsInstance {
@@ -17,9 +19,10 @@ struct FileSystemModule::StarVfsInstance {
 
         VariantArgumentMap args;
         args.set("host_path", root_path);
-        args.set("mount_point", std::string(""));
+        args.set("mount_point", ""s);
         args.set("generate_resource_id", true);
         args.set("store_resource_id", true);
+        args.set("mode", "rw"s);
         file_system.MountContainer("host_folder", args);
     }
     StarVfs::SvfsClassRegister class_register;
@@ -352,6 +355,13 @@ bool FileSystemModule::ReadFileByPath(const std::string &path, std::string &file
         return false;
     }
     return svfs_instance->file_system.ReadFileByPath(path, file_data);
+}
+
+bool FileSystemModule::WriteFileByPath(const std::string &path, const std::string &file_data) {
+    if (!svfs_instance) {
+        return false;
+    }
+    return svfs_instance->file_system.WriteFileByPath(path, file_data);
 }
 
 bool FileSystemModule::EnumeratePath(const std::string_view &path,

@@ -2,7 +2,6 @@
 
 #include "readonly_file_system.h"
 #include "star_vfs.h"
-#include "svfs/definitions.hpp"
 #include "svfs/file_table_interface.hpp"
 #include "svfs/vfs_container.hpp"
 #include "svfs/vfs_exporter.hpp"
@@ -14,7 +13,6 @@
 #include <template_class_list.h>
 #include <variant_argument_map.hpp>
 
-
 namespace MoonGlare::StarVfs {
 
 class SvfsClassRegister : public iClassRegister {
@@ -24,15 +22,27 @@ public:
 
     void RegisterAll();
 
-    template <typename T> void RegisterContainerClass() { container_class_register.Register<T>(T::kClassName); }
-    template <typename T> void RegisterModuleClass() { module_class_register.Register<T>(T::kClassName); }
-    template <typename T> void RegisterExporterClass() { exporter_class_register.Register<T>(T::kClassName); }
+    template <typename T>
+    void RegisterContainerClass() {
+        container_class_register.Register<T>(T::kClassName);
+    }
+    template <typename T>
+    void RegisterModuleClass() {
+        module_class_register.Register<T>(T::kClassName);
+    }
+    template <typename T>
+    void RegisterExporterClass() {
+        exporter_class_register.Register<T>(T::kClassName);
+    }
 
-    std::unique_ptr<iVfsContainer> CreateContainerObject(const std::string_view &class_name, iFileTableInterface *,
+    std::unique_ptr<iVfsContainer> CreateContainerObject(const std::string_view &class_name,
+                                                         iFileTableInterface *,
                                                          const VariantArgumentMap &) const override;
-    std::unique_ptr<iVfsModule> CreateModuleObject(const std::string_view &class_name, iVfsModuleInterface *,
+    std::unique_ptr<iVfsModule> CreateModuleObject(const std::string_view &class_name,
+                                                   iVfsModuleInterface *,
                                                    const VariantArgumentMap &) const override;
-    std::unique_ptr<iVfsExporter> CreateExporterObject(const std::string_view &class_name, iVfsModuleInterface *,
+    std::unique_ptr<iVfsExporter> CreateExporterObject(const std::string_view &class_name,
+                                                       iVfsModuleInterface *,
                                                        const VariantArgumentMap &) const override;
 
     std::vector<std::string> GetRegisteredModuleClasses() const override;
@@ -42,7 +52,8 @@ public:
 private:
     using ContainerClassRegister =
         Tools::TemplateClassList<iVfsContainer, iFileTableInterface *, const VariantArgumentMap &>;
-    using ModuleClassRegister = Tools::TemplateClassList<iVfsModule, iVfsModuleInterface *, const VariantArgumentMap &>;
+    using ModuleClassRegister =
+        Tools::TemplateClassList<iVfsModule, iVfsModuleInterface *, const VariantArgumentMap &>;
     using ExporterClassRegister =
         Tools::TemplateClassList<iVfsExporter, iVfsModuleInterface *, const VariantArgumentMap &>;
 

@@ -18,6 +18,10 @@ public:
 
     class LineNumberArea;
 
+    CompilationResult GetCompilationResult() const { return currentLineStatus; }
+signals:
+    void CodeCompiled();
+
 protected:
     void resizeEvent(QResizeEvent *e) override;
 

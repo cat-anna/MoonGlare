@@ -1,10 +1,8 @@
 
-#include "editor_provider_module.h"
+#include "editor_provider_module.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 
-namespace MoonGlare::Tools::Editor::Modules {
-
-ModuleClassRegister::Register<EditorProviderModule> EditorProviderReg("EditorProviderModule");
+namespace MoonGlare::Tools::RuntineModules {
 
 using EditorActionInfo = EditorProviderModule::EditorActionInfo;
 
@@ -76,4 +74,4 @@ EditorActionInfo EditorProviderModule::FindOpenEditor(std::string ext) const {
     throw EditorNotFoundException();
 }
 
-} // namespace MoonGlare::Tools::Editor::Modules
+} // namespace MoonGlare::Tools::RuntineModules

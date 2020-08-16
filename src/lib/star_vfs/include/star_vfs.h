@@ -1,6 +1,5 @@
 #pragma once
 
-#include "svfs/definitions.hpp"
 #include "writable_file_system.h"
 #include <any>
 #include <memory>

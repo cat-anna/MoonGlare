@@ -7,7 +7,6 @@ namespace MoonGlare::Tools {
 
 struct CompilationResult {
     enum class Status {
-        Compiling,
         Success,
         Failed,
         Error,

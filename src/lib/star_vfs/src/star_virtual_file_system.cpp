@@ -122,30 +122,50 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
 
         return container->ReadFileContent(file->container_file_id, file_data);
     };
+
+    bool WriteFile(const FileEntry *file, const std::string &file_data) /* override */ {
+        if (file == nullptr) {
+            return false;
+        }
+
+        auto container = GetContainer(file->container_id);
+        if (container == nullptr) {
+            AddLogf(Error, "Failed to get container of %u %u", file->file_path_hash,
+                    file->container_id);
+            return false;
+        }
+
+        return container->WriteFileContent(file->container_file_id, file_data);
+    };
+
     bool IsDirectory(const FileEntry *file_entry) const override {
         if (file_entry == nullptr) {
             return false;
         }
         return file_entry->IsDirectory();
     }
+
     std::string GetFullPath(const FileEntry *file_entry) const override {
         if (file_entry == nullptr) {
             return "";
         }
         return file_entry->GetFullPath();
     }
+
     FileResourceId GetResourceId(const FileEntry *file_entry) const override {
         if (file_entry == nullptr) {
             return 0;
         }
         return file_entry->resource_id;
     }
+
     bool IsHidden(const FileEntry *file_entry) const override {
         if (file_entry == nullptr) {
             return 0;
         }
         return file_entry->IsHidden();
     }
+
     void SetHidden(const FileEntry *file_entry, bool value) override {
         if (file_entry == nullptr) {
             return;
@@ -221,6 +241,16 @@ bool StarVirtualFileSystem::ReadFileByPath(const std::string &path, std::string 
 
     return impl->ReadFile(file, file_data);
 };
+
+bool StarVirtualFileSystem::WriteFileByPath(const std::string &path, const std::string &file_data) {
+    auto *file = impl->file_table.FindFileByPath(path);
+    if (file == nullptr) {
+        AddLogf(Error, "Failed to find file %s : %llu", path.c_str(), Hasher::Hash(path));
+        return false;
+    }
+
+    return impl->WriteFile(file, file_data);
+}
 
 bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path,
                                           FileInfoTable &result_file_table) const {

@@ -3,6 +3,7 @@
 #include "ui_main_window.h"
 #include <QFileDialog>
 #include <algorithm>
+#include <change_container.hpp>
 #include <dock_window_info.hpp>
 #include <filesystem>
 #include <json_helpers.hpp>
@@ -262,7 +263,15 @@ void MainWindow::showEvent(QShowEvent *event) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    //     m_DataModule.reset();
+    auto changes_manager = GetModuleManager()->QueryModule<iChangesManager>();
+    if (changes_manager && changes_manager->IsChanged()) {
+        if (AskToDropChanges()) {
+            changes_manager->DropChanges();
+        } else {
+            event->ignore();
+            return;
+        }
+    }
 
     GetModuleManager()->QueryModule<RuntineModules::ApplicationSettings>()->SaveAndLock();
     event->accept();

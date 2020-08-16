@@ -37,6 +37,7 @@ public:
     bool IsPathOpened() const { return svfs_instance != nullptr; };
 
     bool ReadFileByPath(const std::string &path, std::string &file_data) const override;
+    bool WriteFileByPath(const std::string &path, const std::string &file_data) override;
     bool EnumeratePath(const std::string_view &path,
                        FileInfoTable &result_file_table) const override;
 

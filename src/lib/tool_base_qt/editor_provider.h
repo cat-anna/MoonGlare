@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace MoonGlare::Tools::Editor {
+namespace MoonGlare::Tools {
 
 struct EditorNotFoundException : public std::exception {};
 
@@ -78,4 +78,4 @@ protected:
     virtual ~iEditorProvider() = default;
 };
 
-} // namespace MoonGlare::Tools::Editor
+} // namespace MoonGlare::Tools

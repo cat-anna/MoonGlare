@@ -109,7 +109,7 @@
     <string>Save</string>
    </property>
    <property name="toolTip">
-    <string>Save</string>
+    <string>Save changes</string>
    </property>
   </action>
  </widget>

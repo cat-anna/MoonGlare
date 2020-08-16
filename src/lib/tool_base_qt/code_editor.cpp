@@ -45,6 +45,7 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
             auto &e = *currentLineStatus.lineInfo.begin();
             lineNumberArea->setToolTip(fmt::format("{} : {}", e.first, e.second).c_str());
         }
+        emit CodeCompiled();
     });
 
     updateLineNumberAreaWidth(0);
@@ -86,13 +87,15 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
 
             auto it = currentLineStatus.lineInfo.find(blockNumber + 1);
             if (it != currentLineStatus.lineInfo.end()) {
-                painter.fillRect(QRect(0, top, lineNumberArea->width(), (int)blockBoundingRect(block).height()),
-                                 Qt::red);
+                painter.fillRect(
+                    QRect(0, top, lineNumberArea->width(), (int)blockBoundingRect(block).height()),
+                    Qt::red);
             }
 
             QString number = QString::number(blockNumber + 1);
             painter.setPen(Qt::black);
-            painter.drawText(3, top, lineNumberArea->width() - 6, fontMetrics().height(), Qt::AlignRight, number);
+            painter.drawText(3, top, lineNumberArea->width() - 6, fontMetrics().height(),
+                             Qt::AlignRight, number);
         }
 
         block = block.next();
@@ -120,7 +123,9 @@ void CodeEditor::resizeEvent(QResizeEvent *e) {
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void CodeEditor::updateLineNumberAreaWidth(int newBlockCount) { setViewportMargins(lineNumberAreaWidth(), 0, 0, 0); }
+void CodeEditor::updateLineNumberAreaWidth(int newBlockCount) {
+    setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
+}
 
 void CodeEditor::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;

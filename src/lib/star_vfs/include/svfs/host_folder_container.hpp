@@ -19,6 +19,9 @@ public:
     void ReloadContainer() override;
 
     bool ReadFileContent(FilePathHash container_file_id, std::string &file_data) const override;
+    bool WriteFileContent(FilePathHash container_file_id, const std::string &file_data) override;
+
+    AccessMode GetAccessMode() const override { return access_mode; };
 
     struct FileEntry {
         std::filesystem::path host_path;
@@ -27,6 +30,7 @@ public:
     using FileMapper = std::unordered_map<FilePathHash, FileEntry>;
 
 private:
+    AccessMode access_mode{AccessMode::ReadOnly};
     std::filesystem::path host_path;
     std::string mount_point;
     bool generate_resource_id{true};
@@ -36,6 +40,8 @@ private:
 
     struct ScanPathOutput;
     bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output);
+
+    bool CanWrite() const { return access_mode == AccessMode::ReadWrite; }
 };
 
 } // namespace MoonGlare::StarVfs

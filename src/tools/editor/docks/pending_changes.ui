@@ -69,7 +69,6 @@
           <enum>Qt::ToolButtonTextBesideIcon</enum>
          </property>
          <addaction name="actionSave_All"/>
-         <addaction name="actionSave_single"/>
         </widget>
        </item>
        <item>
@@ -86,26 +85,17 @@
   </widget>
   <action name="actionSave_All">
    <property name="icon">
-    <iconset resource="../../Shared/Resources/icons.qrc">
+    <iconset resource="../../../lib/qt_resources/icons.qrc">
      <normaloff>:/icons/icons/blue_down_save.png</normaloff>:/icons/icons/blue_down_save.png</iconset>
    </property>
    <property name="text">
     <string>Save all</string>
    </property>
   </action>
-  <action name="actionSave_single">
-   <property name="icon">
-    <iconset resource="../../Shared/Resources/icons.qrc">
-     <normaloff>:/icons/icons/blue_up_save.png</normaloff>:/icons/icons/blue_up_save.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save single</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../../Shared/Resources/icons.qrc"/>
+  <include location="../../../lib/qt_resources/icons.qrc"/>
  </resources>
  <connections/>
 </ui>
