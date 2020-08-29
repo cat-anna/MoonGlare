@@ -111,6 +111,9 @@
    <property name="toolTip">
     <string>Save changes</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

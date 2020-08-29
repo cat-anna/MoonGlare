@@ -93,10 +93,7 @@ public:
 
 //----------------------------------------------------------------------------------
 
-struct ScriptEditorDockInfo : public iModule,
-                              public iFileIconInfo,
-                              public iEditorInfo,
-                              public iEditorFactory {
+struct ScriptEditorDockInfo : public iModule, public iFileIconInfo, public iEditorInfo, public iEditorFactory {
     ScriptEditorDockInfo(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
 
     // std::any QueryInterface(const std::type_info &info) override {
@@ -116,8 +113,7 @@ struct ScriptEditorDockInfo : public iModule,
         return std::vector<FileIconInfo>{FileIconInfo{".lua", ICON_16_LUALOGO_RESOURCE}};
     }
 
-    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method,
-                           const EditorRequestOptions &options) {
+    SharedEditor GetEditor(const iEditorInfo::FileHandleMethodInfo &method, const EditorRequestOptions &options) {
 
         if (method.method_id == "edit_script") {
             auto locked_tab_control = tab_control.lock();
@@ -129,17 +125,16 @@ struct ScriptEditorDockInfo : public iModule,
                     return std::dynamic_pointer_cast<iEditor>(tab);
                 }
 
-                auto editor = std::make_shared<ScriptEditor>(
-                    locked_tab_control->GetTabParentWidget(), GetModuleManager());
+                auto editor =
+                    std::make_shared<ScriptEditor>(locked_tab_control->GetTabParentWidget(), GetModuleManager());
                 locked_tab_control->AddTab(tab_name, editor);
-                locked_tab_control->SetTabIcon(editor.get(),
-                                               QIcon(QString::fromStdString(method.icon)));
+                locked_tab_control->SetTabIcon(editor.get(), QIcon(QString::fromStdString(method.icon)));
                 return editor;
             }
         }
-        if (method.method_id == "create_script") {
-            // return std::make_shared<ScriptFileConstructor>(GetModuleManager());
-        }
+        // if (method.method_id == "create_script") {
+        // return std::make_shared<ScriptFileConstructor>(GetModuleManager());
+        // }
         return nullptr;
     }
 

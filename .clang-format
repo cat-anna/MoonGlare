@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM 
+IndentWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 120
+AllowShortBlocksOnASingleLine: 'false'
+AllowShortFunctionsOnASingleLine: InlineOnly
+AlwaysBreakTemplateDeclarations: 'Yes'
+ReflowComments: 'false'
+UseTab: Never

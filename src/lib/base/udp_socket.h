@@ -2,18 +2,18 @@
 
 #include <atomic>
 #include <chrono>
+#include <dynamic_message_buffer.hpp>
 #include <memory>
 #include <optional>
 #include <string>
-
-#include <memory/dynamic_message_buffer.h>
 
 #define _WIN32_WINNT 0x0502
 #include <boost/asio.hpp>
 
 namespace MoonGlare::Tools {
 
-template <typename BufferType> struct UdpSocket {
+template <typename BufferType>
+struct UdpSocket {
 
     using udp = boost::asio::ip::udp;
 
@@ -48,7 +48,8 @@ template <typename BufferType> struct UdpSocket {
 
     virtual void OnMessage(const MessageHeader *request, const udp::endpoint &sender) {}
 
-    bool Send(const MessageHeader *header, std::optional<udp::endpoint> destination = std::nullopt) {
+    bool Send(const MessageHeader *header,
+              std::optional<udp::endpoint> destination = std::nullopt) {
         uint32_t size = sizeof(MessageHeader) + header->payloadSize;
         sock.send_to(boost::asio::buffer(header, size), destination.value_or(endpoint));
         ++packetsSend;
@@ -57,7 +58,7 @@ template <typename BufferType> struct UdpSocket {
     }
 
     template <typename PayloadType>
-    void Send(const PayloadType &payload, MessageType messageType, u32 requestID = 0,
+    void Send(const PayloadType &payload, MessageType messageType, uint32_t requestID = 0,
               std::optional<udp::endpoint> destination = std::nullopt) {
         char buffer[Api::MaxMessageSize];
         auto *header = reinterpret_cast<MessageHeader *>(buffer);
@@ -94,7 +95,8 @@ private:
                 }
                 udp::endpoint remote_endpoint;
                 boost::system::error_code error;
-                sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint, 0, error);
+                sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint,
+                                  0, error);
 
                 if (error && error != boost::asio::error::message_size)
                     continue;

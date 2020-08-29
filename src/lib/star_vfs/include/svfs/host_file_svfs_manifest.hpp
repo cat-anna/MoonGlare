@@ -19,6 +19,7 @@ void to_json(nlohmann::json &j, const HostFileSvfsManifestSubContent &p) {
         {"resource_id", p.resource_id},
     };
 }
+
 void from_json(const nlohmann::json &j, HostFileSvfsManifestSubContent &p) {
     j.at("resource_id").get_to(p.resource_id);
     j.at("version").get_to(p.version);

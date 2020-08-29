@@ -16,9 +16,7 @@ namespace MoonGlare::Tools::Editor::Docks {
 
 //-----------------------------------------
 
-struct FileSystemViewerInfo : public DockWindowModule<FileSystemViewer>,
-                              public iEditorInfo,
-                              public iEditorFactory {
+struct FileSystemViewerInfo : public DockWindowModule<FileSystemViewer>, public iEditorInfo, public iEditorFactory {
 
     std::any QueryInterface(const std::type_info &info) override {
         if (info == typeid(iFileSystemViewerPreview))
@@ -47,8 +45,7 @@ ModuleClassRegister::Register<FileSystemViewerInfo> FileSystemViewerInfoReg("Fil
 
 //-----------------------------------------
 
-FileSystemViewer::FileSystemViewer(QWidget *parent, SharedModuleManager smm)
-    : DockWindow(parent, smm) {
+FileSystemViewer::FileSystemViewer(QWidget *parent, SharedModuleManager smm) : DockWindow(parent, smm) {
 
     file_icon_provider = smm->QueryModule<iFileIconProvider>();
     editor_provider = smm->QueryModule<iEditorProvider>();
@@ -63,8 +60,7 @@ FileSystemViewer::FileSystemViewer(QWidget *parent, SharedModuleManager smm)
     connect(ui->treeView, SIGNAL(customContextMenuRequested(const QPoint &)), this,
             SLOT(ShowContextMenu(const QPoint &)));
 
-    connect(ui->treeView, SIGNAL(doubleClicked(const QModelIndex &)),
-            SLOT(ItemDoubleClicked(const QModelIndex &)));
+    connect(ui->treeView, SIGNAL(doubleClicked(const QModelIndex &)), SLOT(ItemDoubleClicked(const QModelIndex &)));
 
     auto fs_mod = smm->QueryModule<Modules::FileSystemModule>();
     connect(fs_mod.get(), SIGNAL(Changed()), this, SLOT(RefreshTreeView()));
@@ -81,8 +77,7 @@ FileSystemViewer::FileSystemViewer(QWidget *parent, SharedModuleManager smm)
     ui->treeView->setColumnWidth(0, 200);
 
     SetPreviewEditor(nullptr);
-    connect(ui->buttonCloseRightPanel, &QPushButton::clicked,
-            [this] { SetPreviewEditor(nullptr); });
+    connect(ui->buttonCloseRightPanel, &QPushButton::clicked, [this] { SetPreviewEditor(nullptr); });
 }
 
 FileSystemViewer::~FileSystemViewer() {
@@ -92,8 +87,7 @@ FileSystemViewer::~FileSystemViewer() {
     ui.reset();
 }
 
-bool FileSystemViewer::Create(const std::string &full_path,
-                              const iEditorInfo::FileHandleMethodInfo &what) {
+bool FileSystemViewer::Create(const std::string &full_path, const iEditorInfo::FileHandleMethodInfo &what) {
     QString qname;
     if (!QueryStringInput("Enter new folder name:", qname))
         return false;
@@ -130,9 +124,7 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
                 if (methodmodule.editor_factory) {
                     auto &method = methodmodule.file_handle_method;
                     CreateMenu->addAction(QIcon(method.icon.c_str()), method.caption.c_str(),
-                                          [this, methodmodule, fullpath]() {
-                                              OpenFileEditor(methodmodule, fullpath);
-                                          });
+                                          [this, methodmodule, fullpath]() { CreateFile(methodmodule, fullpath); });
                 }
             }
         } else {
@@ -150,12 +142,10 @@ void FileSystemViewer::ShowContextMenu(const QPoint &point) {
                     auto action = [this, fullpath, method]() { OpenFileEditor(method, fullpath); };
 
                     if (single) {
-                        auto item =
-                            menu.addAction(method.file_handle_method.caption.c_str(), this, action);
+                        auto item = menu.addAction(method.file_handle_method.caption.c_str(), this, action);
                         item->setIcon(QIcon(method.file_handle_method.icon.c_str()));
                     } else {
-                        auto item = openItem->addAction(method.file_handle_method.caption.c_str(),
-                                                        this, action);
+                        auto item = openItem->addAction(method.file_handle_method.caption.c_str(), this, action);
                         item->setIcon(QIcon(method.file_handle_method.icon.c_str()));
                     }
                 }
@@ -204,19 +194,49 @@ void FileSystemViewer::ItemDoubleClicked(const QModelIndex &) {
     if (!itemptr)
         return;
 
-    std::string fullpath =
-        itemptr->data(FileSystemViewerRole::FileFullPath).toString().toStdString();
+    std::string fullpath = itemptr->data(FileSystemViewerRole::FileFullPath).toString().toStdString();
 
     try {
-        auto editor_action =
-            editor_provider.lock()->FindOpenEditor(StarVfs::GetExtension(fullpath));
+        auto editor_action = editor_provider.lock()->FindOpenEditor(StarVfs::GetExtension(fullpath));
         OpenFileEditor(editor_action, fullpath);
     } catch (...) {
     }
 }
 
-void FileSystemViewer::OpenFileEditor(iEditorProvider::EditorActionInfo editor_action,
-                                      const std::string &full_path) {
+void FileSystemViewer::CreateFile(iEditorProvider::EditorActionInfo editor_action,
+                                  const std::string &parent_full_path) {
+    try {
+        if (!editor_action.editor_factory) {
+            throw std::runtime_error("No editor factory provided");
+        }
+
+        std::string file_name;
+        if (!QueryStringInput("Enter file name", file_name)) {
+            return;
+        }
+
+        file_name += editor_action.file_handle_method.extension;
+
+        iEditorFactory::EditorRequestOptions request_options;
+        request_options.full_path = StarVfs::JoinPath(parent_full_path, file_name);
+        auto editor_ptr = editor_action.editor_factory->GetEditor(editor_action.file_handle_method, request_options);
+
+        if (!editor_ptr) {
+            throw std::runtime_error("Editor creation failed");
+        }
+        if (!editor_ptr->Create(request_options.full_path, editor_action.file_handle_method)) {
+            throw std::runtime_error("Open action failed");
+        }
+    } catch (EditorNotFoundException &) {
+        AddLog(Warning, "No associated editor with selected file type!");
+        ErrorMessage("No associated editor with selected file type!");
+    } catch (std::exception &e) {
+        AddLogf(Warning, "Create file failed: %s", e.what());
+        ErrorMessage(fmt::format("Failed to open file: {}", e.what()));
+    }
+}
+
+void FileSystemViewer::OpenFileEditor(iEditorProvider::EditorActionInfo editor_action, const std::string &full_path) {
     try {
         if (!editor_action.editor_factory) {
             throw std::runtime_error("No editor factory provided");
@@ -224,37 +244,14 @@ void FileSystemViewer::OpenFileEditor(iEditorProvider::EditorActionInfo editor_a
 
         iEditorFactory::EditorRequestOptions request_options;
         request_options.full_path = full_path;
-        auto editor_ptr = editor_action.editor_factory->GetEditor(editor_action.file_handle_method,
-                                                                  request_options);
+        auto editor_ptr = editor_action.editor_factory->GetEditor(editor_action.file_handle_method, request_options);
 
         if (!editor_ptr) {
             throw std::runtime_error("Editor creation failed");
         }
-        if (!editor_ptr->OpenData(full_path, editor_action.file_handle_method))
+        if (!editor_ptr->OpenData(full_path, editor_action.file_handle_method)) {
             throw std::runtime_error("Open action failed");
-
-        return;
-        // } else {
-        //     auto dockinfo = editor_action.module->cast<BaseDockWindowModule>();
-        //     if (!dockinfo)
-        //         throw std::runtime_error("No editor factory provided");
-
-        //     auto inst = dockinfo->GetInstance();
-        //     if (!inst) {
-        //         throw std::runtime_error("Failed to get instance of dock window module");
-        //     }
-        //     auto editor = dynamic_cast<iEditor *>(inst.get());
-        //     if (!editor) {
-        //         throw std::runtime_error(
-        //             fmt::format("Editing in not supported by {}", typeid(*inst).name()));
-        //     }
-
-        //     if (editor->OpenData(full_path, {})) {
-        //         inst->show();
-        //     } else {
-        //         throw std::runtime_error("Dock window open action failed");
-        //     }
-        // }
+        }
     } catch (EditorNotFoundException &) {
         AddLog(Warning, "No associated editor with selected file type!");
         ErrorMessage("No associated editor with selected file type!");
@@ -298,8 +295,7 @@ void FileSystemViewer::RefreshTreeView() {
             }
 
             QList<QStandardItem *> cols;
-            cols << (item = new QStandardItem(
-                         QString::fromStdString(std::string(file_info.file_name))));
+            cols << (item = new QStandardItem(QString::fromStdString(std::string(file_info.file_name))));
             parent->appendRow(cols);
         }
 
@@ -316,8 +312,7 @@ void FileSystemViewer::RefreshTreeView() {
             item->setData(QVariant(true), FileSystemViewerRole::IsFile);
             auto ext = std::string(StarVfs::GetExtension(file_info.file_name));
             if (!ext.empty()) {
-                item->setData(QIcon(locked_file_icon_provider->GetExtensionIcon(ext, "").c_str()),
-                              Qt::DecorationRole);
+                item->setData(QIcon(locked_file_icon_provider->GetExtensionIcon(ext, "").c_str()), Qt::DecorationRole);
             } else {
                 item->setData(QIcon(), Qt::DecorationRole);
             }

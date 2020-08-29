@@ -36,8 +36,7 @@ void from_json(const nlohmann::json &j, MainWindowSettings &p) {
 
 MoonGlare::Tools::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow");
 
-MainWindow::MainWindow(SharedModuleManager modmgr)
-    : QMainWindow(nullptr), iModule(std::move(modmgr)) {
+MainWindow::MainWindow(SharedModuleManager modmgr) : QMainWindow(nullptr), iModule(std::move(modmgr)) {
     SetSettingId("editor_main_window", 100);
     ui = std::make_unique<Ui::MainWindow>();
     ui->setupUi(this);
@@ -89,8 +88,8 @@ bool MainWindow::PostInit() {
     mm->ForEachInterface<BaseDockWindowModule>([this](auto interface, auto module) {
         if (interface->IsMainMenu()) {
             interface->SetParent(this);
-            ui->menuWindows->addAction(interface->GetIcon(), interface->GetDisplayName(),
-                                       interface.get(), SLOT(Show()), interface->GetKeySequence());
+            ui->menuWindows->addAction(interface->GetIcon(), interface->GetDisplayName(), interface.get(), SLOT(Show()),
+                                       interface->GetKeySequence());
             AddLogf(Info, "Registered DockWindow: %s", module->GetModuleName().c_str());
         }
     });
@@ -330,8 +329,7 @@ void MainWindow::AddTab(const std::string &id, std::shared_ptr<iTabViewBase> tab
     }
     if (opened_tabs.find(id) == opened_tabs.end()) {
         opened_tabs[id] = tabWidget;
-        tabWidget->SetTablController(
-            std::dynamic_pointer_cast<iMainWindowTabsControl>(shared_from_this()));
+        tabWidget->SetTablController(std::dynamic_pointer_cast<iMainWindowTabsControl>(shared_from_this()));
         w->setLayout(new QHBoxLayout());
         ui->tabWidget->addTab(w, tabWidget->GetTabTitle().c_str());
         ui->tabWidget->setCurrentWidget(w);
@@ -404,25 +402,6 @@ void MainWindow::SetTabIcon(iTabViewBase *tab_view, QIcon icon) {
     }
 }
 
-// //-----------------------------------------
-
-// /*
-// void MainWindow::CreateFileEditor(const std::string & URI, std::shared_ptr<SharedData::FileCreatorInfo> info) {
-// auto inst = info->m_DockEditor->GetInstance();
-// auto editor = dynamic_cast<QtShared::iEditor*>(inst.get());
-// if (!editor) {
-//     AddLogf(Error, "Fatal Error!");
-//     ErrorMessage("Fatal Error!");
-//     return;
-// }
-
-// if (editor->Create(URI, info->m_Info)) {
-//     inst->show();
-// } else {
-//     ErrorMessage("Failed to create file!");
-//     AddLog(Error, "Failed to create file!");
-// }
-// }
-// */
+//-----------------------------------------
 
 } // namespace MoonGlare::Tools::Editor::Dialogs

@@ -34,8 +34,7 @@ public:
     FileSystemViewer(QWidget *parent, SharedModuleManager smm);
     virtual ~FileSystemViewer();
 
-    bool Create(const std::string &full_path,
-                const iEditorInfo::FileHandleMethodInfo &what) override;
+    bool Create(const std::string &full_path, const iEditorInfo::FileHandleMethodInfo &what) override;
 
     void SetPreviewEditor(SharedEditor editor) override;
 
@@ -46,8 +45,8 @@ protected slots:
     void ItemDoubleClicked(const QModelIndex &);
     // void RefreshFilesystem();
     void RefreshTreeView();
-    void OpenFileEditor(iEditorProvider::EditorActionInfo editor_action,
-                        const std::string &full_path);
+    void OpenFileEditor(iEditorProvider::EditorActionInfo editor_action, const std::string &full_path);
+    void CreateFile(iEditorProvider::EditorActionInfo editor_action, const std::string &parent_full_path);
 
 private:
     std::unique_ptr<Ui::FilesystemViewer> ui;

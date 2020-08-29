@@ -2,7 +2,6 @@
 
 #include <QWidget>
 #include <change_container.hpp>
-#include <dock_window.hpp>
 #include <editor_provider.h>
 #include <issue_reporter.hpp>
 #include <main_window_tabs.hpp>
@@ -34,8 +33,7 @@ public:
     bool CanClose() const override;
 
     //iEditor
-    bool OpenData(const std::string &full_path,
-                  const iEditorInfo::FileHandleMethodInfo &method) override;
+    bool OpenData(const std::string &full_path, const iEditorInfo::FileHandleMethodInfo &method) override;
 
     //iChangeContainer
     bool SaveChanges() override;
@@ -44,16 +42,6 @@ public:
     bool DropChangesPossible() override;
     QIcon GetInfoIcon() const override;
 
-protected:
-    std::string full_file_path;
-    std::shared_ptr<iWritableFileSystem> file_system;
-
-    IssueProducer issue_producer;
-
-    SharedModuleManager GetModuleManager() const { return shared_module_manager; }
-
-    bool ReloadFile();
-    bool SaveFile();
 protected slots:
     void ModificationChanged(bool changed);
     void RedoAvailable(bool available);
@@ -64,6 +52,16 @@ protected slots:
 private:
     std::unique_ptr<Ui::ScriptEditor> ui;
     SharedModuleManager shared_module_manager;
+
+    std::string full_file_path;
+    std::shared_ptr<iWritableFileSystem> file_system;
+
+    IssueProducer issue_producer;
+
+    SharedModuleManager GetModuleManager() const { return shared_module_manager; }
+
+    bool ReloadFile();
+    bool SaveFile();
 };
 
 } // namespace MoonGlare::Tools::Editor::Modules

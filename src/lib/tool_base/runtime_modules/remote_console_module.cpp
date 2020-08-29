@@ -1,23 +1,24 @@
 #include "remote_console_module.hpp"
-#include <api/remote_console.h>
+#include <api/remote_console.hpp>
 
 namespace MoonGlare::Tools::RuntineModules {
-
-namespace Api = Tools::RemoteConsole::Api;
 
 RemoteConsoleModule::RemoteConsoleModule(SharedModuleManager modmgr)
     : iModule(std::move(modmgr)), port(Api::ReconPort) {
     // SetSettingID("RemoteConsoleModule");
 }
 
-RemoteConsoleModule::~RemoteConsoleModule() {}
+RemoteConsoleModule::~RemoteConsoleModule() {
+}
 
 bool RemoteConsoleModule::PostInit() {
     // ConnectTo(host, port);
     return true;
 }
 
-bool RemoteConsoleModule::Finalize() { return true; }
+bool RemoteConsoleModule::Finalize() {
+    return true;
+}
 
 // bool RemoteConsoleModule::DoSaveSettings(pugi::xml_node node) const {
 //     node.remove_child("Port");

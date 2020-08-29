@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <component/component_info_register.hpp>
 #include <orbit_logger.h>
 #include <orbit_logger/sink/file_sink.h>
 #include <os/Path.h>
@@ -36,7 +37,9 @@ int main(int argc, char *argv[]) {
 
     {
         auto modmgr = MoonGlare::Tools::ModuleManager::CreateModuleManager(GetAppConfig());
+
         modmgr->Initialize();
+        MoonGlare::Tools::Component::RegisterAllBaseComponents(modmgr);
         r = a.exec();
         modmgr->Finalize();
         modmgr.reset();
