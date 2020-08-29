@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SkeletalAnimationManager.h>
-#include <iAsyncLoader.h>
+#include "resources/async_loader.hpp"
+#include "resources/skeletal_animation_manager.hpp"
 #include <memory>
 #include <pugixml.hpp>
 #include <string>

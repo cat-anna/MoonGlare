@@ -1,4 +1,4 @@
-#include "BlobIo.h"
+#include "blob_io.hpp"
 #include <cassert>
 #include <orbit_logger.h>
 

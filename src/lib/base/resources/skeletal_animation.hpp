@@ -1,11 +1,10 @@
 #pragma once
 
+#include "configuration.hpp"
+#include <math/vector.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "Configuration.h"
-#include <Math/libMath.h>
 
 namespace MoonGlare::Resources {
 
@@ -13,7 +12,7 @@ enum class SkeletalAnimationHandle : uint32_t {
     Invalid = 0,
 };
 
-template<typename T>
+template <typename T>
 struct AnimationKey {
     using time_t = float;
     using item_t = T;
@@ -22,9 +21,9 @@ struct AnimationKey {
     T value;
 };
 
-using PositionKey = AnimationKey<emath::fvec3>;
-using ScalingKey = AnimationKey<emath::fvec3>;
-using RotationKey = AnimationKey<emath::Quaternion>;
+using PositionKey = AnimationKey<math::fvec3>;
+using ScalingKey = AnimationKey<math::fvec3>;
+using RotationKey = AnimationKey<math::Quaternion>;
 
 struct AnimationChannel {
     uint32_t positionKeyCount;
@@ -66,20 +65,18 @@ struct SkeletalAnimation {
     void *memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
 
     bool CheckPointers() const {
-        auto *memEnd = ((const uint8_t*)memoryBlockFront) + memoryBlockSize;
+        auto *memEnd = ((const uint8_t *)memoryBlockFront) + memoryBlockSize;
         auto check = [this, memEnd](const auto *ptr) -> bool {
-            auto *p = (const uint8_t*)ptr;
-            return p == nullptr || (p >= (const uint8_t*)memoryBlockFront && p < memEnd);
+            auto *p = (const uint8_t *)ptr;
+            return p == nullptr || (p >= (const uint8_t *)memoryBlockFront && p < memEnd);
         };
 
         for (uint16_t i = 0; i < channelCount; ++i) {
             if (!check(channel[i].positionKey) || !check(channel[i].rotationKey) || !check(channel[i].scalingKey))
                 return false;
         }
-        
-        return 
-            check(stringArrayBase) &&
-            check(memoryBlockFront);
+
+        return check(stringArrayBase) && check(memoryBlockFront);
     }
 
     void UpdatePointers(intptr_t newBase) {
@@ -103,7 +100,7 @@ struct SkeletalAnimation {
         update(stringArrayBase);
         update(memoryBlockFront);
     }
-};                                   
+};
 
 struct AnimationBlendState {
     struct BoneState {
@@ -119,7 +116,7 @@ struct AnimationBlendState {
         BoneState boneStates[Configuration::BoneCountLimit];
     };
 
-    AnimationState state;// [Configuration::AnimatonStateLimit];
+    AnimationState state; // [Configuration::AnimatonStateLimit];
 
     void Invalidate() {
         state.animationSetIndex = 0;
@@ -131,10 +128,13 @@ struct AnimationBlendState {
 
 struct AnimationLoopState {
     enum class LoopState : uint8_t {
-        None, Loop, Finished, Error,
+        None,
+        Loop,
+        Finished,
+        Error,
     };
 
-    LoopState state;// [Configuration::AnimatonStateLimit];
+    LoopState state; // [Configuration::AnimatonStateLimit];
 };
 
 struct BoneState {

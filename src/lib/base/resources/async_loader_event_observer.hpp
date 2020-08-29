@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <Component/EventDispatcher.h>
 #include <interface_map.h>
 
@@ -30,3 +31,4 @@ private:
 };
 
 } // namespace MoonGlare::Resources
+#endif

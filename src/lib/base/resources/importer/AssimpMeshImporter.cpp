@@ -1,24 +1,24 @@
 
-#pragma warning ( push, 0 )
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>  
-#pragma warning ( pop )
+#pragma warning(push, 0)
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#pragma warning(pop)
 
-#include <Memory/AlignedPtr.h>
-
-#include "AssimpMeshImporter.h"
+#include "AssimpMeshImporter.hpp"
+#include <aligned_ptr.hpp>
+#include <glm/glm.hpp>
 
 namespace MoonGlare::Resources::Importer {
 
 void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
     assert(scene);
     assert(meshIndex >= 0 && static_cast<unsigned>(meshIndex) < scene->mNumMeshes);
-    
+
     auto mesh = scene->mMeshes[meshIndex];
     size_t numIndices = mesh->mNumFaces * 3;
-    size_t baseVertex = 0;// static_cast<uint16_t>(NumVertices);
-    size_t baseIndex = 0;// static_cast<uint16_t>(numIndices);// *sizeof(uint32_t));
+    size_t baseVertex = 0; // static_cast<uint16_t>(NumVertices);
+    size_t baseIndex = 0;  // static_cast<uint16_t>(numIndices);// *sizeof(uint32_t));
 
     //meshes.elementMode = GL_TRIANGLES;
     //meshes.indexElementType = GL_UNSIGNED_INT;
@@ -43,7 +43,8 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
             aiVector3D &normal = mesh->mNormals[vertid];
 
             if (mesh->mTextureCoords[0]) {
-                aiVector3D &UVW = mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+                aiVector3D &UVW =
+                    mesh->mTextureCoords[0][vertid]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
                 MeshTexCords[vertid] = glm::fvec2(UVW.x, UVW.y);
             } else {
                 MeshTexCords[vertid] = glm::fvec2();
@@ -80,11 +81,11 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
             return MeshSource::InvalidBoneIndex;
         };
 
-        unsigned BaseVertex = 0;// meshData.BaseVertex;
+        unsigned BaseVertex = 0; // meshData.BaseVertex;
         for (size_t boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
             const auto *bone = mesh->mBones[boneIndex];
             meshData.boneNames[boneIndex] = bone->mName.data;
-            meshData.boneOffsetMatrices[boneIndex] = glm::transpose(*(glm::fmat4*)&bone->mOffsetMatrix);
+            meshData.boneOffsetMatrices[boneIndex] = glm::transpose(*(glm::fmat4 *)&bone->mOffsetMatrix);
 
             std::string vs;
             for (unsigned k = 0; k < bone->mNumWeights; ++k) {
@@ -92,7 +93,7 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
                 auto &VertexWeight = bone->mWeights[k];
 
                 auto vertexid = BaseVertex + VertexWeight.mVertexId;
-                auto & vertexBones = meshData.vertexBones[vertexid];
+                auto &vertexBones = meshData.vertexBones[vertexid];
                 vs += std::to_string(vertexid) + " ";
                 auto localboneid = AllocLocalBoneIndex(vertexid, vertexBones);
                 if (localboneid == MeshSource::InvalidBoneIndex) {
@@ -108,8 +109,8 @@ void ImportAssimpMesh(const aiScene *scene, int meshIndex, MeshSource &output) {
     }
 
     meshData.UpdateBoundary();
-}   
-                                                                                                                                                                                   
+}
+
 void ImportMeshSource(const MeshSource &source, MeshImport &output) {
     uint32_t memorySize = 0;
 
@@ -120,12 +121,14 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
     uint32_t indexSize = static_cast<uint32_t>(source.index.size() * sizeof(source.index[0]));
 
     uint32_t vertexBonesSize = static_cast<uint32_t>(source.vertexBones.size() * sizeof(source.vertexBones[0]));
-    uint32_t vertexBoneWeightsSize = static_cast<uint32_t>(source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]));
-    uint32_t boneMatricesSize = static_cast<uint32_t>(source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]));
+    uint32_t vertexBoneWeightsSize =
+        static_cast<uint32_t>(source.vertexBoneWeights.size() * sizeof(source.vertexBoneWeights[0]));
+    uint32_t boneMatricesSize =
+        static_cast<uint32_t>(source.boneOffsetMatrices.size() * sizeof(source.boneOffsetMatrices[0]));
 
-    uint32_t boneNamesArraySize = static_cast<uint32_t>(source.boneNames.size() * sizeof(const char*));
+    uint32_t boneNamesArraySize = static_cast<uint32_t>(source.boneNames.size() * sizeof(const char *));
     uint16_t boneNamesValuesSize = 0;
-    for(const auto & item :source.boneNames) {
+    for (const auto &item : source.boneNames) {
         boneNamesValuesSize += static_cast<uint16_t>(item.size() + 1);
     }
 
@@ -159,41 +162,41 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
     MeshData &md = output.mesh;
     md = {};
 
-    md.verticles = (glm::fvec3*)(mem + verticlesOffset);
+    md.verticles = (glm::fvec3 *)(mem + verticlesOffset);
     memcpy(md.verticles, &source.verticles[0], verticlesSize);
 
     if (source.UV0.size() > 0) {
-        md.UV0 = (glm::fvec2*)(mem + UV0Offset);
+        md.UV0 = (glm::fvec2 *)(mem + UV0Offset);
         memcpy(md.UV0, &source.UV0[0], UV0Size);
     }
 
     if (source.normals.size() > 0) {
-        md.normals = (glm::fvec3*)(mem + normalsOffset);
+        md.normals = (glm::fvec3 *)(mem + normalsOffset);
         memcpy(md.normals, &source.normals[0], normalsSize);
     }
 
     if (source.tangents.size() > 0) {
-        md.tangents = (glm::fvec3*)(mem + tangentsOffset);
+        md.tangents = (glm::fvec3 *)(mem + tangentsOffset);
         memcpy(md.tangents, &source.tangents[0], tangentsSize);
     }
 
-    md.index = (uint32_t*)(mem + indexOffset);
+    md.index = (uint32_t *)(mem + indexOffset);
     memcpy(md.index, &source.index[0], indexSize);
 
     if (source.vertexBones.size() > 0) {
-        md.vertexBones = (glm::u8vec4*)(mem + vertexBonesOffset);
+        md.vertexBones = (glm::u8vec4 *)(mem + vertexBonesOffset);
         memcpy(md.vertexBones, &source.vertexBones[0], vertexBonesSize);
     }
     if (source.vertexBoneWeights.size() > 0) {
-        md.vertexBoneWeights = (glm::fvec4*)(mem + vertexBoneWeightsOffset);
+        md.vertexBoneWeights = (glm::fvec4 *)(mem + vertexBoneWeightsOffset);
         memcpy(md.vertexBoneWeights, &source.vertexBoneWeights[0], vertexBoneWeightsSize);
     }
     if (source.boneNames.size() > 0) {
-        md.boneNameValues = (const char*)(mem + boneNamesValuesOffset);
-        md.boneNameOffsets = (uint16_t*)(mem + boneNamesArrayOffset);
+        md.boneNameValues = (const char *)(mem + boneNamesValuesOffset);
+        md.boneNameOffsets = (uint16_t *)(mem + boneNamesArrayOffset);
         uint16_t offset = 0;
         for (size_t i = 0; i < source.boneNames.size(); ++i) {
-            char * str = (char*)(mem + boneNamesValuesOffset + offset);
+            char *str = (char *)(mem + boneNamesValuesOffset + offset);
             md.boneNameOffsets[i] = offset;
             size_t len = source.boneNames[i].size();
             memcpy(str, source.boneNames[i].c_str(), len);
@@ -203,7 +206,7 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
         assert(offset == boneNamesValuesSize);
     }
     if (source.boneOffsetMatrices.size() > 0) {
-        md.boneMatrices = (glm::fmat4*)(mem + boneMatricesOffset);
+        md.boneMatrices = (glm::fmat4 *)(mem + boneMatricesOffset);
         memcpy(md.boneMatrices, &source.boneOffsetMatrices[0], boneMatricesSize);
     }
     md.boneCount = static_cast<uint8_t>(source.boneNames.size());
@@ -217,5 +220,5 @@ void ImportMeshSource(const MeshSource &source, MeshImport &output) {
     md.memoryBlockFront = mem;
     md.ready = false;
 }
- 
-}
+
+} // namespace MoonGlare::Resources::Importer

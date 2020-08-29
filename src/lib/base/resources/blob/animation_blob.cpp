@@ -1,7 +1,7 @@
 
-#include "AnimationBlob.h"
-#include "BlobHeaders.h"
-#include "BlobIo.h"
+#include "animation_blob.hpp"
+#include "blob_headers.hpp"
+#include "blob_io.hpp"
 #include <orbit_logger.h>
 
 namespace MoonGlare::Resources::Blob {

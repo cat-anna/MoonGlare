@@ -1,5 +1,5 @@
 
-#include <importer/AssimpAnimationImporter.h>
+#include "resources/importer/AssimpAnimationImporter.hpp"
 
 #pragma warning(push, 0)
 #include <assimp/Importer.hpp>
@@ -7,16 +7,18 @@
 #include <assimp/scene.h>
 #pragma warning(pop)
 
-#include "AssimpAnimationLoader.h"
-#include <Memory/AlignedPtr.h>
+#include "AssimpAnimationLoader.hpp"
+#include <aligned_ptr.hpp>
 
 namespace MoonGlare::Resources::Loader {
 
 AssimpAnimationLoader::AssimpAnimationLoader(std::string subpath, SkeletalAnimationHandle handle,
                                              SkeletalAnimationManager &Owner)
-    : owner(Owner), handle(handle), subpath(std::move(subpath)) {}
+    : owner(Owner), handle(handle), subpath(std::move(subpath)) {
+}
 
-AssimpAnimationLoader::~AssimpAnimationLoader() {}
+AssimpAnimationLoader::~AssimpAnimationLoader() {
+}
 
 void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) {
     importer = std::make_unique<Assimp::Importer>();

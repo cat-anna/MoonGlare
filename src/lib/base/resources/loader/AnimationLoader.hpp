@@ -1,8 +1,8 @@
 #pragma once
 
-#include <SkeletalAnimation.h>
-#include <SkeletalAnimationManager.h>
-#include <iAsyncLoader.h>
+#include "resources/async_loader.hpp"
+#include "resources/skeletal_animation.hpp"
+#include "resources/skeletal_animation_manager.hpp"
 
 namespace MoonGlare::Resources::Loader {
 

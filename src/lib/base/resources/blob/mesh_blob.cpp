@@ -1,8 +1,8 @@
 
-#include "MeshBlob.h"
-#include "BlobHeaders.h"
-#include "BlobIo.h"
-#include <math/EigenMath.h>
+#include "mesh_blob.hpp"
+#include "blob_headers.hpp"
+#include "blob_io.hpp"
+#include <math/vector.hpp>
 #include <orbit_logger.h>
 
 namespace MoonGlare::Resources::Blob {
@@ -28,7 +28,7 @@ struct V_0 {
         uint32_t vertexCount;
         uint32_t indexCount;
 
-        emath::fvec3 halfBoundingBox;
+        math::fvec3 halfBoundingBox;
         float boundingRadius;
 
         uint32_t memoryBlockSize;

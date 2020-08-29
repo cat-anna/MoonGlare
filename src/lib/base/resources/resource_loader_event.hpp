@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <Foundation/Scripts/ApiInit.h>
 
 namespace MoonGlare::Resources {
@@ -35,3 +36,4 @@ struct ResourceLoaderEvent {
 
 }
 
+#endif

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SkeletalAnimation.h>
+#include "resources/skeletal_animation.hpp"
 #include <memory>
 #include <pugixml.hpp>
 #include <string>

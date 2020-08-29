@@ -1,13 +1,13 @@
 
-#pragma warning ( push, 0 )
-#include <assimp/Importer.hpp>     
-#include <assimp/scene.h>          
-#include <assimp/postprocess.h>  
-#pragma warning ( pop )
+#pragma warning(push, 0)
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#pragma warning(pop)
 
-#include <Memory/AlignedPtr.h>
-
-#include "AssimpAnimationImporter.h"
+#include "AssimpAnimationImporter.hpp"
+#include <aligned_ptr.hpp>
+#include <glm/glm.hpp>
 
 namespace MoonGlare::Resources::Importer {
 
@@ -16,19 +16,20 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     assert(animIndex >= 0 && (size_t)animIndex < scene->mNumAnimations);
 
     const auto *assimpAnim = scene->mAnimations[animIndex];
-    pugi::xml_node animSetNode = animSetXml.find_child_by_attribute("AnimationSet", "Index", std::to_string(animIndex).c_str());
+    pugi::xml_node animSetNode =
+        animSetXml.find_child_by_attribute("AnimationSet", "Index", std::to_string(animIndex).c_str());
 
     //calculate memory requirement:
     uint32_t AnimationDataSize = 0;
-    size_t stringArraySize = 1; //first byte to be zero  
+    size_t stringArraySize = 1; //first byte to be zero
     stringArraySize += assimpAnim->mName.length + 1;
 
     for (size_t ch = 0; ch < assimpAnim->mNumChannels; ++ch) {
         uint32_t chsize = 0;
         auto &channel = assimpAnim->mChannels[ch];
-        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(PositionKey) * channel->mNumPositionKeys));
-        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(ScalingKey)  * channel->mNumScalingKeys));
-        chsize += static_cast<uint32_t>(Memory::Align16(sizeof(RotationKey) * channel->mNumRotationKeys));
+        chsize += static_cast<uint32_t>(Align16(sizeof(PositionKey) * channel->mNumPositionKeys));
+        chsize += static_cast<uint32_t>(Align16(sizeof(ScalingKey) * channel->mNumScalingKeys));
+        chsize += static_cast<uint32_t>(Align16(sizeof(RotationKey) * channel->mNumRotationKeys));
         stringArraySize += channel->mNodeName.length + 1;
         AnimationDataSize += chsize;
     }
@@ -40,7 +41,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
         }
     }
 
-	uint32_t dataAllocOffset = Memory::Align16(static_cast<uint32_t>(stringArraySize));
+    uint32_t dataAllocOffset = Align16(static_cast<uint32_t>(stringArraySize));
     AnimationDataSize += dataAllocOffset;
 
     output.memory.reset(new uint8_t[AnimationDataSize]);
@@ -49,15 +50,15 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     SkeletalAnimation &animInfo = output.animation;
     animInfo = {};
 
-    animInfo.stringArrayBase = (char*)mem;
+    animInfo.stringArrayBase = (char *)mem;
 
     size_t stringAllocOffset = 1;
 
-    auto pushString = [&stringAllocOffset, &animInfo](const char* text) {
+    auto pushString = [&stringAllocOffset, &animInfo](const char *text) {
         size_t len = strlen(text);
         size_t offset = stringAllocOffset;
         stringAllocOffset += len + 1;
-        char *out = (char*)animInfo.stringArrayBase + offset;
+        char *out = (char *)animInfo.stringArrayBase + offset;
         strcpy(out, text);
         out[len] = '\0';
         return (uint16_t)offset;
@@ -66,9 +67,9 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     auto allocData = [&dataAllocOffset, mem](auto arr, size_t cnt) -> decltype(arr) {
         size_t elemSize = sizeof(arr[0]);
         size_t len = cnt * elemSize;
-        len = Memory::Align16(len);
+        len = Align16(len);
         size_t offset = dataAllocOffset;
-        dataAllocOffset = Memory::Align16(dataAllocOffset + len);
+        dataAllocOffset = Align16(dataAllocOffset + len);
         assert((dataAllocOffset & 0xF) == 0);
         return reinterpret_cast<decltype(arr)>(mem + offset);
     };
@@ -107,7 +108,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
             auto &k = channel.positionKey[key];
             const auto &v = assimpChannel->mPositionKeys[key].mValue;
             k.time = (float)assimpChannel->mPositionKeys[key].mTime;
-            k.value = { v.x, v.y, v.z };
+            k.value = {v.x, v.y, v.z};
         }
 
         channel.rotationKey = allocData(channel.rotationKey, channel.rotationKeyCount);
@@ -115,11 +116,11 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
             auto &k = channel.rotationKey[key];
             const auto &v = assimpChannel->mRotationKeys[key].mValue;
             k.time = (float)assimpChannel->mRotationKeys[key].mTime;
-            if constexpr (std::is_same_v<RotationKey::item_t, emath::Quaternion>) {
-                k.value = { v.w, v.x, v.y, v.z };
+            if constexpr (std::is_same_v<RotationKey::item_t, math::Quaternion>) {
+                k.value = {v.w, v.x, v.y, v.z};
             } else {
                 if constexpr (std::is_same_v<RotationKey::item_t, glm::fvec3>) {
-                    k.value = { v.x, v.y, v.z, v.w };
+                    k.value = {v.x, v.y, v.z, v.w};
                 } else {
                     __debugbreak();
                 }
@@ -131,7 +132,7 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
             auto &k = channel.scalingKey[key];
             const auto &v = assimpChannel->mScalingKeys[key].mValue;
             k.time = (float)assimpChannel->mScalingKeys[key].mTime;
-            k.value = { v.x, v.y, v.z };
+            k.value = {v.x, v.y, v.z};
         }
     }
 
@@ -145,4 +146,4 @@ void ImportAssimpAnimation(const aiScene *scene, int animIndex, pugi::xml_node a
     animInfo.memoryBlockSize = AnimationDataSize;
 }
 
-}
+} // namespace MoonGlare::Resources::Importer

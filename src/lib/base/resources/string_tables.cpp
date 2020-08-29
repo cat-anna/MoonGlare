@@ -1,4 +1,4 @@
-#include "StringTables.h"
+#include "resources/string_tables.hpp"
 #include <interface_map.h>
 // #include "iFileSystem.h"
 

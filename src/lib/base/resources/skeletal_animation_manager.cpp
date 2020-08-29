@@ -1,9 +1,9 @@
 
-#include "SkeletalAnimationManager.h"
-#include "Loader/AnimationLoader.h"
-#include "Loader/AssimpAnimationLoader.h"
-#include "iAsyncLoader.h"
-#include <Blob/AnimationBlob.h>
+#include "skeletal_animation_manager.hpp"
+#include "async_loader.hpp"
+#include "blob/animation_blob.hpp"
+#include "loader/AnimationLoader.hpp"
+#include "loader/AssimpAnimationLoader.hpp"
 
 namespace MoonGlare::Resources {
 
@@ -24,7 +24,8 @@ SkeletalAnimationManager::SkeletalAnimationManager(InterfaceMap &ifaceMap) {
     allocationBitmap.ClearAllocation();
 }
 
-SkeletalAnimationManager::~SkeletalAnimationManager() {}
+SkeletalAnimationManager::~SkeletalAnimationManager() {
+}
 
 //-------------------------------------------------------------------------------------------------
 

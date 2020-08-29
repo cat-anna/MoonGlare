@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Mesh.h>
+#include "resources/Mesh.hpp"
 #include <memory>
 #include <string>
 

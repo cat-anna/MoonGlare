@@ -1,14 +1,15 @@
 #pragma once
 
-#include <Math/libMath.h>
+#include <glm/glm.hpp>
+#include <math/vector.hpp>
 
 namespace MoonGlare::Resources {
 
-struct alignas(16) Mesh { 
+struct alignas(16) Mesh {
     bool valid;
     uint8_t __padding[3];
 
-    uint16_t elementMode;            //TODO: is this needed, is GL_TRIANGLES required? (no?)
+    uint16_t elementMode; //TODO: is this needed, is GL_TRIANGLES required? (no?)
     uint16_t indexElementType;
 
     uint16_t baseVertex;
@@ -33,12 +34,12 @@ struct MeshSource {
     std::vector<std::string> boneNames;
     std::vector<glm::mat4> boneOffsetMatrices;
 
-    emath::fvec3 halfBoundingBox;
+    math::fvec3 halfBoundingBox;
     float boundingRadius;
 
     void UpdateBoundary() {
         boundingRadius = 0;
-        halfBoundingBox = emath::fvec3(0, 0, 0);
+        halfBoundingBox = math::fvec3(0, 0, 0);
         for (auto &v : verticles) {
             boundingRadius = std::max(boundingRadius, glm::length(v));
             for (int j = 0; j < 3; ++j)
@@ -66,32 +67,25 @@ struct MeshData {
     uint32_t vertexCount;
     uint32_t indexCount;
 
-    emath::fvec3 halfBoundingBox;
+    math::fvec3 halfBoundingBox;
     float boundingRadius;
 
     bool ready;
     uint32_t memoryBlockSize;
-    void *memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
+    void *
+        memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
 
     bool CheckPointers() const {
-        auto *memEnd = ((const uint8_t*)memoryBlockFront) + memoryBlockSize;
-        auto check = [this, memEnd] (const auto *ptr) -> bool {
-            auto *p = (const uint8_t*)ptr;
-            return ptr == nullptr || (p >= (const uint8_t*)memoryBlockFront && p < memEnd);
+        auto *memEnd = ((const uint8_t *)memoryBlockFront) + memoryBlockSize;
+        auto check = [this, memEnd](const auto *ptr) -> bool {
+            auto *p = (const uint8_t *)ptr;
+            return ptr == nullptr || (p >= (const uint8_t *)memoryBlockFront && p < memEnd);
         };
 
-        return 
-            check(verticles) &&
-            check(UV0) &&
-            check(normals) &&
-            check(tangents) &&
-            check(index) &&
-            check(vertexBones) &&
-            check(vertexBoneWeights) &&
-            check(boneMatrices) &&
-            check(boneNameValues) &&
-            check(boneNameOffsets);
+        return check(verticles) && check(UV0) && check(normals) && check(tangents) &&
+               check(index) && check(vertexBones) && check(vertexBoneWeights) &&
+               check(boneMatrices) && check(boneNameValues) && check(boneNameOffsets);
     }
 };
 
-}
+} // namespace MoonGlare::Resources

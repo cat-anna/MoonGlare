@@ -1,13 +1,15 @@
-#include "AnimationLoader.h"
-#include <Blob/AnimationBlob.h>
+#include "AnimationLoader.hpp"
+#include "resources/blob/animation_blob.hpp"
 #include <orbit_logger.h>
 
 namespace MoonGlare::Resources::Loader {
 
 AnimationLoader::AnimationLoader(SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner)
-    : owner(Owner), handle(handle) {}
+    : owner(Owner), handle(handle) {
+}
 
-AnimationLoader::~AnimationLoader() {}
+AnimationLoader::~AnimationLoader() {
+}
 
 void AnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) {
     // int animId = GetAnimIndex();
