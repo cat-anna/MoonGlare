@@ -5,6 +5,7 @@
 #include "svfs/vfs_module.hpp"
 #include <iostream>
 #include <memory>
+#include <runtime_modules.h>
 #include <svfs/svfs_class_register.hpp>
 #include <svfs/vfs_container.hpp>
 
@@ -28,6 +29,8 @@ private:
                 args.set(item.first.as<const char *>(), item.second.as<bool>());
             } else if (item.second.is<int>()) {
                 args.set(item.first.as<const char *>(), static_cast<int64_t>(item.second.as<int>()));
+            } else if (item.second.is<SharedModuleManager>()) {
+                args.set(item.first.as<const char *>(), std::any(item.second.as<SharedModuleManager>()));
             } else {
                 args.set(item.first.as<const char *>(), std::string(item.second.as<const char *>()));
             }

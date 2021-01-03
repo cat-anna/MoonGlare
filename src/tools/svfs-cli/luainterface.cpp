@@ -89,9 +89,8 @@ bool Lua::ExecuteChunk(const unsigned char *data, size_t len, const char *name) 
 
 //-------------------------------------------------------------------------------------------------
 
-bool Lua::Initialize() {
-    RegisterAPI();
-
+bool Lua::Initialize(SharedModuleManager module_manager) {
+    sol_lua["module_manager"] = module_manager;
     return true;
 }
 

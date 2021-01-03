@@ -4,6 +4,7 @@
 #include "arguments.h"
 #include <luasupport.h>
 #include <memory>
+#include <runtime_modules.h>
 #include <sol/sol.hpp>
 
 namespace MoonGlare::Tools::VfsCli {
@@ -26,7 +27,7 @@ struct Lua {
     lua_State *GetState() { return sol_lua.lua_state(); }
     sol::state_view &get_sol() { return sol_lua; }
 
-    bool Initialize();
+    bool Initialize(SharedModuleManager module_manager);
 
     bool LoadLibrary(const char *c);
     bool ExecuteScriptFile(const char *fname);

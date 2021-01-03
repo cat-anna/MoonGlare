@@ -2,6 +2,7 @@
 #include "cli.h"
 #include "sound_system_intetration.hpp"
 #include "svfs_lua.h"
+#include <component/component_info_register.hpp>
 #include <cstddef>
 #include <embedded/all_files.hpp>
 #include <iostream>
@@ -10,7 +11,9 @@
 #include <mutex>
 #include <orbit_logger/sink/file_sink.h>
 #include <orbit_logger/sink/stdout_sink.h>
+#include <runtime_modules.h>
 #include <string>
+#include <tool_base_module_registration.h>
 #include <vector>
 
 using namespace MoonGlare::Tools::VfsCli;
@@ -27,10 +30,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    MoonGlare::Tools::RegisterBaseModules();
+    auto module_manager = MoonGlare::Tools::ModuleManager::CreateModuleManager();
+    module_manager->Initialize();
+    MoonGlare::Tools::Component::RegisterAllBaseComponents(module_manager);
+
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
     if (initenv.log_file.empty()) {
-    LogCollector::AddLogSink<StdOutSink>();
+        LogCollector::AddLogSink<StdOutSink>();
     } else {
         LogCollector::AddLogSink<StdFileLoggerSink>(initenv.log_file);
     }
@@ -41,7 +49,7 @@ int main(int argc, char *argv[]) {
     SoundSystemIntegration ssi(lua, svfs.get());
     CLI cli(lua);
 
-    if (!lua->Initialize()) {
+    if (!lua->Initialize(module_manager)) {
         printf("Unable to initialize lua vm!\n");
         return 1;
     }
@@ -66,6 +74,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    module_manager->Finalize();
+    module_manager.reset();
     LogCollector::Stop();
 
     return 0;

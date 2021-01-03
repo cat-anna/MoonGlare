@@ -137,7 +137,7 @@ Help.Register { Command="mount_zip", Brief="mount zip file", Usage="mount_zip(zi
 function mount_zip(zip_file_path, monunt_point, opt_args)
 	opt_args = opt_args or {}
 	opt_args.zip_file_path=zip_file_path
-	opt_args.monunt_point=absolute(monunt_point)
+	opt_args.mount_point=absolute(monunt_point)
 	return StarVfs:MountContainer("zip", opt_args)
 end
 
