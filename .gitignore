@@ -1,4 +1,6 @@
-BuildConfiguration.lua
 bin
+build
 .vscode/
 *.dll
+compile_commands
+logs

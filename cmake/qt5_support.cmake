@@ -21,7 +21,7 @@ macro(auto_qt_gen TARGET)
   set_target_properties(${TARGET} PROPERTIES AUTORCC ON)
 endmacro()
 
-macro(qt_app TARGET)
+function(qt_app TARGET)
   auto_qt_gen(${TARGET})
 
   set_property(TARGET ${TARGET} PROPERTY WIN32_EXECUTABLE true)
@@ -32,7 +32,10 @@ macro(qt_app TARGET)
     COMMAND
       Qt5::windeployqt --no-translations --no-system-d3d-compiler --no-webkit2
       --no-compiler-runtime --no-virtualkeyboard --no-opengl-sw --dir
-      "${TARGET_DESTINATTION}/${CMAKE_BUILD_TYPE}"
+      "${TARGET_DESTINATTION}"
       "$<TARGET_FILE_DIR:${TARGET}>/$<TARGET_FILE_NAME:${TARGET}>")
 
-endmacro()
+  get_target_property(res_path qt-resources SOURCE_DIR)
+  file(GLOB_RECURSE icon_res ${res_path}/*.qrc ${res_path}/*.rc)
+  target_sources(${TARGET} PRIVATE ${icon_res})
+endfunction()

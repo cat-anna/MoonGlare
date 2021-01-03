@@ -5,10 +5,8 @@ target_include_directories(${TARGET} PUBLIC .)
 target_link_libraries(
   ${TARGET}
   base
-  resources
   star_vfs
   fmt::fmt
-  pugixml
-  glfw3
-  glew
+  glfw
+  glad::glad
   orbit_logger)

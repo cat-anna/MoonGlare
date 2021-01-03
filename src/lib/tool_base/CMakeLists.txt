@@ -9,5 +9,4 @@ target_link_libraries(
   # luajit
   orbit_logger
   base
-  resources
   star_vfs)
