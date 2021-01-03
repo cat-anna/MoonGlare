@@ -1,5 +1,6 @@
-#include "HandleApi.h"
-#include "StateProcessor.h"
+#include "HandleApi.hpp"
+#include "StateProcessor.hpp"
+#include <orbit_logger.h>
 
 namespace MoonGlare::SoundSystem {
 
@@ -7,46 +8,28 @@ HandleApi::HandleApi(StateProcessor *stateProcessor) : stateProcessor(stateProce
 }
 
 HandleApi::~HandleApi() {
-    stateProcessor = nullptr;
 }
 
-
 void HandleApi::SetUserData(SoundHandle handle, UserData userData) const {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return;
     stateProcessor->SetUserData(handle, userData);
 }
 
 void HandleApi::SetCallback(std::shared_ptr<iPlaybackWatcher> iface) const {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return;
     stateProcessor->SetCallback(std::move(iface));
 }
 
 bool HandleApi::IsSoundHandleValid(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return false;
     return stateProcessor->IsSoundHandleValid(handle);
 }
 
-void HandleApi::Close(SoundHandle handle, bool ContinuePlaying){
-    assert(stateProcessor);
-    if (stateProcessor) {
-        SetReleaseOnStop(handle, !ContinuePlaying);
-        if (!ContinuePlaying)
-            Stop(handle);
-        stateProcessor->CloseSoundHandle(handle);
-    }
+void HandleApi::Close(SoundHandle handle, bool ContinuePlaying) {
+    SetReleaseOnStop(handle, !ContinuePlaying);
+    if (!ContinuePlaying)
+        Stop(handle);
+    stateProcessor->CloseSoundHandle(handle);
 }
 
-SoundHandle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return SoundHandle::Invalid;
-
+SoundHandle HandleApi::Open(std::string_view uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
     SoundHandle handle = stateProcessor->AllocateSource();
     if (handle == SoundHandle::Invalid) {
         //todo: log error
@@ -59,49 +42,29 @@ SoundHandle HandleApi::Open(const std::string &uri, bool StartPlayback, SoundKin
         return SoundHandle::Invalid;
     }
 
-    //std::unique_ptr<iSound> WorkThread::OpenSound(const std::string &uri, bool start, SoundKind kind) {
-    //    SourceIndex si = stateProcessor->AllocateSource();
-    //    if (si == InvalidSourceIndex)
-    //        return nullptr;
-    //    auto &state = storage->sourceState[(size_t)si];
-    //    state.uri = uri;
-    //    state.status = SourceStatus::InitPending;
-    //    if (start)
-    //        state.command = SourceCommand::ResumePlaying;
-    //    stateProcessor->ActivateSource(si);
-    //    return std::move(p);
-    //}
-
     stateProcessor->ActivateSource(handle);
     if (StartPlayback)
         Play(handle);
+
+    SetReleaseOnStop(handle, ReleaseOnStop);
+
     return handle;
 }
 
-void HandleApi::ReopenStream(SoundHandle &handle, const char *uri, SoundKind kind) {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return;
-
+void HandleApi::ReopenStream(SoundHandle &handle, std::string_view uri, SoundKind kind) {
     if (!stateProcessor->IsSoundHandleValid(handle)) {
         handle = Open(uri, false, kind, false);
         return;
     }
 
     stateProcessor->ReopenStream(handle, uri, kind);
-}   
+}
 
-const char *HandleApi::GetStreamURI(SoundHandle handle) {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return nullptr;
+std::string_view HandleApi::GetStreamURI(SoundHandle handle) {
     return stateProcessor->GetStreamURI(handle);
 }
 
 SoundState HandleApi::GetState(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (!stateProcessor)
-        return SoundState::Invalid;
     switch (stateProcessor->GetStatus(handle)) {
     case SourceStatus::Playing:
         return SoundState::Playing;
@@ -120,15 +83,11 @@ SoundState HandleApi::GetState(SoundHandle handle) const {
 }
 
 void HandleApi::Play(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (stateProcessor)
-        stateProcessor->SetCommand(handle, SourceCommand::ResumePlaying);
+    stateProcessor->SetCommand(handle, SourceCommand::ResumePlaying);
 }
 
 void HandleApi::Pause(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (stateProcessor)
-        stateProcessor->SetCommand(handle, SourceCommand::Pause);
+    stateProcessor->SetCommand(handle, SourceCommand::Pause);
 }
 
 void HandleApi::Stop(SoundHandle handle) const {
@@ -137,17 +96,12 @@ void HandleApi::Stop(SoundHandle handle) const {
         stateProcessor->SetCommand(handle, SourceCommand::StopPlaying);
 }
 
-void HandleApi::SetLoop(SoundHandle handle, bool value) const{
-    assert(stateProcessor);
-    if (stateProcessor)
-        stateProcessor->SetLoop(handle, value);
+void HandleApi::SetLoop(SoundHandle handle, bool value) const {
+    stateProcessor->SetLoop(handle, value);
 }
 
-bool HandleApi::GetLoop(SoundHandle handle) const{
-    assert(stateProcessor);
-    if (stateProcessor)
-        return stateProcessor->GetLoop(handle);
-    return false;
+bool HandleApi::GetLoop(SoundHandle handle) const {
+    return stateProcessor->GetLoop(handle);
 }
 
 void HandleApi::SetSoundKind(SoundHandle handle, SoundKind value) const {
@@ -157,24 +111,15 @@ void HandleApi::SetSoundKind(SoundHandle handle, SoundKind value) const {
 }
 
 SoundKind HandleApi::GetSoundKind(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (stateProcessor)
-        return stateProcessor->GetSoundKind(handle);
-    return SoundKind::None;
+    return stateProcessor->GetSoundKind(handle);
 }
 
 float HandleApi::GetTimePosition(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (stateProcessor)
-        return stateProcessor->GetTimePosition(handle);
-    return -1;
+    return stateProcessor->GetTimePosition(handle);
 }
 
 float HandleApi::GetDuration(SoundHandle handle) const {
-    assert(stateProcessor);
-    if (stateProcessor)
-        return stateProcessor->GetDuration(handle);
-    return -1;
+    return stateProcessor->GetDuration(handle);
 }
 
 void HandleApi::SetSourceGain(SoundHandle handle, float gain) const {
@@ -188,22 +133,22 @@ float HandleApi::GetSourceGain(SoundHandle handle) const {
     return -1;
 }
 
-void HandleApi::SetSourcePosition(SoundHandle handle, const Vector coord) const {
+void HandleApi::SetSourcePosition(SoundHandle handle, const Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetSourcePosition(SoundHandle handle, Vector coord) const {
+void HandleApi::GetSourcePosition(SoundHandle handle, Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetSourceVelocity(SoundHandle handle, const Vector coord) const {
+void HandleApi::SetSourceVelocity(SoundHandle handle, const Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetSourceVelocity(SoundHandle handle, Vector coord) const {
+void HandleApi::GetSourceVelocity(SoundHandle handle, Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
@@ -224,22 +169,22 @@ float HandleApi::GetListenerGain() const {
     return -1;
 }
 
-void HandleApi::SetListenerPosition(SoundHandle handle, const Vector coord) const {
+void HandleApi::SetListenerPosition(SoundHandle handle, const Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetListenerPosition(SoundHandle handle, Vector coord) const {
+void HandleApi::GetListenerPosition(SoundHandle handle, Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::SetListenerVelovity(SoundHandle handle, const Vector coord) const {
+void HandleApi::SetListenerVelocity(SoundHandle handle, const Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
 
-void HandleApi::GetListenerVelovity(SoundHandle handle, Vector coord) const {
+void HandleApi::GetListenerVelocity(SoundHandle handle, Vector3f coord) const {
     assert(stateProcessor);
     //todo
 }
@@ -250,4 +195,4 @@ void HandleApi::SetReleaseOnStop(SoundHandle handle, bool value) {
         stateProcessor->SetReleaseOnStop(handle, value);
 }
 
-}
+} // namespace MoonGlare::SoundSystem

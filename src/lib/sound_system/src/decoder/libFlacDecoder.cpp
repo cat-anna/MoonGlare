@@ -1,50 +1,41 @@
-#include "libModPlugDecoder.h"
-#include "../Configuration.h"
+#include "decoder.hpp"
+#include "sound_system/configuration.hpp"
+#include <orbit_logger.h>
 
-
-#ifndef SOUNDSYSTEM_DISABLE_LIBFLAC
-
-#if !__has_include("FLAC/stream_decoder.h")
-#define SOUNDSYSTEM_DISABLE_LIBFLAC
-#endif
-
-#endif
-
-#ifndef SOUNDSYSTEM_DISABLE_LIBFLAC
+#ifdef SOUNDSYSTEM_ENABLE_LIBFLAC
 
 #include "FLAC/stream_decoder.h"
-
 
 namespace MoonGlare::SoundSystem::Decoder {
 
 struct FLACStreamDecoderFileDeleter {
-    void operator()(FLAC__StreamDecoder *h) {
-        FLAC__stream_decoder_delete(h);
-    }
+    void operator()(FLAC__StreamDecoder *h) { FLAC__stream_decoder_delete(h); }
 };
 
 class LibFlacDecoder : public iDecoder {
 public:
-    LibFlacDecoder() { }
-    ~LibFlacDecoder() { }
+    LibFlacDecoder() {}
+    ~LibFlacDecoder() override = default;
 
-    static FLAC__StreamDecoderReadStatus FlacRead(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data) {
-        LibFlacDecoder *This = (LibFlacDecoder*)client_data;
-        size_t remain = This->fileData.byte_size() - This->position;
+    static FLAC__StreamDecoderReadStatus FlacRead(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[],
+                                                  size_t *bytes, void *client_data) {
+        LibFlacDecoder *This = (LibFlacDecoder *)client_data;
+        size_t remain = This->fileData.size() - This->position;
         if (remain == 0)
             return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 
         if (*bytes > 0) {
             *bytes = std::min(*bytes, remain);
-            memcpy(buffer, This->fileData.get() + This->position, *bytes);
+            memcpy(buffer, This->fileData.data() + This->position, *bytes);
             This->position += *bytes;
             return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
         }
         return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
     }
 
-    static void FlacMetadata(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
-        LibFlacDecoder *This = (LibFlacDecoder*)client_data;
+    static void FlacMetadata(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata,
+                             void *client_data) {
+        LibFlacDecoder *This = (LibFlacDecoder *)client_data;
 
         if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
             //unsigned total_samples = metadata->data.stream_info.total_samples;
@@ -55,24 +46,28 @@ public:
             This->duration = static_cast<float>(totalSamples) / static_cast<float>(streamRate);
             int format = 0;
             if (channels == 2) {
-                if (bps == 16)
+                if (bps == 16) {
                     format = AL_FORMAT_STEREO16;
-                if (bps == 8)
+                }
+                if (bps == 8) {
                     format = AL_FORMAT_STEREO8;
-            }
-            else {
-                if (bps == 16)
+                }
+            } else {
+                if (bps == 16) {
                     format = AL_FORMAT_MONO16;
-                if (bps == 8)
+                }
+                if (bps == 8) {
                     format = AL_FORMAT_MONO8;
+                }
             }
             This->format = format;
             This->streamRate = streamRate;
         }
     }
 
-    static FLAC__StreamDecoderWriteStatus FlacWrite(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data) {
-        LibFlacDecoder *This = (LibFlacDecoder*)client_data;
+    static FLAC__StreamDecoderWriteStatus FlacWrite(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame,
+                                                    const FLAC__int32 *const buffer[], void *client_data) {
+        LibFlacDecoder *This = (LibFlacDecoder *)client_data;
 
         if (frame->header.channels > 2) { // 0 case is ignored
             AddLogf(Error, "Invalid flac stream channel count!");
@@ -80,7 +75,7 @@ public:
         }
 
         auto &pendingBytes = This->pendingBytes;
-        char* outBuffer = This->decodeBuffer.get();
+        char *outBuffer = This->decodeBuffer.get();
         unsigned bytesPerSample = frame->header.bits_per_sample / 8;
 
         unsigned bytesPerChannel = frame->header.channels * bytesPerSample;
@@ -91,9 +86,10 @@ public:
                 memcpy(outBuffer + pendingBytes, &v, bytesPerSample);
                 pendingBytes += bytesPerSample;
             }
-            if(pendingBytes > Configuration::DesiredBufferSize - bytesPerChannel) {
+            if (pendingBytes > kDesiredBufferSize - bytesPerChannel) {
                 //AddLogf(Debug, "Decoded buffer size: %d", pendingBytes);
-                alBufferData(This->currentBufferHandle, This->format, outBuffer, pendingBytes, This->streamRate);
+                alBufferData(This->currentBufferHandle, This->format, outBuffer, static_cast<ALsizei>(pendingBytes),
+                             This->streamRate);
                 This->bufferCompleted = true;
                 This->filledBytes = pendingBytes;
                 pendingBytes = 0;
@@ -103,12 +99,13 @@ public:
         return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
     }
 
-    static void FlacError(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+    static void FlacError(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status,
+                          void *client_data) {
         //LibFlacDecoder *This = (LibFlacDecoder*)client_data;
         AddLogf(Error, "FLAC decoder error: %s", FLAC__StreamDecoderErrorStatusString[status]);
     }
 
-    bool SetData(StarVFS::ByteTable data, const std::string &fn)  override {
+    bool SetData(std::string data, const std::string &fn) override {
         fileData.swap(data);
         fileName = fn;
         handle.reset();
@@ -129,7 +126,8 @@ public:
 
         FLAC__stream_decoder_set_md5_checking(handle.get(), true);
 
-        auto init_status = FLAC__stream_decoder_init_stream(handle.get(), &FlacRead, nullptr, nullptr, nullptr, nullptr, &FlacWrite, &FlacMetadata, &FlacError, this);
+        auto init_status = FLAC__stream_decoder_init_stream(handle.get(), &FlacRead, nullptr, nullptr, nullptr, nullptr,
+                                                            &FlacWrite, &FlacMetadata, &FlacError, this);
         if (init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
             AddLogf(Error, "Flac decoder init failed! msg: %s\n", FLAC__StreamDecoderInitStatusString[init_status]);
             handle.reset();
@@ -137,7 +135,7 @@ public:
         }
 
         if (!decodeBuffer)
-            decodeBuffer.reset(new char[Configuration::DesiredBufferSize]);
+            decodeBuffer.reset(new char[kDesiredBufferSize]);
 
         if (!FLAC__stream_decoder_process_until_end_of_metadata(handle.get()))
             return false;
@@ -148,13 +146,13 @@ public:
     static constexpr uint32_t StepSize = 16 * 1024;
     static constexpr int SampleSize = 2;
 
-    DecodeState DecodeBuffer(SoundBuffer buffer, uint32_t *decodedBytes) override {
+    DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t *decodedBytes) override {
         if (!handle)
             return DecodeState::Error;
 
         currentBufferHandle = buffer;
         bufferCompleted = false;
-         
+
         while (!bufferCompleted) {
             auto state = FLAC__stream_decoder_get_state(handle.get());
             if (state == FLAC__STREAM_DECODER_END_OF_STREAM)
@@ -165,29 +163,29 @@ public:
         }
 
         if (!bufferCompleted && pendingBytes > 0) {
-            alBufferData(buffer, format, decodeBuffer.get(), pendingBytes, streamRate);
+            alBufferData(buffer, format, decodeBuffer.get(), static_cast<ALsizei>(pendingBytes), streamRate);
             bufferCompleted = true;
             filledBytes = pendingBytes;
             //AddLogf(Debug, "Decoded buffer size: %d", filledBytes);
         }
 
-        if (decodedBytes)
-            *decodedBytes = filledBytes;
+        if (decodedBytes != nullptr) {
+            *decodedBytes = static_cast<uint32_t>(filledBytes);
+        }
 
         if (filledBytes == 0)
             return DecodeState::Completed;
 
-        if (filledBytes < Configuration::DesiredBufferSize)
+        if (filledBytes < kDesiredBufferSize)
             return DecodeState::LastBuffer;
-        
+
         return DecodeState::Continue;
     }
 
-    float GetDuration() const override {
-        return duration;
-    }
+    float GetDuration() const override { return duration; }
+
 private:
-    StarVFS::ByteTable fileData;
+    std::string fileData;
     std::string fileName;
     std::unique_ptr<FLAC__StreamDecoder, FLACStreamDecoderFileDeleter> handle;
     size_t position = 0;
@@ -208,14 +206,12 @@ private:
 
 class LibFlacDecoderFactory : public iDecoderFactory {
 public:
-    LibFlacDecoderFactory() { }
-    ~LibFlacDecoderFactory() { }
-    std::unique_ptr<iDecoder> CreateDecoder() override {
-        return std::make_unique<LibFlacDecoder>();
-    }
+    LibFlacDecoderFactory() {}
+    ~LibFlacDecoderFactory() {}
+    std::unique_ptr<iDecoder> CreateDecoder() override { return std::make_unique<LibFlacDecoder>(); }
 };
 
-}
+} // namespace MoonGlare::SoundSystem::Decoder
 
 #endif
 
@@ -224,7 +220,7 @@ public:
 namespace MoonGlare::SoundSystem::Decoder {
 
 std::vector<DecoderInfo> GetLibFlacDecoderInfo() {
-#ifdef SOUNDSYSTEM_DISABLE_LIBFLAC
+#ifndef SOUNDSYSTEM_ENABLE_LIBFLAC
     return {};
 #else
     DecoderInfo di;
@@ -233,10 +229,10 @@ std::vector<DecoderInfo> GetLibFlacDecoderInfo() {
     di.decoderFactory = factory;
 
     di.supportedFormats = std::vector<FormatInfo>{
-        FormatInfo{ "flac", "flac", "libflac" },
+        FormatInfo{"flac", "flac", "libflac"},
     };
-    return { di };
+    return {di};
 #endif
 }
 
-}
+} // namespace MoonGlare::SoundSystem::Decoder

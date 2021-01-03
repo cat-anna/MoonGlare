@@ -1,52 +1,42 @@
-#include "libModPlugDecoder.h"
-#include "../Configuration.h"
+#include "decoder.hpp"
+#include "sound_system/configuration.hpp"
+#include <orbit_logger.h>
 
-
-#ifndef SOUNDSYSTEM_DISABLE_LIBMODPLUG
-
-#if !__has_include("libmodplug/modplug.h")
-#define SOUNDSYSTEM_DISABLE_LIBMODPLUG
-#endif
-
-#endif
-
-#ifndef SOUNDSYSTEM_DISABLE_LIBMODPLUG
+#ifdef SOUNDSYSTEM_ENABLE_LIBMODPLUG
 
 #include <libmodplug/modplug.h>
 
 namespace MoonGlare::SoundSystem::Decoder {
 
 struct ModPlugFileDeleter {
-    void operator()(ModPlugFile*f) {
-        ModPlug_Unload(f);
-    }
+    void operator()(ModPlugFile *f) { ModPlug_Unload(f); }
 };
 
 class LibModPlugDecoder : public iDecoder {
 public:
-    LibModPlugDecoder() { }
-    ~LibModPlugDecoder() { }
+    LibModPlugDecoder() {}
+    ~LibModPlugDecoder() {}
 
-    bool SetData(StarVFS::ByteTable data, const std::string &fn)  override {
+    bool SetData(std::string data, const std::string &fn) override {
         modPlugFile.reset();
         fileData.swap(data);
         fileName = fn;
         return true;
     }
 
-    bool Reset()  override {
+    bool Reset() override {
         modPlugFile.reset();
         if (fileData.empty())
             return false;
 
-        modPlugFile.reset(ModPlug_Load(fileData.get(), static_cast<int>(fileData.byte_size())));
+        modPlugFile.reset(ModPlug_Load(fileData.c_str(), static_cast<int>(fileData.size())));
         if (!modPlugFile) {
             AddLogf(Error, "Cannot load file : %s", fileName.c_str());
             return false;
         }
         ModPlug_GetSettings(&settings);
-        if(!decodeBuffer)
-            decodeBuffer.reset(new char[Configuration::DesiredBufferSize]);
+        if (!decodeBuffer)
+            decodeBuffer.reset(new char[kDesiredBufferSize]);
         return true;
     }
 
@@ -58,15 +48,15 @@ public:
 
         char *buf = decodeBuffer.get();
         uint32_t totalSize = 0;
-        while (totalSize < Configuration::DesiredBufferSize) {
-            uint32_t toRead = std::min(StepSize, Configuration::DesiredBufferSize - totalSize);
+        while (totalSize < kDesiredBufferSize) {
+            uint32_t toRead = std::min(StepSize, kDesiredBufferSize - totalSize);
             int r = ModPlug_Read(modPlugFile.get(), buf + totalSize, toRead);
             if (r == 0)
                 break;
             totalSize += r;
         }
         //AddLogf(Debug, "Decoded buffer size: %u", totalSize);
-        if(totalSize == 0)
+        if (totalSize == 0)
             return DecodeState::Completed;
 
         if (decodedBytes != nullptr)
@@ -75,17 +65,16 @@ public:
         ALenum format = AL_FORMAT_STEREO16;
 
         alBufferData(buffer, format, buf, totalSize, settings.mFrequency);
-        if (totalSize < sizeof(Configuration::DesiredBufferSize))
+        if (totalSize < sizeof(kDesiredBufferSize))
             return DecodeState::LastBuffer;
 
         return DecodeState::Continue;
     }
 
-    float GetDuration() const override {
-        return static_cast<float>(ModPlug_GetLength(modPlugFile.get())) / 1000.0f;
-    }
+    float GetDuration() const override { return static_cast<float>(ModPlug_GetLength(modPlugFile.get())) / 1000.0f; }
+
 private:
-    StarVFS::ByteTable fileData;
+    std::string fileData;
     std::string fileName;
     ModPlug_Settings settings = {};
 
@@ -98,12 +87,10 @@ private:
 
 class LibModPlugDecoderFactory : public iDecoderFactory {
 public:
-    std::unique_ptr<iDecoder> CreateDecoder() override {
-        return std::make_unique<LibModPlugDecoder>();
-    }
+    std::unique_ptr<iDecoder> CreateDecoder() override { return std::make_unique<LibModPlugDecoder>(); }
 };
 
-}
+} // namespace MoonGlare::SoundSystem::Decoder
 
 #endif
 
@@ -112,7 +99,7 @@ public:
 namespace MoonGlare::SoundSystem::Decoder {
 
 std::vector<DecoderInfo> GetLibModPlugDecoderInfo() {
-#ifdef SOUNDSYSTEM_DISABLE_LIBMODPLUG
+#ifndef SOUNDSYSTEM_ENABLE_LIBMODPLUG
     return {};
 #else
     DecoderInfo di;
@@ -121,12 +108,12 @@ std::vector<DecoderInfo> GetLibModPlugDecoderInfo() {
     di.decoderFactory = factory;
 
     di.supportedFormats = std::vector<FormatInfo>{
-        FormatInfo{ "xm", "XM", "libmodplug" },
-        FormatInfo{ "mod", "mod", "libmodplug" },
-        FormatInfo{ "it", "it", "libmodplug" },
+        FormatInfo{"xm", "XM", "libmodplug"},
+        FormatInfo{"mod", "mod", "libmodplug"},
+        FormatInfo{"it", "it", "libmodplug"},
     };
-    return { di };
+    return {di};
 #endif
 }
 
-}
+} // namespace MoonGlare::SoundSystem::Decoder

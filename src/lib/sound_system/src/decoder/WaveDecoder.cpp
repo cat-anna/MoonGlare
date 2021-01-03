@@ -1,26 +1,28 @@
-#include "libModPlugDecoder.h"
-#include "../Configuration.h"
+#include "decoder.hpp"
+#include "sound_system/configuration.hpp"
+#include <orbit_logger.h>
 
-#ifndef SOUNDSYSTEM_DISABLE_WAVE
+#ifdef SOUNDSYSTEM_ENABLE_WAVE
 
 namespace MoonGlare::SoundSystem::Decoder {
 
 enum class ChunkId : uint32_t {
-    RIFF = 0x46464952,  //'RIFF'
-    DATA = 0x61746164,  //'DATA'
-    fmt  = 0x20746D66,  //'fmt '
+    RIFF = 0x46464952, //'RIFF'
+    DATA = 0x61746164, //'DATA'
+    fmt = 0x20746D66,  //'fmt '
 };
 
 struct chunk_t {
     ChunkId ID;
-    unsigned long size;  //Chunk data bytes
+    unsigned long size; //Chunk data bytes
 };
 
 struct wav_header_t {
     ChunkId chunkID; //"RIFF" = 0x46464952
-    unsigned long chunkSize; //28 [+ sizeof(wExtraFormatBytes) + wExtraFormatBytes] + sum(sizeof(chunk.id) + sizeof(chunk.size) + chunk.size)
-    char format[4]; //"WAVE" = 0x45564157
-    ChunkId subchunk1ID; //"fmt " = 0x20746D66
+    unsigned long
+        chunkSize; //28 [+ sizeof(wExtraFormatBytes) + wExtraFormatBytes] + sum(sizeof(chunk.id) + sizeof(chunk.size) + chunk.size)
+    char format[4];              //"WAVE" = 0x45564157
+    ChunkId subchunk1ID;         //"fmt " = 0x20746D66
     unsigned long subchunk1Size; //16 [+ sizeof(wExtraFormatBytes) + wExtraFormatBytes]
     unsigned short audioFormat;
     unsigned short numChannels;
@@ -34,17 +36,18 @@ struct wav_header_t {
 
 class WaveDecoder : public iDecoder {
 public:
-    WaveDecoder() { }
-    ~WaveDecoder() { }
+    WaveDecoder() {}
+    ~WaveDecoder() {}
 
-    bool SetData(StarVFS::ByteTable data, const std::string &fn)  override {
+    bool SetData(std::string data, const std::string &fn) override {
         fileData.swap(data);
         fileName = fn;
         return true;
     }
 
     bool Reset() override {
-        header = *reinterpret_cast<wav_header_t*>(fileData.get());
+        //TODO: check if size is correct and verify header
+        header = *reinterpret_cast<const wav_header_t *>(fileData.c_str());
         position = sizeof(header);
 
         format = 0;
@@ -53,23 +56,22 @@ public:
                 format = AL_FORMAT_STEREO16;
             if (header.bitsPerSample == 8)
                 format = AL_FORMAT_STEREO8;
-        }
-        else {
+        } else {
             if (header.bitsPerSample == 16)
                 format = AL_FORMAT_MONO16;
             if (header.bitsPerSample == 8)
                 format = AL_FORMAT_MONO8;
         }
-        
+
         if (format == 0) {
             AddLogf(Error, "Unsupported wave format: %s", fileName.c_str());
             return false;
         }
 
-        const char *data = (char*)fileData.get();
+        const char *data = fileData.c_str();
         size_t bytes = 0;
-        for (size_t pos = sizeof(header); pos < fileData.byte_size(); ) {
-            const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + pos);
+        for (size_t pos = sizeof(header); pos < fileData.size();) {
+            const chunk_t chunk = *reinterpret_cast<const chunk_t *>(data + pos);
             //const char *dataPtr = data + pos + sizeof(chunk);
             pos += sizeof(chunk);
             pos += chunk.size;
@@ -77,19 +79,20 @@ public:
             if (chunk.ID == ChunkId::DATA)
                 bytes += chunk.size;
         }
-        duration = static_cast<float>(bytes) / static_cast<float>(header.sampleRate * header.numChannels * (header.bitsPerSample / 8));
+        duration = static_cast<float>(bytes) /
+                   static_cast<float>(header.sampleRate * header.numChannels * (header.bitsPerSample / 8));
         return true;
     }
 
     DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t *decodedBytes) override {
-        if (!fileData || format == 0)
+        if (fileData.empty() || format == 0)
             return DecodeState::Error;
 
         bool gotData = false;
 
-        const char *data = (char*)fileData.get();
-        while (position < fileData.byte_size()) {
-            const chunk_t chunk = *reinterpret_cast<const chunk_t*>(data + position);
+        const char *data = fileData.c_str();
+        while (position < fileData.size()) {
+            const chunk_t chunk = *reinterpret_cast<const chunk_t *>(data + position);
             const char *dataPtr = data + position + sizeof(chunk);
 
             if (chunk.ID == ChunkId::DATA) {
@@ -111,12 +114,10 @@ public:
         return DecodeState::LastBuffer;
     }
 
-    float GetDuration() const override {
-        return duration;
-    }
+    float GetDuration() const override { return duration; }
 
 private:
-    StarVFS::ByteTable fileData;
+    std::string fileData;
     std::string fileName;
     size_t position = 0;
     wav_header_t header = {};
@@ -128,13 +129,10 @@ private:
 
 class WaveDecoderFactory : public iDecoderFactory {
 public:
-    std::unique_ptr<iDecoder> CreateDecoder() override {
-        return std::make_unique<WaveDecoder>();
-    }
+    std::unique_ptr<iDecoder> CreateDecoder() override { return std::make_unique<WaveDecoder>(); }
 };
 
 #endif
-
 }
 
 //-------------------------------------------------------------
@@ -142,7 +140,7 @@ public:
 namespace MoonGlare::SoundSystem::Decoder {
 
 std::vector<DecoderInfo> GetWaveDecoderInfo() {
-#ifdef SOUNDSYSTEM_DISABLE_WAVE
+#ifndef SOUNDSYSTEM_ENABLE_WAVE
     return {};
 #else
     DecoderInfo di;
@@ -151,11 +149,11 @@ std::vector<DecoderInfo> GetWaveDecoderInfo() {
     di.decoderFactory = factory;
 
     di.supportedFormats = std::vector<FormatInfo>{
-        FormatInfo{ "wav", "wave", "wave decoder" },
-        FormatInfo{ "wave", "wave", "wave decoder" },
+        FormatInfo{"wav", "wave", "wave decoder"},
+        FormatInfo{"wave", "wave", "wave decoder"},
     };
-    return { di };
+    return {di};
 #endif
 }
 
-}
+} // namespace MoonGlare::SoundSystem::Decoder

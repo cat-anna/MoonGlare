@@ -1,17 +1,12 @@
+#include "WorkThread.hpp"
+#include "StateProcessor.hpp"
+#include "build_configuration.hpp"
 #include <chrono>
-
-#include "WorkThread.h"
-#include "StateProcessor.h"
-
-#include <Memory/StaticVector.h>
+#include <orbit_logger.h>
 
 namespace MoonGlare::SoundSystem {
 
-WorkThread::WorkThread(SoundSystem * owner, iFileSystem * fs) : soundSystem(owner), fileSystem(fs) { }
-
-WorkThread::~WorkThread() { }
-
-void WorkThread::Initialize() {
+WorkThread::WorkThread(SoundSystem *owner, iReadOnlyFileSystem *fs) : soundSystem(owner), fileSystem(fs) {
     if (thread.joinable())
         throw std::runtime_error("Already initialized");
 
@@ -20,14 +15,14 @@ void WorkThread::Initialize() {
     stateProcessor = std::make_unique<StateProcessor>(fileSystem);
     stateProcessor->Initialize();
 
-    thread = std::thread([this]() { 
+    thread = std::thread([this]() {
         threadState = ThreadState::Starting;
-        ThreadMain(); 
+        ThreadMain();
         threadState = ThreadState::Finished;
     });
 }
 
-void WorkThread::Finalize() {
+WorkThread::~WorkThread() {
     if (threadState >= ThreadState::Running) {
         threadState = ThreadState::Stopping;
         thread.join();
@@ -36,7 +31,7 @@ void WorkThread::Finalize() {
 
     stateProcessor->Finalize();
     stateProcessor.reset();
-    
+
     FinalizeDevice();
 }
 
@@ -50,13 +45,15 @@ void WorkThread::ThreadMain() {
         stateProcessor->Step();
 
         std::unique_lock<std::mutex> lock(mtx);
-        threadWait.wait_for(lock, std::chrono::milliseconds(Configuration::ThreadStep));
+        threadWait.wait_for(lock, std::chrono::milliseconds(kThreadStep));
 
-        auto currentTime = std::chrono::steady_clock::now();
-        auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - reportTime).count();
-        if (interval > Configuration::DebugReportInterval) {
-            reportTime = currentTime;
-            stateProcessor->PrintState();
+        if constexpr (kDebugBuild) {
+            auto currentTime = std::chrono::steady_clock::now();
+            auto interval = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - reportTime).count();
+            if (interval > kDebugReportInterval) {
+                reportTime = currentTime;
+                stateProcessor->PrintState();
+            }
         }
     }
 }
@@ -65,8 +62,7 @@ void WorkThread::InitializeDevice() {
     /* Open and initialize a device */
     ALCdevice *device = alcOpenDevice(nullptr);
     ALCcontext *ctx = alcCreateContext(device, nullptr);
-    if (ctx == nullptr || alcMakeContextCurrent(ctx) == ALC_FALSE)
-    {
+    if (ctx == nullptr || alcMakeContextCurrent(ctx) == ALC_FALSE) {
         if (ctx != nullptr)
             alcDestroyContext(ctx);
         alcCloseDevice(device);
@@ -75,10 +71,12 @@ void WorkThread::InitializeDevice() {
     }
 
     const ALCchar *name = nullptr;
-    if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT"))
+    if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT")) {
         name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
-    if (!name || alcGetError(device) != AL_NO_ERROR)
+    }
+    if (!name || alcGetError(device) != AL_NO_ERROR) {
         name = alcGetString(device, ALC_DEVICE_SPECIFIER);
+    }
 
     AddLogf(Debug, "OpenAl initialized");
     AddLogf(System, "OpenAl version: %d.%d", alGetInteger(ALC_MAJOR_VERSION), alGetInteger(ALC_MINOR_VERSION));
@@ -98,4 +96,4 @@ void WorkThread::FinalizeDevice() {
     alcCloseDevice(device);
 }
 
-}
+} // namespace MoonGlare::SoundSystem

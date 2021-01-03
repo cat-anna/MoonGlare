@@ -11,6 +11,7 @@ struct InitEnv {
     bool verbose = false;
     bool load_internal_scripts = true;
     std::string startup_script;
+    std::string log_file;
 };
 
 struct Parser {

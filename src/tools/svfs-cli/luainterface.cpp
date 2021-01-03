@@ -45,7 +45,7 @@ static int LuaPrinToStream(lua_State *L, std::ostringstream &out) {
 static int lua_Print(lua_State *lua) {
     std::ostringstream out;
     LuaPrinToStream(lua, out);
-    AddLog(ScriptRuntime, out.str());
+    std::cout << out.str() << std::endl;
     return 0;
 }
 
@@ -62,7 +62,6 @@ Lua::Lua(const InitEnv &env) {
 //-------------------------------------------------------------------------------------------------
 
 void Lua::RegisterAPI() {
-    // luabridge::getGlobalNamespace(m_Lua.get()).addCFunction("debug", &lua_DebugPrint);
 }
 
 //-------------------------------------------------------------------------------------------------

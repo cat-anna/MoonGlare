@@ -1,5 +1,6 @@
 #include "arguments.h"
 #include "cli.h"
+#include "sound_system_intetration.hpp"
 #include "svfs_lua.h"
 #include <cstddef>
 #include <embedded/all_files.hpp>
@@ -28,11 +29,16 @@ int main(int argc, char *argv[]) {
 
     OrbitLogger::ThreadInfo::SetName("MAIN", true);
     LogCollector::Start();
+    if (initenv.log_file.empty()) {
     LogCollector::AddLogSink<StdOutSink>();
+    } else {
+        LogCollector::AddLogSink<StdFileLoggerSink>(initenv.log_file);
+    }
     LogCollector::SetChannelState(OrbitLogger::LogChannels::Verbose, initenv.verbose);
 
     auto lua = Lua::New(initenv);
     auto svfs = std::make_unique<SVfsLua>(lua);
+    SoundSystemIntegration ssi(lua, svfs.get());
     CLI cli(lua);
 
     if (!lua->Initialize()) {

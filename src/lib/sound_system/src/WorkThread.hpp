@@ -1,10 +1,15 @@
 #pragma once
 
-#include <Foundation/iFileSystem.h>
-
-#include "Decoder/iDecoder.h"
-#include "Configuration.h"
-#include "OpenAl.h"
+#include "HandleApi.hpp"
+#include "OpenAl.hpp"
+#include "decoder/decoder.hpp"
+#include "readonly_file_system.h"
+#include "sound_system/configuration.hpp"
+#include <atomic>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 namespace MoonGlare::SoundSystem {
 
@@ -21,21 +26,19 @@ enum class ThreadState {
 
 class WorkThread {
 public:
-    WorkThread(SoundSystem *owner, iFileSystem *fs);
+    WorkThread(SoundSystem *owner, iReadOnlyFileSystem *fs);
     ~WorkThread();
-
-    void Initialize();
-    void Finalize();
 
     StateProcessor *GetStateProcessor() { return stateProcessor.get(); }
 
-    HandleApi GetHandleApi() { return HandleApi(stateProcessor.get()); }
+    std::unique_ptr<iHandleApi> GetHandleApi() { return std::make_unique<HandleApi>(stateProcessor.get()); }
+
 private:
     std::thread thread;
     std::atomic<ThreadState> threadState = ThreadState::Stopped;
     std::condition_variable threadWait;
-    SoundSystem *soundSystem = nullptr;
-    iFileSystem *fileSystem = nullptr;
+    SoundSystem *const soundSystem = nullptr;
+    iReadOnlyFileSystem *const fileSystem = nullptr;
 
     std::unique_ptr<StateProcessor> stateProcessor;
 
@@ -45,4 +48,4 @@ private:
     void FinalizeDevice();
 };
 
-}
+} // namespace MoonGlare::SoundSystem

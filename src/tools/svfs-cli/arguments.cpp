@@ -32,7 +32,8 @@ struct PrivData {
     }
 
     void AddLine(std::string line) { m_Lines.emplace_back(std::move(line)); }
-    template <class... ARGS> void AddLine(const char *fmt, ARGS... args) {
+    template <class... ARGS>
+    void AddLine(const char *fmt, ARGS... args) {
         AddLine(fmt::format(fmt, std::forward<ARGS>(args)...));
     }
 
@@ -42,7 +43,8 @@ struct PrivData {
         }
     }
 
-    template <class... ARGS> void AddPrint(const char *fmt, ARGS... args) {
+    template <class... ARGS>
+    void AddPrint(const char *fmt, ARGS... args) {
         if (verbose) {
             AddLine(fmt::format("print([===[{}]===])", fmt::format(fmt, std::forward<ARGS>(args)...)));
         }
@@ -135,6 +137,7 @@ struct PrivData {
             ("verbose,v", po::bool_switch(), "Increase verbosity")                                             //
             ("no-cli", po::bool_switch(), "Do not enter CLI")                                                  //
             ("cli", po::bool_switch(), "Force entering CLI")                                                   //
+            ("log", po::value<std::string>(), "redirect log to file")                                          //
 
             ("library,l", po::value<std::vector<std::string>>(), "Load lua library") //
 
@@ -192,6 +195,9 @@ struct PrivData {
             exit(0);
         }
 
+        if (m_vm.count("log")) {
+            out.log_file = m_vm["log"].as<std::string>();
+        }
         return true;
     }
 };

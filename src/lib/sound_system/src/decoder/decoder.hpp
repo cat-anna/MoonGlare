@@ -1,11 +1,10 @@
 #pragma once
 
+#include "OpenAl.hpp"
+#include "sound_system/iSoundSystem.hpp"
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "../iSoundSystem.h"
-#include "../OpenAl.h"
 
 namespace MoonGlare::SoundSystem::Decoder {
 
@@ -24,25 +23,26 @@ public:
 
     virtual std::unique_ptr<iDecoder> CreateDecoder() = 0;
 
-    virtual void Initialize() { }
-    virtual void finalize() { }
-    virtual void SetSetings(const SoundSettings& settings) {}
+    virtual void SetSetings(const SoundSettings &settings) {}
+
 protected:
 };
 
 enum class DecodeState {
-    Continue, LastBuffer, Completed, Error,
+    Continue,
+    LastBuffer,
+    Completed,
+    Error,
 };
-                   
+
 class iDecoder {
 public:
     virtual ~iDecoder() {}
 
-    virtual bool SetData(StarVFS::ByteTable data, const std::string &fileName) = 0;
+    virtual bool SetData(std::string data, const std::string &fileName) = 0;
     virtual bool Reset() = 0;
     virtual DecodeState DecodeBuffer(SoundBuffer buffer, uint64_t *decodedBytes = nullptr) = 0;
     virtual float GetDuration() const = 0;
 };
 
-}
-         
+} // namespace MoonGlare::SoundSystem::Decoder

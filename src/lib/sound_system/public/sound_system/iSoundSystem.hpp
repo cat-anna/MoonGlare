@@ -1,7 +1,7 @@
 #pragma once
 
-#include "HandleApi.h"
-#include <interface_map.h>
+#include "iHandleApi.hpp"
+#include "readonly_file_system.h"
 
 namespace MoonGlare::SoundSystem {
 
@@ -25,20 +25,16 @@ struct FormatInfo {
 };
 
 class iSoundSystem {
-  public:
-    virtual ~iSoundSystem() {}
+public:
+    virtual ~iSoundSystem() = default;
+    virtual std::vector<FormatInfo> GetSupportedFormats() = 0;
 
     virtual SoundSettings GetSettings() = 0;
     virtual void SetSettings(SoundSettings value) = 0;
 
-    virtual void Initialize(InterfaceMap &ifmap) = 0;
-    virtual void Finalize() = 0;
+    virtual std::unique_ptr<iHandleApi> GetHandleApi() const = 0;
 
-    virtual HandleApi GetHandleApi() = 0;
-
-    virtual std::vector<FormatInfo> GetSupportedFormats() = 0;
-
-    static std::shared_ptr<iSoundSystem> Create();
+    static std::shared_ptr<iSoundSystem> Create(iReadOnlyFileSystem *fs);
 };
 
 } // namespace MoonGlare::SoundSystem

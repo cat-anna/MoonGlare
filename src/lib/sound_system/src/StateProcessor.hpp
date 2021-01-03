@@ -1,26 +1,41 @@
 #pragma once
 
-#include <Foundation/iFileSystem.h>
-#include <Memory/ActionQueue.h>
-#include <Memory/StaticVector.h>
-
-#include "Decoder/iDecoder.h"
-#include "Configuration.h"
-#include "HandleApi.h"
-#include "OpenAl.h"
+#include "HandleApi.hpp"
+#include "OpenAl.hpp"
+#include "decoder/decoder.hpp"
+#include "readonly_file_system.h"
+#include "sound_system/configuration.hpp"
+#include "synchronized_task_queue.hpp"
+#include <array>
+#include <atomic>
+#include <boost/container/static_vector.hpp>
+#include <functional>
+#include <mutex>
+#include <string_view>
+#include <unordered_map>
 
 namespace MoonGlare::SoundSystem {
 
 class SoundSystem;
 
-
 //todo: remove FinitPending?
 enum class SourceStatus : uint8_t {
-    Invalid, Standby, Inactive, InitPending, Playing, Paused, Stopped, FinitPending,
+    Invalid,
+    Standby,
+    Inactive,
+    InitPending,
+    Playing,
+    Paused,
+    Stopped,
+    FinitPending,
 };
 
 enum class SourceCommand : uint8_t {
-    None, Finalize, ResumePlaying, StopPlaying, Pause,
+    None,
+    Finalize,
+    ResumePlaying,
+    StopPlaying,
+    Pause,
 };
 
 using SoundHandleGeneration = uint16_t;
@@ -44,13 +59,13 @@ struct SourceState {
     //TODO: make watcherInterface not per stream
 
     SourceStatus status = SourceStatus::Invalid;
-    std::atomic<SourceCommand> command = SourceCommand::None;  //atomic?
+    std::atomic<SourceCommand> command = SourceCommand::None; //atomic?
     SoundKind kind = SoundKind::Auto;
     bool streamFinished = false;
     bool releaseOnStop = false;
-    bool loop = false;  //AL_LOOPING ?
+    bool loop = false; //AL_LOOPING ?
     SoundSource sourceSoundHandle = InvalidSoundSource;
-    std::unique_ptr<char[]> uri;             //atomic?
+    std::string uri;
     std::unique_ptr<Decoder::iDecoder> decoder;
 
     uint32_t processedBuffers = 0;
@@ -79,14 +94,12 @@ struct SourceState {
 
     UserData userData = 0;
 
-    bool Playable() const {
-        return status >= SourceStatus::Playing && status <= SourceStatus::Stopped;
-    }
+    bool Playable() const { return status >= SourceStatus::Playing && status <= SourceStatus::Stopped; }
 };
 
 class StateProcessor {
 public:
-    StateProcessor(iFileSystem * fs);
+    StateProcessor(iReadOnlyFileSystem *fs);
     ~StateProcessor();
 
     void Step();
@@ -104,52 +117,55 @@ public:
     void ActivateSource(SoundHandle handle);
     void DeactivateSource(SoundHandle handle);
 
-    void SetCommand(SoundHandle handle, SourceCommand command);  
+    void SetCommand(SoundHandle handle, SourceCommand command);
     SourceStatus GetStatus(SoundHandle handle);
     bool IsSoundHandleValid(SoundHandle handle) const { return CheckSoundHandle(handle).first; }
     SoundSource GetSoundSource(SoundHandle handle);
     void SetReleaseOnStop(SoundHandle handle, bool value);
     void CloseSoundHandle(SoundHandle handle); //closes only handle, state does not change
-    bool Open(SoundHandle handle, const std::string &uri, SoundKind kind);
+    bool Open(SoundHandle handle, std::string_view uri, SoundKind kind);
     float GetDuration(SoundHandle handle) const;
     float GetTimePosition(SoundHandle handle) const;
     void SetLoop(SoundHandle handle, bool value);
     bool GetLoop(SoundHandle handle);
     void SetUserData(SoundHandle handle, UserData userData);
     void SetCallback(std::shared_ptr<iPlaybackWatcher> iface);
-    void ReopenStream(SoundHandle handle, const char *uri, SoundKind kind);
-    const char *GetStreamURI(SoundHandle handle);
+    void ReopenStream(SoundHandle handle, std::string_view uri, SoundKind kind);
+    std::string_view GetStreamURI(SoundHandle handle);
     void SetSoundKind(SoundHandle handle, SoundKind value);
     SoundKind GetSoundKind(SoundHandle handle);
-private:
-    iFileSystem * fileSystem = nullptr;
 
-    template<typename T, size_t S>
-    using StaticVector = Memory::StaticVector<T, S>;
+private:
+    iReadOnlyFileSystem *const fileSystem = nullptr;
+
+    template <typename T, size_t S>
+    using StaticVector = boost::container::static_vector<T, S>;
 
     std::unordered_map<std::string, std::shared_ptr<Decoder::iDecoderFactory>> decoderFactories;
 
-    StaticVector<SoundBuffer, Configuration::MaxBuffers> standbyBuffers;
-    StaticVector<SourceIndex, Configuration::MaxSources> activeSources;
-    StaticVector<SourceState, Configuration::MaxSources> sourceState;
-    StaticVector<SoundHandleGeneration, Configuration::MaxSources> sourceStateGeneration;
+    StaticVector<SoundBuffer, kMaxBuffers> standbyBuffers;
+    StaticVector<SourceIndex, kMaxSources> activeSources;
+    StaticVector<SourceState, kMaxSources> sourceState;
+    std::array<SoundHandleGeneration, kMaxSources> sourceStateGeneration;
 
     //access protected by standbySourcesMutex;
-    StaticVector<SourceIndex, Configuration::MaxSources> standbySources;
-    //access protected by sourceAcivationQueueMutex;
-    StaticVector<SourceIndex, Configuration::SourceAcivationQueue> sourceAcivationQueue;
+    StaticVector<SourceIndex, kMaxSources> standbySources;
+    //access protected by sourceActivationQueueMutex;
+    StaticVector<SourceIndex, kSourceActivationQueue> sourceActivationQueue;
 
     uint32_t allocatedBuffersCount = 0;
     SoundSettings settings;
-    Memory::ActionQueue actionQueue;
+    SynchronizedTaskQueue<std::function<void()>> actionQueue;
 
     std::mutex standbySourcesMutex;
-    std::mutex sourceAcivationQueueMutex;
+    std::mutex sourceActivationQueueMutex;
     std::shared_ptr<iPlaybackWatcher> watcherInterface = nullptr;
     using lock_guard = std::lock_guard<std::mutex>;
 
     enum class SourceProcessStatus {
-        Continue, ReleaseAndRemove, Remove,
+        Continue,
+        ReleaseAndRemove,
+        Remove,
     };
 
     void CheckOpenAlError() const;
@@ -158,7 +174,7 @@ private:
     SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si);
 
     void ProcessPlayState(SourceIndex index, SourceState &state);
-    void CheckSoundKind(SourceState & state, SoundBuffer b);
+    void CheckSoundKind(SourceState &state, SoundBuffer b);
     bool LoadBuffer(SourceState &state, SoundBuffer sb);
 
     void ReleaseSourceBufferQueue(SourceState &state);
@@ -172,12 +188,12 @@ private:
     void ActivateSource(SourceIndex index);
     SourceIndex GetNextSource();
     void ReleaseSource(SourceIndex s);
-    void UpdateSourceVolume(SourceState & state);
+    void UpdateSourceVolume(SourceState &state);
 
-    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const char* uri);
+    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const char *uri);
 
     SoundHandle GetSoundHandle(SourceIndex s);
     std::pair<bool, SourceIndex> CheckSoundHandle(SoundHandle h) const;
 };
 
-}
+} // namespace MoonGlare::SoundSystem
