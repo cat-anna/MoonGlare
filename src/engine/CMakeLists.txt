@@ -12,3 +12,5 @@ target_link_libraries(
   glad::glad
   OpenGL::GL
   engine_core)
+
+# add_dependencies(engine all_data_packages)

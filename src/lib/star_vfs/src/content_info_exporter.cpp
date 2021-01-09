@@ -45,21 +45,18 @@ void ContentInfoExporter::StartExport() {
         my_path += "/";
         my_path += file->file_name;
 
+        out << my_path << "\n";
+        out << "\tfile://" << my_path << "\n";
+        out << fmt::format("\thash://{:016x} ({})\n", file->file_path_hash, file->file_path_hash);
+        out << fmt::format("\tparent {}\n", file->parent_path_hash);
+        if (file->resource_id > 0) {
+            out << fmt::format("\tres://{:016x} ({})\n", file->resource_id, file->resource_id);
+        }
+
         if (file->IsDirectory()) {
             for (auto &item : file->children) {
                 generator(item.get(), my_path);
             }
-            return;
-        }
-
-        out << my_path << "\n";
-        out << "\t"
-            << "file://" << my_path << "\n";
-        out << "\t"
-            << "hash://" << fmt::format("{:016x}", file->file_path_hash) << "\n";
-        if (file->resource_id > 0) {
-            out << "\t"
-                << "res://" << fmt::format("{:016x}", file->resource_id) << "\n";
         }
     };
 

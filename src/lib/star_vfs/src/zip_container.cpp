@@ -80,7 +80,8 @@ void ZipContainer::ReloadContainer() {
         auto parent_string = JoinPath(mount_point, zip_parent_path);
 
         auto parent_hash = Hasher::Hash(parent_string);
-        auto file_hash = Hasher::HashTogether(parent_string, "/", file_name);
+        auto file_hash = parent_string.empty() ? Hasher::HashTogether(parent_string, file_name)
+                                               : Hasher::HashTogether(parent_string, "/", file_name);
 
         ContainerFileEntry request_entry = {};
         request_entry.file_name = file_name;
