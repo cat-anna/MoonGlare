@@ -39,8 +39,8 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         mounted_containers.push_back({});
         auto &container_info = mounted_containers.back();
         try {
-            container_info.file_table_interface = std::make_unique<FileTableProxy>(
-                static_cast<uint32_t>(mounted_containers.size() - 1), &file_table);
+            container_info.file_table_interface =
+                std::make_unique<FileTableProxy>(static_cast<uint32_t>(mounted_containers.size() - 1), &file_table);
 
             container_info.instance = class_register->CreateContainerObject(
                 std::string(container_class), container_info.file_table_interface.get(), arguments);
@@ -51,27 +51,23 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
 
             AddLog(Debug, fmt::format("Mounted container of class {}", container_class));
         } catch (const std::exception &e) {
-            AddLog(Error, fmt::format("Failed to mount container of class {}: {}", container_class,
-                                      e.what()));
+            AddLog(Error, fmt::format("Failed to mount container of class {}: {}", container_class, e.what()));
             container_info.Reset();
         }
         return container_info.instance.get();
     };
 
-    iVfsModule *LoadModule(const std::string_view &module_class,
-                           const VariantArgumentMap &arguments) {
+    iVfsModule *LoadModule(const std::string_view &module_class, const VariantArgumentMap &arguments) {
         loaded_modules.push_back({});
         auto &module_info = loaded_modules.back();
         try {
-            module_info.instance =
-                class_register->CreateModuleObject(std::string(module_class), this, arguments);
+            module_info.instance = class_register->CreateModuleObject(std::string(module_class), this, arguments);
             if (!module_info.instance)
                 throw std::runtime_error("Failed to create module object");
             module_info.instance->Execute();
             AddLog(Debug, fmt::format("Loaded module of class {}", module_class));
         } catch (const std::exception &e) {
-            AddLog(Error,
-                   fmt::format("Failed to load module of class {}: {}", module_class, e.what()));
+            AddLog(Error, fmt::format("Failed to load module of class {}: {}", module_class, e.what()));
             module_info.Reset();
         }
         return module_info.instance.get();
@@ -80,15 +76,13 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
     std::unique_ptr<iVfsExporter> CreateExporter(const std::string_view &module_class,
                                                  const VariantArgumentMap &arguments) {
         try {
-            auto instance =
-                class_register->CreateExporterObject(std::string(module_class), this, arguments);
+            auto instance = class_register->CreateExporterObject(std::string(module_class), this, arguments);
             if (!instance)
                 throw std::runtime_error("Failed to create exporter object");
             AddLog(Debug, fmt::format("Created exporter of class {}", module_class));
             return instance;
         } catch (const std::exception &e) {
-            AddLog(Error,
-                   fmt::format("Failed to load module of class {}: {}", module_class, e.what()));
+            AddLog(Error, fmt::format("Failed to load module of class {}: {}", module_class, e.what()));
         }
         return nullptr;
     }
@@ -115,8 +109,7 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
 
         auto container = GetContainer(file->container_id);
         if (container == nullptr) {
-            AddLogf(Error, "Failed to get container of %u %u", file->file_path_hash,
-                    file->container_id);
+            AddLogf(Error, "Failed to get container of %u %u", file->file_path_hash, file->container_id);
             return false;
         }
 
@@ -130,8 +123,7 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
 
         auto container = GetContainer(file->container_id);
         if (container == nullptr) {
-            AddLogf(Error, "Failed to get container of %u %u", file->file_path_hash,
-                    file->container_id);
+            AddLogf(Error, "Failed to get container of %u %u", file->file_path_hash, file->container_id);
             return false;
         }
 
@@ -173,8 +165,7 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         file_entry->is_hidden = value;
     }
 
-    bool EnumerateFile(const FileEntry *file_entry, EnumerateFileFunctor &functor,
-                       bool recursive) const override {
+    bool EnumerateFile(const FileEntry *file_entry, EnumerateFileFunctor &functor, bool recursive) const override {
         if (file_entry == nullptr) {
             return false;
         }
@@ -226,9 +217,8 @@ iVfsModule *StarVirtualFileSystem::LoadModule(const std::string_view &module_cla
     return impl->LoadModule(module_class, arguments);
 }
 
-std::unique_ptr<iVfsExporter>
-StarVirtualFileSystem::CreateExporter(const std::string_view &module_class,
-                                      const VariantArgumentMap &arguments) {
+std::unique_ptr<iVfsExporter> StarVirtualFileSystem::CreateExporter(const std::string_view &module_class,
+                                                                    const VariantArgumentMap &arguments) {
     return impl->CreateExporter(module_class, arguments);
 }
 
@@ -242,6 +232,38 @@ bool StarVirtualFileSystem::ReadFileByPath(const std::string &path, std::string 
     return impl->ReadFile(file, file_data);
 };
 
+bool StarVirtualFileSystem::ReadFileByResourceId(FileResourceId resource, std::string &file_data) const {
+    auto *file = impl->file_table.FindFileByPath(resource);
+    if (file == nullptr) {
+        AddLogf(Error, "Failed to find resource %llu", resource);
+        return false;
+    }
+
+    return impl->ReadFile(file, file_data);
+}
+
+FileResourceId StarVirtualFileSystem::GetResourceByPath(const std::string_view &path) const {
+    auto *file = impl->file_table.FindFileByPath(path);
+    if (file == nullptr) {
+        AddLogf(Error, "Failed to find file %s : %llu", path.data(), Hasher::Hash(path));
+        return kInvalidResourceId;
+    }
+    return file->resource_id;
+}
+
+std::string StarVirtualFileSystem::GetNameOfResource(FileResourceId resource, bool wants_full_path) const {
+    auto *file = impl->file_table.FindFileByPath(resource);
+    if (file == nullptr) {
+        AddLogf(Error, "Failed to find resource %llu", resource);
+        return "";
+    }
+    if (wants_full_path) {
+        return file->GetFullPath();
+    } else {
+        return file->file_name;
+    }
+}
+
 bool StarVirtualFileSystem::WriteFileByPath(const std::string &path, const std::string &file_data) {
     auto *file = impl->file_table.FindFileByPath(path);
     if (file == nullptr) {
@@ -252,11 +274,9 @@ bool StarVirtualFileSystem::WriteFileByPath(const std::string &path, const std::
     return impl->WriteFile(file, file_data);
 }
 
-bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path,
-                                          FileInfoTable &result_file_table) const {
+bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const {
     result_file_table.clear();
-    iVfsModuleInterface::EnumerateFileFunctor functor = [&result_file_table](const FileEntry *child,
-                                                                             auto) -> bool {
+    iVfsModuleInterface::EnumerateFileFunctor functor = [&result_file_table](const FileEntry *child, auto) -> bool {
         FileInfoTable::value_type entry;
         entry.file_name = child->file_name;
         entry.file_path_hash = child->file_path_hash;

@@ -65,7 +65,7 @@ struct SourceState {
     bool releaseOnStop = false;
     bool loop = false; //AL_LOOPING ?
     SoundSource sourceSoundHandle = InvalidSoundSource;
-    std::string uri;
+    FileResourceId resource_id = kInvalidResourceId;
     std::unique_ptr<Decoder::iDecoder> decoder;
 
     uint32_t processedBuffers = 0;
@@ -123,15 +123,15 @@ public:
     SoundSource GetSoundSource(SoundHandle handle);
     void SetReleaseOnStop(SoundHandle handle, bool value);
     void CloseSoundHandle(SoundHandle handle); //closes only handle, state does not change
-    bool Open(SoundHandle handle, std::string_view uri, SoundKind kind);
+    bool Open(SoundHandle handle, FileResourceId resource, SoundKind kind);
     float GetDuration(SoundHandle handle) const;
     float GetTimePosition(SoundHandle handle) const;
     void SetLoop(SoundHandle handle, bool value);
     bool GetLoop(SoundHandle handle);
     void SetUserData(SoundHandle handle, UserData userData);
     void SetCallback(std::shared_ptr<iPlaybackWatcher> iface);
-    void ReopenStream(SoundHandle handle, std::string_view uri, SoundKind kind);
-    std::string_view GetStreamURI(SoundHandle handle);
+    void ReopenStream(SoundHandle handle, FileResourceId resource, SoundKind kind);
+    FileResourceId GetStreamResourceId(SoundHandle handle);
     void SetSoundKind(SoundHandle handle, SoundKind value);
     SoundKind GetSoundKind(SoundHandle handle);
 
@@ -190,7 +190,7 @@ private:
     void ReleaseSource(SourceIndex s);
     void UpdateSourceVolume(SourceState &state);
 
-    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(const char *uri);
+    std::shared_ptr<Decoder::iDecoderFactory> FindFactory(FileResourceId res_id);
 
     SoundHandle GetSoundHandle(SourceIndex s);
     std::pair<bool, SourceIndex> CheckSoundHandle(SoundHandle h) const;

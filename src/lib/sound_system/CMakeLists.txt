@@ -1,13 +1,10 @@
 set(TARGET sound_system)
 
-file(GLOB_RECURSE SRC src/* public/*)
+file(GLOB_RECURSE SRC src/* include/*)
 
 add_library(${TARGET} STATIC ${SRC})
 
-target_include_directories(
-  ${TARGET}
-  PUBLIC
-  public)
+target_include_directories(${TARGET} PUBLIC include)
 target_include_directories(${TARGET} PRIVATE src)
 
 target_link_libraries(${TARGET} PRIVATE base star_vfs fmt::fmt orbit_logger)

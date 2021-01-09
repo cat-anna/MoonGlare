@@ -193,8 +193,8 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
             if (state.Playable()) { //  && state.status != SourceStatus::Playing
                 if (state.status == SourceStatus::Paused) {
                     AddLogf(Debug, "Playing resumed: %s Source: %d processed buffers: %u bytes: %6.2f Mib",
-                            state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers,
-                            (float)state.processedBytes / (1024.0f * 1024.0f));
+                            fileSystem->GetNameOfResource(state.resource_id).c_str(), (int)state.sourceSoundHandle,
+                            state.processedBuffers, (float)state.processedBytes / (1024.0f * 1024.0f));
                     state.sourceSoundHandle.Play();
                     CheckOpenAlError();
                 } else {
@@ -211,8 +211,8 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
         case SourceCommand::Pause:
             if (state.status == SourceStatus::Playing) {
                 AddLogf(Debug, "Playing paused: %s Source: %d processed buffers: %u bytes: %6.2f Mib",
-                        state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers,
-                        (float)state.processedBytes / (1024.0f * 1024.0f));
+                        fileSystem->GetNameOfResource(state.resource_id).c_str(), (int)state.sourceSoundHandle,
+                        state.processedBuffers, (float)state.processedBytes / (1024.0f * 1024.0f));
                 state.sourceSoundHandle.Pause();
                 CheckOpenAlError();
                 state.status = SourceStatus::Paused;
@@ -221,8 +221,8 @@ StateProcessor::SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si
         case SourceCommand::StopPlaying:
             if (state.Playable()) {
                 AddLogf(Debug, "Playing stopped: %s Source: %d processed buffers: %u bytes: %6.2f Mib",
-                        state.uri.c_str(), (int)state.sourceSoundHandle, state.processedBuffers,
-                        (float)state.processedBytes / (1024.0f * 1024.0f));
+                        fileSystem->GetNameOfResource(state.resource_id).c_str(), (int)state.sourceSoundHandle,
+                        state.processedBuffers, (float)state.processedBytes / (1024.0f * 1024.0f));
                 state.sourceSoundHandle.Stop();
                 state.decoder->Reset();
                 state.ResetStatistics();
@@ -282,7 +282,8 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
                 CheckOpenAlError();
                 CheckSoundKind(state, b);
                 CheckOpenAlError();
-                AddLogf(Debug, "Playback started %s Source:%d", state.uri.c_str(), (int)state.sourceSoundHandle);
+                AddLogf(Debug, "Playback started %s Source:%d",
+                        fileSystem->GetNameOfResource(state.resource_id).c_str(), (int)state.sourceSoundHandle);
             }
         }
         return;
@@ -298,9 +299,9 @@ void StateProcessor::ProcessPlayState(SourceIndex index, SourceState &state) {
             if (watcherInterface) {
                 watcherInterface->OnFinished(GetSoundHandle(index), state.loop, state.userData);
             }
-            AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib", state.uri.c_str(),
-                    (int)state.sourceSoundHandle, state.processedBuffers,
-                    (float)state.processedBytes / (1024.0f * 1024.0f));
+            AddLogf(Debug, "Playing finished: %s Source: %d processed buffers: %u bytes: %6.2f Mib",
+                    fileSystem->GetNameOfResource(state.resource_id).c_str(), (int)state.sourceSoundHandle,
+                    state.processedBuffers, (float)state.processedBytes / (1024.0f * 1024.0f));
         }
     }
 }
@@ -356,7 +357,7 @@ void StateProcessor::ReleaseSourceBufferQueue(SourceState &state) {
 }
 
 bool StateProcessor::InitializeSource(SourceState &state) {
-    auto factory = FindFactory(state.uri.c_str());
+    auto factory = FindFactory(state.resource_id);
     if (!factory)
         return false;
     state.ResetStatistics();
@@ -365,12 +366,11 @@ bool StateProcessor::InitializeSource(SourceState &state) {
         return false;
 
     std::string data;
-    std::string uri = state.uri.c_str(); //todo this makes a copy!
-    if (!fileSystem->ReadFileByUri(uri, data)) {
+    if (!fileSystem->ReadFileByResourceId(state.resource_id, data)) {
         return false;
     }
 
-    if (!state.decoder->SetData(std::move(data), uri)) {
+    if (!state.decoder->SetData(std::move(data), fileSystem->GetNameOfResource(state.resource_id))) {
         return false;
     }
     if (!state.decoder->Reset())
@@ -616,7 +616,7 @@ void StateProcessor::CloseSoundHandle(SoundHandle handle) {
         ++sourceStateGeneration[(size_t)index];
 }
 
-bool StateProcessor::Open(SoundHandle handle, std::string_view uri, SoundKind kind) {
+bool StateProcessor::Open(SoundHandle handle, FileResourceId resource, SoundKind kind) {
     const auto [valid, index] = CheckSoundHandle(handle);
     if (!valid)
         return false;
@@ -627,7 +627,7 @@ bool StateProcessor::Open(SoundHandle handle, std::string_view uri, SoundKind ki
         return false;
 
     state.kind = kind;
-    state.uri = uri;
+    state.resource_id = resource;
     assert(!state.decoder);
 
     return true;
@@ -678,23 +678,23 @@ void StateProcessor::SetCallback(std::shared_ptr<iPlaybackWatcher> iface) {
     watcherInterface = std::move(iface);
 }
 
-void StateProcessor::ReopenStream(SoundHandle handle, std::string_view uri, SoundKind kind) {
+void StateProcessor::ReopenStream(SoundHandle handle, FileResourceId resoure, SoundKind kind) {
     const auto [valid, index] = CheckSoundHandle(handle);
     if (!valid)
         return;
 
     auto &state = sourceState[(size_t)index];
-    state.uri = uri;
+    state.resource_id = resoure;
     state.kind = kind;
     state.command = SourceCommand::None;
     actionQueue.Push([this, index = index] { sourceState[(size_t)index].status = SourceStatus::InitPending; });
 }
 
-std::string_view StateProcessor::GetStreamURI(SoundHandle handle) {
+FileResourceId StateProcessor::GetStreamResourceId(SoundHandle handle) {
     const auto [valid, index] = CheckSoundHandle(handle);
     if (!valid)
-        return nullptr;
-    return std::string_view(sourceState[(size_t)index].uri);
+        return kInvalidResourceId;
+    return sourceState[(size_t)index].resource_id;
 }
 
 void StateProcessor::SetSoundKind(SoundHandle handle, SoundKind value) {
@@ -716,12 +716,14 @@ SoundKind StateProcessor::GetSoundKind(SoundHandle handle) {
 
 //---------------------------
 
-std::shared_ptr<Decoder::iDecoderFactory> StateProcessor::FindFactory(const char *uri) {
-    const char *ext = strrchr(uri, '.');
-    if (!ext)
+std::shared_ptr<Decoder::iDecoderFactory> StateProcessor::FindFactory(FileResourceId res_id) {
+    auto name = fileSystem->GetNameOfResource(res_id, false);
+    auto last_dot = name.rfind('.');
+    if (last_dot == std::string::npos) {
         return nullptr;
+    }
 
-    auto it = decoderFactories.find(ext + 1);
+    auto it = decoderFactories.find(&name[last_dot + 1]);
     if (it == decoderFactories.end())
         return nullptr;
 

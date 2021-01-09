@@ -31,7 +31,7 @@ public:
 
     StateProcessor *GetStateProcessor() { return stateProcessor.get(); }
 
-    std::unique_ptr<iHandleApi> GetHandleApi() { return std::make_unique<HandleApi>(stateProcessor.get()); }
+    std::unique_ptr<iHandleApi> GetHandleApi() { return std::make_unique<HandleApi>(stateProcessor.get(), fileSystem); }
 
 private:
     std::thread thread;

@@ -350,13 +350,6 @@ void FileSystemModule::Reload() {
 
 //-----------------------------------------------------------------------------
 
-bool FileSystemModule::ReadFileByPath(const std::string &path, std::string &file_data) const {
-    if (!svfs_instance) {
-        return false;
-    }
-    return svfs_instance->file_system.ReadFileByPath(path, file_data);
-}
-
 bool FileSystemModule::WriteFileByPath(const std::string &path, const std::string &file_data) {
     if (!svfs_instance) {
         return false;
@@ -364,12 +357,39 @@ bool FileSystemModule::WriteFileByPath(const std::string &path, const std::strin
     return svfs_instance->file_system.WriteFileByPath(path, file_data);
 }
 
-bool FileSystemModule::EnumeratePath(const std::string_view &path,
-                                     FileInfoTable &result_file_table) const {
+bool FileSystemModule::ReadFileByPath(const std::string &path, std::string &file_data) const {
+    if (!svfs_instance) {
+        return false;
+    }
+    return svfs_instance->file_system.ReadFileByPath(path, file_data);
+}
+
+bool FileSystemModule::ReadFileByResourceId(FileResourceId resource, std::string &file_data) const {
+    if (!svfs_instance) {
+        return false;
+    }
+    return svfs_instance->file_system.ReadFileByResourceId(resource, file_data);
+}
+
+bool FileSystemModule::EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const {
     if (!svfs_instance) {
         return false;
     }
     return svfs_instance->file_system.EnumeratePath(path, result_file_table);
+}
+
+FileResourceId FileSystemModule::GetResourceByPath(const std::string_view &path) const {
+    if (!svfs_instance) {
+        return kInvalidResourceId;
+    }
+    return svfs_instance->file_system.GetResourceByPath(path);
+}
+
+std::string FileSystemModule::GetNameOfResource(FileResourceId resource, bool wants_full_path) const {
+    if (!svfs_instance) {
+        return "";
+    }
+    return svfs_instance->file_system.GetNameOfResource(resource, wants_full_path);
 }
 
 //-----------------------------------------------------------------------------

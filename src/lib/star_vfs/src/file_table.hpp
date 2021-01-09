@@ -23,7 +23,13 @@ public:
         return it->second;
     }
     FileEntry *FindFileByPath(const std::string_view &path) const { return FindFileByPath(Hasher::Hash(path)); }
-
+    FileEntry *FindFileByResourceId(FileResourceId res_id) const {
+        auto it = file_by_resource_id.find(res_id);
+        if (it == file_by_resource_id.end()) {
+            return nullptr;
+        }
+        return it->second;
+    }
     void AddFileEntry(FileEntry *entry);
 
     const FileEntry *GetRootFile() const { return &root_file; }

@@ -1,6 +1,6 @@
 #include "arguments.h"
 #include "cli.h"
-#include "sound_system_intetration.hpp"
+#include "sound_system_integration.hpp"
 #include "svfs_lua.h"
 #include <component/component_info_register.hpp>
 #include <cstddef>

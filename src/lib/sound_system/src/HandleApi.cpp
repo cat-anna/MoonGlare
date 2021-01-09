@@ -4,7 +4,7 @@
 
 namespace MoonGlare::SoundSystem {
 
-HandleApi::HandleApi(StateProcessor *stateProcessor) : stateProcessor(stateProcessor) {
+HandleApi::HandleApi(StateProcessor *stateProcessor, iReadOnlyFileSystem *fs) : stateProcessor(stateProcessor), fs(fs) {
 }
 
 HandleApi::~HandleApi() {
@@ -29,14 +29,14 @@ void HandleApi::Close(SoundHandle handle, bool ContinuePlaying) {
     stateProcessor->CloseSoundHandle(handle);
 }
 
-SoundHandle HandleApi::Open(std::string_view uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
+SoundHandle HandleApi::Open(FileResourceId resource, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
     SoundHandle handle = stateProcessor->AllocateSource();
     if (handle == SoundHandle::Invalid) {
         //todo: log error
         return SoundHandle::Invalid;
     }
 
-    if (!stateProcessor->Open(handle, uri, kind)) {
+    if (!stateProcessor->Open(handle, resource, kind)) {
         stateProcessor->ReleaseSource(handle);
         //todo: log error
         return SoundHandle::Invalid;
@@ -47,8 +47,18 @@ SoundHandle HandleApi::Open(std::string_view uri, bool StartPlayback, SoundKind 
         Play(handle);
 
     SetReleaseOnStop(handle, ReleaseOnStop);
+}
 
-    return handle;
+SoundHandle HandleApi::Open(std::string_view uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
+    return Open(fs->GetResourceByPath(uri), StartPlayback, kind, ReleaseOnStop);
+}
+
+void HandleApi::ReopenStream(SoundHandle &handle, FileResourceId resource, SoundKind kind) {
+    if (!stateProcessor->IsSoundHandleValid(handle)) {
+        handle = Open(resource, false, kind, false);
+        return;
+    }
+    stateProcessor->ReopenStream(handle, resource, kind);
 }
 
 void HandleApi::ReopenStream(SoundHandle &handle, std::string_view uri, SoundKind kind) {
@@ -57,11 +67,15 @@ void HandleApi::ReopenStream(SoundHandle &handle, std::string_view uri, SoundKin
         return;
     }
 
-    stateProcessor->ReopenStream(handle, uri, kind);
+    stateProcessor->ReopenStream(handle, fs->GetResourceByPath(uri), kind);
 }
 
-std::string_view HandleApi::GetStreamURI(SoundHandle handle) {
-    return stateProcessor->GetStreamURI(handle);
+std::string HandleApi::GetStreamResourceName(SoundHandle handle) {
+    return fs->GetNameOfResource(GetStreamResourceId(handle));
+}
+
+FileResourceId HandleApi::GetStreamResourceId(SoundHandle handle) {
+    return stateProcessor->GetStreamResourceId(handle);
 }
 
 SoundState HandleApi::GetState(SoundHandle handle) const {

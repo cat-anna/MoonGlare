@@ -3,6 +3,7 @@
 #include "OpenAl.hpp"
 #include "sound_system/iSoundSystem.hpp"
 #include <memory>
+#include <resource_id.hpp>
 #include <string>
 #include <vector>
 

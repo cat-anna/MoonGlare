@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <resource_id.hpp>
 #include <string>
 #include <string_view>
 #include <xxhash.h>
@@ -9,7 +10,7 @@
 namespace MoonGlare::StarVfs {
 
 using FilePathHash = XXH64_hash_t;
-using FileResourceId = XXH64_hash_t;
+using FileResourceId = MoonGlare::FileResourceId;
 using ContainerFileId = XXH64_hash_t;
 
 struct Hasher {
@@ -44,12 +45,14 @@ struct Hasher {
     static XXH64_hash_t Hash(const std::string_view &str, SeedType seed = kDefaultSeed) {
         return Hash(str.data(), str.size(), seed);
     }
-    template <typename... ARGS> static XXH64_hash_t HashTogether(SeedType seed, const ARGS &... args) {
+    template <typename... ARGS>
+    static XXH64_hash_t HashTogether(SeedType seed, const ARGS &... args) {
         Hasher h{seed};
         (h.update(args), ...);
         return h.get();
     }
-    template <typename... ARGS> static XXH64_hash_t HashTogether(const ARGS &... args) {
+    template <typename... ARGS>
+    static XXH64_hash_t HashTogether(const ARGS &... args) {
         Hasher h;
         (h.update(args), ...);
         return h.get();

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <resource_id.hpp>
 #include <string>
 #include <string_view>
 
@@ -44,10 +45,17 @@ public:
 
     virtual bool IsSoundHandleValid(SoundHandle handle) const = 0;
     virtual void Close(SoundHandle handle, bool ContinuePlaying = false) = 0;
+
     virtual SoundHandle Open(std::string_view uri, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
                              bool ReleaseOnStop = true) = 0;
+    virtual SoundHandle Open(FileResourceId resource, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
+                             bool ReleaseOnStop = true) = 0;
+
     virtual void ReopenStream(SoundHandle &handle, std::string_view uri, SoundKind kind = SoundKind::Auto) = 0;
-    virtual std::string_view GetStreamURI(SoundHandle handle) = 0;
+    virtual void ReopenStream(SoundHandle &handle, FileResourceId resource, SoundKind kind = SoundKind::Auto) = 0;
+
+    virtual std::string GetStreamResourceName(SoundHandle handle) = 0;
+    virtual FileResourceId GetStreamResourceId(SoundHandle handle) = 0;
 
     virtual SoundState GetState(SoundHandle handle) const = 0;
 

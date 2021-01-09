@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <readonly_file_system.h>
 #include <sound_system/iHandleApi.hpp>
 #include <string>
 #include <string_view>
+#include <svfs/hashes.hpp>
 
 namespace MoonGlare::SoundSystem {
 
@@ -12,15 +14,21 @@ class StateProcessor;
 
 class HandleApi : public iHandleApi {
 public:
-    explicit HandleApi(StateProcessor *stateProcessor = nullptr);
+    explicit HandleApi(StateProcessor *stateProcessor, iReadOnlyFileSystem *fs);
     ~HandleApi() override;
 
     bool IsSoundHandleValid(SoundHandle handle) const override;
     void Close(SoundHandle handle, bool ContinuePlaying = false) override;
     SoundHandle Open(std::string_view uri, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
                      bool ReleaseOnStop = true) override;
+    SoundHandle Open(FileResourceId resource, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
+                     bool ReleaseOnStop = true) override;
+
     void ReopenStream(SoundHandle &handle, std::string_view uri, SoundKind kind = SoundKind::Auto) override;
-    std::string_view GetStreamURI(SoundHandle handle) override;
+    void ReopenStream(SoundHandle &handle, FileResourceId resource, SoundKind kind = SoundKind::Auto) override;
+
+    std::string GetStreamResourceName(SoundHandle handle) override;
+    FileResourceId GetStreamResourceId(SoundHandle handle) override;
 
     SoundState GetState(SoundHandle handle) const override;
 
@@ -58,6 +66,7 @@ public:
 
 private:
     StateProcessor *const stateProcessor = nullptr;
+    iReadOnlyFileSystem *const fs = nullptr;
 };
 
 } // namespace MoonGlare::SoundSystem

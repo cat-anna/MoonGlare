@@ -36,10 +36,14 @@ public:
     const std::string &GetOpenedPath() { return root_path; }
     bool IsPathOpened() const { return svfs_instance != nullptr; };
 
-    bool ReadFileByPath(const std::string &path, std::string &file_data) const override;
     bool WriteFileByPath(const std::string &path, const std::string &file_data) override;
-    bool EnumeratePath(const std::string_view &path,
-                       FileInfoTable &result_file_table) const override;
+
+    // iReadOnlyFileSystem
+    bool ReadFileByPath(const std::string &path, std::string &file_data) const override;
+    bool ReadFileByResourceId(FileResourceId resource, std::string &file_data) const override;
+    bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const override;
+    FileResourceId GetResourceByPath(const std::string_view &path) const override;
+    std::string GetNameOfResource(FileResourceId resource, bool wants_full_path = true) const override;
 
     // StarVFS::SharedStarVFS GetVFS() { return m_VFS; }
 

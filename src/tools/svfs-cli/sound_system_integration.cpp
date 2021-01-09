@@ -1,4 +1,4 @@
-#include "sound_system_intetration.hpp"
+#include "sound_system_integration.hpp"
 #include "luainterface.h"
 #include "sound_system/iSoundSystem.hpp"
 
