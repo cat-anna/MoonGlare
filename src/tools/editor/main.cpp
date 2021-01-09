@@ -14,11 +14,17 @@ using OrbitLogger::StdFileLoggerSink;
 
 namespace {
 
-MoonGlare::Tools::RuntineModules::AppConfig::MapType GetAppConfig() {
-    return {
+MoonGlare::Tools::RuntineModules::AppConfig::MapType GetAppConfig(int argc, char *argv[]) {
+    MoonGlare::Tools::RuntineModules::AppConfig::MapType config = {
         {"AppName", "editor"},
         {"ConfigPath", MoonGlare::OS::GetSettingsDirectory()},
     };
+
+    if (argc > 1) {
+        config["startup_module"] = argv[1];
+    }
+
+    return config;
 }
 
 } // namespace
@@ -36,7 +42,7 @@ int main(int argc, char *argv[]) {
     MoonGlare::Tools::RegisterBaseQtModules();
 
     {
-        auto modmgr = MoonGlare::Tools::ModuleManager::CreateModuleManager(GetAppConfig());
+        auto modmgr = MoonGlare::Tools::ModuleManager::CreateModuleManager(GetAppConfig(argc, argv));
 
         modmgr->Initialize();
         MoonGlare::Tools::Component::RegisterAllBaseComponents(modmgr);

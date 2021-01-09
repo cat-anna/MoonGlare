@@ -83,6 +83,7 @@ MainWindow::~MainWindow() {
 
 bool MainWindow::PostInit() {
     auto mm = GetModuleManager();
+    app_config = mm->QueryModule<RuntineModules::AppConfig>();
     // jobProcessor = mm->QueryModule<QtShared::iJobProcessor>();
 
     mm->ForEachInterface<BaseDockWindowModule>([this](auto interface, auto module) {
@@ -125,12 +126,21 @@ void MainWindow::DoLoadSettings(const nlohmann::json &json) {
     iWidgetSettingsProvider::DoLoadSettings(json);
     try_get_json_child(json, "MainWindowSettings", settings);
 
+    auto locked_app_config = app_config.lock();
+
+    std::string module_to_load;
+
     if (settings.load_last_module && !settings.recent_modules.empty()) {
         auto last = settings.recent_modules.back();
         if (std::filesystem::is_directory(last)) {
-            QTimer::singleShot(500, [this, last = std::move(last)] { OpenModule(last); });
+            module_to_load = last;
         }
     }
+    if (locked_app_config) {
+        module_to_load = locked_app_config->Get("startup_module", module_to_load);
+    }
+
+    QTimer::singleShot(500, [this, last = std::move(module_to_load)] { OpenModule(last); });
 }
 
 void MainWindow::NewModuleAction() {

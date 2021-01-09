@@ -6,6 +6,7 @@
 #include <main_window_tabs.hpp>
 #include <qevent.h>
 #include <runtime_modules.h>
+#include <runtime_modules/app_config.h>
 #include <runtime_modules/widget_settings_provider.hpp>
 #include <user_questions.hpp>
 
@@ -57,6 +58,7 @@ private:
     QLabel *job_processor_status = nullptr;
 
     MainWindowSettings settings;
+    std::weak_ptr<RuntineModules::AppConfig> app_config;
 
     // std::shared_ptr<QtShared::EditorProvider> m_EditorProvider;
     // QtShared::SharedJobProcessor jobProcessor;
