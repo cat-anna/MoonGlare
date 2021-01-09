@@ -26,7 +26,7 @@ struct Transform : public ComponentBase<Transform> {
     math::fvec3 position;
     float _padding_1;
 
-    math::Quaternion quaternion;
+    math::Quaternion quaternion = math::Quaternion::Identity();
 
     void GetLocalMatrix(math::Transform &tr) const {
         // tr.setIdentity();
@@ -48,7 +48,8 @@ static_assert((offsetof(Transform, quaternion) % 16) == 0);
 auto GetTypeInfo(Transform *) {
     return AttributeMapBuilder<Transform>::Start("Transform")
         ->AddField("scale", &Transform::scale)
-        ->AddField("position", &Transform::position);
+        ->AddField("position", &Transform::position)
+        ->AddField("quaternion", &Transform::quaternion);
 }
 
 #endif
@@ -59,11 +60,13 @@ void to_json(nlohmann::json &j, const Transform &p) {
     j = {
         {"scale", p.scale},
         {"position", p.position},
+        {"quaternion", p.quaternion},
     };
 }
 void from_json(const nlohmann::json &j, Transform &p) {
     j.at("scale").get_to(p.scale);
     j.at("position").get_to(p.position);
+    j.at("quaternion").get_to(p.quaternion);
 }
 
 #endif

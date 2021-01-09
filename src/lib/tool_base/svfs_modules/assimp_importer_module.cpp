@@ -15,9 +15,11 @@ AssimpImporterModule::AssimpImporterModule(StarVfs::iVfsModuleInterface *module_
                                            const VariantArgumentMap &arguments)
     : StarVfs::iVfsModule(module_interface) {
     arguments.get_to(root_point, "root_point", std::string());
+    arguments.get_to(module_manager, "module_manager");
 }
 
-AssimpImporterModule::~AssimpImporterModule() {}
+AssimpImporterModule::~AssimpImporterModule() {
+}
 
 void AssimpImporterModule::Execute() {
     std::vector<std::tuple<const StarVfs::FileEntry *, std::string_view, std::string>> files_found;
@@ -74,6 +76,7 @@ void AssimpImporterModule::Execute() {
 
             VariantArgumentMap args;
             args.set("mount_point", mount_point);
+            args.set("module_manager", std::any(module_manager));
 
             container =
                 dynamic_cast<AssimpContainer *>(module_interface->CreateContainer(AssimpContainer::kClassName, args));

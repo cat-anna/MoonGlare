@@ -1,5 +1,4 @@
 #include "editable_entity.hpp"
-#include <component/name.hpp>
 
 namespace MoonGlare::Tools {
 
@@ -10,7 +9,7 @@ EditableEntity::EditableEntity(SharedModuleManager manager, std::shared_ptr<Edit
 //----------------------------------------------------------------------------------
 
 void EditableEntity::SetName(std::optional<std::string> name) {
-    auto name_component = AddComponent(Component::Name::kComponentId);
+    auto name_component = AddComponent("Name");
     if (!name.has_value() || name.value().empty()) {
         DeleteComponent(name_component);
         return;
@@ -24,7 +23,12 @@ void EditableEntity::SetName(std::optional<std::string> name) {
 }
 
 std::optional<std::string> EditableEntity::GetName() const {
-    auto exists = components.find(Component::Name::kComponentId);
+    auto cr = module_manager->QueryModule<iComponentRegister>();
+    auto ci = cr->GetComponentInfo("Name");
+    if (!ci) {
+        return std::nullopt;
+    }
+    auto exists = components.find(ci->id);
     if (exists == components.end()) {
         return std::nullopt;
     }
@@ -107,6 +111,11 @@ void EditableEntity::DeleteChild(std::shared_ptr<EditableEntity> c) {
     children.erase(std::remove(children.begin(), children.end(), c), children.end());
 }
 
+std::shared_ptr<EditableComponent> EditableEntity::AddComponent(const std::string &component_name) {
+    auto cr = module_manager->QueryModule<iComponentRegister>();
+    return AddComponent(cr->GetComponentInfo(component_name)->id);
+}
+
 std::shared_ptr<EditableComponent> EditableEntity::AddComponent(ComponentId component_id) {
     auto existing = components.find(component_id);
     if (existing != components.end()) {
@@ -142,79 +151,6 @@ void EditableEntity::MoveUp(std::shared_ptr<EditableEntity> c) {
     children[idx].swap(children[idx - 1]);
 }
 
-//----------------------------------------------------------------------------------
-
-#if 0
-
-
-bool EditableEntity::Read(pugi::xml_node node) {
-    m_Name = node.attribute("Name").as_string("");
-    m_PatternURI = node.attribute("Pattern").as_string("");
-
-    for (auto it = node.first_child(); it; it = it.next_sibling()) {
-        const char *nodename = it.name();
-        auto hash = Space::Utils::MakeHash32(nodename);
-
-        switch (hash) {
-
-        case "Component"_Hash32: {
-            auto child = EditableComponent::CreateComponent(this, it);
-            if (!child) {
-                //TODO: log sth
-                continue;
-            }
-            child->enabled = it.attribute("Enabled").as_bool(true);
-            child->active = it.attribute("Active").as_bool(true);
-            m_Components.emplace_back(std::move(child));
-            break;
-        }
-
-        //case "Entity"_Hash32:
-        //{
-        //auto pattern = it.attribute("Pattern").as_string(nullptr);
-        //if (pattern) {
-        //	XMLFile xdoc;
-        //	Entity child;
-        //	std::string paturi = pattern;
-        //	if (!GetFileSystem()->OpenXML(xdoc, paturi, DataPath::URI)) {
-        //		AddLogf(Error, "Failed to open pattern: %s", pattern);
-        //		continue;
-        //	}
-        //
-        //	auto c = BuildChild(Owner, xdoc->document_element(), child);
-        //	if (c == 0) {
-        //		AddLogf(Error, "Failed to load child!");
-        //		continue;
-        //	}
-        //	count += c;
-        //	continue;
-        //}
-        //}
-        //no break;
-        //[[fallthrough]]
-        case "Entity"_Hash32:
-        case "Child"_Hash32: {
-            UniqueEditableEntity child(new EditableEntity(this));
-            if (!child->Read(it)) {
-                //TODO: log sth
-                continue;
-            }
-            child->enabled = it.attribute("Enabled").as_bool(true);
-            children.emplace_back(std::move(child));
-        }
-            continue;
-        default:
-            AddLogf(Warning, "Unknown node: %s", nodename);
-            continue;
-        }
-    }
-
-    return true;
-}
-
-#endif
-
-//----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 
 EditableComponent::EditableComponent(SharedModuleManager manager, std::shared_ptr<EditableEntity> parent,

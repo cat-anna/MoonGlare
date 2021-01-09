@@ -10,13 +10,21 @@
 
 namespace MoonGlare::StarVfs {
 
-void SvfsClassRegister::RegisterAll() {
+void SvfsClassRegister::RegisterBase() {
+    RegisterContainerClass<ZipContainer>();
+}
+
+void SvfsClassRegister::RegisterTools() {
+    RegisterModuleClass<MetaModule>();
     RegisterContainerClass<DynamicFileContainer>();
     RegisterContainerClass<HostFolderContainer>();
-    RegisterContainerClass<ZipContainer>();
-    RegisterModuleClass<MetaModule>();
     RegisterExporterClass<ZipExporter>();
     RegisterExporterClass<ContentInfoExporter>();
+}
+
+void SvfsClassRegister::RegisterAll() {
+    RegisterBase();
+    RegisterTools();
 }
 
 std::unique_ptr<iVfsContainer> SvfsClassRegister::CreateContainerObject(const std::string_view &class_name,

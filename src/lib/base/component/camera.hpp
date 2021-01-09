@@ -9,7 +9,7 @@ namespace MoonGlare::Component {
 // alignas(16)
 struct Camera : public ComponentBase<Camera> {
     static constexpr ComponentId kComponentId = 6;
-    static constexpr char *ComponentName = "Camera";
+    static constexpr char *kComponentName = "Camera";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
 
@@ -21,6 +21,16 @@ struct Camera : public ComponentBase<Camera> {
 
 // static_assert((sizeof(Camera) % 16) == 0);
 static_assert((offsetof(Camera, projection_matrix) % 16) == 0);
+
+#ifdef _WANTS_TYPE_INFO_
+
+auto GetTypeInfo(Camera *) {
+    return AttributeMapBuilder<Camera>::Start("Camera")
+        ->AddField("orthogonal", &Camera::orthogonal)
+        ->AddField("fov", &Camera::fov);
+}
+
+#endif
 
 #ifdef _WANTS_COMPONENT_SERIALIZATION_
 

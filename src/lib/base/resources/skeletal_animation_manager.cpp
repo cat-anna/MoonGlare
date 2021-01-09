@@ -1,6 +1,5 @@
 
 #include "skeletal_animation_manager.hpp"
-#include "async_loader.hpp"
 #include "blob/animation_blob.hpp"
 #include "loader/AnimationLoader.hpp"
 #include "loader/AssimpAnimationLoader.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources/async_loader.hpp"
+#include "async_loader.hpp"
 #include "resources/skeletal_animation.hpp"
 #include "resources/skeletal_animation_manager.hpp"
 
@@ -11,7 +11,7 @@ public:
     AnimationLoader(SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner);
     ~AnimationLoader();
 
-    void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) override;
+    void OnFirstFile(const std::string &requestedURI, std::string &filedata) override;
 
 private:
     SkeletalAnimationManager &owner;

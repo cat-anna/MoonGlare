@@ -1,5 +1,6 @@
 #pragma once
 
+#include "async_loader.hpp"
 #include "skeletal_animation.hpp"
 #include <bitmap_allocator.hpp>
 #include <interface_map.h>
@@ -8,8 +9,6 @@
 #include <vector>
 
 namespace MoonGlare::Resources {
-
-class iAsyncLoader;
 
 class SkeletalAnimationManager final {
 public:

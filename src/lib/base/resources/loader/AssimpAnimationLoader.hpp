@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources/async_loader.hpp"
+#include "async_loader.hpp"
 #include "resources/skeletal_animation_manager.hpp"
 #include <memory>
 #include <pugixml.hpp>
@@ -18,7 +18,7 @@ public:
     AssimpAnimationLoader(std::string subpath, SkeletalAnimationHandle handle, SkeletalAnimationManager &Owner);
     ~AssimpAnimationLoader();
 
-    void OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) override;
+    void OnFirstFile(const std::string &requestedURI, std::string &filedata) override;
 
 private:
     SkeletalAnimationManager &owner;

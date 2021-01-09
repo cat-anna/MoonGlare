@@ -7,7 +7,7 @@
 #include "ResourceLoaderEvent.h"
 #include "iAsyncLoader.h"
 
-namespace MoonGlare::Resources {
+namespace MoonGlare {
 
 class AsyncLoaderEventObserver : public Resources::iAsyncLoaderObserver {
 public:

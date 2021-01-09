@@ -2,6 +2,7 @@
 
 #include "assimp_container.hpp"
 #include <map>
+#include <runtime_modules.h>
 #include <set>
 #include <string>
 #include <svfs/vfs_module.hpp>
@@ -22,6 +23,7 @@ public:
 private:
     std::string root_point;
     std::unordered_map<std::string, AssimpContainer *> known_files;
+    SharedModuleManager module_manager;
 };
 
 } // namespace MoonGlare::Tools::SvfsModules

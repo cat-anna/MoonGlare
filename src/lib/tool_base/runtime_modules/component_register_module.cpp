@@ -33,6 +33,15 @@ std::shared_ptr<ComponentInfo> ComponentRegisterModule::GetComponentInfo(MoonGla
     throw std::runtime_error(fmt::format("Component with id {:0x} is not registered", id));
 }
 
+std::shared_ptr<ComponentInfo> ComponentRegisterModule::GetComponentInfo(const std::string &component_name) const {
+    for (auto &item : info_vector) {
+        if (item->name == component_name) {
+            return item;
+        }
+    }
+    throw std::runtime_error(fmt::format("Component with name {} is not registered", component_name));
+}
+
 std::shared_ptr<iEditableType> ComponentRegisterModule::CreateComponentData(std::shared_ptr<ComponentInfo> info) const {
     auto provider = type_provider.lock();
     if (!provider) {

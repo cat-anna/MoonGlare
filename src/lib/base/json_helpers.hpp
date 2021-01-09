@@ -6,7 +6,6 @@
 #include <string>
 #include <string_view>
 
-
 namespace MoonGlare {
 
 template <typename T>
@@ -40,12 +39,31 @@ void WriteJsonToFile(const std::filesystem::path &path, const T &value) {
 }
 
 template <typename T>
-bool try_get_json_child(const nlohmann::json &json, const char *child_name, T &t) {
+bool try_get_json_child(const nlohmann::json &json, const char *child_name, T &t, bool log_error = true) {
     if (json.contains(child_name)) {
         try {
             t = json[child_name].get<T>();
         } catch (const std::exception &e) {
-            AddLogf(Error, "try_get_json_child failed: %s", e.what());
+            if (log_error) {
+                AddLogf(Error, "try_get_json_child failed: %s", e.what());
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool try_get_json_child_default(const nlohmann::json &json, const char *child_name, T &t, T default_value,
+                                bool log_error = true) {
+    if (json.contains(child_name)) {
+        try {
+            t = json[child_name].get<T>();
+        } catch (const std::exception &e) {
+            if (log_error) {
+                AddLogf(Error, "try_get_json_child failed: %s", e.what());
+            }
+            t = std::move(default_value);
         }
         return true;
     }

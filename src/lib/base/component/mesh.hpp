@@ -8,12 +8,13 @@
 
 namespace MoonGlare::Component {
 
-struct Mesh {
+struct Mesh : public ComponentBase<Mesh> {
     static constexpr ComponentId kComponentId = 5;
     static constexpr char *kComponentName = "Mesh";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
 
+    bool active = true;
     bool cast_shadow = true;
     bool receive_shadow = true;
 
@@ -26,12 +27,9 @@ struct Mesh {
 
 auto GetTypeInfo(Mesh *) {
     return AttributeMapBuilder<Mesh>::Start("Mesh")
+        ->AddField("active", &Mesh::active)
         ->AddField("cast_shadow", &Mesh::cast_shadow)
-        ->AddField("receive_shadow", &Mesh::receive_shadow)
-        // ->AddField()
-        // ->AddField()
-        // ->AddField()
-        ;
+        ->AddField("receive_shadow", &Mesh::receive_shadow);
 }
 
 #endif
@@ -40,11 +38,13 @@ auto GetTypeInfo(Mesh *) {
 
 void to_json(nlohmann::json &j, const Mesh &p) {
     j = {
+        {"active", p.active},
         {"cast_shadow", p.cast_shadow},
         {"receive_shadow", p.receive_shadow},
     };
 }
 void from_json(const nlohmann::json &j, Mesh &p) {
+    j.at("active").get_to(p.active);
     j.at("receive_shadow").get_to(p.receive_shadow);
     j.at("cast_shadow").get_to(p.cast_shadow);
 }

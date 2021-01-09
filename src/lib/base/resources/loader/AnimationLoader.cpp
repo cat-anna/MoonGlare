@@ -11,7 +11,7 @@ AnimationLoader::AnimationLoader(SkeletalAnimationHandle handle, SkeletalAnimati
 AnimationLoader::~AnimationLoader() {
 }
 
-void AnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) {
+void AnimationLoader::OnFirstFile(const std::string &requestedURI, std::string &filedata) {
     // int animId = GetAnimIndex();
     // if (animId < 0) {
     //    __debugbreak();
@@ -22,7 +22,8 @@ void AnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::Byte
     // Importer::ImportAssimpAnimation(scene, animId, animSetXmlDoc.document_element(), ai);
 
     Resources::Blob::AnimationLoad al;
-    auto success = Resources::Blob::ReadAnimationBlob(gsl::span<uint8_t>{filedata.get8(), filedata.byte_size()}, al);
+    auto success =
+        Resources::Blob::ReadAnimationBlob(gsl::span<uint8_t>{(uint8_t *)filedata.data(), filedata.size()}, al);
 
     if (!success) {
         AddLogf(Error, "Failed to load animation %s", requestedURI.c_str());

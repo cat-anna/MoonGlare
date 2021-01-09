@@ -86,6 +86,10 @@ public:
     virtual VariantType GetValue(std::shared_ptr<iAttributeBase> filed) const = 0;
     virtual void SetValue(std::shared_ptr<iAttributeBase>, const VariantType &value) const = 0;
 
+    virtual void SetValue(const std::string &field_name, const VariantType &value) const {
+        SetValue(FindFieldByName(field_name), value);
+    }
+
     virtual std::shared_ptr<iEditableType> GetField(std::shared_ptr<iAttributeBase> filed) const = 0;
 };
 

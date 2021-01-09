@@ -4,12 +4,14 @@
 #include "component_info_register.hpp"
 #include "eigen_math_type_info.hpp"
 #include <attribute_map_builder.hpp>
+#include <component/camera.hpp>
 #include <component/light_source.hpp>
 #include <component/mesh.hpp>
 #include <component/name.hpp>
 #include <component/transform.hpp>
 #include <component_register.hpp>
 #include <editable_type_provider.hpp>
+
 
 namespace MoonGlare::Tools::Component {
 
@@ -25,8 +27,8 @@ void RegisterAllBaseComponents(SharedModuleManager manager) {
 
     {
         using namespace MoonGlare::Component;
-        provider->RegisterTypes<Transform, Mesh, LightSource, Name>("Component");
-        reg->RegisterComponents<Transform, Mesh, LightSource, Name>("Component");
+        provider->RegisterTypes<Transform, Mesh, LightSource, Name, Camera>("Component");
+        reg->RegisterComponents<Transform, Mesh, LightSource, Name, Camera>("Component");
     }
 }
 

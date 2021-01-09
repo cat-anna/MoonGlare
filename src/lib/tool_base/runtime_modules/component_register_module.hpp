@@ -13,6 +13,7 @@ public:
     void RegisterComponent(std::shared_ptr<ComponentInfo> info) override;
     std::vector<std::shared_ptr<ComponentInfo>> GetComponents() const override;
     std::shared_ptr<ComponentInfo> GetComponentInfo(MoonGlare::Component::ComponentId id) const override;
+    std::shared_ptr<ComponentInfo> GetComponentInfo(const std::string &component_name) const override;
     std::shared_ptr<iEditableType> CreateComponentData(std::shared_ptr<ComponentInfo> info) const override;
 
     bool PostInit() override;

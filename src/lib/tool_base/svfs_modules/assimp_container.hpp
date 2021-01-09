@@ -5,6 +5,7 @@
 #include "svfs/hashes.hpp"
 #include "svfs/vfs_container.hpp"
 #include <filesystem>
+#include <runtime_modules.h>
 #include <unordered_map>
 #include <variant_argument_map.hpp>
 #include <vector>
@@ -39,6 +40,7 @@ private:
     std::string mount_point;
 
     std::unordered_map<StarVfs::FilePathHash, std::unique_ptr<FileInfo>> loaded_files;
+    SharedModuleManager module_manager;
 };
 
 } // namespace MoonGlare::Tools::SvfsModules

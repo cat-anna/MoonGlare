@@ -22,6 +22,7 @@ public:
     virtual void RegisterComponent(std::shared_ptr<ComponentInfo> info) = 0;
     virtual std::vector<std::shared_ptr<ComponentInfo>> GetComponents() const = 0;
     virtual std::shared_ptr<ComponentInfo> GetComponentInfo(MoonGlare::Component::ComponentId id) const = 0;
+    virtual std::shared_ptr<ComponentInfo> GetComponentInfo(const std::string &component_name) const = 0;
     virtual std::shared_ptr<iEditableType> CreateComponentData(std::shared_ptr<ComponentInfo> info) const = 0;
 
     template <typename T>

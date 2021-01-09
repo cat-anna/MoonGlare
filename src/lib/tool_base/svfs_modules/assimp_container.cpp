@@ -1,20 +1,23 @@
 #include "assimp_container.hpp"
 #include <algorithm>
-#include <blob/AnimationBlob.h>
-#include <blob/MeshBlob.h>
 #include <dump/assimp_dump.h>
+#include <editable_entity.hpp>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
-#include <importer/AssimpAnimationImporter.h>
-#include <importer/AssimpMeshImporter.h>
 #include <json_helpers.hpp>
 #include <libzippp.h>
 #include <nlohmann/json.hpp>
 #include <orbit_logger.h>
+#include <resources/blob/animation_blob.hpp>
+#include <resources/blob/mesh_blob.hpp>
+#include <resources/importer/AssimpAnimationImporter.hpp>
+#include <resources/importer/AssimpMeshImporter.hpp>
 #include <stdexcept>
 #include <svfs/file_table_interface.hpp>
 #include <svfs/path_utils.hpp>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 using namespace std::string_view_literals;
@@ -32,12 +35,13 @@ struct AssimpLoader {
     std::string mount_point;
     StarVfs::FileResourceId source_resource_id;
     StarVfs::Hasher::SeedType my_seed;
-
+    SharedModuleManager module_manger;
     StarVfs::FilePathHash parent_id;
 
     const aiScene *scene;
     Assimp::Importer importer;
     std::unordered_map<StarVfs::FilePathHash, std::unique_ptr<AssimpContainer::FileInfo>> loaded_files;
+    std::unordered_set<std::string> generated_files;
 
     struct MeshInfo {
         glm::fvec3 box_size = {};
@@ -47,9 +51,9 @@ struct AssimpLoader {
     std::vector<MeshInfo> known_meshes;
     std::vector<std::string> animation_names;
 
-    AssimpLoader(StarVfs::FileResourceId source_resource_id, std::string mount_point)
-        : mount_point(std::move(mount_point)), source_resource_id(source_resource_id) {
-        //
+    AssimpLoader(SharedModuleManager module_manger, StarVfs::FileResourceId source_resource_id, std::string mount_point)
+        : module_manger(std::move(module_manger)), mount_point(std::move(mount_point)),
+          source_resource_id(source_resource_id) {
         my_seed = source_resource_id;
         parent_id = StarVfs::Hasher::Hash(this->mount_point);
     }
@@ -65,6 +69,7 @@ struct AssimpLoader {
         fi->file_name = std::move(file_name);
         fi->file_data = std::move(file_data);
         loaded_files[fi->container_id] = std::move(fi);
+        generated_files.insert(file_name);
     }
 
     void DumpContentInfo() {
@@ -175,6 +180,64 @@ struct AssimpLoader {
 #endif
     }
 
+    void ImportTransformComponent(const aiNode *node, std::shared_ptr<EditableEntity> parent) {
+        aiQuaternion q;
+        aiVector3D pos;
+        aiVector3D scale;
+        node->mTransformation.Decompose(scale, q, pos);
+
+        auto transform = parent->AddComponent("Transform");
+        auto component_data = transform->GetComponentData();
+        using VariantType = VariantArgumentMap::VariantType;
+        component_data->SetValue("position", VariantType(math::fvec3(pos.x, pos.y, pos.z)));
+        component_data->SetValue("scale", VariantType(math::fvec3(scale.x, scale.y, scale.z)));
+        component_data->SetValue("quaternion", VariantType(math::Quaternion(q.x, q.y, q.z, q.w)));
+    }
+
+    void ImportEntities() {
+        for (int i = scene->mRootNode->mNumChildren - 1; i >= 0; --i) {
+            auto root_entity = std::make_shared<EditableEntity>(module_manger);
+            auto root_node = scene->mRootNode->mChildren[i];
+
+            std::vector<std::pair<std::shared_ptr<EditableEntity>, const aiNode *>> queue;
+            queue.emplace_back(root_entity, root_node);
+
+            std::size_t cnt = 0;
+            while (!queue.empty()) {
+                ++cnt;
+                auto item = queue.back();
+                queue.pop_back();
+                std::shared_ptr<EditableEntity> parent = item.first;
+                auto node = item.second;
+                parent->SetName(node->mName.data);
+
+                ImportTransformComponent(node, parent);
+                // ImportMeshComponent(node, parent);
+                // ImportLightComponent(parent);
+                // ImportBodyComponent(node, parent);
+                // ImportBodyShapeComponent(node, parent);
+
+                for (int i = node->mNumChildren - 1; i >= 0; --i) {
+                    auto ch = node->mChildren[i];
+                    // if( ch->mNumMeshes == 1 )
+                    queue.emplace_back(parent->AddChild(), ch);
+                }
+            }
+
+            std::string name = root_node->mName.data;
+            std::string fname = name + ".entity";
+            for (int idx = 0; name.empty() || generated_files.find(fname) != generated_files.end(); ++i) {
+                if (root_node->mName.length > 0)
+                    name = root_node->mName.data + std::string(".") + std::to_string(i);
+                else
+                    name = std::to_string(i);
+                fname = name + ".entity";
+            }
+            root_entity->SetName(name);
+            AddFile(root_entity->SerializeToJson(), fname);
+        }
+    }
+
     bool Import(const std::string_view &file_ext, const std::string_view file_data) {
         unsigned flags = aiProcess_JoinIdenticalVertices | /* aiProcess_PreTransformVertices | */
                          aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
@@ -186,15 +249,12 @@ struct AssimpLoader {
         }
 
         DumpContentInfo();
-        if (scene->HasMeshes()) {
-            ImportMeshes();
-        }
-        if (scene->HasTextures()) {
-            ImportTextures();
-        }
-        if (scene->HasAnimations()) {
-            ImportAnimations();
-        }
+        ImportMeshes();
+        ImportTextures();
+        ImportAnimations();
+
+        ImportEntities();
+
         return true;
     }
 };
@@ -208,6 +268,7 @@ using ContainerFileEntry = StarVfs::iFileTableInterface::ContainerFileEntry;
 AssimpContainer::AssimpContainer(StarVfs::iFileTableInterface *fti, const VariantArgumentMap &arguments)
     : iVfsContainer(fti) {
     mount_point = StarVfs::OptimizeMountPointPath(arguments.get<std::string>("mount_point", ""));
+    arguments.get_to(module_manager, "module_manager");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -217,7 +278,7 @@ void AssimpContainer::LoadFromMemory(StarVfs::FileResourceId source_resource_id,
 
     AddLog(FSEvent, "Loading assimp file from memory");
 
-    auto loader = std::make_unique<AssimpLoader>(source_resource_id, mount_point);
+    auto loader = std::make_unique<AssimpLoader>(module_manager, source_resource_id, mount_point);
     if (!loader->Import(ext, file_data)) {
         throw std::runtime_error("Assimp import failed");
     }
@@ -309,14 +370,6 @@ struct AssimpImporter : public QtShared::iFileProcessor, public QtShared::iEdito
         return true;
     }
 
-    static StarVFS::ByteTable XmlToData(pugi::xml_document &doc) {
-        std::stringstream ss;
-        doc.save(ss);
-        StarVFS::ByteTable bt;
-        bt.from_string(ss.str());
-        return std::move(bt);
-    }
-
     void ImportBodyShapeComponent(const aiNode *node, EditableEntity *parent) {
         if (node->mNumMeshes != 1)
             return;
@@ -336,27 +389,7 @@ struct AssimpImporter : public QtShared::iFileProcessor, public QtShared::iEdito
         bdio->Set("Kinematic", "1");
     }
 
-    void ImportTransformComponent(const aiNode *node, EditableEntity *parent) {
-        aiQuaternion q;
-        aiVector3D pos;
-        aiVector3D scale;
-        node->mTransformation.Decompose(scale, q, pos);
 
-        auto transform = parent->AddComponent("Transform");
-        auto trio = transform->GetValuesEditor();
-        trio->Set("Position.x", std::to_string(pos.x));
-        trio->Set("Position.y", std::to_string(pos.y));
-        trio->Set("Position.z", std::to_string(pos.z));
-
-        trio->Set("Scale.x", std::to_string(scale.x));
-        trio->Set("Scale.y", std::to_string(scale.y));
-        trio->Set("Scale.z", std::to_string(scale.z));
-
-        trio->Set("Rotation.x", std::to_string(q.x));
-        trio->Set("Rotation.y", std::to_string(q.y));
-        trio->Set("Rotation.z", std::to_string(q.z));
-        trio->Set("Rotation.w", std::to_string(q.w));
-    }
 
     void ImportMeshComponent(const aiNode *node, EditableEntity *parent) {
         if (node->mNumMeshes != 1)
@@ -394,59 +427,6 @@ struct AssimpImporter : public QtShared::iFileProcessor, public QtShared::iEdito
         // auto light = it->second;
         // auto lightC = parent->AddComponent(Core::SubSystemId::Light);
         // auto liio = lightC->GetValuesEditor();
-    }
-
-    void ImportEntities() {
-        for (int i = scene->mRootNode->mNumChildren - 1; i >= 0; --i) {
-            auto node = scene->mRootNode->mChildren[i];
-            std::unique_ptr<QtShared::DataModels::EditableEntity> entity;
-
-            entity = std::make_unique<EditableEntity>();
-
-            std::vector<std::pair<EditableEntity *, const aiNode *>> queue;
-            queue.emplace_back(entity.get(), node);
-
-            std::size_t cnt = 0;
-            while (!queue.empty()) {
-                ++cnt;
-                auto item = queue.back();
-                queue.pop_back();
-                EditableEntity *parent = item.first;
-                auto node = item.second;
-
-                parent->SetName(node->mName.data);
-
-                ImportTransformComponent(node, parent);
-                ImportMeshComponent(node, parent);
-                ImportLightComponent(parent);
-                ImportBodyComponent(node, parent);
-                ImportBodyShapeComponent(node, parent);
-
-                for (int i = node->mNumChildren - 1; i >= 0; --i) {
-                    auto ch = node->mChildren[i];
-                    // if( ch->mNumMeshes == 1 )
-                    queue.emplace_back(parent->AddChild(), ch);
-                }
-            }
-
-            std::string name = node->mName.data;
-            std::string fname = name + ".epx";
-            for (int idx = 0; name.empty() || generatedFiles.find(fname) != generatedFiles.end(); ++i) {
-                if (node->mName.length > 0)
-                    name = node->mName.data + std::string(".") + std::to_string(i);
-                else
-                    name = std::to_string(i);
-                fname = name + ".epx";
-            }
-            entity->SetName(name);
-
-            pugi::xml_document xdoc;
-            if (!entity->Write(xdoc.append_child("Entity"))) {
-                // AddLog(Hint, "Failed to write epx Entities: " << m_CurrentPatternFile);
-                throw false;
-            }
-            generatedFiles[fname] = XmlToData(xdoc);
-        }
     }
 
     void ImportEntityTree() {

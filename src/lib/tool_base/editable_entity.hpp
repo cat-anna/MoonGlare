@@ -63,6 +63,7 @@ public:
 
     std::shared_ptr<EditableEntity> AddChild();
     void DeleteChild(std::shared_ptr<EditableEntity>);
+    std::shared_ptr<EditableComponent> AddComponent(const std::string &component_name);
     std::shared_ptr<EditableComponent> AddComponent(ComponentId component_id);
     void DeleteComponent(std::shared_ptr<EditableComponent>);
 

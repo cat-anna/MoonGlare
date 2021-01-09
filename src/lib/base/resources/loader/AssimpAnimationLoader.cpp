@@ -20,7 +20,7 @@ AssimpAnimationLoader::AssimpAnimationLoader(std::string subpath, SkeletalAnimat
 AssimpAnimationLoader::~AssimpAnimationLoader() {
 }
 
-void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS::ByteTable &filedata) {
+void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, std::string &filedata) {
     importer = std::make_unique<Assimp::Importer>();
 
     auto loadflags =
@@ -32,7 +32,7 @@ void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS
         aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType | aiProcess_GlobalScale | 0;
 
     scene =
-        importer->ReadFileFromMemory(filedata.get(), filedata.size(), loadflags, strrchr(requestedURI.c_str(), '.'));
+        importer->ReadFileFromMemory(filedata.data(), filedata.size(), loadflags, strrchr(requestedURI.c_str(), '.'));
 
     if (!scene) {
         AddLog(Error,
@@ -44,7 +44,7 @@ void AssimpAnimationLoader::OnFirstFile(const std::string &requestedURI, StarVFS
     baseURI = requestedURI;
     baseURI.resize(baseURI.rfind('/') + 1);
 
-    LoadFile(requestedURI + ".xml", [this](const std::string &, StarVFS::ByteTable &filedata) {
+    LoadFile(requestedURI + ".xml", [this](const std::string &, std::string &filedata) {
         if (!animSetXmlDoc.load_string(filedata.c_str())) {
             // TODO: sth
             __debugbreak();
