@@ -16,38 +16,38 @@
 ]]
 
 if not Debug then
-	return 
+	return
 end
 
-function TogglePhysicEnabled()
-	local val = not Debug.Flags.Physics.Enabled
-	if val then
-		print("Physics enabled")
-	else
-		print("Physics disabled")
-	end
-	Debug.Flags.Physics.Enabled = val
-	return 0;
-end
+-- function TogglePhysicEnabled()
+-- 	local val = not Debug.Flags.Physics.Enabled
+-- 	if val then
+-- 		print("Physics enabled")
+-- 	else
+-- 		print("Physics disabled")
+-- 	end
+-- 	Debug.Flags.Physics.Enabled = val
+-- 	return 0;
+-- end
 
-function ToggleDebugDraw()
-	local val = not Debug.Flags.Physics.DebugDraw
-	if val then
-		print("DebugDraw enabled")
-	else
-		print("DebugDraw disabled")
-	end
-	Debug.Flags.Physics.DebugDraw = val;
-	return 0;
-end
+-- function ToggleDebugDraw()
+-- 	local val = not Debug.Flags.Physics.DebugDraw
+-- 	if val then
+-- 		print("DebugDraw enabled")
+-- 	else
+-- 		print("DebugDraw disabled")
+-- 	end
+-- 	Debug.Flags.Physics.DebugDraw = val;
+-- 	return 0;
+-- end
 
-function ToggleRectTransformDebugDraw()
-	local val = not Debug.Flags.RectTransformComponent.DebugDraw
-	if val then
-		print("DebugDraw enabled")
-	else
-		print("DebugDraw disabled")
-	end
-	Debug.Flags.RectTransformComponent.DebugDraw = val;
-	return 0;
-end
+-- function ToggleRectTransformDebugDraw()
+-- 	local val = not Debug.Flags.RectTransformComponent.DebugDraw
+-- 	if val then
+-- 		print("DebugDraw enabled")
+-- 	else
+-- 		print("DebugDraw disabled")
+-- 	end
+-- 	Debug.Flags.RectTransformComponent.DebugDraw = val;
+-- 	return 0;
+-- end

@@ -1,4 +1,6 @@
 
-require "/Scripts/DebugUtils"
-require "/Scripts/DebugContext"
-require "/Scripts/DebugThread"
+print("DEBUG MODULE INIT")
+
+-- require "Scripts/DebugUtils"
+-- require "Scripts/DebugContext"
+-- require "Scripts/DebugThread"

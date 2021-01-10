@@ -1,4 +1,5 @@
 #include "engine_runner.hpp"
+#include "lua_context/lua_script_context.hpp"
 #include "threaded_async_loader.hpp"
 #include <orbit_logger.h>
 #include <resources/resource_manager.hpp>
@@ -66,7 +67,11 @@ void EngineRunner::Initialize() {
     filesystem = CreateFilesystem();
     init_assert(filesystem);
 
+    code_chunk_runner = std::make_shared<Lua::LuaScriptContext>(filesystem);
+
     async_loader = std::make_shared<ThreadedAsyncLoader>(filesystem);
+    //TODO: setup fs hooks for loading /init.lua from each container
+    LoadDataModules();
 
     // m_World->CreateObject<Resources::StringTables>();
     // if (!ModManager->Initialize()) {
@@ -164,6 +169,7 @@ void EngineRunner::Finalize() {
     device_window.reset();
     device_context.reset();
 
+    code_chunk_runner.reset();
     async_loader.reset();
     filesystem.reset();
 
@@ -177,6 +183,16 @@ void EngineRunner::Exit() {
     }
     if (rendering_device) {
         rendering_device->Stop();
+    }
+}
+
+//---------------------------------------------------------------------------------------
+
+void EngineRunner::OnContainerMounted(StarVfs::iVfsContainer *container) {
+    auto file_id = container->FindFile("init.lua");
+    std::string file_data;
+    if (container->ReadFileContent(file_id, file_data)) {
+        code_chunk_runner->ExecuteCodeChunk(file_data, "container/init.lua");
     }
 }
 
@@ -232,6 +248,7 @@ void Application::Restart() {
     AddLogf(Debug, "Starting restart");
     MoonGlare::Core::GetEngine()->Exit();
 }
+
 
 } //namespace MoonGlare
 

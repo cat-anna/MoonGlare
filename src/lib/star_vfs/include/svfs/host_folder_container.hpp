@@ -20,6 +20,7 @@ public:
 
     bool ReadFileContent(FilePathHash container_file_id, std::string &file_data) const override;
     bool WriteFileContent(FilePathHash container_file_id, const std::string &file_data) override;
+    FilePathHash FindFile(const std::string &relative_path) const override;
 
     AccessMode GetAccessMode() const override { return access_mode; };
 

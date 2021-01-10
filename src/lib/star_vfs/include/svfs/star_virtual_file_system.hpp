@@ -4,11 +4,13 @@
 #include "star_vfs.h"
 #include "svfs/class_register.hpp"
 #include "svfs/file_table_interface.hpp"
+#include "svfs/svfs_hooks.hpp"
 #include "variant_argument_map.hpp"
 #include <any>
 #include <string>
 #include <string_view>
 #include <template_class_list.h>
+
 
 namespace MoonGlare::StarVfs {
 
@@ -16,7 +18,7 @@ class iVfsModule;
 
 class StarVirtualFileSystem : public iStarVfs {
 public:
-    explicit StarVirtualFileSystem(iClassRegister *class_register);
+    explicit StarVirtualFileSystem(iClassRegister *class_register, iStarVfsHooks *hooks = nullptr);
     ~StarVirtualFileSystem() override;
 
     iVfsContainer *MountContainer(const std::string_view &container_class,

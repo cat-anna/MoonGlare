@@ -42,8 +42,11 @@ public:
     }
 
     std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() override {
-        filesystem = std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register);
+        filesystem = std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register, this);
+        return filesystem;
+    }
 
+    void LoadDataModules() override {
         for (auto &module_path : ec.modules) {
             VariantArgumentMap args;
             args.set("mount_point", std::string());
@@ -60,8 +63,6 @@ public:
             }
             throw std::runtime_error("Unknown container type: " + module_path);
         }
-
-        return filesystem;
     }
 
     std::shared_ptr<Renderer::iDeviceContext> CreateDeviceContext() override {
@@ -108,7 +109,6 @@ using OrbitLogger::StdFileLoggerSink;
 int Execute(int argc, char **argv) {
     try {
         do {
-            srand(time(NULL));
             MoonGlare::StandaloneApplication app(argc, argv);
             app.Execute();
             if (app.WantsSoftRestart()) {

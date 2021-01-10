@@ -1,17 +1,13 @@
-#include <lua.hpp>
+#include "lua_error_handling.hpp"
+#include "lua_context/lua_stack_overflow_assert.hpp"
 
-#include <OrbitLoggerConf.h>
-
-#include "ErrorHandling.h"
-#include "LuaStackOverflowAssert.h"
-
-namespace MoonGlare::Scripts {
+namespace MoonGlare::Lua {
 
 int LuaErrorHandler(lua_State *L) {
     const char *cs = lua_tostring(L, -1);
     //AddLogf(ScriptRuntime, : %s", cs);
 
-    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+    lua_getglobal(L, "debug");
     if (lua_isnil(L, -1)) {
         return 0;
     }
@@ -33,7 +29,7 @@ int LuaErrorHandler(lua_State *L) {
 int LuaTraceback(lua_State *lua) {
     LuaStackOverflowAssert check(lua);
 
-    lua_getfield(lua, LUA_GLOBALSINDEX, "debug");
+    lua_getglobal(lua, "debug");
     if (lua_isnil(lua, -1)) {
         return 0;
     }
@@ -54,9 +50,10 @@ int LuaPanicHandler(lua_State *L) {
     const char *m = lua_tostring(L, 1);
     AddLogf(ScriptRuntime, "Lua panic! message: %s", m);
     LuaTraceback(L);
-    if (!m)
+    if (!m) {
         throw LuaPanic("NO MESSAGE");
+    }
     throw LuaPanic(m);
 }
 
-} //namespace MoonGlare::Scripts
+} // namespace MoonGlare::Lua

@@ -29,7 +29,8 @@ struct ModuleEntry {
 };
 
 struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
-    Impl(iClassRegister *class_register) : class_register(class_register) {
+    Impl(iClassRegister *class_register, iStarVfsHooks *hooks = nullptr)
+        : class_register(class_register), hooks(hooks) {
         mounted_containers.push_back({}); // allocate id=0, this is invalid id
         loaded_modules.push_back({});     // allocate id=0, this is invalid id
     }
@@ -50,6 +51,9 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
             container_info.instance->ReloadContainer();
 
             AddLog(Debug, fmt::format("Mounted container of class {}", container_class));
+            if (hooks) {
+                hooks->OnContainerMounted(container_info.instance.get());
+            }
         } catch (const std::exception &e) {
             AddLog(Error, fmt::format("Failed to mount container of class {}: {}", container_class, e.what()));
             container_info.Reset();
@@ -197,10 +201,11 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
     FileTable file_table;
 
     iClassRegister *const class_register;
+    iStarVfsHooks *const hooks;
 };
 
-StarVirtualFileSystem::StarVirtualFileSystem(iClassRegister *class_register)
-    : impl(std::make_unique<Impl>(class_register)) {
+StarVirtualFileSystem::StarVirtualFileSystem(iClassRegister *class_register, iStarVfsHooks *hooks)
+    : impl(std::make_unique<Impl>(class_register, hooks)) {
 }
 
 StarVirtualFileSystem::~StarVirtualFileSystem() {

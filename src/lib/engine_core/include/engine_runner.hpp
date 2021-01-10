@@ -4,15 +4,17 @@
 #include "engine_core.hpp"
 #include <async_loader.hpp>
 #include <device_context.hpp>
+#include <lua_context/script_runner_interface.hpp>
 #include <readonly_file_system.h>
 #include <rendering_device.hpp>
 #include <resources.hpp>
+#include <svfs/svfs_hooks.hpp>
 #include <thread>
 #include <vector>
 
 namespace MoonGlare {
 
-class EngineRunner {
+class EngineRunner : public StarVfs::iStarVfsHooks {
 public:
     EngineRunner() = default;
     virtual ~EngineRunner() = default;
@@ -36,8 +38,12 @@ public:
     // bool IsActive() const { return m_Flags.m_Active; }
     bool WantsSoftRestart() const { return do_soft_restart; }
     // void SetRestart(bool v) { m_Flags.m_Restart = v; }
+
+    void OnContainerMounted(StarVfs::iVfsContainer *container) override;
+
 protected:
     std::shared_ptr<iReadOnlyFileSystem> filesystem;
+    std::shared_ptr<iCodeChunkRunner> code_chunk_runner;
     std::shared_ptr<Renderer::iDeviceContext> device_context;
     std::shared_ptr<Renderer::iDeviceWindow> device_window;
     std::shared_ptr<Renderer::iResourceManager> resource_manager;
@@ -49,6 +55,7 @@ protected:
     std::thread engine_thread;
 
     virtual std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() = 0;
+    virtual void LoadDataModules() = 0;
     virtual std::shared_ptr<Renderer::iDeviceContext> CreateDeviceContext() = 0;
     virtual EngineConfiguration LoadConfiguration() const = 0;
 

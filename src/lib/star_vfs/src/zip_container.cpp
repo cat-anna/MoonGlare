@@ -117,4 +117,13 @@ bool ZipContainer::ReadFileContent(FilePathHash container_file_id, std::string &
     return true;
 }
 
+FilePathHash ZipContainer::FindFile(const std::string &relative_path) const {
+    for (size_t i = 0; i < zip_mapper->zip_entries.size(); ++i) {
+        if (zip_mapper->zip_entries[i].getName() == relative_path) {
+            return static_cast<FilePathHash>(i);
+        }
+    }
+    return 0;
+}
+
 } // namespace MoonGlare::StarVfs

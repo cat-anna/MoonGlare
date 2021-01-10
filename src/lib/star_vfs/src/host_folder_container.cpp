@@ -214,17 +214,20 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
     return true;
 }
 
+FilePathHash HostFolderContainer::FindFile(const std::string &relative_path) const {
+    auto abs_host_path = host_path / relative_path;
+    for (auto entry : file_mapper) {
+        if (entry.second.host_path == abs_host_path) {
+            return entry.first;
+        }
+    }
+
+    return 0;
+}
+
 #if 0
 
 //-------------------------------------------------------------------------------------------------
-
-FileID FolderContainer::FindFile(const String& ContainerFileName) const {
-	for (auto it = m_FileEntry.begin(), jt = m_FileEntry.end(); it != jt; ++it)
-		if (it->m_SubPath == ContainerFileName)
-			return static_cast<FileID>(it - m_FileEntry.begin());
-
-	return 0;
-}
 
 bool FolderContainer::EnumerateFiles(ContainerFileEnumFunc filterFunc) const {
 	for (auto &entry: m_FileEntry) {

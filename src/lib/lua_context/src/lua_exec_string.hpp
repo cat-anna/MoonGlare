@@ -1,8 +1,11 @@
 #pragma once
 
-#include "LuaReader.h"
+#include "lua_reader.hpp"
+#include <cassert>
+#include <lua.hpp>
+#include <orbit_logger.h>
 
-namespace MoonGlare::Scripts {
+namespace MoonGlare::Lua {
 
 inline bool CallFunction(lua_State *lua, int args, int rets) {
     assert(lua);
@@ -25,20 +28,21 @@ inline bool CallFunction(lua_State *lua, int args, int rets) {
     return false;
 }
 
-inline bool ExecuteString(lua_State *lua, const char* Code, size_t len, const char* ChunkName, int rets = 0) {
+inline bool ExecuteString(lua_State *lua, const char *Code, size_t len, const char *ChunkName, int rets = 0) {
     assert(lua);
     assert(Code);
     assert(len > 0);
 
     LuaCStringReader reader(Code, len);
-    int result = lua_load(lua, &reader.Reader, &reader, ChunkName);
+    int result = lua_load(lua, &reader.Reader, &reader, ChunkName, nullptr);
 
     switch (result) {
     case 0:
         AddLogf(Debug, "Loaded lua chunk: '%s'", ChunkName ? ChunkName : "?");
         return CallFunction(lua, 0, rets);
     case LUA_ERRSYNTAX:
-        AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]", ChunkName ? ChunkName : "?", lua_tostring(lua, -1), Code);
+        AddLogf(Error, "Unable to load script: Syntax Error!\nName:'%s'\nError string: '%s'\ncode: [[%s]]",
+                ChunkName ? ChunkName : "?", lua_tostring(lua, -1), Code);
         break;
     case LUA_ERRMEM:
         AddLog(Error, "Unable to load script: Memory allocation failed!");
@@ -49,11 +53,11 @@ inline bool ExecuteString(lua_State *lua, const char* Code, size_t len, const ch
     return false;
 }
 
-inline bool ExecuteString(lua_State *lua, const std::string &code, const char* ChunkName, int rets = 0) {
+inline bool ExecuteString(lua_State *lua, const std::string &code, const char *ChunkName, int rets = 0) {
     return ExecuteString(lua, code.c_str(), code.size(), ChunkName, rets);
 }
-inline bool ExecuteString(lua_State *lua, const unsigned char* Code, size_t len, const char* ChunkName, int rets = 0) {
+inline bool ExecuteString(lua_State *lua, const unsigned char *Code, size_t len, const char *ChunkName, int rets = 0) {
     return ExecuteString(lua, (const char *)Code, len, ChunkName, rets);
 }
 
-} //namespace MoonGlare::Scripts 
+} // namespace MoonGlare::Lua

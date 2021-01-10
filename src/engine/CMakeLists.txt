@@ -11,6 +11,7 @@ target_link_libraries(
   glfw
   glad::glad
   OpenGL::GL
-  engine_core)
+  engine_core
+  lua_context)
 
 # add_dependencies(engine all_data_packages)
