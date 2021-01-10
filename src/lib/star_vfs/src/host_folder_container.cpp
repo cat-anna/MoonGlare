@@ -57,8 +57,7 @@ struct HostFolderContainer::ScanPathOutput {
 
 //-------------------------------------------------------------------------------------------------
 
-HostFolderContainer::HostFolderContainer(iFileTableInterface *fti,
-                                         const VariantArgumentMap &arguments)
+HostFolderContainer::HostFolderContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments)
     : iVfsContainer(fti) {
 
     host_path = std::filesystem::absolute(arguments.get<std::string>("host_path"));
@@ -66,15 +65,14 @@ HostFolderContainer::HostFolderContainer(iFileTableInterface *fti,
 
     arguments.get_to(generate_resource_id, "generate_resource_id", generate_resource_id);
     arguments.get_to(store_resource_id, "store_resource_id", store_resource_id);
-    access_mode = arguments.get<std::string>("mode", "r") == "rw" ? AccessMode::ReadWrite
-                                                                  : AccessMode::ReadOnly;
+    access_mode = arguments.get<std::string>("mode", "r") == "rw" ? AccessMode::ReadWrite : AccessMode::ReadOnly;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void HostFolderContainer::ReloadContainer() {
-    AddLog(FSEvent, fmt::format("Reloading host folder container '{}' mounted at {}",
-                                host_path.generic_string(), mount_point));
+    AddLog(FSEvent,
+           fmt::format("Reloading host folder container '{}' mounted at {}", host_path.generic_string(), mount_point));
 
     ScanPathOutput scan_result{};
     scan_result.old_file_mapper = file_mapper;
@@ -93,8 +91,7 @@ void HostFolderContainer::ReloadContainer() {
     }
 }
 
-bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id,
-                                          std::string &file_data) const {
+bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id, std::string &file_data) const {
     auto it = file_mapper.find(container_file_id);
     if (it == file_mapper.end()) {
         AddLog(Error, "File does not exists");
@@ -106,8 +103,7 @@ bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id,
     return ReadHostFileContent(entry.host_path, file_data);
 }
 
-bool HostFolderContainer::WriteFileContent(FilePathHash container_file_id,
-                                           const std::string &file_data) {
+bool HostFolderContainer::WriteFileContent(FilePathHash container_file_id, const std::string &file_data) {
     if (!CanWrite()) {
         AddLogf(Warning, "Host folder Container %s is opened in read only mode", host_path.c_str());
         return false;
@@ -131,9 +127,7 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
 
     for (auto current_file : fs::recursive_directory_iterator(host_path)) {
         auto current_path = current_file.path();
-        if (current_path.extension() == kHostFileSvfsManifestExtension) {
-            continue;
-        }
+        bool is_manifest = current_path.extension() == kHostFileSvfsManifestExtension;
 
         auto relative_path = fs::relative(current_file.path(), host_path);
         auto parent_path = relative_path.parent_path();
@@ -154,43 +148,57 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
             continue;
         }
 
+        FileResourceId file_content_hash = 0;
+        auto get_file_content_hash = [&]() {
+            if (file_content_hash == 0) {
+                std::string file_content;
+                if (!ReadHostFileContent(current_path, file_content)) {
+                    throw std::runtime_error("Source file read failed");
+                }
+                file_content_hash = Hasher::Hash(file_content);
+            }
+            return file_content_hash;
+        };
+
         new_file_mapper[local_hash] = {current_file.path()};
         previous_file_mapper.erase(local_hash);
 
         ContainerFileEntry entry;
         entry.is_directory = current_file.is_directory();
+        HostFileSvfsManifest file_manifest{};
 
-        if (!entry.is_directory) {
+        if (!entry.is_directory && !is_manifest) {
             auto meta_file = current_path;
             meta_file += kHostFileSvfsManifestExtension;
 
-            HostFileSvfsManifest file_manifest{};
             try {
                 if (std::filesystem::is_regular_file(meta_file)) {
                     file_manifest = ReadJsonFromFile<HostFileSvfsManifest>(meta_file);
                     entry.resource_id = file_manifest.resource_id;
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta read failed for {} : {}",
-                                          meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta read failed for {} : {}", meta_file.generic_string(), e.what()));
             }
             try {
                 if (generate_resource_id && entry.resource_id == 0) {
-                    std::string file_content;
-                    if (!ReadHostFileContent(current_path, file_content)) {
-                        throw std::runtime_error("Source file read failed");
-                    }
-
-                    file_manifest.resource_id = Hasher::Hash(file_content);
+                    file_manifest.resource_id = get_file_content_hash();
                     entry.resource_id = file_manifest.resource_id;
+                    file_manifest.content_hash = file_manifest.resource_id;
+                    file_manifest.hide_original_file = false;
 
                     if (store_resource_id) {
-                        WriteJsonToFile(meta_file, file_manifest);
+                        WriteJsonToFile(meta_file, file_manifest, true);
+                        entry.file_name = meta_file.filename().generic_string();
+                        auto local_hash = Hasher::Hash(meta_file.generic_string());
+                        entry.container_file_id = local_hash;
+                        entry.file_path_hash = relative_hash;
+                        entry.parent_path_hash = parent_hash;
+                        entry.is_hidden = true;
+                        request_table.push_back(std::move(entry));
                     }
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta write failed for {} : {}",
-                                          meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta write failed for {} : {}", meta_file.generic_string(), e.what()));
             }
         }
 
@@ -198,7 +206,7 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
         entry.container_file_id = local_hash;
         entry.file_path_hash = relative_hash;
         entry.parent_path_hash = parent_hash;
-
+        entry.is_hidden = is_manifest || file_manifest.hide_original_file;
         request_table.push_back(std::move(entry));
     }
 
@@ -226,7 +234,7 @@ bool FolderContainer::EnumerateFiles(ContainerFileEnumFunc filterFunc) const {
 		flags.Directory = entry.m_Type == FileType::Directory;
 		flags.Valid = true;
 //		using ContainerFileEnumFunc = std::function<bool(ConstCString fname, FileFlags flags, FileID CFid, FileID ParentCFid)>;
-		
+
 		if (!filterFunc((ConstCString)entry.m_SubPath.c_str(), flags, cfid, (FileID)0/*parentcfid*/))
 			break;
 	}
@@ -274,7 +282,7 @@ bool FolderContainer::CreateDirectory(FileID ContainerBaseFID, ConstCString Name
 	try {
 		boost::filesystem::create_directory(f->m_FullPath);
 	}
-	catch (...) { 		
+	catch (...) {
 		return false;//todo: handle this
 	}
 
@@ -325,7 +333,7 @@ bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 	boost::filesystem::path p(Path);
 	if (!boost::filesystem::is_directory(Path))
 		return false;
-	
+
 	try {
 		recursive_directory_iterator it(Path);
 
@@ -346,7 +354,7 @@ bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 				try {
 					++it;
 					break;
-				} 
+				}
 				catch (...) {
 					it.no_push();
 				}

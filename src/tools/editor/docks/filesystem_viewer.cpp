@@ -281,6 +281,10 @@ void FileSystemViewer::RefreshTreeView() {
         item = old_mapping[file_info.file_path_hash];
         old_mapping.erase(file_info.file_path_hash);
 
+        if (file_info.is_hidden) {
+            return;
+        }
+
         // std::string n = h.GetName();
         auto full_path = StarVfs::JoinPath(parent_path, file_info.file_name);
 
@@ -300,9 +304,19 @@ void FileSystemViewer::RefreshTreeView() {
         }
 
         view_item_mapping[file_info.file_path_hash] = item;
+        auto ext = std::string(StarVfs::GetExtension(file_info.file_name));
+        std::string icon = ext.empty() ? "" : locked_file_icon_provider->GetExtensionIcon(ext, "");
+        if (!icon.empty()) {
+            item->setData(QIcon(icon.c_str()), Qt::DecorationRole);
+        } else {
+            if (file_info.is_directory) {
+                item->setData(ICON_16_FOLDER, Qt::DecorationRole);
+            } else {
+                item->setData(QIcon(), Qt::DecorationRole);
+            }
+        }
 
         if (file_info.is_directory) {
-            item->setData(ICON_16_FOLDER, Qt::DecorationRole);
             FileInfoTable result;
             filesystem->EnumeratePath(full_path, result);
             for (auto &item : result) {
@@ -310,12 +324,6 @@ void FileSystemViewer::RefreshTreeView() {
             }
         } else {
             item->setData(QVariant(true), FileSystemViewerRole::IsFile);
-            auto ext = std::string(StarVfs::GetExtension(file_info.file_name));
-            if (!ext.empty()) {
-                item->setData(QIcon(locked_file_icon_provider->GetExtensionIcon(ext, "").c_str()), Qt::DecorationRole);
-            } else {
-                item->setData(QIcon(), Qt::DecorationRole);
-            }
         }
 
         // auto str = h.GetFullPath();

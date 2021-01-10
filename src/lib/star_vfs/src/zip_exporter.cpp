@@ -4,6 +4,7 @@
 #include "svfs/path_utils.hpp"
 #include "svfs/vfs_module_interface.hpp"
 #include "zip_container_manifest.hpp"
+#include <build_configuration.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <json_helpers.hpp>
@@ -108,7 +109,7 @@ void ZipExporter::StartExport() {
         generator(item.get(), "");
     }
 
-    auto manifest_data = to_json_string(manifest);
+    auto manifest_data = to_json_string(manifest, kDebugBuild);
     zf.addData(kContainerManifestFileName, manifest_data.c_str(), manifest_data.size());
     zf.getEntry(kContainerManifestFileName).setCompressionEnabled(deflate);
 

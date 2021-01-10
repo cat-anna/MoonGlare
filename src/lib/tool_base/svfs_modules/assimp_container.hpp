@@ -1,8 +1,8 @@
 #pragma once
 
-#include "assimp_file_manifest.hpp"
 #include "svfs/file_table_interface.hpp"
 #include "svfs/hashes.hpp"
+#include "svfs/host_file_svfs_manifest.hpp"
 #include "svfs/vfs_container.hpp"
 #include <filesystem>
 #include <runtime_modules.h>
@@ -34,10 +34,14 @@ public:
     };
 
     void LoadFromMemory(StarVfs::FileResourceId source_resource_id, const std::string_view &file_data,
-                        const AssimpFileManifest &file_manifest, const std::string_view &ext);
+                        StarVfs::HostFileSvfsManifest &file_manifest, const std::string_view &ext);
+    void LoadFromCache(StarVfs::FileResourceId source_resource_id, const std::string_view &file_data,
+                       StarVfs::HostFileSvfsManifest &file_manifest, const std::string_view &ext);
 
 private:
     std::string mount_point;
+    std::string file_data;
+    StarVfs::FileResourceId source_resource_id;
 
     std::unordered_map<StarVfs::FilePathHash, std::unique_ptr<FileInfo>> loaded_files;
     SharedModuleManager module_manager;

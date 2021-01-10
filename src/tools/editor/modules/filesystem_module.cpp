@@ -12,18 +12,27 @@ using namespace std::string_literals;
 namespace MoonGlare::Tools::Editor::Modules {
 
 struct FileSystemModule::StarVfsInstance {
-    StarVfsInstance(const std::string &root_path) : file_system(&class_register) {
+    StarVfsInstance(const std::string &root_path, SharedModuleManager modmgr) : file_system(&class_register) {
         class_register.RegisterAll();
         class_register.RegisterModuleClass<SvfsModules::AssimpImporterModule>();
         class_register.RegisterContainerClass<SvfsModules::AssimpContainer>();
 
-        VariantArgumentMap args;
-        args.set("host_path", root_path);
-        args.set("mount_point", ""s);
-        args.set("generate_resource_id", true);
-        args.set("store_resource_id", true);
-        args.set("mode", "rw"s);
-        file_system.MountContainer("host_folder", args);
+        {
+            VariantArgumentMap args;
+            args.set("host_path", root_path);
+            args.set("mount_point", ""s);
+            args.set("generate_resource_id", true);
+            args.set("store_resource_id", true);
+            args.set("mode", "rw"s);
+            file_system.MountContainer("host_folder", args);
+        }
+        {
+            VariantArgumentMap args;
+            args.set("root_point", ""s);
+            args.set("module_manager", modmgr);
+            args.set("use_manifest", true);
+            file_system.LoadModule("assimp_import", args);
+        }
     }
     StarVfs::SvfsClassRegister class_register;
     StarVfs::StarVirtualFileSystem file_system;
@@ -91,7 +100,7 @@ void FileSystemModule::OpenPath(std::string new_root_path) {
     }
 
     root_path = std::move(new_root_path);
-    svfs_instance = std::make_unique<StarVfsInstance>(root_path);
+    svfs_instance = std::make_unique<StarVfsInstance>(root_path, GetModuleManager());
 
     // std::unique_lock<QtShared::iJobFence> fenceLock(*jobFence);
     UpdateFsWatcher();
@@ -279,7 +288,9 @@ void FileSystemModule::RefreshChangedPaths() {
 //-----------------------------------------------------------------------------
 
 void FileSystemModule::UpdateFsWatcher() {
-    filesystem_watcher.removePaths(filesystem_watcher.directories());
+    if (!filesystem_watcher.directories().empty()) {
+        filesystem_watcher.removePaths(filesystem_watcher.directories());
+    }
     QStringList list;
     QDirIterator it(QString::fromStdString(root_path), QDirIterator::Subdirectories);
     while (it.hasNext()) {

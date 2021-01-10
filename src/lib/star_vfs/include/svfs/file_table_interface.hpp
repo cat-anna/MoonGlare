@@ -22,6 +22,7 @@ public:
         FileResourceId resource_id{0};
 
         bool is_directory{false};
+        bool is_hidden{false};
     };
 
     virtual bool RegisterFileStructure(const std::vector<ContainerFileEntry> &Structure) = 0;

@@ -9,9 +9,9 @@
 namespace MoonGlare {
 
 template <typename T>
-std::string to_json_string(const T &value) {
+std::string to_json_string(const T &value, bool pretty_print = false) {
     nlohmann::json json = value;
-    return json.dump();
+    return json.dump(pretty_print ? 4 : -1);
 }
 
 template <typename T>
@@ -31,11 +31,11 @@ T ReadJsonFromFile(const std::filesystem::path &path) {
 }
 
 template <typename T>
-void WriteJsonToFile(const std::filesystem::path &path, const T &value) {
+void WriteJsonToFile(const std::filesystem::path &path, const T &value, bool pretty_print = false) {
     nlohmann::json json = value;
     std::ofstream file;
     file.open(path, std::ios_base::binary | std::ios::out);
-    file << nlohmann::json(value);
+    file << to_json_string(value, pretty_print);
 }
 
 template <typename T>

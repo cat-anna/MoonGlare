@@ -20,6 +20,7 @@ bool FileTableProxy::RegisterFileStructure(const std::vector<ContainerFileEntry>
                 child->container_id = source_container_id;
                 child->container_file_id = item.container_file_id;
             }
+            child->is_hidden = item.is_hidden;
 
             child->resource_id = item.resource_id;
             file_table->AddFileEntry(child);
@@ -34,6 +35,8 @@ bool FileTableProxy::RegisterFileStructure(const std::vector<ContainerFileEntry>
     return true;
 }
 
-void FileTableProxy::CreateDirectory(const std::string_view &path) { file_table->CreateDirectory(path); }
+void FileTableProxy::CreateDirectory(const std::string_view &path) {
+    file_table->CreateDirectory(path);
+}
 
 } // namespace MoonGlare::StarVfs

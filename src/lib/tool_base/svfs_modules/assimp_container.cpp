@@ -51,6 +51,8 @@ struct AssimpLoader {
     std::vector<MeshInfo> known_meshes;
     std::vector<std::string> animation_names;
 
+    StarVfs::HostFileSvfsManifest *current_manifest = nullptr;
+
     AssimpLoader(SharedModuleManager module_manger, StarVfs::FileResourceId source_resource_id, std::string mount_point)
         : module_manger(std::move(module_manger)), mount_point(std::move(mount_point)),
           source_resource_id(source_resource_id) {
@@ -61,8 +63,14 @@ struct AssimpLoader {
     void AddFile(std::string file_data, std::string file_name) {
         auto fi = std::make_unique<AssimpContainer::FileInfo>();
 
-        fi->resource_id = StarVfs::Hasher::Hash(file_name, my_seed);
-        fi->path_id = StarVfs::Hasher::HashTogether(mount_point, "/"sv, file_name);
+        auto resource_id = StarVfs::Hasher::Hash(file_name, my_seed);
+        StarVfs::HostFileSvfsManifestSubContent sub_entry;
+        sub_entry.resource_id = resource_id;
+        sub_entry.file_name = file_name;
+        current_manifest->sub_contents.push_back(sub_entry);
+
+        fi->resource_id = resource_id;
+        fi->path_id = StarVfs::Hasher::Hash(StarVfs::JoinPath(mount_point, file_name));
         fi->container_id = fi->path_id;
         fi->parent_id = parent_id;
 
@@ -152,7 +160,7 @@ struct AssimpLoader {
     void ImportAnimations() {
 #if 0
         animation_names.resize(scene->mNumAnimations);
-        
+
         for (unsigned i = 0; i < scene->mNumAnimations; ++i) {
             std::string anim_name = fmt::format("{:02}.anim", i);
             animation_names[i] = anim_name;
@@ -238,7 +246,9 @@ struct AssimpLoader {
         }
     }
 
-    bool Import(const std::string_view &file_ext, const std::string_view file_data) {
+    bool Import(const std::string_view &file_ext, const std::string_view file_data,
+                StarVfs::HostFileSvfsManifest &file_manifest) {
+        current_manifest = &file_manifest;
         unsigned flags = aiProcess_JoinIdenticalVertices | /* aiProcess_PreTransformVertices | */
                          aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_SortByPType;
 
@@ -255,6 +265,7 @@ struct AssimpLoader {
 
         ImportEntities();
 
+        current_manifest = nullptr;
         return true;
     }
 };
@@ -274,16 +285,44 @@ AssimpContainer::AssimpContainer(StarVfs::iFileTableInterface *fti, const Varian
 //-------------------------------------------------------------------------------------------------
 
 void AssimpContainer::LoadFromMemory(StarVfs::FileResourceId source_resource_id, const std::string_view &file_data,
-                                     const AssimpFileManifest &file_manifest, const std::string_view &ext) {
+                                     StarVfs::HostFileSvfsManifest &file_manifest, const std::string_view &ext) {
 
     AddLog(FSEvent, "Loading assimp file from memory");
 
     auto loader = std::make_unique<AssimpLoader>(module_manager, source_resource_id, mount_point);
-    if (!loader->Import(ext, file_data)) {
+    if (!loader->Import(ext, file_data, file_manifest)) {
         throw std::runtime_error("Assimp import failed");
     }
 
     loaded_files.swap(loader->loaded_files);
+
+    ReloadContainer();
+}
+
+void AssimpContainer::LoadFromCache(StarVfs::FileResourceId source_resource_id, const std::string_view &file_data,
+                                    StarVfs::HostFileSvfsManifest &file_manifest, const std::string_view &ext) {
+
+    AddLog(FSEvent, "Loading assimp file from cache");
+    this->file_data = file_data;
+    this->source_resource_id = source_resource_id;
+
+    auto parent_id = StarVfs::Hasher::Hash(this->mount_point);
+
+    loaded_files.clear();
+    for (auto &item : file_manifest.sub_contents) {
+        auto fi = std::make_unique<AssimpContainer::FileInfo>();
+
+        auto resource_id = StarVfs::Hasher::Hash(item.file_name, source_resource_id);
+
+        fi->resource_id = resource_id;
+        fi->path_id = StarVfs::Hasher::Hash(StarVfs::JoinPath(mount_point, item.file_name));
+        fi->container_id = fi->path_id;
+        fi->parent_id = parent_id;
+
+        fi->file_name = item.file_name;
+        fi->file_data = "";
+        loaded_files[fi->container_id] = std::move(fi);
+    }
 
     ReloadContainer();
 }

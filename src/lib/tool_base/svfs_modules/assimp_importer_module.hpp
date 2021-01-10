@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <svfs/vfs_module.hpp>
+#include <svfs/vfs_module_interface.hpp>
 #include <unordered_map>
 #include <variant_argument_map.hpp>
 
@@ -22,8 +23,11 @@ public:
 
 private:
     std::string root_point;
+    bool use_manifest = false;
     std::unordered_map<std::string, AssimpContainer *> known_files;
     SharedModuleManager module_manager;
+
+    void ProcessFileEntry(const StarVfs::FileEntry *file, std::string_view file_name, const std::string &ext);
 };
 
 } // namespace MoonGlare::Tools::SvfsModules

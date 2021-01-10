@@ -1,6 +1,7 @@
 
 
 #include "tool_base_qt_module_registration.h"
+#include "runtime_modules/basic_icons_provider_module.hpp"
 #include "runtime_modules/changes_manager_module.hpp"
 #include "runtime_modules/custom_enum_provider_module.hpp"
 #include "runtime_modules/custom_type_editor_module.hpp"
@@ -19,6 +20,7 @@ void RegisterBaseQtModules() {
     ModuleClassRegister::Register<CustomTypeEditorProviderModule> CustomTypeEditorProviderReg(
         "CustomTypeEditorProvider");
     ModuleClassRegister::Register<CustomEnumProviderModule> CustomEnumProviderReg("CustomEnumProvider");
+    ModuleClassRegister::Register<BasicIconsProviderModule> BasicIconsProviderModuleReg("BasicIconsProvider");
 }
 
 void RegisterBaseQtImporterModules() {

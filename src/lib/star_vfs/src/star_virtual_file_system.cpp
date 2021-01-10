@@ -116,7 +116,7 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         return container->ReadFileContent(file->container_file_id, file_data);
     };
 
-    bool WriteFile(const FileEntry *file, const std::string &file_data) /* override */ {
+    bool WriteFile(const FileEntry *file, const std::string &file_data) override {
         if (file == nullptr) {
             return false;
         }

@@ -26,6 +26,7 @@ public:
 
     virtual const FileEntry *GetFileByPath(const std::string &file_path) const = 0;
     virtual bool ReadFile(const FileEntry *file_entry, std::string &file_data) const = 0;
+    virtual bool WriteFile(const FileEntry *file_entry, const std::string &file_data) = 0;
     virtual bool IsDirectory(const FileEntry *file_entry) const = 0;
     virtual std::string GetFullPath(const FileEntry *file_entry) const = 0;
     virtual FileResourceId GetResourceId(const FileEntry *file_entry) const = 0;
