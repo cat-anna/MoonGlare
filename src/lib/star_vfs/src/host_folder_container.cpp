@@ -225,6 +225,10 @@ FilePathHash HostFolderContainer::FindFile(const std::string &relative_path) con
     return 0;
 }
 
+std::string HostFolderContainer::GetContainerName() const {
+    return fmt::format("svfs://{}@{}", kClassName, host_path.generic_string());
+}
+
 #if 0
 
 //-------------------------------------------------------------------------------------------------

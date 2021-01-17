@@ -42,7 +42,7 @@ public:
     }
 
     std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() override {
-        filesystem = std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register, this);
+        filesystem = std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register, IntSvfsHooks());
         return filesystem;
     }
 

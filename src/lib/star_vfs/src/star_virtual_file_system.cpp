@@ -211,26 +211,25 @@ StarVirtualFileSystem::StarVirtualFileSystem(iClassRegister *class_register, iSt
 StarVirtualFileSystem::~StarVirtualFileSystem() {
 }
 
-iVfsContainer *StarVirtualFileSystem::MountContainer(const std::string_view &container_class,
+iVfsContainer *StarVirtualFileSystem::MountContainer(std::string_view container_class,
                                                      const VariantArgumentMap &arguments) {
 
     return impl->CreateContainer(container_class, arguments);
 };
 
-iVfsModule *StarVirtualFileSystem::LoadModule(const std::string_view &module_class,
-                                              const VariantArgumentMap &arguments) {
+iVfsModule *StarVirtualFileSystem::LoadModule(std::string_view module_class, const VariantArgumentMap &arguments) {
     return impl->LoadModule(module_class, arguments);
 }
 
-std::unique_ptr<iVfsExporter> StarVirtualFileSystem::CreateExporter(const std::string_view &module_class,
+std::unique_ptr<iVfsExporter> StarVirtualFileSystem::CreateExporter(std::string_view module_class,
                                                                     const VariantArgumentMap &arguments) {
     return impl->CreateExporter(module_class, arguments);
 }
 
-bool StarVirtualFileSystem::ReadFileByPath(const std::string &path, std::string &file_data) const {
+bool StarVirtualFileSystem::ReadFileByPath(std::string_view path, std::string &file_data) const {
     auto *file = impl->file_table.FindFileByPath(path);
     if (file == nullptr) {
-        AddLogf(Error, "Failed to find file %s : %llu", path.c_str(), Hasher::Hash(path));
+        AddLogf(Error, "Failed to find file %s : %llu", path.data(), Hasher::Hash(path));
         return false;
     }
 
@@ -247,7 +246,7 @@ bool StarVirtualFileSystem::ReadFileByResourceId(FileResourceId resource, std::s
     return impl->ReadFile(file, file_data);
 }
 
-FileResourceId StarVirtualFileSystem::GetResourceByPath(const std::string_view &path) const {
+FileResourceId StarVirtualFileSystem::GetResourceByPath(std::string_view path) const {
     auto *file = impl->file_table.FindFileByPath(path);
     if (file == nullptr) {
         AddLogf(Error, "Failed to find file %s : %llu", path.data(), Hasher::Hash(path));
@@ -269,17 +268,17 @@ std::string StarVirtualFileSystem::GetNameOfResource(FileResourceId resource, bo
     }
 }
 
-bool StarVirtualFileSystem::WriteFileByPath(const std::string &path, const std::string &file_data) {
+bool StarVirtualFileSystem::WriteFileByPath(std::string_view path, const std::string &file_data) {
     auto *file = impl->file_table.FindFileByPath(path);
     if (file == nullptr) {
-        AddLogf(Error, "Failed to find file %s : %llu", path.c_str(), Hasher::Hash(path));
+        AddLogf(Error, "Failed to find file %s : %llu", path.data(), Hasher::Hash(path));
         return false;
     }
 
     return impl->WriteFile(file, file_data);
 }
 
-bool StarVirtualFileSystem::EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const {
+bool StarVirtualFileSystem::EnumeratePath(std::string_view path, FileInfoTable &result_file_table) const {
     result_file_table.clear();
     iVfsModuleInterface::EnumerateFileFunctor functor = [&result_file_table](const FileEntry *child, auto) -> bool {
         FileInfoTable::value_type entry;

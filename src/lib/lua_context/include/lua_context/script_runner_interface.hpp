@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-namespace MoonGlare {
+namespace MoonGlare::Lua {
 
 class iCodeChunkRunner {
 public:
@@ -19,4 +19,6 @@ public:
     }
 };
 
-} // namespace MoonGlare
+constexpr auto kLuaInitScript = "init.lua";
+
+} // namespace MoonGlare::Lua

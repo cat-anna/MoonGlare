@@ -21,6 +21,7 @@ public:
 
     bool ReadFileContent(FilePathHash container_file_id, std::string &file_data) const override;
     FilePathHash FindFile(const std::string &relative_path) const override;
+    std::string GetContainerName() const override;
 
 private:
     std::filesystem::path zip_file_path;

@@ -48,6 +48,7 @@ public:
     void AddFile(const std::string_view &path, SharedDynamicFileInterface shared_file_interface);
     void AddFile(const std::string_view &path, FunctorFileInterface::Functor functor);
     void AddDirectory(const std::string_view &path);
+    std::string GetContainerName() const override;
 
 private:
     struct FileInfo {

@@ -11,7 +11,6 @@
 #include <string_view>
 #include <template_class_list.h>
 
-
 namespace MoonGlare::StarVfs {
 
 class iVfsModule;
@@ -21,19 +20,18 @@ public:
     explicit StarVirtualFileSystem(iClassRegister *class_register, iStarVfsHooks *hooks = nullptr);
     ~StarVirtualFileSystem() override;
 
-    iVfsContainer *MountContainer(const std::string_view &container_class,
-                                  const VariantArgumentMap &arguments) override;
-    iVfsModule *LoadModule(const std::string_view &module_class, const VariantArgumentMap &arguments) override;
-    std::unique_ptr<iVfsExporter> CreateExporter(const std::string_view &module_class,
+    iVfsContainer *MountContainer(std::string_view container_class, const VariantArgumentMap &arguments) override;
+    iVfsModule *LoadModule(std::string_view module_class, const VariantArgumentMap &arguments) override;
+    std::unique_ptr<iVfsExporter> CreateExporter(std::string_view module_class,
                                                  const VariantArgumentMap &arguments) override;
 
-    bool WriteFileByPath(const std::string &path, const std::string &file_data) override;
+    bool WriteFileByPath(std::string_view path, const std::string &file_data) override;
 
     // iReadOnlyFileSystem
-    bool ReadFileByPath(const std::string &path, std::string &file_data) const override;
+    bool ReadFileByPath(std::string_view path, std::string &file_data) const override;
     bool ReadFileByResourceId(FileResourceId resource, std::string &file_data) const override;
-    bool EnumeratePath(const std::string_view &path, FileInfoTable &result_file_table) const override;
-    FileResourceId GetResourceByPath(const std::string_view &path) const override;
+    bool EnumeratePath(std::string_view path, FileInfoTable &result_file_table) const override;
+    FileResourceId GetResourceByPath(std::string_view path) const override;
     std::string GetNameOfResource(FileResourceId resource, bool wants_full_path = true) const override;
 
 private:

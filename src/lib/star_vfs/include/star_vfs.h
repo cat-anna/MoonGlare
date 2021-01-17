@@ -19,11 +19,9 @@ class iStarVfs : public iWritableFileSystem {
 public:
     virtual ~iStarVfs() = default;
 
-    virtual iVfsContainer *MountContainer(const std::string_view &container_class,
-                                          const VariantArgumentMap &arguments) = 0;
-    virtual iVfsModule *LoadModule(const std::string_view &module_class,
-                                   const VariantArgumentMap &arguments) = 0;
-    virtual std::unique_ptr<iVfsExporter> CreateExporter(const std::string_view &module_class,
+    virtual iVfsContainer *MountContainer(std::string_view container_class, const VariantArgumentMap &arguments) = 0;
+    virtual iVfsModule *LoadModule(std::string_view module_class, const VariantArgumentMap &arguments) = 0;
+    virtual std::unique_ptr<iVfsExporter> CreateExporter(std::string_view module_class,
                                                          const VariantArgumentMap &arguments) = 0;
 };
 

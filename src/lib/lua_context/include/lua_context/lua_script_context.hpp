@@ -3,7 +3,6 @@
 #include <lua_context/script_module.hpp>
 #include <lua_context/script_runner_interface.hpp>
 #include <mutex>
-#include <readonly_file_system.h>
 #include <vector>
 
 struct lua_State;
@@ -12,7 +11,7 @@ namespace MoonGlare::Lua {
 
 class LuaScriptContext : public iCodeChunkRunner, public iScriptModuleManager {
 public:
-    LuaScriptContext(std::shared_ptr<iReadOnlyFileSystem> filesystem);
+    LuaScriptContext();
     ~LuaScriptContext() override;
 
     void CollectGarbage();
@@ -26,11 +25,13 @@ public:
     }
 
     void AddModule(std::shared_ptr<iDynamicScriptModule> module) override;
+    iCodeChunkRunner *GetCodeRunnerInterface() override { return this; }
 
 private:
     lua_State *lua_state = nullptr;
     mutable std::recursive_mutex lua_state_mutex;
     int current_gc_step = 1;
+    std::shared_ptr<iRequireModule> require_module;
 
     std::vector<std::shared_ptr<iDynamicScriptModule>> modules;
 

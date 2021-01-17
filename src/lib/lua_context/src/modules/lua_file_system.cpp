@@ -1,74 +1,70 @@
-#include <Foundation/Scripts/LuaStackOverflowAssert.h>
-#include <interface_map.h>
+#include "lua_context/modules/lua_file_system.hpp"
+#include "lua_context_build_config.hpp"
+#include <fmt/format.h>
+#include <orbit_logger.h>
+#include <sol/sol.hpp>
 
-#include "../ApiInit.h"
-#include "../ErrorReporting.h"
-#include "../iDynamicModule.h"
-#include "../iLuaRequire.h"
+namespace MoonGlare::Lua {
 
-#include "LuaFilesystem.h"
-
-namespace MoonGlare::Scripts::Modules {
-
-LuaFileSystemModule::LuaFileSystemModule(lua_State *lua, InterfaceMap *world) {
-    world->GetInterface<iRequireModule>()->RegisterRequire("FileSystem", this);
-    fs = world->GetInterface<iFileSystem>();
+LuaFileSystemModule::LuaFileSystemModule(std::shared_ptr<iReadOnlyFileSystem> filesystem)
+    : iDynamicScriptModule("LuaFileSystemModule"), iRequireRequest("filesystem"), filesystem(std::move(filesystem)) {
 }
 
-LuaFileSystemModule::~LuaFileSystemModule() {}
+LuaFileSystemModule::~LuaFileSystemModule() {
+}
 
-/*@ [RequireModules/LuaFileSystemModule] FileSystem module
+void LuaFileSystemModule::InitContext(lua_State *lua) {
+    sol::state_view sol_view(lua);
+    auto ns = sol_view[kInternalLuaNamespaceName].get_or_create<sol::table>();
+    ns.new_usertype<LuaFileSystemModule>("LuaFileSystemModule",                                        //
+                                         "read_by_path", &LuaFileSystemModule::ReadFileByPath,         //
+                                         "read_by_path_safe", &LuaFileSystemModule::ReadFileByPathSafe //
+    );
+}
+
+/*@ [LuaModules/LuaFileSystemModule] FileSystem module
     This module allows to access internal file system
 @*/
 
-ApiInitializer LuaFileSystemModule::RegisterScriptApi(ApiInitializer api) {
-    return api.beginClass<LuaFileSystemModule>("LuaFileSystemModule")
-        .addCFunction("ReadFileContent", &LuaFileSystemModule::ReadFileContent)
-        .addCFunction("ReadJSON", &LuaFileSystemModule::ReadJSON)
-        .addCFunction("Enumerate", &LuaFileSystemModule::EnumerateFolder)
-        .addCFunction("FindFilesByExt", &LuaFileSystemModule::FindFilesByExt)
-        .endClass();
-}
-
 bool LuaFileSystemModule::OnRequire(lua_State *lua, std::string_view name) {
-    luabridge::push<LuaFileSystemModule *>(lua, this);
+    sol::stack::push(lua, this);
     return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-/*@ [LuaFileSystemModule/_] `FileSystem:ReadFileContent(fileURI)`
-    Read entire content of requested file. In file does not exist nil is
-returned.
+/*@ [LuaFileSystemModule/_] `FileSystem:ReadFileByPath(absolute_file_path)`
+    Read entire content of requested file. In file does not exist error is raised.
 @*/
-int LuaFileSystemModule::ReadFileContent(lua_State *lua) {
-    if (!lua_isstring(lua, -1)) {
-        AddLogf(ScriptRuntime,
-                "Invalid argument #1 to FileSystem::ReadFileContent");
-        return 0;
+std::string LuaFileSystemModule::ReadFileByPath(std::string_view file_name) {
+    std::string data;
+    if (!filesystem->ReadFileByPath(file_name, data)) {
+        AddLog(FSEvent, fmt::format("File {} was not found", file_name));
+        throw std::runtime_error(fmt::format("File {} was not found", file_name));
     }
 
-    std::string uri = lua_tostring(lua, -1);
+    return data;
+}
 
-    StarVFS::ByteTable bt;
-    if (!fs->OpenFile(bt, uri)) {
-        AddLogf(ScriptRuntime,
-                "FileSystem::ReadFileContent : Cannot open file %s",
-                uri.c_str());
-        return 0;
+/*@ [LuaFileSystemModule/_] `FileSystem:ReadFileByPath(absolute_file_path)`
+    Read entire content of requested file. Returns tuple <file_found, content or empty string>
+@*/
+std::tuple<bool, std::string> LuaFileSystemModule::ReadFileByPathSafe(std::string_view file_name) {
+    std::string data;
+    if (!filesystem->ReadFileByPath(file_name, data)) {
+        return {false, ""};
     }
 
-    lua_pushlstring(lua, (const char *)bt.get(), bt.byte_size());
-    return 1;
+    return {true, data};
 }
 
 /*@ [LuaFileSystemModule/_] `FileSystem:ReadJSON(fileURI)`
     Read json file. On success parsed file content is returned, nil on error.
 @*/
+#if 0
 int LuaFileSystemModule::ReadJSON(lua_State *lua) {
     if (ReadFileContent(lua) != 1) {
-        AddLogf(ScriptRuntime,
-                "FileSystem::ReadJSON : Cannot Read file content");
+        AddLogf(ScriptRuntime, "FileSystem::ReadJSON : Cannot Read file content");
         return 0;
     }
 
@@ -87,8 +83,7 @@ int LuaFileSystemModule::ReadJSON(lua_State *lua) {
     }
     lua_getfield(lua, -1, "decode"); // uri fileData jsonLib decodeFunc
     if (lua_isnil(lua, -1)) {
-        AddLogf(ScriptRuntime,
-                "FileSystem::ReadJSON : Cannot find json.decode method");
+        AddLogf(ScriptRuntime, "FileSystem::ReadJSON : Cannot find json.decode method");
         return 0;
     }
     lua_insert(lua, -3); // uri fileData jsonLib
@@ -101,6 +96,7 @@ int LuaFileSystemModule::ReadJSON(lua_State *lua) {
 
     return 1;
 }
+#endif
 
 /*@ [LuaFileSystemModule/_] `FileSystem:EnumerateFolder(folderURI)`
     Function enumerates requested directory and return table with found entries.
@@ -111,11 +107,11 @@ int LuaFileSystemModule::ReadJSON(lua_State *lua) {
     * FileId
     * IsFolder
 @*/
+#if 0
 int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
     // top=1 -> self
     if (!lua_isstring(lua, 2)) {
-        AddLogf(ScriptRuntime,
-                "Invalid argument #1 to FileSystem::EnumerateFolder");
+        AddLogf(ScriptRuntime, "Invalid argument #1 to FileSystem::EnumerateFolder");
         return 0;
     }
 
@@ -125,8 +121,7 @@ int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
 
     FileInfoTable fit;
     if (!fs->EnumerateFolder(path, fit, lua_toboolean(lua, 3))) {
-        AddLogf(ScriptRuntime,
-                "FileSystem::EnumerateFolder : Enumeration failed");
+        AddLogf(ScriptRuntime, "FileSystem::EnumerateFolder : Enumeration failed");
         return overflow.ReturnArgs(0);
     }
 
@@ -158,6 +153,7 @@ int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
 
     return overflow.ReturnArgs(1);
 }
+#endif
 
 /*@ [LuaFileSystemModule/_] `FileSystem:FindFilesByExt(ext)`
     Function enumerates entire filesystem and looks for files with specified
@@ -165,6 +161,7 @@ extension. Nil value is returned on error, on success table with found filepaths
 is returned
     TODO: with dot or without?
 @*/
+#if 0
 int LuaFileSystemModule::FindFilesByExt(lua_State *lua) {
     static constexpr char *ScriptFunctionName = "FileSystem::FindFilesByExt";
 
@@ -192,5 +189,6 @@ int LuaFileSystemModule::FindFilesByExt(lua_State *lua) {
 
     return 1;
 }
+#endif
 
-} // namespace MoonGlare::Scripts::Modules
+} // namespace MoonGlare::Lua

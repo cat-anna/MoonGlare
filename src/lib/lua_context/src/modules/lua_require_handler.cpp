@@ -1,4 +1,4 @@
-#include "lua_require_handler.hpp"
+#include "lua_context/modules/lua_require_handler.hpp"
 #include "lua_context_build_config.hpp"
 #include "lua_exec_string.hpp"
 #include <array>
@@ -12,13 +12,13 @@ namespace MoonGlare::Lua {
 
 //-------------------------------------------------------------------------------------------------
 
-/*@ [StaticModules/RequireModule] Require module
-    Module is accessible directly via global *require* variable.
+/*@ [LuaModules/RequireModule] Require module
+    Module is accessible directly via global *require* function.
     Extensions are available only in debug mode.
 @*/
 
 LuaRequireModule::LuaRequireModule(std::shared_ptr<iReadOnlyFileSystem> filesystem)
-    : filesystem(std::move(filesystem)) {
+    : iDynamicScriptModule("LuaRequireModule"), filesystem(std::move(filesystem)) {
 }
 
 LuaRequireModule::~LuaRequireModule() {
@@ -60,14 +60,17 @@ void LuaRequireModule::InitContext(lua_State *lua) {
 
 //-------------------------------------------------------------------------------------------------
 
-void LuaRequireModule::RegisterRequire(std::string name, iRequireRequest *iface) {
+void LuaRequireModule::RegisterRequire(std::shared_ptr<iRequireRequest> iface, std::string name) {
+    if (name.empty() && iface) {
+        name = iface->GetRequireName();
+    }
     if (!iface) {
         AddLogf(Debug, "Unregistered lua require: %s", name.c_str());
         scriptRequireMap.erase(name);
         return;
     }
     AddLogf(Debug, "Registered lua require: %s", name.c_str());
-    scriptRequireMap[name] = iface;
+    scriptRequireMap[name] = std::move(iface);
 }
 
 bool LuaRequireModule::Query(lua_State *lua, std::string_view name) {

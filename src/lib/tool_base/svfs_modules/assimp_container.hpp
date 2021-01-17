@@ -22,6 +22,7 @@ public:
     void ReloadContainer() override;
 
     bool ReadFileContent(StarVfs::FilePathHash container_file_id, std::string &file_data) const override;
+    std::string GetContainerName() const override;
 
     struct FileInfo {
         std::string file_name;

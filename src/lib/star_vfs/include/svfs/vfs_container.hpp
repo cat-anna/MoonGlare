@@ -39,6 +39,9 @@ public:
 
     /** Enumerate files in container. cfids are in container domain. Returns false if not supported */
     // virtual bool EnumerateFiles(ContainerFileEnumFunc filterFunc) const;
+
+    virtual std::string GetContainerName() const = 0;
+
 protected:
     iFileTableInterface *const file_table_interface;
 };

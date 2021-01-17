@@ -2,9 +2,8 @@
 #include "lua_context/lua_script_context.hpp"
 #include "lua_error_handling.hpp"
 #include "lua_exec_string.hpp"
-#include "modules/lua_print.hpp"
-#include "modules/lua_require_handler.hpp"
 #include <build_configuration.hpp>
+#include <fmt/format.h>
 #include <lua.hpp>
 #include <orbit_logger.h>
 
@@ -42,7 +41,7 @@ void OpenLibs(lua_State *L) {
 
 } // namespace
 
-LuaScriptContext::LuaScriptContext(std::shared_ptr<iReadOnlyFileSystem> filesystem) {
+LuaScriptContext::LuaScriptContext() {
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::Script, "SCRI");
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptCall, "SCCL", false);
     ::OrbitLogger::LogCollector::SetChannelName(OrbitLogger::LogChannels::ScriptRuntime, "SCRT");
@@ -50,9 +49,6 @@ LuaScriptContext::LuaScriptContext(std::shared_ptr<iReadOnlyFileSystem> filesyst
     AddLog(Debug, "Constructing lua runner");
 
     InitLuaState();
-
-    AddModule(std::make_shared<LuaRequireModule>(filesystem));
-    AddModule(std::make_shared<LuaPrintModule>());
 }
 
 LuaScriptContext::~LuaScriptContext() {
@@ -124,8 +120,6 @@ void LuaScriptContext::InitLuaState() {
     // lua_settable(lua_state, LUA_REGISTRYINDEX); //stack: ... index c-table
 
     try {
-        // using namespace MoonGlare::Scripts::Modules;
-        // using namespace MoonGlare::Core::Scripts::Modules;
         // ApiInit::Initialize(this);
         // lua_pushnil(lua_state);
         // lua_setglobal(lua_state, "api");
@@ -135,7 +129,6 @@ void LuaScriptContext::InitLuaState() {
         // StaticModules::InitThread(lua_state, m_world);
         // InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
         // InstallModule<LuaStaticStorageModule>();
-        // InstallModule<LuaFileSystemModule>();
         // InstallModule<LuaEventsModule>();
         // InstallModule<LuaTimeModule>();
         // InstallModule<LuaAsyncLoaderModule>();
@@ -160,77 +153,32 @@ void LuaScriptContext::AddModule(std::shared_ptr<iDynamicScriptModule> module) {
     auto lock = LockLuaStateMutex();
     modules.emplace_back(module);
     module->InitContext(lua_state);
+    if (!require_module) {
+        require_module = std::dynamic_pointer_cast<iRequireModule>(module);
+    }
+
+    auto req_request = std::dynamic_pointer_cast<iRequireRequest>(module);
+    if (req_request && require_module) {
+        assert(require_module);
+        require_module->RegisterRequire(req_request);
+    }
+    AddLog(Info, fmt::format("Added lua module {}", module->GetModuleName()));
 }
 
 } // namespace MoonGlare::Lua
 
 #if 0
 
-#include <nfMoonGlare.h>
-
-#include <Engine/Core/DataManager.h>
-
-#include <Core/Scripts/LuaApi.h>
-#include <Foundation/Scripts/ErrorHandling.h>
-
-#include "ScriptEngine.h"
-
 #include "Modules/LuaSettings.h"
 #include "Modules/StaticModules.h"
+#include "ScriptEngine.h"
 #include "ScriptObject.h"
-
-#include <Foundation/Scripts/Modules/LuaAsyncLoader.h>
-#include <Foundation/Scripts/Modules/LuaDebugContext.h>
-#include <Foundation/Scripts/Modules/LuaEvents.h>
-#include <Foundation/Scripts/Modules/LuaFilesystem.h>
-#include <Foundation/Scripts/Modules/LuaRequire.h>
-#include <Foundation/Scripts/Modules/LuaStaticStorage.h>
-#include <Foundation/Scripts/Modules/LuaTime.h>
-#include <Foundation/Scripts/Modules/StaticModules.h>
-
 #include <Core/Component/ComponentRegister.h>
+#include <Core/Scripts/LuaApi.h>
+#include <Engine/Core/DataManager.h>
+#include <Foundation/Scripts/ErrorHandling.h>
 
-namespace Core {
-namespace Scripts {
-using namespace MoonGlare::Scripts;
-
-ScriptEngine* ScriptEngine::s_instance = nullptr;
-
-RegisterApiBaseClass(ScriptEngine, &ScriptEngine::RegisterScriptApi);
-
-ScriptEngine::ScriptEngine(World *world) : {
-
-    SetPerformanceCounterOwner(ExecutionErrors);
-    SetPerformanceCounterOwner(ExecutionCount);
-
-    LOCK_MUTEX(m_Mutex);
-
-    if (!ConstructLuaScriptContext()) {
-        AddLog(Error, "Unable to initialize Lua context!");
-        throw std::runtime_error("Unable to initialize Lua context!");
-    }
-
-    auto lua = GetLua();
-    luabridge::Stack<ScriptEngine*>::push(lua, this);
-    lua_setglobal(lua, "Script");
-
-}
-
-ScriptEngine::~ScriptEngine() {
-    LOCK_MUTEX(m_Mutex);
-
-    auto lua = GetLua();
-    MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "ScriptEngine", this);
-
-    AddLog(Debug, "Destroying script object");
-    if (!ReleaseLuaScriptContext()) {
-        AddLog(Warning, "An error has occur during finalization of Lua context!");
-    }
-
-    AddLog(Debug, "Destruction finished");
-}
-
-//---------------------------------------------------------------------------------------
+namespace Core::Scripts {
 
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
     root
@@ -305,7 +253,6 @@ void ScriptEngine::InstallModule() {
 #endif
 }
 
-} //namespace Scripts
-} //namespace Core
+}
 
 #endif

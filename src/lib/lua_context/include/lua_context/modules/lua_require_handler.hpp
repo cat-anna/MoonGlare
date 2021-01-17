@@ -19,14 +19,14 @@ public:
     LuaRequireModule(std::shared_ptr<iReadOnlyFileSystem> filesystem);
     ~LuaRequireModule() override;
 
-    void RegisterRequire(std::string name, iRequireRequest *iface) override;
+    void RegisterRequire(std::shared_ptr<iRequireRequest> iface, std::string name) override;
     bool Query(lua_State *lua, std::string_view name) override;
     void InitContext(lua_State *lua) override;
 
 protected:
     std::shared_ptr<iReadOnlyFileSystem> filesystem;
 
-    std::unordered_map<std::string, iRequireRequest *> scriptRequireMap;
+    std::unordered_map<std::string, std::shared_ptr<iRequireRequest>> scriptRequireMap;
 
     // require name shall be on top of the stack
     bool ProcessRequire(lua_State *lua, std::string_view name, int cachetableloc);

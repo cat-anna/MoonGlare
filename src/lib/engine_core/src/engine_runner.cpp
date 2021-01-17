@@ -1,5 +1,7 @@
 #include "engine_runner.hpp"
+#include "engine_runner/script_init_runner_hook.hpp"
 #include "lua_context/lua_script_context.hpp"
+#include "lua_context/modules/lua_modules_all.hpp"
 #include "threaded_async_loader.hpp"
 #include <orbit_logger.h>
 #include <resources/resource_manager.hpp>
@@ -42,11 +44,6 @@ void EngineRunner::Execute() {
 }
 
 void EngineRunner::Initialize() {
-#define init_assert(E)                                                                                                 \
-    if (!(E)) {                                                                                                        \
-        throw std::runtime_error("Init assert failed: " #E);                                                           \
-    }
-
     // m_World = std::make_unique<World>();
     // m_World->SetInterface(this);
     // m_World->CreateObject<Module::DebugContext, Module::iDebugContext>();
@@ -54,6 +51,7 @@ void EngineRunner::Initialize() {
     // m_World->CreateObject<Modules::BasicConsole, iConsole>();
 
     auto config = LoadConfiguration();
+    script_module_manager = std::make_shared<Lua::LuaScriptContext>();
 
     // auto moveCfg = std::make_shared<Core::MoveConfig>();
     // m_World->SetSharedInterface(moveCfg);
@@ -65,13 +63,12 @@ void EngineRunner::Initialize() {
     // }
 
     filesystem = CreateFilesystem();
-    init_assert(filesystem);
 
-    code_chunk_runner = std::make_shared<Lua::LuaScriptContext>(filesystem);
+    Lua::LoadAllLuaModules(script_module_manager.get(), filesystem);
 
     async_loader = std::make_shared<ThreadedAsyncLoader>(filesystem);
-    //TODO: setup fs hooks for loading /init.lua from each container
     LoadDataModules();
+    ExecuteHooks([](auto *p) { p->AfterDataModulesLoad(); });
 
     // m_World->CreateObject<Resources::StringTables>();
     // if (!ModManager->Initialize()) {
@@ -82,8 +79,6 @@ void EngineRunner::Initialize() {
     // auto scrEngine = new ScriptEngine(m_World.get());
 
     device_context = CreateDeviceContext();
-    init_assert(device_context);
-
     rendering_device = std::make_shared<Renderer::RenderingDevice>(device_context);
     resource_manager = std::make_shared<Renderer::Resources::ResourceManager>(async_loader, rendering_device);
     device_window = device_context->CreateWindow(Renderer::WindowCreationInfo{config.window});
@@ -129,8 +124,6 @@ void EngineRunner::Initialize() {
     // #ifdef DEBUG_DUMP
     //     m_World->DumpObjects();
     // #endif
-
-#undef init_assert
 }
 
 void EngineRunner::Finalize() {
@@ -169,9 +162,10 @@ void EngineRunner::Finalize() {
     device_window.reset();
     device_context.reset();
 
-    code_chunk_runner.reset();
     async_loader.reset();
     filesystem.reset();
+    svfs_hooks.reset();
+    script_module_manager.reset();
 
     AddLog(Debug, "Application finalized");
 }
@@ -188,11 +182,18 @@ void EngineRunner::Exit() {
 
 //---------------------------------------------------------------------------------------
 
-void EngineRunner::OnContainerMounted(StarVfs::iVfsContainer *container) {
-    auto file_id = container->FindFile("init.lua");
-    std::string file_data;
-    if (container->ReadFileContent(file_id, file_data)) {
-        code_chunk_runner->ExecuteCodeChunk(file_data, "container/init.lua");
+StarVfs::iStarVfsHooks *EngineRunner::IntSvfsHooks() {
+    if (!svfs_hooks) {
+        auto h = std::make_unique<Runner::ScriptInitRunnerHook>(script_module_manager->GetCodeRunnerInterface());
+        runner_hooks.emplace_back(h.get());
+        svfs_hooks = std::move(h);
+    }
+    return svfs_hooks.get();
+}
+
+void EngineRunner::ExecuteHooks(std::function<void(Runner::iEngineRunnerHooks *)> functor) {
+    for (auto &item : runner_hooks) {
+        functor(item);
     }
 }
 

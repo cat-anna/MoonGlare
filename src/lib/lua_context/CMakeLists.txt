@@ -1,5 +1,5 @@
-file(GLOB_RECURSE SRC *.cpp *.hpp)
-file(GLOB_RECURSE SCRIPTS *.lua)
+file(GLOB_RECURSE SRC src/* include/*)
+file(GLOB_RECURSE SCRIPTS src/*.lua)
 
 set(TARGET lua_context)
 add_library(${TARGET} ${SRC})

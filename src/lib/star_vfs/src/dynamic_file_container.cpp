@@ -53,6 +53,10 @@ bool DynamicFileContainer::ReadFileContent(FilePathHash container_file_id, std::
     return it->second.file_interface->ReadFileContent(file_data);
 };
 
+std::string DynamicFileContainer::GetContainerName() const {
+    return fmt::format("svfs://{}", kClassName);
+}
+
 void DynamicFileContainer::AddFile(const std::string_view &path, SharedDynamicFileInterface shared_file_interface) {
     if (shared_file_interface == nullptr) {
         AddLog(Error, "Attempt to add file with null interface");
@@ -74,6 +78,8 @@ void DynamicFileContainer::AddFile(const std::string_view &path, FunctorFileInte
     AddFile(path, std::make_shared<FunctorFileInterface>(std::move(functor)));
 }
 
-void DynamicFileContainer::AddDirectory(const std::string_view &path) { file_table_interface->CreateDirectory(path); }
+void DynamicFileContainer::AddDirectory(const std::string_view &path) {
+    file_table_interface->CreateDirectory(path);
+}
 
 } // namespace MoonGlare::StarVfs

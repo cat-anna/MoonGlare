@@ -1,5 +1,5 @@
 
-#include "lua_print.hpp"
+#include "lua_context/modules/lua_print.hpp"
 #include "lua_exec_string.hpp"
 #include <orbit_logger.h>
 #include <sol/sol.hpp>
@@ -32,7 +32,10 @@ static int lua_put(lua_State *L) {
     return 0;
 }
 
-/*@ [StaticModules/LuaPrintModule] Print&Logging module
+LuaPrintModule::LuaPrintModule() : iDynamicScriptModule("LuaPrintModule") {
+}
+
+/*@ [LuaModules/LuaPrintModule] Print&Logging module
     Provide printing to engine console or to logs.
     Partially accessible through global `log`
 @*/

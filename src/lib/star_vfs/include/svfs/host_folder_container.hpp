@@ -29,6 +29,7 @@ public:
     };
 
     using FileMapper = std::unordered_map<FilePathHash, FileEntry>;
+    std::string GetContainerName() const override;
 
 private:
     AccessMode access_mode{AccessMode::ReadOnly};

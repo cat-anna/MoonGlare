@@ -6,7 +6,7 @@ namespace MoonGlare::Lua {
 
 class LuaPrintModule : public iDynamicScriptModule {
 public:
-    LuaPrintModule() = default;
+    LuaPrintModule();
     ~LuaPrintModule() override = default;
     void InitContext(lua_State *lua) override;
 };

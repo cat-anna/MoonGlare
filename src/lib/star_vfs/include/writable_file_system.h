@@ -9,7 +9,7 @@ namespace MoonGlare {
 
 class iWritableFileSystem : public iReadOnlyFileSystem {
 public:
-    virtual bool WriteFileByPath(const std::string &path, const std::string &file_data) = 0;
+    virtual bool WriteFileByPath(std::string_view path, const std::string &file_data) = 0;
 
 protected:
     virtual ~iWritableFileSystem() = default;

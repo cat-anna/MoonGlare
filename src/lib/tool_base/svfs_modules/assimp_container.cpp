@@ -367,6 +367,10 @@ bool AssimpContainer::ReadFileContent(StarVfs::FilePathHash container_file_id, s
     return true;
 }
 
+std::string AssimpContainer::GetContainerName() const {
+    return fmt::format("svfs://{}@{}", kClassName, mount_point);
+}
+
 } // namespace MoonGlare::Tools::SvfsModules
 
 #if 0

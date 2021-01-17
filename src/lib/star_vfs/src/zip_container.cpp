@@ -126,4 +126,7 @@ FilePathHash ZipContainer::FindFile(const std::string &relative_path) const {
     return 0;
 }
 
+std::string ZipContainer::GetContainerName() const {
+    return fmt::format("svfs://{}@{}", kClassName, zip_file_path.generic_string());
+}
 } // namespace MoonGlare::StarVfs
