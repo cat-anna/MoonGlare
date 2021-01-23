@@ -13,19 +13,17 @@ namespace MoonGlare::Lua {
 
 namespace {
 void OpenLibs(lua_State *L) {
-
-    static const luaL_Reg loadedlibs[] = {{"_G", luaopen_base},
-                                          //    {LUA_LOADLIBNAME, luaopen_package},
-                                          {LUA_COLIBNAME, luaopen_coroutine},
-                                          {LUA_TABLIBNAME, luaopen_table},
-                                          //    {LUA_IOLIBNAME, luaopen_io},
-                                          //    {LUA_OSLIBNAME, luaopen_os},
-                                          {LUA_STRLIBNAME, luaopen_string},
-                                          {LUA_MATHLIBNAME, luaopen_math},
+    static const luaL_Reg loadedlibs[] = {
+        {"_G", luaopen_base},
+        {LUA_COLIBNAME, luaopen_coroutine},
+        {LUA_TABLIBNAME, luaopen_table},
+        {LUA_STRLIBNAME, luaopen_string},
+        {LUA_MATHLIBNAME, luaopen_math},
 #ifdef LUA_UTF8LIBNAME
-                                          {LUA_UTF8LIBNAME, luaopen_utf8},
+        {LUA_UTF8LIBNAME, luaopen_utf8},
 #endif
-                                          {NULL, NULL}};
+        {NULL, NULL},
+    };
 
     const luaL_Reg *lib;
     /* "require" functions from 'loadedlibs' and set results to global table */
@@ -107,12 +105,6 @@ void LuaScriptContext::InitLuaState() {
     lua_state = luaL_newstate();
     OpenLibs(lua_state);
     lua_atpanic(lua_state, LuaPanicHandler);
-
-    // #ifdef DEBUG
-    //     luabridge::setHideMetatables(false);
-    // #else
-    //     luabridge::setHideMetatables(true);
-    // #endif
 
     // lua_pushlightuserdata(lua_state, GetComponentMTTableIndex()); //stack: ... index
     // lua_createtable(lua_state, 0, 0);                             //stack: ... index c-table

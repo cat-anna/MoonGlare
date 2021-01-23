@@ -7,7 +7,8 @@
 namespace MoonGlare::Lua {
 
 LuaFileSystemModule::LuaFileSystemModule(std::shared_ptr<iReadOnlyFileSystem> filesystem)
-    : iDynamicScriptModule("LuaFileSystemModule"), iRequireRequest("filesystem"), filesystem(std::move(filesystem)) {
+    : iDynamicScriptModule("LuaFileSystemModule"), iRequireRequest("moonglare.filesystem"),
+      filesystem(std::move(filesystem)) {
 }
 
 LuaFileSystemModule::~LuaFileSystemModule() {
@@ -23,7 +24,8 @@ void LuaFileSystemModule::InitContext(lua_State *lua) {
 }
 
 /*@ [LuaModules/LuaFileSystemModule] FileSystem module
-    This module allows to access internal file system
+    This module allows to access internal file system.
+    `local fs = require "moonglare.filesystem"`
 @*/
 
 bool LuaFileSystemModule::OnRequire(lua_State *lua, std::string_view name) {
@@ -33,7 +35,7 @@ bool LuaFileSystemModule::OnRequire(lua_State *lua, std::string_view name) {
 
 //-------------------------------------------------------------------------------------------------
 
-/*@ [LuaFileSystemModule/_] `FileSystem:ReadFileByPath(absolute_file_path)`
+/*@ [LuaFileSystemModule/_] `FileSystem:read_by_path(absolute_file_path)`
     Read entire content of requested file. In file does not exist error is raised.
 @*/
 std::string LuaFileSystemModule::ReadFileByPath(std::string_view file_name) {
@@ -46,7 +48,7 @@ std::string LuaFileSystemModule::ReadFileByPath(std::string_view file_name) {
     return data;
 }
 
-/*@ [LuaFileSystemModule/_] `FileSystem:ReadFileByPath(absolute_file_path)`
+/*@ [LuaFileSystemModule/_] `FileSystem:read_by_path_safe(absolute_file_path)`
     Read entire content of requested file. Returns tuple <file_found, content or empty string>
 @*/
 std::tuple<bool, std::string> LuaFileSystemModule::ReadFileByPathSafe(std::string_view file_name) {
@@ -58,7 +60,8 @@ std::tuple<bool, std::string> LuaFileSystemModule::ReadFileByPathSafe(std::strin
     return {true, data};
 }
 
-/*@ [LuaFileSystemModule/_] `FileSystem:ReadJSON(fileURI)`
+/*
+@ [LuaFileSystemModule/_] `FileSystem:ReadJSON(fileURI)`
     Read json file. On success parsed file content is returned, nil on error.
 @*/
 #if 0
@@ -98,7 +101,8 @@ int LuaFileSystemModule::ReadJSON(lua_State *lua) {
 }
 #endif
 
-/*@ [LuaFileSystemModule/_] `FileSystem:EnumerateFolder(folderURI)`
+/*
+@ [LuaFileSystemModule/_] `FileSystem:EnumerateFolder(folderURI)`
     Function enumerates requested directory and return table with found entries.
     Nil value is returned on error.
     Each element of returned table has following fields:
@@ -155,7 +159,8 @@ int LuaFileSystemModule::EnumerateFolder(lua_State *lua) {
 }
 #endif
 
-/*@ [LuaFileSystemModule/_] `FileSystem:FindFilesByExt(ext)`
+/*
+@ [LuaFileSystemModule/_] `FileSystem:FindFilesByExt(ext)`
     Function enumerates entire filesystem and looks for files with specified
 extension. Nil value is returned on error, on success table with found filepaths
 is returned

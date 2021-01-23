@@ -9,6 +9,9 @@
 
 namespace MoonGlare::Lua {
 
+/*@ [/LuaModules] Lua modules
+@*/
+
 void LoadAllLuaModules(iScriptModuleManager *script_module_manager, std::shared_ptr<iReadOnlyFileSystem> filesystem) {
     //must be first
     script_module_manager->AddModule(std::make_shared<LuaRequireModule>(filesystem));

@@ -36,19 +36,20 @@ LuaPrintModule::LuaPrintModule() : iDynamicScriptModule("LuaPrintModule") {
 }
 
 /*@ [LuaModules/LuaPrintModule] Print&Logging module
-    Provide printing to engine console or to logs.
-    Partially accessible through global `log`
+Provide printing to engine console or to logs.
+Partially accessible through global `log`
 @*/
 
 void LuaPrintModule::InitContext(lua_State *lua) {
     AddLogf(Debug, "Initializing Print module");
 
     /*@ [LuaPrintModule/_] Log global namespace
-    Provides access to primary log methods, does not do any text formatting. This function should not be used directly:
-    * `log.error(text)`
-    * `log.warning(text)`
-    * `log.info(text)`
-    * `log.debug(text)`
+Provides access to primary log methods, does not do any text formatting. This function should not be used directly:
+
+* `log.error(text)`
+* `log.warning(text)`
+* `log.info(text)`
+* `log.debug(text)`
 @*/
     sol::state_view sol_view(lua);
     auto log = sol_view["log"].get_or_create<sol::table>();

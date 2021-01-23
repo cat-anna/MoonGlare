@@ -43,10 +43,11 @@ struct RandomModule {
 } // namespace
 
 /*@ [LuaModules/RandomModule] Random module
-    Provides various methods of generation random values
+Provides various methods of generation random values
+`local random = require "moonglare.random"`
 @*/
 
-LuaRandomModule::LuaRandomModule() : iDynamicScriptModule("LuaRandomModule"), iRequireRequest("random") {
+LuaRandomModule::LuaRandomModule() : iDynamicScriptModule("LuaRandomModule"), iRequireRequest("moonglare.random") {
 }
 
 bool LuaRandomModule::OnRequire(lua_State *lua, std::string_view name) {
@@ -59,16 +60,18 @@ void LuaRandomModule::InitContext(lua_State *lua) {
     auto ns = sol_view[kInternalLuaNamespaceName].get_or_create<sol::table>();
 
     /*@ [RandomModule/RandomObject] Get next value functions family
-    This functions generates next random value.
-    * `Random.next_bool()` - true/false, probability 0.5
-    * `Random.next_float()` - [0-1) uniform distribution
-    * `Random.next_double_range(a, b)` - [a-b) uniform distribution
-    * `Random.next_gaussian()` - [0-1) normal distribution
-    * `Random.next_int()` - full int range, normal distribution
-    * `Random.next_int_range(a, b)` - [a-b) uniform distribution
-    * `Random.set_seed(TODO)` - TODO
-    * `Random.get_seed(TODO)` - TODO
-    * `Random.randomize(TODO)` - TODO
+This functions generates next random value.
+
+* `Random.next_bool()` - true/false, probability 0.5
+* `Random.next_float()` - [0-1) uniform distribution
+* `Random.next_double_range(a, b)` - [a-b) uniform distribution
+* `Random.next_gaussian()` - [0-1) normal distribution
+* `Random.next_int()` - full int range, normal distribution
+* `Random.next_int_range(a, b)` - [a-b) uniform distribution
+* `Random.set_seed(TODO)` - TODO
+* `Random.get_seed(TODO)` - TODO
+* `Random.randomize(TODO)` - TODO
+
 @*/
     ns.new_usertype<RandomObject>("RandomObject",                                     //
                                   "next_bool", &RandomObject::nextBool,               //
@@ -83,7 +86,7 @@ void LuaRandomModule::InitContext(lua_State *lua) {
     );
 
     /*@ [RandomModule/_] `Random.new()`
-    Create and return new RandomObject. All created objects share same seed.
+Create and return new RandomObject. All created objects share same seed.
 @*/
     ns.new_usertype<RandomModule>("LuaRandomModule",           //
                                   "new", &RandomModule::Create //

@@ -1,13 +1,9 @@
 add_custom_target(all_data_packages)
 
 function(create_data_package source_directory_name)
-  # set(result)
-
   get_filename_component(source_directory ${source_directory_name} ABSOLUTE)
   set(out_file_name ${TARGET_DESTINATTION}/${source_directory_name}.zip)
   set(package_name ${source_directory_name}.zip)
-
-  message(${out_file_name})
 
   file(GLOB_RECURSE package_srcs ${source_directory}/*)
 
@@ -22,5 +18,4 @@ function(create_data_package source_directory_name)
     SOURCES ${package_srcs})
 
   add_dependencies(all_data_packages ${package_name})
-
 endfunction()

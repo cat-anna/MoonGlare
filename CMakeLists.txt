@@ -7,6 +7,7 @@ include("add_all_subdirectories")
 include("embed_resources")
 include("create_data_package")
 include("find_external_tools")
+include("generated_docs")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
