@@ -80,8 +80,12 @@ void EngineRunner::Initialize() {
 
     device_context = CreateDeviceContext();
     rendering_device = std::make_shared<Renderer::RenderingDevice>(device_context);
-    resource_manager = std::make_shared<Renderer::Resources::ResourceManager>(async_loader, rendering_device);
-    device_window = device_context->CreateWindow(Renderer::WindowCreationInfo{config.window});
+    resource_manager = std::make_shared<Renderer::ResourceManager>(async_loader, rendering_device);
+
+    input_processor = std::make_unique<InputHandler::InputProcessor>(this);
+
+    auto main_window = Renderer::WindowCreationInfo{config.window};
+    device_window = device_context->CreateWindow(main_window, input_processor.get());
 
     // m_Renderer = Renderer::iRendererFacade::CreateInstance(*m_World);
     // auto *R = (Renderer::RendererFacade *)m_Renderer.get();
@@ -170,10 +174,10 @@ void EngineRunner::Finalize() {
     AddLog(Debug, "Application finalized");
 }
 
-void EngineRunner::Exit() {
-    AddLog(Debug, "Exit called");
+void EngineRunner::Stop() {
+    AddLog(Debug, "Stop called");
     if (engine_core) {
-        engine_core->Exit();
+        engine_core->Stop();
     }
     if (rendering_device) {
         rendering_device->Stop();

@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 namespace MoonGlare::Core {
@@ -64,3 +65,4 @@ struct InputProcessorOnKeyEvent {
 
 } //namespace MoonGlare::Core
 
+#endif

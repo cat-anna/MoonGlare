@@ -3,9 +3,12 @@
 // #include <Memory/ActionQueue.h>
 // #include <Foundation/Tools/PerfViewClient.h>
 
+#include <atomic>
+#include <stop_interface.hpp>
+
 namespace MoonGlare {
 
-class EngineCore
+class EngineCore : public iStopInterface
 // : private Tools::PerfView::PerfProducer
 {
 public:
@@ -20,12 +23,11 @@ public:
     //     m_ActionQueue.Add(t);
     // }
 
-    void Exit();
-
     // void SetFrameRate(float value);
     // unsigned GetFrameRate() const { return m_LastFPS; }
 
     // World* GetWorld() { return m_World; }
+    void Stop() override;
 
 protected:
     // Memory::ActionQueue m_ActionQueue;
@@ -35,7 +37,7 @@ protected:
 
     // std::unique_ptr<Renderer::Deferred::DefferedFrontend> m_Dereferred;
 
-    bool can_run = false;
+    std::atomic<bool> can_work{false};
     size_t frame_counter = 0;
     size_t last_fps = 0;
 

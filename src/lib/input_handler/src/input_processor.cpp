@@ -1,39 +1,26 @@
-#include <pch.h>
-#include <nfMoonGlare.h>
+#include "input_handler/input_processor.hpp"
 
-#include <Foundation/GLFWKeyMapping.h>
+// #include "InputProcessor.Events.h"
+// #include "InputProcessor.h"
+// #include "iConsole.h"
+// #include <Core/Scene/ScenesManager.h>
+// #include <Core/Scripts/LuaApi.h>
+// #include <Core/Scripts/ScriptComponent.h>
+// #include <Core/Scripts/ScriptEngine.h>
+// #include <Foundation/GLFWKeyMapping.h>
+// #include <Foundation/OS/Path.h>
+// #include <Input.x2c.h>
+// #include <Renderer/iContext.h>
+// #include <Renderer/iContextInputHandler.h>
+// #include <nfMoonGlare.h>
+// #include <pch.h>
 
-#include "InputProcessor.h"
-#include "InputProcessor.Events.h"
+namespace MoonGlare::InputHandler {
 
-#include <Foundation/OS/Path.h>
-#include <Core/Scripts/LuaApi.h>
-#include <Core/Scripts/ScriptEngine.h>
-#include <Core/Scene/ScenesManager.h>
-
-#include <Core/Scripts/ScriptComponent.h>
-
-#include "iConsole.h"
-
-#include <Renderer/iContext.h>
-#include <Renderer/iContextInputHandler.h>
-
-#include <Input.x2c.h>
-
-namespace MoonGlare {
-namespace Core {
-
-const KeyNamesTable g_KeyNamesTable;
-
-Space::RTTI::TypeInfoInitializer<InputProcessor, InputStateValue, InputState, KeyAction, AxisAction, KeyNamesTable> InputStructures;
-RegisterApiNonClass(InputProcessor, &InputProcessor::RegisterScriptApi);
-
-//---------------------------------------------------------------------------------------
-
-InputProcessor::InputProcessor() {
-    m_CurrentRevision = 1;
-    m_World = nullptr;
-    ResetToInternalDefault();
+InputProcessor::InputProcessor(iStopInterface *stop_interface) : stop_interface(stop_interface) {
+    // m_CurrentRevision = 1;
+    // m_World = nullptr;
+    // ResetToInternalDefault();
 }
 
 InputProcessor::~InputProcessor() {
@@ -41,22 +28,39 @@ InputProcessor::~InputProcessor() {
 
 //---------------------------------------------------------------------------------------
 
-void InputProcessor::RegisterScriptApi(ApiInitializer &root) {
-    root
-        .beginClass<InputProcessor>("cInputProcessor")
-            .addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
-            .addFunction("RegisterKeyboardAxis", &InputProcessor::RegisterKeyboardAxis)
+void InputProcessor::OnFocusChange(bool State) {
+}
 
-            .addFunction("BeginCharMode", &InputProcessor::BeginCharMode)
-            .addFunction("EndCharMode", &InputProcessor::EndCharMode)
-            .addFunction("CaptureKey", &InputProcessor::CaptureKey)
-        .endClass()
-        ;                    
+bool InputProcessor::ShouldClose(bool Focus, bool MouseHook) {
+    if (stop_interface) {
+        stop_interface->Stop();
+    }
+    return true;
+}
+
+#if 0
+const KeyNamesTable g_KeyNamesTable;
+
+Space::RTTI::TypeInfoInitializer<InputProcessor, InputStateValue, InputState, KeyAction, AxisAction, KeyNamesTable>
+    InputStructures;
+RegisterApiNonClass(InputProcessor, &InputProcessor::RegisterScriptApi);
+
+//---------------------------------------------------------------------------------------
+
+void InputProcessor::RegisterScriptApi(ApiInitializer &root) {
+    root.beginClass<InputProcessor>("cInputProcessor")
+        .addFunction("RegisterKeySwitch", &InputProcessor::RegisterKeySwitch)
+        .addFunction("RegisterKeyboardAxis", &InputProcessor::RegisterKeyboardAxis)
+
+        .addFunction("BeginCharMode", &InputProcessor::BeginCharMode)
+        .addFunction("EndCharMode", &InputProcessor::EndCharMode)
+        .addFunction("CaptureKey", &InputProcessor::CaptureKey)
+        .endClass();
 }
 
 //---------------------------------------------------------------------------------------
 
-bool InputProcessor::Initialize(World *world)  {
+bool InputProcessor::Initialize(World *world) {
     m_World = world;
     auto *ScriptEngine = m_World->GetScriptEngine();
     {
@@ -64,20 +68,20 @@ bool InputProcessor::Initialize(World *world)  {
         LOCK_MUTEX_NAMED(ScriptEngine->GetLuaMutex(), lock);
         Scripts::LuaStackOverflowAssert check(lua);
 
-        lua_createtable(lua, 0, 0);					// stack: selftable
+        lua_createtable(lua, 0, 0); // stack: selftable
         MoonGlare::Core::Scripts::PublishSelfLuaTable(lua, "InputProcessor", this, -1);
-        lua_pushlightuserdata(lua, (void *)this);	// stack: selftable selfptr
-        lua_pushvalue(lua, -2);		  				// stack: selftable selfptr selftable
-        lua_settable(lua, LUA_REGISTRYINDEX);		// stack: selftable
+        lua_pushlightuserdata(lua, (void *)this); // stack: selftable selfptr
+        lua_pushvalue(lua, -2);                   // stack: selftable selfptr selftable
+        lua_settable(lua, LUA_REGISTRYINDEX);     // stack: selftable
 
-        lua_pushlightuserdata(lua, (void *)this);	// stack: selftable selfptr
-        lua_pushcclosure(lua, &InputProcessor::luaIndexInput, 1);// stack: selftable cclosure
-        lua_setfield(lua, -2, "__index");			// stack: selftable
+        lua_pushlightuserdata(lua, (void *)this);                 // stack: selftable selfptr
+        lua_pushcclosure(lua, &InputProcessor::luaIndexInput, 1); // stack: selftable cclosure
+        lua_setfield(lua, -2, "__index");                         // stack: selftable
 
-        lua_createtable(lua, 0, 0);					// stack: selftable InputTable
-        lua_insert(lua, -2);						// stack: InputTable selftable 
-        lua_setmetatable(lua, -2);					// stack: InputTable
-        lua_setglobal(lua, "Input");				// stack:
+        lua_createtable(lua, 0, 0);  // stack: selftable InputTable
+        lua_insert(lua, -2);         // stack: InputTable selftable
+        lua_setmetatable(lua, -2);   // stack: InputTable
+        lua_setglobal(lua, "Input"); // stack:
     }
 
     ScriptEngine->RegisterLuaSettings(this, "Input");
@@ -111,7 +115,7 @@ bool InputProcessor::Finalize() {
         lua_settable(lua, LUA_REGISTRYINDEX);
 
         lua_pushnil(lua);
-        lua_setglobal(lua, "Input");	
+        lua_setglobal(lua, "Input");
 
         MoonGlare::Core::Scripts::HideSelfLuaTable(lua, "InputProcessor", this);
     }
@@ -181,7 +185,7 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
 
     if (m_ConsoleActive && m_Console) {
         using Key = KeyMapping;
-        Key k = (Key) key;
+        Key k = (Key)key;
         if (k == Key::Escape) {
             ProcessConsoleActivateKey();
             return;
@@ -192,7 +196,7 @@ void InputProcessor::PushCharModeKey(unsigned key, bool Pressed) {
 
 //---------------------------------------------------------------------------------------
 
-bool InputProcessor::Step(const Core::MoveConfig & config) {
+bool InputProcessor::Step(const Core::MoveConfig &config) {
     ++m_CurrentRevision;
     return true;
 }
@@ -227,14 +231,14 @@ void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
     //AddLogf(Debug, "Processing key: %u:%d", Id, Pressed ? 1 : 0);
 
     auto &keyinfo = m_Keys[Id];
-    if (!keyinfo.m_Flags.m_Valid) 
+    if (!keyinfo.m_Flags.m_Valid)
         return;
-    
+
     auto &state = m_InputStates[keyinfo.m_Id];
 
     //AddLogf(Debug, "State:%u currkey:%u value:%f", Id, state.m_ActiveKeyId, state.m_Value.m_Float);
 
-    if (Pressed || state.m_ActiveKeyId == Id || state.m_ActiveKeyId == Configuration::Input::MaxKeyCode) { 
+    if (Pressed || state.m_ActiveKeyId == Id || state.m_ActiveKeyId == Configuration::Input::MaxKeyCode) {
         //while handling key release do not update state if it is changed by other key
         switch (state.m_Type) {
         case InputState::Type::Switch:
@@ -253,7 +257,7 @@ void InputProcessor::ProcessKeyState(unsigned Id, bool Pressed) {
 }
 
 void InputProcessor::ProcessMouseAxis(MouseAxisId Id, float Delta) {
-    THROW_ASSERT(Id <MouseAxisId::Unknown, "Mouse axis id overflow!");
+    THROW_ASSERT(Id < MouseAxisId::Unknown, "Mouse axis id overflow!");
     //AddLogf(Debug, "Processing mouse axis: %d:%f", Id, Delta);
 
     auto &axis = m_MouseAxes[static_cast<size_t>(Id)];
@@ -264,7 +268,7 @@ void InputProcessor::ProcessMouseAxis(MouseAxisId Id, float Delta) {
         AddLog(Error, "Invalid Input state or invalid state type!");
         return;
     }
-    
+
     state.m_Value.m_Float = Delta * axis.m_Sensitivity;
 }
 
@@ -304,7 +308,7 @@ bool InputProcessor::Save(pugi::xml_node node) const {
         conf.m_MouseAxes.push_back(std::move(ma));
     }
 
-    std::unordered_map<InputStateId, std::list<const KeyAction*>> KeyActionsMap;
+    std::unordered_map<InputStateId, std::list<const KeyAction *>> KeyActionsMap;
 
     for (auto &it : m_Keys) {
         if (!it.m_Flags.m_Valid)
@@ -332,7 +336,7 @@ bool InputProcessor::Save(pugi::xml_node node) const {
             conf.m_KeyboardSwitches.push_back(std::move(sw));
             break;
         }
-        case InputState::Type::FloatAxis:{
+        case InputState::Type::FloatAxis: {
             x2c::Core::Input::KeyboardAxis_t ka;
             GetInputStateName(it.first, ka.m_Name);
             for (auto key : list) {
@@ -418,7 +422,7 @@ void InputProcessor::ResetToInternalDefault() {
 }
 
 bool InputProcessor::GetInputStateName(InputStateId isid, std::string &out) const {
-    for(auto &it: m_InputNames)
+    for (auto &it : m_InputNames)
         if (it.second == isid) {
             out = it.first;
             return true;
@@ -429,7 +433,7 @@ bool InputProcessor::GetInputStateName(InputStateId isid, std::string &out) cons
 
 //---------------------------------------------------------------------------------------
 
-InputState* InputProcessor::AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex) {
+InputState *InputProcessor::AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex) {
     InputState *stateptr = nullptr;
 
     auto it = m_InputNames.find(Name);
@@ -474,7 +478,7 @@ InputState* InputProcessor::AllocInputState(InputState::Type type, const std::st
     return &state;
 }
 
-KeyAction* InputProcessor::AllocKeyAction(KeyId kid, InputStateId isid, bool Positive) {
+KeyAction *InputProcessor::AllocKeyAction(KeyId kid, InputStateId isid, bool Positive) {
     THROW_ASSERT(kid < Configuration::Input::MaxKeyCode, "KeyId overflow!");
     auto &key = m_Keys[kid];
     key.m_Flags.m_Valid = true;
@@ -497,7 +501,7 @@ KeyAction* InputProcessor::AllocKeyAction(KeyId kid, InputStateId isid, bool Pos
     return &key;
 }
 
-AxisAction* InputProcessor::AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity) {
+AxisAction *InputProcessor::AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity) {
     auto &axis = m_MouseAxes[static_cast<size_t>(maid)];
     axis.m_Flags.m_Valid = true;
     axis.m_Sensitivity = Sensitivity;
@@ -571,7 +575,7 @@ bool InputProcessor::RegisterKeySwitch(const char *Name, const char *KeyName) {
     return AddKeyboardSwitch(Name, kid);
 }
 
-bool InputProcessor::RegisterKeyboardAxis(const char * Name, const char *PositiveKeyName, const char *NegativeKeyName) {
+bool InputProcessor::RegisterKeyboardAxis(const char *Name, const char *PositiveKeyName, const char *NegativeKeyName) {
     KeyId Positivekid;
     if (!g_KeyNamesTable.Find(PositiveKeyName, Positivekid)) {
         AddLogf(Warning, "Unknown key: %s", PositiveKeyName);
@@ -590,7 +594,7 @@ bool InputProcessor::RegisterKeyboardAxis(const char * Name, const char *Positiv
 
 int InputProcessor::luaIndexInput(lua_State *lua) {
     void *ThisPtr = lua_touserdata(lua, lua_upvalueindex(1));
-    InputProcessor *This = reinterpret_cast<InputProcessor*>(ThisPtr);
+    InputProcessor *This = reinterpret_cast<InputProcessor *>(ThisPtr);
 
     const char *name = lua_tostring(lua, -1);
 
@@ -640,7 +644,7 @@ void InputProcessor::OnChar(unsigned CharOrKey, bool Pressed) {
     PushCharModeKey(CharOrKey, Pressed);
 }
 
-void InputProcessor::OnScroll(const emath::fvec2 & delta) {
+void InputProcessor::OnScroll(const emath::fvec2 &delta) {
     SetMouseScrollDelta(delta);
 }
 
@@ -648,7 +652,7 @@ void InputProcessor::OnMouseButton(int Button, bool State) {
     ProcessKeyState(Button + InputKeyOffsets::Mouse, State);
 }
 
-void InputProcessor::MouseDelta(const emath::fvec2 & delta) {
+void InputProcessor::MouseDelta(const emath::fvec2 &delta) {
     SetMouseDelta(delta);
 }
 
@@ -669,6 +673,6 @@ void InputProcessor::OnMouseHookChange(bool State) {
 bool InputProcessor::ShouldClose(bool Focus, bool MouseHook) {
     return true;
 }
+#endif
 
-} //namespace Core 
-} //namespace MoonGlare 
+} // namespace MoonGlare::InputHandler

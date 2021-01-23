@@ -11,4 +11,5 @@ target_link_libraries(
   fmt::fmt
   orbit_logger
   renderer
+  input_handler
   lua_context)

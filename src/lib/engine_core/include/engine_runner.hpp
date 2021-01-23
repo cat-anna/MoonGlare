@@ -3,19 +3,19 @@
 #include "engine_configuration.hpp"
 #include "engine_core.hpp"
 #include "engine_runner/engine_runner_hooks.hpp"
+#include "input_handler/input_processor.hpp"
 #include <async_loader.hpp>
 #include <device_context.hpp>
 #include <lua_context/script_module.hpp>
 #include <readonly_file_system.h>
-#include <rendering_device.hpp>
-#include <resources.hpp>
+#include <stop_interface.hpp>
 #include <svfs/svfs_hooks.hpp>
 #include <thread>
 #include <vector>
 
 namespace MoonGlare {
 
-class EngineRunner {
+class EngineRunner : public iStopInterface {
 public:
     EngineRunner() = default;
     virtual ~EngineRunner() = default;
@@ -30,7 +30,6 @@ public:
     // virtual bool PreSystemInit();
     // virtual bool PostSystemInit();
 
-    void Exit();
     // virtual void OnActivate();
     // virtual void OnDeactivate();
     // virtual std::string ApplicationPath() const = 0;
@@ -39,6 +38,8 @@ public:
     // bool IsActive() const { return m_Flags.m_Active; }
     bool WantsSoftRestart() const { return do_soft_restart; }
     // void SetRestart(bool v) { m_Flags.m_Restart = v; }
+
+    void Stop() override;
 
 protected:
     std::shared_ptr<iReadOnlyFileSystem> filesystem;
@@ -50,6 +51,7 @@ protected:
     std::shared_ptr<Renderer::RenderingDevice> rendering_device;
     std::unique_ptr<EngineCore> engine_core;
     std::unique_ptr<StarVfs::iStarVfsHooks> svfs_hooks;
+    std::unique_ptr<InputHandler::InputProcessor> input_processor;
 
     std::vector<Runner::iEngineRunnerHooks *> runner_hooks;
 

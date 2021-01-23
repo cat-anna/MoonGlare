@@ -62,13 +62,12 @@ auto TimeDiff(const TIMEPOINT &start, const TIMEPOINT &end) {
 
 //----------------------------------------------------------------------------------
 
-void EngineCore::Exit() {
-    can_run = false;
-    // m_Renderer->Stop();
+void EngineCore::Stop() {
+    can_work = false;
 }
 
 void EngineCore::EngineMain() {
-    can_run = true;
+    can_work = true;
     size_t last_frame_counter = 0;
 
     // auto Device = m_Renderer->GetDevice();
@@ -96,7 +95,7 @@ void EngineCore::EngineMain() {
 
     AddLog(Debug, "Starting main engine loop");
 
-    while (can_run) {
+    while (can_work.load()) {
         auto frame_start_time = clock::now();
 
         //     double FrameTimeDelta = TimeDiff(LastFrame, CurrentTime);
