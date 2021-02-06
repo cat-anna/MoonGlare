@@ -295,6 +295,7 @@ function DocGen:OpenOutput(file_name)
     function mt:Header(str, lvl)
         if str then
             self:Line(string.dup("#", lvl) .. " " .. str)
+            self:Line("")
         end
     end
 
@@ -308,19 +309,24 @@ function DocGen:OpenOutput(file_name)
         end
     end
 
+    function mt:Bold(str)
+        if str then
+            self:Write("**" .. str .. "**  \n")
+        end
+    end
+
     return setmetatable({f = f}, mt)
 end
 
 function DocGen:GenerateEntryOutput(out, entry, level)
     out:Header(entry.header, level)
-    out:Line("")
     if entry.rawText and entry.rawText:len() > 1 then
         out:Line(entry.rawText)
         out:Line("")
     end
 
     for _, v in ipairs(entry.entries) do
-        out:List(v.header)
+        out:Header(v.header, level + 1)
         out:Line(v.rawText)
         out:Line("")
     end
