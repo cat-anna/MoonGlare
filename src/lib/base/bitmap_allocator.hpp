@@ -40,9 +40,12 @@ struct BitmapAllocatorBase {
 
 template <size_t SIZE, typename ITEMTYPE = uint32_t, typename INDEXTYPE = uint32_t>
 struct LinearAtomicBitmapAllocator : public BitmapAllocatorBase<SIZE, ITEMTYPE, INDEXTYPE> {
+    using Base_t = BitmapAllocatorBase<SIZE, ITEMTYPE, INDEXTYPE>;
+    using Item_t = Base_t::Item_t;
+    using Index_t = Base_t::Index_t;
 
     using AtomicSlot = std::atomic<Item_t>;
-    using AtomicArray = std::array<AtomicSlot, SlotCount>;
+    using AtomicArray = std::array<AtomicSlot, Base_t::SlotCount>;
 
     bool IsAllocated(Index_t index) const {
         auto slotbit = SplitIndex(index);
@@ -55,14 +58,14 @@ struct LinearAtomicBitmapAllocator : public BitmapAllocatorBase<SIZE, ITEMTYPE, 
     }
 
     bool Allocate(Index_t &indexout) {
-        while (m_Allocated < Capacity()) {
-            for (Index_t slot = 0; slot < SlotCount; ++slot) {
-                if (m_AtomicArray[slot].load() != SlotFull) {
-                    for (Index_t bit = 0; bit < BitsPerSlot; ++bit) {
-                        auto mask = MakeMask(bit);
+        while (m_Allocated < this->Capacity()) {
+            for (Index_t slot = 0; slot < Base_t::SlotCount; ++slot) {
+                if (m_AtomicArray[slot].load() != Base_t::SlotFull) {
+                    for (Index_t bit = 0; bit < Base_t::BitsPerSlot; ++bit) {
+                        auto mask = this->MakeMask(bit);
                         if ((m_AtomicArray[slot].fetch_or(mask) & mask) == 0) {
                             // got a match
-                            indexout = MakeIndex(slot, bit);
+                            indexout = this->MakeIndex(slot, bit);
                             ++m_Allocated;
                             return true;
                         }
@@ -74,8 +77,8 @@ struct LinearAtomicBitmapAllocator : public BitmapAllocatorBase<SIZE, ITEMTYPE, 
     }
 
     bool Release(Index_t index) {
-        auto slotbit = SplitIndex(index);
-        auto mask = MakeMask(slotbit.bit);
+        auto slotbit = this->SplitIndex(index);
+        auto mask = this->MakeMask(slotbit.bit);
         if ((m_AtomicArray[slotbit.slot].fetch_and(~mask) & mask) == 0) {
             return false;
         } else {
@@ -86,7 +89,7 @@ struct LinearAtomicBitmapAllocator : public BitmapAllocatorBase<SIZE, ITEMTYPE, 
 
     void ClearAllocation() {
         for (auto &item : m_AtomicArray)
-            item.store(SlotEmpty);
+            item.store(Base_t::SlotEmpty);
         m_Allocated = 0;
     }
 

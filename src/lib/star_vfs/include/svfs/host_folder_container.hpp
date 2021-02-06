@@ -41,7 +41,7 @@ private:
     FileMapper file_mapper;
 
     struct ScanPathOutput;
-    bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output);
+    bool ScanPath(ScanPathOutput &scan_output);
 
     bool CanWrite() const { return access_mode == AccessMode::ReadWrite; }
 };

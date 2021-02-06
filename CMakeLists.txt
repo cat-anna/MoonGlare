@@ -8,22 +8,16 @@ include("embed_resources")
 include("create_data_package")
 include("find_external_tools")
 include("generated_docs")
+include("compiler_setup")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-if(NOT DEFINED CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
-endif()
 
 if(NOT DEFINED TARGET_DESTINATTION)
   set(TARGET_DESTINATTION "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
 endif()
-message("target destination: " ${TARGET_DESTINATTION})
+message("* Target destination: " ${TARGET_DESTINATTION})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TARGET_DESTINATTION})
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DGLM_FORCE_RADIANS)
 
@@ -80,18 +74,6 @@ if(Qt5_FOUND)
   include("qt5_support")
 else()
   message("* Qt5 is missing")
-endif()
-
-if(WIN32)
-  add_definitions(-DWINDOWS)
-  link_libraries(bcrypt)
-elseif(LINUX)
-  add_definitions(-DLINUX)
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DDEBUG_DUMP)
-  add_definitions(-DDEBUG)
 endif()
 
 add_subdirectory(lib)

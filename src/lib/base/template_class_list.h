@@ -14,11 +14,13 @@ namespace RTTI {
 struct TypeInfo;
 }
 
-template <class T> struct StaticClassInfoImpl {
+template <class T>
+struct StaticClassInfoImpl {
     static const RTTI::TypeInfo *GetStaticTypeInfo() { return nullptr; }
 };
 
-template <class T> struct StaticClassInfo : public StaticClassInfoImpl<T> {};
+template <class T>
+struct StaticClassInfo : public StaticClassInfoImpl<T> {};
 
 class TemplateClassListBase {
 public:
@@ -34,7 +36,8 @@ public:
 
 //----------------------------------------------------------------
 
-template <class KIND = void> struct ClassListRegisterBase {
+template <class KIND = void>
+struct ClassListRegisterBase {
     static void EnumerateRegisters(std::function<void(const ClassListRegisterBase<KIND> *)> e) {
         for (auto *it : _list)
             e(it);
@@ -42,7 +45,8 @@ template <class KIND = void> struct ClassListRegisterBase {
 
     virtual const char *GetName() const = 0;
     virtual const char *GetCompilerName() const = 0;
-    virtual void EnumerareClasses(std::function<void(const TemplateClassListBase::ClassInfoBase &info)>) const = 0;
+    virtual void EnumerareClasses(
+        std::function<void(const TemplateClassListBase::ClassInfoBase &info)>) const = 0;
 
 protected:
     void Add() { /*_list.push_back(this);*/
@@ -54,15 +58,18 @@ private:
     static std::list<ClassListRegisterBase<KIND> *> _list;
 };
 
-template <class KIND> std::list<ClassListRegisterBase<KIND> *> ClassListRegisterBase<KIND>::_list;
+template <class KIND>
+std::list<ClassListRegisterBase<KIND> *> ClassListRegisterBase<KIND>::_list;
 
-template <class REGISTER, class KIND = void> struct ClassRegisterRegister : public ClassListRegisterBase<KIND> {
-    ClassRegisterRegister(REGISTER *r) : m_Register(r) { Add(); }
-    ~ClassRegisterRegister() { Del(); }
+template <class REGISTER, class KIND = void>
+struct ClassRegisterRegister : public ClassListRegisterBase<KIND> {
+    ClassRegisterRegister(REGISTER *r) : m_Register(r) { this->Add(); }
+    ~ClassRegisterRegister() { this->Del(); }
 
     virtual const char *GetName() const { return "[?]"; /*INFO::GetName();*/ }
     virtual const char *GetCompilerName() const { return typeid(REGISTER).name(); }
-    virtual void EnumerareClasses(std::function<void(const TemplateClassListBase::ClassInfoBase &info)> f) const {
+    virtual void EnumerareClasses(
+        std::function<void(const TemplateClassListBase::ClassInfoBase &info)> f) const {
         m_Register->Enumerate(f);
     }
 
@@ -72,7 +79,8 @@ private:
 
 //----------------------------------------------------------------
 
-template <class Base, class... Args> class TemplateClassList : public TemplateClassListBase {
+template <class Base, class... Args>
+class TemplateClassList : public TemplateClassListBase {
 public:
     using ThisClass = TemplateClassList<Base, Args...>;
 
@@ -83,13 +91,18 @@ public:
     using SharedConstructorFun = Shared (*)(Args...);
     using UniqueConstructorFun = Unique (*)(Args...);
 
-    template <class T> static Base *ConstructorTemplate(Args... args) { return new T(std::forward<Args>(args)...); }
+    template <class T>
+    static Base *ConstructorTemplate(Args... args) {
+        return new T(std::forward<Args>(args)...);
+    }
 
-    template <class T> static Unique ConstructorTemplateUnique(Args... args) {
+    template <class T>
+    static Unique ConstructorTemplateUnique(Args... args) {
         return std::make_unique<T>(std::forward<Args>(args)...);
     }
 
-    template <class T> static Shared ConstructorTemplateShared(Args... args) {
+    template <class T>
+    static Shared ConstructorTemplateShared(Args... args) {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
@@ -101,7 +114,8 @@ public:
         template <class Class>
         ClassInfo(Class *dummy, std::string Alias)
             : ClassInfoBase(dummy, std::move(Alias)), Create(&ConstructorTemplate<Class>),
-              UniqueCreate(&ConstructorTemplateUnique<Class>), SharedCreate(&ConstructorTemplateShared<Class>) {}
+              UniqueCreate(&ConstructorTemplateUnique<Class>),
+              SharedCreate(&ConstructorTemplateShared<Class>) {}
     };
 
     typedef std::unordered_map<std::string, ClassInfo> TypeList;
@@ -109,7 +123,8 @@ public:
     TemplateClassList() : m_Info(this) {}
     ~TemplateClassList() {}
 
-    template <class T> void Register(const char *Alias = nullptr) {
+    template <class T>
+    void Register(const char *Alias = nullptr) {
         if (!Alias) {
             // auto type = StaticClassInfo<T>::GetStaticTypeInfo();
             // if (type)
@@ -142,7 +157,8 @@ public:
         return it->second.SharedCreate(std::forward<Args>(args)...);
     }
 
-    template <class func> void Enumerate(func f) const {
+    template <class func>
+    void Enumerate(func f) const {
         for (auto &it : m_List)
             f(it.second);
     }
@@ -154,7 +170,8 @@ private:
 
 //----------------------------------------------------------------
 
-template <class Base, class Deleter, class... Args> class TemplateClassListDeleter : public TemplateClassListBase {
+template <class Base, class Deleter, class... Args>
+class TemplateClassListDeleter : public TemplateClassListBase {
 public:
     using ThisClass = TemplateClassListDeleter<Base, Deleter, Args...>;
 
@@ -165,13 +182,18 @@ public:
     using SharedConstructorFun = Shared (*)(Args...);
     using UniqueConstructorFun = Unique (*)(Args...);
 
-    template <class T> static Base *ConstructorTemplate(Args... args) { return new T(std::forward<Args>(args)...); }
+    template <class T>
+    static Base *ConstructorTemplate(Args... args) {
+        return new T(std::forward<Args>(args)...);
+    }
 
-    template <class T> static Unique ConstructorTemplateUnique(Args... args) {
+    template <class T>
+    static Unique ConstructorTemplateUnique(Args... args) {
         return Unique(new T(std::forward<Args>(args)...), Deleter());
     }
 
-    template <class T> static Shared ConstructorTemplateShared(Args... args) {
+    template <class T>
+    static Shared ConstructorTemplateShared(Args... args) {
         return Shared(new T(std::forward<Args>(args)...), Deleter());
     }
 
@@ -183,7 +205,8 @@ public:
         template <class Class>
         ClassInfo(Class *dummy, std::string Alias)
             : ClassInfoBase(dummy, std::move(Alias)), Create(&ConstructorTemplate<Class>),
-              UniqueCreate(&ConstructorTemplateUnique<Class>), SharedCreate(&ConstructorTemplateShared<Class>) {}
+              UniqueCreate(&ConstructorTemplateUnique<Class>),
+              SharedCreate(&ConstructorTemplateShared<Class>) {}
     };
 
     typedef std::unordered_map<std::string, ClassInfo> TypeList;
@@ -191,7 +214,8 @@ public:
     TemplateClassListDeleter() : m_Info(this) {}
     ~TemplateClassListDeleter() {}
 
-    template <class T> void Register(const char *Alias = nullptr) {
+    template <class T>
+    void Register(const char *Alias = nullptr) {
         if (!Alias) {
             auto type = StaticClassInfo<T>::GetStaticTypeInfo();
             if (type)
@@ -224,7 +248,8 @@ public:
         return it->second.SharedCreate(std::forward<Args>(args)...);
     }
 
-    template <class func> void Enumerate(func f) const {
+    template <class func>
+    void Enumerate(func f) const {
         for (auto &it : m_List)
             f(it.second);
     }

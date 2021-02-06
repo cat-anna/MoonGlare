@@ -1,4 +1,4 @@
-add_custom_target(all_gen_doc_targets)
+add_custom_target(generate_all_docs)
 
 function(create_gen_doc_target target_name)
   if(NOT LUA_HAS_LFS)
@@ -18,5 +18,5 @@ function(create_gen_doc_target target_name)
     COMMENT "Processing gen doc ${target_name}"
     VERBATIM)
 
-  add_dependencies(all_gen_doc_targets ${target_name})
+  add_dependencies(generate_all_docs ${target_name})
 endfunction()
