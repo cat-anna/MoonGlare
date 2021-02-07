@@ -1,7 +1,7 @@
 #pragma once
 
-#include <pugixml.hpp>
 #include <boost/noncopyable.hpp>
+#include <pugixml.hpp>
 
 #include <Foundation/TimeUtils.h>
 
@@ -41,24 +41,24 @@ struct SubsystemUpdateData {
 class iSubsystemManager : private boost::noncopyable {
 public:
     virtual ~iSubsystemManager() {}
-    virtual InterfaceMap& GetInterfaceMap() = 0;
-    virtual EventDispatcher& GetEventDispatcher() = 0;
-    virtual ComponentArray& GetComponentArray() = 0;
+    virtual InterfaceMap &GetInterfaceMap() = 0;
+    virtual EventDispatcher &GetEventDispatcher() = 0;
+    virtual ComponentArray &GetComponentArray() = 0;
 };
 
 struct ComponentReader {
     iSubsystemManager *manager = nullptr;
     pugi::xml_node node;
     const Entity *localRelations = nullptr;
-    size_t localRelationsCount = 0; 
+    size_t localRelationsCount = 0;
 
-    template<typename T>
+    template <typename T>
     bool Read(T &t) {
         return t.Read(node);
     }
 };
 
-class iSubsystem : private boost::noncopyable {
+class iSubsystem {
 public:
     struct Flags {
         struct Required {};
@@ -71,7 +71,7 @@ public:
 
     virtual bool Initialize() { return true; }
     virtual bool Finalize() { return true; }
-    virtual void Step(const SubsystemUpdateData &conf) { }
+    virtual void Step(const SubsystemUpdateData &conf) {}
     virtual int PushToLua(lua_State *lua, Entity owner) { return 0; };
     virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) { return true; }
     virtual bool Create(Entity owner) { return false; }
@@ -80,10 +80,9 @@ public:
 
     virtual bool LoadComponentConfiguration(pugi::xml_node node) { return true; }
     virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }
+
 protected:
     iSubsystem() {}
 };
 
-using UniqueSubsystem = std::unique_ptr<iSubsystem>;
-
-}
+} // namespace MoonGlare::Component
