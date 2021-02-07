@@ -3,16 +3,15 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+// #include <Foundation/Component/Entity.h>
+// #include <Foundation/Component/iSubsystem.h>
+// #include <Foundation/iFileSystem.h>
+// #include <interface_map.h>
+// #include <Foundation/Component/EntityManager.h>
 
-#include <Foundation/Component/Entity.h>
-#include <Foundation/Component/iSubsystem.h>
-#include <Foundation/iFileSystem.h>
-#include <interface_map.h>
+namespace MoonGlare::SeneManager {
 
-#include <Foundation/Component/EntityManager.h>
-
-namespace MoonGlare::Core {
-
+#if 0
 // TODO: this should be thread-safe
 class PrefabManager final {
   public:
@@ -57,4 +56,5 @@ class PrefabManager final {
     pugi::xml_node GetPrefabXml(const std::string &uri);
 };
 
-} // namespace MoonGlare::Core
+#endif
+} // namespace MoonGlare::SeneManager

@@ -1,17 +1,13 @@
-#include <pch.h>
-
-#include <nfMoonGlare.h>
-
-#include "Component/ComponentRegister.h"
-#include "Core/Component/SubsystemManager.h"
-
-#include "PrefabManager.h"
-
-#include <Foundation/Module/iDebugContext.h>
-
-#include <boost/algorithm/string.hpp>
+#include "prefab_manager.hpp"
+// #include "Component/ComponentRegister.h"
+// #include "Core/Component/SubsystemManager.h"
+// #include <Foundation/Module/iDebugContext.h>
+// #include <boost/algorithm/string.hpp>
+// #include <nfMoonGlare.h>
+// #include <pch.h>
 
 namespace MoonGlare::Core {
+#if 0
 
 struct PrefabManager::EntityImport {
     int32_t parentIndex = -1;
@@ -71,7 +67,7 @@ struct PrefabManager::ImportData {
             {SubSystemId::RectTransform, 1},
             {SubSystemId::Body, 2},
             {SubSystemId::Script, 0xFFFF},
-        };           
+        };
 
         componentSpawnOrder.reserve(components.size());
 
@@ -90,7 +86,7 @@ struct PrefabManager::ImportData {
 
             auto orderIt = ComponentOrder.find(c.first);
             int orderTag = orderIt != ComponentOrder.end() ? orderIt->second : (int)c.first + 0x0100;
-            
+
             componentSpawnOrder.emplace_back(ComponentOrderInfo{ orderTag, &c.second });
         }
 
@@ -104,7 +100,7 @@ struct PrefabManager::ImportData {
     void Dump() {
         static int dumpid = 0;
         auto fname = fmt::format("logs/{}.entity", dumpid++);
-        
+
         std::ofstream of(fname, std::ios::out);
 
         if (!srcName.empty())
@@ -146,7 +142,7 @@ struct PrefabManager::ImportTask {
 
     ImportData *importData;
     Component::iSubsystemManager *manager;
-    Component::Entity parent;         
+    Component::Entity parent;
     std::string name;
 
     std::vector<Component::Entity> spawnEntity;
@@ -173,7 +169,7 @@ PrefabManager::~PrefabManager() {
 #endif //  DEBUG_DUMP
 }
 
-void PrefabManager::ClearCache() { 
+void PrefabManager::ClearCache() {
     prefabCache.clear();
     xmlCache.clear();
 }
@@ -218,7 +214,7 @@ Component::Entity PrefabManager::Spawn(ImportTask &task) {
             continue;
 
         Entity thisParent;
-        if (ei.parentIndex >= 0) 
+        if (ei.parentIndex >= 0)
             thisParent = task.spawnEntity[ei.parentIndex];
         else
             thisParent = task.parent;
@@ -234,7 +230,7 @@ Component::Entity PrefabManager::Spawn(ImportTask &task) {
     }
 
     for (auto &c : data.componentSpawnOrder)
-        for (auto &ci : *c.componentImport) 
+        for (auto &ci : *c.componentImport)
             SpawnComponent(task, ci);
 
     return task.spawnEntity[0];
@@ -439,6 +435,6 @@ void PrefabManager::PrintCache() const {
         ss << "\t" << uri << "\n";
 
     AddLog(Resources, ss.str());
-}                   
-
-} //namespace MoonGlare::Resources
+}
+#endif
+} // namespace MoonGlare::Core
