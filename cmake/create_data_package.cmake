@@ -1,4 +1,4 @@
-add_custom_target(all_data_packages)
+add_custom_target(build_all_data_packages)
 
 function(create_data_package source_directory_name)
   get_filename_component(source_directory ${source_directory_name} ABSOLUTE)
@@ -17,5 +17,5 @@ function(create_data_package source_directory_name)
     VERBATIM
     SOURCES ${package_srcs})
 
-  add_dependencies(all_data_packages ${package_name})
+  add_dependencies(build_all_data_packages ${package_name})
 endfunction()

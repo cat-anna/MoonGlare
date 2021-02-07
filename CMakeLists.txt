@@ -8,6 +8,7 @@ include("embed_resources")
 include("create_data_package")
 include("find_external_tools")
 include("generated_docs")
+include("default_targets")
 include("compiler_setup")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -63,6 +64,8 @@ find_package(openal CONFIG REQUIRED)
 # set(SOUNDSYSTEM_ENABLE_LIBFLAC FALSE)
 
 # set(SOUNDSYSTEM_ENABLE_LIBVORBIS FALSE)
+
+find_package(GTest CONFIG REQUIRED)
 
 find_package(
   Qt5
