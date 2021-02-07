@@ -1,12 +1,6 @@
-[submodule "Libs/libSpace"]
-	path = Libs/libSpace
-url=git@github.com:pgrabas/libSpace.git
 [submodule "Libs/OrbitLogger"]
-	path = lib/orbit_logger
+path = lib/orbit_logger
 url=git@github.com:pgrabas/OrbitLogger.git
-[submodule "Libs/StarVFS"]
-	path = Libs/StarVFS
-url=git@github.com:pgrabas/starVFS.git
 [submodule "Tools/xml2cpp"]
-	path = Tools/xml2cpp
-	url = git@github.com:pgrabas/xml2cpp.git
+path = Tools/xml2cpp
+url = git@github.com:pgrabas/xml2cpp.git
