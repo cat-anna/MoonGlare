@@ -8,6 +8,10 @@
 
 namespace MoonGlare {
 
+namespace {
+constexpr auto kEngineCompilationDate = __DATE__ " at " __TIME__;
+}
+
 struct StandaloneApplicationConfiguration {
     EngineConfiguration engine;
     std::vector<std::string> modules;
@@ -89,6 +93,9 @@ public:
             config_stream << config_json.dump(4);
         }
     }
+
+    std::string GetVersionString() const override { return "0.0"; }
+    std::string GetCompilationDate() const override { return kEngineCompilationDate; }
 
 private:
     const std::filesystem::path executable_name;

@@ -25,27 +25,18 @@ private:
 struct SceneInstanceMock : public iSceneInstance {
     bool scene_ready = false;
     SceneInstanceMock(const char *_name = "SceneInstanceMock") : iSceneInstance(_name) {
-        EXPECT_CALL(*this, ReadyForActivation()).WillRepeatedly(::testing::Invoke([this]() {
-            return scene_ready;
-        }));
+        EXPECT_CALL(*this, ReadyForActivation()).WillRepeatedly(::testing::Invoke([this]() { return scene_ready; }));
     }
     MOCK_CONST_METHOD0(ReadyForActivation, bool());
     MOCK_METHOD1(DoStep, void(double));
 };
 #endif
 
-/*@ [LuaScenesManagerModule/ScenesManager] ScenesManager
-    TODO
-@*/
 class iScenesManager {
 public:
     virtual ~iScenesManager() = default;
 
-    /*@ [ScenesManager/_] ScenesManager:create_scene(scene_resource, scene_name)
-    TODO
-@*/
-    virtual iSceneInstance *CreateScene(const std::string &resource_name,
-                                        std::string scene_name) = 0;
+    virtual iSceneInstance *CreateScene(const std::string &resource_name, std::string scene_name) = 0;
     // virtual std::shared_ptr<iScene> FindScene(std::string_view scene_name) = 0;
 
     // virtual void SetCurrentScene(std::string_view scene_name) = 0;
@@ -65,8 +56,7 @@ class iSceneInstanceFactory {
 public:
     virtual ~iSceneInstanceFactory() = default;
 
-    virtual std::unique_ptr<iSceneInstance> CreateSceneInstance(std::string scene_name,
-                                                                FileResourceId res_id) = 0;
+    virtual std::unique_ptr<iSceneInstance> CreateSceneInstance(std::string scene_name, FileResourceId res_id) = 0;
 };
 
 #ifdef WANTS_GTEST_MOCKS

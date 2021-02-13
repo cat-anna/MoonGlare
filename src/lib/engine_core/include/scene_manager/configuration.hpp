@@ -4,9 +4,6 @@
 
 namespace MoonGlare::SceneManager {
 
-/*@ [ScenesManager/_] ScenesManager.loading_scene
-    Use as name to select loading scene
-@*/
 constexpr auto kLoadingSceneName = "loading_scene";
 
 // constexpr auto kResourceFenceName = "system.resources";
