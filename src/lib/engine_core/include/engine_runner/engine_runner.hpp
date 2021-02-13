@@ -1,13 +1,18 @@
 #pragma once
 
-#include "engine_configuration.hpp"
-#include "engine_core.hpp"
+#include "engine_runner/engine_configuration.hpp"
+#include "engine_runner/engine_core.hpp"
 #include "engine_runner/engine_runner_hooks.hpp"
+#include "engine_runner_interface.hpp"
 #include "input_handler/input_processor.hpp"
+#include "scene_manager/scenes_manager_interface.hpp"
 #include <async_loader.hpp>
-#include <device_context.hpp>
+#include <ecs/ecs_register.hpp>
 #include <lua_context/script_module.hpp>
 #include <readonly_file_system.h>
+#include <renderer/device_context.hpp>
+#include <renderer/rendering_device.hpp>
+#include <renderer/resources.hpp>
 #include <stop_interface.hpp>
 #include <svfs/svfs_hooks.hpp>
 #include <thread>
@@ -15,9 +20,9 @@
 
 namespace MoonGlare {
 
-class EngineRunner : public iStopInterface {
+class EngineRunner : public iEngineRunner {
 public:
-    EngineRunner() = default;
+    EngineRunner();
     virtual ~EngineRunner() = default;
 
     // void SaveSettings();
@@ -36,8 +41,8 @@ public:
     // virtual std::string SettingsPath() const;
 
     // bool IsActive() const { return m_Flags.m_Active; }
-    bool WantsSoftRestart() const { return do_soft_restart; }
-    // void SetRestart(bool v) { m_Flags.m_Restart = v; }
+    bool WantsSoftRestart() const override { return do_soft_restart; }
+    void SetSoftRestart(bool v) { do_soft_restart = v; }
 
     void Stop() override;
 
@@ -52,6 +57,9 @@ protected:
     std::unique_ptr<EngineCore> engine_core;
     std::unique_ptr<StarVfs::iStarVfsHooks> svfs_hooks;
     std::unique_ptr<InputHandler::InputProcessor> input_processor;
+    std::unique_ptr<SceneManager::iScenesManager> scene_manager;
+
+    ECS::ECSRegister ecs_register;
 
     std::vector<Runner::iEngineRunnerHooks *> runner_hooks;
 
@@ -63,6 +71,8 @@ protected:
     virtual std::shared_ptr<Renderer::iDeviceContext> CreateDeviceContext() = 0;
     virtual EngineConfiguration LoadConfiguration() const = 0;
     virtual StarVfs::iStarVfsHooks *IntSvfsHooks();
+
+    virtual void LoadEarlyLuaModules();
 
     void ExecuteHooks(std::function<void(Runner::iEngineRunnerHooks *)> functor);
 

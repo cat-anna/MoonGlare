@@ -1,8 +1,8 @@
 #pragma once
 
-#include <device_context.hpp>
 #include <nlohmann/json.hpp>
-#include <renderer_configuration.hpp>
+#include <renderer/device_context.hpp>
+#include <renderer/renderer_configuration.hpp>
 #include <string>
 
 namespace MoonGlare {
@@ -11,7 +11,7 @@ struct EngineConfiguration {
     Renderer::WindowInfo window;
 };
 
-#ifdef _WANTS_TYPE_INFO_
+#ifdef WANTS_TYPE_INFO
 
 auto GetTypeInfo(EngineConfiguration *) {
     return AttributeMapBuilder<EngineConfiguration>::Start("EngineConfiguration")
@@ -27,16 +27,6 @@ auto GetTypeInfo(Renderer::WindowInfo *) {
 }
 
 #endif
-
-inline void to_json(nlohmann::json &j, const Renderer::Configuration::RendererConfiguration &p) {
-    j = {
-        // {"value", p.value},
-    };
-}
-
-inline void from_json(const nlohmann::json &j, Renderer::Configuration::RendererConfiguration &p) {
-    // j.at("value").get_to(p.value);
-}
 
 inline void to_json(nlohmann::json &j, const EngineConfiguration &p) {
     j = {

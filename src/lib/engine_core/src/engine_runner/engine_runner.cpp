@@ -1,13 +1,24 @@
-#include "engine_runner.hpp"
+#include "engine_runner/engine_runner.hpp"
+#include "core_lua_modules/core_lua_modules.hpp"
 #include "engine_runner/script_init_runner_hook.hpp"
 #include "lua_context/lua_script_context.hpp"
 #include "lua_context/modules/lua_modules_all.hpp"
+#include "runner_lua_modules.hpp"
+#include "scene_manager/lua_modules.hpp"
+#include "scene_manager/scenes_manager.hpp"
+#include "systems/register_components.hpp"
+#include "systems/register_systems.hpp"
 #include "threaded_async_loader.hpp"
 #include <orbit_logger.h>
-#include <resources/resource_manager.hpp>
+#include <renderer/resource_manager.hpp>
 #include <stdexcept>
 
 namespace MoonGlare {
+
+EngineRunner::EngineRunner() {
+    Systems::RegisterAllSystems(ecs_register);
+    Systems::RegisterAllComponents(ecs_register);
+}
 
 void EngineRunner::Execute() {
     do_soft_restart = false;
@@ -28,10 +39,6 @@ void EngineRunner::Execute() {
 
         rendering_device->EnterLoop();
 
-        if (engine_thread.joinable()) {
-            engine_thread.join();
-        }
-
         // if (!m_World->PreSystemShutdown()) {
         //     AddLogf(Error, "Failure during PreSystemShutdown");
         //     return;
@@ -44,12 +51,7 @@ void EngineRunner::Execute() {
 }
 
 void EngineRunner::Initialize() {
-    // m_World = std::make_unique<World>();
-    // m_World->SetInterface(this);
-    // m_World->CreateObject<Module::DebugContext, Module::iDebugContext>();
-    // m_World->CreateObject<Tools::PerfView::PerfViewClient>();
-    // m_World->CreateObject<Modules::BasicConsole, iConsole>();
-
+    ecs_register.Dump();
     auto config = LoadConfiguration();
     script_module_manager = std::make_shared<Lua::LuaScriptContext>();
 
@@ -63,11 +65,15 @@ void EngineRunner::Initialize() {
     // }
 
     filesystem = CreateFilesystem();
-
-    Lua::LoadAllLuaModules(script_module_manager.get(), filesystem);
-
     async_loader = std::make_shared<ThreadedAsyncLoader>(filesystem);
+
+    LoadEarlyLuaModules();
     LoadDataModules();
+
+    scene_manager = std::make_unique<SceneManager::ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register,
+                                                                  &ecs_register);
+    SceneManager::LoadAllLuaModules(script_module_manager.get(), scene_manager.get());
+
     ExecuteHooks([](auto *p) { p->AfterDataModulesLoad(); });
 
     // m_World->CreateObject<Resources::StringTables>();
@@ -97,25 +103,15 @@ void EngineRunner::Initialize() {
     // m_World->SetInterface(dataMgr);
     // LoadDataModules();
 
-    // #ifdef DEBUG_DUMP
-    // {
-    //     std::ofstream fsvfs("logs/vfs.txt");
-    //     GetFileSystem()->DumpStructure(fsvfs);
-    // }
-    // #endif
+    engine_core = std::make_unique<EngineCore>(dynamic_cast<iStepableObject *>(scene_manager.get())); //TODO: ugly
 
-    engine_core = std::make_unique<EngineCore>();
+    LuaModules::LoadAllCoreLuaModules(script_module_manager.get(), engine_core.get());
 
     // if (!m_World->Initialize()) {
     //     AddLogf(Error, "Failed to initialize world!");
     //     throw "Failed to initialize world!";
     // }
     // dataMgr->InitFonts();
-    // //Temporary solution which probably will be used for eternity
-    // auto Input = Engine->GetWorld()->GetInputProcessor();
-    // auto rctx = m_Renderer->GetContext();
-    // rctx->SetInputHandler(Input);
-    // Input->SetInputSource(rctx);
 
     AddLog(Debug, "Application initialized");
 
@@ -124,10 +120,6 @@ void EngineRunner::Initialize() {
     //     AddLogf(Error, "Post system init action failed!");
     //     throw "Post system init action failed!";
     // }
-
-    // #ifdef DEBUG_DUMP
-    //     m_World->DumpObjects();
-    // #endif
 }
 
 void EngineRunner::Finalize() {
@@ -166,6 +158,7 @@ void EngineRunner::Finalize() {
     device_window.reset();
     device_context.reset();
 
+    scene_manager.reset();
     async_loader.reset();
     filesystem.reset();
     svfs_hooks.reset();
@@ -185,6 +178,11 @@ void EngineRunner::Stop() {
 }
 
 //---------------------------------------------------------------------------------------
+
+void EngineRunner::LoadEarlyLuaModules() {
+    Lua::LoadAllLuaModules(script_module_manager.get(), filesystem);
+    LoadAllRunnerLuaModules(script_module_manager.get(), this);
+}
 
 StarVfs::iStarVfsHooks *EngineRunner::IntSvfsHooks() {
     if (!svfs_hooks) {
