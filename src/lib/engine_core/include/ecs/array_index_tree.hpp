@@ -1,6 +1,8 @@
 #pragma once
 
+#include "pointer_memory_array.hpp"
 #include <array>
+#include <boost/dynamic_bitset.hpp>
 #include <boost/tti/has_member_function.hpp>
 #include <cassert>
 #include <fstream>
@@ -30,56 +32,58 @@ struct ArrayIndexTreeIndexType<T, std::false_type> {
 
 struct ArrayIndexTreeCallback {};
 
-} // namespace detail
+template <typename Vector, typename Starter>
+Vector Vectorize(Starter st) {
+    Vector r;
+    for (auto idx : st) {
+        r.emplace_back(idx);
+    }
+    return r;
+}
 
-template <typename ElementIndex_t, ElementIndex_t ElementLimit_v,
-          typename CALLBACK = detail::ArrayIndexTreeCallback>
-struct alignas(16) ArrayIndexTree {
+template <typename ElementIndex_t, typename Indexer_t, typename Callback_t = detail::ArrayIndexTreeCallback>
+struct BaseArrayIndexTree {
     using ElementIndex = ElementIndex_t;
-    using ElementIndexIntType = typename detail::ArrayIndexTreeIndexType<
-        typename ElementIndex, typename std::is_enum<typename ElementIndex_t>::type>::IntType;
+    using ElementIndexVector = std::vector<ElementIndex>;
+    using ElementIndexIntType =
+        typename detail::ArrayIndexTreeIndexType<typename ElementIndex,
+                                                 typename std::is_enum<typename ElementIndex_t>::type>::IntType;
+    using ElementPointerMemory = PointerMemory<ElementIndex>;
 
-    static constexpr ElementIndex ElementLimit = ElementLimit_v;
-    static constexpr ElementIndex InvalidIndex = ElementIndex(~(ElementIndex(0)));
+    static constexpr ElementIndex kInvalidIndex = ElementIndex(~(ElementIndex(0)));
     static_assert(std::is_integral_v<ElementIndex> || std::is_enum_v<ElementIndex>);
 
-    using ElementIndexVector = std::vector<ElementIndex>;
-
-    static constexpr bool HasCallback = std::is_class_v<CALLBACK>;
+    static constexpr bool HasCallback = std::is_class_v<Callback_t>;
     static constexpr bool HasReleaseCallback() {
         if constexpr (HasCallback) {
-            return detail::has_member_function_ReleaseElement<void (CALLBACK::*)(
-                ElementIndex, ElementIndex)>::value;
+            return detail::has_member_function_ReleaseElement<void (Callback_t::*)(ElementIndex, ElementIndex)>::value;
         } else {
             return false;
         }
     }
     static constexpr bool HasInitCallback() {
         if constexpr (HasCallback) {
-            return detail::has_member_function_InitElement<void (CALLBACK::*)(ElementIndex,
-                                                                              ElementIndex)>::value;
+            return detail::has_member_function_InitElement<void (Callback_t::*)(ElementIndex, ElementIndex)>::value;
         } else
             return false;
     }
     static constexpr bool HasSwapCallback() {
         if constexpr (HasCallback) {
-            return detail::has_member_function_SwapValues<void (CALLBACK::*)(ElementIndex,
-                                                                             ElementIndex)>::value;
+            return detail::has_member_function_SwapValues<void (Callback_t::*)(ElementIndex, ElementIndex)>::value;
         } else {
             return false;
         }
     }
     static constexpr bool HasGetNameCallback() {
         if constexpr (HasCallback) {
-            // detail::has_member_function_GetElementName<std::string(CALLBACK::*) (ElementIndex)const>::value;
-            return false;
+            return detail::has_member_function_GetElementName<std::string (Callback_t::*)(ElementIndex) const>::value;
         } else {
             return false;
         }
     }
     static constexpr bool HasClearCallback() {
         if constexpr (HasCallback) {
-            return detail::has_member_function_ClearArrays<void (CALLBACK::*)()>::value;
+            return detail::has_member_function_ClearArrays<void (Callback_t::*)()>::value;
         } else {
             return false;
         }
@@ -87,47 +91,48 @@ struct alignas(16) ArrayIndexTree {
 
     //---------------------------------------------------------
 
-    std::string ElementToString(ElementIndex index) const {
-        if constexpr (false) //HasGetNameCallback())
-            return reinterpret_cast<const CALLBACK *>(this)->GetElementName(index);
-        else
-            return std::to_string(index);
-    }
+    template <typename T>
+    using Array = T *;
+
+    size_t element_limit = 0;
+    Array<ElementIndex> parent_index = nullptr;
+    Array<ElementIndex> first_child = nullptr;
+    Array<ElementIndex> next_sibling = nullptr;
+    Array<ElementIndex> prev_sibling = nullptr;
+
+    //---------------------------------------------------------
 
     void DrawDiagram(std::ostream &out) const {
         out << "digraph {\n";
-        for (ElementIndex index = 0; index < ElementLimit; ++index) {
+        for (ElementIndex index = 0; index < element_limit; ++index) {
             std::string name = ElementToString(index);
 
-            if (nextSibling[index] != InvalidIndex)
-                out << "" << name << " -> " << ElementToString(nextSibling[index]) << ";\n";
-            if (prevSibling[index] != InvalidIndex)
-                out << "" << name << " -> " << ElementToString(prevSibling[index]) << ";\n";
+            if (next_sibling[index] != kInvalidIndex)
+                out << "" << name << " -> " << ElementToString(next_sibling[index]) << ";\n";
+            if (prev_sibling[index] != kInvalidIndex)
+                out << "" << name << " -> " << ElementToString(prev_sibling[index]) << ";\n";
 
-            if (parentIndex[index] != InvalidIndex)
-                out << "" << name << " -> " << ElementToString(parentIndex[index])
-                    << " [style=dotted];\n";
-            if (firstChild[index] != InvalidIndex)
-                out << "" << name << " -> " << ElementToString(firstChild[index])
-                    << " [style=bold];\n";
+            if (parent_index[index] != kInvalidIndex)
+                out << "" << name << " -> " << ElementToString(parent_index[index]) << " [style=dotted];\n";
+            if (first_child[index] != kInvalidIndex)
+                out << "" << name << " -> " << ElementToString(first_child[index]) << " [style=bold];\n";
 
-            if (firstChild[index] != InvalidIndex) {
+            if (first_child[index] != kInvalidIndex) {
                 out << "{ rank=same; ";
-                ElementIndex f_child = firstChild[index];
-                if (f_child != InvalidIndex) {
+                ElementIndex f_child = first_child[index];
+                if (f_child != kInvalidIndex) {
                     out << ElementToString(f_child) << "; ";
-                    for (ElementIndex child = nextSibling[f_child];
-                         child != InvalidIndex && child != f_child; child = nextSibling[child])
+                    for (ElementIndex child = next_sibling[f_child]; child != kInvalidIndex && child != f_child;
+                         child = next_sibling[child])
                         out << ElementToString(child) << "; ";
-                    for (ElementIndex child = prevSibling[f_child];
-                         child != InvalidIndex && child != f_child; child = prevSibling[child])
+                    for (ElementIndex child = prev_sibling[f_child]; child != kInvalidIndex && child != f_child;
+                         child = prev_sibling[child])
                         out << ElementToString(child) << "; ";
                 }
                 out << "};\n";
             }
-            if (index >= allocated &&
-                (nextSibling[index] != InvalidIndex || prevSibling[index] != InvalidIndex ||
-                 parentIndex[index] != InvalidIndex || firstChild[index] != InvalidIndex)) {
+            if (next_sibling[index] != kInvalidIndex || prev_sibling[index] != kInvalidIndex ||
+                parent_index[index] != kInvalidIndex || first_child[index] != kInvalidIndex) {
                 out << "{ style=filled; color=blue; " << ElementToString(index) << "; };\n";
             }
         }
@@ -140,200 +145,104 @@ struct alignas(16) ArrayIndexTree {
     }
 
     void DumpArrays(std::ostream &out) const {
-        auto dumpArray = [&](const char *name, const Array<ElementIndex> &arr) {
+        auto dumpArray = [&](const char *name, Array<ElementIndex> arr) {
             out << name << " -> ";
-            for (auto it : arr) {
-                out << "\t" << (it == InvalidIndex ? std::string("x") : std::to_string(it));
+            for (ElementIndex *it = arr, *jt = arr + element_limit; it < jt; ++it) {
+                out << "\t" << (*it == kInvalidIndex ? std::string("x") : std::to_string(*it));
             }
             out << "\n";
         };
-        dumpArray("parentIndex", parentIndex);
-        dumpArray("firstChild ", firstChild);
-        dumpArray("nextSibling", nextSibling);
-        dumpArray("prevSibling", prevSibling);
+        dumpArray("parent_index", parent_index);
+        dumpArray("first_child ", first_child);
+        dumpArray("next_sibling", next_sibling);
+        dumpArray("prev_sibling", prev_sibling);
     }
 
     //---------------------------------------------------------
 
-    void Clear() {
-        if constexpr (HasClearCallback())
-            reinterpret_cast<CALLBACK *>(this)->ClearArrays();
-        allocated = (ElementIndex)0;
-        parentIndex.fill(InvalidIndex);
-        firstChild.fill(InvalidIndex);
-        nextSibling.fill(InvalidIndex);
-        prevSibling.fill(InvalidIndex);
-    }
-
-    ElementIndex Allocated() { return allocated; }
-    ElementIndex LastIndex() const { return (ElementIndex)((ElementIndexIntType)allocated - 1); }
-
-    ElementIndex Allocate(ElementIndex parent = InvalidIndex) {
-        auto e = NextIndex();
-        if (parent != InvalidIndex)
-            AddChild(parent, e);
-        if constexpr (HasInitCallback())
-            reinterpret_cast<CALLBACK *>(this)->InitElement(e, parent);
-        return e;
-    }
-
-    void RemoveBranch(ElementIndex rootIndex) {
-        auto remove = [this](ElementIndex i) -> ElementIndex {
-            ElementIndex r = i;
-
-            // static int idx = 0;
-            // DrawDiagram("remove_" + std::to_string(idx) + ".dot");
-            // std::cout << "STORED REMOVE " << idx << "\n";
-            // ++idx;
-
-            r = LastIndex();
-            if (i < r) {
-                SwapIndexes(r, i); //move is sufficient
-                SatisfyChildIndexConstraint(i);
-            }
-            // RemoveReferences(r);
-
-            if constexpr (HasReleaseCallback())
-                reinterpret_cast<CALLBACK *>(this)->ReleaseElement(r, parentIndex[r]);
-
-            RemoveLast();
-
-            return r;
-        };
-
-        ElementIndex currentIndex = rootIndex;
-        for (;;) {
-            auto child = firstChild[currentIndex];
-            if (child == InvalidIndex)
-                break;
-            currentIndex = child;
+    std::string ElementToString(ElementIndex index) const {
+        if constexpr (HasGetNameCallback()) {
+            return static_cast<const Callback_t *>(this)->GetElementName(index);
+        } else {
+            return std::to_string(index);
         }
-
-        while (currentIndex != rootIndex) {
-            currentIndex = remove(currentIndex);
-
-            ElementIndex sibling = nextSibling[currentIndex];
-            assert(prevSibling[currentIndex] == InvalidIndex);
-            if (sibling == InvalidIndex) {
-                auto parent = parentIndex[currentIndex];
-                RemoveReferences(currentIndex);
-                currentIndex = parent;
-                continue;
-            } else {
-                auto parent = parentIndex[currentIndex];
-                firstChild[parent] = sibling;
-
-                prevSibling[sibling] = InvalidIndex;
-                nextSibling[currentIndex] = InvalidIndex;
-                parentIndex[currentIndex] = InvalidIndex;
-            }
-
-            bool done = false;
-            for (ElementIndex child = sibling; child != InvalidIndex;) {
-                auto f_child = firstChild[child];
-                if (f_child == InvalidIndex) {
-                    currentIndex = child;
-                    done = true;
-                    break;
-                }
-                child = f_child;
-            }
-            if (!done) {
-                RemoveReferences(currentIndex);
-                currentIndex = sibling;
-            }
-        }
-
-        rootIndex = remove(currentIndex);
-        RemoveReferences(rootIndex);
     }
-
-    // TODO void SetParent(ElementIndex e, ElementIndex newParent) { }
-    // TODO void RebuildTree(ElementIndex startIndex) { ... }
 
     //---------------------------------------------------------
 
     class DFSIterator {
-        const ArrayIndexTree *tree;
-        ElementIndex currentIndex;
+        const BaseArrayIndexTree *tree;
+        ElementIndex current_index;
 
     public:
-        explicit DFSIterator(const ArrayIndexTree *tree, ElementIndex currentIndex)
-            : tree(tree), currentIndex(currentIndex) {}
+        explicit DFSIterator(const BaseArrayIndexTree *tree, ElementIndex current_index)
+            : tree(tree), current_index(current_index) {}
 
         DFSIterator(const DFSIterator &) = default;
         DFSIterator(DFSIterator &&) = default;
 
-        bool operator!=(const DFSIterator &ti) const { return currentIndex != ti.currentIndex; }
+        bool operator!=(const DFSIterator &ti) const { return current_index != ti.current_index; }
 
-        ElementIndex operator*() { return currentIndex; }
+        ElementIndex operator*() { return current_index; }
 
         void operator++() {
-            ElementIndex sibling = tree->nextSibling[currentIndex];
-            if (sibling == InvalidIndex) {
-                auto parent = tree->parentIndex[currentIndex];
+            ElementIndex sibling = tree->next_sibling[current_index];
+            if (sibling == kInvalidIndex) {
+                auto parent = tree->parent_index[current_index];
                 // assert
-                currentIndex = parent;
+                current_index = parent;
                 return;
             }
 
-            for (ElementIndex child = sibling; child != InvalidIndex;) {
-                auto f_child = tree->firstChild[child];
-                if (f_child == InvalidIndex) {
-                    currentIndex = child;
+            for (ElementIndex child = sibling; child != kInvalidIndex;) {
+                auto f_child = tree->first_child[child];
+                if (f_child == kInvalidIndex) {
+                    current_index = child;
                     return;
                 }
                 child = f_child;
             }
 
-            currentIndex = sibling;
+            current_index = sibling;
         }
     };
 
     template <typename DFSIteratorType>
     class DFSIteratorStarter {
-        ArrayIndexTree *tree;
-        ElementIndex rootIndex;
+        BaseArrayIndexTree *tree;
+        ElementIndex root_index;
 
     public:
-        DFSIteratorStarter(ArrayIndexTree *tree, ElementIndex rootIndex)
-            : tree(tree), rootIndex(rootIndex) {}
+        DFSIteratorStarter(BaseArrayIndexTree *tree, ElementIndex root_index) : tree(tree), root_index(root_index) {}
 
         DFSIteratorType begin() {
-            ElementIndex currentIndex = rootIndex;
+            ElementIndex current_index = root_index;
             for (;;) {
-                auto child = tree->firstChild[currentIndex];
-                if (child == InvalidIndex)
+                auto child = tree->first_child[current_index];
+                if (child == kInvalidIndex)
                     break;
-                currentIndex = child;
+                current_index = child;
             }
-            return DFSIteratorType{tree, currentIndex};
+            return DFSIteratorType{tree, current_index};
         }
-        DFSIteratorType end() { return DFSIteratorType{tree, tree->parentIndex[rootIndex]}; }
+        DFSIteratorType end() { return DFSIteratorType{tree, tree->parent_index[root_index]}; }
     };
-
-    DFSIteratorStarter<DFSIterator> TraverseTree(ElementIndex startIndex) {
-        return DFSIteratorStarter<DFSIterator>(this, startIndex);
-    }
-    ElementIndexVector TraverseTreeVector(ElementIndex startIndex) {
-        return Vectorize(TraverseTree(startIndex));
-    }
 
     //---------------------------------------------------------
 
     class LinearIterator {
-        ElementIndex currentIndex;
+        ElementIndex current_index;
 
     public:
-        explicit LinearIterator(ElementIndex currentIndex) : currentIndex(currentIndex) {}
+        explicit LinearIterator(ElementIndex current_index) : current_index(current_index) {}
         LinearIterator(const LinearIterator &) = default;
         LinearIterator(LinearIterator &&) = default;
 
-        bool operator!=(const LinearIterator &ti) const { return currentIndex != ti.currentIndex; }
+        bool operator!=(const LinearIterator &ti) const { return current_index != ti.current_index; }
 
-        ElementIndex operator*() { return currentIndex; }
+        ElementIndex operator*() { return current_index; }
 
-        void operator++() { ++currentIndex; }
+        void operator++() { ++current_index; }
     };
 
     class LinearTraverseStarter {
@@ -346,57 +255,100 @@ struct alignas(16) ArrayIndexTree {
         LinearIterator end() { return LinearIterator{lastIndex}; }
     };
 
-    LinearTraverseStarter LinearTraverse(ElementIndex startIndex = 0,
-                                         ElementIndex lastIndex = InvalidIndex) const {
-        return LinearTraverseStarter(startIndex, lastIndex == InvalidIndex ? allocated : lastIndex);
+    //---------------------------------------------------------
+
+    DFSIteratorStarter<DFSIterator> TraverseTree(ElementIndex startIndex) {
+        return DFSIteratorStarter<DFSIterator>(this, startIndex);
     }
-    ElementIndexVector LinearTraverseVector(ElementIndex startIndex = 0,
-                                            ElementIndex lastIndex = InvalidIndex) const {
-        return Vectorize(LinearTraverse(startIndex, lastIndex));
+    ElementIndexVector TraverseTreeVector(ElementIndex startIndex) {
+        return Vectorize<ElementIndexVector>(TraverseTree(startIndex));
     }
 
     //---------------------------------------------------------
 
-    //TODO: TraverseChildren
+    void ReleaseBranch(ElementIndex root_index) {
+        ElementIndex current_index = root_index;
+        for (;;) {
+            auto child = first_child[current_index];
+            if (child == kInvalidIndex) {
+                break;
+            }
+            current_index = child;
+        }
 
-    //---------------------------------------------------------
+        while (current_index != root_index) {
+            current_index = CallReleaseIndex(current_index);
+            CallReleaseElement(current_index, parent_index[current_index]);
 
-    template <typename T>
-    using Array = typename std::array<T, ElementLimit>;
+            ElementIndex sibling = next_sibling[current_index];
+            assert(prev_sibling[current_index] == kInvalidIndex);
+            if (sibling == kInvalidIndex) {
+                auto parent = parent_index[current_index];
+                RemoveReferences(current_index);
+                current_index = parent;
+                continue;
+            } else {
+                auto parent = parent_index[current_index];
+                first_child[parent] = sibling;
+
+                prev_sibling[sibling] = kInvalidIndex;
+                next_sibling[current_index] = kInvalidIndex;
+                parent_index[current_index] = kInvalidIndex;
+            }
+
+            bool done = false;
+            for (ElementIndex child = sibling; child != kInvalidIndex;) {
+                auto f_child = first_child[child];
+                if (f_child == kInvalidIndex) {
+                    current_index = child;
+                    done = true;
+                    break;
+                }
+                child = f_child;
+            }
+            if (!done) {
+                RemoveReferences(current_index);
+                current_index = sibling;
+            }
+        }
+
+        root_index = CallReleaseIndex(current_index);
+        CallReleaseElement(root_index, parent_index[root_index]);
+        RemoveReferences(root_index);
+    }
 
     //TODO: MoveIndex(ElementIndex src, ElementIndex dst)
     void SwapIndexes(ElementIndex a, ElementIndex b) {
-        assert(a != InvalidIndex);
-        assert(b != InvalidIndex);
+        assert(a != kInvalidIndex);
+        assert(b != kInvalidIndex);
 
-        if constexpr (HasSwapCallback())
-            reinterpret_cast<CALLBACK *>(this)->SwapValues(a, b);
+        CallSwapValues(a, b);
 
         {
-            for (auto childA = firstChild[a]; childA != InvalidIndex; childA = nextSibling[childA])
-                parentIndex[childA] = b;
+            for (auto childA = first_child[a]; childA != kInvalidIndex; childA = next_sibling[childA])
+                parent_index[childA] = b;
 
-            for (auto childB = firstChild[b]; childB != InvalidIndex; childB = nextSibling[childB])
-                parentIndex[childB] = a;
+            for (auto childB = first_child[b]; childB != kInvalidIndex; childB = next_sibling[childB])
+                parent_index[childB] = a;
 
-            std::swap(firstChild[a], firstChild[b]);
+            std::swap(first_child[a], first_child[b]);
         }
 
         {
-            auto &a_next = nextSibling[a];
-            auto &b_next = nextSibling[b];
-            auto &a_prev = prevSibling[a];
-            auto &b_prev = prevSibling[b];
+            auto &a_next = next_sibling[a];
+            auto &b_next = next_sibling[b];
+            auto &a_prev = prev_sibling[a];
+            auto &b_prev = prev_sibling[b];
 
             if (a_next == b) { // right next to each other
                 a_next = b_next;
                 b_prev = a_prev;
 
-                if (a_next != InvalidIndex)
-                    prevSibling[a_next] = a;
+                if (a_next != kInvalidIndex)
+                    prev_sibling[a_next] = a;
 
-                if (b_prev != InvalidIndex)
-                    nextSibling[b_prev] = b;
+                if (b_prev != kInvalidIndex)
+                    next_sibling[b_prev] = b;
 
                 b_next = a;
                 a_prev = b;
@@ -404,11 +356,11 @@ struct alignas(16) ArrayIndexTree {
                 b_next = a_next;
                 a_prev = b_prev;
 
-                if (b_next != InvalidIndex)
-                    prevSibling[b_next] = b;
+                if (b_next != kInvalidIndex)
+                    prev_sibling[b_next] = b;
 
-                if (a_prev != InvalidIndex)
-                    nextSibling[a_prev] = a;
+                if (a_prev != kInvalidIndex)
+                    next_sibling[a_prev] = a;
 
                 a_next = b;
                 b_prev = a;
@@ -422,127 +374,306 @@ struct alignas(16) ArrayIndexTree {
                 a_prev = p;
                 a_next = n;
 
-                if (b_next != InvalidIndex)
-                    prevSibling[b_next] = b;
-                if (b_prev != InvalidIndex)
-                    nextSibling[b_prev] = b;
+                if (b_next != kInvalidIndex)
+                    prev_sibling[b_next] = b;
+                if (b_prev != kInvalidIndex)
+                    next_sibling[b_prev] = b;
 
-                if (a_next != InvalidIndex)
-                    prevSibling[a_next] = a;
-                if (a_prev != InvalidIndex)
-                    nextSibling[a_prev] = a;
+                if (a_next != kInvalidIndex)
+                    prev_sibling[a_next] = a;
+                if (a_prev != kInvalidIndex)
+                    next_sibling[a_prev] = a;
             }
         }
 
         {
-            auto parentA = parentIndex[a];
-            auto parentB = parentIndex[b];
+            auto parentA = parent_index[a];
+            auto parentB = parent_index[b];
 
-            if (firstChild[parentA] == a)
-                firstChild[parentA] = b;
+            if (first_child[parentA] == a)
+                first_child[parentA] = b;
 
-            if (firstChild[parentB] == b)
-                firstChild[parentB] = a;
+            if (first_child[parentB] == b)
+                first_child[parentB] = a;
 
-            auto &fa = firstChild[parentA];
-            auto &fb = firstChild[parentB];
+            auto &fa = first_child[parentA];
+            auto &fb = first_child[parentB];
 
-            while (prevSibling[fa] != InvalidIndex)
-                fa = prevSibling[fa];
-            while (prevSibling[fb] != InvalidIndex)
-                fb = prevSibling[fb];
+            while (prev_sibling[fa] != kInvalidIndex)
+                fa = prev_sibling[fa];
+            while (prev_sibling[fb] != kInvalidIndex)
+                fb = prev_sibling[fb];
 
-            std::swap(parentIndex[a], parentIndex[b]);
+            std::swap(parent_index[a], parent_index[b]);
         }
-
-        // static int idx = 0;
-        // DrawDiagram("swap_" + std::to_string(idx) + ".dot");
-        // std::cout << "STORED SWAP " << idx << "\n";
-        // ++idx;
     }
 
-private:
-    ElementIndex allocated; // = 0;
-    char __padding[16 - sizeof(ElementIndex)];
+protected:
+    static constexpr size_t GetBaseMemorySize(ElementIndex_t element_limit) { //
+        return static_cast<size_t>(element_limit) * 4;
+    }
 
-public:
-    Array<ElementIndex> parentIndex;
-    Array<ElementIndex> firstChild;
-    Array<ElementIndex> nextSibling;
-    Array<ElementIndex> prevSibling;
+    BaseArrayIndexTree() : element_limit(0) {}
+    BaseArrayIndexTree(ElementIndex_t element_limit) : element_limit(element_limit) {}
+    BaseArrayIndexTree(ElementIndex_t element_limit, const ElementPointerMemory &ptr_mem)
+        : element_limit(element_limit) {
+        SetArrayMemory(element_limit, ptr_mem.get());
+    }
 
-private:
-    ElementIndex NextIndex() {
-        ElementIndex ei = allocated;
-        allocated = (ElementIndex)((ElementIndexIntType)allocated + 1);
-        return ei;
-    };
-    void RemoveLast() { allocated = (ElementIndex)((ElementIndexIntType)allocated - 1); }
+    void BaseClear() {
+        CallClear();
+        for (ElementIndex i = 0; i < element_limit; ++i) {
+            parent_index[i] = kInvalidIndex;
+            first_child[i] = kInvalidIndex;
+            next_sibling[i] = kInvalidIndex;
+            prev_sibling[i] = kInvalidIndex;
+        }
+    }
+
+    ElementIndex_t *SetArrayMemory(ElementIndex_t element_limit, ElementIndex_t *memory_block_front) {
+        if (memory_block_front == nullptr) {
+            return nullptr;
+        }
+        this->element_limit = element_limit;
+        parent_index = memory_block_front;
+        first_child = parent_index + element_limit;
+        next_sibling = first_child + element_limit;
+        prev_sibling = next_sibling + element_limit;
+        return prev_sibling + element_limit;
+    }
 
     void AddChild(ElementIndex parent, ElementIndex child) {
-        assert(parent != InvalidIndex);
-        assert(child != InvalidIndex);
+        assert(parent != kInvalidIndex);
+        assert(child != kInvalidIndex);
 
-        parentIndex[child] = parent;
-        if (firstChild[parent] != InvalidIndex) {
-            auto f_child = firstChild[parent];
+        parent_index[child] = parent;
+        if (first_child[parent] != kInvalidIndex) {
+            auto f_child = first_child[parent];
             InsertBefore(f_child, child);
         }
-        firstChild[parent] = child;
+        first_child[parent] = child;
     }
     void InsertBefore(ElementIndex before, ElementIndex index) {
-        assert(before != InvalidIndex);
-        assert(index != InvalidIndex);
-        auto prevBefore = prevSibling[before];
-        nextSibling[index] = before;
-        prevSibling[index] = prevBefore;
-        prevSibling[before] = index;
-        if (prevBefore != InvalidIndex)
-            nextSibling[prevBefore] = index;
+        assert(before != kInvalidIndex);
+        assert(index != kInvalidIndex);
+        auto prev_before = prev_sibling[before];
+        next_sibling[index] = before;
+        prev_sibling[index] = prev_before;
+        prev_sibling[before] = index;
+        if (prev_before != kInvalidIndex)
+            next_sibling[prev_before] = index;
     }
     void RemoveReferences(ElementIndex e) {
-        assert(e != InvalidIndex);
-        auto prev = prevSibling[e];
-        auto next = nextSibling[e];
-        auto parent = parentIndex[e];
+        assert(e != kInvalidIndex);
+        auto prev = prev_sibling[e];
+        auto next = next_sibling[e];
+        auto parent = parent_index[e];
 
-        prevSibling[e] = InvalidIndex;
-        nextSibling[e] = InvalidIndex;
+        prev_sibling[e] = kInvalidIndex;
+        next_sibling[e] = kInvalidIndex;
 
-        if (prev != InvalidIndex)
-            nextSibling[prev] = next;
-        if (next != InvalidIndex)
-            prevSibling[next] = prev;
+        if (prev != kInvalidIndex)
+            next_sibling[prev] = next;
+        if (next != kInvalidIndex)
+            prev_sibling[next] = prev;
 
-        if (parent != InvalidIndex && firstChild[parent] == e)
-            firstChild[parent] = prev != InvalidIndex ? prev : next;
+        if (parent != kInvalidIndex && first_child[parent] == e)
+            first_child[parent] = prev != kInvalidIndex ? prev : next;
 
-        parentIndex[e] = InvalidIndex;
-        firstChild[e] = InvalidIndex;
+        parent_index[e] = kInvalidIndex;
+        first_child[e] = kInvalidIndex;
     }
-    void SatisfyChildIndexConstraint(ElementIndex e) {
-        assert(e != InvalidIndex);
-        for (ElementIndex c = e; parentIndex[c] > c;) {
-            if (parentIndex[c] == InvalidIndex)
-                break;
-            SwapIndexes(c, parentIndex[c]);
+
+    void CallInitElement(ElementIndex e, ElementIndex parent) {
+        if constexpr (this->HasInitCallback()) {
+            static_cast<Callback_t *>(this)->InitElement(e, parent);
+        }
+    }
+    void CallSwapValues(ElementIndex a, ElementIndex b) {
+        if constexpr (this->HasSwapCallback()) {
+            static_cast<Callback_t *>(this)->SwapValues(a, b);
+        }
+    }
+    void CallClear() {
+        if constexpr (HasClearCallback()) {
+            static_cast<Callback_t *>(this)->ClearArrays();
+        }
+    }
+    void CallReleaseElement(ElementIndex e, ElementIndex parent) {
+        if constexpr (this->HasReleaseCallback()) {
+            static_cast<Callback_t *>(this)->ReleaseElement(e, parent);
         }
     }
 
-    template <typename STARTER>
-    ElementIndexVector Vectorize(STARTER st) const {
-        ElementIndexVector r;
-        for (ElementIndex idx : st)
-            r.emplace_back(idx);
+    ElementIndex CallReleaseIndex(ElementIndex e) { return static_cast<Indexer_t *>(this)->ReleaseIndex(e); }
+
+    //---------------------------------------------------------
+};
+
+} // namespace detail
+
+template <typename ElementIndex_t, typename Callback_t = detail::ArrayIndexTreeCallback>
+struct PackedArrayIndexTree
+    : public detail::BaseArrayIndexTree<ElementIndex_t, PackedArrayIndexTree<ElementIndex_t, Callback_t>, Callback_t> {
+    using Base = detail::BaseArrayIndexTree<ElementIndex_t, PackedArrayIndexTree, Callback_t>;
+    friend class Base; //not nice
+
+    using Base::kInvalidIndex;
+    using typename Base::ElementIndex;
+    using typename Base::ElementIndexIntType;
+    using typename Base::ElementIndexVector;
+    using typename Base::ElementPointerMemory;
+    using typename Base::LinearTraverseStarter;
+
+    //---------------------------------------------------------
+
+    static constexpr size_t GetMemorySize(ElementIndex element_limit) { return Base::GetBaseMemorySize(element_limit); }
+
+    PackedArrayIndexTree() = default;
+    PackedArrayIndexTree(ElementIndex limit, const ElementPointerMemory &ptr_mem) : Base(limit, ptr_mem) {}
+
+    void SetMemory(ElementIndex limit, const ElementPointerMemory &ptr_mem) {
+        this->SetArrayMemory(limit, ptr_mem.get());
+    }
+
+    //---------------------------------------------------------
+
+    ElementIndex LastIndex() const { return (ElementIndex)((ElementIndexIntType)this->allocated - 1); }
+
+    void Clear() {
+        this->BaseClear();
+        allocated = 0;
+    }
+    ElementIndex Allocated() const { return this->allocated; }
+
+    ElementIndex Allocate(ElementIndex parent = kInvalidIndex) {
+        auto e = NextIndex();
+        if (parent != kInvalidIndex) {
+            this->AddChild(parent, e);
+        }
+        this->CallInitElement(e, parent);
+        return e;
+    }
+
+    //---------------------------------------------------------
+
+    LinearTraverseStarter LinearTraverse(ElementIndex startIndex = 0, ElementIndex lastIndex = kInvalidIndex) const {
+        return LinearTraverseStarter(startIndex, lastIndex == kInvalidIndex ? allocated : lastIndex);
+    }
+    ElementIndexVector LinearTraverseVector(ElementIndex startIndex = 0, ElementIndex lastIndex = kInvalidIndex) const {
+        return Vectorize<ElementIndexVector>(this->LinearTraverse(startIndex, lastIndex));
+    }
+
+private:
+    size_t allocated = 0;
+
+    ElementIndex ReleaseIndex(ElementIndex i) {
+        ElementIndex r = LastIndex();
+        if (i < r) {
+            this->SwapIndexes(r, i); //TODO: move is sufficient
+            SatisfyChildIndexConstraint(i);
+        }
+        RemoveLast();
         return r;
+    }
+
+    ElementIndex NextIndex() {
+        ElementIndex ei = this->allocated;
+        this->allocated = (ElementIndex)((ElementIndexIntType)this->allocated + 1);
+        return ei;
+    };
+    void RemoveLast() { this->allocated = (ElementIndex)((ElementIndexIntType)this->allocated - 1); }
+
+    void SatisfyChildIndexConstraint(ElementIndex e) {
+        assert(e != kInvalidIndex);
+        for (ElementIndex c = e; this->parent_index[c] > c;) {
+            if (this->parent_index[c] == kInvalidIndex) {
+                break;
+            }
+            this->SwapIndexes(c, this->parent_index[c]);
+        }
     }
 };
 
-namespace detail {
-struct TestArrayIndexTree : public ArrayIndexTree<uint32_t, 16, TestArrayIndexTree> {};
-static_assert(std::is_trivial_v<TestArrayIndexTree>);
-static_assert(std::is_trivially_constructible_v<TestArrayIndexTree>);
-static_assert((sizeof(TestArrayIndexTree) % 16) == 0);
-} // namespace detail
+template <typename ElementIndex_t, typename Callback_t = detail::ArrayIndexTreeCallback>
+struct SparseArrayIndexTree
+    : public detail::BaseArrayIndexTree<ElementIndex_t, SparseArrayIndexTree<ElementIndex_t, Callback_t>, Callback_t> {
+    using Base =
+        detail::BaseArrayIndexTree<ElementIndex_t, SparseArrayIndexTree<ElementIndex_t, Callback_t>, Callback_t>;
+    friend class Base; //not nice
+
+    using Base::kInvalidIndex;
+    using typename Base::ElementIndex;
+    using typename Base::ElementIndexIntType;
+    using typename Base::ElementIndexVector;
+    using typename Base::ElementPointerMemory;
+    using typename Base::LinearTraverseStarter;
+
+    //---------------------------------------------------------
+
+    static constexpr size_t GetMemorySize(ElementIndex element_limit) { //
+        return Base::GetBaseMemorySize(element_limit);
+    }
+
+    SparseArrayIndexTree() = default;
+    SparseArrayIndexTree(ElementIndex limit, const ElementPointerMemory &ptr_mem)
+        : Base(limit, ptr_mem), allocation_array(limit) {}
+
+    void SetMemory(ElementIndex limit, const ElementPointerMemory &ptr_mem) {
+        this->SetArrayMemory(limit, ptr_mem.get());
+        allocation_array.resize(limit);
+    }
+
+    //---------------------------------------------------------
+
+    ElementIndex Allocate(ElementIndex parent = kInvalidIndex) {
+        auto e = NextIndex(parent);
+        if (parent != kInvalidIndex) {
+            this->AddChild(parent, e);
+        }
+        this->CallInitElement(e, parent);
+        return e;
+    }
+
+    ElementIndex Allocated() const { return this->element_limit - allocation_array.count(); }
+
+    void Clear() {
+        this->BaseClear();
+        allocation_array.set();
+    }
+
+    //---------------------------------------------------------
+
+    LinearTraverseStarter LinearTraverse(ElementIndex startIndex = 0, ElementIndex lastIndex = kInvalidIndex) const {
+        return LinearTraverseStarter(startIndex, lastIndex == kInvalidIndex ? Allocated() : lastIndex);
+    }
+    ElementIndexVector LinearTraverseVector(ElementIndex startIndex = 0, ElementIndex lastIndex = kInvalidIndex) const {
+        return Vectorize<ElementIndexVector>(this->LinearTraverse(startIndex, lastIndex));
+    }
+
+protected:
+    boost::dynamic_bitset<> allocation_array;
+
+    ElementIndex ReleaseIndex(ElementIndex i) {
+        allocation_array.set(i, true);
+        return i;
+    }
+
+    ElementIndex NextIndex(ElementIndex parent) {
+        ElementIndex new_element;
+        if (parent == kInvalidIndex) {
+            new_element = allocation_array.find_first();
+        } else {
+            new_element = allocation_array.find_next(parent);
+        }
+
+        if (new_element == allocation_array.npos) {
+            return kInvalidIndex;
+        } else {
+            allocation_array.set(new_element, false);
+            return new_element;
+        }
+    };
+};
 
 } // namespace MoonGlare::ECS
