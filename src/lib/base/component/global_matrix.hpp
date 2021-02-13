@@ -5,9 +5,11 @@
 
 namespace MoonGlare::Component {
 
-alignas(16) struct GlobalMatrix : public ComponentBase<GlobalMatrix> {
-    static constexpr ComponentId kComponentId = 3;
-    static constexpr char *kComponentName = "GlobalMatrix";
+struct alignas(16)
+
+    GlobalMatrix : public ComponentBase<GlobalMatrix> {
+    static constexpr ComponentId kComponentId = 4;
+    static constexpr char kComponentName[] = "global_matrix";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
 

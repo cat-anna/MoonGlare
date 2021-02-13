@@ -5,9 +5,9 @@
 
 namespace MoonGlare::Component {
 
-struct Name : public ComponentBase<Name> {
+struct alignas(16) Name : public ComponentBase<Name> {
     static constexpr ComponentId kComponentId = 0;
-    static constexpr char *kComponentName = "Name";
+    static constexpr char kComponentName[] = "name";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = true;
 
@@ -16,16 +16,16 @@ struct Name : public ComponentBase<Name> {
     StringType value;
 };
 
-#ifdef _WANTS_TYPE_INFO_
+#ifdef WANTS_TYPE_INFO
 
 auto GetTypeInfo(Name *) {
-    return AttributeMapBuilder<Name>::Start("Name") //
+    return AttributeMapBuilder<Name>::Start(Name::kComponentName) //
         ->AddFieldWithAlias<std::string>("value", &Name::value);
 }
 
 #endif
 
-#ifdef _WANTS_COMPONENT_SERIALIZATION_
+#ifdef WANTS_SERIALIZATION
 
 void to_json(nlohmann::json &j, const Name &p) {
     j = {

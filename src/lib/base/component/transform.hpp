@@ -9,14 +9,12 @@ namespace MoonGlare::Component {
 
 #pragma pack(push, 1)
 
-// alignas(16)
-struct Transform : public ComponentBase<Transform> {
-    static constexpr ComponentId kComponentId = 4;
-    static constexpr char *kComponentName = "Transform";
+struct alignas(16) Transform : public ComponentBase<Transform> {
+    static constexpr ComponentId kComponentId = 3;
+    static constexpr char kComponentName[] = "transform";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
 
-    // Array<RuntimeRevision>      revision;
     // Array<emath::fvec3>         globalScale;
 
     math::fvec3 scale{1.0f, 1.0f, 1.0f};
@@ -43,10 +41,10 @@ static_assert((offsetof(Transform, scale) % 16) == 0);
 static_assert((offsetof(Transform, position) % 16) == 0);
 static_assert((offsetof(Transform, quaternion) % 16) == 0);
 
-#ifdef _WANTS_TYPE_INFO_
+#ifdef WANTS_TYPE_INFO
 
 auto GetTypeInfo(Transform *) {
-    return AttributeMapBuilder<Transform>::Start("Transform")
+    return AttributeMapBuilder<Transform>::Start(Transform::kComponentName)
         ->AddField("scale", &Transform::scale)
         ->AddField("position", &Transform::position)
         ->AddField("quaternion", &Transform::quaternion);
@@ -54,7 +52,7 @@ auto GetTypeInfo(Transform *) {
 
 #endif
 
-#ifdef _WANTS_COMPONENT_SERIALIZATION_
+#ifdef WANTS_SERIALIZATION
 
 void to_json(nlohmann::json &j, const Transform &p) {
     j = {

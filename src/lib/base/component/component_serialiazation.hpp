@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _WANTS_COMPONENT_SERIALIZATION_
+#ifdef WANTS_SERIALIZATION
 
 #include <nlohmann/json.hpp>
 

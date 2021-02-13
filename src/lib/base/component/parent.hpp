@@ -6,7 +6,7 @@ namespace MoonGlare::Component {
 
 struct Parent : public ComponentBase<Parent> {
     static constexpr ComponentId kComponentId = 1;
-    static constexpr char* kComponentName = "Parent";
+    static constexpr char kComponentName[] = "parent";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
 };

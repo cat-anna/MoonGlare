@@ -7,8 +7,8 @@ namespace MoonGlare::Component {
 
 // alignas(16)
 struct LightSource : public ComponentBase<LightSource> {
-    static constexpr ComponentId kComponentId = 7;
-    static constexpr char *kComponentName = "LightSource";
+    static constexpr ComponentId kComponentId = 8;
+    static constexpr char kComponentName[] = "light_source";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
 
@@ -20,10 +20,10 @@ struct LightSource : public ComponentBase<LightSource> {
 
 // static_assert((sizeof(Light) % 16) == 0);
 
-#ifdef _WANTS_TYPE_INFO_
+#ifdef WANTS_TYPE_INFO
 
 inline auto GetTypeInfo(LightSource *) {
-    return AttributeMapBuilder<LightSource>::Start("LightSource")
+    return AttributeMapBuilder<LightSource>::Start(LightSource::kComponentName)
         // ->AddField("scale", &LightSource::scale)
         // ->AddField("position", &LightSource::position)
         // ->AddField()
@@ -34,7 +34,7 @@ inline auto GetTypeInfo(LightSource *) {
 
 #endif
 
-#ifdef _WANTS_COMPONENT_SERIALIZATION_
+#ifdef WANTS_SERIALIZATION
 
 inline void to_json(nlohmann::json &j, const LightSource &p) {
     j = {
@@ -86,7 +86,7 @@ bool LightComponent::Load(ComponentReader &reader, Entity owner) {
         LogInvalidEnum(le.m_Type);
         return false;
     }
-    
+
     base.m_AmbientIntensity = le.m_AmbientIntensity;
     base.m_DiffuseIntensity = le.m_DiffuseIntensity;
     base.m_Color = le.m_Color;
@@ -94,7 +94,7 @@ bool LightComponent::Load(ComponentReader &reader, Entity owner) {
     attenuation.values = le.m_Attenuation;
     type = le.m_Type;
     cutOff = le.m_CutOff;
-    
+
     return true;
 }
 

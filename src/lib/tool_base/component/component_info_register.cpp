@@ -1,5 +1,5 @@
-#define _WANTS_TYPE_INFO_
-#define _WANTS_COMPONENT_SERIALIZATION_
+#define WANTS_TYPE_INFO
+#define WANTS_SERIALIZATION
 
 #include "component_info_register.hpp"
 #include "eigen_math_type_info.hpp"
@@ -9,9 +9,9 @@
 #include <component/mesh.hpp>
 #include <component/name.hpp>
 #include <component/transform.hpp>
+// #include <component/revision.hpp>
 #include <component_register.hpp>
 #include <editable_type_provider.hpp>
-
 
 namespace MoonGlare::Tools::Component {
 

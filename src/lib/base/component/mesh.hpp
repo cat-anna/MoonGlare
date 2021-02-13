@@ -9,8 +9,8 @@
 namespace MoonGlare::Component {
 
 struct Mesh : public ComponentBase<Mesh> {
-    static constexpr ComponentId kComponentId = 5;
-    static constexpr char *kComponentName = "Mesh";
+    static constexpr ComponentId kComponentId = 6;
+    static constexpr char kComponentName[] = "mesh";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
 
@@ -23,10 +23,10 @@ struct Mesh : public ComponentBase<Mesh> {
     // bool Load(ComponentReader &reader, Entity owner);
 };
 
-#ifdef _WANTS_TYPE_INFO_
+#ifdef WANTS_TYPE_INFO
 
 auto GetTypeInfo(Mesh *) {
-    return AttributeMapBuilder<Mesh>::Start("Mesh")
+    return AttributeMapBuilder<Mesh>::Start(Mesh::kComponentName)
         ->AddField("active", &Mesh::active)
         ->AddField("cast_shadow", &Mesh::cast_shadow)
         ->AddField("receive_shadow", &Mesh::receive_shadow);
@@ -34,7 +34,7 @@ auto GetTypeInfo(Mesh *) {
 
 #endif
 
-#ifdef _WANTS_COMPONENT_SERIALIZATION_
+#ifdef WANTS_SERIALIZATION
 
 void to_json(nlohmann::json &j, const Mesh &p) {
     j = {
@@ -67,7 +67,7 @@ void from_json(const nlohmann::json &j, Mesh &p) {
 #include <Renderer/Resources/ResourceManager.h>
 
 namespace MoonGlare::Component {
-     
+
 bool MeshComponent::Load(ComponentReader &reader, Entity owner) {
     auto node = reader.node;
     std::string meshUri = node.child("Mesh").text().as_string("");
