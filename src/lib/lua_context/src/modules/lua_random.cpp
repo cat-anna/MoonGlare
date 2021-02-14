@@ -1,5 +1,5 @@
 #include "lua_context/modules/lua_random.hpp"
-#include "lua_context_build_config.hpp"
+#include "lua_context/lua_context_build_config.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
 #include <random>

@@ -4,11 +4,11 @@
 #include "scene_manager/scenes_manager.hpp"
 #include <lua_context/script_module.hpp>
 
-namespace MoonGlare::SceneManager {
+namespace MoonGlare::LuaModules {
 
 class SceneManagerLuaModule : public Lua::iDynamicScriptModule, public Lua::iRequireRequest {
 public:
-    SceneManagerLuaModule(iScenesManager *scenes_manager);
+    SceneManagerLuaModule(SceneManager::iScenesManager *scenes_manager);
     ~SceneManagerLuaModule() override;
 
     //iDynamicScriptModule
@@ -18,7 +18,7 @@ public:
     bool OnRequire(lua_State *lua, std::string_view name) override;
 
 private:
-    iScenesManager *const scenes_manager;
+    SceneManager::iScenesManager *const scenes_manager;
 };
 
-} // namespace MoonGlare::SceneManager
+} // namespace MoonGlare::LuaModules

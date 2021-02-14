@@ -3,17 +3,21 @@
 
 namespace MoonGlare::Tools::Importer {
 
-template <typename T> struct ImporterFactoryImpl : public ImporterFactory {
-    std::shared_ptr<iImporter> CreateImporter(SharedModuleManager smm, iImporter::ImporterCreateData) override {
-        return std::make_shared<T>(std::move(smm), std::move(createData));
+template <typename T>
+struct ImporterFactoryImpl : public ImporterFactory {
+    std::shared_ptr<iImporter> CreateImporter(SharedModuleManager smm,
+                                              iImporter::ImporterCreateData create_data) override {
+        return std::make_shared<T>(std::move(smm), std::move(create_data));
     }
 };
 
 //----------------------------------------------------------------------------------
 
-void ImporterProvider::RegisterModule() {}
+void ImporterProvider::RegisterModule() {
+}
 
-ImporterProvider::ImporterProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {}
+ImporterProvider::ImporterProvider(SharedModuleManager modmgr) : iModule(std::move(modmgr)) {
+}
 
 bool ImporterProvider::PostInit() {
     // for (auto module :
@@ -34,7 +38,8 @@ bool ImporterProvider::PostInit() {
     return true;
 }
 
-void ImporterProvider::AddImporter(ImporterInfo ii) {}
+void ImporterProvider::AddImporter(ImporterInfo ii) {
+}
 
 const std::shared_ptr<ImporterProvider::ImporterInfo> ImporterProvider::GetImporter(const std::string &ext) const {
     return importerMap.at(boost::to_lower_copy(ext));

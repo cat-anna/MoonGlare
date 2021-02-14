@@ -1,15 +1,15 @@
 
 actions = {}
 
-function actions.list_actions() 
+function actions.list_actions()
     for k,v in paris(actions) do
-        if type(v) == "function" then 
+        if type(v) == "function" then
             print(k)
         end
     end
 end
 
-function actions.execute_action(argument_string) 
+function actions.execute_action(argument_string)
     local args = utils.explode(";", argument_string)
     local action_name = args[1]
     assert(action_name)
@@ -21,7 +21,7 @@ end
 function actions.build_package(host_source_path, output_file)
     mount_host_folder(host_source_path, "", {
         generate_resource_id = true,
-        store_resource_id = false,
+        store_resource_id = true,
     })
     load_module("assimp_import", {
         root_point = "",

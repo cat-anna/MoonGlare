@@ -12,13 +12,28 @@ namespace MoonGlare::Lua {
 /*@ [/LuaModules] Lua modules
 @*/
 
-void LoadAllLuaModules(iScriptModuleManager *script_module_manager, std::shared_ptr<iReadOnlyFileSystem> filesystem) {
+namespace {
+
+void FileSystemReady(iScriptModuleManager *script_module_manager, iReadOnlyFileSystem *filesystem) {
     //must be first
     script_module_manager->AddModule(std::make_shared<LuaRequireModule>(filesystem));
 
     script_module_manager->AddModule(std::make_shared<LuaPrintModule>());
     script_module_manager->AddModule(std::make_shared<LuaFileSystemModule>(filesystem));
     script_module_manager->AddModule(std::make_shared<LuaRandomModule>());
+}
+
+void ScriptModuleManagerReady(iInterfaceHooks *interface_hooks, iScriptModuleManager *script_module_manager) {
+    interface_hooks->InstallInterfaceHook<iReadOnlyFileSystem>(
+        [script_module_manager](auto *filesystem) { FileSystemReady(script_module_manager, filesystem); });
+}
+
+} // namespace
+
+void LoadAllLuaModules(iInterfaceHooks *interface_hooks) {
+    interface_hooks->InstallInterfaceHook<iScriptModuleManager>([interface_hooks](auto *script_module_manager) {
+        ScriptModuleManagerReady(interface_hooks, script_module_manager);
+    });
 }
 
 } // namespace MoonGlare::Lua

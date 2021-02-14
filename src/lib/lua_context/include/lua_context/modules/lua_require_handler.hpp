@@ -16,7 +16,7 @@ local module = require "module"
 
 class LuaRequireModule : public iDynamicScriptModule, public iRequireModule {
 public:
-    LuaRequireModule(std::shared_ptr<iReadOnlyFileSystem> filesystem);
+    LuaRequireModule(iReadOnlyFileSystem *_filesystem);
     ~LuaRequireModule() override;
 
     void RegisterRequire(std::shared_ptr<iRequireRequest> iface, std::string name) override;
@@ -24,7 +24,7 @@ public:
     void InitContext(lua_State *lua) override;
 
 protected:
-    std::shared_ptr<iReadOnlyFileSystem> filesystem;
+    iReadOnlyFileSystem *const filesystem;
 
     std::unordered_map<std::string, std::shared_ptr<iRequireRequest>> scriptRequireMap;
 

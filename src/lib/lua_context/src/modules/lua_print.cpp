@@ -4,8 +4,6 @@
 #include <orbit_logger.h>
 #include <sol/sol.hpp>
 
-#include <embedded/lua_print.lua.h>
-
 namespace MoonGlare::Lua {
 
 template <int line_type>
@@ -57,10 +55,6 @@ Provides access to primary log methods, does not do any text formatting. This fu
     log["warning"] = &lua_put<1>;
     log["info"] = &lua_put<2>;
     log["debug"] = &lua_put<3>;
-
-    if (!ExecuteString(lua, lua_print_lua, lua_print_lua_size, "lua_print.lua")) {
-        throw std::runtime_error("lua_print.lua execute code failed!");
-    }
 }
 
 } // namespace MoonGlare::Lua

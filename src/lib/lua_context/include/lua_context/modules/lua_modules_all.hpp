@@ -1,10 +1,9 @@
 #pragma once
 
-#include <lua_context/script_module.hpp>
-#include <readonly_file_system.h>
+#include "interface_hooks.hpp"
 
 namespace MoonGlare::Lua {
 
-void LoadAllLuaModules(iScriptModuleManager *script_module_manager, std::shared_ptr<iReadOnlyFileSystem> filesystem);
+void LoadAllLuaModules(iInterfaceHooks *interface_hooks);
 
 } // namespace MoonGlare::Lua

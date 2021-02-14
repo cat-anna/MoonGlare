@@ -111,26 +111,6 @@ void LuaScriptContext::InitLuaState() {
     // MoonGlare::Core::Scripts::PublishSelfLuaTable(lua_state, "ComponentEntryMT", this, -1);
     // lua_settable(lua_state, LUA_REGISTRYINDEX); //stack: ... index c-table
 
-    try {
-        // ApiInit::Initialize(this);
-        // lua_pushnil(lua_state);
-        // lua_setglobal(lua_state, "api");
-        // InstallStaticModules(lua_state);
-        // StaticModules::InitStrings(lua_state, m_world);
-        // StaticModules::InitApplication(lua_state, m_world);
-        // StaticModules::InitThread(lua_state, m_world);
-        // InstallModule<LuaSettingsModule, Settings::iLuaSettingsModule>();
-        // InstallModule<LuaStaticStorageModule>();
-        // InstallModule<LuaEventsModule>();
-        // InstallModule<LuaTimeModule>();
-        // InstallModule<LuaAsyncLoaderModule>();
-        // InstallModule<LuaDebugContextModule>();
-        // InstallModule<Component::ScriptObject>();
-    } catch (const std::exception &e) {
-        AddLogf(Error, "Exception during static module init '%s'", e.what());
-        throw;
-    }
-
     lua_gc(lua_state, LUA_GCCOLLECT, 0);
     lua_gc(lua_state, LUA_GCSTOP, 0);
     PrintMemoryUsage();

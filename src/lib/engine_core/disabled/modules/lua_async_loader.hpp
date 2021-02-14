@@ -1,8 +1,7 @@
 #pragma once
-
+#if 0
 #include "../iDynamicModule.h"
 #include "../iLuaRequire.h"
-
 #include <Foundation/Resources/iAsyncLoader.h>
 
 namespace MoonGlare::Scripts::Modules {
@@ -21,3 +20,4 @@ protected:
 };
 
 } //namespace MoonGlare::Scripts::Modules
+#endif

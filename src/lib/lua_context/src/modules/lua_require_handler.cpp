@@ -1,5 +1,5 @@
 #include "lua_context/modules/lua_require_handler.hpp"
-#include "lua_context_build_config.hpp"
+#include "lua_context/lua_context_build_config.hpp"
 #include "lua_exec_string.hpp"
 #include <array>
 #include <embedded/lua_require_handler_debug.lua.h>
@@ -17,8 +17,8 @@ namespace MoonGlare::Lua {
     Extensions are available only in debug mode.
 @*/
 
-LuaRequireModule::LuaRequireModule(std::shared_ptr<iReadOnlyFileSystem> filesystem)
-    : iDynamicScriptModule("LuaRequireModule"), filesystem(std::move(filesystem)) {
+LuaRequireModule::LuaRequireModule(iReadOnlyFileSystem *_filesystem)
+    : iDynamicScriptModule("LuaRequireModule"), filesystem(_filesystem) {
 }
 
 LuaRequireModule::~LuaRequireModule() {
@@ -98,8 +98,8 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
     }
 
     static constexpr std::array<decltype(&LuaRequireModule::HandleFileRequest), 2> funcs = {
-        &LuaRequireModule::HandleFileRequest,
         &LuaRequireModule::HandleModuleRequest,
+        &LuaRequireModule::HandleFileRequest,
     };
     const char *t;
     for (auto item : funcs) {

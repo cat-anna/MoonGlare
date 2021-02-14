@@ -43,7 +43,7 @@ public:
         std::string fileUri;
     };
 
-    iImporter(SharedModuleManager smm, ImporterCreateData createData)
+    iImporter(SharedModuleManager smm, ImporterCreateData create_data)
         : moduleManager(std::move(smm)), createData(std::move(createData)) {}
 
     virtual ~iImporter() {}

@@ -10,7 +10,9 @@ namespace MoonGlare {
 
 namespace {
 constexpr auto kEngineCompilationDate = __DATE__ " at " __TIME__;
-}
+constexpr auto kApplicationName = "MoonGlare engine";
+constexpr auto kVersionString = "0.4";
+} // namespace
 
 struct StandaloneApplicationConfiguration {
     EngineConfiguration engine;
@@ -94,8 +96,9 @@ public:
         }
     }
 
-    std::string GetVersionString() const override { return "0.0"; }
+    std::string GetVersionString() const override { return kVersionString; }
     std::string GetCompilationDate() const override { return kEngineCompilationDate; }
+    std::string GetApplicationName() const override { return kApplicationName; }
 
 private:
     const std::filesystem::path executable_name;

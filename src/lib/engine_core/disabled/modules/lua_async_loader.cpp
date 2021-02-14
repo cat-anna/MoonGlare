@@ -1,3 +1,4 @@
+#if 0
 #include <Foundation/Scripts/LuaStackOverflowAssert.h>
 #include <interface_map.h>
 
@@ -49,3 +50,4 @@ Resources::iAsyncLoader::JobStatus LuaAsyncLoaderModule::GetStatus() const {
 }
 
 } // namespace MoonGlare::Scripts::Modules
+#endif

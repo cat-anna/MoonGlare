@@ -18,10 +18,6 @@ namespace MoonGlare {
 
 namespace {
 
-const char *VersionString = "0.4";
-const char *ApplicationName = "MoonGlare engine";
-const char *CompilationDate = __DATE__ " at " __TIME__;
-
 template <typename TIMEPOINT>
 auto TimeDiff(const TIMEPOINT &start, const TIMEPOINT &end) {
     return std::chrono::duration<float>(end - start).count();
@@ -91,8 +87,8 @@ void EngineCore::EngineMain() {
             last_report_time = global_time;
             double dt = global_time - last_report_time;
             auto avg_dt = (dt / static_cast<float>(frame_counter - last_frame_counter)) * 1000.0f;
-            AddLog(Performance, fmt::format("time:{:05.3f} frames:{:06} avg_frame_dt:{:.3f}ms",
-                                            global_time, frame_counter, avg_dt));
+            AddLog(Performance,
+                   fmt::format("time:{:05.3f} frames:{:06} avg_frame_dt:{:.3f}ms", global_time, frame_counter, avg_dt));
         }
     }
 }

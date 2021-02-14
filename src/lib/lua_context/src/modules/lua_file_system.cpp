@@ -1,14 +1,13 @@
 #include "lua_context/modules/lua_file_system.hpp"
-#include "lua_context_build_config.hpp"
+#include "lua_context/lua_context_build_config.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
 #include <sol/sol.hpp>
 
 namespace MoonGlare::Lua {
 
-LuaFileSystemModule::LuaFileSystemModule(std::shared_ptr<iReadOnlyFileSystem> filesystem)
-    : iDynamicScriptModule("LuaFileSystemModule"), iRequireRequest("moonglare.filesystem"),
-      filesystem(std::move(filesystem)) {
+LuaFileSystemModule::LuaFileSystemModule(iReadOnlyFileSystem *_filesystem)
+    : iDynamicScriptModule("LuaFileSystemModule"), iRequireRequest("moonglare.filesystem"), filesystem(_filesystem) {
 }
 
 LuaFileSystemModule::~LuaFileSystemModule() {
@@ -17,7 +16,7 @@ LuaFileSystemModule::~LuaFileSystemModule() {
 void LuaFileSystemModule::InitContext(lua_State *lua) {
     sol::state_view sol_view(lua);
     auto ns = sol_view[kInternalLuaNamespaceName].get_or_create<sol::table>();
-    ns.new_usertype<LuaFileSystemModule>("LuaFileSystemModule",                                        //
+    ns.new_usertype<LuaFileSystemModule>("LuaFileSystemModule", sol::no_constructor,                   //
                                          "read_by_path", &LuaFileSystemModule::ReadFileByPath,         //
                                          "read_by_path_safe", &LuaFileSystemModule::ReadFileByPathSafe //
     );

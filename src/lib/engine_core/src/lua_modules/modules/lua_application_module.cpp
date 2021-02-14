@@ -43,17 +43,21 @@ void LuaApplicationModule::InitContext(lua_State *lua) {
         "stop", &iEngineRunner::Stop,
 
         /*@ [LuaApplicationModuleProperties/_] `Application.compilation_date`
-            Return date of engine compilation @*/
+            Date of engine compilation @*/
         "compilation_date", sol::property(&iEngineRunner::GetCompilationDate),
 
+        /*@ [LuaApplicationModuleProperties/_] 'Application.application_name
+            Application name @*/
+        "application_name", sol::property(&iEngineRunner::GetApplicationName),
+
         /*@ [LuaApplicationModuleProperties/_] 'Application.version_string
-            Get string with engine version @*/
+            Engine version @*/
         "version_string", sol::property(&iEngineRunner::GetVersionString));
 }
 
 bool LuaApplicationModule::OnRequire(lua_State *lua, std::string_view name) {
     sol::stack::push(lua, engine_runner);
-    return false;
+    return true;
 }
 
 } // namespace MoonGlare::LuaModules

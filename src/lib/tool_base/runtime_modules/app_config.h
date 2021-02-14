@@ -12,7 +12,7 @@ public:
 
     using MapType = std::unordered_map<std::string, std::string>;
 
-    std::string Get(const std::string &key, const std::string default = {}) const;
+    std::string Get(const std::string &key, const std::string default_value = {}) const;
     void Set(const std::string &key, std::string value);
 
     bool Exists(const std::string &key) const;

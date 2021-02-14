@@ -25,22 +25,10 @@ public:
     EngineRunner();
     virtual ~EngineRunner() = default;
 
-    // void SaveSettings();
-    // void Restart();
-
     void Initialize();
     void Execute();
     void Finalize();
 
-    // virtual bool PreSystemInit();
-    // virtual bool PostSystemInit();
-
-    // virtual void OnActivate();
-    // virtual void OnDeactivate();
-    // virtual std::string ApplicationPath() const = 0;
-    // virtual std::string SettingsPath() const;
-
-    // bool IsActive() const { return m_Flags.m_Active; }
     bool WantsSoftRestart() const override { return do_soft_restart; }
     void SetSoftRestart(bool v) { do_soft_restart = v; }
 
@@ -61,8 +49,6 @@ protected:
 
     ECS::ECSRegister ecs_register;
 
-    std::vector<Runner::iEngineRunnerHooks *> runner_hooks;
-
     bool do_soft_restart = false;
     std::thread engine_thread;
 
@@ -72,14 +58,12 @@ protected:
     virtual EngineConfiguration LoadConfiguration() const = 0;
     virtual StarVfs::iStarVfsHooks *IntSvfsHooks();
 
-    virtual void LoadEarlyLuaModules();
-
-    void ExecuteHooks(std::function<void(Runner::iEngineRunnerHooks *)> functor);
-
     // Renderer::UniqueRenderer m_Renderer;
     // std::shared_ptr<Settings> settings;
     // void WaitForFirstScene();
     // virtual std::shared_ptr<Settings> GetUpperLayerSettings() { return nullptr; };
+private:
+    Runner::EngineRunnerHooksHost runner_hooks;
 };
 
 } //namespace MoonGlare
