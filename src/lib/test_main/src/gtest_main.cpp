@@ -17,25 +17,29 @@ using OrbitLogger::StdFileLoggerSink;
 using OrbitLogger::StdOutSink;
 
 class TestProgressLogger : public testing::EmptyTestEventListener {
+    static const char *ts(const char *c) {
+        if (c) {
+            return c;
+        }
+        return "?";
+    }
+
     // Called before a test starts.
     void OnTestStart(const testing::TestInfo &test_info) override {
-        AddLog(Test, fmt::format("*** Starting test {}.{}", test_info.test_suite_name(),
-                                 test_info.name()));
+        AddLog(Test, fmt::format("*** Starting test {}.{}", test_info.test_suite_name(), test_info.name()));
     }
 
     // Called after a failed assertion or a SUCCESS().
     void OnTestPartResult(const testing::TestPartResult &test_part_result) override {
-        AddLog(Test, fmt::format("*** {} in {}:{} -> {} : {}",
-                                 (test_part_result.failed() ? "Failure" : "Success"),
-                                 test_part_result.file_name(), test_part_result.line_number(),
-                                 test_part_result.summary(), test_part_result.message()));
+        AddLog(Test, fmt::format("*** {} in {}:{} -> {} : {}", (test_part_result.failed() ? "Failure" : "Success"),
+                                 ts(test_part_result.file_name()), test_part_result.line_number(),
+                                 ts(test_part_result.summary()), ts(test_part_result.message())));
     }
 
     // Called after a test ends.
     void OnTestEnd(const testing::TestInfo &test_info) override {
-        AddLog(Test,
-               fmt::format("*** Test {}.{} completed with {}", test_info.test_suite_name(),
-                           test_info.name(), test_info.result()->Passed() ? "success" : "failure"));
+        AddLog(Test, fmt::format("*** Test {}.{} completed with {}", ts(test_info.test_suite_name()),
+                                 ts(test_info.name()), test_info.result()->Passed() ? "success" : "failure"));
     }
 };
 
