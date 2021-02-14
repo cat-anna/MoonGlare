@@ -3,6 +3,7 @@
 #include "file_table_proxy.hpp"
 #include "svfs/vfs_exporter.hpp"
 #include "svfs/vfs_module.hpp"
+#include <boost/algorithm/string/predicate.hpp>
 #include <fmt/format.h>
 #include <orbit_logger.h>
 #include <svfs/vfs_container.hpp>
@@ -11,6 +12,19 @@
 #include <vector>
 
 namespace MoonGlare::StarVfs {
+
+namespace {
+FileInfoTable::value_type FileEntryToFileTableEntry(const FileEntry *child) {
+    FileInfoTable::value_type entry;
+    entry.file_name = child->file_name;
+    entry.file_path_hash = child->file_path_hash;
+    entry.parent_path_hash = child->parent_path_hash;
+    entry.is_directory = child->IsDirectory();
+    entry.is_hidden = child->IsHidden();
+    entry.file_resource_id = child->resource_id;
+    return entry;
+}
+} // namespace
 
 struct MountedContainerEntry {
     std::unique_ptr<iVfsContainer> instance;
@@ -196,6 +210,15 @@ struct StarVirtualFileSystem::Impl : public iVfsModuleInterface {
         return EnumerateFile(parent_file, functor, recursive);
     };
 
+    bool EnumerateFileTable(EnumerateFileFunctor &functor) const {
+        for (const auto &item : file_table.GetResourceMap()) {
+            if (!functor(item.second, item.second->file_name)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     std::vector<MountedContainerEntry> mounted_containers;
     std::vector<ModuleEntry> loaded_modules;
     FileTable file_table;
@@ -237,9 +260,9 @@ bool StarVirtualFileSystem::ReadFileByPath(std::string_view path, std::string &f
 };
 
 bool StarVirtualFileSystem::ReadFileByResourceId(FileResourceId resource, std::string &file_data) const {
-    auto *file = impl->file_table.FindFileByPath(resource);
+    auto *file = impl->file_table.FindFileByResourceId(resource);
     if (file == nullptr) {
-        AddLogf(Error, "Failed to find resource %llu", resource);
+        AddLog(Error, fmt::format("Failed to find resource {:x}", resource));
         return false;
     }
 
@@ -281,16 +304,21 @@ bool StarVirtualFileSystem::WriteFileByPath(std::string_view path, const std::st
 bool StarVirtualFileSystem::EnumeratePath(std::string_view path, FileInfoTable &result_file_table) const {
     result_file_table.clear();
     iVfsModuleInterface::EnumerateFileFunctor functor = [&result_file_table](const FileEntry *child, auto) -> bool {
-        FileInfoTable::value_type entry;
-        entry.file_name = child->file_name;
-        entry.file_path_hash = child->file_path_hash;
-        entry.parent_path_hash = child->parent_path_hash;
-        entry.is_directory = child->IsDirectory();
-        entry.is_hidden = child->IsHidden();
-        result_file_table.emplace_back(std::move(entry));
+        result_file_table.emplace_back(FileEntryToFileTableEntry(child));
         return true;
     };
     return impl->EnumeratePath(path, functor, false);
 };
+
+bool StarVirtualFileSystem::FindFilesByExt(std::string_view ext, FileInfoTable &result_file_table) const {
+    result_file_table.clear();
+    iVfsModuleInterface::EnumerateFileFunctor functor = [&](const FileEntry *child, auto) -> bool {
+        if (boost::ends_with(child->file_name, ext)) {
+            result_file_table.emplace_back(FileEntryToFileTableEntry(child));
+        }
+        return true;
+    };
+    return impl->EnumerateFileTable(functor);
+}
 
 } // namespace MoonGlare::StarVfs

@@ -33,6 +33,7 @@ public:
     bool EnumeratePath(std::string_view path, FileInfoTable &result_file_table) const override;
     FileResourceId GetResourceByPath(std::string_view path) const override;
     std::string GetNameOfResource(FileResourceId resource, bool wants_full_path = true) const override;
+    bool FindFilesByExt(std::string_view ext, FileInfoTable &result_file_table) const override;
 
 private:
     struct Impl;

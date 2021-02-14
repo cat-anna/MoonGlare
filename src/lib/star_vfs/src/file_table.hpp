@@ -37,6 +37,8 @@ public:
     std::vector<std::pair<FileResourceId, FileEntry *>> GetResourceIdMap() const;
     std::vector<std::pair<FilePathHash, FileEntry *>> GetFilePathHashMap() const;
 
+    const std::unordered_map<FileResourceId, FileEntry *> &GetResourceMap() const { return file_by_resource_id; }
+
 private:
     FileEntry root_file;
     std::unordered_map<FileResourceId, FileEntry *> file_by_resource_id;
