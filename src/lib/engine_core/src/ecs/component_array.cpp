@@ -1,7 +1,9 @@
 #include "ecs/component_array.hpp"
 #include "ecs/component_interface.hpp"
 #include "ecs/ecs_configuration.hpp"
+#include <fmt/format.h>
 #include <optional>
+#include <orbit_logger.h>
 
 namespace MoonGlare::ECS {
 
@@ -22,7 +24,7 @@ ComponentMemoryInfo ComponentMemoryInfo::CalculateOffsets(gsl::not_null<iCompone
     r.memory_offsets.fill(0);
     r.entry_size.fill(0);
 
-    r.valid_components_and_flags_offest = 0;
+    r.valid_components_and_flags_offest = r.total_memory_block_size;
     r.total_memory_block_size += kComponentPageSize * sizeof(Component::ValidComponentsMap);
 
     auto c_map = component_register->GetRegisteredComponentsMap();
@@ -44,18 +46,11 @@ ComponentMemoryInfo ComponentMemoryInfo::CalculateOffsets(gsl::not_null<iCompone
     return r;
 }
 
-void ComponentArrayPage::Allocate(const ComponentMemoryInfo &offsets, ComponentArrayPage &page) {
-    auto memory = malloc(offsets.total_memory_block_size);
-    if (memory == nullptr) {
-        // TODO
-    }
-
+void ComponentArrayPage::SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page, void *memory) {
     memset(memory, 0, offsets.total_memory_block_size);
 
     page = ComponentArrayPage{};
-    page.memory_block_start = memory;
     page.element_count = kComponentPageSize;
-    page.memory_block_size = offsets.total_memory_block_size;
     page.valid_components_and_flags =
         reinterpret_cast<Component::ValidComponentsMap *>(memory) + offsets.valid_components_and_flags_offest;
 
@@ -71,7 +66,9 @@ void ComponentArrayPage::Allocate(const ComponentMemoryInfo &offsets, ComponentA
 
 ComponentArray::ComponentArray(gsl::not_null<iComponentRegister *> _component_register)
     : component_offsets(*_component_register->GetComponentMemoryInfo()) {
-    ComponentArrayPage::Allocate(component_offsets, component_page);
+
+    component_page_memory.reset(component_offsets.total_memory_block_size);
+    ComponentArrayPage::SetMemory(component_offsets, component_page, component_page_memory.ptr());
 }
 
 ComponentArray::~ComponentArray() {
@@ -139,7 +136,6 @@ void ComponentArray::SetComponentActive(IndexType index, ComponentId c_id, bool 
 void ComponentArray::MarkIndexAsValid(IndexType index) {
     const auto mask = detail::MakeComponentMask<>(ComponentFlags::kValid);
     component_page.valid_components_and_flags[index] |= mask;
-    max_seen_index = std::max(max_seen_index, index);
 }
 
 void ComponentArray::ReleaseIndex(IndexType index, bool destruct_components) {
@@ -151,11 +147,6 @@ void ComponentArray::ReleaseIndex(IndexType index, bool destruct_components) {
     }
     const auto mask = detail::MakeComponentMask<>(ComponentFlags::kValid);
     component_page.valid_components_and_flags[index] &= ~mask;
-
-    if (index == max_seen_index) {
-        //TODO:
-        --max_seen_index;
-    }
 }
 
 //----------------------------------------------------------------------------------

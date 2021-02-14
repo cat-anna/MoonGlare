@@ -11,6 +11,7 @@ namespace MoonGlare::ECS {
 constexpr uint64_t kConstructorTag = 3012559397453824;
 constexpr uint64_t kDestructorTag = 2569567136120832;
 
+#pragma pack(push, 1)
 struct CommonTags {
     uint64_t tag = kConstructorTag;
     ~CommonTags() { tag = kDestructorTag; }
@@ -27,11 +28,13 @@ struct ComponentA : public CommonTags {
     ComponentA(int _v) : v(_v){};
 };
 
-struct ComponentB : public CommonTags {
+struct alignas(16) ComponentB : public CommonTags {
     static constexpr ComponentId kComponentId = 1;
     static constexpr char kComponentName[] = "b";
 
     uint64_t v = 2;
+    char c; //make size non %16
+
     ComponentB(){};
     ComponentB(uint64_t _v) : v(_v){};
 };
@@ -44,6 +47,7 @@ struct ComponentC : public CommonTags {
     StringType v;
 };
 
+#pragma pack(pop)
 struct TestComponentRegister : public ECSRegister {
     TestComponentRegister() {
         RegisterComponent<ComponentA>();
@@ -79,7 +83,6 @@ TEST_CASE("Unique addresses", "[ComponentArray]") {
 
     auto &page = c_array.GetComponentPage();
 
-    REQUIRE(page.memory_block_start != nullptr);
     REQUIRE(page.valid_components_and_flags != nullptr);
 
     std::set<void *> array_addresses;
@@ -136,6 +139,18 @@ TEST_CASE("Add component", "[ComponentArray]") {
         REQUIRE(a1 > a);
         REQUIRE(a + sizeof(ComponentA) == a1);
         REQUIRE(reinterpret_cast<ComponentB *>(b)->v == 2);
+    }
+
+    SECTION("check alignment") {
+        c_array.MarkIndexAsValid(index + 1);
+        auto *a0 = (uint8_t *)c_array.CreateComponent(index, ComponentA::kComponentId);
+        auto *a1 = (uint8_t *)c_array.CreateComponent(index + 1, ComponentA::kComponentId);
+
+        auto *b0 = (uint8_t *)c_array.CreateComponent(index, ComponentB::kComponentId);
+        auto *b1 = (uint8_t *)c_array.CreateComponent(index + 1, ComponentB::kComponentId);
+
+        REQUIRE(a1 - a0 == 12);
+        REQUIRE(b1 - b0 == 32);
     }
 
     SECTION("add different types") {

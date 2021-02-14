@@ -3,10 +3,10 @@
 #include "component/component_common.hpp"
 #include "component_info.hpp"
 #include "entity_manager_interface.hpp"
+#include "pointer_memory_array.hpp"
 #include <array>
 #include <concepts>
 #include <gsl/gsl>
-#include <tuple>
 
 namespace MoonGlare::ECS {
 
@@ -87,16 +87,13 @@ struct ComponentArrayPage {
     uint8_t *GetComponentMemory(size_t id, size_t index) const { return component_array[id].GetElementMemory(index); }
 
     size_t element_count = 0;
-    size_t memory_block_size = 0;
-    void *memory_block_start = nullptr;
 
     ComponentArrayPage() { component_array.fill({}); }
-    ~ComponentArrayPage() { free(memory_block_start); }
 
-    static void Allocate(const ComponentMemoryInfo &offsets, ComponentArrayPage &page);
+    static void SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page, void *memory);
 };
 
-class ComponentArray final : public iEntityManager {
+class ComponentArray final : public iComponentArray {
 public:
     ComponentArray(gsl::not_null<iComponentRegister *> _component_register);
     ~ComponentArray() override;
@@ -169,7 +166,7 @@ public:
         constexpr auto mask = detail::MakeComponentMaskWithActiveFlag<Components...>() |
                               detail::MakeComponentFlag(ComponentFlags::kValid);
 
-        for (IndexType index = 0; index <= max_seen_index; ++index) {
+        for (IndexType index = 0; index <= component_page.element_count; ++index) {
             if ((component_page.valid_components_and_flags[index] & mask) == mask) {
                 // entry is valid and has all requested components are active
                 visit_functor(*ComponentArray::GetComponent<Components>(index)...);
@@ -190,9 +187,10 @@ public:
     }
 
 private:
-    IndexType max_seen_index = 0;
     ComponentArrayPage component_page;
     const ComponentMemoryInfo component_offsets;
+
+    RawMemory component_page_memory;
 
     void *GetComponentMemory(IndexType index, ComponentId c_id) const {
         return component_page.GetComponentMemory(c_id, index);
