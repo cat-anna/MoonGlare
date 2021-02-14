@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Memory/ArrayIndexTree.h>
+#include <Memory/PackedArrayIndexTree.h>
 
 #include <Foundation/Component/EntityEvents.h>
 #include <Foundation/Component/iSubsystem.h>
@@ -9,15 +9,12 @@
 
 #include "../Configuration.h"
 
-namespace MoonGlare::Component {     
+namespace MoonGlare::Component {
 using namespace MoonGlare::Core::Component;
 
 struct EntityDestructedEvent;
 
-class TransformComponent 
-    : public iSubsystem
-    , public SubSystemIdWrap<SubSystemId::Transform>
-{
+class TransformComponent : public iSubsystem, public SubSystemIdWrap<SubSystemId::Transform> {
 public:
     TransformComponent(Core::Component::SubsystemManager *Owner);
     virtual ~TransformComponent();
@@ -31,20 +28,29 @@ public:
 
     void HandleEvent(const EntityDestructedEvent &event);
 
-//------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------
 
     ComponentIndex GetComponentIndex(Entity e) const;
-    
+
     void SetDirty(ComponentIndex ci) { values.flags[ci].dirty = true; }
 
-    void SetScale(ComponentIndex ci, const emath::fvec3 &scale) { values.scale[ci] = scale; SetDirty(ci); }
+    void SetScale(ComponentIndex ci, const emath::fvec3 &scale) {
+        values.scale[ci] = scale;
+        SetDirty(ci);
+    }
     const emath::fvec3 &GetScale(ComponentIndex ci) const { return values.scale[ci]; }
     const emath::fvec3 &GetGlobalScale(ComponentIndex ci) const { return values.globalScale[ci]; }
 
-    void SetPosition(ComponentIndex ci, const emath::fvec3 &pos) { values.position[ci] = pos; SetDirty(ci); }
+    void SetPosition(ComponentIndex ci, const emath::fvec3 &pos) {
+        values.position[ci] = pos;
+        SetDirty(ci);
+    }
     const emath::fvec3 &GetPosition(ComponentIndex ci) const { return values.position[ci]; }
 
-    void SetRotation(ComponentIndex ci, const emath::Quaternion& quat) { values.quaternion[ci] = quat; SetDirty(ci); }
+    void SetRotation(ComponentIndex ci, const emath::Quaternion &quat) {
+        values.quaternion[ci] = quat;
+        SetDirty(ci);
+    }
     const emath::Quaternion &GetRotation(ComponentIndex ci) const { return values.quaternion[ci]; }
 
     const emath::Transform &GetTransform(ComponentIndex ci) const { return values.globalTransform[ci]; }
@@ -58,6 +64,7 @@ public:
 
     RuntimeRevision GetCurrentRevision() const { return m_CurrentRevision; }
     static MoonGlare::Scripts::ApiInitializer RegisterScriptApi(MoonGlare::Scripts::ApiInitializer root);
+
 protected:
     Core::Component::SubsystemManager *subSystemManager;
     Core::Scripts::Component::ScriptComponent *scriptComponent;
@@ -72,25 +79,28 @@ protected:
         };
         uint8_t UIntValue;
 
-        void SetAll() { UIntValue = 0; UIntValue = ~UIntValue; }
+        void SetAll() {
+            UIntValue = 0;
+            UIntValue = ~UIntValue;
+        }
         void ClearAll() { UIntValue = 0; }
     };
     static_assert(sizeof(EntryFlags) == sizeof(uint8_t));
-    
-    struct Values : public MoonGlare::Memory::ArrayIndexTree<ComponentIndex, (ComponentIndex)(1<<14), Values>{
-        Array<Entity>               owner;
-        Array<EntryFlags>           flags;
-        Array<RuntimeRevision>      revision;
-        Array<emath::fvec3>         scale;
-        Array<emath::fvec3>         globalScale;
-        Array<emath::fvec3>         position;
-        Array<emath::Quaternion>    quaternion;
+
+    struct Values : public MoonGlare::Memory::PackedArrayIndexTree<ComponentIndex, (ComponentIndex)(1 << 14), Values> {
+        Array<Entity> owner;
+        Array<EntryFlags> flags;
+        Array<RuntimeRevision> revision;
+        Array<emath::fvec3> scale;
+        Array<emath::fvec3> globalScale;
+        Array<emath::fvec3> position;
+        Array<emath::Quaternion> quaternion;
         //Array<emath::Transform>     localTransform;
-        Array<emath::Transform>     globalTransform;
+        Array<emath::Transform> globalTransform;
 
-        EntityArrayMapper<>  entityMapper;
+        EntityArrayMapper<> entityMapper;
 
-        TransformComponent      *component;
+        TransformComponent *component;
 
         void ClearArrays() {
             owner.fill({});
@@ -124,14 +134,13 @@ protected:
             revision[e] = 0;
             flags[e].dirty = true;
         }
-        void InitElemenent(ElementIndex e, ElementIndex parent){
-        }
+        void InitElement(ElementIndex e, ElementIndex parent) {}
     };
     //static_assert(std::is_trivial_v<Values>);
     Values values;
 
     void ElementRemoved(Values::ElementIndex index);
-    Core::Component::SubsystemManager* GetManager() { return subSystemManager; }
+    Core::Component::SubsystemManager *GetManager() { return subSystemManager; }
 };
 
-}
+} // namespace MoonGlare::Component

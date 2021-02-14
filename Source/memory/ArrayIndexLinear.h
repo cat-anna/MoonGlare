@@ -6,14 +6,13 @@
 
 #include "ArrayIndexCommon.h"
 
-namespace MoonGlare::Memory
-{
+namespace MoonGlare::Memory {
 
 template <typename ElementIndex_t, ElementIndex_t ElementLimit_v, typename CALLBACK = void>
-struct alignas(16) ArrayIndexLinear
-{
+struct alignas(16) ArrayIndexLinear {
     using ElementIndex = ElementIndex_t;
-    using ElementIndexIntType = typename detail::ArrayIndexIndexType<typename ElementIndex, typename std::is_enum<typename ElementIndex_t>::type>::IntType;
+    using ElementIndexIntType = typename detail::ArrayIndexIndexType<
+        typename ElementIndex, typename std::is_enum<typename ElementIndex_t>::type>::IntType;
 
     static constexpr ElementIndex ElementLimit = ElementLimit_v;
     static constexpr ElementIndex InvalidIndex = ElementIndex(~(ElementIndex(0)));
@@ -22,38 +21,35 @@ struct alignas(16) ArrayIndexLinear
     using ElementIndexVector = std::vector<ElementIndex>;
 
     static constexpr bool HasCallback = std::is_class_v<CALLBACK>;
-    static constexpr bool HasReleaseCallback()
-    {
+    static constexpr bool HasReleaseCallback() {
         if constexpr (HasCallback)
-            return detail::has_member_function_ReleaseElement<void (CALLBACK::*)(ElementIndex)>::value;
+            return detail::has_member_function_ReleaseElement<void (CALLBACK::*)(
+                ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasInitCallback()
-    {
+    static constexpr bool HasInitCallback() {
         if constexpr (HasCallback)
-            return detail::has_member_function_InitElemenent<void (CALLBACK::*)(ElementIndex)>::value;
+            return detail::has_member_function_InitElement<void (CALLBACK::*)(ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasSwapCallback()
-    {
+    static constexpr bool HasSwapCallback() {
         if constexpr (HasCallback)
-            return detail::has_member_function_SwapValues<void (CALLBACK::*)(ElementIndex, ElementIndex)>::value;
+            return detail::has_member_function_SwapValues<void (CALLBACK::*)(ElementIndex,
+                                                                             ElementIndex)>::value;
         else
             return false;
     }
-    static constexpr bool HasGetNameCallback()
-    {
+    static constexpr bool HasGetNameCallback() {
         if constexpr (HasCallback)
-            return false;// detail::has_member_function_GetElementName<std::string(CALLBACK::*) (ElementIndex)const>::value;
+            return false; // detail::has_member_function_GetElementName<std::string(CALLBACK::*) (ElementIndex)const>::value;
         else
             return false;
     }
-    static constexpr bool HasClearCallback()
-    {
+    static constexpr bool HasClearCallback() {
         if constexpr (HasCallback)
-            return detail::has_member_function_ClearArrays<void(CALLBACK::*) ()>::value;
+            return detail::has_member_function_ClearArrays<void (CALLBACK::*)()>::value;
         else
             return false;
     }
@@ -61,7 +57,7 @@ struct alignas(16) ArrayIndexLinear
     //---------------------------------------------------------
 
     std::string ElementToString(ElementIndex index) const {
-        if constexpr (false)//HasGetNameCallback())
+        if constexpr (false) //HasGetNameCallback())
             return reinterpret_cast<const CALLBACK *>(This)->GetElementName(index);
         else
             return std::to_string(index);
@@ -69,8 +65,7 @@ struct alignas(16) ArrayIndexLinear
 
     //---------------------------------------------------------
 
-    void Clear()
-    {
+    void Clear() {
         if constexpr (HasClearCallback())
             reinterpret_cast<CALLBACK *>(this)->ClearArrays();
         allocated = (ElementIndex)0;
@@ -79,18 +74,16 @@ struct alignas(16) ArrayIndexLinear
     ElementIndex Allocated() { return allocated; }
     ElementIndex LastIndex() const { return (ElementIndex)((ElementIndexIntType)allocated - 1); }
 
-    ElementIndex Allocate()
-    {
+    ElementIndex Allocate() {
         auto e = NextIndex();
         if constexpr (HasInitCallback())
-            reinterpret_cast<CALLBACK *>(this)->InitElemenent(e);
+            reinterpret_cast<CALLBACK *>(this)->InitElement(e);
         return e;
     }
 
-    void RemoveElement(ElementIndex index)
-    {
+    void RemoveElement(ElementIndex index) {
         ElementIndexr = LastIndex();
-        SwapIndexes(r, i); 
+        SwapIndexes(r, i);
 
         if constexpr (HasReleaseCallback())
             reinterpret_cast<CALLBACK *>(this)->ReleaseElement(r);
@@ -114,8 +107,7 @@ struct alignas(16) ArrayIndexLinear
     using Array = typename std::array<T, ElementLimit>;
 
     //TODO: MoveIndex(ElementIndex src, ElementIndex dst)
-    void SwapIndexes(ElementIndex a, ElementIndex b)
-    {
+    void SwapIndexes(ElementIndex a, ElementIndex b) {
         assert(a != InvalidIndex);
         assert(b != InvalidIndex);
 
@@ -124,7 +116,7 @@ struct alignas(16) ArrayIndexLinear
     }
 
 private:
-    ElementIndex allocated;// = 0;
+    ElementIndex allocated; // = 0;
     char __padding[16 - sizeof(ElementIndex)];
 
     ElementIndex NextIndex() {
@@ -135,9 +127,8 @@ private:
     void RemoveLast() { allocated = (ElementIndex)((ElementIndexIntType)allocated - 1); }
 };
 
-namespace detail
-{
-struct TestArrayIndexLinear : public ArrayIndexLinear<uint32_t, 16, TestArrayIndexLinear> { };
+namespace detail {
+struct TestArrayIndexLinear : public ArrayIndexLinear<uint32_t, 16, TestArrayIndexLinear> {};
 static_assert(std::is_trivial_v<TestArrayIndexLinear>);
 static_assert(std::is_trivially_constructible_v<TestArrayIndexLinear>);
 static_assert((sizeof(TestArrayIndexLinear) % 16) == 0);
