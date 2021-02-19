@@ -9,7 +9,8 @@ namespace MoonGlare::ECS {
 
 //----------------------------------------------------------------------------------
 
-EntityManager::EntityManager(gsl::not_null<iComponentArray *> _component_array) {
+EntityManager::EntityManager(EntityManagerId eid, gsl::not_null<iComponentArray *> _component_array)
+    : manager_index(eid) {
     entity_tree_memory.reset(ArrayIndexTreeType::GetMemorySize(kEntityLimit));
     generation_buffer_memory.reset(kEntityLimit);
 
@@ -19,11 +20,7 @@ EntityManager::EntityManager(gsl::not_null<iComponentArray *> _component_array) 
 
     entity_tree.Clear();
 
-    EntityFields ef{};
-    ef.index = entity_tree.Allocate();
-    ef.generation = entity_tree.generation_buffer.Next(ef.index);
-    AddLog(Warning, fmt::format("Root entity {}:{}", ef.index, ef.generation));
-    root_entity = MakeEntity(ef);
+    root_entity = CreateEntity(entity_tree.Allocate());
 
     assert(entity_tree.component_array);
 }
@@ -48,11 +45,7 @@ Entity EntityManager::NewEntity(Entity parent) {
     }
 
     const auto ef_parent = SplitEntity(parent);
-    EntityFields ef{};
-    ef.index = entity_tree.Allocate(ef_parent.index);
-    ef.generation = entity_tree.generation_buffer.Get(ef.index);
-
-    const auto e = MakeEntity(ef);
+    const auto e = CreateEntity(entity_tree.Allocate(ef_parent.index));
     // dispatcher->Send(MoonGlare::Component::EntityDestructedEvent{ parentEntity[index], entity });
     return e;
 }
@@ -63,7 +56,7 @@ bool EntityManager::NewEntities(size_t count, Entity *output_array) {
 
 bool EntityManager::IsValid(Entity entity) const {
     auto ef = SplitEntity(entity);
-    return entity_tree.generation_buffer.Test(ef.index, ef.generation);
+    return ef.manager_index == manager_index && entity_tree.generation_buffer.Test(ef.index, ef.generation);
 }
 
 void EntityManager::Release(Entity entity) {

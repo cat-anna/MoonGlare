@@ -29,19 +29,30 @@ public:
         }
     };
 
-    struct EntityFields {
-        EntityIndex generation;
-        EntityIndex index;
+    union EntityFields {
+        struct {
+            EntityIndex generation;
+            EntityIndex manager_index : 8;
+            EntityIndex index : 24;
+        };
+        Entity handle;
     };
     static_assert(sizeof(Entity) == sizeof(EntityFields));
 
-    static EntityFields SplitEntity(Entity e) { return {e >> 32, e & 0xFFFFFFFF}; }
-    static Entity MakeEntity(EntityIndex index, EntityIndex generation) {
-        return static_cast<Entity>(generation) << 32 | index;
+    static EntityFields SplitEntity(Entity e) {
+        EntityFields ef;
+        ef.handle = e;
+        return ef;
     }
-    static Entity MakeEntity(EntityFields ef) { return MakeEntity(ef.index, ef.generation); }
+    Entity CreateEntity(EntityIndex index) {
+        EntityFields ef;
+        ef.index = index;
+        ef.manager_index = manager_index;
+        ef.generation = entity_tree.generation_buffer.Get(index);
+        return ef.handle;
+    }
 
-    EntityManager(gsl::not_null<iComponentArray *> _component_array);
+    EntityManager(EntityManagerId eid, gsl::not_null<iComponentArray *> _component_array);
     ~EntityManager();
 
     Entity GetRootEntity() const override;
@@ -56,6 +67,7 @@ private:
     Entity root_entity;
 
     ArrayIndexTreeType entity_tree;
+    const EntityManagerId manager_index;
 
     PointerMemory<ArrayIndexTreeType::ElementIndex> entity_tree_memory;
     PointerMemory<GenerationBufferType::Generation> generation_buffer_memory;

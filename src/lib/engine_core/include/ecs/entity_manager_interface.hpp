@@ -45,6 +45,7 @@ struct ComponentArrayMock : public iComponentArray {
 #endif
 
 using Entity = uint64_t;
+using EntityManagerId = uint8_t;
 
 class iEntityManager {
 public:
@@ -57,6 +58,13 @@ public:
     virtual void Release(Entity entity) = 0;
     virtual bool IsValid(Entity entity) const = 0;
     virtual bool GetEntityParent(Entity entity, Entity &parent) const = 0;
+
+    // virtual iComponentArray *GetComponentArray() const = 0;
+    // virtual EntityManagerId GetManagerId() const = 0;
 };
+
+#ifdef WANTS_GTEST_MOCKS
+struct EntityManagerMock : public iEntityManager {};
+#endif
 
 } // namespace MoonGlare::ECS

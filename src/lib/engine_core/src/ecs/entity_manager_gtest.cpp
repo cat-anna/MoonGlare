@@ -15,7 +15,7 @@ public:
 
     void SetUp() override {
         EXPECT_CALL(component_array_mock, MarkIndexAsValid(0));
-        em = std::make_unique<EntityManager>(&component_array_mock);
+        em = std::make_unique<EntityManager>(1, &component_array_mock);
     };
 };
 
