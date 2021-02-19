@@ -8,7 +8,10 @@
 #include <component/light_source.hpp>
 #include <component/mesh.hpp>
 #include <component/name.hpp>
+#include <component/rect/image.hpp>
+#include <component/rect/rect_transform.hpp>
 #include <component/transform.hpp>
+
 // #include <component/revision.hpp>
 #include <component_register.hpp>
 #include <editable_type_provider.hpp>
@@ -27,8 +30,16 @@ void RegisterAllBaseComponents(SharedModuleManager manager) {
 
     {
         using namespace MoonGlare::Component;
-        provider->RegisterTypes<Transform, Mesh, LightSource, Name, Camera>("Component");
-        reg->RegisterComponents<Transform, Mesh, LightSource, Name, Camera>("Component");
+        provider->RegisterTypes<Name>("component.base");
+        reg->RegisterComponents<Name>("component.base");
+
+        provider->RegisterTypes<Transform, Mesh, LightSource, Camera>("component.3d");
+        reg->RegisterComponents<Transform, Mesh, LightSource, Camera>("component.3d");
+    }
+    {
+        using namespace MoonGlare::Component::Rect;
+        provider->RegisterTypes<RectTransform, Image>("component.rect");
+        reg->RegisterComponents<RectTransform, Image>("component.rect");
     }
 }
 

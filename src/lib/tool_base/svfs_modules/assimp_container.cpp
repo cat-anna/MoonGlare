@@ -194,7 +194,7 @@ struct AssimpLoader {
         aiVector3D scale;
         node->mTransformation.Decompose(scale, q, pos);
 
-        auto transform = parent->AddComponent("Transform");
+        auto transform = parent->AddComponent("component.3d.transform");
         auto component_data = transform->GetComponentData();
         using VariantType = VariantArgumentMap::VariantType;
         component_data->SetValue("position", VariantType(math::fvec3(pos.x, pos.y, pos.z)));

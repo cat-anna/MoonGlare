@@ -5,6 +5,7 @@
 namespace MoonGlare::Runner {
 
 void EngineRunnerHooksHost::Clear() {
+    interface_ready_hooks.clear();
     installed_hooks.clear();
 }
 

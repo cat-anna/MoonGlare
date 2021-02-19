@@ -7,8 +7,11 @@
 #include <component/mesh.hpp>
 #include <component/name.hpp>
 #include <component/parent.hpp>
+#include <component/rect/image.hpp>
+#include <component/rect/rect_transform.hpp>
 #include <component/revision.hpp>
 #include <component/transform.hpp>
+
 
 namespace MoonGlare::Systems {
 
@@ -22,6 +25,9 @@ void RegisterAllComponents(ECS::ECSRegister &ecs_register) {
     ecs_register.RegisterComponent<Revision>();
     ecs_register.RegisterComponent<Parent>();
     ecs_register.RegisterComponent<GlobalMatrix>();
+
+    ecs_register.RegisterComponent<Rect::RectTransform>();
+    ecs_register.RegisterComponent<Rect::Image>();
 }
 
 } // namespace MoonGlare::Systems

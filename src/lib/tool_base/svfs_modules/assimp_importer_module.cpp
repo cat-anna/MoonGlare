@@ -139,8 +139,8 @@ void AssimpImporterModule::ProcessFileEntry(const StarVfs::FileEntry *file, std:
             module_interface->WriteFile(file_manifest, to_json_string(file_manifest_data, true));
         }
         AddLogf(Debug, "File %s imported", full_path.c_str());
-    } catch (const std::exception) {
-        AddLogf(Error, "Failed to import %s", full_path.c_str());
+    } catch (const std::exception &e) {
+        AddLog(Error, fmt::format("Failed to import {} : {}", full_path.c_str(), e.what()));
     }
 }
 

@@ -9,7 +9,7 @@ EditableEntity::EditableEntity(SharedModuleManager manager, std::shared_ptr<Edit
 //----------------------------------------------------------------------------------
 
 void EditableEntity::SetName(std::optional<std::string> name) {
-    auto name_component = AddComponent("Name");
+    auto name_component = AddComponent("component.base.name");
     if (!name.has_value() || name.value().empty()) {
         DeleteComponent(name_component);
         return;
@@ -24,7 +24,7 @@ void EditableEntity::SetName(std::optional<std::string> name) {
 
 std::optional<std::string> EditableEntity::GetName() const {
     auto cr = module_manager->QueryModule<iComponentRegister>();
-    auto ci = cr->GetComponentInfo("Name");
+    auto ci = cr->GetComponentInfo("component.base.name");
     if (!ci) {
         return std::nullopt;
     }
