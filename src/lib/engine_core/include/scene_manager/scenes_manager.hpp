@@ -2,6 +2,7 @@
 
 #include "ecs/component_interface.hpp"
 #include "ecs/system_interface.hpp"
+#include "prefab_manager_interface.hpp"
 #include "scenes_manager_interface.hpp"
 #include <async_loader.hpp>
 #include <gsl/gsl>
@@ -17,8 +18,8 @@ namespace MoonGlare::SceneManager {
 class ScenesManager : public iScenesManager, public iStepableObject {
 public:
     ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem, gsl::not_null<iAsyncLoader *> _async_loader,
-                  gsl::not_null<ECS::iSystemRegister *> _system_register,
-                  gsl::not_null<ECS::iComponentRegister *> _component_register);
+                  gsl::not_null<ECS::iComponentRegister *> _component_register,
+                  gsl::not_null<iPrefabManager *> _prefab_manager);
     ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                   std::unique_ptr<iSceneInstanceFactory> _scene_factory);
     ~ScenesManager() override;
@@ -30,10 +31,6 @@ public:
     void DoStep(double time_delta) override;
 #if 0
     // iSceneManager
-    void Initialize(const SceneConfiguration *configuration) override;
-    void Finalize() override;
-    void PostSystemInit() override;
-    void PreSystemStart() override;
     bool IsScenePending() const override { return pendingScene.load() != nullptr; }
 
     void HandleEvent(const Resources::ResourceLoaderEvent &event);

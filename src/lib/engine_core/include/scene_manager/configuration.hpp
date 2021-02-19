@@ -7,10 +7,9 @@ namespace MoonGlare::SceneManager {
 constexpr auto kLoadingSceneName = "loading_scene";
 
 // constexpr auto kResourceFenceName = "system.resources";
-constexpr auto kSceneFenceSystemsLoadPending = "scene.systems.pending";
-constexpr auto kSceneFenceEntitiesPending = "scene.entities.pending";
+constexpr auto kSceneFenceLoadPending = "scene.pending";
 
-constexpr auto kSceneEntityConfig = "entities";
+constexpr auto kSceneEntityConfig = "entity";
 constexpr auto kSceneSystemsConfig = "systems";
 
 } // namespace MoonGlare::SceneManager

@@ -1,5 +1,44 @@
 #pragma once
 
+#include "prefab_manager_interface.hpp"
+
+namespace MoonGlare::SceneManager {
+
+class PrefabManager final : public iPrefabManager {
+public:
+    virtual ~PrefabManager() = default;
+
+    LoadedSystems LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
+                                          const nlohmann::json &config_node) override {
+        return {};
+    }
+
+    void LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager,
+                        const nlohmann::json &child_node) override{};
+
+    // virtual iCompo
+};
+
+/*
+
+for (auto &item : all_systems) {
+    auto ptr = dynamic_cast<iStepableObject *>(item.get());
+    if (ptr) {
+        stepable_systems.push_back(ptr);
+    }
+}
+AddLog(Performance,
+        fmt::format("Got {} stepable systems in scene {}", stepable_systems.size(), GetSceneName()));
+
+*/
+
+} // namespace MoonGlare::SceneManager
+
+#if 0
+
+#pragma once
+
+#include "scene_manager/prefab_manager_interface.hpp"
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,3 +97,5 @@ class PrefabManager final {
 
 #endif
 } // namespace MoonGlare::SeneManager
+
+#endif

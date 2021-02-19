@@ -7,17 +7,6 @@
 
 using namespace std::string_literals;
 
-// #include "../Component/SubsystemManager.h"
-// #include "Scene.Events.h"
-// #include <Engine/Core/Engine.h>
-// #include <Foundation/Component/EntityManager.h>
-// #include <Foundation/Component/EventDispatcher.h>
-// #include <Foundation/iFileSystem.h>
-// #include <Math.x2c.h>
-// #include <Renderer/Deferred/DeferredFrontend.h>
-// #include <Scene.x2c.h>
-// #include <StaticFog.x2c.h>
-
 namespace MoonGlare::SceneManager {
 
 namespace {
@@ -25,20 +14,20 @@ namespace {
 class DefaultSceneFactory : public iSceneInstanceFactory {
 public:
     DefaultSceneFactory(gsl::not_null<iAsyncLoader *> _async_loader,
-                        gsl::not_null<ECS::iSystemRegister *> _system_register,
-                        gsl::not_null<ECS::iComponentRegister *> _component_register)
-        : async_loader(_async_loader), system_register(_system_register), component_register(_component_register) {}
+                        gsl::not_null<ECS::iComponentRegister *> _component_register,
+                        gsl::not_null<iPrefabManager *> _prefab_manager)
+        : async_loader(_async_loader), component_register(_component_register), prefab_manager(_prefab_manager) {}
     ~DefaultSceneFactory() override = default;
 
     std::unique_ptr<iSceneInstance> CreateSceneInstance(std::string scene_name, FileResourceId res_id) {
-        return std::make_unique<SceneInstance>(std::move(scene_name), res_id, async_loader, system_register,
-                                               component_register);
+        return std::make_unique<SceneInstance>(std::move(scene_name), res_id, 0, async_loader, component_register,
+                                               prefab_manager);
     }
 
 private:
     iAsyncLoader *const async_loader;
-    ECS::iSystemRegister *const system_register;
     ECS::iComponentRegister *const component_register;
+    iPrefabManager *const prefab_manager;
 };
 
 } // namespace
@@ -47,10 +36,10 @@ private:
 
 ScenesManager::ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                              gsl::not_null<iAsyncLoader *> _async_loader,
-                             gsl::not_null<ECS::iSystemRegister *> _system_register,
-                             gsl::not_null<ECS::iComponentRegister *> _component_register)
+                             gsl::not_null<ECS::iComponentRegister *> _component_register,
+                             gsl::not_null<iPrefabManager *> _prefab_manager)
     : ScenesManager(_filesystem,
-                    std::make_unique<DefaultSceneFactory>(_async_loader, _system_register, _component_register)) {
+                    std::make_unique<DefaultSceneFactory>(_async_loader, _component_register, _prefab_manager)) {
 }
 
 ScenesManager::ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,

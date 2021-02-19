@@ -7,17 +7,18 @@
 
 namespace MoonGlare::SceneManager {
 
-SceneInstance::SceneInstance(std::string name, FileResourceId resource_id, gsl::not_null<iAsyncLoader *> _async_loader,
-                             gsl::not_null<ECS::iSystemRegister *> _system_register,
-                             gsl::not_null<ECS::iComponentRegister *> _component_register)
-    : iSceneInstance(std::move(name)), async_loader(_async_loader), component_array(_component_register) {
+SceneInstance::SceneInstance(std::string name, FileResourceId resource_id, ECS::EntityManagerId scene_id,
+                             gsl::not_null<iAsyncLoader *> _async_loader,
+                             gsl::not_null<ECS::iComponentRegister *> _component_register,
+                             gsl::not_null<iPrefabManager *> _prefab_manager)
+    : iSceneInstance(std::move(name)), component_array(_component_register),
+      entity_manager(scene_id, &component_array) {
 
-    SetFenceState(kSceneFenceSystemsLoadPending, true);
-    // SetFenceState(kSceneFenceEntitiesPending, true);
+    SetFenceState(kSceneFenceLoadPending, true);
 
     AddLog(Debug, fmt::format("Scheduling scene load '{}'", GetSceneName()));
-    async_loader->LoadFile(resource_id, [this, reg = _system_register](auto, std::string &file_data) {
-        LoadSceneContent(reg, file_data);
+    _async_loader->LoadFile(resource_id, [this, _prefab_manager](auto, std::string &file_data) {
+        LoadSceneContent(_prefab_manager, file_data);
     });
 }
 
@@ -43,36 +44,34 @@ void SceneInstance::DoStep(double time_delta) {
         item->DoStep(time_delta);
     }
 
+    // entity_manager.DoStep(time_delta);
     // component_array.DoStep(time_delta);
 }
 
 //----------------------------------------------------------------------------------
 
-void SceneInstance::LoadSceneContent(gsl::not_null<ECS::iSystemRegister *> _system_register, std::string &_file_data) {
+void SceneInstance::LoadSceneContent(iPrefabManager *prefab_manager, std::string &_file_data) {
     try {
         auto scene_config = nlohmann::json::parse(_file_data);
 
         ECS::SystemCreateInfo sci;
-        all_systems = _system_register->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);
+        auto loaded_systems = prefab_manager->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);
+        all_systems.swap(loaded_systems.systems);
+        stepable_systems = loaded_systems.stepable_systems;
 
-        for (auto &item : all_systems) {
-            auto ptr = dynamic_cast<iStepableObject *>(item.get());
-            if (ptr) {
-                stepable_systems.push_back(ptr);
-            }
-        }
-        AddLog(Performance,
-               fmt::format("Got {} stepable systems in scene {}", stepable_systems.size(), GetSceneName()));
+        prefab_manager->LoadRootEntity(&entity_manager, scene_config[kSceneEntityConfig]);
 
-        // auto entities_config = scene_config[kSceneEntityConfig];
-
-        SetFenceState(kSceneFenceSystemsLoadPending, false);
+        SetFenceState(kSceneFenceLoadPending, false);
     } catch (const std::exception &e) {
         AddLog(Error, fmt::format("Unable to load config for scene: '{}' : {}", GetSceneName(), e.what()));
     }
 }
 
 //----------------------------------------------------------------------------------
+
+bool SceneInstance::ReadyForActivation() const {
+    return active_fences.empty();
+}
 
 #if 0
     using TimePoint = Component::SubsystemUpdateData::TimePoint;
@@ -99,8 +98,6 @@ void SceneInstance::LoadSceneContent(gsl::not_null<ECS::iSystemRegister *> _syst
         sud.localTimeBase = localTimeBase;
         sud.localTimeStart = timePoint;
     }
-
-    void Step(const MoveConfig &conf) { subsystemManager.Step(conf); }
 
     void SendState(SceneState state) {
         SceneStateChangeEvent ssce;
@@ -133,16 +130,6 @@ void SceneInstance::LoadSceneContent(gsl::not_null<ECS::iSystemRegister *> _syst
                              fmt::format("scene://{}", sceneName));
         //EntityBuilder(&subsystemManager).Build(sceneRoot, sceneName.c_str(), Node.child("Entities"));
         return true;
-    }
-
-    void Finalize() {
-        AddLog(Debug, "Finalizing scene: " << sceneName);
-        eventDispatcher->RemoveSubDispatcher(&subsystemManager.GetEventDispatcher());
-
-        if (!subsystemManager.Finalize()) {
-            AddLogf(Error, "Failed to finalize component manager");
-        }
-        entityManager->Release(sceneRoot);
     }
 
 #endif

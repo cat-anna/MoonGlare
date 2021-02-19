@@ -3,6 +3,7 @@
 #include "lua_context/lua_script_context.hpp"
 #include "lua_context/modules/lua_modules_all.hpp"
 #include "lua_modules/core_lua_modules.hpp"
+#include "scene_manager/prefab_manager.hpp"
 #include "scene_manager/scenes_manager.hpp"
 #include "systems/register_components.hpp"
 #include "systems/register_systems.hpp"
@@ -63,12 +64,14 @@ void EngineRunner::Initialize() {
 
     runner_hooks.InterfaceReady<iReadOnlyFileSystem>(filesystem.get());
     runner_hooks.InterfaceReady<iEngineRunner>(this);
-    // runner_hooks.InterfaceReady<iEngineRunner>(async_loader.get());
+    // runner_hooks.InterfaceReady<...>(async_loader.get());
 
     LoadDataModules();
 
-    scene_manager = std::make_unique<SceneManager::ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register,
-                                                                  &ecs_register);
+    SceneManager::PrefabManager prefab; //TODO
+
+    scene_manager =
+        std::make_unique<SceneManager::ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register, &prefab);
     runner_hooks.InterfaceReady<SceneManager::iScenesManager>(scene_manager.get());
 
     runner_hooks.AfterDataModulesLoad();
@@ -146,6 +149,7 @@ void EngineRunner::Finalize() {
     //     _finit_chk(ModulesManager, "Finalization of modules manager failed!");
     //     ModulesManager::DeleteInstance();
 
+    runner_hooks.Clear();
     engine_core.reset();
 
     // ScriptEngine::DeleteInstance();
