@@ -1,5 +1,6 @@
 #pragma once
 
+#include "api/api_common.hpp"
 #include <atomic>
 #include <chrono>
 #include <dynamic_message_buffer.hpp>
@@ -44,12 +45,11 @@ struct UdpSocket {
 
     using MessageHeader = typename BufferType::Header;
     using MessageType = typename MessageHeader::MessageType;
-    constexpr static size_t MaxMessageSize = typename BufferType::Size;
+    constexpr static size_t MaxMessageSize = Api::MaxMessageSize;
 
     virtual void OnMessage(const MessageHeader *request, const udp::endpoint &sender) {}
 
-    bool Send(const MessageHeader *header,
-              std::optional<udp::endpoint> destination = std::nullopt) {
+    bool Send(const MessageHeader *header, std::optional<udp::endpoint> destination = std::nullopt) {
         uint32_t size = sizeof(MessageHeader) + header->payloadSize;
         sock.send_to(boost::asio::buffer(header, size), destination.value_or(endpoint));
         ++packetsSend;
@@ -60,7 +60,7 @@ struct UdpSocket {
     template <typename PayloadType>
     void Send(const PayloadType &payload, MessageType messageType, uint32_t requestID = 0,
               std::optional<udp::endpoint> destination = std::nullopt) {
-        char buffer[Api::MaxMessageSize];
+        char buffer[MaxMessageSize];
         auto *header = reinterpret_cast<MessageHeader *>(buffer);
         header->messageType = messageType;
         header->payloadSize = sizeof(payload) + 1;
@@ -84,7 +84,7 @@ private:
     void ThreadMain() {
         //::OrbitLogger::ThreadInfo::SetName("RECO");
 
-        char buffer[Tools::Api::MaxMessageSize];
+        char buffer[MaxMessageSize];
         auto *header = reinterpret_cast<MessageHeader *>(buffer);
 
         while (canRun) {
@@ -95,8 +95,7 @@ private:
                 }
                 udp::endpoint remote_endpoint;
                 boost::system::error_code error;
-                sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint,
-                                  0, error);
+                sock.receive_from(boost::asio::buffer(buffer, sizeof(buffer) - 1), remote_endpoint, 0, error);
 
                 if (error && error != boost::asio::error::message_size)
                     continue;

@@ -37,8 +37,9 @@ make_aligned_array(size_t count, size_t alignment = boost::alignment::alignment_
 
 template <typename T>
 inline T Align16(T value) {
-    if (value & 0xF)
+    if (value & 0xF) {
         value = (value & ~0xF) + 0x10;
+    }
     return value;
 }
 

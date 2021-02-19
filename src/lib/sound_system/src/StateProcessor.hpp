@@ -171,7 +171,7 @@ private:
     void CheckOpenAlError() const;
 
     void ActivateSources();
-    SourceProcessStatus StateProcessor::ProcessSource(SourceIndex si);
+    SourceProcessStatus ProcessSource(SourceIndex si);
 
     void ProcessPlayState(SourceIndex index, SourceState &state);
     void CheckSoundKind(SourceState &state, SoundBuffer b);

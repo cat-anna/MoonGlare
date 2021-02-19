@@ -47,6 +47,8 @@ SoundHandle HandleApi::Open(FileResourceId resource, bool StartPlayback, SoundKi
         Play(handle);
 
     SetReleaseOnStop(handle, ReleaseOnStop);
+
+    return handle;
 }
 
 SoundHandle HandleApi::Open(std::string_view uri, bool StartPlayback, SoundKind kind, bool ReleaseOnStop) {
