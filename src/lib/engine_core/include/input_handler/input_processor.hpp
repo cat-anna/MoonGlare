@@ -1,7 +1,7 @@
 #pragma once
 
+#include "core/stop_interface.hpp"
 #include "input_handler.hpp"
-#include <stop_interface.hpp>
 
 namespace MoonGlare::InputHandler {
 
@@ -22,11 +22,11 @@ public:
     void SetMouseButtonState(unsigned Button, bool Pressed) {
         ProcessKeyState(Button + InputKeyOffsets::Mouse, Pressed);
     }
-    void SetMouseDelta(const emath::fvec2 &delta) {
+    void SetMouseDelta(const e_math::fvec2 &delta) {
         ProcessMouseAxis(MouseAxisId::X, delta.x());
         ProcessMouseAxis(MouseAxisId::Y, delta.y());
     }
-    void SetMouseScrollDelta(const emath::fvec2 &delta) {
+    void SetMouseScrollDelta(const e_math::fvec2 &delta) {
         ProcessMouseAxis(MouseAxisId::ScrollX, delta.x());
         ProcessMouseAxis(MouseAxisId::ScrollY, delta.y());
     }
@@ -47,8 +47,8 @@ public:
 
     static void RegisterScriptApi(ApiInitializer &root);
 
-    bool BeginCharMode(Entity reciver);
-    void CaptureKey(Entity reciver);
+    bool BeginCharMode(Entity receiver);
+    void CaptureKey(Entity receiver);
     void EndCharMode();
 #endif
 
@@ -81,15 +81,15 @@ protected:
         ScriptKey,
     };
     CharMode m_CharMode = CharMode::None;
-    Entity m_CharReciver = {};
+    Entity m_CharReceiver = {};
 
     void ProcessKeyState(unsigned Id, bool Pressed);
     void ProcessMouseAxis(MouseAxisId Id, float Delta);
-    bool GetInputStateName(InputStateId isid, std::string &out) const;
+    bool GetInputStateName(InputStateId is_id, std::string &out) const;
 
     InputState *AllocInputState(InputState::Type type, const std::string &Name, InputStateId &outindex);
-    KeyAction *AllocKeyAction(KeyId kid, InputStateId isid, bool Positive);
-    AxisAction *AllocMouseAxis(MouseAxisId maid, InputStateId isid, float Sensitivity);
+    KeyAction *AllocKeyAction(KeyId kid, InputStateId is_id, bool Positive);
+    AxisAction *AllocMouseAxis(MouseAxisId maid, InputStateId is_id, float Sensitivity);
 
     bool ProcessConsoleActivateKey();
 

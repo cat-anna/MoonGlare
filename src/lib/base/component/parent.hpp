@@ -1,6 +1,7 @@
 #pragma once
 
 #include "component_common.hpp"
+#include "component_serialiazation.hpp"
 
 namespace MoonGlare::Component {
 

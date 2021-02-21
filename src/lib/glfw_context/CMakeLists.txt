@@ -6,6 +6,6 @@ target_link_libraries(
           fmt::fmt
           glfw
           renderer
-          input_handler
+          engine_core
           glad::glad
           orbit_logger)

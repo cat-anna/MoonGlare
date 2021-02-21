@@ -1,6 +1,7 @@
 #pragma once
 
 #include "component_common.hpp"
+#include "component_serialiazation.hpp"
 #include "math/vector.hpp"
 #include "static_string.hpp"
 #include <cstddef>

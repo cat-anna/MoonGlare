@@ -1,9 +1,9 @@
 #pragma once
 
-#include "engine_time.hpp"
+#include "core/engine_time.hpp"
+#include "core/stepable_interface.hpp"
+#include "core/stop_interface.hpp"
 #include <atomic>
-#include <stepable_interface.hpp>
-#include <stop_interface.hpp>
 
 namespace MoonGlare {
 

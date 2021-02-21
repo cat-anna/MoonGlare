@@ -1,7 +1,7 @@
 #pragma once
 
+#include "core/engine_time.hpp"
 #include <chrono>
-#include <engine_runner/engine_time.hpp>
 #include <lua_context/script_module.hpp>
 
 namespace MoonGlare::LuaModules {

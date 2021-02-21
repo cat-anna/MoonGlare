@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stop_interface.hpp>
+#include "core/stop_interface.hpp"
 #include <string>
 
 namespace MoonGlare {

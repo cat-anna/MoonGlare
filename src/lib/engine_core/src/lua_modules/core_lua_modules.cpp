@@ -1,6 +1,6 @@
 #include "core_lua_modules.hpp"
-#include "engine_runner/engine_runner_interface.hpp"
-#include "engine_runner/engine_time.hpp"
+#include "core/engine_runner_interface.hpp"
+#include "core/engine_time.hpp"
 #include "modules/lua_application_module.hpp"
 #include "modules/lua_scenes_manager.hpp"
 #include "modules/lua_time.hpp"

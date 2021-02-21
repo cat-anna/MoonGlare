@@ -1,8 +1,8 @@
 #pragma once
 
+#include "core/stepable_interface.hpp"
 #include "ecs/entity_manager_interface.hpp"
 #include "ecs/system_interface.hpp"
-#include "stepable_interface.hpp"
 #include <boost/container/static_vector.hpp>
 #include <gsl/gsl>
 #include <memory>

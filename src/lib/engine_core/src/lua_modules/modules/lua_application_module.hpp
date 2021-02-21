@@ -1,9 +1,10 @@
 #pragma once
 
 // #include <Foundation/Scripts/iDynamicModule.h>
+#include "core/engine_runner_interface.hpp"
 #include <chrono>
-#include <engine_runner/engine_runner_interface.hpp>
 #include <lua_context/script_module.hpp>
+
 
 namespace MoonGlare::LuaModules {
 

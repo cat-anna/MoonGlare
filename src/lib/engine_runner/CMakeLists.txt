@@ -1,4 +1,4 @@
-define_static_lib_with_ut(engine_core)
+define_static_lib(engine_runner)
 target_link_libraries(
   ${TARGET}
   PUBLIC base
@@ -6,5 +6,6 @@ target_link_libraries(
          fmt::fmt
          orbit_logger
          renderer
+         engine_core
          glfw_context
          lua_context)

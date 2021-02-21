@@ -31,18 +31,6 @@ auto GetTypeInfo(Eigen::Matrix<T, S, 1> *) {
     return t;
 }
 
-template <typename T, size_t S>
-void to_json(nlohmann::json &j, const Eigen::Matrix<T, S, 1> &p) {
-    const std::array<T, S> *a = reinterpret_cast<const std::array<T, S> *>(&p);
-    j = *a;
-}
-
-template <typename T, size_t S>
-void from_json(const nlohmann::json &j, Eigen::Matrix<T, S, 1> &p) {
-    std::array<T, S> *a = reinterpret_cast<std::array<T, S> *>(&p);
-    *a = j.get<std::array<T, S>>();
-}
-
 //----------------------------------------------------------------------------------
 
 auto GetTypeInfo(Quaternionf *) {
@@ -61,16 +49,6 @@ auto GetTypeInfo(Quaternionf *) {
     }
 
     return t;
-}
-
-void to_json(nlohmann::json &j, const Quaternionf &p) {
-    auto *a = reinterpret_cast<const std::array<float, 4> *>(&p);
-    j = *a;
-}
-
-void from_json(const nlohmann::json &j, Quaternionf &p) {
-    auto *a = reinterpret_cast<std::array<float, 4> *>(&p);
-    *a = j.get<std::array<float, 4>>();
 }
 
 } // namespace Eigen

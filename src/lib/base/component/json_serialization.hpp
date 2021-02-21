@@ -23,7 +23,7 @@ struct JsonEntity {
 //     };
 // }
 
-void from_json(const nlohmann::json &j, JsonEntity &p) {
+inline void from_json(const nlohmann::json &j, JsonEntity &p) {
     p = JsonEntity{};
 
     try_get_json_child_default(j, "enabled", p.enabled, true, false);
@@ -55,7 +55,7 @@ struct JsonComponent {
 //     };
 // }
 
-void from_json(const nlohmann::json &j, JsonComponent &p) {
+inline void from_json(const nlohmann::json &j, JsonComponent &p) {
     p = JsonComponent{};
 
     try_get_json_child_default(j, "enabled", p.enabled, true, false);

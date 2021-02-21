@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/stepable_interface.hpp"
 #include "ecs/component_interface.hpp"
 #include "ecs/system_interface.hpp"
 #include "prefab_manager_interface.hpp"
@@ -9,7 +10,6 @@
 #include <memory>
 #include <mutex>
 #include <readonly_file_system.h>
-#include <stepable_interface.hpp>
 #include <string_view>
 #include <unordered_map>
 

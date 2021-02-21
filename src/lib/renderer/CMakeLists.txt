@@ -9,4 +9,5 @@ target_link_libraries(
   fmt::fmt
   glfw
   glad::glad
+  engine_core
   orbit_logger)
