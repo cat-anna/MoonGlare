@@ -1,4 +1,5 @@
 #include "engine_runner/engine_runner.hpp"
+#include "core/threaded_async_loader.hpp"
 #include "engine_runner/script_init_runner_hook.hpp"
 #include "lua_context/lua_script_context.hpp"
 #include "lua_context/modules/lua_modules_all.hpp"
@@ -7,7 +8,6 @@
 #include "scene_manager/scenes_manager.hpp"
 #include "systems/register_components.hpp"
 #include "systems/register_systems.hpp"
-#include "threaded_async_loader.hpp"
 #include <orbit_logger.h>
 #include <renderer/resource_manager.hpp>
 #include <stdexcept>

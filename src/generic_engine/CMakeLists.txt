@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SRC *.cpp *.hpp)
-set(TARGET engine)
+set(TARGET generic_engine)
 add_executable(${TARGET} ${SRC})
 target_link_libraries(
   ${TARGET}
@@ -12,6 +12,7 @@ target_link_libraries(
   glad::glad
   OpenGL::GL
   engine_core
+  engine_runner
   lua_context)
 
-# add_dependencies(engine all_data_packages)
+add_dependencies(generic_engine build_all_data_packages)

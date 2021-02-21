@@ -1,9 +1,10 @@
 #pragma once
 
+#include "core/engine_core.hpp"
+#include "core/engine_runner_interface.hpp"
+#include "core/stop_interface.hpp"
 #include "engine_runner/engine_configuration.hpp"
-#include "engine_runner/engine_core.hpp"
 #include "engine_runner/engine_runner_hooks.hpp"
-#include "engine_runner_interface.hpp"
 #include "input_handler/input_processor.hpp"
 #include "scene_manager/prefab_manager_interface.hpp"
 #include "scene_manager/scenes_manager_interface.hpp"
@@ -14,7 +15,6 @@
 #include <renderer/device_context.hpp>
 #include <renderer/rendering_device.hpp>
 #include <renderer/resources.hpp>
-#include <stop_interface.hpp>
 #include <svfs/svfs_hooks.hpp>
 #include <thread>
 #include <vector>

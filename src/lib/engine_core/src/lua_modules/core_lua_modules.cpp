@@ -1,4 +1,4 @@
-#include "core_lua_modules.hpp"
+#include "lua_modules/core_lua_modules.hpp"
 #include "core/engine_runner_interface.hpp"
 #include "core/engine_time.hpp"
 #include "modules/lua_application_module.hpp"

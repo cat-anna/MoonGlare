@@ -7,6 +7,7 @@
 #include <readonly_file_system.h>
 #include <synchronized_task_queue.hpp>
 #include <thread>
+#include <tuple>
 #include <variant>
 
 namespace MoonGlare {
@@ -22,14 +23,20 @@ public:
 
     // iAsyncLoader
     void SetObserver(SharedAsyncLoaderObserver o) override;
-    void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
     void QueueTask(SharedAsyncTask task) override;
+    void QueueTask(std::function<void()> task) override;
+    void LoadFile(FileResourceId res_id, FileLoadFunctor functional_handler) override;
     AsyncLoaderStatus GetStatus() const override;
+    void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) override;
 
     // void SubmitShaderLoad(ShaderResourceHandleBase handle);
 
 private:
-    using AnyTask = std::variant<SharedAsyncTask>;
+    using FileLoadFunctorRequest = std::tuple<FileResourceId, FileLoadFunctor>;
+    using AsyncFileRequest = std::tuple<std::string, SharedAsyncFileSystemRequest>;
+
+    using AnyTask =
+        std::variant<nullptr_t, SharedAsyncTask, std::function<void()>, FileLoadFunctorRequest, AsyncFileRequest>;
 
     std::thread work_thread;
     std::atomic<bool> can_work{false};
@@ -76,13 +83,20 @@ private:
     // ResourceManager *m_ResourceManager;
     // std::array<QueueData, Conf::AsyncQueueCount> m_QueueTable;
 
-    // enum class ProcessorResult {
-    //     Success,
-    //     CriticalError,
-    //     QueueFull,
-    //     NothingDone,
-    //     Retry,
-    // };
+    enum class ProcessorResult {
+        Success,
+        CriticalError,
+        //     QueueFull,
+        //     NothingDone,
+        //     Retry,
+    };
+    // using AnyTask = std::variant<nullptr_t, SharedAsyncTask, std::function<void()>, FileLoadFunctorRequest>;
+
+    ProcessorResult ProcessTask(nullptr_t);
+    ProcessorResult ProcessTask(SharedAsyncTask &async_task);
+    ProcessorResult ProcessTask(std::function<void()> &async_task);
+    ProcessorResult ProcessTask(FileLoadFunctorRequest &async_task);
+    ProcessorResult ProcessTask(AsyncFileRequest &async_task);
 
     // template <typename TASK> struct AsyncFSTask {
     //     std::string URI;

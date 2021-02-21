@@ -1,5 +1,6 @@
-#include "threaded_async_loader.hpp"
+#include "core/threaded_async_loader.hpp"
 #include <chrono>
+#include <fmt/format.h>
 #include <orbit_logger.h>
 
 // #include "../nfRenderer.h"
@@ -42,6 +43,7 @@ ThreadedAsyncLoader::~ThreadedAsyncLoader() {
 
 void ThreadedAsyncLoader::ThreadMain() {
     ::OrbitLogger::ThreadInfo::SetName("RALD");
+    AddLog(Debug, "Async loader thread started");
     while (can_work.load()) {
         // if (m_PendingQueue->m_Finished) {
         //     if (m_SubmitedQueue->m_ccq.m_Commited == false) {
@@ -56,39 +58,37 @@ void ThreadedAsyncLoader::ThreadMain() {
         //     m_QueueDirty = false;
         //     continue;
         // } else {
-        // ProcessorResult result = ProcessorResult::NothingDone;
-
-        AnyTask at;
-        bool have = queue.Pop(at);
+        AnyTask fetched_task{nullptr};
+        bool have = queue.Pop(fetched_task);
         if (have) {
-            AddLogf(Performance, "fetched job remain:%d", queue.QueuedCount());
-        }
+            AddLog(Performance, fmt::format("fetched {} job, remain {}", processed_jobs.load(), queue.QueuedCount()));
 
-        if (have) {
-            // result = std::visit([this](auto &item) { return ProcessTask(m_PendingQueue, item); }, at);
-            // ++JobCounter;
-            // IncrementPerformanceCounter(JobsDone);
+            ProcessorResult result = ProcessorResult::Success;
+            try {
+                ++processed_jobs;
+                result = std::visit([this](auto &item) { return ProcessTask(item); }, fetched_task);
+            } catch (const std::exception &e) {
+                AddLog(Error, fmt::format("Async task failed: {}", e.what()));
+                result = ProcessorResult::CriticalError;
+            }
         } else {
+            bool exit_by_timeout = false;
             {
                 std::mutex mutex;
                 std::unique_lock<std::mutex> lock(mutex);
-                worker_condition_variable.wait_for(lock, 100ms);
+                exit_by_timeout = worker_condition_variable.wait_for(lock, 100ms) == std::cv_status::timeout;
             }
 
-            if (queue.Empty()) {
-                continue;
-            }
-
-            bool v = true;
-            if (working.compare_exchange_strong(v, false) && v == true) {
-                local_job_count = 0;
-                auto ob = observer.lock();
-                if (ob) {
-                    ob->OnFinished(this);
+            if (exit_by_timeout && queue.Empty()) {
+                bool v = true;
+                if (working.compare_exchange_strong(v, false) && v == true) {
+                    local_job_count = 0;
+                    auto ob = observer.lock();
+                    if (ob) {
+                        ob->OnFinished(this);
+                    }
                 }
             }
-
-            // break;
         }
 
         //     switch (result) {
@@ -173,10 +173,6 @@ void ThreadedAsyncLoader::QueuePush(AnyTask at) {
 
 //---------------------------------------------------------------------------------------
 
-// void ThreadedAsyncLoader::QueueTask(SharedAsyncTask task) {
-//     QueuePush(std::move(task));
-// }
-
 // ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(QueueData *queue, SharedAsyncTask &task) {
 //     try {
 //         task->Do(queue->storage);
@@ -206,29 +202,57 @@ void ThreadedAsyncLoader::QueuePush(AnyTask at) {
 //     QueuePush(std::move(task));
 // }
 
-// ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(QueueData *queue,
-//                                                                       AsyncFSTask<SharedAsyncFileSystemRequest> &afst) {
-//     StarVFS::ByteTable bt;
-//     if (!fileSystem->OpenFile(bt, afst.URI)) {
-//         AddLogf(Error, "Cannot load file %s", afst.URI.c_str());
-//         return ProcessorResult::CriticalError;
-//     }
+//---------------------------------------------------------------------------------------
 
-//     try {
-//         afst.request->OnFileReady(afst.URI, bt, queue->storage);
-//     } catch (const iAsyncFileSystemRequest::NotEnoughStorage &nes) {
-//         AddLog(Performance,
-//                fmt::format("Async FS task reported not enough storage. Used: {}/{} kbytes; required: {} kbytes",
-//                            queue->storage.m_Memory.m_Allocator.Allocated() / 1024.0f, Conf::QueueMemory / 1024.0f,
-//                            nes.requiredSpace / 1024.0f));
-//         if (nes.requiredSpace < Conf::QueueMemory) {
-//             //retry job later
-//             //QueuePush(afst);
-//             return ProcessorResult::QueueFull;
-//         }
-//     }
-//     return ProcessorResult::Success;
-// }
+ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(nullptr_t) {
+    AddLog(Debug, "Nullptr task called!");
+    return ProcessorResult::Success;
+}
+
+ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(SharedAsyncTask &async_task) {
+    async_task->DoWork();
+    return ProcessorResult::Success;
+}
+
+ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(std::function<void()> &async_task) {
+    async_task();
+    return ProcessorResult::Success;
+}
+
+ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(FileLoadFunctorRequest &async_task) {
+    auto &[res_id, functor] = async_task;
+    std::string file_data;
+    if (!filesystem->ReadFileByResourceId(res_id, file_data)) {
+        AddLogf(Error, "Cannot load file {:x}", res_id);
+        return ProcessorResult::CriticalError;
+    }
+    functor(res_id, file_data);
+    return ProcessorResult::Success;
+}
+
+ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(AsyncFileRequest &async_task) {
+    auto &[uri, handler] = async_task;
+    std::string file_data;
+    if (!filesystem->ReadFileByPath(uri, file_data)) {
+        AddLogf(Error, "Cannot load file {:x}", uri);
+        return ProcessorResult::CriticalError;
+    }
+    //     try {
+    handler->OnFileReady(uri, file_data); //, queue->storage);
+    //     } catch (const iAsyncFileSystemRequest::NotEnoughStorage &nes) {
+    //         AddLog(Performance,
+    //                fmt::format("Async FS task reported not enough storage. Used: {}/{} kbytes; required: {} kbytes",
+    //                            queue->storage.m_Memory.m_Allocator.Allocated() / 1024.0f, Conf::QueueMemory / 1024.0f,
+    //                            nes.requiredSpace / 1024.0f));
+    //         if (nes.requiredSpace < Conf::QueueMemory) {
+    //             //retry job later
+    //             //QueuePush(afst);
+    //             return ProcessorResult::QueueFull;
+    //         }
+    //     }
+
+    return ProcessorResult::Success;
+}
 
 //---------------------------------------------------------------------------------------
 
@@ -245,43 +269,21 @@ void ThreadedAsyncLoader::SetObserver(SharedAsyncLoaderObserver f) {
     observer = f;
 }
 
+void ThreadedAsyncLoader::LoadFile(FileResourceId res_id, FileLoadFunctor functional_handler) {
+    QueuePush(FileLoadFunctorRequest{res_id, std::move(functional_handler)});
+}
+
 void ThreadedAsyncLoader::QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) {
-    // AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest> task;
-    // task.URI = std::move(URI);
-    // task.request = std::move(handler);
-    // task.request->OnTaskQueued(this);
-    // QueuePush(std::move(task));
+    handler->OnTaskQueued(this);
+    QueuePush(AsyncFileRequest{std::move(URI), std::move(handler)});
+}
+
+void ThreadedAsyncLoader::QueueTask(std::function<void()> task) {
+    QueuePush(std::move(task));
 }
 
 void ThreadedAsyncLoader::QueueTask(SharedAsyncTask task) {
     QueuePush(std::move(task));
 }
-
-// ThreadedAsyncLoader::ProcessorResult
-// ThreadedAsyncLoader::ProcessTask(QueueData *queue,
-//                                  AsyncFSTask<MoonGlare::Resources::SharedAsyncFileSystemRequest> &afst) {
-//     StarVFS::ByteTable bt;
-//     if (!fileSystem->OpenFile(bt, afst.URI)) {
-//         AddLogf(Error, "Cannot load file %s", afst.URI.c_str());
-//         return ProcessorResult::CriticalError;
-//     }
-
-//     try {
-//         afst.request->OnFileReady(afst.URI, bt);
-//     } catch (MoonGlare::Resources::RetryTaskLaterException) {
-//         return ProcessorResult::Retry;
-//     }
-//     return ProcessorResult::Success;
-// }
-
-// ThreadedAsyncLoader::ProcessorResult ThreadedAsyncLoader::ProcessTask(QueueData *queue,
-//                                                                       MoonGlare::Resources::SharedAsyncTask &task) {
-//     try {
-//         task->DoWork();
-//     } catch (MoonGlare::Resources::RetryTaskLaterException) {
-//         return ProcessorResult::Retry;
-//     }
-//     return ProcessorResult::Success;
-// }
 
 } // namespace MoonGlare

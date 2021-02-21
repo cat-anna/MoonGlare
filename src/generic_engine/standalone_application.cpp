@@ -1,6 +1,7 @@
-#include <device/glfw_context.hpp>
-#include <engine_runner.hpp>
+#include <boost/program_options.hpp>
+#include <engine_runner/engine_runner.hpp>
 #include <filesystem>
+#include <glfw_context/glfw_context.hpp>
 #include <orbit_logger.h>
 #include <orbit_logger/sink/file_sink.h>
 #include <svfs/star_virtual_file_system.hpp>
@@ -10,7 +11,7 @@ namespace MoonGlare {
 
 namespace {
 constexpr auto kEngineCompilationDate = __DATE__ " at " __TIME__;
-constexpr auto kApplicationName = "MoonGlare engine";
+constexpr auto kApplicationName = "MoonGlare generic engine";
 constexpr auto kVersionString = "0.4";
 } // namespace
 
@@ -31,7 +32,6 @@ inline void from_json(const nlohmann::json &j, StandaloneApplicationConfiguratio
         j.at("engine").get_to(p.engine);
     } catch (const std::exception &e) {
         AddLogf(Warning, "Failed to read engine config: %s", e.what());
-        p.modules = {"base.zip", "debug.zip"};
     }
     j.at("modules").get_to(p.modules);
 }
@@ -43,8 +43,8 @@ public:
         : executable_name(std::filesystem::absolute(std::filesystem::path(argv[0]))),
           executable_path(executable_name.parent_path()) {
         class_register.RegisterAll();
-        ParseArguments(argc, argv);
         LoadAppConfig();
+        ParseArguments(argc, argv);
     }
 
     std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() override {
@@ -72,12 +72,32 @@ public:
     }
 
     std::shared_ptr<Renderer::iDeviceContext> CreateDeviceContext() override {
-        return std::make_shared<Renderer::Device::GlfwContext>();
+        return std::make_shared<GlfwContext::GlfwContext>();
     }
 
     EngineConfiguration LoadConfiguration() const { return ec.engine; }
 
-    void ParseArguments(int argc, char **argv) {}
+    void ParseArguments(int argc, char **argv) {
+        namespace po = boost::program_options;
+
+        po::options_description desc("Allowed options");
+        desc.add_options()                   //
+            ("help", "produce help message") //
+            ("module", po::value<std::vector<std::string>>(), "load module");
+
+        po::positional_options_description p;
+        p.add("module", -1);
+
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+        po::notify(vm);
+
+        if (vm.count("module")) {
+            for (auto &item : vm["module"].as<std::vector<std::string>>()) {
+                ec.modules.emplace_back(item);
+            }
+        }
+    }
 
     void LoadAppConfig() {
         auto config_file = executable_name;
@@ -108,7 +128,6 @@ private:
     std::shared_ptr<StarVfs::StarVirtualFileSystem> filesystem;
     StarVfs::SvfsClassRegister class_register;
     // std::string exeName;
-    // std::vector<std::string> startupArguments;
 };
 
 } //namespace MoonGlare
