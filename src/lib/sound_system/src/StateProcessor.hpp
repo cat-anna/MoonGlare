@@ -38,7 +38,7 @@ enum class SourceCommand : uint8_t {
     Pause,
 };
 
-using SoundHandleGeneration = uint16_t;
+using SoundHandleGeneration = uint32_t;
 static constexpr SoundHandleGeneration InvalidSoundHandleGeneration = 0;
 
 union SoundHandleComposite {
@@ -49,7 +49,7 @@ union SoundHandleComposite {
     SoundHandle handle;
 };
 
-static_assert(sizeof(SoundHandle) == sizeof(uint32_t));
+static_assert(sizeof(SoundHandle) == sizeof(uint64_t));
 static_assert(sizeof(SourceIndex) + sizeof(SoundHandleGeneration) == sizeof(SoundHandle));
 static_assert(sizeof(SoundHandle) == sizeof(SoundHandleComposite));
 

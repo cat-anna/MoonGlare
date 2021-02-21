@@ -7,7 +7,7 @@
 
 namespace MoonGlare::SoundSystem {
 
-enum class SourceIndex : uint16_t {};
+enum class SourceIndex : uint32_t {};
 
 struct SoundSource;
 

@@ -11,7 +11,7 @@ namespace MoonGlare::SoundSystem {
 class StateProcessor;
 using UserData = uintptr_t;
 
-enum class SoundHandle : uint32_t {
+enum class SoundHandle : uint64_t {
     Invalid = 0,
 };
 
@@ -46,15 +46,11 @@ public:
     virtual bool IsSoundHandleValid(SoundHandle handle) const = 0;
     virtual void Close(SoundHandle handle, bool ContinuePlaying = false) = 0;
 
-    virtual SoundHandle Open(std::string_view uri, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
-                             bool ReleaseOnStop = true) = 0;
     virtual SoundHandle Open(FileResourceId resource, bool StartPlayback = true, SoundKind kind = SoundKind::Auto,
                              bool ReleaseOnStop = true) = 0;
 
-    virtual void ReopenStream(SoundHandle &handle, std::string_view uri, SoundKind kind = SoundKind::Auto) = 0;
     virtual void ReopenStream(SoundHandle &handle, FileResourceId resource, SoundKind kind = SoundKind::Auto) = 0;
 
-    virtual std::string GetStreamResourceName(SoundHandle handle) = 0;
     virtual FileResourceId GetStreamResourceId(SoundHandle handle) = 0;
 
     virtual SoundState GetState(SoundHandle handle) const = 0;
@@ -73,26 +69,23 @@ public:
     virtual float GetTimePosition(SoundHandle handle) const = 0;
     virtual float GetDuration(SoundHandle handle) const = 0;
 
-    virtual void SetSourceGain(SoundHandle handle, float gain) const = 0;
-    virtual float GetSourceGain(SoundHandle handle) const = 0;
-    virtual void SetSourcePosition(SoundHandle handle, const Vector3f coord) const = 0;
-    virtual void GetSourcePosition(SoundHandle handle, Vector3f coord) const = 0;
-    virtual void SetSourceVelocity(SoundHandle handle, const Vector3f coord) const = 0;
-    virtual void GetSourceVelocity(SoundHandle handle, Vector3f coord) const = 0;
-    virtual void SetRelativeToListenerPosition(SoundHandle handle, bool value) = 0;
+    // virtual void SetSourceGain(SoundHandle handle, float gain) const = 0;
+    // virtual float GetSourceGain(SoundHandle handle) const = 0;
+    // virtual void SetSourcePosition(SoundHandle handle, const Vector3f coord) const = 0;
+    // virtual void GetSourcePosition(SoundHandle handle, Vector3f coord) const = 0;
+    // virtual void SetSourceVelocity(SoundHandle handle, const Vector3f coord) const = 0;
+    // virtual void GetSourceVelocity(SoundHandle handle, Vector3f coord) const = 0;
+    // virtual void SetRelativeToListenerPosition(SoundHandle handle, bool value) = 0;
     //AL_PITCH AL_DIRECTION
 
-    virtual void SetListenerGain(float gain) const = 0;
-    virtual float GetListenerGain() const = 0;
-    virtual void SetListenerPosition(SoundHandle handle, const Vector3f coord) const = 0;
-    virtual void GetListenerPosition(SoundHandle handle, Vector3f coord) const = 0;
-    virtual void SetListenerVelocity(SoundHandle handle, const Vector3f coord) const = 0;
-    virtual void GetListenerVelocity(SoundHandle handle, Vector3f coord) const = 0;
+    // virtual void SetListenerGain(float gain) const = 0;
+    // virtual float GetListenerGain() const = 0;
+    // virtual void SetListenerPosition(SoundHandle handle, const Vector3f coord) const = 0;
+    // virtual void GetListenerPosition(SoundHandle handle, Vector3f coord) const = 0;
+    // virtual void SetListenerVelocity(SoundHandle handle, const Vector3f coord) const = 0;
+    // virtual void GetListenerVelocity(SoundHandle handle, Vector3f coord) const = 0;
 
     virtual void SetReleaseOnStop(SoundHandle handle, bool value) = 0;
-
-private:
-    StateProcessor *stateProcessor = nullptr;
 };
 
 } // namespace MoonGlare::SoundSystem

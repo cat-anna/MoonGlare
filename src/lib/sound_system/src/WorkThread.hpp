@@ -31,21 +31,17 @@ public:
 
     StateProcessor *GetStateProcessor() { return stateProcessor.get(); }
 
-    std::unique_ptr<iHandleApi> GetHandleApi() { return std::make_unique<HandleApi>(stateProcessor.get(), fileSystem); }
+    std::unique_ptr<iHandleApi> GetHandleApi() { return std::make_unique<HandleApi>(stateProcessor.get()); }
 
 private:
     std::thread thread;
     std::atomic<ThreadState> threadState = ThreadState::Stopped;
     std::condition_variable threadWait;
     SoundSystem *const soundSystem = nullptr;
-    iReadOnlyFileSystem *const fileSystem = nullptr;
 
     std::unique_ptr<StateProcessor> stateProcessor;
 
     void ThreadMain();
-
-    void InitializeDevice();
-    void FinalizeDevice();
 };
 
 } // namespace MoonGlare::SoundSystem

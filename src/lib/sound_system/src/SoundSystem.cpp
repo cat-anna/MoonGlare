@@ -1,5 +1,6 @@
 #include "SoundSystem.hpp"
 #include "StateProcessor.hpp"
+#include "backend/openal_backend.hpp"
 #include <orbit_logger.h>
 
 namespace MoonGlare::SoundSystem {
@@ -17,6 +18,8 @@ std::shared_ptr<iSoundSystem> iSoundSystem::Create(iReadOnlyFileSystem *fs) {
 //------------------------------------------------------------------
 
 SoundSystem::SoundSystem(iReadOnlyFileSystem *fs) {
+
+    backend = std::make_unique<Backend::OpenAlBackend>();
     workThread = std::make_unique<WorkThread>(this, fs);
 
     // auto stt = ifmap.GetSharedInterface<Settings>();
@@ -38,6 +41,7 @@ SoundSystem::SoundSystem(iReadOnlyFileSystem *fs) {
 
 SoundSystem::~SoundSystem() {
     workThread.reset();
+    backend.reset();
 }
 
 SoundSettings SoundSystem::GetSettings() {

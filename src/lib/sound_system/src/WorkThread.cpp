@@ -6,13 +6,12 @@
 
 namespace MoonGlare::SoundSystem {
 
-WorkThread::WorkThread(SoundSystem *owner, iReadOnlyFileSystem *fs) : soundSystem(owner), fileSystem(fs) {
-    if (thread.joinable())
+WorkThread::WorkThread(SoundSystem *owner, iReadOnlyFileSystem *fs) : soundSystem(owner) {
+    if (thread.joinable()) {
         throw std::runtime_error("Already initialized");
+    }
 
-    InitializeDevice();
-
-    stateProcessor = std::make_unique<StateProcessor>(fileSystem);
+    stateProcessor = std::make_unique<StateProcessor>(fs);
     stateProcessor->Initialize();
 
     thread = std::thread([this]() {
@@ -31,8 +30,6 @@ WorkThread::~WorkThread() {
 
     stateProcessor->Finalize();
     stateProcessor.reset();
-
-    FinalizeDevice();
 }
 
 void WorkThread::ThreadMain() {
@@ -56,44 +53,6 @@ void WorkThread::ThreadMain() {
             }
         }
     }
-}
-
-void WorkThread::InitializeDevice() {
-    /* Open and initialize a device */
-    ALCdevice *device = alcOpenDevice(nullptr);
-    ALCcontext *ctx = alcCreateContext(device, nullptr);
-    if (ctx == nullptr || alcMakeContextCurrent(ctx) == ALC_FALSE) {
-        if (ctx != nullptr)
-            alcDestroyContext(ctx);
-        alcCloseDevice(device);
-
-        throw std::runtime_error("Cannot open sound device");
-    }
-
-    const ALCchar *name = nullptr;
-    if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT")) {
-        name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
-    }
-    if (!name || alcGetError(device) != AL_NO_ERROR) {
-        name = alcGetString(device, ALC_DEVICE_SPECIFIER);
-    }
-
-    AddLogf(Debug, "OpenAl initialized");
-    AddLogf(System, "OpenAl version: %d.%d", alGetInteger(ALC_MAJOR_VERSION), alGetInteger(ALC_MINOR_VERSION));
-    AddLogf(System, "Sound device used: %s", name);
-    AddLogf(System, "Sound device extensions: %s", alcGetString(device, ALC_EXTENSIONS));
-}
-
-void WorkThread::FinalizeDevice() {
-    ALCcontext *ctx = alcGetCurrentContext();
-    if (ctx == nullptr)
-        return;
-
-    ALCdevice *device = alcGetContextsDevice(ctx);
-
-    alcMakeContextCurrent(nullptr);
-    alcDestroyContext(ctx);
-    alcCloseDevice(device);
 }
 
 } // namespace MoonGlare::SoundSystem

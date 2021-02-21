@@ -8,14 +8,14 @@
 
 namespace MoonGlare::ECS {
 
-using Entity = uint64_t;
-using EntityManagerId = uint8_t;
+using Entity = uint64_t;         //TODO: change to enum
+using EntityManagerId = uint8_t; //TODO: change to enum
 
 class iComponentArray {
 public:
     virtual ~iComponentArray() = default;
 
-    using IndexType = uint64_t;
+    using IndexType = uint64_t; //TODO: change to enum
     using ComponentFlags = Component::ComponentFlags;
     using ValidComponentsMap = Component::ValidComponentsMap;
     using ComponentId = Component::ComponentId;

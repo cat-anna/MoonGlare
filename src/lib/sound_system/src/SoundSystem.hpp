@@ -1,6 +1,7 @@
 #pragma once
 
 #include "WorkThread.hpp"
+#include "backend/ibackend.hpp"
 #include "sound_system/iSoundSystem.hpp"
 
 namespace MoonGlare::SoundSystem {
@@ -22,6 +23,7 @@ public:
     //iChangeCallback
     // Settings::ApplyMethod ValueChanged(const std::string &key, Settings *siface) override;
 protected:
+    std::unique_ptr<Backend::iBackend> backend;
     std::unique_ptr<WorkThread> workThread;
 };
 
