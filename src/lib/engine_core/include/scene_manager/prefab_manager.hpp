@@ -1,101 +1,52 @@
 #pragma once
 
+#include "ecs/ecs_register.hpp"
+#include "ecs/entity_manager_interface.hpp"
 #include "prefab_manager_interface.hpp"
+#include "readonly_file_system.h"
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace MoonGlare::SceneManager {
 
 class PrefabManager final : public iPrefabManager {
 public:
-    virtual ~PrefabManager() = default;
+    PrefabManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
+                  gsl::not_null<ECS::iSystemRegister *> _system_register,
+                  gsl::not_null<ECS::iComponentRegister *> _component_register);
+    ~PrefabManager() override;
 
     LoadedSystems LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
-                                          const nlohmann::json &config_node) override {
-        return {};
-    }
+                                          const nlohmann::json &config_node) override;
 
-    void LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager,
-                        const nlohmann::json &child_node) override{};
-
-    // virtual iCompo
-};
-
-/*
-
-for (auto &item : all_systems) {
-    auto ptr = dynamic_cast<iStepableObject *>(item.get());
-    if (ptr) {
-        stepable_systems.push_back(ptr);
-    }
-}
-AddLog(Performance,
-        fmt::format("Got {} stepable systems in scene {}", stepable_systems.size(), GetSceneName()));
-
-*/
-
-} // namespace MoonGlare::SceneManager
-
-#if 0
-
-#pragma once
-
-#include "scene_manager/prefab_manager_interface.hpp"
-#include <string>
-#include <unordered_map>
-#include <vector>
-// #include <Foundation/Component/Entity.h>
-// #include <Foundation/Component/iSubsystem.h>
-// #include <Foundation/iFileSystem.h>
-// #include <interface_map.h>
-// #include <Foundation/Component/EntityManager.h>
-
-namespace MoonGlare::SeneManager {
-
-#if 0
-// TODO: this should be thread-safe
-class PrefabManager final {
-  public:
-    PrefabManager(InterfaceMap &ifaceMap);
-    ~PrefabManager();
+    void LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager, const nlohmann::json &child_node) override;
 
     void ClearCache();
     void PrintCache() const;
 
-    void LoadPrefab(const std::string &uri) { Import(uri); }
+private:
+    iReadOnlyFileSystem *const filesystem;
+    ECS::iSystemRegister *const system_register;
+    ECS::iComponentRegister *const component_register;
 
-    Component::Entity Spawn(Component::iSubsystemManager *Manager,
-                            Component::Entity parent, const std::string &uri,
-                            const std::string &name = "");
-    Component::Entity Spawn(Component::iSubsystemManager *Manager,
-                            Component::Entity parent, const pugi::xml_node node,
-                            const std::string &name = "",
-                            const std::string &srcName = "");
+    mutable std::mutex cache_mutex;
+    std::unordered_map<FileResourceId, std::unique_ptr<nlohmann::json>> json_cache;
 
-  private:
-    struct ImportData;
     struct ImportTask;
-    struct EntityImport;
     struct ComponentImport;
 
-    iFileSystem *fileSystem = nullptr;
-    Component::EntityManager *entityManager = nullptr;
+    void Load(ImportTask &task);
 
-    std::unordered_map<std::string, XMLFile> xmlCache;
+    void ProcessEntityNode(const nlohmann::json &config_node, int entity_index, ImportTask &task);
+
+    nlohmann::json &LoadJson(FileResourceId res_id);
+
+#if 0
     std::unordered_map<std::string, std::unique_ptr<ImportData>> prefabCache;
-
-    ImportData *Import(const std::string &uri);
-    std::unique_ptr<ImportData> Import(const pugi::xml_node node);
-
-    void Import(ImportData &importData, pugi::xml_node node);
-    void Import(ImportData &importData, pugi::xml_node node,
-                int32_t parentIndex);
-
-    Component::Entity Spawn(ImportTask &task);
-    void SpawnComponent(ImportTask &task, const ComponentImport &ci);
-
-    pugi::xml_node GetPrefabXml(const std::string &uri);
+#endif
 };
 
-#endif
-} // namespace MoonGlare::SeneManager
-
-#endif
+} // namespace MoonGlare::SceneManager

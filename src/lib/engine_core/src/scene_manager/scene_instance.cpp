@@ -58,6 +58,8 @@ void SceneInstance::LoadSceneContent(iPrefabManager *prefab_manager, std::string
         auto loaded_systems = prefab_manager->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);
         all_systems.swap(loaded_systems.systems);
         stepable_systems = loaded_systems.stepable_systems;
+        AddLog(Performance, fmt::format("Got {}({}) systems in scene {}", all_systems.size(), stepable_systems.size(),
+                                        GetSceneName()));
 
         prefab_manager->LoadRootEntity(&entity_manager, scene_config[kSceneEntityConfig]);
 

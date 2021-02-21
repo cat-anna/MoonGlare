@@ -30,6 +30,19 @@ EntityManager::~EntityManager() {
 
 //----------------------------------------------------------------------------------
 
+iComponentArray *EntityManager::GetComponentArray() const {
+    return entity_tree.component_array;
+}
+
+bool EntityManager::GetEntityIndex(Entity e, iComponentArray::IndexType &out) const {
+    if (!EntityManager::IsValid(e)) {
+        return false;
+    }
+    auto ef = SplitEntity(e);
+    out = ef.index;
+    return true;
+}
+
 Entity EntityManager::GetRootEntity() const {
     return root_entity;
 }

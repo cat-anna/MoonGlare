@@ -62,6 +62,8 @@ public:
     void Release(Entity entity) override;
     bool IsValid(Entity entity) const override;
     bool GetEntityParent(Entity entity, Entity &parent) const override;
+    bool GetEntityIndex(Entity e, iComponentArray::IndexType &out) const override;
+    iComponentArray *GetComponentArray() const override;
 
 private:
     Entity root_entity;

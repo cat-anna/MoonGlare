@@ -24,6 +24,7 @@ public:
         size_t real_size;
         size_t alignment;
         bool trivial;
+        bool json_serializable;
     };
 
     using ComponentPtrFunc = void (*)(void *);
@@ -32,28 +33,46 @@ public:
         ComponentPtrFunc destructor = [](auto) {};
     };
 
+    using ComponentConstJsonFunc = void (*)(void *, const nlohmann::json &);
+    struct ComponentIoOps {
+        ComponentConstJsonFunc construct_from_json = nullptr;
+    };
+
     virtual const std::type_info &GetTypeInfo() const = 0;
 
     const ComponentDetails &GetDetails() const { return details; }
     const ComponentOps &GetOps() const { return ops; }
+    const ComponentIoOps &GetIoOps() const { return io_ops; }
     const std::string &GetName() const { return name; }
     ComponentId GetId() const { return id; }
 
 protected:
-    BaseComponentInfo(ComponentId _id, std::string _name, ComponentDetails _details, ComponentOps _ops)
-        : id(_id), name(std::move(_name)), details(_details), ops(_ops) {}
+    BaseComponentInfo(ComponentId _id, std::string _name, ComponentDetails _details, ComponentOps _ops,
+                      ComponentIoOps _io_ops)
+        : id(_id), name(std::move(_name)), details(_details), ops(_ops), io_ops(_io_ops) {}
 
 private:
     const ComponentId id;
     const std::string name;
     const ComponentDetails details;
     const ComponentOps ops;
+    const ComponentIoOps io_ops;
 };
 
 inline std::string to_string(const BaseComponentInfo::ComponentDetails &cd) {
-    return fmt::format("entry_size={:3};real_size={:3};alignment={:2};trivial={};", cd.entry_size, cd.real_size,
-                       cd.alignment, cd.trivial ? 1 : 0);
+    auto b = [](auto v) { return v ? 1 : 0; };
+    return fmt::format("entry_size={:3};real_size={:3};alignment={:2};trivial={};json={}", cd.entry_size, cd.real_size,
+                       cd.alignment, b(cd.trivial), b(cd.json_serializable));
 }
+
+namespace detail {
+
+template <typename T>
+struct IsJsonSerializable {
+    static constexpr bool kValue = nlohmann::detail::has_from_json<nlohmann::json, T>::value;
+};
+
+} // namespace detail
 
 template <class T>
 struct ComponentInfo : public BaseComponentInfo {
@@ -69,23 +88,37 @@ struct ComponentInfo : public BaseComponentInfo {
             reinterpret_cast<T *>(memory)->~T();
         }
     }
-
-    ComponentDetails MakeDetails() {
+    static void CallConstructAndLoadFromJson(void *memory, const nlohmann::json &json) {
+        if (memory) {
+            auto *ptr = new (memory) T();
+            json.get_to(*ptr);
+        }
+    }
+    static ComponentDetails MakeDetails() {
         return ComponentDetails{
             .entry_size = alignof(T) == 16 ? Align16(sizeof(T)) : sizeof(T),
             .real_size = sizeof(T),
             .alignment = alignof(T),
             .trivial = std::is_trivially_constructible_v<T>,
+            .json_serializable = detail::IsJsonSerializable<T>::kValue,
         };
     }
-    ComponentOps MakeOps() {
+    static ComponentOps MakeOps() {
         return ComponentOps{
             .default_constructor = &CallPlacementNew,
             .destructor = &CallDestructor,
         };
     }
 
-    ComponentInfo() : BaseComponentInfo(T::kComponentId, T::kComponentName, MakeDetails(), MakeOps()) {
+    static ComponentIoOps MakeIoOps() {
+        ComponentIoOps ops{};
+        if constexpr (detail::IsJsonSerializable<T>::kValue) {
+            ops.construct_from_json = &CallConstructAndLoadFromJson;
+        }
+        return ops;
+    }
+
+    ComponentInfo() : BaseComponentInfo(T::kComponentId, T::kComponentName, MakeDetails(), MakeOps(), MakeIoOps()) {
         if (alignof(T) == 16 && sizeof(T) & 0xF) {
             AddLog(Warning, fmt::format("Size of component {:02x}:{} is not multiply of 16!", GetId(), GetName()));
         }

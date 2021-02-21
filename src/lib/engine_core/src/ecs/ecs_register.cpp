@@ -52,6 +52,15 @@ std::vector<std::unique_ptr<iSystem>> ECSRegister::LoadSystemConfiguration(const
 
 //----------------------------------------------------------------------------------
 
+const BaseComponentInfo *ECSRegister::GetComponentsInfo(ComponentId c_id) const {
+    auto it = known_components.find(c_id);
+    if (it == known_components.end()) {
+        AddLog(Error, fmt::format("Unknown component with id {}", c_id));
+        throw std::runtime_error("Unknown component");
+    }
+    return it->second.get();
+}
+
 std::vector<BaseComponentInfo *> ECSRegister::GetRegisteredComponentsInfo() const {
     std::vector<BaseComponentInfo *> r;
     for (auto &[id, uptr] : known_components) {

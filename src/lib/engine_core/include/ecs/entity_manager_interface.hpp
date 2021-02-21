@@ -3,8 +3,13 @@
 
 #include "component/component_common.hpp"
 #include <cstdint>
+#include <tuple>
+#include <vector>
 
 namespace MoonGlare::ECS {
+
+using Entity = uint64_t;
+using EntityManagerId = uint8_t;
 
 class iComponentArray {
 public:
@@ -44,9 +49,6 @@ struct ComponentArrayMock : public iComponentArray {
 };
 #endif
 
-using Entity = uint64_t;
-using EntityManagerId = uint8_t;
-
 class iEntityManager {
 public:
     virtual ~iEntityManager() = default;
@@ -58,13 +60,49 @@ public:
     virtual void Release(Entity entity) = 0;
     virtual bool IsValid(Entity entity) const = 0;
     virtual bool GetEntityParent(Entity entity, Entity &parent) const = 0;
+    virtual bool GetEntityIndex(Entity e, iComponentArray::IndexType &out) const = 0;
 
-    // virtual iComponentArray *GetComponentArray() const = 0;
+    virtual iComponentArray *GetComponentArray() const = 0;
     // virtual EntityManagerId GetManagerId() const = 0;
 };
 
 #ifdef WANTS_GTEST_MOCKS
-struct EntityManagerMock : public iEntityManager {};
+struct EntityManagerMock : public iEntityManager {
+    MOCK_METHOD0(NewEntity, Entity());
+    MOCK_METHOD1(NewEntity, Entity(Entity parent));
+    MOCK_METHOD2(NewEntities, bool(size_t count, Entity *output_array));
+    MOCK_METHOD1(Release, void(Entity entity));
+    MOCK_CONST_METHOD0(GetRootEntity, Entity());
+    MOCK_CONST_METHOD1(IsValid, bool(Entity entity));
+    MOCK_CONST_METHOD2(GetEntityParent, bool(Entity entity, Entity &parent));
+    MOCK_CONST_METHOD2(GetEntityIndex, bool(Entity, iComponentArray::IndexType &));
+    MOCK_CONST_METHOD0(GetComponentArray, iComponentArray *());
+
+    const uint64_t kMask = 0xFADE0000'00000000;
+    Entity root_entity = kMask;
+
+    std::vector<std::tuple<Entity, Entity>> allocated_children;
+
+    iComponentArray *component_array = nullptr;
+
+    EntityManagerMock() {
+        using namespace ::testing;
+        EXPECT_CALL(*this, GetComponentArray()).WillRepeatedly(Invoke([this]() { return this->component_array; }));
+        EXPECT_CALL(*this, GetRootEntity()).WillRepeatedly(Invoke([this]() { return this->root_entity; }));
+        EXPECT_CALL(*this, NewEntity(_)).WillRepeatedly(Invoke([this](auto parent) {
+            auto child = allocated_children.size() + root_entity + 1;
+            allocated_children.emplace_back(child, parent);
+            return child;
+        }));
+        EXPECT_CALL(*this, GetEntityIndex(_, _)).WillRepeatedly(Invoke([this](auto e, auto &data) {
+            if ((e & kMask) != kMask) {
+                return false;
+            }
+            data = e & ~kMask;
+            return true;
+        }));
+    }
+};
 #endif
 
 } // namespace MoonGlare::ECS

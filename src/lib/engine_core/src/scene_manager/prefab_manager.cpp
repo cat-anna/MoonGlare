@@ -1,13 +1,235 @@
-// #include "prefab_manager.hpp"
+#include "scene_manager/prefab_manager.hpp"
+#include "component/json_serialization.hpp"
+#include "ecs/component_info.hpp"
+#include "stepable_interface.hpp"
+#include <array>
+#include <fmt/format.h>
+#include <orbit_logger.h>
 
-// #include "Component/ComponentRegister.h"
-// #include "Core/Component/SubsystemManager.h"
-// #include <Foundation/Module/iDebugContext.h>
-// #include <boost/algorithm/string.hpp>
-// #include <nfMoonGlare.h>
-// #include <pch.h>
+namespace MoonGlare::SceneManager {
 
-namespace MoonGlare::Core {
+namespace {
+//
+};
+
+//----------------------------------------------------------------------------------
+
+struct PrefabManager::ComponentImport {
+    ECS::Entity entity = 0;
+    bool active = true;
+    const nlohmann::json *import_data = nullptr;
+};
+
+struct PrefabManager::ImportTask {
+    ECS::iEntityManager *entity_manager;
+    ECS::iComponentArray *component_array;
+    ECS::iComponentRegister *component_register;
+
+    using ProcessEntry = std::tuple<PrefabManager *, const nlohmann::json &, int, ImportTask &>;
+    std::list<ProcessEntry> entries_to_process;
+
+    std::vector<ECS::Entity> all_entities;
+    std::vector<int> entity_parent;
+
+    std::array<std::vector<ComponentImport>, Component::kMaxComponents> components;
+
+    void ProcessAllEntries() {
+        while (!entries_to_process.empty()) {
+            ImportTask::ProcessEntry item = std::move(entries_to_process.front());
+            entries_to_process.pop_front();
+            std::apply(&PrefabManager::ProcessEntityNode, item);
+        }
+    }
+
+    void SpawnComponents() {
+        for (auto c_id = 0; c_id < components.size(); ++c_id) {
+            if (components[c_id].empty()) {
+                continue;
+            }
+
+            auto *c_info = component_register->GetComponentsInfo(c_id);
+            AddLog(Performance, fmt::format("Importing {} components of class {}:{}", components[c_id].size(), c_id,
+                                            c_info->GetName()));
+
+            auto &io_ops = c_info->GetIoOps();
+
+            if (io_ops.construct_from_json == nullptr) {
+                AddLog(Error,
+                       fmt::format("Component of class {}:{} is not importable from json!", c_id, c_info->GetName()));
+                continue;
+            }
+
+            for (const auto &c_import : components[c_id]) {
+                InstantiateComponent(c_import, c_id, io_ops.construct_from_json);
+            }
+        }
+    }
+
+    void InstantiateComponent(const ComponentImport &c_import, Component::ComponentId c_id,
+                              ECS::BaseComponentInfo::ComponentConstJsonFunc json_op) {
+
+        ECS::iComponentArray::IndexType index;
+        if (!entity_manager->GetEntityIndex(c_import.entity, index)) {
+            AddLog(Error, "Failed to get index of entity!");
+            return;
+        }
+
+        if (!c_import.import_data) {
+            AddLog(Error, "No import data");
+            return;
+        }
+
+        auto *mem = component_array->CreateComponent(index, c_id, false);
+        json_op(mem, *c_import.import_data);
+        if (!c_import.active) {
+            component_array->SetComponentActive(index, c_id, false);
+        }
+    }
+};
+
+//----------------------------------------------------------------------------------
+
+PrefabManager::PrefabManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
+                             gsl::not_null<ECS::iSystemRegister *> _system_register,
+                             gsl::not_null<ECS::iComponentRegister *> _component_register)
+    : filesystem(_filesystem), system_register(_system_register), component_register(_component_register) {
+}
+
+PrefabManager::~PrefabManager() {
+#ifdef DEBUG_DUMP
+    PrintCache();
+#endif
+}
+
+void PrefabManager::ClearCache() {
+    std::lock_guard<std::mutex> guard(cache_mutex);
+    json_cache.clear();
+}
+
+void PrefabManager::PrintCache() const {
+    std::lock_guard<std::mutex> guard(cache_mutex);
+    AddLog(Resources, fmt::format("PrefabManager cache (json={})", json_cache.size()));
+    for (auto &[res_id, _] : json_cache) {
+        AddLog(Resources, fmt::format("  json {:016x} -> {}", res_id, filesystem->GetNameOfResource(res_id)));
+    }
+}
+
+nlohmann::json &PrefabManager::LoadJson(FileResourceId res_id) {
+    std::lock_guard<std::mutex> guard(cache_mutex);
+    auto it = json_cache.find(res_id);
+
+    if (it != json_cache.end()) {
+        AddLog(Performance, fmt::format("Prefab json cache hit {:x}", res_id));
+        return *it->second.get();
+    }
+
+    AddLog(Performance, fmt::format("Prefab json cache miss {:x}", res_id));
+
+    std::string file_data;
+    if (!filesystem->ReadFileByResourceId(res_id, file_data)) {
+        AddLog(Error, fmt::format("Failed to read imported child {:x}", res_id));
+        throw std::runtime_error("Failed to read imported child");
+    }
+
+    auto json = std::make_unique<nlohmann::json>(nlohmann::json::parse(file_data));
+    auto json_ptr = json.get();
+    json_cache[res_id] = std::move(json);
+
+    return *json_ptr;
+}
+
+//----------------------------------------------------------------------------------
+
+PrefabManager::LoadedSystems PrefabManager::LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
+                                                                    const nlohmann::json &config_node) {
+
+    LoadedSystems ls;
+    ls.systems = system_register->LoadSystemConfiguration(data, config_node);
+
+    for (auto &item : ls.systems) {
+        auto ptr = dynamic_cast<iStepableObject *>(item.get());
+        if (ptr) {
+            ls.stepable_systems.push_back(ptr);
+        }
+    }
+
+    return ls;
+}
+
+void PrefabManager::LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager,
+                                   const nlohmann::json &child_node) {
+
+    ImportTask task;
+    task.component_register = component_register;
+    task.entity_manager = entity_manager;
+    task.component_array = entity_manager->GetComponentArray();
+
+    task.all_entities = {entity_manager->GetRootEntity()};
+    task.entity_parent = {-1};
+
+    task.entries_to_process.emplace_back(this, child_node, 0, task);
+
+    Load(task);
+}
+
+//----------------------------------------------------------------------------------
+
+void PrefabManager::Load(ImportTask &task) {
+    try {
+        task.ProcessAllEntries();
+        task.SpawnComponents();
+    } catch (const std::exception &e) {
+        AddLog(Error, fmt::format("Failed to load entity: '{}'", e.what()));
+    }
+}
+
+void PrefabManager::ProcessEntityNode(const nlohmann::json &config_node, int entity_index, ImportTask &task) {
+    Component::JsonEntity je;
+    config_node.get_to(je);
+    if (!je.enabled) {
+        return;
+    }
+
+    if (je.import_id.has_value()) {
+        ProcessEntityNode(LoadJson(je.import_id.value()), entity_index, task);
+        return;
+    }
+
+    auto local_root = task.all_entities[entity_index];
+
+    if (je.children != nullptr && je.children->is_array()) {
+        auto children_count = je.children->size();
+
+        task.all_entities.reserve(children_count);
+        task.entity_parent.reserve(children_count);
+
+        int child_index = 0;
+        for (auto &child_node : *je.children) {
+            auto child = task.entity_manager->NewEntity(local_root);
+            int child_index = static_cast<int>(task.entity_parent.size());
+            task.entity_parent.emplace_back(entity_index);
+            task.all_entities.emplace_back(child);
+            task.entries_to_process.emplace_back(this, child_node, child_index, task);
+        }
+    }
+
+    if (je.components != nullptr && je.components->is_array()) {
+        for (auto &component_node : *je.components) {
+            Component::JsonComponent jc;
+            component_node.get_to(jc);
+            if (jc.enabled) {
+                task.components[jc.component_id].emplace_back(ComponentImport{
+                    .entity = local_root,
+                    .active = jc.active,
+                    .import_data = jc.data,
+                });
+            }
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------
+
 #if 0
 
 struct PrefabManager::EntityImport {
@@ -99,8 +321,8 @@ struct PrefabManager::ImportData {
     }
 
     void Dump() {
-        static int dumpid = 0;
-        auto fname = fmt::format("logs/{}.entity", dumpid++);
+        static int dump_id = 0;
+        auto fname = fmt::format("logs/{}.entity", dump_id++);
 
         std::ofstream of(fname, std::ios::out);
 
@@ -138,105 +360,6 @@ struct PrefabManager::ImportData {
     }
 };
 
-struct PrefabManager::ImportTask {
-    std::unique_ptr<ImportData> customData;
-
-    ImportData *importData;
-    Component::iSubsystemManager *manager;
-    Component::Entity parent;
-    std::string name;
-
-    std::vector<Component::Entity> spawnEntity;
-    std::vector<Component::Entity> localRelationsBuffer;
-};
-
-//-------------------------------------------------------------------------------------------------
-
-PrefabManager::PrefabManager(InterfaceMap &ifaceMap) {
-    ifaceMap.GetObject(fileSystem);
-    ifaceMap.GetObject(entityManager);
-
-
-    auto dbgCtx = ifaceMap.GetInterface<Module::iDebugContext>();
-    if (dbgCtx) {
-        dbgCtx->AddDebugCommand("ClearPrefabCache", [this] () { ClearCache(); });
-        dbgCtx->AddDebugCommand("PrintPrefabCache", [this] () { PrintCache(); });
-    }
-}
-
-PrefabManager::~PrefabManager() {
-#ifdef DEBUG_DUMP
-    PrintCache();
-#endif //  DEBUG_DUMP
-}
-
-void PrefabManager::ClearCache() {
-    prefabCache.clear();
-    xmlCache.clear();
-}
-
-//-------------------------------------------------------------------------------------------------
-
-Component::Entity PrefabManager::Spawn(Component::iSubsystemManager *manager, Component::Entity parent, const std::string &uri, const std::string &name) {
-    ImportTask task;
-    task.importData = Import(uri);
-
-    task.name = name;
-    task.parent = parent;
-    task.manager = manager;
-
-    return Spawn(task);
-}
-
-Component::Entity PrefabManager::Spawn(Component::iSubsystemManager *manager, Component::Entity parent, const pugi::xml_node node, const std::string &name, const std::string &srcName) {
-    ImportTask task;
-    task.customData = Import(node);
-    task.importData = task.customData.get();
-
-    task.importData->srcName = srcName;
-    task.name = name;
-    task.parent = parent;
-    task.manager = manager;
-
-    return Spawn(task);
-}
-
-//-------------------------------------------------------------------------------------------------
-
-Component::Entity PrefabManager::Spawn(ImportTask &task) {
-    assert(task.importData);
-
-    auto &data = *task.importData;
-    task.spawnEntity.resize(data.entities.size());
-
-    for (size_t index = 0; index < data.entities.size(); ++index) {
-        auto &ei = data.entities[index];
-        if (!ei.enabled)
-            continue;
-
-        Entity thisParent;
-        if (ei.parentIndex >= 0)
-            thisParent = task.spawnEntity[ei.parentIndex];
-        else
-            thisParent = task.parent;
-
-        auto &eout = task.spawnEntity[index];
-        if (!entityManager->Allocate(thisParent,eout, ei.name)) {
-            AddLogf(Error, "Failed to allocate entity!");
-            //return {};
-        }
-        if (thisParent.GetIndex() > eout.GetIndex()) {
-            int i = 0;
-        }
-    }
-
-    for (auto &c : data.componentSpawnOrder)
-        for (auto &ci : *c.componentImport)
-            SpawnComponent(task, ci);
-
-    return task.spawnEntity[0];
-}
-
 //-------------------------------------------------------------------------------------------------
 
 PrefabManager::ImportData* PrefabManager::Import(const std::string &uri) {
@@ -253,32 +376,7 @@ PrefabManager::ImportData* PrefabManager::Import(const std::string &uri) {
     return data.get();
 }
 
-std::unique_ptr<PrefabManager::ImportData> PrefabManager::Import(const pugi::xml_node node) {
-    std::unique_ptr<ImportData> data = std::make_unique<ImportData>();
-    Import(*data, node);
-    return std::move(data);
-}
-
-pugi::xml_node PrefabManager::GetPrefabXml(const std::string &uri) {
-    auto &cache = xmlCache[uri];
-    if (!cache) {
-        if (!fileSystem->OpenXML(cache, uri)) {
-            AddLogf(Error, "Failed to open uri: %s", uri.c_str());
-            return {};
-        }
-        AddLogf(Performance, "Loaded xml: %s", uri.c_str());
-    } else {
-        AddLogf(Performance, "Prefab xml cache hit: %s", uri.c_str());
-    }
-    return *cache;
-}
-
 //-------------------------------------------------------------------------------------------------
-
-void PrefabManager::Import(ImportData &importData, pugi::xml_node node) {
-    Import(importData, node, -1);
-    importData.Preprocess();
-}
 
 void PrefabManager::Import(ImportData &data, pugi::xml_node node, int32_t entityIndex) {
     bool parentEnabled = entityIndex >= 0 ? data.entities[entityIndex].enabled : true;
@@ -323,33 +421,6 @@ void PrefabManager::Import(ImportData &data, pugi::xml_node node, int32_t entity
             }
             continue;
         }
-        case "Entity"_Hash32:
-        {
-            EntityImport ei;
-            ei.parentIndex = entityIndex;
-            ei.enabled = it.attribute("Enabled").as_bool(true) && parentEnabled;
-            ei.name = it.attribute("Name").as_string();
-
-            int32_t index = static_cast<int32_t>(data.entities.size());
-            if (ei.parentIndex >= 0)
-                data.entities[ei.parentIndex].children[ei.name] = index;
-
-            data.entities.emplace_back(std::move(ei));
-
-            auto pattern = it.attribute("Pattern").as_string(nullptr);
-            if (pattern) {
-                auto childNode = GetPrefabXml(pattern);
-                auto &ei = data.entities.back();
-                if (ei.name.empty())
-                    ei.name = childNode.attribute("Name").as_string();
-                Import(data, childNode.first_child(), index);
-            }
-            Import(data, it, index);
-            continue;
-        }
-        default:
-            AddLogf(Warning, "Unknown node: %s", nodename);
-            continue;
         }
     }
 }
@@ -422,20 +493,6 @@ void PrefabManager::SpawnComponent(ImportTask &task, const ComponentImport &ci) 
     }
 }
 
-//-------------------------------------------------------------------------------------------------
-
-void PrefabManager::PrintCache() const {
-    std::stringstream ss;
-    ss << "PrefabManager cache:\n";
-
-    ss << "Cached xml:\n";
-    for (auto&[uri, _] : xmlCache)
-        ss << "\t" << uri << "\n";
-    ss << "Cached prefabs:\n";
-    for (auto&[uri, _] : prefabCache)
-        ss << "\t" << uri << "\n";
-
-    AddLog(Resources, ss.str());
-}
 #endif
-} // namespace MoonGlare::Core
+
+} // namespace MoonGlare::SceneManager

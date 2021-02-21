@@ -5,6 +5,7 @@
 #include "engine_runner/engine_runner_hooks.hpp"
 #include "engine_runner_interface.hpp"
 #include "input_handler/input_processor.hpp"
+#include "scene_manager/prefab_manager_interface.hpp"
 #include "scene_manager/scenes_manager_interface.hpp"
 #include <async_loader.hpp>
 #include <ecs/ecs_register.hpp>
@@ -46,6 +47,7 @@ protected:
     std::unique_ptr<StarVfs::iStarVfsHooks> svfs_hooks;
     std::unique_ptr<InputHandler::InputProcessor> input_processor;
     std::unique_ptr<SceneManager::iScenesManager> scene_manager;
+    std::unique_ptr<SceneManager::iPrefabManager> prefab_manager;
 
     ECS::ECSRegister ecs_register;
 

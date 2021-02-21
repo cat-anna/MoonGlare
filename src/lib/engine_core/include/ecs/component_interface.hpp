@@ -16,6 +16,7 @@ public:
 
     using ComponentId = Component::ComponentId;
 
+    virtual const BaseComponentInfo *GetComponentsInfo(ComponentId c_id) const = 0;
     virtual std::vector<BaseComponentInfo *> GetRegisteredComponentsInfo() const = 0;
     virtual std::unordered_map<ComponentId, BaseComponentInfo *> GetRegisteredComponentsMap() const = 0;
     virtual const ComponentMemoryInfo *GetComponentMemoryInfo() const = 0;

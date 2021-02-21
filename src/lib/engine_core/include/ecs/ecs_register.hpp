@@ -35,6 +35,7 @@ public:
     }
 
     //iComponentRegister
+    const BaseComponentInfo *GetComponentsInfo(ComponentId c_id) const override;
     std::vector<BaseComponentInfo *> GetRegisteredComponentsInfo() const override;
     std::unordered_map<ComponentId, BaseComponentInfo *> GetRegisteredComponentsMap() const override;
     const ComponentMemoryInfo *GetComponentMemoryInfo() const override;

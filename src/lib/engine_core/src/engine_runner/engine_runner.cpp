@@ -68,11 +68,13 @@ void EngineRunner::Initialize() {
 
     LoadDataModules();
 
-    SceneManager::PrefabManager prefab; //TODO
+    using namespace SceneManager;
+    prefab_manager = std::make_unique<PrefabManager>(filesystem.get(), &ecs_register, &ecs_register);
+    runner_hooks.InterfaceReady<iPrefabManager>(prefab_manager.get());
 
     scene_manager =
-        std::make_unique<SceneManager::ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register, &prefab);
-    runner_hooks.InterfaceReady<SceneManager::iScenesManager>(scene_manager.get());
+        std::make_unique<ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register, prefab_manager.get());
+    runner_hooks.InterfaceReady<iScenesManager>(scene_manager.get());
 
     runner_hooks.AfterDataModulesLoad();
 
@@ -161,6 +163,7 @@ void EngineRunner::Finalize() {
     device_context.reset();
 
     scene_manager.reset();
+    prefab_manager.reset();
     async_loader.reset();
     filesystem.reset();
     svfs_hooks.reset();
@@ -242,7 +245,6 @@ void Application::Restart() {
     AddLogf(Debug, "Starting restart");
     MoonGlare::Core::GetEngine()->Exit();
 }
-
 
 } //namespace MoonGlare
 

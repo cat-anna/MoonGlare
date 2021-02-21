@@ -279,7 +279,7 @@ FileResourceId StarVirtualFileSystem::GetResourceByPath(std::string_view path) c
 }
 
 std::string StarVirtualFileSystem::GetNameOfResource(FileResourceId resource, bool wants_full_path) const {
-    auto *file = impl->file_table.FindFileByPath(resource);
+    auto *file = impl->file_table.FindFileByResourceId(resource);
     if (file == nullptr) {
         AddLogf(Error, "Failed to find resource %llu", resource);
         return "";

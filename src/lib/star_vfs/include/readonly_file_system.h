@@ -1,6 +1,7 @@
 #pragma once
 
 #include "svfs/hashes.hpp"
+#include <fmt/format.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -44,6 +45,13 @@ struct ReadOnlyFileSystemMock : public iReadOnlyFileSystem {
     MOCK_CONST_METHOD2(FindFilesByExt, bool(std::string_view, FileInfoTable &));
     MOCK_CONST_METHOD1(GetResourceByPath, FileResourceId(std::string_view));
     MOCK_CONST_METHOD2(GetNameOfResource, std::string(FileResourceId, bool));
+
+    ReadOnlyFileSystemMock() {
+        using namespace ::testing;
+        EXPECT_CALL(*this, GetNameOfResource(_, _)).WillRepeatedly(::testing::Invoke([](auto id, auto) {
+            return fmt::format("res@{:016x}", id);
+        }));
+    }
 };
 #endif
 
