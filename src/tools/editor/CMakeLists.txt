@@ -1,11 +1,8 @@
 if(Qt5_FOUND)
-
-  file(GLOB_RECURSE SRC *.cpp *.h *.hpp)
-  set(TARGET editor)
-  add_executable(${TARGET} ${SRC})
-  target_include_directories(${TARGET} PUBLIC)
-  target_link_libraries(
-    ${TARGET}
+  define_executable(
+    NAME
+    editor
+    LINKS
     qt-resources
     fmt::fmt
     assimp::assimp
@@ -19,6 +16,7 @@ if(Qt5_FOUND)
     tool_base_qt
     star_vfs)
 
+  target_include_directories(${TARGET} PUBLIC)
   qt_app(${TARGET})
 
 endif()

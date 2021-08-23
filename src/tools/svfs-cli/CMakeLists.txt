@@ -3,7 +3,7 @@ set(TARGET svfs-cli)
 file(GLOB_RECURSE SRC *.h *.cpp *.hpp)
 file(GLOB_RECURSE SCRIPTS scripts/*.lua)
 
-add_executable(${TARGET} ${SRC} ${BINARY_RESOURCES})
+add_executable(${TARGET} ${SRC} ${SCRIPTS})
 target_link_libraries(
   ${TARGET}
   star_vfs

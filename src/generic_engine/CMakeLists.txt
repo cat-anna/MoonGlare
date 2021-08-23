@@ -1,9 +1,7 @@
-file(GLOB_RECURSE SRC *.cpp *.hpp)
-set(TARGET generic_engine)
-add_executable(${TARGET} ${SRC})
-target_link_libraries(
-  ${TARGET}
-  fmt::fmt
+define_executable(
+  NAME
+  generic_engine
+  LINKS
   assimp::assimp
   orbit_logger
   base
