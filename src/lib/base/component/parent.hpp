@@ -5,11 +5,14 @@
 
 namespace MoonGlare::Component {
 
-struct Parent : public ComponentBase<Parent> {
+// : public ComponentBase<Parent>
+struct Parent {
     static constexpr ComponentId kComponentId = 1;
     static constexpr char kComponentName[] = "parent";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
+
+    uint64_t index;
 };
 
 } // namespace MoonGlare::Component

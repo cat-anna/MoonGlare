@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array_index_tree.hpp"
+#include "component/parent.hpp"
 #include "entity_manager_interface.hpp"
 #include "generation_buffer.hpp"
 #include "pointer_memory_array.hpp"
@@ -22,7 +23,12 @@ public:
         // void SwapValues(ElementIndex a, ElementIndex b) {}
 
         void ClearArrays() { generation_buffer.Randomize(); }
-        void InitElement(ElementIndex e, ElementIndex parent) { component_array->MarkIndexAsValid(e); }
+        void InitElement(ElementIndex e, ElementIndex parent) {
+            component_array->MarkIndexAsValid(e);
+            if (parent != kInvalidIndex) {
+                component_array->AssignComponent<Component::Parent>(e, Component::Parent{parent});
+            }
+        }
         void ReleaseElement(ElementIndex e, ElementIndex parent) {
             generation_buffer.Next(e);
             component_array->ReleaseIndex(e, true);

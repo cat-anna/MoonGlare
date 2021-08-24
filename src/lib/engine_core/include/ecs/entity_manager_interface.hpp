@@ -20,7 +20,8 @@ public:
     using ValidComponentsMap = Component::ValidComponentsMap;
     using ComponentId = Component::ComponentId;
 
-    virtual void *CreateComponent(IndexType index, ComponentId c_id, bool call_default_constructor = true) = 0;
+    virtual void *CreateComponent(IndexType index, ComponentId c_id,
+                                  bool call_default_constructor = true) = 0;
     virtual void *GetComponent(IndexType index, ComponentId c_id) const = 0;
     virtual void RemoveComponent(IndexType index, ComponentId c_id) = 0;
     virtual void RemoveAllComponents(IndexType index) = 0;
@@ -32,11 +33,48 @@ public:
     virtual void MarkIndexAsValid(IndexType index) = 0;
     virtual void ReleaseIndex(IndexType index, bool destruct_components = true) = 0;
     virtual bool IsIndexValid(IndexType index) const = 0;
+
+    //template wrappers
+
+    template <typename T>
+    bool HasComponent(IndexType index) {
+        return HasComponent(index, T::kComponentId);
+    }
+
+    template <typename T>
+    bool IsComponentActive(IndexType index) {
+        return IsComponentActive(index, T::kComponentId);
+    }
+
+    template <typename T, typename... ARGS>
+    T *AssignComponent(IndexType index, ARGS &&...args) {
+        auto memory = CreateComponent(index, T::kComponentId, false);
+        if (memory != nullptr) {
+            return new (memory) T(std::forward<ARGS>(args)...);
+        }
+        return nullptr;
+    }
+
+    template <typename T>
+    T *GetComponent(IndexType index) {
+        return reinterpret_cast<T *>(GetComponent(index, T::kComponentId));
+    }
+
+    template <typename T>
+    void RemoveComponent(IndexType index) {
+        RemoveComponent(index, T::kComponentId);
+    }
+
+    template <typename T>
+    void SetComponentActive(IndexType index, bool active) {
+        SetComponentActive(index, T::kComponentId, active);
+    }
 };
 
 #ifdef WANTS_GTEST_MOCKS
 struct ComponentArrayMock : public iComponentArray {
-    MOCK_METHOD3(CreateComponent, void *(IndexType index, ComponentId c_id, bool call_default_constructor));
+    MOCK_METHOD3(CreateComponent,
+                 void *(IndexType index, ComponentId c_id, bool call_default_constructor));
     MOCK_CONST_METHOD2(GetComponent, void *(IndexType index, ComponentId c_id));
     MOCK_METHOD2(RemoveComponent, void(IndexType index, ComponentId c_id));
     MOCK_METHOD1(RemoveAllComponents, void(IndexType index));
@@ -87,8 +125,12 @@ struct EntityManagerMock : public iEntityManager {
 
     EntityManagerMock() {
         using namespace ::testing;
-        EXPECT_CALL(*this, GetComponentArray()).WillRepeatedly(Invoke([this]() { return this->component_array; }));
-        EXPECT_CALL(*this, GetRootEntity()).WillRepeatedly(Invoke([this]() { return this->root_entity; }));
+        EXPECT_CALL(*this, GetComponentArray()).WillRepeatedly(Invoke([this]() {
+            return this->component_array;
+        }));
+        EXPECT_CALL(*this, GetRootEntity()).WillRepeatedly(Invoke([this]() {
+            return this->root_entity;
+        }));
         EXPECT_CALL(*this, NewEntity(_)).WillRepeatedly(Invoke([this](auto parent) {
             auto child = allocated_children.size() + root_entity + 1;
             allocated_children.emplace_back(child, parent);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "component/component_common.hpp"
+#include "component/parent.hpp"
 #include "component_info.hpp"
 #include "entity_manager_interface.hpp"
 #include "pointer_memory_array.hpp"
@@ -19,7 +20,8 @@ constexpr Component::ValidComponentsMap MakeComponentActiveMask(Component::Compo
     return 1llu << (c_id + Component::kComponentActiveFlagsOffset);
 }
 
-constexpr Component::ValidComponentsMap MakeComponentMaskWithActiveFlag(Component::ComponentId c_id) {
+constexpr Component::ValidComponentsMap
+MakeComponentMaskWithActiveFlag(Component::ComponentId c_id) {
     return MakeComponentMask(c_id) | MakeComponentActiveMask(c_id);
 }
 
@@ -70,7 +72,8 @@ struct ComponentMemoryInfo {
 
     void Dump();
 
-    static ComponentMemoryInfo CalculateOffsets(gsl::not_null<iComponentRegister *> component_register);
+    static ComponentMemoryInfo
+    CalculateOffsets(gsl::not_null<iComponentRegister *> component_register);
 };
 
 struct ComponentArrayPage {
@@ -84,13 +87,16 @@ struct ComponentArrayPage {
     Component::ValidComponentsMap *valid_components_and_flags = nullptr;
     std::array<Entry, Component::kMaxComponents> component_array;
 
-    uint8_t *GetComponentMemory(size_t id, size_t index) const { return component_array[id].GetElementMemory(index); }
+    uint8_t *GetComponentMemory(size_t id, size_t index) const {
+        return component_array[id].GetElementMemory(index);
+    }
 
     size_t element_count = 0;
 
     ComponentArrayPage() { component_array.fill({}); }
 
-    static void SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page, void *memory);
+    static void SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page,
+                          void *memory);
 };
 
 class ComponentArray final : public iComponentArray {
@@ -101,65 +107,19 @@ public:
     const ComponentArrayPage &GetComponentPage() const { return component_page; }
 
     //iComponentArray
-    void *CreateComponent(IndexType index, ComponentId c_id, bool call_default_constructor = true) override;
+    void *CreateComponent(IndexType index, ComponentId c_id,
+                          bool call_default_constructor = true) override;
     void *GetComponent(IndexType index, ComponentId c_id) const override;
     void RemoveComponent(IndexType index, ComponentId c_id) override;
     void RemoveAllComponents(IndexType index) override;
     void SetComponentActive(IndexType index, ComponentId c_id, bool active) override;
     void MarkIndexAsValid(IndexType index) override;
     void ReleaseIndex(IndexType index, bool destruct_components = true) override;
-
-    bool HasComponent(IndexType index, ComponentId c_id) const override {
-        auto mask = detail::MakeComponentMask(c_id);
-        return (component_page.valid_components_and_flags[index] & mask) == mask;
-    }
-
-    bool IsComponentActive(IndexType index, ComponentId c_id) override {
-        const auto mask =
-            detail::MakeComponentMaskWithActiveFlag(c_id) | detail::MakeComponentFlag(ComponentFlags::kValid);
-        return (component_page.valid_components_and_flags[index] & mask) == mask;
-    }
-
-    bool IsIndexValid(IndexType index) const override {
-        const auto mask = detail::MakeComponentMask<>(ComponentFlags::kValid);
-        return (component_page.valid_components_and_flags[index] & mask) == mask;
-    }
+    bool HasComponent(IndexType index, ComponentId c_id) const override;
+    bool IsComponentActive(IndexType index, ComponentId c_id) override;
+    bool IsIndexValid(IndexType index) const override;
 
     //template wrappers
-
-    template <typename T>
-    bool HasComponent(IndexType index) {
-        return ComponentArray::HasComponent(index, T::kComponentId);
-    }
-
-    template <typename T>
-    bool IsComponentActive(IndexType index) {
-        return ComponentArray::IsComponentActive(index, T::kComponentId);
-    }
-
-    template <typename T, typename... ARGS>
-    T *AssignComponent(IndexType index, ARGS &&... args) {
-        auto memory = ComponentArray::CreateComponent(index, T::kComponentId, false);
-        if (memory != nullptr) {
-            return new (memory) T(std::forward<ARGS>(args)...);
-        }
-        return nullptr;
-    }
-
-    template <typename T>
-    T *GetComponent(IndexType index) {
-        return reinterpret_cast<T *>(ComponentArray::GetComponent(index, T::kComponentId));
-    }
-
-    template <typename T>
-    void RemoveComponent(IndexType index) {
-        ComponentArray::RemoveComponent(index, T::kComponentId);
-    }
-
-    template <typename T>
-    void SetComponentActive(IndexType index, bool active) {
-        ComponentArray::SetComponentActive(index, T::kComponentId, active);
-    }
 
     template <typename... Components, typename F>
     void Visit(F visit_functor) {
@@ -169,18 +129,40 @@ public:
         for (IndexType index = 0; index <= component_page.element_count; ++index) {
             if ((component_page.valid_components_and_flags[index] & mask) == mask) {
                 // entry is valid and has all requested components are active
-                visit_functor(*ComponentArray::GetComponent<Components>(index)...);
+                visit_functor(*iComponentArray::GetComponent<Components>(index)...);
+            }
+        }
+    }
+
+    template <typename ComponentClass, typename F>
+    void VisitWithParent(F visit_functor) {
+        constexpr auto parent_mask =
+            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Component::Parent>() |
+            detail::MakeComponentFlag(ComponentFlags::kValid);
+
+        constexpr auto mask =
+            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Component::Parent>() |
+            detail::MakeComponentFlag(ComponentFlags::kValid);
+
+        for (IndexType index = 0; index <= component_page.element_count; ++index) {
+            if ((component_page.valid_components_and_flags[index] & parent_mask) == parent_mask) {
+                // entry is valid and has all requested components are active
+                const auto *parent = iComponentArray::GetComponent<Component::Parent>(index);
+                if ((component_page.valid_components_and_flags[parent->index] & mask) == mask) {
+                    visit_functor(*iComponentArray::GetComponent<ComponentClass>(parent->index),
+                                  *iComponentArray::GetComponent<ComponentClass>(index));
+                }
             }
         }
     }
 
     template <typename F>
     void ForEachComponent(IndexType index, F functor) {
-        if (!ComponentArray::IsIndexValid(index)) {
+        if (!IsIndexValid(index)) {
             return;
         }
         for (ComponentId c_id = 0; c_id < Component::kMaxComponents; ++c_id) {
-            if (ComponentArray::HasComponent(index, c_id)) {
+            if (HasComponent(index, c_id)) {
                 functor(c_id);
             }
         }

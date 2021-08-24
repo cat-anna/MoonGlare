@@ -9,17 +9,19 @@ namespace MoonGlare::ECS {
 
 void ComponentMemoryInfo::Dump() {
     AddLog(Debug, "Dumping component array page offsts:");
-    AddLog(Debug, fmt::format("    mem_block_size={:08x}({:.1f}KiB) validity_and_flags={:08x}", total_memory_block_size,
-                              total_memory_block_size / 1024.0f, valid_components_and_flags_offest));
+    AddLog(Debug, fmt::format("    mem_block_size={:08x}({:.1f}KiB) validity_and_flags={:08x}",
+                              total_memory_block_size, total_memory_block_size / 1024.0f,
+                              valid_components_and_flags_offest));
     for (size_t i = 0; i < entry_size.size(); ++i) {
         if (entry_size[i] != 0) {
-            AddLog(Debug,
-                   fmt::format("    id={:2} offest={:08x} entry_size={:02x}", i, memory_offsets[i], entry_size[i]));
+            AddLog(Debug, fmt::format("    id={:2} offest={:08x} entry_size={:02x}", i,
+                                      memory_offsets[i], entry_size[i]));
         }
     }
 }
 
-ComponentMemoryInfo ComponentMemoryInfo::CalculateOffsets(gsl::not_null<iComponentRegister *> component_register) {
+ComponentMemoryInfo
+ComponentMemoryInfo::CalculateOffsets(gsl::not_null<iComponentRegister *> component_register) {
     ComponentMemoryInfo r;
     r.memory_offsets.fill(0);
     r.entry_size.fill(0);
@@ -46,13 +48,14 @@ ComponentMemoryInfo ComponentMemoryInfo::CalculateOffsets(gsl::not_null<iCompone
     return r;
 }
 
-void ComponentArrayPage::SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page, void *memory) {
+void ComponentArrayPage::SetMemory(const ComponentMemoryInfo &offsets, ComponentArrayPage &page,
+                                   void *memory) {
     memset(memory, 0, offsets.total_memory_block_size);
 
     page = ComponentArrayPage{};
     page.element_count = kComponentPageSize;
-    page.valid_components_and_flags =
-        reinterpret_cast<Component::ValidComponentsMap *>(memory) + offsets.valid_components_and_flags_offest;
+    page.valid_components_and_flags = reinterpret_cast<Component::ValidComponentsMap *>(memory) +
+                                      offsets.valid_components_and_flags_offest;
 
     for (size_t i = 0; i < page.component_array.size(); ++i) {
         page.component_array[i] = ComponentArrayPage::Entry{
@@ -77,7 +80,8 @@ ComponentArray::~ComponentArray() {
 
 //----------------------------------------------------------------------------------
 
-void *ComponentArray::CreateComponent(IndexType index, ComponentId c_id, bool call_default_constructor) {
+void *ComponentArray::CreateComponent(IndexType index, ComponentId c_id,
+                                      bool call_default_constructor) {
     if (!IsIndexValid(index)) {
         return nullptr;
     }
@@ -139,14 +143,30 @@ void ComponentArray::MarkIndexAsValid(IndexType index) {
 }
 
 void ComponentArray::ReleaseIndex(IndexType index, bool destruct_components) {
-    if (!ComponentArray::IsIndexValid(index)) {
+    if (!IsIndexValid(index)) {
         return;
     }
     if (destruct_components) {
-        ComponentArray::RemoveAllComponents(index);
+        RemoveAllComponents(index);
     }
     const auto mask = detail::MakeComponentMask<>(ComponentFlags::kValid);
     component_page.valid_components_and_flags[index] &= ~mask;
+}
+
+bool ComponentArray::HasComponent(IndexType index, ComponentId c_id) const {
+    auto mask = detail::MakeComponentMask(c_id);
+    return (component_page.valid_components_and_flags[index] & mask) == mask;
+}
+
+bool ComponentArray::IsComponentActive(IndexType index, ComponentId c_id) {
+    const auto mask = detail::MakeComponentMaskWithActiveFlag(c_id) |
+                      detail::MakeComponentFlag(ComponentFlags::kValid);
+    return (component_page.valid_components_and_flags[index] & mask) == mask;
+}
+
+bool ComponentArray::IsIndexValid(IndexType index) const {
+    const auto mask = detail::MakeComponentMask<>(ComponentFlags::kValid);
+    return (component_page.valid_components_and_flags[index] & mask) == mask;
 }
 
 //----------------------------------------------------------------------------------
