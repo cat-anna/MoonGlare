@@ -24,7 +24,7 @@ struct ZipContainer::ZipMapper {
     ZipMapper(const std::filesystem::path &zip_file, const std::string &password)
         : zip_archive(zip_file.generic_string(), password) {
 
-        zip_archive.open(libzippp::ZipArchive::READ_ONLY);
+        zip_archive.open(libzippp::ZipArchive::ReadOnly);
         zip_entries = zip_archive.getEntries();
     }
     ZipContainerManifest ReadManifest() {

@@ -41,7 +41,7 @@ void ZipExporter::StartExport() {
 
     ZipArchive zf(output_path);
     ZipContainerManifest manifest{};
-    zf.open(ZipArchive::NEW);
+    zf.open(ZipArchive::New);
     std::list<std::string> loaded_files;
 
     AddLog(Info, fmt::format("Starting export to zip {}", output_path));
