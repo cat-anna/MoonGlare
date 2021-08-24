@@ -1,5 +1,7 @@
 #pragma once
 
+#define WANTS_SERIALIZATION
+
 #include "ecs/ecs_register.hpp"
 #include <component/camera.hpp>
 #include <component/global_matrix.hpp>
@@ -11,7 +13,6 @@
 #include <component/rect/rect_transform.hpp>
 #include <component/revision.hpp>
 #include <component/transform.hpp>
-
 
 namespace MoonGlare::Systems {
 
