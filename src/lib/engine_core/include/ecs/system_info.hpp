@@ -27,6 +27,7 @@ class BaseSystemInfo {
 public:
     struct SystemDetails {
         bool has_config;
+        bool stepable;
     };
 
     virtual SystemDetails GetDetails() const = 0;
@@ -38,7 +39,7 @@ public:
 };
 
 inline std::string to_string(const BaseSystemInfo::SystemDetails &sd) {
-    return fmt::format("has_config={}", sd.has_config);
+    return fmt::format("has_config={},stepable={}", sd.has_config, sd.stepable);
 }
 
 template <class T>
@@ -56,7 +57,8 @@ struct SystemInfo : public BaseSystemInfo {
 private:
     std::string name = T::kSystemName;
     const SystemDetails details{
-        .has_config = !std::is_same_v<T::SystemConfiguration, EmptySystemConfig>,
+        .has_config = !std::is_same_v<T::SystemConfiguration, BaseSystemConfig>,
+        .stepable = T::kStepable,
     };
 };
 

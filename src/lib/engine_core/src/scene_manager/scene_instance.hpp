@@ -35,7 +35,7 @@ private:
 
     std::vector<std::unique_ptr<ECS::iSystem>> all_systems;
 
-    boost::container::static_vector<iStepableObject *, ECS::kMaxStepableSystems> stepable_systems;
+    boost::container::static_vector<ECS::iSystem *, ECS::kMaxStepableSystems> stepable_systems;
     ECS::ComponentArray component_array;
     ECS::EntityManager entity_manager;
 

@@ -7,7 +7,8 @@
 
 namespace MoonGlare::SceneManager {
 
-SceneInstance::SceneInstance(std::string name, FileResourceId resource_id, ECS::EntityManagerId scene_id,
+SceneInstance::SceneInstance(std::string name, FileResourceId resource_id,
+                             ECS::EntityManagerId scene_id,
                              gsl::not_null<iAsyncLoader *> _async_loader,
                              gsl::not_null<ECS::iComponentRegister *> _component_register,
                              gsl::not_null<iPrefabManager *> _prefab_manager)
@@ -23,7 +24,8 @@ SceneInstance::SceneInstance(std::string name, FileResourceId resource_id, ECS::
 }
 
 bool SceneInstance::SetFenceState(std::string name, bool state) {
-    AddLog(Debug, fmt::format("Scene {} fence changed {} state: {}", GetSceneName(), name, state ? "true" : "false"));
+    AddLog(Debug, fmt::format("Scene {} fence changed {} state: {}", GetSceneName(), name,
+                              state ? "true" : "false"));
     if (!name.empty()) {
         if (state) {
             active_fences.emplace(std::move(name));
@@ -41,7 +43,7 @@ void SceneInstance::DoStep(double time_delta) {
     // engine_core->scene_manager->scene_instance
 
     for (auto item : stepable_systems) {
-        item->DoStep(time_delta);
+        item->Advance(time_delta);
     }
 
     // entity_manager.DoStep(time_delta);
@@ -54,18 +56,24 @@ void SceneInstance::LoadSceneContent(iPrefabManager *prefab_manager, std::string
     try {
         auto scene_config = nlohmann::json::parse(_file_data);
 
-        ECS::SystemCreateInfo sci;
-        auto loaded_systems = prefab_manager->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);
+        auto sci = ECS::SystemCreateInfo{
+            .component_array = &component_array,
+            .entity_manager = &entity_manager,
+        };
+        auto loaded_systems =
+            prefab_manager->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);
         all_systems.swap(loaded_systems.systems);
         stepable_systems = loaded_systems.stepable_systems;
-        AddLog(Performance, fmt::format("Got {}({}) systems in scene {}", all_systems.size(), stepable_systems.size(),
-                                        GetSceneName()));
+        AddLog(Performance,
+               fmt::format("Got {}({} stepable) systems in scene {}", all_systems.size(),
+                           stepable_systems.size(), GetSceneName()));
 
         prefab_manager->LoadRootEntity(&entity_manager, scene_config[kSceneEntityConfig]);
 
         SetFenceState(kSceneFenceLoadPending, false);
     } catch (const std::exception &e) {
-        AddLog(Error, fmt::format("Unable to load config for scene: '{}' : {}", GetSceneName(), e.what()));
+        AddLog(Error,
+               fmt::format("Unable to load config for scene: '{}' : {}", GetSceneName(), e.what()));
     }
 }
 

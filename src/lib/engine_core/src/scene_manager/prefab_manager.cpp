@@ -48,14 +48,14 @@ struct PrefabManager::ImportTask {
             }
 
             auto *c_info = component_register->GetComponentsInfo(c_id);
-            AddLog(Performance, fmt::format("Importing {} components of class {}:{}", components[c_id].size(), c_id,
-                                            c_info->GetName()));
+            AddLog(Performance, fmt::format("Importing {} components of class {}:{}",
+                                            components[c_id].size(), c_id, c_info->GetName()));
 
             auto &io_ops = c_info->GetIoOps();
 
             if (io_ops.construct_from_json == nullptr) {
-                AddLog(Error,
-                       fmt::format("Component of class {}:{} is not importable from json!", c_id, c_info->GetName()));
+                AddLog(Error, fmt::format("Component of class {}:{} is not importable from json!",
+                                          c_id, c_info->GetName()));
                 continue;
             }
 
@@ -92,7 +92,8 @@ struct PrefabManager::ImportTask {
 PrefabManager::PrefabManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                              gsl::not_null<ECS::iSystemRegister *> _system_register,
                              gsl::not_null<ECS::iComponentRegister *> _component_register)
-    : filesystem(_filesystem), system_register(_system_register), component_register(_component_register) {
+    : filesystem(_filesystem), system_register(_system_register),
+      component_register(_component_register) {
 }
 
 PrefabManager::~PrefabManager() {
@@ -110,7 +111,8 @@ void PrefabManager::PrintCache() const {
     std::lock_guard<std::mutex> guard(cache_mutex);
     AddLog(Resources, fmt::format("PrefabManager cache (json={})", json_cache.size()));
     for (auto &[res_id, _] : json_cache) {
-        AddLog(Resources, fmt::format("  json {:016x} -> {}", res_id, filesystem->GetNameOfResource(res_id)));
+        AddLog(Resources,
+               fmt::format("  json {:016x} -> {}", res_id, filesystem->GetNameOfResource(res_id)));
     }
 }
 
@@ -140,16 +142,16 @@ nlohmann::json &PrefabManager::LoadJson(FileResourceId res_id) {
 
 //----------------------------------------------------------------------------------
 
-PrefabManager::LoadedSystems PrefabManager::LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
-                                                                    const nlohmann::json &config_node) {
+PrefabManager::LoadedSystems
+PrefabManager::LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
+                                       const nlohmann::json &config_node) {
 
     LoadedSystems ls;
     ls.systems = system_register->LoadSystemConfiguration(data, config_node);
 
     for (auto &item : ls.systems) {
-        auto ptr = dynamic_cast<iStepableObject *>(item.get());
-        if (ptr) {
-            ls.stepable_systems.push_back(ptr);
+        if (item->GetSystemInfo().stepable) {
+            ls.stepable_systems.push_back(item.get());
         }
     }
 
@@ -183,7 +185,8 @@ void PrefabManager::Load(ImportTask &task) {
     }
 }
 
-void PrefabManager::ProcessEntityNode(const nlohmann::json &config_node, int entity_index, ImportTask &task) {
+void PrefabManager::ProcessEntityNode(const nlohmann::json &config_node, int entity_index,
+                                      ImportTask &task) {
     Component::JsonEntity je;
     config_node.get_to(je);
     if (!je.enabled) {

@@ -17,7 +17,7 @@ public:
     virtual ~iPrefabManager() = default;
 
     struct LoadedSystems {
-        boost::container::static_vector<iStepableObject *, ECS::kMaxStepableSystems> stepable_systems;
+        boost::container::static_vector<ECS::iSystem *, ECS::kMaxStepableSystems> stepable_systems;
         std::vector<std::unique_ptr<ECS::iSystem>> systems;
     };
 
@@ -32,8 +32,10 @@ public:
 
 #ifdef WANTS_GTEST_MOCKS
 struct PrefabManagerMock : public iPrefabManager {
-    MOCK_METHOD2(LoadSystemConfiguration, LoadedSystems(const ECS::SystemCreateInfo &, const nlohmann::json &));
-    MOCK_METHOD2(LoadRootEntity, void(gsl::not_null<ECS::iEntityManager *>, const nlohmann::json &));
+    MOCK_METHOD2(LoadSystemConfiguration,
+                 LoadedSystems(const ECS::SystemCreateInfo &, const nlohmann::json &));
+    MOCK_METHOD2(LoadRootEntity,
+                 void(gsl::not_null<ECS::iEntityManager *>, const nlohmann::json &));
 };
 #endif
 
