@@ -17,10 +17,12 @@ print("BASE MODULE INIT")
 require "base/scripts/formatting"
 
 local scenes = require("moonglare.scenes")
-scenes:create_scene("moonglare_loading_scene", scenes.loading_scene_name)
+scenes:create_scene("moonglare_loading_scene", scenes.LOADING_SCENE_NAME)
 
 local app = require("moonglare.application")
-
 print(app.application_name)
 print(app.compilation_date)
 print(app.version_string)
+
+-- local ctx = require("moonglare.lua_context")
+-- print("MEM:", tostring(ctx.memory_usage))

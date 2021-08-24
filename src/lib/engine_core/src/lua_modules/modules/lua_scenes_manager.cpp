@@ -38,9 +38,9 @@ void SceneManagerLuaModule::InitContext(lua_State *lua) {
     ns.new_usertype<SceneManager::iScenesManager>( //
         "iScenesManager", sol::no_constructor,
 
-        /*@ [LuaScenesManagerModuleProperties/_] ScenesManager.loading_scene_name
+        /*@ [LuaScenesManagerModuleProperties/_] ScenesManager.LOADING_SCENE_NAME
             Use as name to select loading scene @*/
-        "loading_scene_name", sol::var(kLoadingSceneName),
+        "LOADING_SCENE_NAME", sol::var(kLoadingSceneName),
 
         /*@ [LuaScenesManagerModuleMethods/_] ScenesManager:create_scene(scene_resource, scene_name)
             TODO @*/
