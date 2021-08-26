@@ -5,15 +5,17 @@
 
 namespace MoonGlare::Component {
 
-struct alignas(16)
-
-    GlobalMatrix : public ComponentBase<GlobalMatrix> {
+struct alignas(16) GlobalMatrix : public ComponentBase<GlobalMatrix> {
     static constexpr ComponentId kComponentId = 4;
     static constexpr char kComponentName[] = "global_matrix";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
 
     math::Transform transform;
+
+    static GlobalMatrix Identity() {
+        return GlobalMatrix{.transform = math::Transform::Identity()};
+    }
 };
 
 static_assert((sizeof(GlobalMatrix) % 16) == 0);
