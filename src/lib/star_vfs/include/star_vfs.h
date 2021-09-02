@@ -19,10 +19,14 @@ class iStarVfs : public iWritableFileSystem {
 public:
     virtual ~iStarVfs() = default;
 
-    virtual iVfsContainer *MountContainer(std::string_view container_class, const VariantArgumentMap &arguments) = 0;
-    virtual iVfsModule *LoadModule(std::string_view module_class, const VariantArgumentMap &arguments) = 0;
+    virtual iVfsContainer *MountContainer(std::string_view container_class,
+                                          const VariantArgumentMap &arguments) = 0;
+    virtual iVfsModule *LoadModule(std::string_view module_class,
+                                   const VariantArgumentMap &arguments) = 0;
     virtual std::unique_ptr<iVfsExporter> CreateExporter(std::string_view module_class,
                                                          const VariantArgumentMap &arguments) = 0;
+
+    virtual std::string DumpStructure() const = 0;
 };
 
 } // namespace MoonGlare::StarVfs

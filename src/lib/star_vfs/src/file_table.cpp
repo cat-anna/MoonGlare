@@ -8,7 +8,7 @@ namespace MoonGlare::StarVfs {
 
 FileTable::FileTable() {
     // allocate root file
-    root_file.file_path_hash = Hasher::Hash(std::string_view(""));
+    root_file.file_path_hash = Hasher::Hash(std::string_view("/"));
     AddFileEntry(&root_file);
 }
 
@@ -39,7 +39,8 @@ bool FileTable::CreateDirectory(const std::string_view &path) {
         if (child == nullptr) {
             auto parent = FindFileByPath(parent_position);
             if (!parent) {
-                AddLogf(Error, "Failed to create directory '%s' parent does not exists", position.c_str());
+                AddLogf(Error, "Failed to create directory '%s' parent does not exists",
+                        position.c_str());
                 return false;
             }
 

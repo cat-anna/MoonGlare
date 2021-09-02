@@ -1,3 +1,4 @@
+#include "debug_dump.hpp"
 #include <boost/program_options.hpp>
 #include <engine_runner/engine_runner.hpp>
 #include <filesystem>
@@ -48,7 +49,8 @@ public:
     }
 
     std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() override {
-        filesystem = std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register, IntSvfsHooks());
+        filesystem =
+            std::make_shared<StarVfs::StarVirtualFileSystem>(&class_register, IntSvfsHooks());
         return filesystem;
     }
 
@@ -69,6 +71,8 @@ public:
             }
             throw std::runtime_error("Unknown container type: " + module_path);
         }
+
+        DebugDump("svfs.log", filesystem->DumpStructure());
     }
 
     std::shared_ptr<Renderer::iDeviceContext> CreateDeviceContext() override {

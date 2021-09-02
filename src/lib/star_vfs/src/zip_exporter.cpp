@@ -68,6 +68,8 @@ void ZipExporter::StartExport() {
             my_path += "/";
         my_path += file->file_name;
 
+        auto container_path = "/" + my_path;
+
         if (file->IsDirectory()) {
             for (auto &item : file->children) {
                 generator(item.get(), my_path);
@@ -94,7 +96,7 @@ void ZipExporter::StartExport() {
         }
 
         if (resource_id != 0) {
-            manifest.file_entries[my_path] = {resource_id};
+            manifest.file_entries[container_path] = {resource_id};
         }
 
         zf.addData(my_path, file_data.c_str(), file_data.size());
@@ -116,7 +118,8 @@ void ZipExporter::StartExport() {
     AddLog(Verbose, fmt::format("Closing archive {}", output_path));
     AddLog(Verbose, fmt::format("File count: {}", file_index));
     AddLog(Verbose, fmt::format("Hashed file count: {}", hashed_files));
-    AddLog(Verbose, fmt::format("Total source file size: {:.02f} MiB", total_size / 1024.0 / 1024.0));
+    AddLog(Verbose,
+           fmt::format("Total source file size: {:.02f} MiB", total_size / 1024.0 / 1024.0));
 
     zf.close();
 

@@ -46,15 +46,25 @@ struct Hasher {
         return Hash(str.data(), str.size(), seed);
     }
     template <typename... ARGS>
-    static XXH64_hash_t HashTogether(SeedType seed, const ARGS &... args) {
+    static XXH64_hash_t HashTogether(SeedType seed, const ARGS &...args) {
         Hasher h{seed};
         (h.update(args), ...);
         return h.get();
     }
     template <typename... ARGS>
-    static XXH64_hash_t HashTogether(const ARGS &... args) {
+    static XXH64_hash_t HashTogether(const ARGS &...args) {
         Hasher h;
         (h.update(args), ...);
+        return h.get();
+    }
+    template <typename A, typename B>
+    static XXH64_hash_t HashSubPath(const A &a, const B &b) {
+        Hasher h;
+        h.update(a);
+        if (a.back() != '/') {
+            h.update("/");
+        }
+        h.update(b);
         return h.get();
     }
 

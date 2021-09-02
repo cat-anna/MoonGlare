@@ -6,8 +6,9 @@
 namespace MoonGlare::StarVfs {
 
 std::string FileEntry::GetFullPath() const {
-    if (parent == nullptr)
-        return "";
+    if (parent == nullptr) {
+        return "/";
+    }
     return JoinPath(parent->GetFullPath(), file_name);
 }
 

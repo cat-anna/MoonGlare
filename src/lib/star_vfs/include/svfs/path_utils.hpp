@@ -14,25 +14,31 @@ GetParentAndFileName(const std::string_view &path) {
     return {path.substr(0, last_slash), path.substr(last_slash + 1)};
 }
 
-inline std::string OptimizeMountPointPath(std::string mount_point) {
-    while (!mount_point.empty() && mount_point.back() == '/') {
-        mount_point.pop_back();
-    }
-    return mount_point;
-}
-
 inline std::string CheckPath(std::string path) {
-    if (path == "/") {
-        return "";
+    if (path.empty()) {
+        return "/";
     }
     return path;
 }
 
-template <typename A, typename B> //
+inline std::string OptimizeMountPointPath(std::string mount_point) {
+    while (!mount_point.empty() && mount_point.back() == '/') {
+        mount_point.pop_back();
+    }
+    return CheckPath(mount_point);
+}
+
+template <typename A, typename B>
 inline std::string JoinPath(const A &mount_point, const B &sub_path) {
-    if (mount_point.empty())
-        return std::string(sub_path);
-    return std::string(mount_point) + "/" + std::string(sub_path);
+    std::string r = mount_point;
+    if (r.empty() || r.back() != '/') {
+        r += "/";
+    }
+    if (!sub_path.empty() && sub_path.front() == '/') {
+        r.pop_back();
+    }
+    r += sub_path;
+    return r;
 }
 
 template <typename T>

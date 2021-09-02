@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/format.h>
 #include <string>
 #include <string_view>
 #include <svfs/hashes.hpp>
@@ -28,6 +29,18 @@ public:
 
     bool IsDirectory() const { return !children.empty(); }
     bool IsHidden() const { return (file_name.size() > 0 && file_name[0] == '.') || is_hidden; }
+
+    static std::string StringHeader() {
+        return "parent_path_hash | file_path_hash   | resource_id      | cid | "
+               "c_file_id        | children | HD | name";
+    }
+
+    std::string String() const {
+        return fmt::format("{:016x} | {:016x} | {:016x} | {:03x} | {:016x} | {:04}     | {}{} | {}",
+                           parent_path_hash, file_path_hash, resource_id, container_id,
+                           container_file_id, children.size(), (IsHidden() ? "H" : " "),
+                           (IsDirectory() ? "D" : " "), GetFullPath());
+    }
 };
 
 } // namespace MoonGlare::StarVfs

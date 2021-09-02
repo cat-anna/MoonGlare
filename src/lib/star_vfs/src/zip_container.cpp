@@ -42,7 +42,8 @@ struct ZipContainer::ZipMapper {
 
 //-------------------------------------------------------------------------------------------------
 
-ZipContainer::ZipContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments) : iVfsContainer(fti) {
+ZipContainer::ZipContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments)
+    : iVfsContainer(fti) {
     mount_point = OptimizeMountPointPath(arguments.get<std::string>("mount_point", ""));
     zip_password = arguments.get<std::string>("password", "");
     zip_file_path = std::filesystem::absolute(arguments.get<std::string>("zip_file_path"));
@@ -54,8 +55,8 @@ ZipContainer::ZipContainer(iFileTableInterface *fti, const VariantArgumentMap &a
 //-------------------------------------------------------------------------------------------------
 
 void ZipContainer::ReloadContainer() {
-    AddLog(FSEvent,
-           fmt::format("Reloading zip container '{}' mounted at {}", zip_file_path.generic_string(), mount_point));
+    AddLog(FSEvent, fmt::format("Reloading zip container '{}' mounted at {}",
+                                zip_file_path.generic_string(), mount_point));
     zip_mapper = std::make_unique<ZipMapper>(zip_file_path, zip_password);
     auto manifest = zip_mapper->ReadManifest();
 
@@ -75,13 +76,14 @@ void ZipContainer::ReloadContainer() {
                 zip_path.pop_back();
         }
 
+        zip_path = "/" + zip_path;
+
         auto [zip_parent_path, file_name] = GetParentAndFileName(zip_path);
 
         auto parent_string = JoinPath(mount_point, zip_parent_path);
 
         auto parent_hash = Hasher::Hash(parent_string);
-        auto file_hash = parent_string.empty() ? Hasher::HashTogether(parent_string, file_name)
-                                               : Hasher::HashTogether(parent_string, "/", file_name);
+        auto file_hash = Hasher::HashSubPath(parent_string, file_name);
 
         ContainerFileEntry request_entry = {};
         request_entry.file_name = file_name;

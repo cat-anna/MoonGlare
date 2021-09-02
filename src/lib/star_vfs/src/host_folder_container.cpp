@@ -57,7 +57,8 @@ struct HostFolderContainer::ScanPathOutput {
 
 //-------------------------------------------------------------------------------------------------
 
-HostFolderContainer::HostFolderContainer(iFileTableInterface *fti, const VariantArgumentMap &arguments)
+HostFolderContainer::HostFolderContainer(iFileTableInterface *fti,
+                                         const VariantArgumentMap &arguments)
     : iVfsContainer(fti) {
 
     host_path = std::filesystem::absolute(arguments.get<std::string>("host_path"));
@@ -65,14 +66,15 @@ HostFolderContainer::HostFolderContainer(iFileTableInterface *fti, const Variant
 
     arguments.get_to(generate_resource_id, "generate_resource_id", generate_resource_id);
     arguments.get_to(store_resource_id, "store_resource_id", store_resource_id);
-    access_mode = arguments.get<std::string>("mode", "r") == "rw" ? AccessMode::ReadWrite : AccessMode::ReadOnly;
+    access_mode = arguments.get<std::string>("mode", "r") == "rw" ? AccessMode::ReadWrite
+                                                                  : AccessMode::ReadOnly;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void HostFolderContainer::ReloadContainer() {
-    AddLog(FSEvent,
-           fmt::format("Reloading host folder container '{}' mounted at {}", host_path.generic_string(), mount_point));
+    AddLog(FSEvent, fmt::format("Reloading host folder container '{}' mounted at {}",
+                                host_path.generic_string(), mount_point));
 
     ScanPathOutput scan_result{};
     scan_result.old_file_mapper = file_mapper;
@@ -91,7 +93,8 @@ void HostFolderContainer::ReloadContainer() {
     }
 }
 
-bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id, std::string &file_data) const {
+bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id,
+                                          std::string &file_data) const {
     auto it = file_mapper.find(container_file_id);
     if (it == file_mapper.end()) {
         AddLog(Error, "File does not exists");
@@ -103,7 +106,8 @@ bool HostFolderContainer::ReadFileContent(FilePathHash container_file_id, std::s
     return ReadHostFileContent(entry.host_path, file_data);
 }
 
-bool HostFolderContainer::WriteFileContent(FilePathHash container_file_id, const std::string &file_data) {
+bool HostFolderContainer::WriteFileContent(FilePathHash container_file_id,
+                                           const std::string &file_data) {
     if (!CanWrite()) {
         AddLogf(Warning, "Host folder Container %s is opened in read only mode", host_path.c_str());
         return false;
@@ -134,6 +138,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
 
         std::string relative_string = JoinPath(mount_point, relative_path.generic_string());
         std::string parent_string = JoinPath(mount_point, parent_path.generic_string());
+
+        // AddLog(Warning, fmt::format("{}:{}", parent_string, relative_string));
 
         auto local_hash = Hasher::Hash(current_file.path().generic_string());
         auto relative_hash = Hasher::Hash(relative_string);
@@ -177,7 +183,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
                     entry.resource_id = file_manifest.resource_id;
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta read failed for {} : {}", meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta read failed for {} : {}",
+                                          meta_file.generic_string(), e.what()));
             }
             try {
                 if (generate_resource_id && entry.resource_id == 0) {
@@ -187,7 +194,7 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
                     file_manifest.hide_original_file = false;
 
                     if (store_resource_id) {
-                        WriteJsonToFile(meta_file, file_manifest, true);
+                        WriteIfChangedJsonToFile(meta_file, file_manifest, true);
                         entry.file_name = meta_file.filename().generic_string();
                         auto local_hash = Hasher::Hash(meta_file.generic_string());
                         entry.container_file_id = local_hash;
@@ -198,7 +205,8 @@ bool HostFolderContainer::ScanPath(ScanPathOutput &scan_output) {
                     }
                 }
             } catch (const std::exception &e) {
-                AddLog(Error, fmt::format("Meta write failed for {} : {}", meta_file.generic_string(), e.what()));
+                AddLog(Error, fmt::format("Meta write failed for {} : {}",
+                                          meta_file.generic_string(), e.what()));
             }
         }
 

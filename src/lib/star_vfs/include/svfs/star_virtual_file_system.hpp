@@ -20,8 +20,12 @@ public:
     explicit StarVirtualFileSystem(iClassRegister *class_register, iStarVfsHooks *hooks = nullptr);
     ~StarVirtualFileSystem() override;
 
-    iVfsContainer *MountContainer(std::string_view container_class, const VariantArgumentMap &arguments) override;
-    iVfsModule *LoadModule(std::string_view module_class, const VariantArgumentMap &arguments) override;
+    std::string DumpStructure() const override;
+
+    iVfsContainer *MountContainer(std::string_view container_class,
+                                  const VariantArgumentMap &arguments) override;
+    iVfsModule *LoadModule(std::string_view module_class,
+                           const VariantArgumentMap &arguments) override;
     std::unique_ptr<iVfsExporter> CreateExporter(std::string_view module_class,
                                                  const VariantArgumentMap &arguments) override;
 
@@ -32,7 +36,8 @@ public:
     bool ReadFileByResourceId(FileResourceId resource, std::string &file_data) const override;
     bool EnumeratePath(std::string_view path, FileInfoTable &result_file_table) const override;
     FileResourceId GetResourceByPath(std::string_view path) const override;
-    std::string GetNameOfResource(FileResourceId resource, bool wants_full_path = true) const override;
+    std::string GetNameOfResource(FileResourceId resource,
+                                  bool wants_full_path = true) const override;
     bool FindFilesByExt(std::string_view ext, FileInfoTable &result_file_table) const override;
 
 private:
