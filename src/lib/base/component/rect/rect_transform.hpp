@@ -91,17 +91,22 @@ using Margin = math::fvec4;
 using Point = math::fvec2;
 using Rect = math::fvec4;
 
+static constexpr size_t kMarginIndexLeft = 0;
+static constexpr size_t kMarginIndexRight = 1;
+static constexpr size_t kMarginIndexTop = 2;
+static constexpr size_t kMarginIndexBottom = 3;
+
 inline float Horizontal(const Margin &margin) {
-    return margin[0] + margin[2];
+    return margin[kMarginIndexLeft] + margin[kMarginIndexTop];
 }
 inline float Vertical(const Margin &margin) {
-    return margin[1] + margin[3];
+    return margin[kMarginIndexTop] + margin[kMarginIndexBottom];
 }
 inline Point LeftTop(const Margin &margin) {
-    return Point(margin[0], margin[2]);
+    return Point(margin[kMarginIndexLeft], margin[kMarginIndexTop]);
 }
 inline Point RightBottom(const Margin &margin) {
-    return Point(margin[1], margin[2]);
+    return Point(margin[kMarginIndexRight], margin[kMarginIndexBottom]);
 }
 inline Point TotalMargin(const Margin &margin) {
     return Point(Horizontal(margin), Vertical(margin));
@@ -124,12 +129,12 @@ struct alignas(16) RectTransform : public ComponentBase<RectTransform> {
     AlignMode align_mode;
 
     math::fvec3 position;
-    Point size;
+    math::fvec3 size;
     Margin margin;
 
     // math::mat4 m_GlobalMatrix;
     // math::mat4 m_LocalMatrix;
-    Rect screen_rect;
+    // Rect screen_rect;
 
     // MoonGlare::Configuration::RuntimeRevision m_Revision;
 
@@ -175,11 +180,11 @@ void to_json(nlohmann::json &j, const RectTransform &p) {
     };
 }
 void from_json(const nlohmann::json &j, RectTransform &p) {
-    p.revision = 0;
     j.at("align_mode").get_to(p.align_mode);
     j.at("position").get_to(p.position);
     j.at("size").get_to(p.size);
     j.at("margin").get_to(p.margin);
+    p.SetDirty();
 }
 
 #endif

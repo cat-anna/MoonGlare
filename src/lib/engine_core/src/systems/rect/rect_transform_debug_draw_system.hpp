@@ -2,6 +2,7 @@
 
 #include "core/stepable_interface.hpp"
 #include "ecs/system_interface.hpp"
+#include "renderer/resources.hpp"
 
 namespace MoonGlare::Systems::Rect {
 
@@ -11,22 +12,25 @@ public:
     static constexpr char kSystemName[] = "rect_transform_debug_draw_system";
     static constexpr bool kStepable = true;
 
+    static constexpr size_t kInitialElementCount = 64;
+
     using SystemConfiguration = ECS::BaseSystemConfig;
 
     RectTransformDebugDrawSystem(const ECS::SystemCreateInfo &create_info,
-                                 SystemConfiguration config_data)
-        : SystemBase(create_info, config_data) {}
+                                 SystemConfiguration config_data);
     ~RectTransformDebugDrawSystem() override = default;
 
     //iSystem
 
 protected:
+    size_t last_known_element_count = kInitialElementCount;
+
+    Renderer::ShaderHandle shader_handle;
+
     //iSystem
     void DoStep(double time_delta) override;
 
 #if 0
-        void DebugDraw(const Core::MoveConfig &conf, RectTransformComponent *Component);
-private:
     bool ready = false;
     Renderer::ShaderResourceHandleBase shaderHandle;
 #endif

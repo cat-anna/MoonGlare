@@ -1,83 +1,89 @@
 #pragma once
 
+#include "enum_converter.hpp"
 #include <cstdint>
+#include <nlohmann/json.hpp>
 
 namespace MoonGlare::Component::Rect {
 
 enum class AlignMode : uint8_t {
-    None,
-    Top,
-    Bottom,
-    Left,
-    Right,
-    LeftTop,
-    LeftBottom,
-    RightTop,
-    RightBottom,
-    LeftMiddle,
-    RightMiddle,
-    MiddleTop,
-    MiddleBottom,
-    FillParent,
-    Center,
-    Table,
+    kNone,
+    kTop,
+    kBottom,
+    kLeft,
+    kRight,
+    kLeftTop,
+    kLeftBottom,
+    kRightTop,
+    kRightBottom,
+    kLeftMiddle,
+    kRightMiddle,
+    kMiddleTop,
+    kMiddleBottom,
+    kFillParent,
+    kCenter,
+    kTable,
 };
-// struct AlignModeEnumConverter : Space::EnumConverter<AlignMode, AlignMode::None> {
-//     AlignModeEnumConverter() {
-//         Add("Default", Enum::None);
-//         Add("Parent", Enum::FillParent);
-//         Add("FillParent", Enum::FillParent);
 
-//         Add("Center", Enum::Center);
-//         Add("Top", Enum::Top);
-//         Add("Bottom", Enum::Bottom);
-//         Add("Left", Enum::Left);
-//         Add("Right", Enum::Right);
-//         Add("LeftMiddle", Enum::LeftMiddle);
-//         Add("RightMiddle", Enum::RightMiddle);
-//         Add("MiddleTop", Enum::MiddleTop);
-//         Add("MiddleBottom", Enum::MiddleBottom);
+struct AlignModeEnumConverter : EnumConverter<AlignMode, AlignMode::kNone> {
+    AlignModeEnumConverter() {
+        Add("Default", Enum::kNone);
+        Add("Parent", Enum::kFillParent);
+        Add("FillParent", Enum::kFillParent);
 
-//         Add("LeftTop", Enum::LeftTop);
-//         Add("LeftBottom", Enum::LeftBottom);
-//         Add("RightTop", Enum::RightTop);
-//         Add("RightBottom", Enum::RightBottom);
+        Add("Center", Enum::kCenter);
+        Add("Top", Enum::kTop);
+        Add("Bottom", Enum::kBottom);
+        Add("Left", Enum::kLeft);
+        Add("Right", Enum::kRight);
+        Add("LeftMiddle", Enum::kLeftMiddle);
+        Add("RightMiddle", Enum::kRightMiddle);
+        Add("MiddleTop", Enum::kMiddleTop);
+        Add("MiddleBottom", Enum::kMiddleBottom);
 
-//         Add("Table", Enum::Table);
-//     }
-// };
-// using AlignModeEnum = Space::EnumConverterHolder<AlignModeEnumConverter>;
+        Add("LeftTop", Enum::kLeftTop);
+        Add("LeftBottom", Enum::kLeftBottom);
+        Add("RightTop", Enum::kRightTop);
+        Add("RightBottom", Enum::kRightBottom);
+
+        Add("Table", Enum::kTable);
+    }
+};
+using AlignModeEnum = EnumConverterHolder<AlignModeEnumConverter>;
+void from_json(const nlohmann::json &j, AlignMode &mode);
 
 //----------------------------------------------------------------------------------
 
 enum class TextAlignMode : uint8_t {
-    LeftTop,
-    MiddleTop,
-    RightTop,
-    LeftMiddle,
-    Middle,
-    RightMiddle,
-    LeftBottom,
-    MiddleBottom,
-    RightBottom,
-    //Justified, //:)
+    kLeftTop,
+    kMiddleTop,
+    kRightTop,
+    kLeftMiddle,
+    kMiddle,
+    kRightMiddle,
+    kLeftBottom,
+    kMiddleBottom,
+    kRightBottom,
+    //kJustified, //:)
 };
-// struct TextAlignModeEnumConverter : Space::EnumConverter<TextAlignMode, TextAlignMode::LeftTop> {
-//     TextAlignModeEnumConverter() {
-//         Add("Default", Enum::LeftTop);
-//         //Add("Justified", Enum::Justified);
-//         Add("LeftTop", Enum::LeftTop);
-//         Add("MiddleTop", Enum::MiddleTop);
-//         Add("RightTop", Enum::RightTop);
-//         Add("LeftMiddle", Enum::LeftMiddle);
-//         Add("Middle", Enum::Middle);
-//         Add("RightMiddle", Enum::RightMiddle);
-//         Add("LeftBottom", Enum::LeftBottom);
-//         Add("MiddleBottom", Enum::MiddleBottom);
-//         Add("RightBottom", Enum::RightBottom);
-//     }
-// };
-// using TextAlignModeEnum = Space::EnumConverterHolder<TextAlignModeEnumConverter>;
+struct TextAlignModeEnumConverter : EnumConverter<TextAlignMode, TextAlignMode::kLeftTop> {
+    TextAlignModeEnumConverter() {
+        Add("Default", Enum::kLeftTop);
+        //Add("Justified", Enum::kJustified);
+        Add("LeftTop", Enum::kLeftTop);
+        Add("MiddleTop", Enum::kMiddleTop);
+        Add("RightTop", Enum::kRightTop);
+        Add("LeftMiddle", Enum::kLeftMiddle);
+        Add("Middle", Enum::kMiddle);
+        Add("RightMiddle", Enum::kRightMiddle);
+        Add("LeftBottom", Enum::kLeftBottom);
+        Add("MiddleBottom", Enum::kMiddleBottom);
+        Add("RightBottom", Enum::kRightBottom);
+    }
+};
+using TextAlignModeEnum = EnumConverterHolder<TextAlignModeEnumConverter>;
+
+void from_json(const nlohmann::json &j, TextAlignMode &mode);
 
 using InnerAlignMode = TextAlignMode;
 // using InnerAlignModeEnum = TextAlignModeEnum;
@@ -93,11 +99,11 @@ enum class ImageScaleMode {
 };
 // struct ImageAlignModeConverter : Space::EnumConverter<ImageScaleMode, ImageScaleMode::None> {
 //     ImageAlignModeConverter() {
-//         Add("Default", Enum::None);
-//         Add("Center", Enum::Center);
-//         Add("ScaleToFit", Enum::ScaleToFit);
-//         Add("ScaleProportional", Enum::ScaleProportional);
-//         Add("ScaleProportionalCenter", Enum::ScaleProportionalCenter);
+//         Add("Default", Enum::kNone);
+//         Add("Center", Enum::kCenter);
+//         Add("ScaleToFit", Enum::kScaleToFit);
+//         Add("ScaleProportional", Enum::kScaleProportional);
+//         Add("ScaleProportionalCenter", Enum::kScaleProportionalCenter);
 //     }
 // };
 // using ImageScaleModeEnum = Space::EnumConverterHolder<ImageAlignModeConverter>;
@@ -110,9 +116,9 @@ enum class Orientation {
 };
 // struct OrientationEnumConverter : Space::EnumConverter<Orientation, Orientation::Horizontal> {
 //     OrientationEnumConverter() {
-//         Add("Default", Enum::Horizontal);
-//         Add("Horizontal", Enum::Horizontal);
-//         Add("Vertical", Enum::Vertical);
+//         Add("Default", Enum::kHorizontal);
+//         Add("Horizontal", Enum::kHorizontal);
+//         Add("Vertical", Enum::kVertical);
 //     }
 // };
 // using OrientationEnum = Space::EnumConverterHolder<OrientationEnumConverter>;
@@ -127,11 +133,11 @@ enum class ScaleMode {
 };
 // struct ScaleModeEnumConverter : Space::EnumConverter<ScaleMode, ScaleMode::None> {
 //     ScaleModeEnumConverter() {
-//         Add("Default", Enum::None);
-//         Add("None", Enum::None);
-//         Add("Fit", Enum::Fit);
-//         Add("ProportionalFit", Enum::ProportionalFit);
-//         Add("User", Enum::User);
+//         Add("Default", Enum::kNone);
+//         Add("None", Enum::kNone);
+//         Add("Fit", Enum::kFit);
+//         Add("ProportionalFit", Enum::kProportionalFit);
+//         Add("User", Enum::kUser);
 //     }
 // };
 // using ScaleModeEnum = Space::EnumConverterHolder<ScaleModeEnumConverter>;

@@ -1,143 +1,194 @@
 #pragma once
 
 #include "rect_transform_system.hpp"
+#include "component/global_matrix.hpp"
+#include "component/local_matrix.hpp"
 #include "component/rect/rect_transform.hpp"
+#include "debugger_support.hpp"
 #include "ecs/component_array.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
 
 namespace MoonGlare::Systems::Rect {
 
-using namespace Component::Rect;
+using namespace MoonGlare::Component;
+using namespace MoonGlare::Component::Rect;
 
 namespace {
-void RecalculateRectTransform(const RectTransform &parent, RectTransform &child) {
-    const auto &parentmargin = parent.margin;
-    const auto parentsize = GetRectSize(parent.screen_rect);
 
-    bool doslice = true;
+void UpdateRectTransform(const RectTransform &child, math::Transform &transform) {
+    // m_ScreenRect.SliceFromparent(parent.m_ScreenRect, child.position, child.size);
+    transform = Eigen::Translation3f(child.position);
+    // glm::translate(glm::identity<glm::fmat4>(), math::vec3(child.position, 0));
+}
+
+void Recalculate(const RectTransform &parent, RectTransform &child, LocalMatrix &child_matrix) {
+
+    const auto &parentmargin = parent.margin;
+    const auto parentsize2 =
+        math::fvec2{parent.size[0], parent.size[1]}; // GetRectSize(parent.screen_rect);
+    const math::fvec3 parentsize = {parentsize2[0], parentsize2[1], 0};
 
     auto update_position = [&](auto v) {
         child.position = math::fvec3(v[0], v[1], child.position[2]);
+        UpdateRectTransform(child, child_matrix.transform);
+    };
+
+    auto update_position_xy = [&](auto x, auto y) {
+        child.position = math::fvec3(x, y, child.position[2]);
+        UpdateRectTransform(child, child_matrix.transform);
     };
 
     switch (child.align_mode) {
-    case AlignMode::None:
+    case AlignMode::kNone:
         break;
 
-    case AlignMode::Top:
+    case AlignMode::kTop:
+        TriggerBreakPoint();
         update_position(LeftTop(parentmargin));
         child.size[0] = parentsize[0] - Vertical(parentmargin);
         break;
-    case AlignMode::Bottom:
+    case AlignMode::kBottom:
+        TriggerBreakPoint();
         child.size[0] = parentsize[0] - Vertical(parentmargin);
         // update_position(Point(parentmargin.Left, parentsize[1] - parentmargin.Top - child.size[1]));
         break;
-    case AlignMode::Left:
+    case AlignMode::kLeft:
         update_position(LeftTop(parentmargin));
         child.size[1] = parentsize[1] - Vertical(parentmargin);
         break;
-    case AlignMode::Right:
-        // update_position(Point(parentsize[0] - parentmargin.Right - child.size[0], parentmargin.Top));
+    case AlignMode::kRight:
+        update_position_xy(parentsize[0] - parentmargin[kMarginIndexRight] - child.size[0],
+                           parentmargin[kMarginIndexTop]);
         child.size[1] = parentsize[1] - Vertical(parentmargin);
         break;
 
-    case AlignMode::LeftTop:
+    case AlignMode::kLeftTop:
         update_position(LeftTop(parentmargin));
         break;
-    case AlignMode::LeftBottom:
+    case AlignMode::kLeftBottom:
+        TriggerBreakPoint();
         // update_position(Point(parentmargin.Left, parentsize[1] - parentmargin.Bottom - child.size[1]));
         break;
-    case AlignMode::RightTop:
+    case AlignMode::kRightTop:
+        TriggerBreakPoint();
         // update_position(Point(parentsize[0] - parentmargin.Right - child.size[0], parentmargin.Top));
         break;
-    case AlignMode::RightBottom:
+    case AlignMode::kRightBottom:
+        TriggerBreakPoint();
         // update_position(parentsize - parentmargin.RightBottomMargin() - child.size);
         break;
 
-    case AlignMode::LeftMiddle:
-        // child.position =
-        //     Point(parentmargin.Left,
-        //           parentmargin.Top + (parentsize[1] - Vertical(parentmargin)) / 2.0f);
+    case AlignMode::kLeftMiddle:
+        update_position_xy(parentmargin[kMarginIndexLeft],
+                           parentmargin[kMarginIndexTop] +
+                               (parentsize[1] - Vertical(parentmargin)) / 2.0f);
         break;
-    case AlignMode::RightMiddle:
-        // update_position(Point(parentsize[0] - parentmargin.Right - child.size[0]),
-        //                    parentmargin.Top +
-        //                        (parentsize[1] - Vertical(parentmargin) - child.size[1]) / 2.0f);
+    case AlignMode::kRightMiddle:
+        update_position_xy(parentsize[0] - parentmargin[kMarginIndexRight] - child.size[0],
+                           parentmargin[kMarginIndexTop] +
+                               (parentsize[1] - Vertical(parentmargin) - child.size[1]) / 2.0f
+
+        );
         break;
-    case AlignMode::MiddleTop:
+    case AlignMode::kMiddleTop:
+        TriggerBreakPoint();
         // update_position(Point(parentmargin.Left )+
         //                        (parentsize[0] - parentmargin.HorizontalMargin() - child.size[0]) / 2.0f,
         //                    parentmargin.Top);
         break;
-    case AlignMode::MiddleBottom:
+    case AlignMode::kMiddleBottom:
+        TriggerBreakPoint();
         // update_position(Point(parentmargin.Left )+
         //                        (parentsize[0] - parentmargin.HorizontalMargin() - child.size[0]) / 2.0f,
         //                    parentsize[1] - parentmargin.Top - child.size[1]);
         break;
 
-    case AlignMode::FillParent:
+    case AlignMode::kFillParent: {
         update_position(LeftTop(parentmargin));
-        child.size =
+        auto available_size =
             Point(parentsize[0] - Horizontal(parentmargin), parentsize[1] - Vertical(parentmargin));
+        child.size[0] = available_size[0];
+        child.size[1] = available_size[1];
         break;
+    }
 
-    case AlignMode::Center: {
-        auto halfparent = parentsize / 2.0f;
-        auto halfsize = child.size / 2.0f;
+    case AlignMode::kCenter: {
+        math::fvec3 halfparent = parentsize / 2.0f;
+        math::fvec3 halfsize = child.size / 2.0f;
         update_position(halfparent - halfsize);
         break;
     }
-    case AlignMode::Table: {
-        auto cell = math::fvec2(parentsize - TotalMargin(parentmargin));
-        cell[0] = (cell[0] / child.size[0]) * child.position[0];
-        cell[1] = (cell[1] / child.size[1]) * child.position[1];
-        auto cellpos = math::fvec2(LeftTop(parentmargin) + cell);
+    case AlignMode::kTable: {
+        TriggerBreakPoint();
+        auto cell = math::fvec2(parentsize2 - TotalMargin(parentmargin));
+        for (int i = 0; i < cell.size(); ++i) {
+            cell[i] = (cell[i] / child.size[i]) * child.position[i];
+        }
+        math::fvec2 celloffset = {0, 0};
+        auto left_top_parent = LeftTop(parentmargin);
+        for (int i = 0; i < celloffset.size(); ++i) {
+            celloffset[i] = left_top_parent[i] + cell[i];
+        }
+        auto cellpos = math::fvec3(celloffset[0], celloffset[1], child.position[2]);
         // m_ScreenRect.SliceFromparent(parent.m_ScreenRect, cellpos, cell);
+        child_matrix.transform = Eigen::Translation3f(cellpos);
         // m_LocalMatrix = glm::translate(glm::identity<glm::fmat4>(), math::vec3(cellpos, 0));
-        doslice = false;
+
         break;
     }
 
-        // default:
+    default:
+        TriggerBreakPoint();
         // LogInvalidEnum(m_AlignMode);
         // return;
     }
-
-    if (doslice) {
-        // m_ScreenRect.SliceFromparent(parent.m_ScreenRect, child.position, child.size);
-        // m_LocalMatrix = glm::translate(glm::identity<glm::fmat4>(), math::vec3(child.position, 0));
-    }
-
-    // m_GlobalMatrix = parent.m_GlobalMatrix * m_LocalMatrix;
 }
 
 } // namespace
 
+RectTransformSystem::RectTransformSystem(const ECS::SystemCreateInfo &create_info,
+                                         SystemConfiguration config_data)
+    : SystemBase(create_info, config_data) {
+
+    auto root = GetEntityManager()->GetRootEntity();
+    auto root_index = 0; // GetEntityManager()->SplitEntity(root).index; //TODO
+
+    auto screen_rect = RectTransform{
+        .revision = 1,
+        .align_mode = AlignMode::kFillParent,
+        // .position = {-1, -1, 0}, //TODO
+        // .size = {2, 2, 0},
+        .position = {-0.9, -0.9, 0},
+        .size = {1.8, 1.8, 0},
+        .margin = {0, 0, 0, 0},
+    };
+
+    GetComponentArray()->AssignComponent<RectTransform>(root_index, screen_rect);
+    auto *local_mat =
+        GetComponentArray()->AssignComponent<LocalMatrix>(root_index, LocalMatrix::Identity());
+    UpdateRectTransform(screen_rect, local_mat->transform);
+
+    //TODO: don't access it directly?
+    auto *glob_mat = GetComponentArray()->AssignComponent<GlobalMatrix>(
+        root_index, GlobalMatrix{.transform = local_mat->transform});
+}
+
 void RectTransformSystem::DoStep(double time_delta) {
     ++current_revision;
 
-    GetComponentArray()->VisitWithParent<RectTransform>(
-        [this](const RectTransform &parent, RectTransform &child) {
-            if (parent.revision > child.revision) {
-                RecalculateRectTransform(parent, child);
-                child.revision = current_revision;
-
-                // auto parentindex = values.parentindex[i];
-                // assert(parentindex != values.InvalidIndex);
-
-                // auto *parententry = &values.entry[parentindex];
-                // if (parententry->m_Revision <= item.m_Revision && !item.m_Flags.map.m_Dirty) {
-                //     //nothing to do, nothing changed;
-                //     item.m_Flags.map.m_Changed = false;
-                // } else {
-                //     item.Recalculate(*parententry);
-                //     item.m_Revision = m_CurrentRevision;
-                //     item.m_Flags.map.m_Changed = true;
-                //     //item.m_Flags.map.m_Dirty = false;
-                // }
-                // //	item.m_GlobalScale = parententry->m_GlobalScale * item.m_LocalScale;
+    GetComponentArray()->VisitWithOptionalParent<RectTransform, LocalMatrix>(
+        [this](const RectTransform *parent, RectTransform &child, LocalMatrix &child_matrix) {
+            if (parent == nullptr) {
+                // parent = &screen_rect;
+                return;
             }
+
+            // if (child.revision == 0 || parent.revision > child.revision) {
+            Recalculate(*parent, child, child_matrix);
+            child.revision = current_revision;
+            //	item.m_GlobalScale = parententry->m_GlobalScale * item.m_LocalScale;
+            // }
         });
 }
 
@@ -551,7 +602,7 @@ bool RectTransformComponent::Load(ComponentReader &reader, Entity parent, Entity
         auto &root = GetRootEntry();
         if (m_Flags.map.m_UniformMode) {
             //convert from pixel to uniform
-            if (entry.m_AlignMode != AlignMode::Table) {
+            if (entry.m_AlignMode != AlignMode::kTable) {
                 auto half = root.child.size / 2.0f;
                 entry.child.position = entry.child.position / m_ScreenSize;// -half;
                 entry.child.size = entry.child.size / m_ScreenSize * root.child.size;
@@ -562,7 +613,7 @@ bool RectTransformComponent::Load(ComponentReader &reader, Entity parent, Entity
             //NOT TESTED; MAY NOT WORK
             float Aspect = m_ScreenSize[0] / m_ScreenSize[1];
             auto half = Point(Aspect, 1.0f);
-            if (entry.m_AlignMode != AlignMode::Table) {
+            if (entry.m_AlignMode != AlignMode::kTable) {
                 entry.child.position = entry.child.position * m_ScreenSize + half;
                 entry.child.size = entry.child.size * m_ScreenSize;
             }

@@ -13,10 +13,7 @@ public:
 
     using SystemConfiguration = ECS::BaseSystemConfig;
 
-    RectTransformSystem(const ECS::SystemCreateInfo &create_info, SystemConfiguration config_data)
-        : SystemBase(create_info, config_data) {
-        //
-    }
+    RectTransformSystem(const ECS::SystemCreateInfo &create_info, SystemConfiguration config_data);
     ~RectTransformSystem() override = default;
 
     //iSystem
