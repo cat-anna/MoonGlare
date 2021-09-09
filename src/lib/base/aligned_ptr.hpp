@@ -11,7 +11,7 @@ template <class T>
 using aligned_array = std::unique_ptr<T[], boost::alignment::aligned_delete>;
 
 template <class T, class... Args>
-inline aligned_ptr<T> make_aligned(Args &&... args) {
+inline aligned_ptr<T> make_aligned(Args &&...args) {
     auto ptr = boost::alignment::aligned_alloc(boost::alignment::alignment_of<T>::value, sizeof(T));
     if (!ptr) {
         throw std::bad_alloc();
@@ -41,6 +41,11 @@ inline T Align16(T value) {
         value = (value & ~0xF) + 0x10;
     }
     return value;
+}
+template <typename T>
+inline T *AlignPointer16(T *value) {
+    auto uptr = Align16(reinterpret_cast<uintptr_t>(value));
+    return reinterpret_cast<T *>(uptr);
 }
 
 } // namespace MoonGlare

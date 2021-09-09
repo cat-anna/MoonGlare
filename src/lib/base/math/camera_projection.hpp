@@ -46,6 +46,18 @@ Eigen::Matrix<Scalar, 4, 4> Ortho(Scalar const &left, Scalar const &right, Scala
 }
 
 template <typename Scalar>
+Eigen::Matrix<Scalar, 4, 4> Ortho(Scalar const &left, Scalar const &right, Scalar const &bottom,
+                                  Scalar const &top) {
+    Eigen::Matrix<Scalar, 4, 4> mat = Eigen::Matrix<Scalar, 4, 4>::Identity();
+    mat(0, 0) = Scalar(2) / (right - left);
+    mat(1, 1) = Scalar(2) / (top - bottom);
+    mat(2, 2) = -Scalar(1);
+    mat(3, 0) = -(right + left) / (right - left);
+    mat(3, 1) = -(top + bottom) / (top - bottom);
+    return mat;
+}
+
+template <typename Scalar>
 Eigen::Matrix<Scalar, 4, 4> Perspective(Scalar fovy, Scalar aspect, Scalar zNear, Scalar zFar) {
     Eigen::Transform<Scalar, 3, Eigen::Projective> tr;
     tr.matrix().setZero();

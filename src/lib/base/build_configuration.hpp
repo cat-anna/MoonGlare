@@ -1,11 +1,14 @@
 #pragma once
 
 namespace MoonGlare {
+
 #ifdef DEBUG
 static constexpr bool kDebugBuild = true;
 #else
 static constexpr bool kDebugBuild = false;
 #endif
+
+static constexpr bool kDebugDumpEnabled = true;
 
 #ifdef WINDOWS
 static constexpr bool kIsOsWindows = true;

@@ -17,7 +17,11 @@ void to_json(nlohmann::json &j, const Eigen::Matrix<T, S, 1> &p) {
 template <typename T, size_t S>
 void from_json(const nlohmann::json &j, Eigen::Matrix<T, S, 1> &p) {
     std::array<T, S> *a = reinterpret_cast<std::array<T, S> *>(&p);
-    *a = j.get<std::array<T, S>>();
+    if (j.is_number()) {
+        a->fill(j.get<T>());
+    } else {
+        *a = j.get<std::array<T, S>>();
+    }
 }
 
 //----------------------------------------------------------------------------------
@@ -29,7 +33,11 @@ void to_json(nlohmann::json &j, const Quaternionf &p) {
 
 void from_json(const nlohmann::json &j, Quaternionf &p) {
     auto *a = reinterpret_cast<std::array<float, 4> *>(&p);
-    *a = j.get<std::array<float, 4>>();
+    if (j.is_number()) {
+        a->fill(j.get<float>());
+    } else {
+        *a = j.get<std::array<float, 4>>();
+    }
 }
 
 } // namespace Eigen
