@@ -1,6 +1,8 @@
 #pragma once
 
 #include "array_index_tree.hpp"
+#include "component/global_matrix.hpp"
+#include "component/local_matrix.hpp"
 #include "component/parent.hpp"
 #include "entity_manager_interface.hpp"
 #include "generation_buffer.hpp"
@@ -25,6 +27,12 @@ public:
         void ClearArrays() { generation_buffer.Randomize(); }
         void InitElement(ElementIndex e, ElementIndex parent) {
             component_array->MarkIndexAsValid(e);
+
+            component_array->AssignComponent<Component::GlobalMatrix>(
+                e, Component::GlobalMatrix::Identity());
+            component_array->AssignComponent<Component::LocalMatrix>(
+                e, Component::LocalMatrix::Identity());
+
             if (parent != kInvalidIndex) {
                 component_array->AssignComponent<Component::Parent>(e, Component::Parent{parent});
             }

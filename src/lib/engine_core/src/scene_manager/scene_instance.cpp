@@ -1,5 +1,5 @@
 
-#include "scene_instance.hpp"
+#include "scene_manager/scene_instance.hpp"
 #include "scene_manager/configuration.hpp"
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
@@ -11,9 +11,10 @@ SceneInstance::SceneInstance(std::string name, FileResourceId resource_id,
                              ECS::EntityManagerId scene_id,
                              gsl::not_null<iAsyncLoader *> _async_loader,
                              gsl::not_null<ECS::iComponentRegister *> _component_register,
-                             gsl::not_null<iPrefabManager *> _prefab_manager)
+                             gsl::not_null<iPrefabManager *> _prefab_manager,
+                             gsl::not_null<Renderer::iRenderingDeviceFacade *> _rendering_device)
     : iSceneInstance(std::move(name)), component_array(_component_register),
-      entity_manager(scene_id, &component_array) {
+      entity_manager(scene_id, &component_array), rendering_device(_rendering_device) {
 
     SetFenceState(kSceneFenceLoadPending, true);
 
@@ -59,6 +60,8 @@ void SceneInstance::LoadSceneContent(iPrefabManager *prefab_manager, std::string
         auto sci = ECS::SystemCreateInfo{
             .component_array = &component_array,
             .entity_manager = &entity_manager,
+            .frame_sink = rendering_device->GetFrameSink(),
+            .res_manager = rendering_device->GetResourceManager(),
         };
         auto loaded_systems =
             prefab_manager->LoadSystemConfiguration(sci, scene_config[kSceneSystemsConfig]);

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "entity_manager_interface.hpp"
+#include "renderer/facade.hpp"
 #include <cstdint>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -23,16 +24,17 @@ void from_json(const nlohmann::json &j, BaseSystemConfig &p);
 class ComponentArray;
 
 struct SystemCreateInfo {
-    ComponentArray *const component_array; //TODO: switch to interface
-    iEntityManager *const entity_manager;
+    ComponentArray *const component_array = nullptr; //TODO: switch to interface
+    iEntityManager *const entity_manager = nullptr;
+    Renderer::iFrameSink *const frame_sink = nullptr;
+    Renderer::iResourceManager *const res_manager = nullptr;
 };
 
 class iSystem {
 public:
     virtual ~iSystem() = default;
     iSystem(const SystemCreateInfo &create_info, const BaseSystemConfig &config)
-        : component_array(create_info.component_array), entity_manager(create_info.entity_manager),
-          active(config.active) {}
+        : active(config.active) {}
 
     // virtual int PushToLua(lua_State *lua, Entity owner) { return 0; };
     // virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) { return true; }
@@ -54,15 +56,9 @@ public:
     virtual RuntimeSystemInfo GetSystemInfo() const = 0;
 
 protected:
-    auto *GetComponentArray() const { return component_array; }
-    auto *GetEntityManager() const { return entity_manager; }
-
     virtual void DoStep(double time_delta){};
 
 private:
-    ComponentArray *const component_array;
-    iEntityManager *const entity_manager;
-
     bool active = true;
 };
 
@@ -70,13 +66,27 @@ template <typename SystemImpl>
 class SystemBase : public iSystem {
 public:
     SystemBase(const SystemCreateInfo &create_info, const BaseSystemConfig &config)
-        : iSystem(create_info, config) {}
+        : iSystem(create_info, config), component_array(create_info.component_array),
+          entity_manager(create_info.entity_manager), frame_sink(create_info.frame_sink),
+          res_manager(create_info.res_manager) {}
     ~SystemBase() override = default;
     RuntimeSystemInfo GetSystemInfo() const override {
         return RuntimeSystemInfo{
             .stepable = SystemImpl::kStepable,
         };
     }
+
+protected:
+    auto *GetComponentArray() const { return component_array; }
+    auto *GetEntityManager() const { return entity_manager; }
+    auto *GetFrameSink() const { return frame_sink; }
+    auto *GetResourceManager() const { return res_manager; }
+
+private:
+    ComponentArray *const component_array;
+    iEntityManager *const entity_manager;
+    Renderer::iFrameSink *const frame_sink;
+    Renderer::iResourceManager *const res_manager;
 };
 
 class BaseSystemInfo;

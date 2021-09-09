@@ -8,13 +8,13 @@
 namespace MoonGlare::ECS {
 
 void ComponentMemoryInfo::Dump() {
-    AddLog(Debug, "Dumping component array page offsts:");
+    AddLog(Debug, "Dumping component array page offset:");
     AddLog(Debug, fmt::format("    mem_block_size={:08x}({:.1f}KiB) validity_and_flags={:08x}",
                               total_memory_block_size, total_memory_block_size / 1024.0f,
                               valid_components_and_flags_offest));
     for (size_t i = 0; i < entry_size.size(); ++i) {
         if (entry_size[i] != 0) {
-            AddLog(Debug, fmt::format("    id={:2} offest={:08x} entry_size={:02x}", i,
+            AddLog(Debug, fmt::format("    id={:2} offset={:08x} entry_size={:02x}", i,
                                       memory_offsets[i], entry_size[i]));
         }
     }
@@ -87,11 +87,11 @@ void *ComponentArray::CreateComponent(IndexType index, ComponentId c_id,
     }
 
     void *memory = GetComponentMemory(index, c_id);
-    if (call_default_constructor) {
-        component_offsets.ops[c_id].default_constructor(memory);
-    }
     if (HasComponent(index, c_id)) {
         return memory;
+    }
+    if (call_default_constructor) {
+        component_offsets.ops[c_id].default_constructor(memory);
     }
 
     auto mask = detail::MakeComponentMaskWithActiveFlag(c_id);

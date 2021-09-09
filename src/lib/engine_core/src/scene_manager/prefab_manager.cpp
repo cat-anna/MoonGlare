@@ -81,9 +81,7 @@ struct PrefabManager::ImportTask {
 
         auto *mem = component_array->CreateComponent(index, c_id, false);
         json_op(mem, *c_import.import_data);
-        if (!c_import.active) {
-            component_array->SetComponentActive(index, c_id, false);
-        }
+        component_array->SetComponentActive(index, c_id, c_import.active);
     }
 };
 
@@ -206,7 +204,7 @@ void PrefabManager::ProcessEntityNode(const nlohmann::json &config_node, int ent
         task.all_entities.reserve(children_count);
         task.entity_parent.reserve(children_count);
 
-        int child_index = 0;
+        //   int child_index = 0;
         for (auto &child_node : *je.children) {
             auto child = task.entity_manager->NewEntity(local_root);
             int child_index = static_cast<int>(task.entity_parent.size());

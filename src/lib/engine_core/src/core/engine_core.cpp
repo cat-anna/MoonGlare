@@ -27,7 +27,10 @@ auto TimeDiff(const TIMEPOINT &start, const TIMEPOINT &end) {
 
 //----------------------------------------------------------------------------------
 
-EngineCore::EngineCore(iStepableObject *_scene_manager) : scene_manager(_scene_manager) {
+EngineCore::EngineCore(iStepableObject *_scene_manager, Lua::iScriptContext *_lua_context,
+                       Renderer::iRenderingDevice *_rendering_device)
+    : scene_manager(_scene_manager), lua_context(_lua_context),
+      rendering_device(_rendering_device) {
 }
 
 //----------------------------------------------------------------------------------
@@ -59,22 +62,22 @@ void EngineCore::EngineMain() {
         //     continue;
 
         ++frame_counter;
-        scene_manager->DoStep(frame_time);
 
-        // auto &cmd_l = conf.m_BufferFrame->GetCommandLayers();
-        // using Layer = Renderer::Frame::CommandLayers::LayerEnum;
+        rendering_device->NextFrame();
+
+        scene_manager->DoStep(frame_time);
+        lua_context->Step(frame_time);
+
+        rendering_device->SubmitFrame();
 
         // auto StartTime = clock_t::now();
         // {
-        //     conf.deferred->Reset(conf.m_BufferFrame);
         //     conf.UpdateTime(CurrentTime);
         //     GetScriptEngine()->Step(conf);
         //     GetWorld()->Step(conf);
         //     console->ProcessConsole(conf);
         // }
         // auto MoveTime = clock_t::now();
-
-        // Device->Submit(conf.m_BufferFrame);
 
         // auto EndTime = clock_t::now();
         // LastMoveTime = CurrentTime;
@@ -87,8 +90,8 @@ void EngineCore::EngineMain() {
             last_report_time = global_time;
             double dt = global_time - last_report_time;
             auto avg_dt = (dt / static_cast<float>(frame_counter - last_frame_counter)) * 1000.0f;
-            AddLog(Performance,
-                   fmt::format("time:{:05.3f} frames:{:06} avg_frame_dt:{:.3f}ms", global_time, frame_counter, avg_dt));
+            AddLog(Performance, fmt::format("time:{:05.3f} frames:{:06} avg_frame_dt:{:.3f}ms",
+                                            global_time, frame_counter, avg_dt));
         }
     }
 }

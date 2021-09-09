@@ -134,23 +134,52 @@ public:
         }
     }
 
-    template <typename ComponentClass, typename F>
-    void VisitWithParent(F visit_functor) {
-        constexpr auto parent_mask =
-            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Component::Parent>() |
-            detail::MakeComponentFlag(ComponentFlags::kValid);
+    template <typename ComponentClass, typename... Components, typename F>
+    void VisitWithOptionalParent(F visit_functor) {
+        constexpr auto parent_mask = detail::MakeComponentMaskWithActiveFlag<ComponentClass>();
 
-        constexpr auto mask =
-            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Component::Parent>() |
-            detail::MakeComponentFlag(ComponentFlags::kValid);
+        constexpr auto entity_mask =
+            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Components...>();
 
         for (IndexType index = 0; index <= component_page.element_count; ++index) {
-            if ((component_page.valid_components_and_flags[index] & parent_mask) == parent_mask) {
+            if ((component_page.valid_components_and_flags[index] & entity_mask) == entity_mask) {
                 // entry is valid and has all requested components are active
+
                 const auto *parent = iComponentArray::GetComponent<Component::Parent>(index);
-                if ((component_page.valid_components_and_flags[parent->index] & mask) == mask) {
+                ComponentClass *parent_component = nullptr;
+                if (parent != nullptr) {
+                    if ((component_page.valid_components_and_flags[parent->index] & parent_mask) ==
+                        parent_mask) {
+                        parent_component =
+                            iComponentArray::GetComponent<ComponentClass>(parent->index);
+                    }
+                }
+                visit_functor(parent_component,
+                              *iComponentArray::GetComponent<ComponentClass>(index),
+                              *iComponentArray::GetComponent<Components>(index)...);
+            }
+        }
+    }
+
+    template <typename ComponentClass, typename... Components, typename F>
+    void VisitWithParent(F visit_functor) {
+        constexpr auto parent_mask = detail::MakeComponentMaskWithActiveFlag<ComponentClass>();
+
+        constexpr auto entity_mask =
+            detail::MakeComponentMaskWithActiveFlag<ComponentClass, Component::Parent,
+                                                    Components...>();
+
+        for (IndexType index = 0; index <= component_page.element_count; ++index) {
+            if ((component_page.valid_components_and_flags[index] & entity_mask) == entity_mask) {
+                // entry is valid and has all requested components are active
+
+                const auto *parent = iComponentArray::GetComponent<Component::Parent>(index);
+                if ((component_page.valid_components_and_flags[parent->index] & parent_mask) ==
+                    parent_mask) {
+
                     visit_functor(*iComponentArray::GetComponent<ComponentClass>(parent->index),
-                                  *iComponentArray::GetComponent<ComponentClass>(index));
+                                  *iComponentArray::GetComponent<ComponentClass>(index),
+                                  *iComponentArray::GetComponent<Components>(index)...);
                 }
             }
         }

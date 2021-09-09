@@ -9,38 +9,9 @@ using namespace std::string_literals;
 
 namespace MoonGlare::SceneManager {
 
-namespace {
-
-class DefaultSceneFactory : public iSceneInstanceFactory {
-public:
-    DefaultSceneFactory(gsl::not_null<iAsyncLoader *> _async_loader,
-                        gsl::not_null<ECS::iComponentRegister *> _component_register,
-                        gsl::not_null<iPrefabManager *> _prefab_manager)
-        : async_loader(_async_loader), component_register(_component_register), prefab_manager(_prefab_manager) {}
-    ~DefaultSceneFactory() override = default;
-
-    std::unique_ptr<iSceneInstance> CreateSceneInstance(std::string scene_name, FileResourceId res_id) {
-        return std::make_unique<SceneInstance>(std::move(scene_name), res_id, 0, async_loader, component_register,
-                                               prefab_manager);
-    }
-
-private:
-    iAsyncLoader *const async_loader;
-    ECS::iComponentRegister *const component_register;
-    iPrefabManager *const prefab_manager;
-};
-
-} // namespace
+namespace {} // namespace
 
 //----------------------------------------------------------------------------------
-
-ScenesManager::ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
-                             gsl::not_null<iAsyncLoader *> _async_loader,
-                             gsl::not_null<ECS::iComponentRegister *> _component_register,
-                             gsl::not_null<iPrefabManager *> _prefab_manager)
-    : ScenesManager(_filesystem,
-                    std::make_unique<DefaultSceneFactory>(_async_loader, _component_register, _prefab_manager)) {
-}
 
 ScenesManager::ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                              std::unique_ptr<iSceneInstanceFactory> _scene_factory)
@@ -64,7 +35,8 @@ void ScenesManager::CacheScenes(iReadOnlyFileSystem *filesystem) {
         std::string_view name = item.file_name;
         name.remove_suffix(4); //4 - length(".sdx")
 
-        AddLog(Debug, fmt::format("Got scene descriptor {} : resid={:x}", name, item.file_resource_id));
+        AddLog(Debug,
+               fmt::format("Got scene descriptor {} : resid={:x}", name, item.file_resource_id));
 
         scene_descriptors[std::string(name)] = SceneDescriptor{
             // .resource_id=
@@ -77,7 +49,8 @@ void ScenesManager::CacheScenes(iReadOnlyFileSystem *filesystem) {
 
 //----------------------------------------------------------------------------------
 
-iSceneInstance *ScenesManager::CreateScene(const std::string &resource_name, std::string scene_name) {
+iSceneInstance *ScenesManager::CreateScene(const std::string &resource_name,
+                                           std::string scene_name) {
     if (scene_name.empty()) {
         scene_name = resource_name;
     }
@@ -96,7 +69,8 @@ iSceneInstance *ScenesManager::CreateScene(const std::string &resource_name, std
     AddLog(Debug, fmt::format("Creating scene {} of name {}", resource_name, scene_name));
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
-    auto new_scene_instance = scene_factory->CreateSceneInstance(scene_name, descriptor->second.resource_id);
+    auto new_scene_instance =
+        scene_factory->CreateSceneInstance(scene_name, descriptor->second.resource_id);
 
     // scene.descriptor = desc;
     // scene.entityManager = entityManager;

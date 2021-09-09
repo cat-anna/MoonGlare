@@ -3,13 +3,16 @@
 #include "core/engine_time.hpp"
 #include "core/stepable_interface.hpp"
 #include "core/stop_interface.hpp"
+#include "lua_context/script_module.hpp"
+#include "renderer/rendering_device_interface.hpp"
 #include <atomic>
 
 namespace MoonGlare {
 
 class EngineCore : public iStopInterface, public iEngineTime {
 public:
-    EngineCore(iStepableObject *_scene_manager);
+    EngineCore(iStepableObject *_scene_manager, Lua::iScriptContext *_lua_context,
+               Renderer::iRenderingDevice *_rendering_device);
     ~EngineCore() = default;
 
     void EngineMain();
@@ -33,6 +36,8 @@ public:
 
 protected:
     iStepableObject *const scene_manager;
+    Lua::iScriptContext *const lua_context;
+    Renderer::iRenderingDevice *const rendering_device;
     // Memory::ActionQueue m_ActionQueue;
 
     // World *m_World = nullptr;

@@ -17,9 +17,6 @@ namespace MoonGlare::SceneManager {
 
 class ScenesManager : public iScenesManager, public iStepableObject {
 public:
-    ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem, gsl::not_null<iAsyncLoader *> _async_loader,
-                  gsl::not_null<ECS::iComponentRegister *> _component_register,
-                  gsl::not_null<iPrefabManager *> _prefab_manager);
     ScenesManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                   std::unique_ptr<iSceneInstanceFactory> _scene_factory);
     ~ScenesManager() override;
