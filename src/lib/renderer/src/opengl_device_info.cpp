@@ -1,10 +1,10 @@
 
-#include "DeviceInfo.h"
-#include <gl/glew.h>
+#include "opengl_device_info.hpp"
+#include "renderer/types.hpp"
 #include <orbit_logger.h>
 #include <thread>
 
-namespace MoonGlare::Renderer::Device {
+namespace MoonGlare::Renderer {
 
 void DeviceInfo::ReadInfo() {
 
@@ -19,7 +19,9 @@ void DeviceInfo::ReadInfo() {
         _add(GL_SHADING_LANGUAGE_VERSION, 's') //
         _add(GL_RENDERER, 's')                 //
 
+#ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
         _add(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, 'f') //
+#endif
 
         _add(GL_MAX_COLOR_ATTACHMENTS, 'i')            //
         _add(GL_MAX_TEXTURE_UNITS, 'i')                //
@@ -75,4 +77,4 @@ void DeviceInfo::ReadInfo() {
     AddLogf(System, "CPU threads = %u", std::thread::hardware_concurrency());
 }
 
-} // namespace MoonGlare::Renderer::Device
+} // namespace MoonGlare::Renderer
