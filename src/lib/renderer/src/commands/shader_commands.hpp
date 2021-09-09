@@ -1,76 +1,97 @@
 #pragma once
 
-#include "../CommandQueueBase.h"
-
-#include "../../Material.h"
+#include "renderer/device_types.hpp"
+#include <glad/glad.h>
 
 namespace MoonGlare::Renderer::Commands {
 
-struct ShaderBindArgument {
-	Device::ShaderHandle m_Shader;
-	static void Execute(const ShaderBindArgument *arg) {
-		glUseProgram(arg->m_Shader);
-	}
+struct ShaderBindCommand {
+    Device::ShaderHandle handle;
+    void Execute() const { glUseProgram(handle); }
 };
-using ShaderBind = CommandTemplate<ShaderBindArgument>;
 
 //---------------------------------------------------------------------------------------
 
-struct ShaderSetUniformMatrix4Argument {
-	Device::ShaderUniformHandle m_Location;
-	math::RawMat4 m_Matrix;
-	static void Execute(const ShaderSetUniformMatrix4Argument *arg) {
-		glUniformMatrix4fv(arg->m_Location, 1, GL_FALSE, (const float*)&arg->m_Matrix);
-	}
-};
-using ShaderSetUniformMatrix4 = CommandTemplate<ShaderSetUniformMatrix4Argument>;
+namespace detail {
 
-struct ShaderSetUniformVec4Argument {
-	Device::ShaderUniformHandle m_Location;
-	math::RawVec4 m_Vec;
-	static void Execute(const ShaderSetUniformVec4Argument *arg) {
-		glUniform4fv(arg->m_Location, 1, &arg->m_Vec[0]);
-	}
-};
-using ShaderSetUniformVec4 = CommandTemplate<ShaderSetUniformVec4Argument>;
+using ShaderUniformHandle = Device::ShaderUniformHandle;
 
-struct ShaderSetUniformVec3Argument {
-	Device::ShaderUniformHandle m_Location;
-	math::RawVec3 m_Vec;
-	static void Execute(const ShaderSetUniformVec3Argument *arg) {
-		glUniform3fv(arg->m_Location, 1, &arg->m_Vec[0]);
-	}
-};
-using ShaderSetUniformVec3 = CommandTemplate<ShaderSetUniformVec3Argument>;
+// clang-format off
 
-struct ShaderSetUniformVec2Argument {
-	Device::ShaderUniformHandle m_Location;
-	float m_Vec[2];
-	static void Execute(const ShaderSetUniformVec2Argument *arg) {
-		glUniform2fv(arg->m_Location, 1, arg->m_Vec);
-	}
-};
-using ShaderSetUniformVec2 = CommandTemplate<ShaderSetUniformVec2Argument>;
+void SetUniform(ShaderUniformHandle uniform_handle, GLfloat v) { glUniform1f(uniform_handle, v); }
+void SetUniform(ShaderUniformHandle uniform_handle, GLint v) {   glUniform1i(uniform_handle, v); }
 
-struct ShaderSetUniformIVec2Argument {
-	Device::ShaderUniformHandle m_Location;
-	int m_Vec[2];
-	static void Execute(const ShaderSetUniformIVec2Argument *arg) {
-		glUniform2iv(arg->m_Location, 1, arg->m_Vec);
-	}
-};
-using ShaderSetUniformIVec2 = CommandTemplate<ShaderSetUniformIVec2Argument>;
+void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec3 &v) { glUniform3fv(uniform_handle, 1, (float*)&v); }
+void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec4 &v) { glUniform4fv(uniform_handle, 1, (float*)&v); }
 
-struct ShaderSetUniformFloatArgument {
-	Device::ShaderUniformHandle m_Location;
-	float m_Float;
-	static void Execute(const ShaderSetUniformFloatArgument *arg) {
-		glUniform1f(arg->m_Location, arg->m_Float);
-	}
+void SetUniform(ShaderUniformHandle uniform_handle, const math::fmat4 &v) { glUniformMatrix4fv(uniform_handle, 1, GL_TRUE, (float*)&v); }
+
+// clang-format on
+
+} // namespace detail
+
+// struct ShaderSetUniformMatrix4Argument {
+//     math::RawMat4 m_Matrix;
+//     Device::ShaderUniformHandle uniform_handle;
+//     static void Execute(const ShaderSetUniformMatrix4Argument *arg) {
+//         glUniformMatrix4fv(arg->uniform_handle, 1, GL_FALSE, (const float *)&arg->m_Matrix);
+//     }
+// };
+// using ShaderSetUniformMatrix4 = CommandTemplate<ShaderSetUniformMatrix4Argument>;
+
+// struct ShaderSetUniformVec4Argument {
+//     math::RawVec4 m_Vec;
+//     Device::ShaderUniformHandle uniform_handle;
+//     static void Execute(const ShaderSetUniformVec4Argument *arg) {
+//         glUniform4fv(arg->uniform_handle, 1, &arg->m_Vec[0]);
+//     }
+// };
+// using ShaderSetUniformVec4 = CommandTemplate<ShaderSetUniformVec4Argument>;
+
+// struct ShaderSetUniformVec3Argument {
+//     math::RawVec3 m_Vec;
+//     Device::ShaderUniformHandle uniform_handle;
+//     static void Execute(const ShaderSetUniformVec3Argument *arg) {
+//         glUniform3fv(arg->uniform_handle, 1, &arg->m_Vec[0]);
+//     }
+// };
+// using ShaderSetUniformVec3 = CommandTemplate<ShaderSetUniformVec3Argument>;
+
+// struct ShaderSetUniformVec2Argument {
+//     float m_Vec[2];
+//     Device::ShaderUniformHandle uniform_handle;
+//     static void Execute(const ShaderSetUniformVec2Argument *arg) {
+//         glUniform2fv(arg->uniform_handle, 1, arg->m_Vec);
+//     }
+// };
+// using ShaderSetUniformVec2 = CommandTemplate<ShaderSetUniformVec2Argument>;
+
+// struct ShaderSetUniformIVec2Argument {
+//     int m_Vec[2];
+//     Device::ShaderUniformHandle uniform_handle;
+//     static void Execute(const ShaderSetUniformIVec2Argument *arg) {
+//         glUniform2iv(arg->uniform_handle, 1, arg->m_Vec);
+//     }
+// };
+// using ShaderSetUniformIVec2 = CommandTemplate<ShaderSetUniformIVec2Argument>;
+
+template <typename T>
+struct ShaderSetUniformCommand {
+    T value;
+    Device::ShaderUniformHandle uniform_handle;
+    void Execute() const { //
+        detail::SetUniform(uniform_handle, value);
+    }
 };
-using ShaderSetUniformFloat = CommandTemplate<ShaderSetUniformFloatArgument>;
 
 //---------------------------------------------------------------------------------------
+
+} // namespace MoonGlare::Renderer::Commands
+
+#if 0
+
+namespace MoonGlare::Renderer::Commands {
+
 //---------------------------------------------------------------------------------------
 
 namespace detail {
@@ -130,7 +151,7 @@ struct ShaderResourcSetNamedUniformArgument {
     Device::ShaderHandle *shaderHandle;
     T value;
     const char *name;
-    static void Execute(const ShaderResourcSetNamedUniformArgument *arg) {            
+    static void Execute(const ShaderResourcSetNamedUniformArgument *arg) {
         auto loc = glGetUniformLocation(*arg->shaderHandle, arg->name);
         ShaderResourcSetUniformArgumentBase::Set(loc, arg->value);
     }
@@ -157,7 +178,7 @@ struct ShaderBindMaterialResourceArgument {
     emath::fvec3 specularColor;
     emath::fvec3 emissiveColor;
 
-    float shiness; 
+    float shiness;
 
     Device::ShaderUniformHandle diffuseColorLocation;
     Device::ShaderUniformHandle specularColorLocation;
@@ -201,3 +222,5 @@ using ShaderBindMaterialResource = CommandTemplate<detail::ShaderBindMaterialRes
 
 
 } //namespace MoonGlare::Renderer::Commands
+
+#endif

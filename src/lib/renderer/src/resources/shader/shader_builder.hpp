@@ -1,7 +1,9 @@
+#if 0
+
 #pragma once
 
-#include "../../nfRenderer.h"
 #include "../../Configuration.Renderer.h"
+#include "../../nfRenderer.h"
 
 #include "../../Commands/CommandQueue.h"
 #include "../../Commands/OpenGL/ShaderCommands.h"
@@ -118,7 +120,7 @@ struct ShaderBuilder {
 #if 0
 template<typename Descriptor>
 struct
-    //alignas(16) 
+    //alignas(16)
     ShaderExecutor {
     //	static_assert(std::is_trivial<ShaderBuilder>::value, "must be trivial!");
     //	static_assert((sizeof(ShaderBuilder) % 16) == 0, "Invalid size!");
@@ -183,6 +185,8 @@ private:
     }
 };
 
-#endif 
+#endif
 
-} //namespace MoonGlare::Renderer::Resources 
+} //namespace MoonGlare::Renderer::Resources
+
+#endif
