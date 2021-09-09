@@ -1,0 +1,24 @@
+
+//-----------MATERIAL-----------
+
+// uniform sampler2D gDiffuseMap;
+// uniform sampler2D gNormalMap;
+// uniform sampler2D gShinessMap;
+// uniform sampler2D gSpecularMap;
+// uniform sampler2D gEmissiveMap;
+
+// struct Material_t {
+// 	vec3 diffuseColor;
+// 	vec3 specularColor;
+// 	vec3 emissiveColor;
+// 	float shiness;
+// 	float opacity;
+// };
+
+//-----------Global-Uniforms-----------
+
+// uniform vec2 ScreenSize;
+// uniform vec3 uCameraPos;
+// uniform mat4 WorldMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uCameraMatrix;

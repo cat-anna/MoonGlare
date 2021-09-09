@@ -18,9 +18,7 @@ using iFrameSink = Renderer::iFrameSink;
 RectTransformDebugDrawSystem::RectTransformDebugDrawSystem(const ECS::SystemCreateInfo &create_info,
                                                            SystemConfiguration config_data)
     : SystemBase(create_info, config_data) {
-
-    //TODO: create dedicated shader for rect transform debug draw
-    shader_handle = GetResourceManager()->LoadShader("gui");
+    shader_handle = GetResourceManager()->LoadShader("/shader/rect_transform_debug_draw");
     if (shader_handle == Renderer::kInvalidResourceHandle) {
         AddLog(Warning, "Failed to load shader for rect transform debug draw. Deactivating system");
         SetActive(false);
@@ -29,30 +27,10 @@ RectTransformDebugDrawSystem::RectTransformDebugDrawSystem(const ECS::SystemCrea
 
 void RectTransformDebugDrawSystem::DoStep(double time_delta) {
 #if 0
-    auto frame = conf.m_BufferFrame;
-
-    using namespace Renderer;
-    using Uniform = GUIShaderDescriptor::Uniform;
-
-
-    auto &layers = frame->GetCommandLayers();
-    auto &q = layers.Get<Renderer::Configuration::FrameBuffer::Layer::GUI>();
-    auto &shres = frame->GetResourceManager()->GetShaderResource();
-    auto key = Renderer::Commands::CommandKey::Max();
-    auto shb = shres.GetBuilder<GUIShaderDescriptor>(q, shaderHandle);
-
-    shb.Set<Uniform::ModelMatrix>(emath::MathCast<emath::fmat4>(glm::identity<glm::fmat4>()), key);
-    shb.Set<Uniform::TileMode>(emath::ivec2(0, 0), key);
-    shb.Set<Uniform::BaseColor>(emath::fvec4(1, 1, 1, 1), key);
-
-    q.MakeCommandKey<Commands::Texture2DBind>(key, Renderer::Device::InvalidTextureHandle);
    // q.MakeCommandKey<Commands::Enable>(key, (GLenum)GL_BLEND);
-    q.MakeCommandKey<Commands::Disable>(key, (GLenum)GL_CULL_FACE);
     q.MakeCommandKey<Commands::Disable>(key, (GLenum)GL_DEPTH_TEST);
+
     q.MakeCommandKey<Commands::EnterWireFrameMode>(key);
-
-    // ...
-
     q.MakeCommandKey<Renderer::Commands::LeaveWireFrameMode>(key);
 #endif
 
@@ -106,9 +84,10 @@ void RectTransformDebugDrawSystem::DoStep(double time_delta) {
         });
 
     auto req = iFrameSink::ElementRenderRequest{
-        // .position_matrix = {}, //identity
-        .element_mode = (GLenum)GL_LINES, //GL_TRIANGLES,
-        .index_count = (int)generated_indices,
+        .position_matrix = math::fmat4::Identity(),
+        .element_mode = GL_LINES,
+        .index_count = generated_indices,
+        .shader_handle = shader_handle,
     };
 
     GetFrameSink()->SubmitElements(element_buffer, req);
