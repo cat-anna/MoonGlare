@@ -74,18 +74,6 @@ void FreeImageLoaderRequest::Execute(CommandQueueRef &output_queue) {
 void FreeImageLoaderRequest::PreprocessImage(FREE_IMAGE_FORMAT fif) {
     auto bitmap = loaded_image.get();
 
-    //switch (fif) {
-    //case FIF_PNG: //png images need to be flipped
-    //FreeImage_FlipVertical(bitmap);
-    //break;
-    //default:
-    //nothing todo
-    //break;
-    //}
-
-    //FreeImage_FlipVertical(dib);
-    //FreeImage_FlipHorizontal(dib);
-
     // Device::PixelFormat srcFormat = Device::PixelFormat::RGB8;
     Device::PixelFormat format = Device::PixelFormat::RGB8;
 

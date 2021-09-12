@@ -9,6 +9,6 @@ target_link_libraries(
   star_vfs
   fmt::fmt
   glfw
-  glad::glad
+  # glad::glad
   engine_core
   orbit_logger)

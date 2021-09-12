@@ -22,7 +22,7 @@ GlfwWindowHandler::GlfwWindowHandler(Renderer::WindowCreationInfo window_info,
 
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -44,19 +44,29 @@ GlfwWindowHandler::GlfwWindowHandler(Renderer::WindowCreationInfo window_info,
         }
     }
 
-    glfw_window.reset(glfwCreateWindow(window_info.width, window_info.height, window_info.title.c_str(), monitor, 0));
+    glfw_window.reset(glfwCreateWindow(window_info.width, window_info.height,
+                                       window_info.title.c_str(), monitor, 0));
     if (!glfw_window) {
         throw std::runtime_error("Unable to create new window!");
     }
     glfwSetWindowUserPointer(glfw_window.get(), this);
 
     BindAsRenderTarget();
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        throw std::runtime_error("Unable to initialize glad");
+    }
 
     // m_LastMousePos = CursorPos();
     glfwSetWindowUserPointer(glfw_window.get(), this);
     glfwGetWindowSize(glfw_window.get(), &size[0], &size[1]);
 
     glViewport(0, 0, size[0], size[1]);
+    glClearColor(0.0f, 0.0f, 0.f, 0.0f);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    // glEnable(GL_FRAMEBUFFER_SRGB);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // glfwSwapInterval(0);
 

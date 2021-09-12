@@ -28,8 +28,8 @@ bool IsModeAllowed(const GLFWvidmode *mode) {
 std::string DumpMode(const GLFWvidmode *mode) {
     char buf[128];
     float aspect = (float)mode->width / (float)mode->height;
-    sprintf_s(buf, "%dx%d@%dHz bits:%dx%dx%d ratio:%f", mode->width, mode->height, mode->refreshRate, mode->redBits,
-              mode->blueBits, mode->greenBits, aspect);
+    sprintf_s(buf, "%dx%d@%dHz bits:%dx%dx%d ratio:%f", mode->width, mode->height,
+              mode->refreshRate, mode->redBits, mode->blueBits, mode->greenBits, aspect);
     return buf;
 }
 
@@ -66,8 +66,9 @@ GlfwContext::~GlfwContext() {
     AddLog(Debug, "GLFW finalized");
 }
 
-std::unique_ptr<Renderer::iDeviceWindow> GlfwContext::CreateWindow(Renderer::WindowCreationInfo window_info,
-                                                                   InputHandler::iInputHandler *input_handler) {
+std::unique_ptr<Renderer::iDeviceWindow>
+GlfwContext::CreateWindow(Renderer::WindowCreationInfo window_info,
+                          InputHandler::iInputHandler *input_handler) {
     if (window_info.width == 0 || window_info.height == 0) {
         auto mon = glfwGetPrimaryMonitor();
         auto mode = glfwGetVideoMode(mon);
@@ -87,18 +88,6 @@ std::unique_ptr<Renderer::iDeviceWindow> GlfwContext::CreateWindow(Renderer::Win
     }
     AddLogf(System, "Running on OpenGL %d.%d", GLVersion.major, GLVersion.minor);
 
-    glClearColor(0.0f, 0.0f, 0.f, 0.0f);
-
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    // glEnable(GL_FRAMEBUFFER_SRGB);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    static const unsigned char texd[] = {255, 255, 255};
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, texd);
     window->SwapBuffers();
 
     return window;
@@ -155,8 +144,8 @@ void GlfwContext::DumpMonitors() {
         bool primary = glfwGetPrimaryMonitor() == monitor;
         auto cmode = glfwGetVideoMode(monitor);
 
-        AddLogf(System, "%-6s %d: Physical size:[%4dx%-4dmm] Current mode:[%30s] Name:[%s]", (primary ? "P" : ""), i,
-                widthMM, heightMM, DumpMode(cmode).c_str(), name);
+        AddLogf(System, "%-6s %d: Physical size:[%4dx%-4dmm] Current mode:[%30s] Name:[%s]",
+                (primary ? "P" : ""), i, widthMM, heightMM, DumpMode(cmode).c_str(), name);
     }
     AddLogf(System, "Video modes:");
 

@@ -16,9 +16,33 @@ struct ShaderVariables {
     };
 
     enum class Sampler {
-        kDummy,
+        kTexture2dSampler0,
+        // kTexture2dSampler1,
+        // kTexture2dSampler2,
+        // kTexture2dSampler3,
         kMaxValue,
     };
+
+    enum class Layout {
+        // NOTE: must match with common.glsl
+        kVertexPosition = 0,
+        kTexture0UV = 1,
+        kVertexColor = 2,
+    };
+
+    // enum class InputChannel : ChannelType {
+    //     kVertex,
+    //     kNormals,
+    //     kTexture0,
+    //     // kTexture1,
+    //     // kTexture2,
+    //     // kTexture3,
+    //     // //Color, //unused
+    //     // Index,
+    //     // Tangents, //TODO: in reverse order directional light is not working
+
+    //     kMaxValue,
+    // };
 
     constexpr static const char *GetUniformName(Uniform u) {
         switch (u) {
@@ -43,8 +67,8 @@ struct ShaderVariables {
     }
     constexpr static const char *GetSamplerName(Sampler s) {
         switch (s) {
-        // case Sampler::DiffuseMap:
-        //     return "gDiffuseMap";
+        case Sampler::kTexture2dSampler0:
+            return "sTexture2dSampler0";
         default:
             return nullptr;
         }
@@ -52,7 +76,7 @@ struct ShaderVariables {
 
     ShaderVariables() {
         uniform.fill(Device::kInvalidShaderUniformHandle);
-        sampler.fill(Device::kInvalidShaderUniformHandle);
+        // sampler.fill(Device::kInvalidShaderUniformHandle);
     }
 
     static const ShaderVariables &GetInvalidHandles() {
@@ -65,7 +89,7 @@ struct ShaderVariables {
     }
 
     std::array<Device::ShaderUniformHandle, static_cast<size_t>(Uniform::kMaxValue)> uniform;
-    std::array<Device::ShaderUniformHandle, static_cast<size_t>(Sampler::kMaxValue)> sampler;
+    // std::array<Device::ShaderUniformHandle, static_cast<size_t>(Sampler::kMaxValue)> sampler;
 };
 
 class iShaderResource {
@@ -74,8 +98,10 @@ public:
 
     virtual void ReloadAllShaders() = 0;
 
+    // must match with iRuntimeResourceLoader (double override by real implementation)
+    virtual ResourceHandle LoadShaderResource(FileResourceId file_id) = 0;
+
     virtual ShaderHandle LoadShader(const std::string &name) = 0;
-    virtual ShaderHandle LoadShader(FileResourceId resource_id) = 0;
     virtual const ShaderVariables *GetShaderVariables(ShaderHandle handle) = 0;
 };
 

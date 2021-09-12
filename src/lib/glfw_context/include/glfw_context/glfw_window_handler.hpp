@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glad/glad.h> // must be before glfw
+
 #include "input_handler/input_handler.hpp"
 #include "renderer/device_context.hpp"
 #include <GLFW/glfw3.h>
@@ -9,7 +11,8 @@ namespace MoonGlare::GlfwContext {
 
 class GlfwWindowHandler final : public Renderer::iDeviceWindow {
 public:
-    GlfwWindowHandler(Renderer::WindowCreationInfo window_info, InputHandler::iInputHandler *input_handler);
+    GlfwWindowHandler(Renderer::WindowCreationInfo window_info,
+                      InputHandler::iInputHandler *input_handler);
     ~GlfwWindowHandler();
 
     // // IContext

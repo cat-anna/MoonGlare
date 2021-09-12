@@ -6,8 +6,6 @@
 #include "renderer/frame_sink_interface.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
-// #include "component/local_matrix.hpp"
-// #include "renderer/resources.hpp"
 
 namespace MoonGlare::Systems::Rect {
 
@@ -24,16 +22,6 @@ RectImageSystem::RectImageSystem(const ECS::SystemCreateInfo &create_info,
 void RectImageSystem::DoStep(double time_delta) {
 
     // auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::GUI>();
-
-    // auto &shres = conf.m_BufferFrame->GetResourceManager()->GetShaderResource();
-    // auto shb = shres.GetBuilder(q, m_ShaderHandle);
-    // using Uniform = GUIShaderDescriptor::Uniform;
-    // using Sampler = GUIShaderDescriptor::Sampler;
-
-    // shb.Bind();
-    // shb.Set<Uniform::CameraMatrix>(m_RectTransform->GetCamera().GetProjectionMatrix());
-
-    // using namespace Renderer;
     // q.MakeCommand<Commands::SetViewport>(0, 0, (int)conf.m_ScreenSize[0], (int)conf.m_ScreenSize[1]);
     // q.MakeCommand<Commands::DepthMask>((GLboolean)GL_TRUE);
     // q.MakeCommand<Commands::Enable>((GLenum)GL_BLEND);
@@ -68,23 +56,20 @@ void RectImageSystem::DoStep(double time_delta) {
             auto w = rect.size[0];
             auto h = rect.size[1];
             std::array<math::fvec3, 4> points = {
-                math::fvec3(w * 0, h * 0, 0.0f),
-                math::fvec3(w * 1.0f, h * 0, 0.0f),
-                math::fvec3(w * 1.0f, h * 1.0f, 0.0f),
-                math::fvec3(w * 0, h * 1.0f, 0.0f),
+                math::fvec3(0, 0, 0),
+                math::fvec3(w, 0, 0),
+                math::fvec3(w, h, 0),
+                math::fvec3(0, h, 0),
             };
+            static const std::array<math::fvec2, 4> tex_points = {
+                math::fvec2(0, 1),
+                math::fvec2(1, 1),
+                math::fvec2(1, 0),
+                math::fvec2(0, 0),
+            };
+
             for (uint16_t i = 0; i < points.size(); ++i) {
                 element_buffer.vertex_buffer[i] = points[i];
-            }
-
-            std::array<math::fvec2, 4> tex_points = {
-                math::fvec2(0.0f, 0.0f),
-                math::fvec2(1.0f, 0.0f),
-                math::fvec2(1.0f, 1.0f),
-                math::fvec2(0.0f, 1.0f),
-            };
-
-            for (uint16_t i = 0; i < tex_points.size(); ++i) {
                 element_buffer.texture0_buffer[i] = tex_points[i];
             }
 
@@ -96,7 +81,7 @@ void RectImageSystem::DoStep(double time_delta) {
             }
 
             auto req = iFrameSink::ElementRenderRequest{
-                .position_matrix = global_matrix.transform.matrix(), //math::fmat4::Identity(),
+                .position_matrix = global_matrix.transform.matrix(),
                 .element_mode = GL_TRIANGLES,
                 .index_count = 6,
                 .shader_handle = image.shader_handle.loaded_handle,

@@ -13,51 +13,32 @@ namespace MoonGlare {
 namespace GUI {
 
 struct GUIShaderDescriptor {
-	enum class InLayout {
-		Position,
-	};
-	enum class OutLayout {
-		FragColor,
-	};
-	enum class Uniform {
-		CameraMatrix,
-		ModelMatrix,
-		BaseColor,
-		TileMode,
-		Border,
-		PanelSize,
-		PanelAspect,
-		MaxValue,
+    enum class InLayout {
+        Position,
+    };
+    enum class OutLayout {
+        FragColor,
+    };
+    enum class Uniform {
+        CameraMatrix,
+        ModelMatrix,
+        BaseColor,
+        TileMode,
+        Border,
+        PanelSize,
+        PanelAspect,
+        MaxValue,
 
-	};
-	enum class Sampler {
-		DiffuseMap,
-		MaxValue,
-	};
-
-	constexpr static const char* GetName(Uniform u) {
-		switch (u) {
-		case Uniform::CameraMatrix: return "CameraMatrix";
-		case Uniform::ModelMatrix: return "ModelMatrix";
-		case Uniform::BaseColor: return "gBaseColor";
-		case Uniform::TileMode: return "gTileMode";
-		case Uniform::Border: return "gPanelBorder";
-		case Uniform::PanelSize: return "gPanelSize";
-        case Uniform::PanelAspect: return "gPanelAspect";
-		default: return nullptr;
-		}
-	}
-	constexpr static const char* GetSamplerName(Sampler s) {
-		switch (s) {
-		case Sampler::DiffuseMap: return "gDiffuseMap";
-		default: return nullptr;
-		}
-	}
+    };
+    enum class Sampler {
+        DiffuseMap,
+        MaxValue,
+    };
 
     static constexpr char ResourceName[] = "GUI";
 };
 
-} //namespace GUI 
-} //namespace MoonGlare 
+} //namespace GUI
+} //namespace MoonGlare
 
 #endif
