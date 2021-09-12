@@ -21,6 +21,7 @@ struct PrefabManager::ComponentImport {
 };
 
 struct PrefabManager::ImportTask {
+    iRuntimeResourceLoader *runtime_resource_loader;
     ECS::iEntityManager *entity_manager;
     ECS::iComponentArray *component_array;
     ECS::iComponentRegister *component_register;
@@ -60,13 +61,13 @@ struct PrefabManager::ImportTask {
             }
 
             for (const auto &c_import : components[c_id]) {
-                InstantiateComponent(c_import, c_id, io_ops.construct_from_json);
+                InstantiateComponent(c_import, c_id, io_ops);
             }
         }
     }
 
     void InstantiateComponent(const ComponentImport &c_import, Component::ComponentId c_id,
-                              ECS::BaseComponentInfo::ComponentConstJsonFunc json_op) {
+                              const ECS::BaseComponentInfo::ComponentIoOps &io_ops) {
 
         ECS::iComponentArray::IndexType index;
         if (!entity_manager->GetEntityIndex(c_import.entity, index)) {
@@ -80,8 +81,9 @@ struct PrefabManager::ImportTask {
         }
 
         auto *mem = component_array->CreateComponent(index, c_id, false);
-        json_op(mem, *c_import.import_data);
+        io_ops.construct_from_json(mem, *c_import.import_data);
         component_array->SetComponentActive(index, c_id, c_import.active);
+        io_ops.load_resources(mem, *runtime_resource_loader);
     }
 };
 
@@ -89,9 +91,10 @@ struct PrefabManager::ImportTask {
 
 PrefabManager::PrefabManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                              gsl::not_null<ECS::iSystemRegister *> _system_register,
-                             gsl::not_null<ECS::iComponentRegister *> _component_register)
+                             gsl::not_null<ECS::iComponentRegister *> _component_register,
+                             gsl::not_null<iRuntimeResourceLoader *> _runtime_resource_loader)
     : filesystem(_filesystem), system_register(_system_register),
-      component_register(_component_register) {
+      component_register(_component_register), runtime_resource_loader(_runtime_resource_loader) {
 }
 
 PrefabManager::~PrefabManager() {
@@ -160,6 +163,7 @@ void PrefabManager::LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_m
                                    const nlohmann::json &child_node) {
 
     ImportTask task;
+    task.runtime_resource_loader = runtime_resource_loader;
     task.component_register = component_register;
     task.entity_manager = entity_manager;
     task.component_array = entity_manager->GetComponentArray();

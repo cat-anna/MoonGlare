@@ -13,6 +13,7 @@ struct Camera : public ComponentBase<Camera> {
     static constexpr char kComponentName[] = "camera";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     math::fmat4 projection_matrix;
     bool orthogonal;

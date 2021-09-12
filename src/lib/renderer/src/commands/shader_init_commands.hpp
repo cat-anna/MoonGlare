@@ -4,6 +4,7 @@
 #include "renderer/resources/shader_resource_interface.hpp"
 #include "resources/shader/shader_loader_interface.hpp"
 #include <array>
+#include <cassert>
 #include <glad/glad.h>
 
 namespace MoonGlare::Renderer::Commands {
@@ -11,13 +12,12 @@ namespace MoonGlare::Renderer::Commands {
 namespace detail {} // namespace detail
 
 struct GenShaderBatchCommand {
-    GLuint *base;
-    size_t count;
+    GLuint *out;
+    GLint count;
     void Execute() const {
-        if (base != nullptr) {
-            for (size_t i = 0; i < count; ++i) {
-                base[i] = glCreateProgram();
-            }
+        assert(out);
+        for (GLint i = 0; i < count; ++i) {
+            out[i] = glCreateProgram();
         }
     }
 };
@@ -43,8 +43,15 @@ struct ConstructShaderCommand {
 };
 
 struct QueryStandardUniformsCommand {
-    Device::ShaderHandle shader_handle;
+    Device::ShaderHandle handle;
     Resources::ShaderVariables *uniforms;
+
+    void Execute() const;
+};
+
+struct InitShaderSamplersCommand {
+    Device::ShaderHandle handle;
+    const char *shader_name;
 
     void Execute() const;
 };
@@ -52,11 +59,6 @@ struct QueryStandardUniformsCommand {
 } // namespace MoonGlare::Renderer::Commands
 
 #if 0
-
-#include "../../Configuration.Renderer.h"
-#include "../CommandQueueBase.h"
-#include "Common.h"
-#include <Renderer/Resources/Shader/ShaderCodeLoader.h>
 
 namespace MoonGlare::Renderer::Commands {
 
@@ -76,40 +78,6 @@ struct detail::ReleaseShaderResourceArgument {
 using ReleaseShaderResource = Commands::CommandTemplate<detail::ReleaseShaderResourceArgument>;
 
 //---------------------------------------------------------------------------------------
-
-struct detail::InitShaderSamplersArgument {
-	const char **m_Names;
-	unsigned m_Count;
-	Device::ShaderHandle *m_ShaderHandle;
-	const char *m_ShaderName;
-
-	void Run() const {
-		if (*m_ShaderHandle == Device::InvalidShaderHandle)
-			return;
-
-		glUseProgram(*m_ShaderHandle);
-		for (auto i = 0u; i < m_Count; ++i) {
-			auto name = m_Names[i];
-			if (!name)
-				//sampler is not named, just skip
-				continue;
-			auto loc = glGetUniformLocation(*m_ShaderHandle, name);
-			if (loc != Device::InvalidShaderUniformHandle) {
-				glUniform1i(loc, static_cast<GLint>(i));
-			}
-			else {
-				DebugLogf(Warning, "Unable to get location of sampler '%s' in shader '%s'", name, m_ShaderName);
-			}
-		}
-	}
-	static void Execute(const InitShaderSamplersArgument *arg) {
-		arg->Run();
-	}
-};
-using InitShaderSamplers = Commands::CommandTemplate<detail::InitShaderSamplersArgument>;
-
-//---------------------------------------------------------------------------------------
-
 
 }
 

@@ -1,4 +1,4 @@
-#include "pch.h"
+#if 0
 
 #include "FreeImageStore.h"
 #include "FreeImageUtils.h"
@@ -37,3 +37,4 @@ void FreeImageStore::Do(ResourceLoadStorage &storage) {
 }
 
 } // namespace MoonGlare::Renderer::Resources::Texture
+#endif

@@ -14,6 +14,7 @@ struct Mesh : public ComponentBase<Mesh> {
     static constexpr char kComponentName[] = "mesh";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     bool active = true;
     bool cast_shadow = true;

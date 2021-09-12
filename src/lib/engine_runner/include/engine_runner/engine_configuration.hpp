@@ -1,9 +1,10 @@
 #pragma once
 
+#include "renderer/device_context.hpp"
+#include "renderer/renderer_configuration.hpp"
 #include <nlohmann/json.hpp>
-#include <renderer/device_context.hpp>
-#include <renderer/renderer_configuration.hpp>
 #include <string>
+
 
 namespace MoonGlare {
 

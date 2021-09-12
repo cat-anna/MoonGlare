@@ -15,6 +15,7 @@ struct alignas(16) Transform : public ComponentBase<Transform> {
     static constexpr char kComponentName[] = "transform";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     // Array<emath::fvec3>         globalScale;
 

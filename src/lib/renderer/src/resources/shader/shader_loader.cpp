@@ -35,7 +35,7 @@ ShaderCodeLoader::ShaderCode ShaderCodeLoader::LoadCode(const std::string &name)
             processor->Version("420");
 
             processor->Define(shaderfile.name + "_main", "main");
-            processor->Define("shader_" + shaderfile.name, shaderfile.name);
+            processor->Define("shader_type", shaderfile.name);
 
             // buffer += "#define SHINESS_SCALER 128.0f\n";
             // buffer += "\n";

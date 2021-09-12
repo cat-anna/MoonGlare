@@ -24,7 +24,7 @@ void SetUniform(ShaderUniformHandle uniform_handle, GLint v) {   glUniform1i(uni
 void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec3 &v) { glUniform3fv(uniform_handle, 1, (float*)&v); }
 void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec4 &v) { glUniform4fv(uniform_handle, 1, (float*)&v); }
 
-void SetUniform(ShaderUniformHandle uniform_handle, const math::fmat4 &v) { glUniformMatrix4fv(uniform_handle, 1, GL_TRUE, (float*)&v); }
+void SetUniform(ShaderUniformHandle uniform_handle, const math::fmat4 &v) { glUniformMatrix4fv(uniform_handle, 1, GL_FALSE, (float*)&v); }
 
 // clang-format on
 

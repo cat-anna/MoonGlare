@@ -9,6 +9,7 @@ define_executable(
   glfw
   glad::glad
   OpenGL::GL
+  freeimage::FreeImage
   engine_core
   engine_runner
   lua_context)

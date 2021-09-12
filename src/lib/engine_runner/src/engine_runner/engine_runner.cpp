@@ -4,12 +4,12 @@
 #include "lua_context/lua_script_context.hpp"
 #include "lua_context/modules/lua_modules_all.hpp"
 #include "lua_modules/core_lua_modules.hpp"
+#include "scene_manager/default_scene_factory.hpp"
 #include "scene_manager/prefab_manager.hpp"
 #include "scene_manager/scenes_manager.hpp"
 #include "systems/register_components.hpp"
 #include "systems/register_systems.hpp"
 #include <orbit_logger.h>
-#include <renderer/resource_manager.hpp>
 #include <stdexcept>
 
 namespace MoonGlare {
@@ -22,33 +22,38 @@ EngineRunner::EngineRunner() {
     Lua::LoadAllLuaModules(&runner_hooks);
 }
 
+EngineRunner::~EngineRunner() {
+    Teardown();
+}
+
 void EngineRunner::Execute() {
     do_soft_restart = false;
-    try {
-        Initialize();
+    Initialize();
 
-        runner_hooks.AssertAllInterfaceHooksExecuted();
+    runner_hooks.AssertAllInterfaceHooksExecuted();
 
-        engine_thread = std::thread([this]() {
-            ::OrbitLogger::ThreadInfo::SetName("CORE");
-            engine_core->EngineMain();
-        });
+    engine_thread = std::thread([this]() {
+        ::OrbitLogger::ThreadInfo::SetName("CORE");
+        engine_core->EngineMain();
+    });
 
-        rendering_device->EnterLoop();
+    rendering_device->EnterLoop();
 
-    } catch (...) {
-        Finalize();
-        throw;
+    Stop();
+
+    if (engine_thread.joinable()) {
+        engine_thread.join();
     }
-    Finalize();
 }
 
 void EngineRunner::Initialize() {
     ecs_register.Dump();
     auto config = LoadConfiguration();
 
-    script_module_manager = std::make_shared<Lua::LuaScriptContext>();
-    runner_hooks.InterfaceReady<Lua::iScriptModuleManager>(script_module_manager.get());
+    script_context = std::make_shared<Lua::LuaScriptContext>();
+    runner_hooks.InterfaceReady<Lua::iScriptModuleManager>(script_context->GetModuleManager());
+    runner_hooks.InterfaceReady<Lua::iScriptContext>(script_context.get());
+    runner_hooks.InterfaceReady<Lua::iCodeChunkRunner>(script_context->GetCodeRunnerInterface());
 
     // auto moveCfg = std::make_shared<Core::MoveConfig>();
     // m_World->SetSharedInterface(moveCfg);
@@ -68,13 +73,21 @@ void EngineRunner::Initialize() {
 
     LoadDataModules();
 
-    using namespace SceneManager;
-    prefab_manager = std::make_unique<PrefabManager>(filesystem.get(), &ecs_register, &ecs_register);
-    runner_hooks.InterfaceReady<iPrefabManager>(prefab_manager.get());
+    using namespace Renderer;
+    device_context = CreateDeviceContext();
 
-    scene_manager =
-        std::make_unique<ScenesManager>(filesystem.get(), async_loader.get(), &ecs_register, prefab_manager.get());
-    runner_hooks.InterfaceReady<iScenesManager>(scene_manager.get());
+    input_processor = std::make_unique<InputHandler::InputProcessor>(this);
+    // runner_hooks.InterfaceReady<...>(input_processor.get());
+
+    auto main_window = Renderer::WindowCreationInfo{config.window};
+    device_window = device_context->CreateWindow(main_window, input_processor.get());
+
+    rendering_device = std::make_shared<RenderingDevice>(device_context.get(), device_window.get());
+    resource_manager = iResourceManager::CreteDefaultResourceManager(
+        async_loader.get(), rendering_device.get(), filesystem.get());
+    rendering_device->SetResourceManager(resource_manager.get());
+
+    InitSceneManager();
 
     runner_hooks.AfterDataModulesLoad();
 
@@ -84,16 +97,6 @@ void EngineRunner::Initialize() {
     //     throw "Unable to initialize modules manager";
     // }
     // SoundSystem::Component::SoundSystemRegister::Install(*m_World);
-    // auto scrEngine = new ScriptEngine(m_World.get());
-
-    device_context = CreateDeviceContext();
-    rendering_device = std::make_shared<Renderer::RenderingDevice>(device_context);
-    resource_manager = std::make_shared<Renderer::ResourceManager>(async_loader, rendering_device);
-
-    input_processor = std::make_unique<InputHandler::InputProcessor>(this);
-
-    auto main_window = Renderer::WindowCreationInfo{config.window};
-    device_window = device_context->CreateWindow(main_window, input_processor.get());
 
     // m_Renderer = Renderer::iRendererFacade::CreateInstance(*m_World);
     // auto *R = (Renderer::RendererFacade *)m_Renderer.get();
@@ -103,9 +106,10 @@ void EngineRunner::Initialize() {
     // m_World->CreateObject<Resources::SkeletalAnimationManager>();
     // auto *dataMgr = new DataManager(m_World.get());
     // m_World->SetInterface(dataMgr);
-    // LoadDataModules();
 
-    engine_core = std::make_unique<EngineCore>(dynamic_cast<iStepableObject *>(scene_manager.get())); //TODO: ugly
+    engine_core = std::make_unique<EngineCore>(
+        dynamic_cast<iStepableObject *>(scene_manager.get()), //TODO: ugly
+        script_context.get(), rendering_device.get());
     runner_hooks.InterfaceReady<iEngineTime>(engine_core.get());
 
     // LuaModules::LoadAllCoreLuaModules(script_module_manager.get(), engine_core.get());
@@ -116,60 +120,36 @@ void EngineRunner::Initialize() {
     // }
     // dataMgr->InitFonts();
 
-    AddLog(Debug, "Application initialized");
+    AddLog(Info, "Engine initialized");
 
-    // R->SetStopObserver([Engine]() { Engine->Exit(); });
     // if (!PostSystemInit()) {
     //     AddLogf(Error, "Post system init action failed!");
     //     throw "Post system init action failed!";
     // }
 }
 
-void EngineRunner::Finalize() {
+void EngineRunner::Teardown() {
     if (engine_thread.joinable()) {
         engine_thread.join();
     }
 
-    // #define _finit_chk(WHAT, ERRSTR, ...)                                                                                  \
-//     do {                                                                                                               \
-//         if (!WHAT::s_instance)                                                                                         \
-//             break;                                                                                                     \
-//         if (!WHAT::s_instance->Finalize()) {                                                                           \
-//             AddLogf(Error, ERRSTR, __VA_ARGS__);                                                                       \
-//         }                                                                                                              \
-//     } while (false)
-    // #define _del_chk(WHAT, ERRSTR, ...)                                                                                    \
-//     do {                                                                                                               \
-//         _finit_chk(WHAT, ERRSTR, __VA_ARGS__);                                                                         \
-//         WHAT::DeleteInstance();                                                                                        \
-//     } while (false)
-
-    //     SaveSettings();
-    //     if (m_Renderer)
-    //         m_Renderer->Finalize();
-    //     m_Renderer.reset();
-    //     _finit_chk(ModulesManager, "Finalization of modules manager failed!");
-    //     ModulesManager::DeleteInstance();
-
     runner_hooks.Clear();
     engine_core.reset();
 
-    // ScriptEngine::DeleteInstance();
-    // m_World.reset();
+    scene_manager.reset();
+    prefab_manager.reset();
 
     rendering_device.reset();
     resource_manager.reset();
     device_window.reset();
     device_context.reset();
 
-    scene_manager.reset();
-    prefab_manager.reset();
     async_loader.reset();
     filesystem.reset();
     svfs_hooks.reset();
-    script_module_manager.reset();
+    script_context.reset();
 
-    AddLog(Debug, "Application finalized");
+    AddLog(Info, "Engine finalized");
 }
 
 void EngineRunner::Stop() {
@@ -186,11 +166,27 @@ void EngineRunner::Stop() {
 
 StarVfs::iStarVfsHooks *EngineRunner::IntSvfsHooks() {
     if (!svfs_hooks) {
-        auto h = std::make_unique<Runner::ScriptInitRunnerHook>(script_module_manager->GetCodeRunnerInterface());
+        auto h = std::make_unique<Runner::ScriptInitRunnerHook>(
+            script_context->GetCodeRunnerInterface());
         runner_hooks.InstallHook(h.get());
         svfs_hooks = std::move(h);
     }
     return svfs_hooks.get();
+}
+
+void EngineRunner::InitSceneManager() {
+    using namespace SceneManager;
+    prefab_manager = std::make_unique<PrefabManager>(filesystem.get(), &ecs_register, &ecs_register,
+                                                     resource_manager.get());
+
+    runner_hooks.InterfaceReady<iPrefabManager>(prefab_manager.get());
+
+    scene_manager = std::make_unique<ScenesManager>(
+        filesystem.get(), //
+        std::make_unique<DefaultSceneFactory>(async_loader.get(), &ecs_register,
+                                              prefab_manager.get(), rendering_device.get()));
+
+    runner_hooks.InterfaceReady<iScenesManager>(scene_manager.get());
 }
 
 } // namespace MoonGlare

@@ -11,6 +11,7 @@ struct alignas(16) Name : public ComponentBase<Name> {
     static constexpr char kComponentName[] = "name";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     using StringType = BasicStaticString<64, char>;
 

@@ -16,13 +16,15 @@ class PrefabManager final : public iPrefabManager {
 public:
     PrefabManager(gsl::not_null<iReadOnlyFileSystem *> _filesystem,
                   gsl::not_null<ECS::iSystemRegister *> _system_register,
-                  gsl::not_null<ECS::iComponentRegister *> _component_register);
+                  gsl::not_null<ECS::iComponentRegister *> _component_register,
+                  gsl::not_null<iRuntimeResourceLoader *> _runtime_resource_loader);
     ~PrefabManager() override;
 
     LoadedSystems LoadSystemConfiguration(const ECS::SystemCreateInfo &data,
                                           const nlohmann::json &config_node) override;
 
-    void LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager, const nlohmann::json &child_node) override;
+    void LoadRootEntity(gsl::not_null<ECS::iEntityManager *> entity_manager,
+                        const nlohmann::json &child_node) override;
 
     void ClearCache();
     void PrintCache() const;
@@ -31,6 +33,7 @@ private:
     iReadOnlyFileSystem *const filesystem;
     ECS::iSystemRegister *const system_register;
     ECS::iComponentRegister *const component_register;
+    iRuntimeResourceLoader *const runtime_resource_loader;
 
     mutable std::mutex cache_mutex;
     std::unordered_map<FileResourceId, std::unique_ptr<nlohmann::json>> json_cache;

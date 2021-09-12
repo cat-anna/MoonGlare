@@ -10,6 +10,7 @@ struct alignas(16) GlobalMatrix : public ComponentBase<GlobalMatrix> {
     static constexpr char kComponentName[] = "global_matrix";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
+    static constexpr bool kHasResources = false;
 
     math::Transform transform;
 

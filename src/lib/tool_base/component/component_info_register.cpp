@@ -2,15 +2,16 @@
 #define WANTS_SERIALIZATION
 
 #include "component_info_register.hpp"
+#include "attribute_map_builder.hpp"
+#include "component/camera.hpp"
+#include "component/light_source.hpp"
+#include "component/mesh.hpp"
+#include "component/name.hpp"
+#include "component/rect/rect_image.hpp"
+#include "component/rect/rect_transform.hpp"
+#include "component/transform.hpp"
 #include "eigen_math_type_info.hpp"
-#include <attribute_map_builder.hpp>
-#include <component/camera.hpp>
-#include <component/light_source.hpp>
-#include <component/mesh.hpp>
-#include <component/name.hpp>
-#include <component/rect/image.hpp>
-#include <component/rect/rect_transform.hpp>
-#include <component/transform.hpp>
+
 
 // #include <component/revision.hpp>
 #include <component_register.hpp>
@@ -38,8 +39,8 @@ void RegisterAllBaseComponents(SharedModuleManager manager) {
     }
     {
         using namespace MoonGlare::Component::Rect;
-        provider->RegisterTypes<RectTransform, Image>("component.rect");
-        reg->RegisterComponents<RectTransform, Image>("component.rect");
+        provider->RegisterTypes<RectTransform, RectImage>("component");
+        reg->RegisterComponents<RectTransform, RectImage>("component");
     }
 }
 

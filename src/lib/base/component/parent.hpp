@@ -11,6 +11,7 @@ struct Parent {
     static constexpr char kComponentName[] = "parent";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
+    static constexpr bool kHasResources = false;
 
     uint64_t index;
 };

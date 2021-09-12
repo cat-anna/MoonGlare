@@ -16,6 +16,7 @@ struct Revision : public ComponentBase<Revision> {
     static constexpr char kComponentName[] = "revision";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     uint64_t value;
 };

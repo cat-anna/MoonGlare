@@ -1,27 +1,60 @@
-#include "../../nfRenderer.h"
-#include "../../Frame.h"
-#include "../../Renderer.h"
-#include "../../RenderDevice.h"
+#include "texture_resource.hpp"
+#include "commands/texture_commands.hpp"
+#include "commands/texture_load_commands.hpp"
+#include "debugger_support.hpp"
 
-#include "../../Commands/CommandQueue.h"
-#include "../../Commands/OpenGL/TextureCommands.h"
+namespace MoonGlare::Renderer::Resources::Texture {
 
-#include "../ResourceManager.h"
-#include "TextureResource.h"
-#include "../AsyncLoader.h"
+using namespace Commands;
 
-#include <Renderer/Frame.h>
-#include <Renderer/Renderer.h>
-#include <Renderer/RenderDevice.h>
-#include <Renderer/Resources/ResourceManager.h>            
+TextureResource::TextureResource(gsl::not_null<iTextureResourceLoader *> loader_interface,
+                                 gsl::not_null<CommandQueue *> init_commands)
+    : loader_interface(loader_interface) {
 
-#include "FreeImageLoader.h"
+    init_commands->PushCommand(TextureInitDefaultTexture{});
+    init_commands->PushCommand(TextureBulkAllocate{
+        .out = standby_handle_pool.BulkInsert(standby_handle_pool.Capacity()),
+        .count = standby_handle_pool.Capacity(),
+    });
+}
+
+TextureResource::~TextureResource() = default;
+
+ResourceHandle TextureResource::LoadTextureResource(FileResourceId file_id) {
+    if (auto it = loaded_textures.find(file_id); it != loaded_textures.end()) {
+        AddLog(Performance, fmt::format("Device texture cache hit: {}->{}", file_id, it->second));
+        return it->second | kResourceTypeTexture;
+    }
+
+    Device::TextureHandle dev_handle = Device::kInvalidTextureHandle;
+    if (!standby_handle_pool.Allocate(dev_handle)) {
+        AddLog(Warning, "Device texture handles pool is empty!");
+        TriggerBreakPoint();
+        return kInvalidTextureHandle;
+    }
+
+    loaded_textures[dev_handle] = file_id;
+    loaded_resource_id[dev_handle] = file_id;
+    texture_size[dev_handle] = {0, 0};
+
+    loader_interface->ScheduleLoad(file_id, dev_handle, &texture_size[dev_handle],
+                                   {/* config */}); //TODO
+
+    return dev_handle | kResourceTypeTexture;
+}
+
+TextureHandle TextureResource::LoadTexture(const std::string &name) {
+    TriggerBreakPoint();
+    return 0;
+}
+
+} // namespace MoonGlare::Renderer::Resources::Texture
+
+#if 0
 
 namespace MoonGlare::Renderer::Resources {
 
 void TextureResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem) {
-    assert(Owner);
-    assert(fileSystem);
     m_ResourceManager = Owner;
     m_Settings = &Owner->GetConfiguration()->texture;
 
@@ -36,8 +69,6 @@ void TextureResource::Initialize(ResourceManager *Owner, iFileSystem *fileSystem
     assert(index == 0); //TODO
 }
 
-void TextureResource::Finalize() {
-}
 
 //---------------------------------------------------------------------------------------
 
@@ -133,7 +164,7 @@ bool TextureResource::IsHandleValid(TextureResourceHandle h) const {
 
 //---------------------------------------------------------------------------------------
 
-bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size, 
+bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::CommandQueue & q, const void * Pixels, const emath::usvec2 & size,
             Configuration::TextureLoad config, Device::PixelFormat internalformat, Device::PixelFormat format, bool AllowAllocate, Device::ValueFormat TypeValue, Commands::CommandKey key) {
     if (!IsHandleValid(out) && AllowAllocate) {
         if (!Allocate(out)) {
@@ -165,5 +196,6 @@ bool TextureResource::SetTexturePixels(TextureResourceHandle & out, Commands::Co
     return true;
 }
 
-} //namespace MoonGlare::Renderer::Resources 
-        
+} //namespace MoonGlare::Renderer::Resources
+
+#endif

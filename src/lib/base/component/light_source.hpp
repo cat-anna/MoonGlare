@@ -12,6 +12,7 @@ struct LightSource : public ComponentBase<LightSource> {
     static constexpr char kComponentName[] = "light_source";
     static constexpr bool kEditable = true;
     static constexpr bool kSerializable = true;
+    static constexpr bool kHasResources = false;
 
     // Renderer::LightBase base;
     // Renderer::LightAttenuation attenuation;

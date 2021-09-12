@@ -19,7 +19,7 @@ RectTransformDebugDrawSystem::RectTransformDebugDrawSystem(const ECS::SystemCrea
                                                            SystemConfiguration config_data)
     : SystemBase(create_info, config_data) {
     shader_handle = GetResourceManager()->LoadShader("/shader/rect_transform_debug_draw");
-    if (shader_handle == Renderer::kInvalidResourceHandle) {
+    if (shader_handle == kInvalidResourceHandle) {
         AddLog(Warning, "Failed to load shader for rect transform debug draw. Deactivating system");
         SetActive(false);
     }

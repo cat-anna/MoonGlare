@@ -10,6 +10,7 @@ struct alignas(16) LocalMatrix : public ComponentBase<LocalMatrix> {
     static constexpr char kComponentName[] = "local_matrix";
     static constexpr bool kEditable = false;
     static constexpr bool kSerializable = false;
+    static constexpr bool kHasResources = false;
 
     math::Transform transform;
 

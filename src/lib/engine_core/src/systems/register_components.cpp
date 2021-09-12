@@ -9,12 +9,11 @@
 #include "component/mesh.hpp"
 #include "component/name.hpp"
 #include "component/parent.hpp"
-#include "component/rect/image.hpp"
+#include "component/rect/rect_image.hpp"
 #include "component/rect/rect_transform.hpp"
 #include "component/revision.hpp"
 #include "component/transform.hpp"
 #include "ecs/ecs_register.hpp"
-
 
 namespace MoonGlare::Systems {
 
@@ -32,7 +31,7 @@ void RegisterAllComponents(ECS::ECSRegister &ecs_register) {
     ecs_register.RegisterComponent<LocalMatrix>();
 
     ecs_register.RegisterComponent<Rect::RectTransform>();
-    ecs_register.RegisterComponent<Rect::Image>();
+    ecs_register.RegisterComponent<Rect::RectImage>();
 }
 
 } // namespace MoonGlare::Systems

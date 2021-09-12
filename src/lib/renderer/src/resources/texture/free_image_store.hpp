@@ -1,3 +1,5 @@
+#if 0
+
 #pragma once
 
 #include "../../iAsyncLoader.h"
@@ -26,3 +28,4 @@ private:
 };
 
 } // namespace MoonGlare::Renderer::Resources::Texture
+#endif

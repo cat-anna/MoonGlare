@@ -115,18 +115,40 @@ void ConstructShaderCommand::Execute() const {
 
 void QueryStandardUniformsCommand::Execute() const {
     assert(uniforms);
+    using ShaderVariables = Resources::ShaderVariables;
     using Uniform = Resources::ShaderVariables::Uniform;
 
     for (auto i = 0u; i < static_cast<size_t>(Uniform::kMaxValue); ++i) {
-        auto name = Resources::ShaderVariables::GetUniformName(static_cast<Uniform>(i));
+        auto name = ShaderVariables::GetUniformName(static_cast<Uniform>(i));
         if (name == nullptr) {
             continue;
         }
-        auto loc = glGetUniformLocation(shader_handle, name);
+        auto loc = glGetUniformLocation(handle, name);
         uniforms->uniform[i] = loc;
         if (loc == Device::kInvalidShaderUniformHandle) {
-            AddLogf(Debug, "Unable to get location of parameter '%s' in shader %d", name,
-                    shader_handle);
+            AddLogf(Debug, "Unable to get location of parameter '%s' in shader %d", name, handle);
+        }
+    }
+}
+
+void InitShaderSamplersCommand::Execute() const {
+    using ShaderVariables = Resources::ShaderVariables;
+    using Sampler = Resources::ShaderVariables::Sampler;
+
+    glUseProgram(handle);
+
+    for (auto i = 0u; i < static_cast<size_t>(Sampler::kMaxValue); ++i) {
+        auto name = ShaderVariables::GetSamplerName(static_cast<Sampler>(i));
+        if (name == nullptr) {
+            continue;
+        }
+
+        auto loc = glGetUniformLocation(handle, name);
+        if (loc != Device::kInvalidShaderUniformHandle) {
+            glUniform1i(loc, static_cast<GLint>(i));
+        } else {
+            AddLogf(Debug, "Unable to set location of sampler '%s' in shader '%s'", name,
+                    shader_name);
         }
     }
 }
