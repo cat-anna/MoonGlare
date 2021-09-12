@@ -1,6 +1,7 @@
 #include "debug_dump.hpp"
+#include "engine_runner/engine_runner.hpp"
+#include "engine_runner/modules/remote_console.hpp"
 #include <boost/program_options.hpp>
-#include <engine_runner/engine_runner.hpp>
 #include <filesystem>
 #include <glfw_context/glfw_context.hpp>
 #include <orbit_logger.h>
@@ -9,6 +10,8 @@
 #include <svfs/svfs_class_register.hpp>
 
 namespace MoonGlare {
+
+using namespace MoonGlare::Runner;
 
 namespace {
 constexpr auto kEngineCompilationDate = __DATE__ " at " __TIME__;
@@ -19,6 +22,9 @@ constexpr auto kVersionString = "0.4";
 struct StandaloneApplicationConfiguration {
     EngineConfiguration engine;
     std::vector<std::string> modules;
+
+    //TODO: move recon server to lua scripts in debug module
+    bool remote_console_enabled = true;
 };
 
 inline void to_json(nlohmann::json &j, const StandaloneApplicationConfiguration &p) {
@@ -46,6 +52,10 @@ public:
         class_register.RegisterAll();
         LoadAppConfig();
         ParseArguments(argc, argv);
+
+        if (ec.remote_console_enabled) {
+            CreateModule<Modules::RemoteConsoleModule>();
+        }
     }
 
     std::shared_ptr<iReadOnlyFileSystem> CreateFilesystem() override {

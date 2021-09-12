@@ -4,7 +4,7 @@
 namespace MoonGlare::Tools::RuntineModules {
 
 RemoteConsoleModule::RemoteConsoleModule(SharedModuleManager modmgr)
-    : iModule(std::move(modmgr)), port(Api::ReconPort) {
+    : iModule(std::move(modmgr)), port(Api::RemoteConsole::kReconPort) {
     // SetSettingID("RemoteConsoleModule");
 }
 
@@ -12,7 +12,7 @@ RemoteConsoleModule::~RemoteConsoleModule() {
 }
 
 bool RemoteConsoleModule::PostInit() {
-    // ConnectTo(host, port);
+    ConnectTo(host, port);
     return true;
 }
 

@@ -5,8 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
-
-namespace MoonGlare {
+namespace MoonGlare::Runner {
 
 struct EngineConfiguration {
     Renderer::WindowInfo window;
@@ -39,4 +38,4 @@ inline void from_json(const nlohmann::json &j, EngineConfiguration &p) {
     j.at("window").get_to(p.window);
 }
 
-} // namespace MoonGlare
+} // namespace MoonGlare::Runner

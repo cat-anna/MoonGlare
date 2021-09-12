@@ -12,7 +12,7 @@
 #include <orbit_logger.h>
 #include <stdexcept>
 
-namespace MoonGlare {
+namespace MoonGlare::Runner {
 
 EngineRunner::EngineRunner() {
     Systems::RegisterAllSystems(ecs_register);
@@ -189,7 +189,7 @@ void EngineRunner::InitSceneManager() {
     runner_hooks.InterfaceReady<iScenesManager>(scene_manager.get());
 }
 
-} // namespace MoonGlare
+} // namespace MoonGlare::Runner
 
 #if 0
 

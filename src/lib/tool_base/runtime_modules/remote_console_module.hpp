@@ -21,7 +21,7 @@ public:
 
 private:
     uint16_t port = 0;
-    std::string host = "localhost";
+    std::string host = "127.0.0.1";
 };
 
 } // namespace MoonGlare::Tools::RuntineModules

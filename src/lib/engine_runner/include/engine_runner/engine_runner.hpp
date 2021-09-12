@@ -9,6 +9,7 @@
 #include "engine_runner/engine_runner_hooks.hpp"
 #include "input_handler/input_processor.hpp"
 #include "lua_context/script_module.hpp"
+#include "modules/runner_module_interface.hpp"
 #include "readonly_file_system.h"
 #include "renderer/device_context.hpp"
 #include "renderer/facade.hpp"
@@ -20,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-namespace MoonGlare {
+namespace MoonGlare::Runner {
 
 class EngineRunner : public iEngineRunner {
 public:
@@ -33,6 +34,12 @@ public:
     void SetSoftRestart(bool v) { do_soft_restart = v; }
 
     void Stop() override;
+
+    template <typename T, typename... ARGS>
+    void CreateModule(ARGS &&...args) {
+        runner_modules.emplace_back(std::make_unique<T>(std::forward<ARGS>(args)...));
+        runner_modules.back()->InstallInterfaceHooks(&runner_hooks);
+    }
 
 protected:
     std::shared_ptr<iReadOnlyFileSystem> filesystem;
@@ -74,6 +81,7 @@ protected:
     // virtual std::shared_ptr<Settings> GetUpperLayerSettings() { return nullptr; };
 private:
     Runner::EngineRunnerHooksHost runner_hooks;
+    std::vector<std::unique_ptr<Modules::iRunnerModule>> runner_modules;
 };
 
-} //namespace MoonGlare
+} // namespace MoonGlare::Runner

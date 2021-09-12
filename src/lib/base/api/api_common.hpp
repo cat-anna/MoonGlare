@@ -17,7 +17,7 @@ enum class Signature : uint32_t {
 template <typename MessageType_t, Signature SignatureValue_v>
 struct BaseMessageHeader {
     using MessageType = MessageType_t;
-    static constexpr Signature SignatureValue = SignatureValue_v;
+    static constexpr Signature kSignatureValue = SignatureValue_v;
 
     Signature signature;
     MessageType messageType;
