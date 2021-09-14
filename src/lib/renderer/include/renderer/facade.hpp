@@ -4,7 +4,7 @@ namespace MoonGlare::Renderer {
 
 class iFrameSink;
 class iRenderingDevice;
-class iFrameBuffer;
+class iRenderTarget;
 class iResourceManager;
 
 class iRenderingDeviceFacade {

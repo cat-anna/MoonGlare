@@ -1,5 +1,42 @@
 #pragma once
 
+#include "renderer/device_types.hpp"
+#include <glad/glad.h>
+
+namespace MoonGlare::Renderer::Commands {
+
+struct FrameBufferBindCommand {
+    Device::FrameBufferHandle handle;
+    void Execute() const { glBindFramebuffer(GL_FRAMEBUFFER, handle); }
+};
+
+struct FrameBufferReadBindCommand {
+    Device::FrameBufferHandle handle;
+    void Execute() const { glBindFramebuffer(GL_READ_FRAMEBUFFER, handle); }
+};
+
+struct FrameBufferWriteBindCommand {
+    Device::FrameBufferHandle handle;
+    void Execute() const { glBindFramebuffer(GL_DRAW_FRAMEBUFFER, handle); }
+};
+
+//---------------------------------------------------------------------------------------
+
+struct FrameBufferBindViewportCommand {
+    Device::FrameBufferHandle handle;
+    GLsizei width;
+    GLsizei height;
+    void Execute() const {
+        glBindFramebuffer(GL_FRAMEBUFFER, handle);
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+};
+
+//---------------------------------------------------------------------------------------
+
+} // namespace MoonGlare::Renderer::Commands
+
 #if 0
 
 #include "../CommandQueueBase.h"
@@ -18,37 +55,10 @@ using CheckDrawFramebuffer = CommandTemplate<CheckDrawFramebufferArgument>;
 
 //---------------------------------------------------------------------------------------
 
-struct FramebufferBindArgument {
-    Device::FramebufferHandle m_handle;
-    static void Execute(const FramebufferBindArgument *arg) {
-        glBindFramebuffer(GL_FRAMEBUFFER, arg->m_handle);
-    }
-};
-using FramebufferBind = CommandTemplate<FramebufferBindArgument>;
-
-struct FramebufferDrawBindArgument {
-    Device::FramebufferHandle m_handle;
-    static void Execute(const FramebufferDrawBindArgument *arg) {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, arg->m_handle);
-    }
-};
-using FramebufferDrawBind = CommandTemplate<FramebufferDrawBindArgument>;
-
-
-struct FramebufferReadBindArgument {
-    Device::FramebufferHandle m_handle;
-    static void Execute(const FramebufferReadBindArgument *arg) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, arg->m_handle);
-    }
-};
-using FramebufferReadBind = CommandTemplate<FramebufferReadBindArgument>;
-
-//---------------------------------------------------------------------------------------
-
 struct SetFramebufferDrawTextureArgument : public TextureCommandBase {
     GLenum m_ColorAttachment;
     static void Execute(const SetFramebufferDrawTextureArgument *arg) {
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, arg->m_ColorAttachment, *arg->m_HandlePtr, 0);
+        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, arg->m_ColorAttachment, *arg->handlePtr, 0);
     }
 };
 using SetFramebufferDrawTexture = CommandTemplate<SetFramebufferDrawTextureArgument>;

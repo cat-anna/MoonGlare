@@ -78,8 +78,10 @@ RenderingDevice::RenderingDevice(gsl::not_null<iDeviceContext *> _device_context
     //TODO: init queue should not be created/executed here
     std::unique_ptr<CommandQueue> init_queue = std::make_unique<CommandQueue>();
 
+    auto size = _main_window->GetSize();
+
     for (auto &item : allocated_frames) {
-        item = make_aligned<FrameBuffer>(init_queue.get());
+        item = make_aligned<FrameBuffer>(init_queue.get(), size);
         frame_queue.Release(item.get());
     }
 
@@ -124,14 +126,11 @@ void RenderingDevice::EnterLoop() {
 
             // window->BindAsRenderTarget();
 
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            // glFlush();
             // // frame->GetCommandLayers().Execute();
             // cmdl.Execute();
 
             //TODO: remove me
-            glViewport(0, 0, 1920, 1080);
-            glDisable(GL_CULL_FACE); //TODO: remove me
+            glDisable(GL_CULL_FACE);
             glDisable(GL_DEPTH_TEST);
             VirtualCamera camera;
             camera.SetUniformOrthogonal({1920.0f, 1080.0f});
@@ -144,7 +143,7 @@ void RenderingDevice::EnterLoop() {
                                reinterpret_cast<const float *>(&camera.GetProjectionMatrix()));
 
             frame_to_render->command_queue.Execute();
-            glFlush();
+            // glFlush();
 
             window->SwapBuffers();
 

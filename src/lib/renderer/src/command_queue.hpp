@@ -75,24 +75,25 @@ public:
     }
 
     void ClearAllocation() {
-        allocated_commands = 0;
-        memory.ClearAllocation();
-        // allocated_commands = m_CommandsPreamble;
-        // m_Memory.PartialClear(m_MemoryPreamble);
+        allocated_commands = commands_preamble;
+        memory.PartialClear(memory_preamble);
     }
     void Clear() {
         allocated_commands = 0;
         memory.Clear();
-        // m_CommandsPreamble = 0;
-        // m_MemoryPreamble = 0;
-        // m_Memory.Clear();
+        commands_preamble = 0;
+        memory_preamble = 0;
+    }
+    void SetPreamble() {
+        commands_preamble = allocated_commands;
+        memory_preamble = static_cast<uint32_t>(memory.Allocated());
     }
 
 #if 0
     void Sort() {
         if (allocated_commands > 1) {
             // m_SortKeys[allocated_commands].m_UIntValue = 0xFFFF;
-            SortBegin(static_cast<int>(m_CommandsPreamble),
+            SortBegin(static_cast<int>(commands_preamble),
                       static_cast<int>(allocated_commands) - 1);
         }
     }
@@ -193,13 +194,6 @@ public:
         return true;
     }
 
-    void SetQueuePreamble() {
-        m_CommandsPreamble = allocated_commands;
-        m_MemoryPreamble = static_cast<uint32_t>(m_Memory.Allocated());
-    }
-
-    Allocator_t &GetMemory() { return m_Memory; }
-
 private:
 #endif
     template <typename T>
@@ -211,11 +205,9 @@ private:
     MemoryAllocator memory;
     // Array<CommandKey> sort_keys;
 
-#if 0
-    uint32_t m_CommandsPreamble;
-    uint32_t m_MemoryPreamble;
-    void SortBegin(int first, int last);
-#endif
+    uint32_t commands_preamble;
+    uint32_t memory_preamble;
+    // void SortBegin(int first, int last);
 };
 
 using DefaultCommandQueueMemoryAllocator =

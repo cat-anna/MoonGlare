@@ -24,7 +24,9 @@ struct Requirement {
 
 struct FrameBuffer {
     static constexpr size_t kCount = 3;
+};
 
+struct RenderTarget {
     static constexpr size_t kMemoryPoolSize = 8 * 1024 * 1024;
     static constexpr size_t kDynamicBufferPoolSize = 64;
     static constexpr size_t kDynamicVaoPoolSize = 32;

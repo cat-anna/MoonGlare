@@ -34,9 +34,6 @@ static constexpr TextureHandle kInvalidTextureHandle = static_cast<TextureHandle
 // using BufferHandle = GLuint;
 // static constexpr BufferHandle InvalidBufferHandle = static_cast<BufferHandle>(0);
 
-// using FramebufferHandle = GLuint;
-// static constexpr FramebufferHandle InvalidFramebufferHandle = static_cast<FramebufferHandle>(0);
-
 using ShaderHandle = ResourceHandle;
 static constexpr ShaderHandle kInvalidShaderHandle = static_cast<ShaderHandle>(0);
 

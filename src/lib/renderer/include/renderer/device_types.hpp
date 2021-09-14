@@ -22,6 +22,9 @@ constexpr VaoHandle kInvalidVaoHandle = 0;
 using TextureHandle = GLuint;
 constexpr TextureHandle kInvalidTextureHandle = 0;
 
+using FrameBufferHandle = GLuint;
+static constexpr FrameBufferHandle kInvalidFrameBufferHandle = 0;
+
 //-----------------------------------------------------------------------------
 
 enum class PixelFormat : uint16_t {
@@ -56,4 +59,5 @@ enum class ValueFormat : uint16_t {
     UnsignedByte = GL_UNSIGNED_BYTE, // this constants should not be used here!!!
     Float = GL_FLOAT,
 };
+
 } // namespace MoonGlare::Renderer::Device
