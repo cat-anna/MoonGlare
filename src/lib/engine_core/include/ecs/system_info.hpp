@@ -28,10 +28,12 @@ public:
     struct SystemDetails {
         bool has_config;
         bool stepable;
+        SystemOrder order;
     };
 
     virtual SystemDetails GetDetails() const = 0;
     virtual SystemId GetId() const = 0;
+    virtual SystemOrder GetOrder() const = 0;
     virtual const std::string &GetName() const = 0;
     virtual const std::type_info &GetTypeInfo() const = 0;
     virtual std::unique_ptr<iSystem> MakeInstance(const SystemCreateInfo &data,
@@ -39,13 +41,14 @@ public:
 };
 
 inline std::string to_string(const BaseSystemInfo::SystemDetails &sd) {
-    return fmt::format("has_config={},stepable={}", sd.has_config, sd.stepable);
+    return fmt::format("has_config={},stepable={},order={}", sd.has_config, sd.stepable, sd.order);
 }
 
 template <class T>
 struct SystemInfo : public BaseSystemInfo {
     SystemDetails GetDetails() const override { return details; }
     SystemId GetId() const override { return T::kSystemId; }
+    SystemOrder GetOrder() const override { return T::kOrder; };
     const std::string &GetName() const override { return name; }
     const std::type_info &GetTypeInfo() const override { return typeid(T); }
 
@@ -59,6 +62,7 @@ private:
     const SystemDetails details{
         .has_config = !std::is_same_v<T::SystemConfiguration, BaseSystemConfig>,
         .stepable = T::kStepable,
+        .order = T::kOrder,
     };
 };
 

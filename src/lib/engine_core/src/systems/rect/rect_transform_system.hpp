@@ -8,6 +8,7 @@ namespace MoonGlare::Systems::Rect {
 class RectTransformSystem : public ECS::SystemBase<RectTransformSystem> {
 public:
     static constexpr ECS::SystemId kSystemId = 16;
+    static constexpr ECS::SystemOrder kOrder = 1;
     static constexpr char kSystemName[] = "rect_transform_system";
     static constexpr bool kStepable = true;
 

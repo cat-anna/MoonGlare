@@ -8,6 +8,7 @@ namespace MoonGlare::Systems {
 class TransformSystem : public ECS::SystemBase<TransformSystem> {
 public:
     static constexpr ECS::SystemId kSystemId = 4;
+    static constexpr ECS::SystemOrder kOrder = 0;
     static constexpr char kSystemName[] = "transform_system";
     static constexpr bool kStepable = true;
 

@@ -11,6 +11,7 @@
 namespace MoonGlare::ECS {
 
 using SystemId = uint8_t;
+using SystemOrder = int;
 constexpr size_t kMaxSystems = 32;
 constexpr size_t kMaxStepableSystems = 16;
 
@@ -52,6 +53,8 @@ public:
 
     struct RuntimeSystemInfo {
         bool stepable;
+        SystemOrder order;
+        SystemId id;
     };
     virtual RuntimeSystemInfo GetSystemInfo() const = 0;
 
@@ -73,6 +76,8 @@ public:
     RuntimeSystemInfo GetSystemInfo() const override {
         return RuntimeSystemInfo{
             .stepable = SystemImpl::kStepable,
+            .order = SystemImpl::kOrder,
+            .id = SystemImpl::kSystemId,
         };
     }
 

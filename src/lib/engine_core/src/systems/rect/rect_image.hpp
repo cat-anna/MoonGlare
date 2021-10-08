@@ -8,6 +8,7 @@ namespace MoonGlare::Systems::Rect {
 class RectImageSystem : public ECS::SystemBase<RectImageSystem> {
 public:
     static constexpr ECS::SystemId kSystemId = 18;
+    static constexpr ECS::SystemOrder kOrder = 50;
     static constexpr char kSystemName[] = "rect_image";
     static constexpr bool kStepable = true;
 

@@ -9,6 +9,7 @@ namespace MoonGlare::Systems::Rect {
 class RectTransformDebugDrawSystem : public ECS::SystemBase<RectTransformDebugDrawSystem> {
 public:
     static constexpr ECS::SystemId kSystemId = 17;
+    static constexpr ECS::SystemOrder kOrder = 100;
     static constexpr char kSystemName[] = "rect_transform_debug_draw_system";
     static constexpr bool kStepable = true;
 
@@ -29,11 +30,6 @@ protected:
 
     //iSystem
     void DoStep(double time_delta) override;
-
-#if 0
-    bool ready = false;
-    Renderer::ShaderResourceHandleBase shaderHandle;
-#endif
 };
 
 } // namespace MoonGlare::Systems::Rect
