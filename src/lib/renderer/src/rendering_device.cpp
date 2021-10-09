@@ -67,30 +67,23 @@ void RenderingDevice::FrameQueue::SubmitCurrent() {
 
 //----------------------------------------------------------------------------------
 
-RenderingDevice::RenderingDevice(gsl::not_null<iDeviceContext *> _device_context,
-                                 gsl::not_null<iDeviceWindow *> _main_window)
-    : device_context(_device_context), main_window(_main_window)
-// PerfProducer(ifaceMap)
-{
-    // auto cid = AddChart("FrameStats");
-    // AddSeries("RenderTime", Unit::Miliseconds, cid);
-
+RenderingDevice::RenderingDevice(gsl::not_null<iEngineTime *> engine_time,
+                                 gsl::not_null<iDeviceContext *> _device_context,
+                                 gsl::not_null<iDeviceWindow *> _main_window,
+                                 gsl::not_null<iResourceManager *> _resource_manager)
+    : device_context(_device_context), main_window(_main_window),
+      resource_manager(_resource_manager) {
     //TODO: init queue should not be created/executed here
     std::unique_ptr<CommandQueue> init_queue = std::make_unique<CommandQueue>();
 
-    auto size = _main_window->GetSize();
+    auto size = main_window->GetSize();
 
     for (auto &item : allocated_frames) {
-        item = make_aligned<FrameBuffer>(init_queue.get(), size);
+        item = make_aligned<FrameBuffer>(engine_time, init_queue.get(), _resource_manager, size);
         frame_queue.Release(item.get());
     }
 
     init_queue->Execute();
-}
-
-void RenderingDevice::SetResourceManager(gsl::not_null<iResourceManager *> _resource_manager) {
-    resource_manager = _resource_manager;
-    frame_sink = std::make_unique<FrameSink>(_resource_manager);
 }
 
 RenderingDevice::~RenderingDevice() = default;
@@ -130,19 +123,18 @@ void RenderingDevice::EnterLoop() {
             // cmdl.Execute();
 
             //TODO: remove me
-            glDisable(GL_CULL_FACE);
-            glDisable(GL_DEPTH_TEST);
+
             VirtualCamera camera;
             camera.SetUniformOrthogonal({1920.0f, 1080.0f});
 
             glUseProgram(1);
             glUniformMatrix4fv(glGetUniformLocation(1, "uCameraMatrix"), 1, GL_TRUE,
-                               reinterpret_cast<const float *>(&camera.GetProjectionMatrix()));
+                               reinterpret_cast<const float *>(&camera.projection_matrix));
             glUseProgram(2);
             glUniformMatrix4fv(glGetUniformLocation(2, "uCameraMatrix"), 1, GL_TRUE,
-                               reinterpret_cast<const float *>(&camera.GetProjectionMatrix()));
+                               reinterpret_cast<const float *>(&camera.projection_matrix));
 
-            frame_to_render->command_queue.Execute();
+            frame_to_render->ExecuteQueue();
             // glFlush();
 
             window->SwapBuffers();
@@ -174,9 +166,8 @@ void RenderingDevice::ExecuteResourceTasks() {
     }
 }
 
-iFrameSink *RenderingDevice::GetFrameSink() {
-    assert(frame_sink);
-    return frame_sink.get();
+iRenderTarget *RenderingDevice::GetDisplayRenderTarget() {
+    return &render_proxy;
 }
 
 iResourceManager *RenderingDevice::GetResourceManager() {
@@ -185,11 +176,11 @@ iResourceManager *RenderingDevice::GetResourceManager() {
 
 void RenderingDevice::NextFrame() {
     auto next = frame_queue.FetchNext();
-    frame_sink->SetFrameBuffer(next);
+    render_proxy.SetTarget(next);
 }
 
 void RenderingDevice::SubmitFrame() {
-    frame_sink->SetFrameBuffer(nullptr);
+    render_proxy.SetTarget(nullptr);
     frame_queue.SubmitCurrent();
 }
 

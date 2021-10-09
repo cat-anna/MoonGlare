@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math/vector.hpp"
 #include "renderer/device_types.hpp"
 #include <glad/glad.h>
 
@@ -18,9 +19,11 @@ using ShaderUniformHandle = Device::ShaderUniformHandle;
 
 // clang-format off
 
+void SetUniform(ShaderUniformHandle uniform_handle, GLdouble v) { glUniform1d(uniform_handle, v); }
 void SetUniform(ShaderUniformHandle uniform_handle, GLfloat v) { glUniform1f(uniform_handle, v); }
 void SetUniform(ShaderUniformHandle uniform_handle, GLint v) {   glUniform1i(uniform_handle, v); }
 
+void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec2 &v) { glUniform2fv(uniform_handle, 1, (float*)&v); }
 void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec3 &v) { glUniform3fv(uniform_handle, 1, (float*)&v); }
 void SetUniform(ShaderUniformHandle uniform_handle, const math::fvec4 &v) { glUniform4fv(uniform_handle, 1, (float*)&v); }
 
@@ -79,9 +82,7 @@ template <typename T>
 struct ShaderSetUniformCommand {
     T value;
     Device::ShaderUniformHandle uniform_handle;
-    void Execute() const { //
-        detail::SetUniform(uniform_handle, value);
-    }
+    void Execute() const { detail::SetUniform(uniform_handle, value); }
 };
 
 //---------------------------------------------------------------------------------------

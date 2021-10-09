@@ -3,7 +3,7 @@
 #include "component/local_matrix.hpp"
 #include "component/rect/rect_transform.hpp"
 #include "ecs/component_array.hpp"
-#include "renderer/frame_sink_interface.hpp"
+#include "renderer/render_target_interface.hpp"
 #include "renderer/resources.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
@@ -13,7 +13,7 @@ namespace MoonGlare::Systems::Rect {
 using namespace Component;
 using namespace Component::Rect;
 
-using iFrameSink = Renderer::iFrameSink;
+using iRenderTarget = Renderer::iRenderTarget;
 
 RectTransformDebugDrawSystem::RectTransformDebugDrawSystem(const ECS::SystemCreateInfo &create_info,
                                                            SystemConfiguration config_data)
@@ -27,14 +27,12 @@ RectTransformDebugDrawSystem::RectTransformDebugDrawSystem(const ECS::SystemCrea
 
 void RectTransformDebugDrawSystem::DoStep(double time_delta) {
 #if 0
-   // q.MakeCommandKey<Commands::Enable>(key, (GLenum)GL_BLEND);
-    q.MakeCommandKey<Commands::Disable>(key, (GLenum)GL_DEPTH_TEST);
-
-    q.MakeCommandKey<Commands::EnterWireFrameMode>(key);
-    q.MakeCommandKey<Renderer::Commands::LeaveWireFrameMode>(key);
+    // q.MakeCommandKey<Commands::Enable>(key, (GLenum)GL_BLEND);
+    // q.MakeCommandKey<Commands::Disable>(key, (GLenum)GL_DEPTH_TEST);
+    // glDisable(GL_CULL_FACE);
 #endif
 
-    auto element_buffer = GetFrameSink()->ReserveElements(iFrameSink::ElementReserve{
+    auto element_buffer = GetRenderTarget()->ReserveElements(iRenderTarget::ElementReserve{
         .index_count = last_known_element_count * 8,
         .vertex_count = last_known_element_count * 4,
     });
@@ -43,6 +41,8 @@ void RectTransformDebugDrawSystem::DoStep(double time_delta) {
         AddLogf(Warning, "Failed to allocate element buffer");
         return;
     }
+
+    // GetRenderTarget()->AttachCamera(camera_mat);
 
     size_t generated_indices = 0;
     size_t generated_vertexes = 0;
@@ -63,10 +63,10 @@ void RectTransformDebugDrawSystem::DoStep(double time_delta) {
             auto w = rect.size[0];
             auto h = rect.size[1];
             std::array<math::fvec4, 4> points = {
-                math::fvec4(w * 0, h * 0, 0.0f, 1.0f),
-                math::fvec4(w * 1.0f, h * 0, 0.0f, 1.0f),
-                math::fvec4(w * 1.0f, h * 1.0f, 0.0f, 1.0f),
-                math::fvec4(w * 0, h * 1.0f, 0.0f, 1.0f),
+                math::fvec4(0, 0, 0.0f, 1.0f),
+                math::fvec4(w, 0, 0.0f, 1.0f),
+                math::fvec4(w, h, 0.0f, 1.0f),
+                math::fvec4(0, h, 0.0f, 1.0f),
             };
 
             for (uint16_t i = 0; i < points.size(); ++i) {
@@ -83,15 +83,15 @@ void RectTransformDebugDrawSystem::DoStep(double time_delta) {
             generated_vertexes += points.size();
         });
 
-    auto req = iFrameSink::ElementRenderRequest{
+    auto req = iRenderTarget::ElementRenderRequest{
         .position_matrix = math::fmat4::Identity(),
         .element_mode = GL_LINES,
         .index_count = generated_indices,
         .shader_handle = shader_handle,
     };
 
-    GetFrameSink()->SubmitElements(element_buffer, req);
-    last_known_element_count = elements + 16;
+    GetRenderTarget()->SubmitElements(element_buffer, req);
+    last_known_element_count = elements;
 }
 
 } // namespace MoonGlare::Systems::Rect

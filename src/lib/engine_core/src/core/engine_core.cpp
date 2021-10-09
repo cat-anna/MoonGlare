@@ -27,10 +27,15 @@ auto TimeDiff(const TIMEPOINT &start, const TIMEPOINT &end) {
 
 //----------------------------------------------------------------------------------
 
-EngineCore::EngineCore(iStepableObject *_scene_manager, Lua::iScriptContext *_lua_context,
-                       Renderer::iRenderingDevice *_rendering_device)
-    : scene_manager(_scene_manager), lua_context(_lua_context),
-      rendering_device(_rendering_device) {
+EngineCore::EngineCore(Lua::iScriptContext *_lua_context) : lua_context(_lua_context) {
+}
+
+void EngineCore::SetRenderingDevice(Renderer::iRenderingDevice *_rendering_device) {
+    rendering_device = _rendering_device;
+}
+
+void EngineCore::SetSceneManager(iStepableObject *_scene_manager) {
+    scene_manager = _scene_manager;
 }
 
 //----------------------------------------------------------------------------------
@@ -40,6 +45,9 @@ void EngineCore::Stop() {
 }
 
 void EngineCore::EngineMain() {
+    assert(rendering_device);
+    assert(scene_manager);
+
     can_work = true;
     double last_report_time = 0;
     size_t last_frame_counter = 0;

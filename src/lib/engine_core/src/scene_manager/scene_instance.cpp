@@ -60,7 +60,7 @@ void SceneInstance::LoadSceneContent(iPrefabManager *prefab_manager, std::string
         auto sci = ECS::SystemCreateInfo{
             .component_array = &component_array,
             .entity_manager = &entity_manager,
-            .frame_sink = rendering_device->GetFrameSink(),
+            .render_target = rendering_device->GetDisplayRenderTarget(),
             .res_manager = rendering_device->GetResourceManager(),
         };
         auto loaded_systems =

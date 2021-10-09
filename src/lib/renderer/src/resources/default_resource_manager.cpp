@@ -15,15 +15,15 @@ namespace MoonGlare::Renderer {
 class ResourceManager final : public iResourceManager {
 public:
     ResourceManager(gsl::not_null<iAsyncLoader *> async_loader,
-                    gsl::not_null<iContextResourceLoader *> context_loader,
+
                     gsl::not_null<iReadOnlyFileSystem *> file_system,
                     gsl::not_null<CommandQueue *> init_queue)
-        : shader_file_cache(file_system),
+        : res_loader_proxy{nullptr}, shader_file_cache(file_system),
           shader_code_loader(async_loader, file_system,
                              [this]() { return CreateShaderPreprocessor(); }),
-          shader_resource(async_loader, file_system, &shader_code_loader, context_loader,
+          shader_resource(async_loader, file_system, &shader_code_loader, &res_loader_proxy,
                           init_queue),
-          free_image_loader(async_loader, context_loader, &config.texture),
+          free_image_loader(async_loader, &res_loader_proxy, &config.texture),
           texture_resource(&free_image_loader, init_queue) {
         //
     }
@@ -35,6 +35,8 @@ public:
         }
         return std::make_unique<Resources::Shader::Preprocessor>(&shader_file_cache);
     }
+
+    void SetResourceLoader(iContextResourceLoader *loader) { res_loader_proxy.SetTarget(loader); }
 
     //iRuntimeResourceLoader
     //Handled by double overrides
@@ -53,6 +55,7 @@ public:
 
     // clang-format on
 private:
+    ContextResourceLoaderProxy res_loader_proxy;
     Configuration::RendererConfiguration config;
 
     Resources::Shader::ShaderFileCache shader_file_cache;
@@ -72,14 +75,12 @@ private:
 
 //----------------------------------------------------------------------------------
 
-std::unique_ptr<iResourceManager> iResourceManager::CreteDefaultResourceManager(
-    gsl::not_null<iAsyncLoader *> async_loader,
-    gsl::not_null<iContextResourceLoader *> context_loader,
-    gsl::not_null<iReadOnlyFileSystem *> file_system) {
+std::unique_ptr<iResourceManager>
+iResourceManager::CreteDefaultResourceManager(gsl::not_null<iAsyncLoader *> async_loader,
+                                              gsl::not_null<iReadOnlyFileSystem *> file_system) {
 
     std::unique_ptr<CommandQueue> init_queue = std::make_unique<CommandQueue>();
-    auto rm = std::make_unique<ResourceManager>(async_loader, context_loader, file_system,
-                                                init_queue.get());
+    auto rm = std::make_unique<ResourceManager>(async_loader, file_system, init_queue.get());
 
     //TODO: init queue should not be created/executed in CreteDefaultResourceManager
     init_queue->Execute();

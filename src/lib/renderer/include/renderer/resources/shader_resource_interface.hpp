@@ -12,6 +12,11 @@ struct ShaderVariables {
     enum class Uniform {
         kCameraMatrix,
         kModelMatrix,
+
+        kGlobalTime,
+        kTimeDelta,
+        kViewportSize,
+
         kMaxValue,
     };
 
@@ -50,6 +55,12 @@ struct ShaderVariables {
             return "uCameraMatrix";
         case Uniform::kModelMatrix:
             return "uModelMatrix";
+        case Uniform::kGlobalTime:
+            return "uGlobalTime";
+        case Uniform::kTimeDelta:
+            return "uTimeDelta";
+        case Uniform::kViewportSize:
+            return "uViewportSize";
 
         // case Uniform::BaseColor:
         //     return "gBaseColor";

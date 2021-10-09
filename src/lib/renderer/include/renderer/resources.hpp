@@ -42,6 +42,20 @@ public:
     }
 };
 
+class ContextResourceLoaderProxy final : public iContextResourceLoader {
+public:
+    ~ContextResourceLoaderProxy() override = default;
+    ContextResourceLoaderProxy(iContextResourceLoader *target) : target(target) {}
+    void SetTarget(iContextResourceLoader *t) { target = t; }
+    void PushResourceTask(std::shared_ptr<iContextResourceTask> task) final {
+        assert(target);
+        target->PushResourceTask(std::move(task));
+    }
+
+private:
+    iContextResourceLoader *target;
+};
+
 class iResourceManager : public iRuntimeResourceLoader,
                          public Resources::iShaderResource,
                          public Resources::iTextureResource {
@@ -50,9 +64,10 @@ public:
 
     // virtual void ReloadAll() = 0;
 
+    virtual void SetResourceLoader(iContextResourceLoader *loader) = 0;
+
     static std::unique_ptr<iResourceManager>
     CreteDefaultResourceManager(gsl::not_null<iAsyncLoader *> async_loader,
-                                gsl::not_null<iContextResourceLoader *> context_loader,
                                 gsl::not_null<iReadOnlyFileSystem *> file_system);
 };
 

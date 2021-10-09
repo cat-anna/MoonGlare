@@ -27,7 +27,7 @@ class ComponentArray;
 struct SystemCreateInfo {
     ComponentArray *const component_array = nullptr; //TODO: switch to interface
     iEntityManager *const entity_manager = nullptr;
-    Renderer::iFrameSink *const frame_sink = nullptr;
+    Renderer::iRenderTarget *const render_target = nullptr;
     Renderer::iResourceManager *const res_manager = nullptr;
 };
 
@@ -40,7 +40,7 @@ public:
     // virtual int PushToLua(lua_State *lua, Entity owner) { return 0; };
     // virtual bool Load(ComponentReader &reader, Entity parent, Entity owner) { return true; }
     // virtual bool Create(Entity owner) { return false; }
-    // virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &luarets) { return false; }
+    // virtual bool PushEntryToLua(Entity owner, lua_State *lua, int &lua_rets) { return false; }
 
     bool IsActive() const { return active; };
     void SetActive(bool v) { active = v; };
@@ -70,7 +70,7 @@ class SystemBase : public iSystem {
 public:
     SystemBase(const SystemCreateInfo &create_info, const BaseSystemConfig &config)
         : iSystem(create_info, config), component_array(create_info.component_array),
-          entity_manager(create_info.entity_manager), frame_sink(create_info.frame_sink),
+          entity_manager(create_info.entity_manager), render_target(create_info.render_target),
           res_manager(create_info.res_manager) {}
     ~SystemBase() override = default;
     RuntimeSystemInfo GetSystemInfo() const override {
@@ -84,13 +84,13 @@ public:
 protected:
     auto *GetComponentArray() const { return component_array; }
     auto *GetEntityManager() const { return entity_manager; }
-    auto *GetFrameSink() const { return frame_sink; }
+    auto *GetRenderTarget() const { return render_target; }
     auto *GetResourceManager() const { return res_manager; }
 
 private:
     ComponentArray *const component_array;
     iEntityManager *const entity_manager;
-    Renderer::iFrameSink *const frame_sink;
+    Renderer::iRenderTarget *const render_target;
     Renderer::iResourceManager *const res_manager;
 };
 

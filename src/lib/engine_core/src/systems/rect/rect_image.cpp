@@ -3,7 +3,7 @@
 #include "component/rect/rect_image.hpp"
 #include "component/rect/rect_transform.hpp"
 #include "ecs/component_array.hpp"
-#include "renderer/frame_sink_interface.hpp"
+#include "renderer/render_target_interface.hpp"
 #include <fmt/format.h>
 #include <orbit_logger.h>
 
@@ -12,7 +12,7 @@ namespace MoonGlare::Systems::Rect {
 using namespace Component;
 using namespace Component::Rect;
 
-using iFrameSink = Renderer::iFrameSink;
+using iRenderTarget = Renderer::iRenderTarget;
 
 RectImageSystem::RectImageSystem(const ECS::SystemCreateInfo &create_info,
                                  SystemConfiguration config_data)
@@ -33,7 +33,7 @@ void RectImageSystem::DoStep(double time_delta) {
         [&](const RectImage &image, const RectTransform &rect, const GlobalMatrix &global_matrix) {
             // item.Update(conf.timeDelta, *rtentry);
 
-            auto element_buffer = GetFrameSink()->ReserveElements(iFrameSink::ElementReserve{
+            auto element_buffer = GetRenderTarget()->ReserveElements(iRenderTarget::ElementReserve{
                 .index_count = 6,
                 .vertex_count = 4,
                 .texture0_count = 4,
@@ -80,7 +80,7 @@ void RectImageSystem::DoStep(double time_delta) {
                 element_buffer.index_buffer[i] = indexes[i];
             }
 
-            auto req = iFrameSink::ElementRenderRequest{
+            auto req = iRenderTarget::ElementRenderRequest{
                 .position_matrix = global_matrix.transform.matrix(),
                 .element_mode = GL_TRIANGLES,
                 .index_count = 6,
@@ -88,7 +88,7 @@ void RectImageSystem::DoStep(double time_delta) {
                 .texture_handle = image.image_handle.loaded_handle,
             };
 
-            GetFrameSink()->SubmitElements(element_buffer, req);
+            GetRenderTarget()->SubmitElements(element_buffer, req);
         });
 }
 

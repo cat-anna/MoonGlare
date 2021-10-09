@@ -1,9 +1,10 @@
 #pragma once
 
 #include "aligned_ptr.hpp"
+#include "core/engine_time.hpp"
 #include "core/stop_interface.hpp"
 #include "device_context.hpp"
-#include "frame_sink.hpp"
+#include "renderer/render_target_interface.hpp"
 #include "renderer_configuration.hpp"
 #include "rendering_device_interface.hpp"
 #include "resources.hpp"
@@ -20,8 +21,10 @@ class RenderingDevice final : public iRenderingDevice,
                               public iContextResourceLoader,
                               public iStopInterface {
 public:
-    RenderingDevice(gsl::not_null<iDeviceContext *> _device_context,
-                    gsl::not_null<iDeviceWindow *> _main_window);
+    RenderingDevice(gsl::not_null<iEngineTime *> engine_time,
+                    gsl::not_null<iDeviceContext *> _device_context,
+                    gsl::not_null<iDeviceWindow *> _main_window,
+                    gsl::not_null<iResourceManager *> _resource_manager);
     ~RenderingDevice() override;
 
     void SetResourceManager(gsl::not_null<iResourceManager *> _resource_manager);
@@ -40,26 +43,8 @@ public:
     void SubmitFrame() override;
 
     //iRenderingDeviceFacade
-    iFrameSink *GetFrameSink() override;
+    iRenderTarget *GetDisplayRenderTarget() override;
     iResourceManager *GetResourceManager() override;
-
-    // Frame *NextFrame();
-    // void Submit(Frame *frame);
-    // void ReleaseFrame(Frame *frame);
-    // Frame *PendingFrame();
-
-    // void Step();
-    // void ProcessPendingCtrlQueues();
-
-    // TextureRenderTask *AllocateTextureRenderTask() {
-    //     assert(this);
-    //     return m_UnusedTextureRender.pop(nullptr);
-    // }
-
-    // bool CommitControlCommandQueue(Commands::CommitCommandQueue *queue) {
-    //     Commands::CommitCommandQueue *null = nullptr;
-    //     return m_CommitCommandQueue.compare_exchange_weak(null, queue);
-    // }
 
     // uint64_t FrameCounter() const { return frameCounter; }
     // void SetCaptureScreenShoot() override { captureScreenShoot = true; }
@@ -67,8 +52,6 @@ public:
 private:
     std::atomic<bool> can_work{false};
     using clock_t = std::chrono::steady_clock;
-
-    std::unique_ptr<FrameSink> frame_sink;
 
     struct FrameQueue {
         //TODO: this needs to be reworked for full atomicity
@@ -98,6 +81,7 @@ private:
         uint64_t processed_frames = 0; //TODO: change to atomic?
     };
 
+    RenderTargetProxy render_proxy;
     FrameQueue frame_queue;
 
     // std::atomic<Commands::CommitCommandQueue *> m_CommitCommandQueue = nullptr;
@@ -106,7 +90,7 @@ private:
 
     iDeviceContext *const device_context;
     iDeviceWindow *const main_window;
-    iResourceManager *resource_manager = nullptr;
+    iResourceManager *const resource_manager;
     std::array<aligned_ptr<FrameBuffer>, Configuration::FrameBuffer::kCount> allocated_frames;
 
     SynchronizedTaskQueue<std::shared_ptr<iContextResourceTask>> resource_tasks;

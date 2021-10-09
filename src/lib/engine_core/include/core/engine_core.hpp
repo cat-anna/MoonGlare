@@ -11,11 +11,13 @@ namespace MoonGlare {
 
 class EngineCore : public iStopInterface, public iEngineTime {
 public:
-    EngineCore(iStepableObject *_scene_manager, Lua::iScriptContext *_lua_context,
-               Renderer::iRenderingDevice *_rendering_device);
+    EngineCore(Lua::iScriptContext *_lua_context);
     ~EngineCore() = default;
 
     void EngineMain();
+
+    void SetRenderingDevice(Renderer::iRenderingDevice *_rendering_device);
+    void SetSceneManager(iStepableObject *_scene_manager);
 
     // template <class T>
     // void PushSynchronizedAction(T&& t)
@@ -35,9 +37,9 @@ public:
     clock_t::time_point GetStartTime() const override { return start_time_point; };
 
 protected:
-    iStepableObject *const scene_manager;
     Lua::iScriptContext *const lua_context;
-    Renderer::iRenderingDevice *const rendering_device;
+    iStepableObject *scene_manager;
+    Renderer::iRenderingDevice *rendering_device;
     // Memory::ActionQueue m_ActionQueue;
 
     // World *m_World = nullptr;

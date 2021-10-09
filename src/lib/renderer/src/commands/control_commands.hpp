@@ -1,26 +1,24 @@
 #pragma once
 
+#include <glad/glad.h>
+
+namespace MoonGlare::Renderer::Commands {
+
+struct Enable {
+    GLenum what;
+    void Execute() const { glEnable(what); }
+};
+
+struct Disable {
+    GLenum what;
+    void Execute() const { glDisable(what); }
+};
+
+} // namespace MoonGlare::Renderer::Commands
+
 #if 0
 
 #include "../CommandQueueBase.h"
-
-namespace MoonGlare::Renderer::Commands{
-
-struct EnableArgument {
-	GLenum m_What;
-	static void Execute(const EnableArgument *arg) {
-		glEnable(arg->m_What);
-	}
-};
-using Enable = CommandTemplate<EnableArgument>;
-
-struct DisableArgument {
-	GLenum m_What;
-	static void Execute(const DisableArgument *arg) {
-		glDisable(arg->m_What);
-	}
-};
-using Disable = CommandTemplate<DisableArgument>;
 
 //---------------------------------------------------------------------------------------
 
