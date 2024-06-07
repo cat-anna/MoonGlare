@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<Entity Name="GuiMouse">
+	<Component Name="RectTransform">
+		<Position X="0" Y="0" />
+		<Size X="1" Y="1" />
+		<AlignMode>0</AlignMode>
+		<Margin Left="0" Top="0" Right="0" Bottom="0" />
+		<UniformMode>false</UniformMode>
+		<Z>100</Z>
+	</Component>
+	<Component Name="Script">
+		<Script>/GUI/GuiMouse</Script>
+		<Active>true</Active>
+		<PerSecond>false</PerSecond>
+	</Component>
+	<Component Name="Image">
+		<Active>true</Active>
+		<ScaleMode>0</ScaleMode>
+		<Color R="1" G="1" B="1" A="1" />
+		<TextureURI>file:///GUI/Cursor.png</TextureURI>
+		<Speed>1</Speed>
+		<StartFrame>0</StartFrame>
+		<FrameCount>0</FrameCount>
+		<FrameStripCount X="1" Y="1" />
+		<Spacing X="0" Y="0" />
+		<FrameSize X="0" Y="0" />
+	</Component>
+</Entity>

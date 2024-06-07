@@ -1,0 +1,39 @@
+
+FROM ubuntu:20.04
+
+ENV TZ=Europe/Warsaw
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
+
+RUN \
+    apt-get install -y git && \
+    apt-get install -y make cmake && \
+    apt-get install -y bash && \
+    apt-get install -y lua5.1 luarocks && \
+    true
+
+RUN \
+    apt-get install -y libzzip-dev && \
+    apt-get install -y libssl-dev libuv1-dev zlib1g-dev && \
+    true
+
+RUN \
+    apt-get install -y libboost-dev && \
+    true
+
+RUN \
+    apt-get install -y libassimp-dev && \
+    true
+
+RUN \
+    luarocks install luajson && \
+    luarocks install luazip && \
+    luarocks install lua-struct && \
+    luarocks install lua-zlib && \
+    luarocks install lua-lfs && \
+    true
+
+# RUN apt-get clean

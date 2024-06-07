@@ -1,0 +1,150 @@
+{
+    "entity": {
+        "children": [
+            {
+                "enabled": true,
+                "components": [
+                    {
+                        "enabled": true,
+                        "component_id": 16,
+                        "active": true,
+                        "class": "rect_transform",
+                        "data": {
+                            "align_mode": 3,
+                            "position": 0,
+                            "margin": 0.1,
+                            "size": [
+                                1,
+                                2,
+                                0
+                            ]
+                        }
+                    },
+                    {
+                        "enabled": true,
+                        "class": "name",
+                        "data": {
+                            "value": "LeftPanel"
+                        },
+                        "component_id": 0
+                    }
+                ],
+                "children": [
+                    {
+                        "enabled": true,
+                        "components": [
+                            {
+                                "enabled": true,
+                                "component_id": 16,
+                                "active": true,
+                                "class": "rect_transform",
+                                "data": {
+                                    "align_mode": "RightMiddle",
+                                    "position": 0,
+                                    "margin": 0,
+                                    "size": [
+                                        0.5,
+                                        0.5,
+                                        0
+                                    ]
+                                }
+                            },
+                            {
+                                "enabled": true,
+                                "component_id": 17,
+                                "active": true,
+                                "class": "image",
+                                "data": {
+                                    "image_handle": 3172151042730950535,
+                                    "shader_handle": 816241126480282238
+                                }
+                            },
+                            {
+                                "enabled": true,
+                                "class": "name",
+                                "data": {
+                                    "value": "Logo"
+                                },
+                                "component_id": 0
+                            }
+                        ],
+                        "children": {}
+                    }
+                ]
+            },
+            {
+                "enabled": true,
+                "components": [
+                    {
+                        "enabled": true,
+                        "component_id": 16,
+                        "active": true,
+                        "class": "rect_transform",
+                        "data": {
+                            "align_mode": 3,
+                            "position": 0,
+                            "margin": 0,
+                            "size": [
+                                1,
+                                2,
+                                0
+                            ]
+                        }
+                    },
+                    {
+                        "enabled": true,
+                        "class": "name",
+                        "data": {
+                            "value": "RightPanel"
+                        },
+                        "component_id": 0
+                    }
+                ],
+                "children": []
+            }
+        ],
+        "components": [
+            {
+                "class": "name",
+                "component_id": 0,
+                "data": {
+                    "value": "scene_root"
+                },
+                "enabled": true
+            }
+        ],
+        "enabled": true
+    },
+    "systems": [
+        {
+            "id": 4,
+            "enabled": true,
+            "class": "transform_system",
+            "configuration": {}
+        },
+        {
+            "id": 16,
+            "enabled": true,
+            "class": "rect_transform_system",
+            "configuration": {}
+        },
+        {
+            "id": 0,
+            "enabled": true,
+            "class": "global_matrix_system",
+            "configuration": {}
+        },
+        {
+            "id": 17,
+            "enabled": true,
+            "class": "rect_transform_debug_draw_system",
+            "configuration": {}
+        },
+        {
+            "id": 18,
+            "enabled": true,
+            "class": "rect_image",
+            "configuration": {}
+        }
+    ]
+}

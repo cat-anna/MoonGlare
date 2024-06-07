@@ -1,0 +1,219 @@
+{
+    "enabled": true,
+    "components": [
+        {
+            "enabled": true,
+            "class": "name",
+            "data": {
+                "value": "Entity"
+            },
+            "component_id": 0
+        }
+    ],
+    "children": [
+        {
+            "enabled": true,
+            "components": [
+                {
+                    "enabled": true,
+                    "component_id": 16,
+                    "active": true,
+                    "class": "rect_transform",
+                    "data": {
+                        "align_mode": 15,
+                        "position": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "margin": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            0.5,
+                            0.5,
+                            0
+                        ]
+                    }
+                },
+                {
+                    "enabled": true,
+                    "class": "name",
+                    "data": {
+                        "value": "Left"
+                    },
+                    "component_id": 0
+                }
+            ],
+            "children": [
+                {
+                    "enabled": true,
+                    "components": [
+                        {
+                            "enabled": true,
+                            "component_id": 16,
+                            "active": true,
+                            "class": "rect_transform",
+                            "data": {
+                                "align_mode": 10,
+                                "position": [
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "margin": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "size": [
+                                    0.1,
+                                    0.1,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "enabled": true,
+                            "component_id": 17,
+                            "active": true,
+                            "class": "image",
+                            "data": {}
+                        },
+                        {
+                            "enabled": true,
+                            "class": "name",
+                            "data": {
+                                "value": "Logo"
+                            },
+                            "component_id": 0
+                        }
+                    ],
+                    "children": {}
+                }
+            ]
+        },
+        {
+            "enabled": true,
+            "components": [
+                {
+                    "enabled": true,
+                    "component_id": 16,
+                    "active": true,
+                    "class": "rect_transform",
+                    "data": {
+                        "align_mode": 15,
+                        "position": [
+                            1,
+                            0,
+                            0
+                        ],
+                        "margin": [
+                            0,
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            0.5,
+                            0.5,
+                            0
+                        ]
+                    }
+                },
+                {
+                    "enabled": true,
+                    "class": "name",
+                    "data": {
+                        "value": "Right"
+                    },
+                    "component_id": 0
+                }
+            ],
+            "children": [
+                {
+                    "enabled": true,
+                    "components": [
+                        {
+                            "enabled": true,
+                            "component_id": 16,
+                            "active": true,
+                            "class": "rect_transform",
+                            "data": {
+                                "align_mode": 9,
+                                "position": [
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "margin": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "size": [
+                                    0.5,
+                                    0.5,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "enabled": true,
+                            "class": "name",
+                            "data": {
+                                "value": "InfoText"
+                            },
+                            "component_id": 0
+                        }
+                    ],
+                    "children": {}
+                },
+                {
+                    "enabled": true,
+                    "components": [
+                        {
+                            "enabled": true,
+                            "component_id": 16,
+                            "active": true,
+                            "class": "rect_transform",
+                            "data": {
+                                "align_mode": 13,
+                                "position": [
+                                    0,
+                                    0,
+                                    1
+                                ],
+                                "margin": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "size": [
+                                    0.5,
+                                    0.5,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "enabled": true,
+                            "class": "name",
+                            "data": {
+                                "value": "AsyncLoaderText"
+                            },
+                            "component_id": 0
+                        }
+                    ],
+                    "children": {}
+                }
+            ]
+        }
+    ]
+}
