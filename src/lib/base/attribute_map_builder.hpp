@@ -13,6 +13,11 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef WANTS_TYPE_INFO
+//TODO: move this header to tool_base?
+#include <editable_type_provider.hpp>
+#endif
+
 namespace MoonGlare {
 
 namespace detail {
@@ -162,15 +167,15 @@ struct AttributeMapBuilder : public iAttributeProvider<OwnerObject> {
 
     template <typename TypeAlias, typename FieldPointer>
     std::shared_ptr<AttributeMapBuilder<OwnerObject>> AddFieldWithAlias(std::string name, FieldPointer pointer) {
-        using FieldType = detail::MemberPointerTrait<FieldPointer>::Field;
+        using FieldType = typename detail::MemberPointerTrait<FieldPointer>::Field;
         using TypeAttribute = detail::TypeAttribute<OwnerObject, FieldType, TypeAlias>;
         fields.emplace_back(std::make_shared<TypeAttribute>(std::move(name), pointer));
-        return std::dynamic_pointer_cast<AttributeMapBuilder<OwnerObject>>(shared_from_this());
+        return std::dynamic_pointer_cast<AttributeMapBuilder<OwnerObject>>(this->shared_from_this());
     }
 
     template <typename FieldPointer>
     std::shared_ptr<AttributeMapBuilder<OwnerObject>> AddField(std::string name, FieldPointer pointer) {
-        using FieldType = detail::MemberPointerTrait<FieldPointer>::Field;
+        using FieldType = typename detail::MemberPointerTrait<FieldPointer>::Field;
         return AddFieldWithAlias<FieldType, FieldPointer>(std::move(name), pointer);
     }
 
@@ -181,11 +186,12 @@ private:
 
 namespace detail {
 
+#ifdef WANTS_TYPE_INFO
 template <typename O, typename F, typename A>
 std::shared_ptr<iEditableType>
 TypeAttribute<O, F, A>::CreateWrapper(std::shared_ptr<Tools::iEditableTypeProvider> provider, std::any instance) const {
 
-    auto filed_type = provider->GetTypeInfoByTypeName<F>(GetTypeName());
+    auto filed_type = provider->GetTypeInfoByTypeName<F>(this->GetTypeName());
     if (filed_type == nullptr) {
         throw std::runtime_error("Not an editable field");
     }
@@ -194,7 +200,7 @@ TypeAttribute<O, F, A>::CreateWrapper(std::shared_ptr<Tools::iEditableTypeProvid
     auto member_ptr = std::shared_ptr<F>(owner, member);
     return std::make_shared<Tools::EditableType<F>>(std::move(provider), std::move(filed_type), member_ptr);
 };
-
+#endif
 } // namespace detail
 
 } // namespace MoonGlare

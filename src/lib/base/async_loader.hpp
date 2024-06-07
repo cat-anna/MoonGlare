@@ -1,5 +1,6 @@
 #pragma once
 
+#include "resource_id.hpp"
 #include <functional>
 #include <memory>
 #include <string>
@@ -8,6 +9,8 @@ namespace MoonGlare {
 
 class iAsyncFileSystemRequest;
 using SharedAsyncFileSystemRequest = std::shared_ptr<iAsyncFileSystemRequest>;
+
+using FileLoadFunctor = std::function<void(FileResourceId, std::string &file_data)>;
 
 //---------------------------------------------------------------------------------------
 
@@ -41,16 +44,19 @@ class iAsyncLoader {
 public:
     virtual ~iAsyncLoader() = default;
 
+    using AsyncTaskFunctor = std::function<void()>;
+
     virtual void SetObserver(SharedAsyncLoaderObserver) = 0;
 
-    virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
+    // virtual void LoadFile(FileResourceId res_id, SharedAsyncFileSystemRequest handler) = 0;
+    virtual void LoadFile(FileResourceId res_id, FileLoadFunctor functional_handler) = 0;
+
+    // virtual void QueueRequest(std::string URI, SharedAsyncFileSystemRequest handler) = 0;
     virtual void QueueTask(SharedAsyncTask task) = 0;
+    virtual void QueueTask(AsyncTaskFunctor task) = 0;
 
-    using FileRequestFunc = std::function<void(const std::string &uri, std::string &filedata)>;
-    void QueueRequest(std::string URI, FileRequestFunc request);
-
-    using TaskFunc = std::function<void()>;
-    void PostTask(TaskFunc func);
+    [[deprecated]] virtual void QueueRequest(std::string URI,
+                                             SharedAsyncFileSystemRequest handler) = 0;
 
     struct AsyncLoaderStatus {
         size_t pending_jobs = 0;
@@ -60,22 +66,33 @@ public:
     virtual AsyncLoaderStatus GetStatus() const = 0;
 };
 
+#ifdef WANTS_GTEST_MOCKS
+struct AsyncLoaderMock : public iAsyncLoader {
+    MOCK_METHOD1(SetObserver, void(SharedAsyncLoaderObserver));
+    MOCK_METHOD2(LoadFile, void(FileResourceId res_id, FileLoadFunctor functional_handler));
+    MOCK_METHOD1(QueueTask, void(SharedAsyncTask task));
+    MOCK_METHOD1(QueueTask, void(AsyncTaskFunctor task));
+    MOCK_METHOD2(QueueRequest, void(std::string URI, SharedAsyncFileSystemRequest handler));
+    MOCK_CONST_METHOD0(GetStatus, AsyncLoaderStatus());
+};
+#endif
+
 //---------------------------------------------------------------------------------------
 
 class FunctionalAsyncTask : public iAsyncTask {
 public:
-    using TaskFunction = iAsyncLoader::TaskFunc;
+    using AsyncTaskFunctor = iAsyncLoader::AsyncTaskFunctor;
     void DoWork() override final { task(); };
-    FunctionalAsyncTask(TaskFunction f) : task(std::move(f)) {}
+    FunctionalAsyncTask(AsyncTaskFunctor f) : task(std::move(f)) {}
 
 protected:
-    TaskFunction task;
+    AsyncTaskFunctor task;
 };
 
 template <typename T>
 class AsyncSubTask : public FunctionalAsyncTask {
 public:
-    AsyncSubTask(TaskFunction f, std::shared_ptr<T> owner)
+    AsyncSubTask(AsyncTaskFunctor f, std::shared_ptr<T> owner)
         : FunctionalAsyncTask(std::move(f)), owner(std::move(owner)) {}
 
 protected:
@@ -94,8 +111,9 @@ public:
 protected:
     iAsyncLoader *loader;
 
-    void PostTask(FunctionalAsyncTask::TaskFunction func) {
-        loader->QueueTask(std::make_shared<AsyncSubTask<iAsyncFileSystemRequest>>(std::move(func), shared_from_this()));
+    void PostTask(std::function<void()> func) {
+        loader->QueueTask(std::make_shared<AsyncSubTask<iAsyncFileSystemRequest>>(
+            std::move(func), shared_from_this()));
     }
 };
 

@@ -128,6 +128,11 @@ bool LuaRequireModule::ProcessRequire(lua_State *lua, std::string_view name, int
 }
 
 LuaRequireModule::ResultStoreMode LuaRequireModule::TryLoadFileScript(lua_State *lua, const std::string &file_path) {
+    if (filesystem == nullptr) {
+        AddLogf(Warning, "Cannot open file %s - fileystem interface is not set", file_path.c_str());
+        return ResultStoreMode::NoResult;
+    }
+
     std::string file_data;
     if (!filesystem->ReadFileByPath(file_path, file_data)) {
         AddLogf(Warning, "Cannot open file %s", file_path.c_str());
@@ -151,7 +156,7 @@ LuaRequireModule::ResultStoreMode LuaRequireModule::HandleModuleRequest(lua_Stat
     auto it = scriptRequireMap.find(name.data());
     if (it != scriptRequireMap.end()) {
         if (it->second->OnRequire(lua, name))
-            return ResultStoreMode::DontStore;
+            return ResultStoreMode::Store;
     }
     return ResultStoreMode::NoResult;
 }

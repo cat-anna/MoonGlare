@@ -11,6 +11,8 @@ include("generated_docs")
 include("default_targets")
 include("compiler_setup")
 
+# cmake_host_system_information(RESULT BUILD_HOSTNAME QUERY HOSTNAME)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(NOT DEFINED TARGET_DESTINATTION)
@@ -48,6 +50,7 @@ find_package(sol2 CONFIG REQUIRED)
 
 find_package(libzippp CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(freeimage CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 

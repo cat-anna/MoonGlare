@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <any>
@@ -21,13 +20,21 @@ public:
     }
 
     template <typename Iface>
+    void InstallInterfaceHook(Iface **output) {
+        InsertInterfaceHook(typeid(Iface), [output](std::any any_ptr) {
+            *output = std::any_cast<Iface *>(any_ptr);
+        });
+    }
+
+    template <typename Iface>
     void InterfaceReady(Iface *iface) {
         RunInterfaceHook(typeid(Iface), std::any(iface));
     }
 
 protected:
     virtual void RunInterfaceHook(const std::type_info &info, std::any any_ptr) = 0;
-    virtual void InsertInterfaceHook(const std::type_info &info, std::function<void(std::any)> functor) = 0;
+    virtual void InsertInterfaceHook(const std::type_info &info,
+                                     std::function<void(std::any)> functor) = 0;
 };
 
 } // namespace MoonGlare

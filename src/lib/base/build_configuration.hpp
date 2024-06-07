@@ -9,6 +9,7 @@ static constexpr bool kDebugBuild = false;
 #endif
 
 static constexpr bool kDebugDumpEnabled = true;
+static constexpr bool kDisableCaches = true;
 
 #ifdef WINDOWS
 static constexpr bool kIsOsWindows = true;

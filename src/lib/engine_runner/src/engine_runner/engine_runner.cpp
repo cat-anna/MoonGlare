@@ -73,6 +73,8 @@ void EngineRunner::Initialize() {
 
     LoadDataModules();
 
+    engine_core = std::make_unique<EngineCore>(script_context.get());
+
     using namespace Renderer;
     device_context = CreateDeviceContext();
 
@@ -82,10 +84,13 @@ void EngineRunner::Initialize() {
     auto main_window = Renderer::WindowCreationInfo{config.window};
     device_window = device_context->CreateWindow(main_window, input_processor.get());
 
-    rendering_device = std::make_shared<RenderingDevice>(device_context.get(), device_window.get());
-    resource_manager = iResourceManager::CreteDefaultResourceManager(
-        async_loader.get(), rendering_device.get(), filesystem.get());
-    rendering_device->SetResourceManager(resource_manager.get());
+    resource_manager =
+        iResourceManager::CreteDefaultResourceManager(async_loader.get(), filesystem.get());
+    rendering_device = std::make_shared<RenderingDevice>(
+        engine_core.get(), device_context.get(), device_window.get(), resource_manager.get());
+
+    resource_manager->SetResourceLoader(rendering_device.get());
+    engine_core->SetRenderingDevice(rendering_device.get());
 
     InitSceneManager();
 
@@ -107,9 +112,6 @@ void EngineRunner::Initialize() {
     // auto *dataMgr = new DataManager(m_World.get());
     // m_World->SetInterface(dataMgr);
 
-    engine_core = std::make_unique<EngineCore>(
-        dynamic_cast<iStepableObject *>(scene_manager.get()), //TODO: ugly
-        script_context.get(), rendering_device.get());
     runner_hooks.InterfaceReady<iEngineTime>(engine_core.get());
 
     // LuaModules::LoadAllCoreLuaModules(script_module_manager.get(), engine_core.get());
@@ -181,12 +183,15 @@ void EngineRunner::InitSceneManager() {
 
     runner_hooks.InterfaceReady<iPrefabManager>(prefab_manager.get());
 
-    scene_manager = std::make_unique<ScenesManager>(
+    auto sm = std::make_unique<ScenesManager>(
         filesystem.get(), //
         std::make_unique<DefaultSceneFactory>(async_loader.get(), &ecs_register,
                                               prefab_manager.get(), rendering_device.get()));
 
-    runner_hooks.InterfaceReady<iScenesManager>(scene_manager.get());
+    runner_hooks.InterfaceReady<iScenesManager>(sm.get());
+    engine_core->SetSceneManager(sm.get());
+
+    scene_manager = std::move(sm);
 }
 
 } // namespace MoonGlare::Runner

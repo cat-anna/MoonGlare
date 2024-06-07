@@ -42,7 +42,23 @@ class iScriptModuleManager {
 public:
     virtual ~iScriptModuleManager() = default;
     virtual void AddModule(std::shared_ptr<iDynamicScriptModule> module) = 0;
+};
+
+class iScriptContext {
+public:
+    virtual ~iScriptContext() = default;
+
+    virtual void Step(double dt) = 0;
+
+    virtual void GcStep() = 0;
+    virtual void SetGcStepSize(int size) = 0;
+    virtual int GetGcStepSize() const = 0;
+    virtual void CollectGarbage() = 0;
+
+    virtual float GetMemoryUsage() const = 0;
+
     virtual iCodeChunkRunner *GetCodeRunnerInterface() = 0;
+    virtual iScriptModuleManager *GetModuleManager() = 0;
 };
 
 } // namespace MoonGlare::Lua

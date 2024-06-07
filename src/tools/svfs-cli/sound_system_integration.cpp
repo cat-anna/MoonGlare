@@ -89,9 +89,10 @@ struct SoundSystemIntegration::Impl {
     }
     SoundHandle Open(const char *uri, bool StartPlayback = true, bool ReleaseOnStop = true) {
         StartSystem();
-        auto h = ss_handle->Open(uri, StartPlayback, SoundKind::Auto, ReleaseOnStop);
-        handles.emplace_back(h);
-        return h;
+        // auto h = ss_handle->Open(uri, StartPlayback, SoundKind::Auto, ReleaseOnStop);
+        // handles.emplace_back(h);
+        // return h;
+        return {};
     }
     bool IsSoundHandleValid(SoundHandle handle) {
         StartSystem();

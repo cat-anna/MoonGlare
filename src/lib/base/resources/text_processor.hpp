@@ -1,5 +1,5 @@
 #pragma once
-
+#if 0
 #include <string>
 
 #include <interface_map.h>
@@ -23,3 +23,4 @@ class TextProcessor {
 };
 
 } // namespace MoonGlare
+#endif

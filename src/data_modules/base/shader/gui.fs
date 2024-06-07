@@ -1,7 +1,7 @@
 #include "/shader/common.glsl"
 #include "/shader/gui_common.glsl"
 
-// uniform Material_t gMaterial;
+// #include "/shader/logo_clouds.glsl"
 
 // vec4 ProcessBaseColor(vec4 fragment) {
 // 	fragment.xyz *= gBaseColor.a * fragment.a;
@@ -46,14 +46,19 @@
 //---------------------------------------------------------------------------------------
 
 out vec4 FragColor;
-in vec2 TextureUV;
-in vec3 CurrentColor;
+in vec2 Texture0UV;
+in vec3 VertexColor;
 
 void main() {
     // vec2 tex;
     // tex.x = ProcessTile(VertexPosition.x, gTileMode.x, gPanelBorder / gPanelAspect);
     // tex.y = ProcessTile(VertexPosition.y, gTileMode.y, gPanelBorder);
-
+    // FragColor = vec4(texture2D(Texture0, VertexUV0));
+    // FragColor.x = texture( Texture0, v );
     // FragColor = ProcessBaseColor(texture2D(gDiffuseMap, tex));
-    FragColor = vec4(1, 1, 1, 1); //  pow(FragColor.xyz, vec3(1.0/2.2));
+
+    // vec4 cloud_color;
+    // mainImage(cloud_color, Texture0UV);
+    FragColor = vec4(texture2D(sTexture2dSampler0, Texture0UV)); //
+    // FragColor.xyz *= cloud_color.xyz;
 }

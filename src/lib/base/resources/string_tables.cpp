@@ -1,5 +1,5 @@
 #include "resources/string_tables.hpp"
-#include <interface_map.h>
+// #include <interface_map.h>
 // #include "iFileSystem.h"
 
 namespace MoonGlare::Resources {

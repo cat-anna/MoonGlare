@@ -20,6 +20,7 @@ enum GlobalChanels : LogChannel {
     FSEvent,
     Event,
     Sound,
+    Test,
 };
 }
 } // namespace OrbitLogger

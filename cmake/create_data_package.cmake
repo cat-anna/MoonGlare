@@ -6,16 +6,15 @@ function(create_data_package source_directory_name)
   set(package_name ${source_directory_name}.zip)
 
   file(GLOB_RECURSE package_srcs ${source_directory}/*)
-
-  add_custom_target(
-    ${package_name}
+  # CONFIGURE_DEPENDS
+  add_custom_command(
+    OUTPUT ${out_file_name}
+    DEPENDS svfs-cli ${package_srcs}
     COMMAND svfs-cli --action "build_package;${source_directory};${out_file_name}"
-    WORKING_DIRECTORY ${TARGET_DESTINATTION}
-    COMMENT "Building package ${source_directory_name}"
-    DEPENDS svfs-cli
-    BYPRODUCTS ${out_file_name}
-    VERBATIM
-    SOURCES ${package_srcs})
+    COMMENT "Building package ${package_name}"
+    VERBATIM)
 
-  add_dependencies(build_all_data_packages ${package_name})
+  add_custom_target(build_${package_name} DEPENDS svfs-cli ${out_file_name})
+
+  add_dependencies(build_all_data_packages build_${package_name})
 endfunction()

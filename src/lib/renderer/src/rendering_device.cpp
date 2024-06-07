@@ -127,12 +127,14 @@ void RenderingDevice::EnterLoop() {
             VirtualCamera camera;
             camera.SetUniformOrthogonal({1920.0f, 1080.0f});
 
-            glUseProgram(1);
-            glUniformMatrix4fv(glGetUniformLocation(1, "uCameraMatrix"), 1, GL_TRUE,
-                               reinterpret_cast<const float *>(&camera.projection_matrix));
-            glUseProgram(2);
-            glUniformMatrix4fv(glGetUniformLocation(2, "uCameraMatrix"), 1, GL_TRUE,
-                               reinterpret_cast<const float *>(&camera.projection_matrix));
+            if (glIsProgram(1) == GL_TRUE) {
+                glUniformMatrix4fv(glGetUniformLocation(1, "uCameraMatrix"), 1, GL_TRUE,
+                                   reinterpret_cast<const float *>(&camera.projection_matrix));
+            }
+            if (glIsProgram(2) == GL_TRUE) {
+                glUniformMatrix4fv(glGetUniformLocation(2, "uCameraMatrix"), 1, GL_TRUE,
+                                   reinterpret_cast<const float *>(&camera.projection_matrix));
+            }
 
             frame_to_render->ExecuteQueue();
             // glFlush();

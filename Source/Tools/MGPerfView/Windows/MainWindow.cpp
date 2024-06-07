@@ -9,7 +9,7 @@
 #include "../ChartView.h"
 
 namespace MoonGlare::PerfView {
-
+`
 MoonGlare::ModuleClassRegister::Register<MainWindow> MainWindowReg("MainWindow");
 
 MainWindow::MainWindow(SharedModuleManager modmgr)
@@ -32,7 +32,7 @@ MainWindow::~MainWindow() {
     ui.reset();
 }
 
-bool MainWindow::PostInit() { 
+bool MainWindow::PostInit() {
     show();
     return true;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <interface_map.h>
 #include <map>
 #include <string>
@@ -38,3 +39,4 @@ protected:
 };
 
 } // namespace MoonGlare::Resources
+#endif

@@ -11,17 +11,17 @@
 
 #include "DebugDrawer.h"
 
+#include <Renderer/Commands/OpenGL/ArrayCommands.h>
 #include <Renderer/Commands/OpenGL/ControllCommands.h>
 #include <Renderer/Commands/OpenGL/ShaderCommands.h>
 #include <Renderer/Commands/OpenGL/TextureCommands.h>
-#include <Renderer/Commands/OpenGL/ArrayCommands.h>
-#include <Renderer/Resources/ResourceManager.h>
-#include <Source/Renderer/RenderDevice.h>
-#include <Source/Renderer/Frame.h>
-#include <Renderer/Renderer.h>
 #include <Renderer/Deferred/DeferredFrontend.h>
+#include <Renderer/Renderer.h>
 #include <Renderer/Resources/Mesh/VAOResource.h>
+#include <Renderer/Resources/ResourceManager.h>
 #include <Renderer/Resources/Shader/ShaderResource.h>
+#include <Source/Renderer/Frame.h>
+#include <Source/Renderer/RenderDevice.h>
 
 namespace MoonGlare::Physics {
 
@@ -41,26 +41,29 @@ struct BtDebugDrawShaderDescriptor {
         MaxValue,
     };
 
-    constexpr static const char* GetName(Uniform u) {
+    constexpr static const char *GetName(Uniform u) {
         switch (u) {
-        case Uniform::CameraMatrix: return "CameraMatrix";
-        default: return nullptr;
+        case Uniform::CameraMatrix:
+            return "CameraMatrix";
+        default:
+            return nullptr;
         }
     }
-    constexpr static const char* GetSamplerName(Sampler s) {
+    constexpr static const char *GetSamplerName(Sampler s) {
         //switch (s) {
-        //default: 
-            return nullptr;
+        //default:
+        return nullptr;
         //}
     }
 };
 
 BulletDebugDrawer::BulletDebugDrawer() {
     m_LinePoints.reserve(2048);
-    m_LinePointsColors.reserve(2048);   
+    m_LinePointsColors.reserve(2048);
 }
 
-BulletDebugDrawer::~BulletDebugDrawer() {}
+BulletDebugDrawer::~BulletDebugDrawer() {
+}
 
 void BulletDebugDrawer::Prepare() {
     m_LinePoints.clear();
@@ -86,7 +89,7 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     if (!frame->AllocateFrameResource(vao))
         return;
 
-//    auto &mem = frame->GetMemory();
+    //    auto &mem = frame->GetMemory();
 
     auto &layers = frame->GetCommandLayers();
     auto &Queue = layers.Get<Renderer::Configuration::FrameBuffer::Layer::DefferedLighting>();
@@ -107,12 +110,12 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     vaob.BeginDataChange();
 
     vaob.CreateChannel(ichannels::Vertex);
-    vaob.SetChannelData<float, 3>(ichannels::Vertex, 
-        (const float*)m.Clone(m_LinePoints), m_LinePoints.size());
+    vaob.SetChannelData<float, 3>(ichannels::Vertex, (const float *)m.Clone(m_LinePoints),
+                                  m_LinePoints.size());
 
     vaob.CreateChannel(ichannels::Texture0);
-    vaob.SetChannelData<float, 3>(ichannels::Texture0, 
-        (const float*)m.Clone(m_LinePointsColors), m_LinePointsColors.size());
+    vaob.SetChannelData<float, 3>(ichannels::Texture0, (const float *)m.Clone(m_LinePointsColors),
+                                  m_LinePointsColors.size());
 
     vaob.EndDataChange();
 
@@ -129,7 +132,8 @@ void BulletDebugDrawer::Submit(const MoonGlare::Core::MoveConfig &conf) {
     vaob.UnBindVAO();
 }
 
-void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
+void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to,
+                                 const btVector3 &color) {
     m_LinePoints.push_back(convert(from));
     m_LinePointsColors.push_back(convert(color));
 
@@ -137,8 +141,9 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
     m_LinePointsColors.push_back(convert(color));
 }
 
-void BulletDebugDrawer::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) {
-//	m_dev->CurrentShader()->SetBackColor(convert(color));
+void BulletDebugDrawer::drawContactPoint(const btVector3 &PointOnB, const btVector3 &normalOnB,
+                                         btScalar distance, int lifeTime, const btVector3 &color) {
+    //	m_dev->CurrentShader()->SetBackColor(convert(color));
     //glBegin(GL_POINTS);
     //glVertex3fv((float*)&PointOnB);
     //glEnd();
@@ -153,17 +158,18 @@ void BulletDebugDrawer::reportErrorWarning(const char *c) {
     AddLog(Warning, "Message from bullet: '" << c << "'");
 }
 
-void BulletDebugDrawer::draw3dText(const btVector3 &, const char *) {}
+void BulletDebugDrawer::draw3dText(const btVector3 &, const char *) {
+}
 
 void BulletDebugDrawer::setDebugMode(int p) {
 }
 
 int BulletDebugDrawer::getDebugMode(void) const {
-    return 
-      //  DBG_DrawWireframe | 
-        DBG_DrawAabb | 
-//        DBG_DrawNormals | 
+    return
+        //  DBG_DrawWireframe |
+        DBG_DrawAabb |
+        //        DBG_DrawNormals |
         0;
 }
 
-}
+} // namespace MoonGlare::Physics

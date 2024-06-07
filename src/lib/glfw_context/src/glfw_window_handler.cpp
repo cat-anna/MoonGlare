@@ -68,7 +68,7 @@ GlfwWindowHandler::GlfwWindowHandler(Renderer::WindowCreationInfo window_info,
     // glEnable(GL_FRAMEBUFFER_SRGB);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glfwSwapInterval(0);
+    glfwSwapInterval(0);
 
     glfwSetWindowCloseCallback(glfw_window.get(), GLFW_CloseCallback);
     glfwSetWindowFocusCallback(glfw_window.get(), GLFW_FocusCallback);

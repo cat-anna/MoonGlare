@@ -72,8 +72,8 @@ struct MeshData {
 
     bool ready;
     uint32_t memoryBlockSize;
-    void *
-        memoryBlockFront; //from this pointer all other should be relative within range of memoryBlockSize
+    //from this pointer all other should be relative within range of memoryBlockSize
+    void *memoryBlockFront;
 
     bool CheckPointers() const {
         auto *memEnd = ((const uint8_t *)memoryBlockFront) + memoryBlockSize;
@@ -82,9 +82,9 @@ struct MeshData {
             return ptr == nullptr || (p >= (const uint8_t *)memoryBlockFront && p < memEnd);
         };
 
-        return check(verticles) && check(UV0) && check(normals) && check(tangents) &&
-               check(index) && check(vertexBones) && check(vertexBoneWeights) &&
-               check(boneMatrices) && check(boneNameValues) && check(boneNameOffsets);
+        return check(verticles) && check(UV0) && check(normals) && check(tangents) && check(index) &&
+               check(vertexBones) && check(vertexBoneWeights) && check(boneMatrices) && check(boneNameValues) &&
+               check(boneNameOffsets);
     }
 };
 

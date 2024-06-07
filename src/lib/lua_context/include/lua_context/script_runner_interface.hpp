@@ -9,7 +9,8 @@ class iCodeChunkRunner {
 public:
     virtual ~iCodeChunkRunner() = default;
 
-    virtual bool ExecuteCodeChunk(const char *code, unsigned len, const char *chunk_name = nullptr) = 0;
+    virtual bool ExecuteCodeChunk(const char *code, unsigned len,
+                                  const char *chunk_name = nullptr) = 0;
 
     bool ExecuteCodeChunk(const std::string &code, const char *chunk_name = nullptr) {
         return ExecuteCodeChunk(code.c_str(), static_cast<unsigned>(code.size()), chunk_name);

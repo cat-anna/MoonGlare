@@ -35,7 +35,8 @@ std::shared_ptr<ComponentInfo> ComponentRegisterModule::GetComponentInfo(MoonGla
 
 std::shared_ptr<ComponentInfo> ComponentRegisterModule::GetComponentInfo(const std::string &component_name) const {
     for (auto &item : info_vector) {
-        if (item->name == component_name) {
+        if ( //item->name == component_name ||
+            item->editable_type_name == component_name) {
             return item;
         }
     }

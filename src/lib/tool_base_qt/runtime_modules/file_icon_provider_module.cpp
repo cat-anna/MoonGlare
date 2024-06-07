@@ -23,10 +23,10 @@ const std::string &FileIconProviderModule::GetExtensionIcon(const std::string &e
 }
 
 const std::string &FileIconProviderModule::GetExtensionIcon(const std::string &ext,
-                                                            const std::string &default) const {
+                                                            const std::string &default_icon) const {
     auto it = file_icon_map.find(boost::to_lower_copy(ext));
     if (it == file_icon_map.end())
-        return default;
+        return default_icon;
     return it->second;
 }
 

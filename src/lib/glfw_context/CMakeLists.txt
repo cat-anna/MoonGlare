@@ -7,5 +7,5 @@ target_link_libraries(
           glfw
           renderer
           engine_core
-          glad::glad
+          # glad::glad
           orbit_logger)

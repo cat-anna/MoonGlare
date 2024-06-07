@@ -7,7 +7,7 @@ define_executable(
   base
   star_vfs
   glfw
-  glad::glad
+  # glad::glad
   OpenGL::GL
   freeimage::FreeImage
   engine_core

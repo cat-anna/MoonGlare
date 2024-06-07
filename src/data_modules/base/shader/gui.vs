@@ -1,20 +1,15 @@
 #include "/shader/common.glsl"
 #include "/shader/gui_common.glsl"
 
-layout(location = 0) in vec3 inVertexPosition;
-layout(location = 1) in vec2 inTextureUV;
-layout(location = 2) in vec3 inVertexColor;
-
-out vec2 TextureUV;
-out vec3 CurrentColor;
+out vec2 Texture0UV;
+out vec3 VertexColor;
 
 void main() {
-    //* uModelMatrix
-    vec4 vpos = (uCameraMatrix)*vec4(inVertexPosition, 1.0);
+    vec4 vpos = (uCameraMatrix * uModelMatrix) * vec4(inVertexPosition, 1.0);
     gl_Position = vpos;
 
-    TextureUV = inTextureUV;
-    CurrentColor = inVertexColor;
+    Texture0UV = inTexture0UV;
+    VertexColor = inVertexColor;
     // if (gTileMode.x == 0) {
     // outVertexPosition.x = TexCoord.x;
     // } else {

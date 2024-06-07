@@ -1,3 +1,4 @@
+#if 0
 #include <cassert>
 
 #include "resources/string_tables.hpp"
@@ -82,3 +83,4 @@ void TextProcessor::Process(const std::string &input, std::string &out) {
 }
 
 } //namespace MoonGlare
+#endif

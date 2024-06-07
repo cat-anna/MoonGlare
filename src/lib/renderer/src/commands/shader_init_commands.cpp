@@ -127,6 +127,8 @@ void QueryStandardUniformsCommand::Execute() const {
         uniforms->uniform[i] = loc;
         if (loc == Device::kInvalidShaderUniformHandle) {
             AddLogf(Debug, "Unable to get location of parameter '%s' in shader %d", name, handle);
+        } else {
+            AddLogf(Debug, "Location of parameter '%s' in shader %d is %d", name, handle, loc);
         }
     }
 }

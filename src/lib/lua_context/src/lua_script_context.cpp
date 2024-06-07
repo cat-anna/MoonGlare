@@ -70,10 +70,6 @@ void LuaScriptContext::GcStep() {
     //         AddLogf(Debug, "New Lua GC step: %d", m_CurrentGCStep);
     //     }
     // }
-
-    // #ifdef PERF_PERIODIC_PRINT
-    //     AddLogf(Performance, "Lua memory usage: %6.2f k bytes", memusage);
-    // #endif
 }
 
 void LuaScriptContext::CollectGarbage() {
@@ -89,6 +85,14 @@ void LuaScriptContext::CollectGarbage() {
     // #else
     //     lua_gc(lua_state, LUA_GCCOLLECT, 0);
     // #endif
+}
+
+void LuaScriptContext::Step(double dt) {
+    LuaScriptContext::GcStep();
+
+    // Modules::StaticModules::ThreadStep(lua_state, m_world);
+
+    stat_timer.Check([this]() { PrintMemoryUsage(); });
 }
 
 void LuaScriptContext::PrintMemoryUsage() const {
@@ -141,15 +145,6 @@ void LuaScriptContext::AddModule(std::shared_ptr<iDynamicScriptModule> module) {
 
 #if 0
 
-#include "Modules/LuaSettings.h"
-#include "Modules/StaticModules.h"
-#include "ScriptEngine.h"
-#include "ScriptObject.h"
-#include <Core/Component/ComponentRegister.h>
-#include <Core/Scripts/LuaApi.h>
-#include <Engine/Core/DataManager.h>
-#include <Foundation/Scripts/ErrorHandling.h>
-
 namespace Core::Scripts {
 
 void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
@@ -164,14 +159,6 @@ void ScriptEngine::RegisterScriptApi(ApiInitializer &root) {
         .addData("TimeDelta", &MoveConfig::timeDelta, false)
         .addData("SecondPeriod", &MoveConfig::m_SecondPeriod, false)
     .endClass();
-}
-
-//---------------------------------------------------------------------------------------
-
-void ScriptEngine::Step(const MoveConfig &config) {
-    LOCK_MUTEX(m_Mutex);
-
-    Modules::StaticModules::ThreadStep(lua_state, m_world);
 }
 
 //---------------------------------------------------------------------------------------
@@ -192,39 +179,11 @@ bool ScriptEngine::GetComponentEntryMT(SubSystemId cid) {
         return true;
     }
 }
-
-//---------------------------------------------------------------------------------------
-
-template<typename Class, typename Iface>
-void ScriptEngine::InstallModule() {
-    auto &mod = modules[std::type_index(typeid(Iface))];
-    if (mod.basePtr) {
-        throw std::runtime_error(std::string("Attempt to re-register iface ") + typeid(Iface).name());
-    }
-
-    auto uptr = std::make_unique<Class>(lua_state, m_world);
-    m_world->SetInterface<Iface>(uptr.get());
-    mod.basePtr = std::move(uptr);
-
-    if (auto regFunc = MoonGlare::Scripts::GetApiInitFunc<Class>(); regFunc) {
-        luabridge::getGlobalNamespace(lua_state)
-            .beginNamespace("api")
-                .DefferCalls(regFunc)
-            .endNamespace()
-            ;
-    }
-
-#ifdef DEBUG_SCRIPTAPI
-    if (auto regFunc = MoonGlare::Scripts::GetDebugApiInitFunc<Class>(); regFunc) {
-        luabridge::getGlobalNamespace(lua_state)
-            .beginNamespace("debug")
-                .DefferCalls(regFunc)
-            .endNamespace()
-            ;
-    }
-#endif
+void ScriptEngine::GetComponentMTTable(lua_State *lua) {
+    lua_pushlightuserdata(lua, GetComponentMTTableIndex());
+    lua_gettable(lua, LUA_REGISTRYINDEX);
 }
 
-}
+void * ScriptEngine::GetComponentMTTableIndex() { return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(this) + 1); }
 
 #endif

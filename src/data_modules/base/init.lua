@@ -14,7 +14,7 @@
 
 print("BASE MODULE INIT")
 
-require "base/scripts/formatting"
+require "/scripts/formatting"
 
 local scenes = require("moonglare.scenes")
 scenes:create_scene("moonglare_loading_scene", scenes.LOADING_SCENE_NAME)

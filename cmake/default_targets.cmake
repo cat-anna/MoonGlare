@@ -1,10 +1,18 @@
 add_custom_target(build_all_libs)
 add_custom_target(build_all_test)
+add_custom_target(build_all_executables)
 add_custom_target(execute_all_test)
 
 function(define_static_lib target_name)
 
-  file(GLOB_RECURSE SRC src/*.cpp src/*.hpp include/*.hpp)
+  file(
+    GLOB_RECURSE
+    SRC
+    src/*.cpp
+    src/*.c
+    src/*.hpp
+    include/*.hpp
+    include/*.h)
   list(FILTER SRC EXCLUDE REGEX ".*_(g|catch)test\..*")
 
   add_library(${target_name} STATIC ${SRC})
@@ -58,5 +66,31 @@ function(define_static_lib_with_ut target_name)
       PARENT_SCOPE)
   set(TARGET_UT_CATCHTEST
       ${ut_catchtest_target}
+      PARENT_SCOPE)
+endfunction()
+
+function(define_executable)
+  set(options)
+  set(oneValueArgs NAME EMBED_SCRIPTS)
+  set(multiValueArgs LINKS)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  file(GLOB_RECURSE SRC *.cpp *.hpp *.h)
+
+  message("* Adding executable ${ARG_NAME}")
+  add_executable(${ARG_NAME} ${SRC})
+
+  target_include_directories(${ARG_NAME} PRIVATE include)
+  target_include_directories(${ARG_NAME} PRIVATE src)
+  target_link_libraries(${ARG_NAME} PUBLIC fmt::fmt ${ARG_LINKS})
+  add_dependencies(build_all_executables ${ARG_NAME})
+
+  install(
+    TARGETS ${ARG_NAME}
+    COMPONENT executables
+    DESTINATION bin)
+
+  set(TARGET
+      ${ARG_NAME}
       PARENT_SCOPE)
 endfunction()

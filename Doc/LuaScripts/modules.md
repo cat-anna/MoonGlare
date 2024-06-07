@@ -1,7 +1,7 @@
 
 
 
-## ```settings = require "Settigs"```
+## ```settings = require "Settings"```
 
 * settings:Apply()
 * settings:Cancel() [TBD]

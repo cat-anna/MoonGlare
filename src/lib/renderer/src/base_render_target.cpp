@@ -12,7 +12,7 @@ namespace {
 using ShaderVariables = Resources::ShaderVariables;
 
 template <typename T>
-void SetShaderUniform(CommandQueue &q, const T &value, Device::ShaderUniformHandle uniform) {
+inline void SetShaderUniform(CommandQueue &q, const T &value, Device::ShaderUniformHandle uniform) {
     if (uniform != Device::kInvalidShaderUniformHandle) {
         q.PushCommand(
             Commands::ShaderSetUniformCommand<T>{.value = value, .uniform_handle = uniform});
@@ -20,8 +20,8 @@ void SetShaderUniform(CommandQueue &q, const T &value, Device::ShaderUniformHand
 }
 
 template <typename T>
-void SetShaderUniform(CommandQueue &q, const T &value, ShaderVariables sv,
-                      ShaderVariables::Uniform uniform) {
+inline void SetShaderUniform(CommandQueue &q, const T &value, ShaderVariables sv,
+                             ShaderVariables::Uniform uniform) {
     SetShaderUniform(q, value, sv->GetUniform(uniform));
 }
 
@@ -143,14 +143,10 @@ void BaseRenderTarget::SubmitElements(const ElementBuffer &buffer,
         TriggerBreakPoint();
     }
 
+    AttachShader(request.shader_handle);
+
     queue.PushCommand(
         Texture2DBindCommand{.handle = request.texture_handle & kResourceDeviceHandleMask});
-
-    // math::fmat4 position_matrix;
-    // ShaderHandle shader_handle;
-    AttachShader(request.shader_handle);
-    queue.PushCommand(
-        ShaderBindCommand{.handle = request.shader_handle & kResourceDeviceHandleMask});
 
     auto uniforms = resource_manager->GetShaderVariables(request.shader_handle);
     queue.PushCommand(ShaderSetUniformCommand<math::fmat4>{
@@ -169,24 +165,24 @@ void BaseRenderTarget::SubmitElements(const ElementBuffer &buffer,
 }
 
 void BaseRenderTarget::AttachShader(ShaderHandle shader_handle) {
-    auto id = shader_handle & kResourceDeviceHandleMask;
-    if (attached_shaders[id]) {
+    Device::ShaderHandle device_handle = shader_handle & kResourceDeviceHandleMask;
+    command_queue.PushCommand(ShaderBindCommand{.handle = device_handle});
+
+    if (attached_shaders[device_handle]) {
         return;
     }
-    attached_shaders[id] = true;
+    attached_shaders[device_handle] = true;
 
     using ShaderVariables = Resources::ShaderVariables;
     auto uniforms = resource_manager->GetShaderVariables(shader_handle);
 
-    auto &queue = command_queue;
-
     //TODO: optimize out virtual calls when shader uniform is not used
 
-    SetShaderUniform(queue, frame_buffer_size,
+    SetShaderUniform(command_queue, frame_buffer_size,
                      uniforms->GetUniform(ShaderVariables::Uniform::kViewportSize));
-    SetShaderUniform(queue, static_cast<float>(engine_time->GetGlobalTime()),
+    SetShaderUniform(command_queue, static_cast<float>(engine_time->GetGlobalTime()),
                      uniforms->GetUniform(ShaderVariables::Uniform::kGlobalTime));
-    SetShaderUniform(queue, static_cast<float>(engine_time->GetCurrentTimeDelta()),
+    SetShaderUniform(command_queue, static_cast<float>(engine_time->GetCurrentTimeDelta()),
                      uniforms->GetUniform(ShaderVariables::Uniform::kTimeDelta));
 }
 

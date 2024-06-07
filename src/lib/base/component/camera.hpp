@@ -2,12 +2,11 @@
 
 #include "component_common.hpp"
 #include "component_serialiazation.hpp"
+#include "math/camera_projection.hpp"
 #include "math/vector.hpp"
-// #include <Renderer/VirtualCamera.h>
 
 namespace MoonGlare::Component {
 
-// alignas(16)
 struct Camera : public ComponentBase<Camera> {
     static constexpr ComponentId kComponentId = 7;
     static constexpr char kComponentName[] = "camera";
@@ -15,10 +14,22 @@ struct Camera : public ComponentBase<Camera> {
     static constexpr bool kSerializable = true;
     static constexpr bool kHasResources = false;
 
-    math::fmat4 projection_matrix;
+    math::fmat4 projection_matrix = math::fmat4::Identity();
+    math::fvec3 up_vector = math::fvec3{0, 1, 0};
+    // math::fvec3 up_vector = math::fvec3{0, 0, 1};
     bool orthogonal;
-    uint8_t _padding_0[3];
     float fov;
+    //  float Near = 0.1f, Far = 1.0e4f;
+    float near = 0.1f;
+    float far = 1.0e4f;
+
+    void ResetProjectionMatrix(float aspect) {
+        if (orthogonal) {
+            projection_matrix = math::Ortho(-aspect, aspect, 1.0f, -1.0f);
+        } else {
+            projection_matrix = math::Perspective(fov, aspect, near, far);
+        }
+    }
 };
 
 // static_assert((sizeof(Camera) % 16) == 0);
@@ -29,7 +40,9 @@ static_assert((offsetof(Camera, projection_matrix) % 16) == 0);
 auto GetTypeInfo(Camera *) {
     return AttributeMapBuilder<Camera>::Start(Camera::kComponentName)
         ->AddField("orthogonal", &Camera::orthogonal)
-        ->AddField("fov", &Camera::fov);
+        ->AddField("fov", &Camera::fov)
+        ->AddField("near", &Camera::near)
+        ->AddField("far", &Camera::far);
 }
 
 #endif
@@ -40,66 +53,18 @@ void to_json(nlohmann::json &j, const Camera &p) {
     j = {
         {"orthogonal", p.orthogonal},
         {"fov", p.fov},
+        {"near", p.near},
+        {"far", p.far},
     };
 }
 void from_json(const nlohmann::json &j, Camera &p) {
     j.at("orthogonal").get_to(p.orthogonal);
     j.at("fov").get_to(p.fov);
+    // TODO;
+    // p.near = 1.0f;
+    // p.far = 1.0e4f;
 }
 
 #endif
 
 } // namespace MoonGlare::Component
-
-#if 0
-
-#include <nfMoonGlare.h>
-#include <pch.h>
-
-#include "CameraComponent.h"
-#include "TransformComponent.h"
-#include <Core/Component/ComponentRegister.h>
-#include <Core/Component/SubsystemManager.h>
-
-#include <Source/Renderer/Renderer.h>
-#include <Source/Renderer/iContext.h>
-
-#include <CameraComponent.x2c.h>
-#include <Common.x2c.h>
-#include <ComponentCommon.x2c.h>
-
-#include <Math/Geometry.h>
-
-namespace MoonGlare::Component {
-
-bool CameraComponent::Load(ComponentReader &reader, Entity owner) {
-    x2c::Component::CameraComponent::CameraEntry_t ce;
-    ce.ResetToDefault();
-    if (!reader.Read(ce)) {
-        AddLogf(Error, "Failed to read CameraComponent entry!");
-        return false;
-    }
-
-    m_Flags.ClearAll();
-
-    m_Flags.m_Map.m_Orthogonal = ce.m_Orthogonal;
-    m_FoV = ce.m_FoV;
-    m_ProjectionMatrix.setIdentity();
-
-    return true;
-}
-
-//-------------------------------------------------------------------------------------------------
-
-void CameraComponent::ResetProjectionMatrix(float aspect) {
-    float Near = 0.1f, Far = 1.0e4f;// TODO;
-    if (m_Flags.m_Map.m_Orthogonal) {
-        m_ProjectionMatrix = emath::Ortho(0.0f, aspect, 1.0f, 0.0f, Near, Far);
-    } else {
-        m_ProjectionMatrix = emath::Perspective(m_FoV, aspect, Near, Far);
-    }
-}
-
-}
-
-#endif

@@ -14,8 +14,7 @@ public:
     bool PostInit() override;
 
     const std::string &GetExtensionIcon(const std::string &ext) const override;
-    const std::string &GetExtensionIcon(const std::string &ext,
-                                        const std::string &default) const override;
+    const std::string &GetExtensionIcon(const std::string &ext, const std::string &default_icon) const override;
 
 private:
     std::unordered_map<std::string, std::string> file_icon_map;

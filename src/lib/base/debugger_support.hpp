@@ -4,10 +4,11 @@
 
 namespace MoonGlare {
 
-inline void TriggerBreakPoint() {
-    if constexpr (kDebugBuild && kIsOsWindows) {
-        __debugbreak();
+#define TriggerBreakPoint()                                                                        \
+    {                                                                                              \
+        if constexpr (::MoonGlare::kDebugBuild && ::MoonGlare::kIsOsWindows) {                     \
+            __debugbreak();                                                                        \
+        }                                                                                          \
     }
-}
 
 } // namespace MoonGlare
